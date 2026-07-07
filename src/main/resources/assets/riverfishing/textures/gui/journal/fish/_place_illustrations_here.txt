@@ -1,0 +1,8 @@
+Journal fish illustrations go here.
+
+File name: <species>.png  (e.g. gudgeon.png, pike.png, catfish.png)
+Species ids match the fish item ids (same as the icons in textures/item/fish/).
+
+Any resolution works; use a 3:2 aspect ratio (e.g. 1024x672, 480x320) — the journal
+scales the whole image into a framed 204x136 plate on the fish's page. If a species has
+no file here yet, the page shows a placeholder (the item icon) instead.
