@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [ "s s", "shs", "s s" ],
+  "key": {
+    "s": { "item": "minecraft:stick" },
+    "h": { "item": "minecraft:string" }
+  },
+  "result": { "item": "riverfishing:bait_trap" }
+}

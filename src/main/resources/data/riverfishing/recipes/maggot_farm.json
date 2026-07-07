@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PPP",
+    "PFP",
+    "PPP"
+  ],
+  "key": {
+    "P": { "tag": "minecraft:planks" },
+    "F": { "item": "minecraft:rotten_flesh" }
+  },
+  "result": { "item": "riverfishing:maggot_farm" }
+}

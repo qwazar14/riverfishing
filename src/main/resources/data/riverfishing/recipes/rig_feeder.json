@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [ "n n", "nsn" ],
+  "key": {
+    "n": { "item": "minecraft:iron_nugget" },
+    "s": { "item": "minecraft:string" }
+  },
+  "result": { "item": "riverfishing:rig_feeder" }
+}

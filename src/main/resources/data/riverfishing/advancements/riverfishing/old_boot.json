@@ -1,0 +1,14 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": { "item": "minecraft:leather_boots" },
+    "title": { "translate": "advancement.riverfishing.old_boot.title" },
+    "description": { "translate": "advancement.riverfishing.old_boot.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": { "trigger": "minecraft:impossible" }
+  }
+}

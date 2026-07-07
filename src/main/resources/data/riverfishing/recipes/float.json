@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "minecraft:bamboo" },
+    { "item": "minecraft:feather" }
+  ],
+  "result": { "item": "riverfishing:float", "count": 1 }
+}

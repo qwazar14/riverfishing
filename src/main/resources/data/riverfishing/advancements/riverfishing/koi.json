@@ -1,0 +1,17 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": { "item": "riverfishing:carp_koi_kohaku" },
+    "title": { "translate": "advancement.riverfishing.koi.title" },
+    "description": { "translate": "advancement.riverfishing.koi.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "koi": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": [
+      "riverfishing:carp_koi_kohaku", "riverfishing:carp_koi_tancho_sanke",
+      "riverfishing:carp_koi_showa_sanke", "riverfishing:carp_koi_asagi", "riverfishing:carp_koi_bekko"
+    ] } ] } }
+  }
+}

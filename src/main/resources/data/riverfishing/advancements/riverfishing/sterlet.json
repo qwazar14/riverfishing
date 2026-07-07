@@ -1,0 +1,14 @@
+{
+  "parent": "riverfishing:riverfishing/giant",
+  "display": {
+    "icon": { "item": "riverfishing:sterlet" },
+    "title": { "translate": "advancement.riverfishing.sterlet.title" },
+    "description": { "translate": "advancement.riverfishing.sterlet.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "sterlet": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:sterlet"] } ] } }
+  }
+}

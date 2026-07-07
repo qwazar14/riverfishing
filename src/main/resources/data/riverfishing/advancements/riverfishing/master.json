@@ -1,0 +1,14 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": { "item": "minecraft:gold_ingot" },
+    "title": { "translate": "advancement.riverfishing.master.title" },
+    "description": { "translate": "advancement.riverfishing.master.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "granted": { "trigger": "minecraft:impossible" }
+  }
+}

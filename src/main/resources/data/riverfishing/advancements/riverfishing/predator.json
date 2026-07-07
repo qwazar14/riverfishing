@@ -1,0 +1,13 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": { "item": "riverfishing:wobbler" },
+    "title": { "translate": "advancement.riverfishing.predator.title" },
+    "description": { "translate": "advancement.riverfishing.predator.description" },
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "pike": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:pike"] } ] } }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": { "item": "riverfishing:perch" },
+    "title": { "translate": "advancement.riverfishing.frenzy_feast.title" },
+    "description": { "translate": "advancement.riverfishing.frenzy_feast.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false
+  },
+  "criteria": {
+    "code": { "trigger": "minecraft:impossible" }
+  }
+}

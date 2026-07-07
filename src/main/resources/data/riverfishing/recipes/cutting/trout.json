@@ -1,0 +1,14 @@
+{
+  "type": "farmersdelight:cutting",
+  "conditions": [
+    { "type": "forge:mod_loaded", "modid": "farmersdelight" }
+  ],
+  "ingredients": [
+    { "item": "riverfishing:trout" }
+  ],
+  "tool": { "type": "farmersdelight:tool_action", "action": "knife" },
+  "result": [
+    { "item": "riverfishing:raw_fillet", "count": 2 },
+    { "item": "minecraft:bone_meal", "chance": 0.5 }
+  ]
+}

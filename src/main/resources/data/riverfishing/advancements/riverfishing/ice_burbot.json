@@ -1,0 +1,14 @@
+{
+  "parent": "riverfishing:riverfishing/night_king",
+  "display": {
+    "icon": { "item": "riverfishing:winter_rod" },
+    "title": { "translate": "advancement.riverfishing.ice_burbot.title" },
+    "description": { "translate": "advancement.riverfishing.ice_burbot.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": { "trigger": "minecraft:impossible" }
+  }
+}

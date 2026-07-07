@@ -1,0 +1,15 @@
+{
+  "parent": "riverfishing:riverfishing/koi",
+  "display": {
+    "icon": { "item": "riverfishing:raw_fillet" },
+    "title": { "translate": "advancement.riverfishing.koi_fillet.title" },
+    "description": { "translate": "advancement.riverfishing.koi_fillet.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "criteria": {
+    "code": { "trigger": "minecraft:impossible" }
+  }
+}

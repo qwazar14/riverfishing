@@ -1,0 +1,14 @@
+{
+  "parent": "riverfishing:riverfishing/trophy",
+  "display": {
+    "icon": { "item": "riverfishing:wild_carp" },
+    "title": { "translate": "advancement.riverfishing.sazan.title" },
+    "description": { "translate": "advancement.riverfishing.sazan.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "wild_carp": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:wild_carp"] } ] } }
+  }
+}

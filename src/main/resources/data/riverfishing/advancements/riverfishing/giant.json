@@ -1,0 +1,14 @@
+{
+  "parent": "riverfishing:riverfishing/predator",
+  "display": {
+    "icon": { "item": "riverfishing:catfish" },
+    "title": { "translate": "advancement.riverfishing.giant.title" },
+    "description": { "translate": "advancement.riverfishing.giant.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "catfish": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:catfish"] } ] } }
+  }
+}

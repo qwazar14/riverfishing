@@ -1,0 +1,15 @@
+{
+  "parent": "riverfishing:riverfishing/trophy",
+  "display": {
+    "icon": { "item": "riverfishing:pole_rod" },
+    "title": { "translate": "advancement.riverfishing.trophy_on_pole.title" },
+    "description": { "translate": "advancement.riverfishing.trophy_on_pole.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "criteria": {
+    "code": { "trigger": "minecraft:impossible" }
+  }
+}

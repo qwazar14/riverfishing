@@ -1,0 +1,17 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": { "item": "riverfishing:pike" },
+    "title": { "translate": "advancement.riverfishing.trophy.title" },
+    "description": { "translate": "advancement.riverfishing.trophy.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "trophy_fish": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [ { "tag": "riverfishing:fishes", "nbt": "{Trophy:1b}" } ] }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "riverfishing:bream", "riverfishing:crucian_carp", "riverfishing:roach", "riverfishing:rudd",
+    "riverfishing:white_bream", "riverfishing:carp", "riverfishing:catfish", "riverfishing:perch",
+    "riverfishing:pike", "riverfishing:zander", "riverfishing:gudgeon", "riverfishing:ruffe",
+    "riverfishing:bleak", "riverfishing:ide", "riverfishing:chub", "riverfishing:asp",
+    "riverfishing:tench", "riverfishing:burbot", "riverfishing:eel", "riverfishing:grayling",
+    "riverfishing:trout", "riverfishing:sterlet",
+    "riverfishing:wild_carp", "riverfishing:mirror_carp",
+    "riverfishing:carp_koi_kohaku", "riverfishing:carp_koi_tancho_sanke",
+    "riverfishing:carp_koi_showa_sanke", "riverfishing:carp_koi_asagi", "riverfishing:carp_koi_bekko"
+  ]
+}
