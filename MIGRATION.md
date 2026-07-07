@@ -32,8 +32,12 @@ src/      ← PARKED legacy Forge sources; ported into common/ stage by stage, t
    → `CommandRegistrationEvent`; villager trades → `@ExpectPlatform VillagerTradeRegistry` (Forge
    `VillagerTradesEvent` ↔ Fabric `TradeOfferHelper`); `ForgeConfigSpec` → plain static config. Forge-import
    surface 36→25. (Client HUD/render events move with Stage 5.)
-4. Networking → Architectury `NetworkManager`; `getPersistentData` → `SavedData`.
-5. Client: BEWLR renderers (fish/rod), aquarium BER, screens, cast-bar / float-timing HUD, in-world line.
+4. **[done — data] `getPersistentData` → `PlayerData`** (overworld `SavedData` by UUID; JournalData/QuestData/
+   AnglerSkills/JournalCommand). Networking (`SimpleChannel` → Architectury `NetworkManager`) is DEFERRED into
+   Stage 5: 4 of the 6 packets are S2C and their handlers call the client screens/HUD, so the net layer is
+   converted together with those client classes to avoid double work.
+5. Client + networking: BEWLR renderers (fish/rod), aquarium BER, screens, cast-bar / float-timing HUD,
+   in-world line, AND the `NetworkManager` packet layer (S2C handlers land here).
 6. Wire `mods.toml` + `fabric.mod.json` fully; shared data (recipes/tags/lang) in `common`; forge JEI.
 7. Run both dev clients; fix; then REI/EMI on Fabric.
 
