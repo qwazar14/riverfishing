@@ -22,8 +22,9 @@ public final class RiverFishing {
     public static void init() {
         LOGGER.info("River Fishing: common init on {}", PlatformHelper.platformName());
         ModRegistries.init();
-        // Stage 3–4: config (was ForgeConfigSpec), networking (was SimpleChannel), events (worm/mob
-        // drops, villager trades, commands), and the getPersistentData → SavedData rewrite.
+        com.riverfishing.event.ModEvents.init();      // reload/tick/quit/block-break + mob-bait loot
+        com.riverfishing.command.JournalCommand.init(); // /rffish
+        // Stage 4: networking (was SimpleChannel) → NetworkManager, and getPersistentData → SavedData.
     }
 
     public static ResourceLocation id(String path) {

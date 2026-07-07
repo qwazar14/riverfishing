@@ -23,10 +23,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.MerchantOffer;
-import net.minecraftforge.common.BasicItemListing;
-import net.minecraftforge.event.village.VillagerTradesEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.Registries;
@@ -40,17 +36,17 @@ import java.util.function.Supplier;
  * Fisherman villager (§8): a custom profession with its own POI job-site block ("Fishing Stall") and
  * five trade tiers. Trades are added on the forge bus via {@link VillagerTradesEvent}.
  */
-@Mod.EventBusSubscriber(modid = RiverFishing.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class ModVillagers {
     public static final DeferredRegister<PoiType> POI_TYPES =
             DeferredRegister.create(RiverFishing.MODID, Registries.POINT_OF_INTEREST_TYPE);
     public static final DeferredRegister<VillagerProfession> PROFESSIONS =
             DeferredRegister.create(RiverFishing.MODID, Registries.VILLAGER_PROFESSION);
 
-    /** Register POI + profession (§multiloader). Trades still ride the Forge event (Stage 3 remainder). */
+    /** Register POI + profession, then hand the trade table to the platform seam (§multiloader). */
     public static void init() {
         POI_TYPES.register();
         PROFESSIONS.register();
+        registerTrades();
     }
 
     public static final RegistrySupplier<PoiType> FISHERMAN_POI = POI_TYPES.register("fisherman",
@@ -68,12 +64,11 @@ public final class ModVillagers {
 
     private ModVillagers() {}
 
-    @SubscribeEvent
-    public static void onTrades(VillagerTradesEvent event) {
-        if (event.getType() != FISHERMAN.get()) return;
-        Int2ObjectMap<List<VillagerTrades.ItemListing>> t = event.getTrades();
+    /** Build the fisherman's five trade tiers, then register them through the platform seam (§multiloader). */
+    private static void registerTrades() {
+        Int2ObjectMap<List<VillagerTrades.ItemListing>> t = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>();
         for (int lvl = 1; lvl <= 5; lvl++) {
-            if (t.get(lvl) == null) t.put(lvl, new ArrayList<>());
+            t.put(lvl, new ArrayList<>());
         }
 
         // Level 1 — Novice: starter consumables + buys the beginner fish.
@@ -146,18 +141,22 @@ public final class ModVillagers {
         buyPrime(t, 5, "eel", 8, 15);
         buyPrime(t, 5, "sterlet", 16, 30);
         buyPrime(t, 5, "wild_carp", 14, 28);
+
+        com.riverfishing.platform.VillagerTradeRegistry.register(FISHERMAN, t);
     }
 
     private static Item item(String path) {
-        return ForgeRegistries.ITEMS.getValue(RiverFishing.id(path));
+        return net.minecraft.core.registries.BuiltInRegistries.ITEM.get(RiverFishing.id(path));
     }
 
-    /** Villager sells {@code count}× item for {@code emeraldCost} emeralds. */
+    /** Villager sells {@code count}× item for {@code emeraldCost} emeralds (§multiloader: a plain listing). */
     private static void sell(Int2ObjectMap<List<VillagerTrades.ItemListing>> t, int level, String path,
                              int emeraldCost, int count, int xp) {
         Item i = item(path);
         if (i == null || i == Items.AIR) return;
-        t.get(level).add(new BasicItemListing(emeraldCost, new ItemStack(i, count), 12, xp, 0.05f));
+        ItemStack result = new ItemStack(i, count);
+        t.get(level).add((trader, random) ->
+                new MerchantOffer(new ItemStack(Items.EMERALD, emeraldCost), result.copy(), 12, xp, 0.05f));
     }
 
     /** Villager sells a LAZILY built NBT stack (assembled rig/rod, §assembled-trades). */

@@ -1,144 +1,60 @@
 package com.riverfishing.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
-
 /**
- * Difficulty config (§14). A {@code preset} (arcade / realism / hardcore) picks a set of multipliers
- * for the "frustrating" mechanics; set it to {@code custom} to use the individual values instead.
- * "Low floor, high ceiling": Arcade barely punishes, Hardcore turns everything up.
+ * Difficulty config (§14, §multiloader). A {@code preset} (arcade / realism / hardcore) picks the
+ * multipliers for the "frustrating" mechanics; set it to {@code custom} to use the individual values.
+ *
+ * <p>The Forge {@code ForgeConfigSpec} was dropped for the multi-loader split — Architectury has no
+ * config API. These are plain static fields defaulted to the old {@code realism} values; a per-platform
+ * config-file loader (JSON) can populate them in a later pass. The public accessor API is unchanged, so
+ * no call sites needed touching.
  */
 public final class RiverFishingConfig {
-    public static final ForgeConfigSpec SPEC;
+    // preset: arcade | realism | hardcore | custom
+    public static String preset = "realism";
 
-    public static final ForgeConfigSpec.ConfigValue<String> PRESET;
-    public static final ForgeConfigSpec.DoubleValue PHANTOM;
-    public static final ForgeConfigSpec.DoubleValue BREAK_SENSITIVITY;
-    public static final ForgeConfigSpec.DoubleValue DEPLETION;
-    public static final ForgeConfigSpec.DoubleValue LEADER_BITEOFF;
-    public static final ForgeConfigSpec.DoubleValue LINE_WEAR;
-    public static final ForgeConfigSpec.DoubleValue HOOK_WEAR;
-    public static final ForgeConfigSpec.DoubleValue SNAG;
-    public static final ForgeConfigSpec.DoubleValue FOUL;
+    // [custom] values (only used when preset == "custom")
+    public static double phantom = 1.0;
+    public static double breakSensitivity = 1.0;
+    public static double depletion = 1.0;
+    public static double leaderBiteoff = 0.75;
+    public static double lineWear = 1.0;
+    public static double hookWear = 1.0;
+    public static double snag = 1.0;
+    public static double foul = 1.0;
 
-    // ---- Gameplay events (§polish 4): always read directly, not preset-driven ----
-    public static final ForgeConfigSpec.DoubleValue TROPHY_CHANCE;
-    public static final ForgeConfigSpec.DoubleValue FRENZY_SPEED;
-    public static final ForgeConfigSpec.BooleanValue CONSUME_BAIT;
-    public static final ForgeConfigSpec.BooleanValue CONSUME_GROUNDBAIT;
-    public static final ForgeConfigSpec.DoubleValue BYCATCH_JUNK;
-    public static final ForgeConfigSpec.DoubleValue BYCATCH_TREASURE;
-
-    static {
-        ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
-        b.comment("River Fishing difficulty (§14). 'low floor, high ceiling'.");
-        b.push("difficulty");
-        PRESET = b.comment("Difficulty preset: arcade, realism, hardcore, or custom (use the values below).")
-                .define("preset", "realism");
-        PHANTOM = b.comment("[custom] Phantom (false-alarm) rate multiplier.")
-                .defineInRange("phantom_multiplier", 1.0, 0.0, 10.0);
-        BREAK_SENSITIVITY = b.comment("[custom] How readily the line snaps on over-tension (higher = snaps sooner).")
-                .defineInRange("break_sensitivity", 1.0, 0.1, 10.0);
-        DEPLETION = b.comment("[custom] How fast a chunk's fish get depleted by repeated casts.")
-                .defineInRange("depletion_multiplier", 1.0, 0.0, 10.0);
-        LEADER_BITEOFF = b.comment("[custom] Chance a leaderless line is bitten through by pike/zander.")
-                .defineInRange("leader_biteoff_chance", 0.75, 0.0, 1.0);
-        LINE_WEAR = b.comment("[custom] Line wear rate multiplier (0 = lines never wear).")
-                .defineInRange("line_wear_multiplier", 1.0, 0.0, 10.0);
-        HOOK_WEAR = b.comment("[custom] Hook dulling rate multiplier (0 = hooks never blunt).")
-                .defineInRange("hook_wear_multiplier", 1.0, 0.0, 10.0);
-        SNAG = b.comment("[custom] Spinning snag-near-shore rate multiplier (0 = no snags).")
-                .defineInRange("snag_multiplier", 1.0, 0.0, 10.0);
-        FOUL = b.comment("[custom] Foul-hooking (snagging a fish by the body) rate multiplier.")
-                .defineInRange("foulhook_multiplier", 1.0, 0.0, 10.0);
-        b.pop();
-
-        b.comment("Gameplay events (§polish): trophies, feeding frenzy, consumables, bycatch.");
-        b.push("events");
-        TROPHY_CHANCE = b.comment("Chance a hooked fish is a trophy-class specimen.")
-                .defineInRange("trophy_chance", 0.04, 0.0, 1.0);
-        FRENZY_SPEED = b.comment("How much faster fish bite during a feeding frenzy (1 = frenzy off).")
-                .defineInRange("frenzy_bite_speed", 3.0, 1.0, 10.0);
-        CONSUME_BAIT = b.comment("Fish eat one natural bait from the rig on every strike.")
-                .define("consume_bait", true);
-        CONSUME_GROUNDBAIT = b.comment("Feeder casts consume one groundbait and feed the landing spot.")
-                .define("consume_groundbait", true);
-        BYCATCH_JUNK = b.comment("Chance a float/bottom bite is junk (boot, kelp...).")
-                .defineInRange("bycatch_junk_chance", 0.045, 0.0, 1.0);
-        BYCATCH_TREASURE = b.comment("Chance a float/bottom bite is a small treasure.")
-                .defineInRange("bycatch_treasure_chance", 0.013, 0.0, 1.0);
-        b.pop();
-        SPEC = b.build();
-    }
+    // Gameplay events (§polish): read directly, not preset-driven.
+    public static double trophyChance = 0.04;
+    public static double frenzySpeed = 3.0;
+    public static boolean consumeBait = true;
+    public static boolean consumeGroundbait = true;
+    public static double bycatchJunk = 0.045;
+    public static double bycatchTreasure = 0.013;
 
     private RiverFishingConfig() {}
 
-    private static String preset() {
-        return PRESET.get().toLowerCase();
-    }
-
-    private static double byPreset(double arcade, double realism, double hardcore, ForgeConfigSpec.DoubleValue custom) {
-        return switch (preset()) {
+    private static double byPreset(double arcade, double realism, double hardcore, double custom) {
+        return switch (preset.toLowerCase()) {
             case "arcade" -> arcade;
             case "hardcore" -> hardcore;
-            case "custom" -> custom.get();
+            case "custom" -> custom;
             default -> realism;
         };
     }
 
-    public static double phantomMultiplier() {
-        return byPreset(0.2, 1.0, 1.6, PHANTOM);
-    }
+    public static double phantomMultiplier() { return byPreset(0.2, 1.0, 1.6, phantom); }
+    public static double breakSensitivity() { return byPreset(0.3, 1.0, 1.7, breakSensitivity); }
+    public static double depletionMultiplier() { return byPreset(0.3, 1.0, 1.6, depletion); }
+    public static double leaderBiteoffChance() { return byPreset(0.3, 0.75, 0.95, leaderBiteoff); }
+    public static double lineWearRate() { return byPreset(0.3, 1.0, 1.7, lineWear); }
+    public static double hookWearRate() { return byPreset(0.3, 1.0, 1.7, hookWear); }
+    public static double snagChance() { return byPreset(0.3, 1.0, 1.6, snag); }
+    public static double foulHookChance() { return byPreset(0.4, 1.0, 1.6, foul); }
 
-    public static double breakSensitivity() {
-        return byPreset(0.3, 1.0, 1.7, BREAK_SENSITIVITY);
-    }
-
-    public static double depletionMultiplier() {
-        return byPreset(0.3, 1.0, 1.6, DEPLETION);
-    }
-
-    public static double leaderBiteoffChance() {
-        return byPreset(0.3, 0.75, 0.95, LEADER_BITEOFF);
-    }
-
-    public static double lineWearRate() {
-        return byPreset(0.3, 1.0, 1.7, LINE_WEAR);
-    }
-
-    public static double hookWearRate() {
-        return byPreset(0.3, 1.0, 1.7, HOOK_WEAR);
-    }
-
-    public static double snagChance() {
-        return byPreset(0.3, 1.0, 1.6, SNAG);
-    }
-
-    public static double foulHookChance() {
-        return byPreset(0.4, 1.0, 1.6, FOUL);
-    }
-
-    public static double trophyChance() {
-        return TROPHY_CHANCE.get();
-    }
-
-    public static double frenzySpeed() {
-        return FRENZY_SPEED.get();
-    }
-
-    public static boolean consumeBait() {
-        return CONSUME_BAIT.get();
-    }
-
-    public static boolean consumeGroundbait() {
-        return CONSUME_GROUNDBAIT.get();
-    }
-
-    public static double bycatchJunkChance() {
-        return BYCATCH_JUNK.get();
-    }
-
-    public static double bycatchTreasureChance() {
-        return BYCATCH_TREASURE.get();
-    }
+    public static double trophyChance() { return trophyChance; }
+    public static double frenzySpeed() { return frenzySpeed; }
+    public static boolean consumeBait() { return consumeBait; }
+    public static boolean consumeGroundbait() { return consumeGroundbait; }
+    public static double bycatchJunkChance() { return bycatchJunk; }
+    public static double bycatchTreasureChance() { return bycatchTreasure; }
 }
-

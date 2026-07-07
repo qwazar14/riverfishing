@@ -27,7 +27,11 @@ src/      ← PARKED legacy Forge sources; ported into common/ stage by stage, t
    Common still won't compile — Loom builds the whole module, so green only comes after ALL 36 Forge-coupled
    files are done. Remaining Forge surface (grep `net.minecraftforge`): network(7), item(6), client(4),
    block(3), jei(2), config, command, event, quest, and the villager **trades event** in ModVillagers.
-3. Abstract entry point + events (worm/mob drops, villager trades, commands) + client HUD/render events.
+3. **[done — server events] ** `ModEvents` → Architectury events (`ReloadListenerRegistry`, `TickEvent.PLAYER_POST`,
+   `PlayerEvent.PLAYER_QUIT`, `BlockEvent.BREAK`) + mob-bait via `LootEvent.MODIFY_LOOT_TABLE`; `JournalCommand`
+   → `CommandRegistrationEvent`; villager trades → `@ExpectPlatform VillagerTradeRegistry` (Forge
+   `VillagerTradesEvent` ↔ Fabric `TradeOfferHelper`); `ForgeConfigSpec` → plain static config. Forge-import
+   surface 36→25. (Client HUD/render events move with Stage 5.)
 4. Networking → Architectury `NetworkManager`; `getPersistentData` → `SavedData`.
 5. Client: BEWLR renderers (fish/rod), aquarium BER, screens, cast-bar / float-timing HUD, in-world line.
 6. Wire `mods.toml` + `fabric.mod.json` fully; shared data (recipes/tags/lang) in `common`; forge JEI.
