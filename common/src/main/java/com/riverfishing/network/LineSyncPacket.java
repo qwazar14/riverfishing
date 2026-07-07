@@ -1,27 +1,27 @@
 package com.riverfishing.network;
 
+import com.riverfishing.RiverFishing;
+import dev.architectury.utils.EnvExecutor;
+import net.fabricmc.api.EnvType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
-
-import java.util.function.Supplier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
- * Server → clients: a player's fishing-line state (§immersion) — whose line it is, where it lands,
- * how far the fish has been reeled in (0..1), and the line's colour (by line type). Broadcast to
- * everyone tracking the angler (§line-multiplayer) so other players see the line too;
- * {@code active=false} clears it.
+ * Server → clients: a player's fishing-line state (§immersion / §line-multiplayer) — whose line it is,
+ * where it lands, reel-in progress (0..1), colour, whether to draw a float, and whether a bite is on now.
+ * Broadcast to everyone tracking the angler; {@code active=false} clears it.
  */
-public class LineSyncPacket {
-    public final int playerId; // entity id of the angler this line belongs to
+public class LineSyncPacket implements ModNetwork.RfPacket {
+    public static final ResourceLocation TYPE = RiverFishing.id("line_sync");
+
+    public final int playerId;
     public final boolean active;
     public final BlockPos target;
     public final float progress;
     public final int color;
-    public final boolean bobber; // draw a float at the line's end (float rigs only, §bobber-render)
-    public final boolean biting; // a bite is on RIGHT NOW: the bobber plunges / the line twitches
+    public final boolean bobber;
+    public final boolean biting;
 
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
                           boolean bobber) {
@@ -39,14 +39,20 @@ public class LineSyncPacket {
         this.biting = biting;
     }
 
-    public static void encode(LineSyncPacket p, FriendlyByteBuf buf) {
-        buf.writeVarInt(p.playerId);
-        buf.writeBoolean(p.active);
-        buf.writeBlockPos(p.target);
-        buf.writeFloat(p.progress);
-        buf.writeInt(p.color);
-        buf.writeBoolean(p.bobber);
-        buf.writeBoolean(p.biting);
+    @Override
+    public ResourceLocation type() {
+        return TYPE;
+    }
+
+    @Override
+    public void write(FriendlyByteBuf buf) {
+        buf.writeVarInt(playerId);
+        buf.writeBoolean(active);
+        buf.writeBlockPos(target);
+        buf.writeFloat(progress);
+        buf.writeInt(color);
+        buf.writeBoolean(bobber);
+        buf.writeBoolean(biting);
     }
 
     public static LineSyncPacket decode(FriendlyByteBuf buf) {
@@ -54,10 +60,8 @@ public class LineSyncPacket {
                 buf.readFloat(), buf.readInt(), buf.readBoolean(), buf.readBoolean());
     }
 
-    public static void handle(LineSyncPacket p, Supplier<NetworkEvent.Context> ctx) {
-        NetworkEvent.Context c = ctx.get();
-        c.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
-                () -> () -> com.riverfishing.client.ClientLineState.accept(p)));
-        c.setPacketHandled(true);
+    public void handleClient() {
+        EnvExecutor.runInEnv(EnvType.CLIENT,
+                () -> () -> com.riverfishing.client.ClientLineState.accept(this));
     }
 }

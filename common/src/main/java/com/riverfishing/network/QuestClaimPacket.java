@@ -1,39 +1,42 @@
 package com.riverfishing.network;
 
+import com.riverfishing.RiverFishing;
 import com.riverfishing.quest.Quests;
+import dev.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
-
-import java.util.function.Supplier;
 
 /**
  * Client → server: the player clicked a completed quest in the journal to CLAIM its reward (§quests).
- * The server re-validates (goal complete, not yet rewarded) before granting, so the click can't cheat.
+ * The server re-validates (goal complete, not yet rewarded) before granting.
  */
-public class QuestClaimPacket {
+public class QuestClaimPacket implements ModNetwork.RfPacket {
+    public static final ResourceLocation TYPE = RiverFishing.id("quest_claim");
+
     private final String questId;
 
     public QuestClaimPacket(String questId) {
         this.questId = questId;
     }
 
-    public static void encode(QuestClaimPacket p, FriendlyByteBuf buf) {
-        buf.writeUtf(p.questId, 64);
+    @Override
+    public ResourceLocation type() {
+        return TYPE;
+    }
+
+    @Override
+    public void write(FriendlyByteBuf buf) {
+        buf.writeUtf(questId, 64);
     }
 
     public static QuestClaimPacket decode(FriendlyByteBuf buf) {
         return new QuestClaimPacket(buf.readUtf(64));
     }
 
-    public static void handle(QuestClaimPacket p, Supplier<NetworkEvent.Context> ctx) {
-        NetworkEvent.Context c = ctx.get();
-        c.enqueueWork(() -> {
-            ServerPlayer sp = c.getSender();
-            if (sp != null) {
-                Quests.claim(sp, sp.serverLevel(), p.questId);
-            }
-        });
-        c.setPacketHandled(true);
+    public void handleServer(NetworkManager.PacketContext ctx) {
+        if (ctx.getPlayer() instanceof ServerPlayer sp) {
+            Quests.claim(sp, sp.serverLevel(), questId);
+        }
     }
 }

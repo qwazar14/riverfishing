@@ -1,20 +1,18 @@
 package com.riverfishing.network;
 
-import com.riverfishing.client.FloatTimingClient;
+import com.riverfishing.RiverFishing;
+import dev.architectury.utils.EnvExecutor;
+import net.fabricmc.api.EnvType;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
-
-import java.util.function.Supplier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Server → client: a strike-timing mini-game has started (or ended). The client renders the runner bar
- * with a GREEN target zone (100% hook) and a flanking ORANGE band (25% hook); the server is authoritative
- * on the strike. Both compute the marker from {@code startTick} (game time). The zone can sit anywhere on
- * the bar (§float-zones), so its bounds are sent explicitly.
+ * with a GREEN target zone (100% hook) and flanking ORANGE band (25% hook); the server is authoritative.
  */
-public class FloatTimingPacket {
+public class FloatTimingPacket implements ModNetwork.RfPacket {
+    public static final ResourceLocation TYPE = RiverFishing.id("float_timing");
+
     public final boolean active;
     public final long startTick;
     public final int windowTicks;
@@ -36,15 +34,21 @@ public class FloatTimingPacket {
         this.orangeEnd = orangeEnd;
     }
 
-    public static void encode(FloatTimingPacket p, FriendlyByteBuf buf) {
-        buf.writeBoolean(p.active);
-        buf.writeLong(p.startTick);
-        buf.writeInt(p.windowTicks);
-        buf.writeInt(p.periodTicks);
-        buf.writeFloat(p.greenStart);
-        buf.writeFloat(p.greenEnd);
-        buf.writeFloat(p.orangeStart);
-        buf.writeFloat(p.orangeEnd);
+    @Override
+    public ResourceLocation type() {
+        return TYPE;
+    }
+
+    @Override
+    public void write(FriendlyByteBuf buf) {
+        buf.writeBoolean(active);
+        buf.writeLong(startTick);
+        buf.writeInt(windowTicks);
+        buf.writeInt(periodTicks);
+        buf.writeFloat(greenStart);
+        buf.writeFloat(greenEnd);
+        buf.writeFloat(orangeStart);
+        buf.writeFloat(orangeEnd);
     }
 
     public static FloatTimingPacket decode(FriendlyByteBuf buf) {
@@ -52,10 +56,8 @@ public class FloatTimingPacket {
                 buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat());
     }
 
-    public static void handle(FloatTimingPacket p, Supplier<NetworkEvent.Context> ctx) {
-        NetworkEvent.Context c = ctx.get();
-        c.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
-                () -> () -> FloatTimingClient.accept(p)));
-        c.setPacketHandled(true);
+    public void handleClient() {
+        EnvExecutor.runInEnv(EnvType.CLIENT,
+                () -> () -> com.riverfishing.client.FloatTimingClient.accept(this));
     }
 }
