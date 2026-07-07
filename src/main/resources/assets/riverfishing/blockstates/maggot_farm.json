@@ -1,0 +1,9 @@
+{
+  "variants": {
+    "level=0": { "model": "riverfishing:block/maggot_farm_0" },
+    "level=1": { "model": "riverfishing:block/maggot_farm_1" },
+    "level=2": { "model": "riverfishing:block/maggot_farm_2" },
+    "level=3": { "model": "riverfishing:block/maggot_farm_3" },
+    "level=4": { "model": "riverfishing:block/maggot_farm_4" }
+  }
+}

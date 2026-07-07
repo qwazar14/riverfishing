@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=south": { "model": "riverfishing:block/trophy_stand" },
+    "facing=west":  { "model": "riverfishing:block/trophy_stand", "y": 90 },
+    "facing=north": { "model": "riverfishing:block/trophy_stand", "y": 180 },
+    "facing=east":  { "model": "riverfishing:block/trophy_stand", "y": 270 }
+  }
+}

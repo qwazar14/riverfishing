@@ -1,0 +1,20 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "minecraft:block/spruce_planks",
+    "side": "minecraft:block/spruce_planks",
+    "top": "riverfishing:block/maggot_farm_top"
+  },
+  "elements": [
+    { "from": [0, 0, 0], "to": [16, 10, 2],
+      "faces": { "north": {"texture": "#side"}, "south": {"texture": "#side"}, "west": {"texture": "#side"}, "east": {"texture": "#side"}, "up": {"texture": "#side"}, "down": {"texture": "#side", "cullface": "down"} } },
+    { "from": [0, 0, 14], "to": [16, 10, 16],
+      "faces": { "north": {"texture": "#side"}, "south": {"texture": "#side"}, "west": {"texture": "#side"}, "east": {"texture": "#side"}, "up": {"texture": "#side"}, "down": {"texture": "#side", "cullface": "down"} } },
+    { "from": [0, 0, 2], "to": [2, 10, 14],
+      "faces": { "north": {"texture": "#side"}, "south": {"texture": "#side"}, "west": {"texture": "#side"}, "east": {"texture": "#side"}, "up": {"texture": "#side"}, "down": {"texture": "#side", "cullface": "down"} } },
+    { "from": [14, 0, 2], "to": [16, 10, 14],
+      "faces": { "north": {"texture": "#side"}, "south": {"texture": "#side"}, "west": {"texture": "#side"}, "east": {"texture": "#side"}, "up": {"texture": "#side"}, "down": {"texture": "#side", "cullface": "down"} } },
+    { "from": [2, 0, 2], "to": [14, 6, 14],
+      "faces": { "up": {"texture": "#top"}, "down": {"texture": "#side", "cullface": "down"} } }
+  ]
+}

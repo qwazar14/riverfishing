@@ -1,0 +1,46 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "bar": "minecraft:block/stripped_oak_log",
+    "particle": "minecraft:block/stripped_oak_log"
+  },
+  "elements": [
+    {
+      "name": "stake",
+      "from": [7.4, 0, 7.4],
+      "to": [8.6, 9, 8.6],
+      "faces": {
+        "north": { "uv": [0, 0, 1.2, 9], "texture": "#bar" },
+        "south": { "uv": [0, 0, 1.2, 9], "texture": "#bar" },
+        "east":  { "uv": [0, 0, 1.2, 9], "texture": "#bar" },
+        "west":  { "uv": [0, 0, 1.2, 9], "texture": "#bar" }
+      }
+    },
+    {
+      "name": "prong_left",
+      "from": [7.4, 8, 7.4],
+      "to": [8.6, 14, 8.6],
+      "rotation": { "origin": [8, 9, 8], "axis": "z", "angle": 22.5 },
+      "faces": {
+        "north": { "uv": [0, 0, 1.2, 6], "texture": "#bar" },
+        "south": { "uv": [0, 0, 1.2, 6], "texture": "#bar" },
+        "east":  { "uv": [0, 0, 1.2, 6], "texture": "#bar" },
+        "west":  { "uv": [0, 0, 1.2, 6], "texture": "#bar" },
+        "up":    { "uv": [0, 0, 1.2, 1.2], "texture": "#bar" }
+      }
+    },
+    {
+      "name": "prong_right",
+      "from": [7.4, 8, 7.4],
+      "to": [8.6, 14, 8.6],
+      "rotation": { "origin": [8, 9, 8], "axis": "z", "angle": -22.5 },
+      "faces": {
+        "north": { "uv": [0, 0, 1.2, 6], "texture": "#bar" },
+        "south": { "uv": [0, 0, 1.2, 6], "texture": "#bar" },
+        "east":  { "uv": [0, 0, 1.2, 6], "texture": "#bar" },
+        "west":  { "uv": [0, 0, 1.2, 6], "texture": "#bar" },
+        "up":    { "uv": [0, 0, 1.2, 1.2], "texture": "#bar" }
+      }
+    }
+  ]
+}

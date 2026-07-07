@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "upper=false": { "model": "riverfishing:block/aquarium_base" },
+    "upper=true,right=false,facing=north": { "model": "riverfishing:block/aquarium_tank_left", "y": 0 },
+    "upper=true,right=false,facing=east":  { "model": "riverfishing:block/aquarium_tank_left", "y": 90 },
+    "upper=true,right=false,facing=south": { "model": "riverfishing:block/aquarium_tank_left", "y": 180 },
+    "upper=true,right=false,facing=west":  { "model": "riverfishing:block/aquarium_tank_left", "y": 270 },
+    "upper=true,right=true,facing=north":  { "model": "riverfishing:block/aquarium_tank_right", "y": 0 },
+    "upper=true,right=true,facing=east":   { "model": "riverfishing:block/aquarium_tank_right", "y": 90 },
+    "upper=true,right=true,facing=south":  { "model": "riverfishing:block/aquarium_tank_right", "y": 180 },
+    "upper=true,right=true,facing=west":   { "model": "riverfishing:block/aquarium_tank_right", "y": 270 }
+  }
+}

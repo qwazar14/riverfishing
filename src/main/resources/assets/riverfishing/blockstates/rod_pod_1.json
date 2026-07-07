@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=south": { "model": "riverfishing:block/rod_pod_y" },
+    "facing=west":  { "model": "riverfishing:block/rod_pod_y", "y": 90 },
+    "facing=north": { "model": "riverfishing:block/rod_pod_y", "y": 180 },
+    "facing=east":  { "model": "riverfishing:block/rod_pod_y", "y": 270 }
+  }
+}

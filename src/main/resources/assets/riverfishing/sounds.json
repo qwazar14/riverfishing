@@ -1,0 +1,57 @@
+{
+  "cast_bottom": {
+    "category": "player",
+    "sounds": [
+      "riverfishing:cast_bottom_1",
+      "riverfishing:cast_bottom_2",
+      "riverfishing:cast_bottom_3",
+      "riverfishing:cast_bottom_4",
+      "riverfishing:cast_bottom_5"
+    ]
+  },
+  "cast_spin": {
+    "category": "player",
+    "sounds": [
+      "riverfishing:cast_spin_1",
+      "riverfishing:cast_spin_2",
+      "riverfishing:cast_spin_3",
+      "riverfishing:cast_spin_4",
+      "riverfishing:cast_spin_5"
+    ]
+  },
+  "line_break": {
+    "category": "player",
+    "sounds": [
+      "riverfishing:line_break_1",
+      "riverfishing:line_break_2",
+      "riverfishing:line_break_3",
+      "riverfishing:line_break_4",
+      "riverfishing:line_break_5"
+    ]
+  },
+  "alarm_bell": {
+    "category": "blocks",
+    "sounds": [
+      "riverfishing:alarm_bell_1",
+      "riverfishing:alarm_bell_2",
+      "riverfishing:alarm_bell_3",
+      "riverfishing:alarm_bell_4"
+    ]
+  },
+  "rod_creak": {
+    "category": "player",
+    "sounds": [
+      "riverfishing:rod_creak_1",
+      "riverfishing:rod_creak_2",
+      "riverfishing:rod_creak_3"
+    ]
+  },
+  "drag_note": {
+    "category": "player",
+    "sounds": [ "riverfishing:drag_note" ]
+  },
+  "drag_long": {
+    "category": "player",
+    "sounds": [ "riverfishing:drag_long" ]
+  }
+}

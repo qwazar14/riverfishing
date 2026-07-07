@@ -1,0 +1,13 @@
+{
+  "parent": "minecraft:block/cube",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "particle": "minecraft:block/ice",
+    "up": "riverfishing:block/ice_hole",
+    "down": "minecraft:block/ice",
+    "north": "minecraft:block/ice",
+    "south": "minecraft:block/ice",
+    "east": "minecraft:block/ice",
+    "west": "minecraft:block/ice"
+  }
+}
