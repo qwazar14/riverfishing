@@ -99,11 +99,6 @@ public class AquariumBlockEntity extends BlockEntity {
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
-
-    @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        if (pkt.getTag() != null) {
-            load(pkt.getTag());
-        }
-    }
+    // §multiloader: no onDataPacket override — that's a Forge-only hook. Vanilla's client packet handler
+    // calls load(tag) itself, so getUpdateTag()/getUpdatePacket() above are all the sync we need.
 }

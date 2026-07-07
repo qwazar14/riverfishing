@@ -69,7 +69,7 @@ public final class ModEvents {
 
         // Bait from mobs (§bait-gathering): chicken liver, drowned bloodworm, zombie maggot — injected
         // into the vanilla entity loot tables so it works identically on Forge and Fabric.
-        LootEvent.MODIFY_LOOT_TABLE.register((id, context, builtin) -> {
+        LootEvent.MODIFY_LOOT_TABLE.register((lootManager, id, context, builtin) -> {
             if (matches(id, "chicken")) addDrop(context, ModItems.CHICKEN_LIVER.get().builtInRegistryHolder().key().location(), CHICKEN_LIVER_CHANCE);
             else if (matches(id, "drowned")) addDrop(context, RiverFishing.id("bloodworm"), MOB_BAIT_CHANCE);
             else if (matches(id, "zombie")) addDrop(context, RiverFishing.id("maggot"), MOB_BAIT_CHANCE);

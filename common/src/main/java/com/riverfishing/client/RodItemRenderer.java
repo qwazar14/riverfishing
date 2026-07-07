@@ -165,10 +165,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         for (ResourceLocation loc : locs) {
             if (loc == null) continue;
             if (mir) {
-                BakedModel flipped = mm.getModel(RodModelLayers.mirror(loc));
+                BakedModel flipped = com.riverfishing.client.platform.ClientPlatform.bakedModel(RodModelLayers.mirror(loc));
                 if (flipped != null && flipped != missing) return flipped;
             }
-            BakedModel m = mm.getModel(loc);
+            BakedModel m = com.riverfishing.client.platform.ClientPlatform.bakedModel(loc);
             if (m != null && m != missing) return m;
         }
         return null;

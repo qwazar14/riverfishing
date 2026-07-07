@@ -48,7 +48,7 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         if (sp == null) return;
         Minecraft mc = Minecraft.getInstance();
         ModelManager mm = mc.getModelManager();
-        BakedModel model = mm.getModel(iconModel(sp.getPath()));
+        BakedModel model = com.riverfishing.client.platform.ClientPlatform.bakedModel(iconModel(sp.getPath()));
         if (model == null || model == mm.getMissingModel()) return;
 
         float s = FishItem.getIconScale(stack);

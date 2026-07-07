@@ -22,7 +22,9 @@ public final class ModCreativeTabs {
             "rig_primitive", "rig_float_light", "rig_float", "rig_winter", "rig_predator");
 
     public static final RegistrySupplier<CreativeModeTab> MAIN = REGISTER.register("main", () ->
-            CreativeModeTab.builder()
+            // §multiloader: vanilla CreativeModeTab.builder() needs a (Row, column) and Forge's no-arg
+            // overload isn't in common — Architectury's CreativeTabRegistry.create wraps it per platform.
+            dev.architectury.registry.CreativeTabRegistry.create(builder -> builder
                     .title(Component.translatable("itemGroup.riverfishing"))
                     .icon(() -> new ItemStack(ModItems.RODS.get(0).get()))
                     .displayItems((params, output) -> {
@@ -32,8 +34,7 @@ public final class ModCreativeTabs {
                             if (INTERNAL_RIGS.contains(obj.getId().getPath())) continue;
                             output.accept(new ItemStack(obj.get()));
                         }
-                    })
-                    .build());
+                    })));
 
     private ModCreativeTabs() {}
 }

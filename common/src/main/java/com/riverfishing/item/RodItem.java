@@ -172,9 +172,7 @@ public class RodItem extends Item {
                         buf.writeEnum(hand);
                     }
                 };
-        if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
-            dev.architectury.registry.menu.MenuRegistry.openExtendedMenu(sp, provider);
-        }
+        dev.architectury.registry.menu.MenuRegistry.openExtendedMenu(player, provider);
     }
 
     @Override

@@ -60,11 +60,5 @@ public class TrophyStandBlockEntity extends BlockEntity {
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
-
-    @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        if (pkt.getTag() != null) {
-            load(pkt.getTag());
-        }
-    }
+    // §multiloader: no Forge-only onDataPacket override — vanilla's client handler calls load(tag) itself.
 }

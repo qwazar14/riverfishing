@@ -396,13 +396,7 @@ public class RodPodBlockEntity extends BlockEntity {
         return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
     }
 
-    @Override
-    public void onDataPacket(net.minecraft.network.Connection net,
-                            net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket pkt) {
-        if (pkt.getTag() != null) {
-            load(pkt.getTag());
-        }
-    }
+    // §multiloader: no Forge-only onDataPacket override — vanilla's client handler calls load(tag) itself.
 
     /** A cast line resting on the pod. */
     private static final class PodLine {

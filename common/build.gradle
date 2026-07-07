@@ -7,4 +7,8 @@ dependencies {
     // dependencies. Do NOT use other Fabric APIs directly from common — go through the platform layer.
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modApi "dev.architectury:architectury:${rootProject.architectury_api_version}"
+
+    // §multiloader: javax.annotation.Nullable came transitively from Forge in the single-project build;
+    // the multiloader common classpath has no JSR-305, so pull it in (compile-time annotations only).
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 }

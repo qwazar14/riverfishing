@@ -13,8 +13,10 @@
   "icon": "assets/riverfishing/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": ["com.riverfishing.fabric.RiverFishingFabric"]
+    "main": ["com.riverfishing.fabric.RiverFishingFabric"],
+    "client": ["com.riverfishing.fabric.RiverFishingFabricClient"]
   },
+  "mixins": ["riverfishing.mixins.json"],
   "depends": {
     "fabricloader": ">=0.15.0",
     "minecraft": "~1.20.1",

@@ -3,6 +3,12 @@ loaderVersion="[47,)"
 license="MIT"
 issueTrackerURL="https://github.com/qwazar14/riverfishing/issues"
 
+# §multiloader: the shared common mixin (koi release) + the Forge-client BEWLR mixins.
+[[mixins]]
+config="riverfishing.mixins.json"
+[[mixins]]
+config="riverfishing-forge.mixins.json"
+
 [[mods]]
 modId="riverfishing"
 version="${version}"

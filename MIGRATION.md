@@ -36,10 +36,27 @@ src/      ← PARKED legacy Forge sources; ported into common/ stage by stage, t
    AnglerSkills/JournalCommand). Networking (`SimpleChannel` → Architectury `NetworkManager`) is DEFERRED into
    Stage 5: 4 of the 6 packets are S2C and their handlers call the client screens/HUD, so the net layer is
    converted together with those client classes to avoid double work.
-5. Client + networking: BEWLR renderers (fish/rod), aquarium BER, screens, cast-bar / float-timing HUD,
-   in-world line, AND the `NetworkManager` packet layer (S2C handlers land here).
-6. Wire `mods.toml` + `fabric.mod.json` fully; shared data (recipes/tags/lang) in `common`; forge JEI.
-7. Run both dev clients; fix; then REI/EMI on Fabric.
+5. **[done] Client + networking.**
+   - 5a: `SimpleChannel` → Architectury `NetworkManager` (S2C routed to client via `EnvExecutor.runInEnv`).
+   - 5b: items/blocks/menus/recipes/season off Forge (`ForgeRegistries`→`BuiltInRegistries`,
+     `NetworkHooks.openScreen`→`MenuRegistry.openExtendedMenu`, `DistExecutor`→`EnvExecutor`).
+   - 5c: the CLIENT de-Forge — **`common` now compiles green on both loaders.** A single common `ClientInit`
+     (called from `RiverFishingForge` on the client dist / `RiverFishingFabricClient`) wires: screens via
+     `MenuRegistry.registerScreenFactory`, BER via `BlockEntityRendererRegistry`, HUD via
+     `ClientGuiEvent.RENDER_HUD`, disconnect via `ClientPlayerEvent.CLIENT_PLAYER_QUIT`, the `/rfrod` command
+     via `ClientCommandRegistrationEvent`. The three hooks Architectury doesn't wrap ride a client
+     `@ExpectPlatform ClientPlatform`: **item BEWLR** (Forge `IClientItemExtensions` via `RodItem`/`FishItem`
+     client mixins ↔ Fabric `BuiltinItemRendererRegistry`), **extra models** (Forge
+     `ModelEvent.RegisterAdditional` ↔ Fabric `ModelLoadingPlugin`), **in-world line** (Forge
+     `RenderLevelStageEvent` ↔ Fabric `WorldRenderEvents.AFTER_TRANSLUCENT`), plus `bakedModel(loc)`
+     (Forge overload ↔ Fabric `FabricBakedModelManager`). Koi release → shared `ItemEntityMixin`
+     (`riverfishing.mixins.json`, referenced by both loaders). JEI moved to the **forge** module
+     (blamejared maven, `modCompileOnly` api). Latent common bugs fixed along the way: `javax.annotation`
+     JSR-305 dep, `LootEvent.MODIFY_LOOT_TABLE` 4-arg lambda, `CreativeModeTab.builder()`→
+     `CreativeTabRegistry.create`, redundant `instanceof`, and Forge-only `onDataPacket` overrides removed
+     (vanilla client calls `load(tag)` itself). **`./gradlew build` → both loader jars.**
+6. Wire `mods.toml` + `fabric.mod.json` fully; shared data (recipes/tags/lang) in `common`; **forge JEI [done]**.
+7. Run both dev clients (`:forge:runClient`, `:fabric:runClient`); fix runtime issues; then REI/EMI on Fabric.
 
 ## Build
 ```powershell

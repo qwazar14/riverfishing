@@ -1,20 +1,18 @@
 package com.riverfishing.client;
 
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import com.riverfishing.RiverFishing;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+import dev.architectury.event.events.client.ClientCommandRegistrationEvent;
+import dev.architectury.event.events.client.ClientCommandRegistrationEvent.ClientCommandSourceStack;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterClientCommandsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 /**
  * Live rod-transform debugger (§rod-debug). Client-only command {@code /rfrod} that tweaks
- * {@link RodHandTransform} in real time so the in-hand rod pose can be dialled in without rebuilding:
+ * {@link RodHandTransform} in real time so the in-hand rod pose can be dialled in without rebuilding.
+ * §multiloader: Forge's {@code RegisterClientCommandsEvent} → Architectury
+ * {@code ClientCommandRegistrationEvent}, wired from {@link ClientInit}.
  * <ul>
  *   <li>{@code /rfrod set <tp|tpl|fp|fpl> <tx|ty|tz|rx|ry|rz|s> <value>} — set a field
  *       (tp/fp = third/first person RIGHT hand, tpl/fpl = LEFT hand)</li>
@@ -23,36 +21,34 @@ import net.minecraftforge.fml.common.Mod;
  *   <li>{@code /rfrod reset} — back to the built-in defaults</li>
  * </ul>
  */
-@Mod.EventBusSubscriber(modid = RiverFishing.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class RodDebugCommand {
     private RodDebugCommand() {}
 
-    @SubscribeEvent
-    public static void onRegister(RegisterClientCommandsEvent event) {
-        event.getDispatcher().register(Commands.literal("rfrod")
-                .then(Commands.literal("show").executes(RodDebugCommand::show))
-                .then(Commands.literal("reset").executes(c -> {
+    public static void register(CommandDispatcher<ClientCommandSourceStack> dispatcher) {
+        dispatcher.register(ClientCommandRegistrationEvent.literal("rfrod")
+                .then(ClientCommandRegistrationEvent.literal("show").executes(RodDebugCommand::show))
+                .then(ClientCommandRegistrationEvent.literal("reset").executes(c -> {
                     RodHandTransform.reset();
                     say(c, "§ereset to defaults");
                     return show(c);
                 }))
-                .then(Commands.literal("set")
-                        .then(Commands.argument("ctx", StringArgumentType.word())
-                                .then(Commands.argument("field", StringArgumentType.word())
-                                        .then(Commands.argument("value", FloatArgumentType.floatArg())
+                .then(ClientCommandRegistrationEvent.literal("set")
+                        .then(ClientCommandRegistrationEvent.argument("ctx", StringArgumentType.word())
+                                .then(ClientCommandRegistrationEvent.argument("field", StringArgumentType.word())
+                                        .then(ClientCommandRegistrationEvent.argument("value", FloatArgumentType.floatArg())
                                                 .executes(c -> edit(c, false))))))
-                .then(Commands.literal("add")
-                        .then(Commands.argument("ctx", StringArgumentType.word())
-                                .then(Commands.argument("field", StringArgumentType.word())
-                                        .then(Commands.argument("value", FloatArgumentType.floatArg())
+                .then(ClientCommandRegistrationEvent.literal("add")
+                        .then(ClientCommandRegistrationEvent.argument("ctx", StringArgumentType.word())
+                                .then(ClientCommandRegistrationEvent.argument("field", StringArgumentType.word())
+                                        .then(ClientCommandRegistrationEvent.argument("value", FloatArgumentType.floatArg())
                                                 .executes(c -> edit(c, true))))))
-                .then(Commands.literal("cast")
-                        .then(Commands.argument("field", StringArgumentType.word())
-                                .then(Commands.argument("value", FloatArgumentType.floatArg())
+                .then(ClientCommandRegistrationEvent.literal("cast")
+                        .then(ClientCommandRegistrationEvent.argument("field", StringArgumentType.word())
+                                .then(ClientCommandRegistrationEvent.argument("value", FloatArgumentType.floatArg())
                                         .executes(RodDebugCommand::castEdit)))));
     }
 
-    private static int castEdit(CommandContext<CommandSourceStack> c) {
+    private static int castEdit(CommandContext<ClientCommandSourceStack> c) {
         String field = StringArgumentType.getString(c, "field");
         float value = FloatArgumentType.getFloat(c, "value");
         float result = RodHandTransform.castEdit(field, value, false);
@@ -64,7 +60,7 @@ public final class RodDebugCommand {
         return 1;
     }
 
-    private static int edit(CommandContext<CommandSourceStack> c, boolean add) {
+    private static int edit(CommandContext<ClientCommandSourceStack> c, boolean add) {
         String ctx = StringArgumentType.getString(c, "ctx");
         String field = StringArgumentType.getString(c, "field");
         float value = FloatArgumentType.getFloat(c, "value");
@@ -77,14 +73,14 @@ public final class RodDebugCommand {
         return 1;
     }
 
-    private static int show(CommandContext<CommandSourceStack> c) {
+    private static int show(CommandContext<ClientCommandSourceStack> c) {
         for (String line : RodHandTransform.showLines()) {
             say(c, line);
         }
         return 1;
     }
 
-    private static void say(CommandContext<CommandSourceStack> c, String text) {
-        c.getSource().sendSystemMessage(Component.literal(text));
+    private static void say(CommandContext<ClientCommandSourceStack> c, String text) {
+        c.getSource().arch$sendSuccess(() -> Component.literal(text), false);
     }
 }
