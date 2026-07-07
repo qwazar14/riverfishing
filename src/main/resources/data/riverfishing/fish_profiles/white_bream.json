@@ -1,0 +1,24 @@
+{
+  "display": "Густера",
+  "water_bodies": { "river": 1.0, "lake": 1.0, "pond": 0.6, "swamp": 0.3, "sea": 0.0, "puddle": 0.0 },
+  "weight_g": { "min": 100, "max": 1200, "mean": 300, "spread": 0.6 },
+  "length_cm": { "min": 12, "max": 35 },
+  "fight": { "strength": 0.35, "stamina": 0.45, "runs": 1 },
+  "ideal": {
+    "rod": ["feeder"],
+    "reel_size": 3000, "reel_tolerance": 1000,
+    "line": { "type": "braid", "diameter_mm": 0.10, "tolerance_mm": 0.04 },
+    "rig": ["feeder", "float"],
+    "groundbait": ["powder", "cake"],
+    "bait": { "maggot": 1.0, "worm": 0.9, "bloodworm": 0.7 },
+    "hook": { "ideal": 12, "tolerance": 2 }
+  },
+  "season": { "spring": 1.0, "summer": 1.1, "autumn": 0.8, "winter": 0.4 },
+  "time":   { "dawn": 1.1, "day": 0.9, "dusk": 1.1, "night": 0.6 },
+  "weather":{ "clear": 0.9, "rain": 1.2, "thunder": 1.0 },
+  "depth_pref": "bottom",
+  "distance_pref": { "min": 6, "max": 25 },
+  "habitat": { "depth_min": 2, "depth_max": 8, "width_min": 8 },
+  "biomes": { "temperate": 1.0, "cold": 0.7 },
+  "base": 1.0
+}

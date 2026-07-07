@@ -1,0 +1,25 @@
+{
+  "display": "Зеркальный карп",
+  "water_bodies": { "lake": 1.2, "pond": 1.2, "river": 0.5, "swamp": 0.4, "sea": 0.0, "puddle": 0.0 },
+  "weight_g": { "min": 1000, "max": 14000, "mean": 3200, "spread": 0.7 },
+  "length_cm": { "min": 33, "max": 95 },
+  "fight": { "strength": 0.8, "stamina": 0.8, "runs": 3, "pattern": "burst", "aggression": 0.75 },
+  "ideal": {
+    "rod": ["carp"],
+    "reel_size": 6000, "reel_tolerance": 1000,
+    "line": { "type": "mono", "diameter_mm": 0.30, "tolerance_mm": 0.08 },
+    "rig": ["carp", "flat_feeder"],
+    "groundbait": ["pellet", "cake"],
+    "bait": { "boilie": 1.0, "corn": 0.8, "pea": 0.6, "pearl_barley": 0.5 },
+    "hook": { "ideal": 6, "tolerance": 2 }
+  },
+  "season": { "spring": 0.8, "summer": 1.4, "autumn": 0.9, "winter": 0.05 },
+  "time":   { "dawn": 1.2, "day": 0.9, "dusk": 1.2, "night": 1.0 },
+  "weather":{ "clear": 0.9, "rain": 1.2, "thunder": 0.8 },
+  "depth_pref": "bottom",
+  "distance_pref": { "min": 12, "max": 40 },
+  "habitat": { "depth_min": 2, "width_min": 10 },
+  "biomes": { "temperate": 1.0, "warm": 1.2 },
+  "base": 0.7,
+  "min_angler_level": 3
+}

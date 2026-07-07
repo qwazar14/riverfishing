@@ -1,0 +1,25 @@
+{
+  "display": "Кои Танчо Санке",
+  "water_bodies": { "pond": 1.0, "lake": 1.0, "river": 0.4, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
+  "weight_g": { "min": 800, "max": 8000, "mean": 2500, "spread": 0.6 },
+  "length_cm": { "min": 25, "max": 90 },
+  "fight": { "strength": 0.7, "stamina": 0.7, "runs": 3, "pattern": "burst", "aggression": 0.6 },
+  "ideal": {
+    "rod": ["carp"],
+    "reel_size": 6000, "reel_tolerance": 1000,
+    "line": { "type": "mono", "diameter_mm": 0.30, "tolerance_mm": 0.08 },
+    "rig": ["carp"],
+    "groundbait": ["pellet", "cake"],
+    "bait": { "boilie": 1.0, "corn": 0.8, "pea": 0.6, "bread": 0.6 },
+    "hook": { "ideal": 6, "tolerance": 2 }
+  },
+  "season": { "spring": 1.0, "summer": 1.0, "autumn": 1.0, "winter": 0.3 },
+  "time":   { "dawn": 1.0, "day": 1.0, "dusk": 1.0, "night": 1.0 },
+  "weather":{ "clear": 1.0, "rain": 1.0, "thunder": 1.0 },
+  "depth_pref": "bottom",
+  "distance_pref": { "min": 6, "max": 30 },
+  "habitat": { "depth_min": 1, "width_min": 4 },
+  "biomes": { "cherry": 1.0 },
+  "base": 0.0,
+  "min_angler_level": 3
+}

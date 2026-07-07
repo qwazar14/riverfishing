@@ -1,0 +1,25 @@
+{
+  "display": "Форель",
+  "water_bodies": { "river": 1.2, "lake": 0.8, "pond": 0.2, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
+  "weight_g": { "min": 300, "max": 5000, "mean": 1000, "spread": 0.7 },
+  "length_cm": { "min": 25, "max": 80 },
+  "fight": { "strength": 0.75, "stamina": 0.8, "runs": 3, "pattern": "aggressive", "aggression": 0.85 },
+  "ideal": {
+    "rod": ["ultralight", "spinning"],
+    "reel_size": 2000, "reel_tolerance": 1000,
+    "line": { "type": "fluoro", "diameter_mm": 0.20, "tolerance_mm": 0.05 },
+    "rig": ["predator", "float"],
+    "groundbait": [],
+    "bait": { "spinner": 1.0, "wobbler": 0.9, "silicone": 0.7, "worm": 0.6 },
+    "hook": { "ideal": 8, "tolerance": 2 }
+  },
+  "season": { "spring": 1.2, "summer": 0.8, "autumn": 1.1, "winter": 0.6 },
+  "time":   { "dawn": 1.4, "day": 1.0, "dusk": 1.1, "night": 0.2 },
+  "weather":{ "clear": 1.0, "rain": 1.1, "thunder": 0.9 },
+  "depth_pref": "mid",
+  "distance_pref": { "min": 4, "max": 25 },
+  "habitat": { "depth_min": 2, "depth_max": 6, "width_min": 4, "width_max": 24 },
+  "biomes": { "cold": 1.2, "mountain": 1.3, "taiga": 1.1 },
+  "base": 0.7,
+  "min_angler_level": 5
+}
