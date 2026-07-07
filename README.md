@@ -1,14 +1,87 @@
-# River Fishing
+# River Fishing 🎣
 
-A river-fishing **simulator** for Minecraft **1.20.1 / Forge 47.x**, built from the game-design
-document in this repo. Fishing is a *process*, not a click on the water: you assemble a rod from a
-blank + reel + line + rig + hook, match bait and groundbait to the fish you want, feed your spot,
-cast, and wait for the bite. Success = how well the whole setup matches a given fish under the
-current conditions.
+A deep, **realistic river & ice-fishing simulator** for Minecraft **1.20.1 / Forge 47.x**, built as a
+modpack-anchor activity. Fishing is a *process*, not a click on the water: assemble a rod from a
+blank + reel + line + rig + hook, match bait and groundbait to the fish you want, read the water, cast,
+and outsmart 29 species that each live by their own rules. Success = how well your whole setup matches a
+given fish under the current conditions.
 
-> **Status: v0.1 — Stage 1 (frame) + the core of Stage 2 (bite engine).** The architectural spine
-> and the full catch loop work end to end. Advanced systems (fight mini-game, gear wear, signalers,
-> villager, journal, cooking) are scaffolded for later stages — see the roadmap below.
+> **Status:** feature-complete for Forge 1.20.1. A **Fabric port + newer Minecraft versions** are next
+> (the Forge 1.20.1 build is preserved on the `forge-1.20.1` branch).
+
+---
+
+## What makes it different
+
+Nothing bites by luck. A **data-driven bite engine** weighs **more than a dozen factors** — both your
+tackle and the world around you — to decide *what* bites and *how fast*:
+
+- **The world:** water body (river / lake / pond / swamp), **depth**, width, biome (climate + terrain),
+  **season**, **time of day**, **weather**, and **barometric pressure** (with a trending glass), plus
+  feeding-frenzy windows and how hard the spot has been fished.
+- **Your setup:** rod blank & test, reel size, line type / diameter / visibility, hook size, rig, bait,
+  groundbait, leader and float depth.
+
+Mismatched gear won't catch, reels only spool line within their working range, and a line that's too
+visible spooks small, wary fish while a big one barely notices.
+
+## Highlights
+
+- **Rod assembly GUI** with live rod ↔ reel ↔ line compatibility checks and gear wear.
+- A **tension fight mini-game** — over-pull and the line snaps; a realistic breaking-strain model means
+  big fish demand the right line and a strong drag.
+- A **living population** — over-fish a species and it thins out; it recovers over time (faster in spring).
+- **Progression:** a bestiary journal, angler levels + a 6-perk skill tree, a 6-stage quest chain, and
+  hand-crafted advancements (including tricky and funny ones).
+- A **fisherman villager** who trades tackle and buys your prime catches.
+- **Ice fishing** — drill a hole with the auger, drop a winter rod, work the mormyshka in a rhythm game.
+- **Bait farms** (worms & maggots), a live-bait trap, a display **aquarium**, a trophy stand,
+  cooking & fillets.
+
+## Recommended companions
+
+The mod runs fine on its own, but it's **balanced around** two optional soft dependencies:
+
+- **Serene Seasons** — unlocks the full seasonal bite (spring spawns, winter slow-down).
+- **Biomes O' Plenty** — richer biomes for the habitat/biome factor to shine.
+
+> ⚠️ **Freshwater only, for now** — rivers, lakes and ponds. **Ocean / sea fishing isn't supported yet.**
+
+---
+
+## How to play (the beginner loop)
+
+1. **Get bait.** Dig dirt / grass / sand with a **shovel** — **worms** drop (~10%). Later you can breed
+   your own with a **worm farm** / **maggot farm**, gather live bait in a **bait trap**, or buy bait from
+   the **fisherman villager**.
+2. **Craft tackle.**
+   - **Stick Rod** — 3 sticks (diagonal).
+   - **Hooks** — 1 iron nugget → 2 small hooks (№16, shapeless). Refine to a bigger hook by adding an
+     iron nugget (№16 → №14 → №12 …); a bigger number = a smaller hook.
+   - **Line** — a **ring of 8 string** makes the thinnest mono (0.10 mm). To thicken it a step, put a
+     line in the **centre** with 8 string around it. Braid adds a phantom membrane, fluorocarbon an
+     amethyst shard, to the base ring.
+3. **Assemble the rod.** Hold the rod and **sneak + right-click** to open the assembly GUI. Reel-less
+   rods (stick / bamboo / pole) just take a **line**; a reeled rod adds a **reel** first (line spools
+   **onto** the reel), and bottom rods add a swappable **rig**. Incompatible parts are rejected with a
+   reason shown in the window (reel size ↔ rod, line diameter ↔ reel).
+4. **Load the rig.** In the same GUI, drop a **hook** and **bait** (worm, maggot…) into the rig's inline
+   slots. Predators (pike / zander / perch on spinning gear) take **artificial lures**
+   (spinner / spoon / wobbler / soft-plastic), not natural bait; fit a **predator rig with a steel
+   leader** or they bite through a bare line.
+5. **(Optional) Feed the spot.** Right-click water while holding **groundbait** to create a fed zone that
+   decays over ~10 minutes. The groundbait type decides which fish it pulls in.
+6. **Cast.** **Hold** right-click to charge the power bar, **release** to cast that far. An under-loaded
+   blank can't throw as far (shown as a dead zone on the bar).
+7. **Watch the float — silently.** There's no "Bite!" text: the **float plunges / the line twitches**.
+   Float rods run a small **timing mini-game** — strike (right-click) while the marker is in the green.
+8. **Fight it.** A boss bar shows the fish. Tap right-click to **reel** (raises tension); ease off to
+   **give line**. When it runs, over-tension **snaps the line** and you lose the rig — a strong enough
+   line + drag for that fish is what lets you land it. Land it and you get a unique item carrying the
+   **species, weight and length**.
+
+Read the **fishing journal** for a per-species "how to catch", or scan the water with the **echo sounder**
+to see what's biting and how the pressure is trending.
 
 ---
 
@@ -17,104 +90,20 @@ current conditions.
 This project needs a **JDK 17**. If you don't have a system JDK, PrismLauncher's bundled
 `java-runtime-gamma` is a full JDK 17 and works:
 
-```sh
+```powershell
 # from the project root, in PowerShell:
 $env:JAVA_HOME = "C:\Users\<you>\AppData\Roaming\PrismLauncher\java\java-runtime-gamma"
 .\gradlew.bat build
 ```
 
-The toolchain path is also pinned in `gradle.properties` (`org.gradle.java.installations.paths`),
-so IDEs that respect it will find the JDK automatically. The built mod jar lands in
-`build/libs/riverfishing-0.1.0.jar`.
+The built mod jar lands in `build/libs/riverfishing-0.1.0.jar`. Useful tasks:
+`.\gradlew.bat compileJava`, `.\gradlew.bat runClient` (launches a dev client).
 
-Useful tasks: `.\gradlew.bat compileJava`, `.\gradlew.bat runClient` (launches a dev client).
+## Debug commands (ops)
 
----
+- `/rffish unlockall` — fill the journal (all species, trophies, XP) so every quest goal is met.
+- `/rffish reset` — wipe your records, XP and quests.
 
-## How to play (the v0.1 loop)
+## License
 
-1. **Get tackle.** Dig dirt/grass with a shovel for **worms** (~10%). Craft a **Stick Rod**
-   (3 sticks, diagonal), a **Hook** (2 iron nuggets → 2), a **Primitive Rig** (string + hook),
-   and a **thick mono line** (2 string + slime ball). More refined gear comes from crafts/the
-   fisherman trader in later stages.
-2. **Assemble the rod.** Hold the rod and **sneak + right-click** to open the assembly GUI. Drop a
-   reel (if the rod takes one), line, rig and hook into the four slots. The rod stores them in NBT.
-3. **Bait the hook.** Hold bait in your **off-hand** (e.g. a worm). Predators only take artificial
-   lures (spinner/spoon/wobbler/soft-plastic).
-4. **(Optional) Feed the spot.** Right-click water while holding **groundbait** to create a 3×3 fed
-   zone. Freshness decays over ~10 minutes; re-feed to top it up. The groundbait type decides which
-   fish the spot pulls in.
-5. **Cast.** Right-click water with the assembled rod. The bite engine computes an expected
-   time-to-bite from your whole setup and the conditions.
-6. **Strike.** When you see **"Bite! Strike!"**, right-click again within the window to set the hook.
-   Miss the window and it gets away.
-7. **Fight it (§7).** A boss bar shows the fish. **Tap right-click to reel** (raises the bar +
-   tension); **wait to give line** (tension relaxes). When the bar turns **red the fish is running** —
-   reeling then spikes tension, and if it exceeds what your line + drag can take for that fish, the
-   line **snaps** and you lose the rig. Land it (bar full) and you get a unique item carrying species,
-   weight and length. Pike & zander **bite through a leaderless line** on the strike — fit a predator
-   rig (steel leader).
-
----
-
-## How the bite engine works (GDD §1)
-
-For every fish that could be present, the engine computes:
-
-```
-W = base · M · E · G
-T = T_min / Σ W        (expected time to bite; actual time is exponential around T)
-```
-
-- **M — match coefficient (§1.1):** weighted sub-scores for bait (0.30), groundbait (0.15),
-  rig (0.13), rod (0.12), line (0.12), hook (0.10), reel (0.08). Categorical pieces score 1.0/partial/0;
-  graded pieces (line diameter, hook & reel size) fall off from the ideal. A hard filter kills the
-  weight if the bait is badly wrong.
-- **E — environment (§1.2):** product of water-body, season, time-of-day, weather, biome and
-  distance factors. A 0 anywhere (e.g. catfish in a puddle) means the fish isn't there.
-- **G — fed-spot bonus (§1.3):** 1.0–2.0 from the zone's freshness.
-
-When a bite fires, the species is drawn weighted by each fish's `W`.
-
-Everything is **data-driven**: fish live in `data/riverfishing/fish_profiles/*.json` (schema in
-GDD §13). Edit a profile and `/reload` to re-balance with no rebuild.
-
----
-
-## Architecture map
-
-| Area | Package / file | GDD |
-|------|----------------|-----|
-| Mod bootstrap, registries | `RiverFishing`, `registry/Mod*` | §16 |
-| Tackle types | `component/{RodType,LineType,RigType,ComponentSlot}` | §3 |
-| Items | `item/{RodItem,ReelItem,LineItem,RigItem,HookItem,BaitItem,GroundbaitItem,FishItem}` | §3, §2.1 |
-| Rod NBT | `item/RodData` | §3.1, §12 |
-| Fish profiles | `fish/{FishProfile,FishProfileManager}` | §13 |
-| Bite engine | `engine/{BiteEngine,BiteContext,Season,TimeOfDay,Weather}` | §1 |
-| Water detection | `water/{WaterBodyDetector,WaterBodyCache,WaterBody,WaterType,ModBiomeTags}` | §10.2, §4.1, §12 |
-| Fed spots | `fishing/FeedZoneData` | §5 |
-| Fishing loop | `fishing/{FishingManager,FishingSession}` | §4, §7 |
-| Assembly GUI | `menu/RodAssemblyMenu`, `client/RodAssemblyScreen` | §3.1, §12 |
-| Serene Seasons (soft) | `integration/SeasonProvider` | §10.1 |
-| Events, drops | `event/ModEvents` | §3.6, §9.6 |
-
-`tools/generate_assets.ps1` regenerates the placeholder textures, item models and en/ru lang files.
-(Run it from PowerShell; the script is saved UTF-8 **with BOM** so PS 5.1 parses the Cyrillic.)
-
----
-
-## Roadmap status (GDD §16)
-
-- **Stage 1 — frame:** ✅ items, assembly GUI + NBT, base crafts.
-- **Stage 2 — bite core:** ✅ JSON-driven engine, water detection (cached + bounded), casting,
-  bite → catch with weight/length. *(Cast slider mini-game is still a simple click; placeholder.)*
-- **Stage 3 — simulator depth:** ✅ fed spots, fight mini-game (tension boss bar + runs),
-  line breaking-strain + drag → real line breaks, leader bite-off for pike/zander, rig lost on break.
-  ⏳ remaining: gear wear (line/hook), snags near shore, foul-hooking.
-- **Stage 4 — surroundings:** ⏳ rod-pods, bite alarms, keepnets, cooking → stackable fillets.
-- **Stage 5 — integrations:** ⏳ Serene Seasons reads season (soft dep done); BoP swamp tag shipped;
-  Farmer's Delight recipes pending.
-- **Stage 6 — content & balance:** ⏳ fisherman villager, journal/records, difficulty presets.
-
-Soft deps declared in `mods.toml`: `sereneseasons`, `biomesoplenty`, `farmersdelight`. The mod runs
-without any of them.
+See [LICENSE.txt](LICENSE.txt).
