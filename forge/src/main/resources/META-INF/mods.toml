@@ -1,0 +1,49 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+issueTrackerURL="https://github.com/qwazar14/riverfishing/issues"
+
+[[mods]]
+modId="riverfishing"
+version="${version}"
+displayName="River Fishing"
+authors="Qwazar"
+description='''
+A deep, realistic river & ice-fishing simulator built as a modpack anchor.
+'''
+
+[[dependencies.riverfishing]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.riverfishing]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,1.21)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.riverfishing]]
+    modId="architectury"
+    mandatory=true
+    versionRange="[9.2,)"
+    ordering="AFTER"
+    side="BOTH"
+
+# Soft dependencies — features light up if present (§recommended-companions).
+[[dependencies.riverfishing]]
+    modId="sereneseasons"
+    mandatory=false
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.riverfishing]]
+    modId="biomesoplenty"
+    mandatory=false
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"

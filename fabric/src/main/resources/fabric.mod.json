@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "riverfishing",
+  "version": "${version}",
+  "name": "River Fishing",
+  "description": "A deep, realistic river & ice-fishing simulator built as a modpack anchor.",
+  "authors": ["Qwazar"],
+  "contact": {
+    "homepage": "https://github.com/qwazar14/riverfishing",
+    "sources": "https://github.com/qwazar14/riverfishing"
+  },
+  "license": "MIT",
+  "icon": "assets/riverfishing/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.riverfishing.fabric.RiverFishingFabric"]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "architectury": ">=9.2.0"
+  },
+  "suggests": {
+    "fabric-api": "*"
+  }
+}
