@@ -72,7 +72,8 @@ public final class AnglerSkills {
         if (cur >= perk.maxRank) return false;
         skills.putInt(perk.id, cur + 1);
         root.put(SKILLS, skills);
-        player.getPersistentData().put(JournalData.TAG, root);
+        PlayerData.root(player).put(JournalData.TAG, root);
+        PlayerData.markDirty(player);
         return true;
     }
 

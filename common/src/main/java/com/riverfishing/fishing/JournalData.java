@@ -19,7 +19,7 @@ public final class JournalData {
     private JournalData() {}
 
     public static CompoundTag get(Player player) {
-        return player.getPersistentData().getCompound(TAG);
+        return PlayerData.root(player).getCompound(TAG);
     }
 
     public static void record(Player player, ResourceLocation species, int weightG) {
@@ -29,21 +29,24 @@ public final class JournalData {
         fish.putInt("best", Math.max(fish.getInt("best"), weightG));
         root.put(species.toString(), fish);
         root.putInt(TOTAL, root.getInt(TOTAL) + 1);
-        player.getPersistentData().put(TAG, root);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
     }
 
     /** Records a trophy-grade catch (§quests): a separate counter for trophy-hunting goals. */
     public static void addTrophy(Player player) {
         CompoundTag root = get(player);
         root.putInt(TROPHIES, root.getInt(TROPHIES) + 1);
-        player.getPersistentData().put(TAG, root);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
     }
 
     /** Records a fish landed through the ice (§winter-quests): a counter for winter-fishing goals. */
     public static void addIceCatch(Player player) {
         CompoundTag root = get(player);
         root.putInt(ICE, root.getInt(ICE) + 1);
-        player.getPersistentData().put(TAG, root);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
     }
 
     /** True if the player has never landed this species before (call BEFORE {@link #record}). */
@@ -65,7 +68,8 @@ public final class JournalData {
     public static void addXp(Player player, long amount) {
         CompoundTag root = get(player);
         root.putLong(XP, root.getLong(XP) + Math.max(0, amount));
-        player.getPersistentData().put(TAG, root);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
     }
 
     /** Cumulative XP required to REACH the given level (triangular curve). */

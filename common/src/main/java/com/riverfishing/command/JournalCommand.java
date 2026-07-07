@@ -6,6 +6,7 @@ import com.riverfishing.RiverFishing;
 import com.riverfishing.fish.FishProfile;
 import com.riverfishing.fish.FishProfileManager;
 import com.riverfishing.fishing.JournalData;
+import com.riverfishing.fishing.PlayerData;
 import com.riverfishing.registry.ModItems;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import net.minecraft.commands.CommandSourceStack;
@@ -16,8 +17,8 @@ import net.minecraft.server.level.ServerPlayer;
 
 /**
  * Server-side debug commands for the angler journal (ops only, §multiloader). Registered via Architectury's
- * {@link CommandRegistrationEvent} in place of Forge's {@code RegisterCommandsEvent}. The {@code getPersistentData}
- * calls in the bodies are the last Forge touch here — they go away in Stage 4 (JournalData → SavedData).
+ * {@link CommandRegistrationEvent} in place of Forge's {@code RegisterCommandsEvent}. Player data goes
+ * through the cross-loader {@link PlayerData} store (§multiloader).
  */
 public final class JournalCommand {
     private JournalCommand() {}
@@ -43,7 +44,8 @@ public final class JournalCommand {
         root.putInt(JournalData.TROPHIES, Math.max(root.getInt(JournalData.TROPHIES), 10));
         root.putInt(JournalData.ICE, Math.max(root.getInt(JournalData.ICE), 40));
         root.putLong(JournalData.XP, Math.max(root.getLong(JournalData.XP), JournalData.xpForLevel(25)));
-        sp.getPersistentData().put(JournalData.TAG, root);
+        PlayerData.root(sp).put(JournalData.TAG, root);
+        PlayerData.markDirty(sp);
         c.getSource().sendSuccess(() ->
                 Component.literal("Unlocked the journal: all species, trophies, ice, XP -> all quest goals complete"), true);
         return 1;
@@ -51,8 +53,9 @@ public final class JournalCommand {
 
     private static int reset(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
         ServerPlayer sp = c.getSource().getPlayerOrException();
-        sp.getPersistentData().remove(JournalData.TAG);
-        sp.getPersistentData().remove(com.riverfishing.quest.QuestData.TAG);
+        PlayerData.root(sp).remove(JournalData.TAG);
+        PlayerData.root(sp).remove(com.riverfishing.quest.QuestData.TAG);
+        PlayerData.markDirty(sp);
         c.getSource().sendSuccess(() -> Component.literal("Cleared the fishing journal (records, XP, quests)"), true);
         return 1;
     }
