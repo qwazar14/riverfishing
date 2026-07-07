@@ -9,7 +9,7 @@ import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Live bait from any small catch (§livebait): a single fish weighing up to 100 g placed in the
@@ -38,7 +38,7 @@ public class LivebaitRecipe extends CustomRecipe {
 
     @Override
     public ItemStack assemble(CraftingContainer container, RegistryAccess access) {
-        var livebait = ForgeRegistries.ITEMS.getValue(RiverFishing.id("livebait"));
+        var livebait = BuiltInRegistries.ITEM.get(RiverFishing.id("livebait"));
         return livebait == null ? ItemStack.EMPTY : new ItemStack(livebait);
     }
 

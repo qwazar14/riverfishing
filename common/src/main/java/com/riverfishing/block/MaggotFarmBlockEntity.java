@@ -15,7 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * The maggot farm's brood (§bait-farm), composter-style: rotten flesh goes in a piece per click (16 max,
@@ -93,7 +93,7 @@ public class MaggotFarmBlockEntity extends BlockEntity {
                     .withStyle(ChatFormatting.GRAY), true);
             return;
         }
-        var maggot = ForgeRegistries.ITEMS.getValue(com.riverfishing.RiverFishing.id("maggot"));
+        var maggot = BuiltInRegistries.ITEM.get(com.riverfishing.RiverFishing.id("maggot"));
         if (maggot != null) {
             ItemStack out = new ItemStack(maggot, maggots);
             if (!player.getInventory().add(out)) {

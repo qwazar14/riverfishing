@@ -20,7 +20,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -57,19 +56,26 @@ public class RigItem extends Item implements RodComponentItem {
     }
 
     private void openRig(ServerPlayer player, InteractionHand hand) {
-        MenuProvider provider = new MenuProvider() {
-            @Override
-            public Component getDisplayName() {
-                return player.getItemInHand(hand).getHoverName();
-            }
+        // §multiloader: NetworkHooks.openScreen -> Architectury MenuRegistry.openExtendedMenu.
+        dev.architectury.registry.menu.ExtendedMenuProvider provider =
+                new dev.architectury.registry.menu.ExtendedMenuProvider() {
+                    @Override
+                    public Component getDisplayName() {
+                        return player.getItemInHand(hand).getHoverName();
+                    }
 
-            @Nullable
-            @Override
-            public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
-                return new RigMenu(id, inv, hand);
-            }
-        };
-        NetworkHooks.openScreen(player, provider, (FriendlyByteBuf buf) -> buf.writeEnum(hand));
+                    @Nullable
+                    @Override
+                    public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
+                        return new RigMenu(id, inv, hand);
+                    }
+
+                    @Override
+                    public void saveExtraData(FriendlyByteBuf buf) {
+                        buf.writeEnum(hand);
+                    }
+                };
+        dev.architectury.registry.menu.MenuRegistry.openExtendedMenu(player, provider);
     }
 
     @Override

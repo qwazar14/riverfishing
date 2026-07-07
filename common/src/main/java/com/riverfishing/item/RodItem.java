@@ -20,7 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -40,19 +39,9 @@ public class RodItem extends Item {
 
     public RodType rodType() { return rodType; }
 
-    /**
-     * The rod icon is composited from sprite layers by a custom renderer (§rod-layers). This method
-     * is only ever called on the physical client, so referencing the client renderer here is safe.
-     */
-    @Override
-    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
-        consumer.accept(new net.minecraftforge.client.extensions.common.IClientItemExtensions() {
-            @Override
-            public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                return com.riverfishing.client.RodItemRenderer.get();
-            }
-        });
-    }
+    // §multiloader: the composited rod icon (§rod-layers) is a custom item renderer registered per platform
+    // in the client bootstrap (Forge IClientItemExtensions / Fabric BuiltinItemRendererRegistry) — no longer
+    // via Forge's Item#initializeClient, which doesn't exist on the vanilla/common Item.
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
@@ -71,7 +60,7 @@ public class RodItem extends Item {
         if (!level.isClientSide) {
             sessionAction = FishingManager.handleRodUse(player, hand);
         } else {
-            sessionAction = net.minecraftforge.fml.DistExecutor.unsafeRunForDist(
+            sessionAction = dev.architectury.utils.EnvExecutor.getEnvSpecific(
                     () -> () -> com.riverfishing.client.ClientLineState.active(), () -> () -> false);
         }
         // Spinning/ultralight (§spin-charge, 2.3): with a LIVE session the hold drives the retrieve/fight
@@ -163,19 +152,29 @@ public class RodItem extends Item {
         if (rodType.directTackle()) {
             RodData.ensureNativeRig(player.getItemInHand(hand), rodType);
         }
-        MenuProvider provider = new MenuProvider() {
-            @Override
-            public Component getDisplayName() {
-                return player.getItemInHand(hand).getHoverName();
-            }
+        // §multiloader: NetworkHooks.openScreen -> Architectury MenuRegistry.openExtendedMenu; the extra
+        // FriendlyByteBuf (the hand) is written by the ExtendedMenuProvider and read by fromNetwork.
+        dev.architectury.registry.menu.ExtendedMenuProvider provider =
+                new dev.architectury.registry.menu.ExtendedMenuProvider() {
+                    @Override
+                    public Component getDisplayName() {
+                        return player.getItemInHand(hand).getHoverName();
+                    }
 
-            @Nullable
-            @Override
-            public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
-                return new RodAssemblyMenu(id, inv, hand);
-            }
-        };
-        NetworkHooks.openScreen(player, provider, (FriendlyByteBuf buf) -> buf.writeEnum(hand));
+                    @Nullable
+                    @Override
+                    public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
+                        return new RodAssemblyMenu(id, inv, hand);
+                    }
+
+                    @Override
+                    public void saveExtraData(FriendlyByteBuf buf) {
+                        buf.writeEnum(hand);
+                    }
+                };
+        if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
+            dev.architectury.registry.menu.MenuRegistry.openExtendedMenu(sp, provider);
+        }
     }
 
     @Override

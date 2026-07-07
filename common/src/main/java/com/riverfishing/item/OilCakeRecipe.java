@@ -11,8 +11,7 @@ import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Oil-cake groundbait (§groundbait): a sunflower pressed by a piston yields cake, and the PISTON
@@ -40,7 +39,7 @@ public class OilCakeRecipe extends CustomRecipe {
 
     @Override
     public ItemStack assemble(CraftingContainer container, RegistryAccess access) {
-        var cake = ForgeRegistries.ITEMS.getValue(RiverFishing.id("groundbait_cake"));
+        var cake = BuiltInRegistries.ITEM.get(RiverFishing.id("groundbait_cake"));
         return cake == null ? ItemStack.EMPTY : new ItemStack(cake, RESULT_COUNT);
     }
 
@@ -51,8 +50,8 @@ public class OilCakeRecipe extends CustomRecipe {
             ItemStack s = container.getItem(i);
             if (s.is(Items.PISTON)) {
                 remaining.set(i, new ItemStack(Items.PISTON)); // the press is not consumed
-            } else {
-                remaining.set(i, ForgeHooks.getCraftingRemainingItem(s));
+            } else if (s.getItem().hasCraftingRemainingItem()) {
+                remaining.set(i, new ItemStack(s.getItem().getCraftingRemainingItem()));
             }
         }
         return remaining;

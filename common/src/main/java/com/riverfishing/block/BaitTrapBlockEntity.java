@@ -15,7 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Gathers live bait over time while standing in water (§livebait): fry swim into the net every few
@@ -78,7 +78,7 @@ public class BaitTrapBlockEntity extends BlockEntity {
                     .withStyle(ChatFormatting.GRAY), true);
             return;
         }
-        var livebait = ForgeRegistries.ITEMS.getValue(com.riverfishing.RiverFishing.id("livebait"));
+        var livebait = BuiltInRegistries.ITEM.get(com.riverfishing.RiverFishing.id("livebait"));
         if (livebait != null) {
             ItemStack out = new ItemStack(livebait, stored);
             if (!player.getInventory().add(out)) {

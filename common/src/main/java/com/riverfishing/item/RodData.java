@@ -7,7 +7,7 @@ import com.riverfishing.component.RodType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Reads/writes the reel, line, rig and hook stored inside an assembled rod's NBT (§3.1, §12).
@@ -80,7 +80,7 @@ public final class RodData {
         if (rig.getItem() instanceof com.riverfishing.item.RigItem ri && ri.rigType() == native_) {
             return; // already the native rig — keep its contents
         }
-        Item rigItem = ForgeRegistries.ITEMS.getValue(RiverFishing.id("rig_" + native_.jsonKey()));
+        Item rigItem = BuiltInRegistries.ITEM.get(RiverFishing.id("rig_" + native_.jsonKey()));
         set(rod, ComponentSlot.RIG, rigItem != null ? new ItemStack(rigItem) : ItemStack.EMPTY);
     }
 }

@@ -1,8 +1,8 @@
 package com.riverfishing.integration;
 
 import com.riverfishing.engine.Season;
+import com.riverfishing.platform.PlatformHelper;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fml.ModList;
 
 import java.lang.reflect.Method;
 
@@ -21,7 +21,7 @@ public final class SeasonProvider {
     private static boolean init() {
         if (available != null) return available;
         try {
-            if (!ModList.get().isLoaded("sereneseasons")) {
+            if (!PlatformHelper.isModLoaded("sereneseasons")) {
                 return available = false;
             }
             Class<?> helper = Class.forName("sereneseasons.api.season.SeasonHelper");

@@ -13,7 +13,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -166,7 +166,7 @@ public final class Quests {
 
     private static Supplier<ItemStack> item(String id, int count) {
         return () -> {
-            Item it = ForgeRegistries.ITEMS.getValue(RiverFishing.id(id));
+            Item it = BuiltInRegistries.ITEM.get(RiverFishing.id(id));
             return it == null ? ItemStack.EMPTY : new ItemStack(it, count);
         };
     }

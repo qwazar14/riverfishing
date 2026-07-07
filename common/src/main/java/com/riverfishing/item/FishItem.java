@@ -45,8 +45,12 @@ public class FishItem extends Item {
         return species;
     }
 
-    @Override
-    public boolean onEntityItemUpdate(ItemStack stack, net.minecraft.world.entity.item.ItemEntity entity) {
+    /**
+     * §multiloader / §koi: koi released when floating in water. Forge's {@code Item#onEntityItemUpdate} has
+     * no vanilla/Fabric equivalent, so this is a static helper called from a Mixin on {@code ItemEntity#tick}
+     * (see the forge/fabric mixin jsons). Returns true when the fish was released (item discarded).
+     */
+    public static boolean koiReleaseTick(ItemStack stack, net.minecraft.world.entity.item.ItemEntity entity) {
         net.minecraft.world.level.Level level = entity.level();
         if (level.isClientSide) return false;
         if (entity.isInWater()) {
@@ -80,19 +84,9 @@ public class FishItem extends Item {
         return sp != null && sp.getPath().startsWith("carp_koi_");
     }
 
-    /**
-     * Caught fish render through a custom renderer that scales the icon by weight (§fish-scale).
-     * Only ever called on the physical client, so touching the client renderer here is safe.
-     */
-    @Override
-    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
-        consumer.accept(new net.minecraftforge.client.extensions.common.IClientItemExtensions() {
-            @Override
-            public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                return com.riverfishing.client.FishItemRenderer.get();
-            }
-        });
-    }
+    // §multiloader: the weight-scaled fish icon (§fish-scale) is a custom item renderer registered per
+    // platform in the client bootstrap (Forge IClientItemExtensions / Fabric BuiltinItemRendererRegistry),
+    // no longer via Forge's Item#initializeClient.
 
     public static ItemStack create(Item fishItem, ResourceLocation species, int weightG, int lengthCm, boolean legal) {
         return create(fishItem, species, weightG, lengthCm, legal, false);

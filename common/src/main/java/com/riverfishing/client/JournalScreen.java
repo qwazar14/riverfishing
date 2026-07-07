@@ -27,7 +27,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraftforge.registries.RegistryObject;
+import dev.architectury.registry.registries.RegistrySupplier;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -92,7 +92,7 @@ public class JournalScreen extends Screen {
     public JournalScreen(CompoundTag data) {
         super(Component.translatable("journal.riverfishing.header"));
         this.data = data;
-        for (RegistryObject<Item> ro : ModItems.ALL) {
+        for (RegistrySupplier<Item> ro : ModItems.ALL) {
             Item it = ro.get();
             if (it instanceof BaitItem b) {
                 baitCat.add(new Cat(new ItemStack(it), b.artificial() ? Kind.LURE : Kind.NATURAL, b.baitId()));
@@ -682,7 +682,7 @@ public class JournalScreen extends Screen {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return List.of();
         // §oilcake-info: the oil cake is a CUSTOM recipe (no listed ingredients) — spell it out by hand.
-        ResourceLocation itemId = net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(stack.getItem());
+        ResourceLocation itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (itemId != null && itemId.getPath().equals("groundbait_cake")) {
             return List.of(
                     new ItemStack(net.minecraft.world.item.Items.SUNFLOWER).getHoverName().getString(),

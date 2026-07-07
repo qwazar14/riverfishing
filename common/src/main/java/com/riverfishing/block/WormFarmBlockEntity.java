@@ -15,7 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * The worm farm's brood (§bait-farm): while there is compost in the crate (the block's LEVEL) and soil
@@ -68,7 +68,7 @@ public class WormFarmBlockEntity extends BlockEntity {
                     .withStyle(ChatFormatting.GRAY), true);
             return;
         }
-        var worm = ForgeRegistries.ITEMS.getValue(com.riverfishing.RiverFishing.id("worm"));
+        var worm = BuiltInRegistries.ITEM.get(com.riverfishing.RiverFishing.id("worm"));
         if (worm != null) {
             ItemStack out = new ItemStack(worm, worms);
             if (!player.getInventory().add(out)) {

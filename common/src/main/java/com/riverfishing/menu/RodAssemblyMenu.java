@@ -65,7 +65,7 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
             boolean isNative = native_ != null && rig.getItem() instanceof com.riverfishing.item.RigItem ri
                     && ri.rigType() == native_;
             if (!isNative && native_ != null) {
-                var item = net.minecraftforge.registries.ForgeRegistries.ITEMS.getValue(
+                var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
                         com.riverfishing.RiverFishing.id("rig_" + native_.jsonKey()));
                 rig = item != null ? new ItemStack(item) : ItemStack.EMPTY;
             }
