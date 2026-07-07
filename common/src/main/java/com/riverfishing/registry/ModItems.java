@@ -18,12 +18,12 @@ import com.riverfishing.item.ReelItem;
 import com.riverfishing.item.RigItem;
 import com.riverfishing.item.RodItem;
 import com.riverfishing.item.WhetstoneItem;
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,13 +34,18 @@ import java.util.function.Supplier;
 /** All items the mod registers. The {@link #ALL} list feeds the creative tab and asset generation. */
 public final class ModItems {
     public static final DeferredRegister<Item> REGISTER =
-            DeferredRegister.create(ForgeRegistries.ITEMS, RiverFishing.MODID);
+            DeferredRegister.create(RiverFishing.MODID, Registries.ITEM);
+
+    /** Bind all queued items to the active platform's registry (§multiloader) — called from init. */
+    public static void init() {
+        REGISTER.register();
+    }
 
     /** Registration order = creative-tab order. */
-    public static final List<RegistryObject<Item>> ALL = new ArrayList<>();
+    public static final List<RegistrySupplier<Item>> ALL = new ArrayList<>();
 
     // ---- Rods ----
-    public static final List<RegistryObject<Item>> RODS = new ArrayList<>();
+    public static final List<RegistrySupplier<Item>> RODS = new ArrayList<>();
     // ---- Caught fish: one item + texture per species (Module 8; §ecology adds habitat-bound species) ----
     public static final String[] FISH_SPECIES = {
             "bream", "crucian_carp", "roach", "rudd", "white_bream",
@@ -52,29 +57,29 @@ public final class ModItems {
             "carp_koi_kohaku", "carp_koi_tancho_sanke", "carp_koi_showa_sanke",
             "carp_koi_asagi", "carp_koi_bekko"
     };
-    public static final Map<ResourceLocation, RegistryObject<Item>> FISH_ITEMS = new HashMap<>();
+    public static final Map<ResourceLocation, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
     // ---- Baits referenced by event drops ----
-    public static final RegistryObject<Item> WORM;
-    public static final RegistryObject<Item> CHICKEN_LIVER;
+    public static final RegistrySupplier<Item> WORM;
+    public static final RegistrySupplier<Item> CHICKEN_LIVER;
     // ---- In-rig components (Module 4): referenced by slot validation ----
-    public static final RegistryObject<Item> LEADER;
-    public static final RegistryObject<Item> LEADER_FLUORO;
-    public static final RegistryObject<Item> LEADER_TITANIUM;
-    public static final RegistryObject<Item> FLOAT;
+    public static final RegistrySupplier<Item> LEADER;
+    public static final RegistrySupplier<Item> LEADER_FLUORO;
+    public static final RegistrySupplier<Item> LEADER_TITANIUM;
+    public static final RegistrySupplier<Item> FLOAT;
     // ---- Bite alarms (Module 3) ----
-    public static final RegistryObject<Item> BELL_ALARM;
-    public static final RegistryObject<Item> DIGITAL_ALARM;
+    public static final RegistrySupplier<Item> BELL_ALARM;
+    public static final RegistrySupplier<Item> DIGITAL_ALARM;
     // ---- Processing (§11) ----
-    public static final RegistryObject<Item> FILLET_KNIFE;
-    public static final RegistryObject<Item> RAW_FILLET;
-    public static final RegistryObject<Item> COOKED_FILLET;
+    public static final RegistrySupplier<Item> FILLET_KNIFE;
+    public static final RegistrySupplier<Item> RAW_FILLET;
+    public static final RegistrySupplier<Item> COOKED_FILLET;
     // ---- Maintenance (§3.8) ----
-    public static final RegistryObject<Item> WHETSTONE;
+    public static final RegistrySupplier<Item> WHETSTONE;
 
     private ModItems() {}
 
-    private static RegistryObject<Item> reg(String name, Supplier<Item> supplier) {
-        RegistryObject<Item> obj = REGISTER.register(name, supplier);
+    private static RegistrySupplier<Item> reg(String name, Supplier<Item> supplier) {
+        RegistrySupplier<Item> obj = REGISTER.register(name, supplier);
         ALL.add(obj);
         return obj;
     }
@@ -101,7 +106,7 @@ public final class ModItems {
         // ----- Rods (each RodType is its own item; components live in NBT). Blanks wear out and are
         // anvil-repaired with the priciest ingredient of their recipe (§rod-durability). -----
         for (RodType type : RodType.values()) {
-            RegistryObject<Item> rod = reg(type.jsonKey() + "_rod",
+            RegistrySupplier<Item> rod = reg(type.jsonKey() + "_rod",
                     () -> new RodItem(type, props().durability(rodDurability(type))));
             RODS.add(rod);
         }
@@ -196,7 +201,7 @@ public final class ModItems {
 
     /** The item representing a given fish species (Module 8). */
     public static Item fishItem(ResourceLocation species) {
-        RegistryObject<Item> obj = FISH_ITEMS.get(species);
+        RegistrySupplier<Item> obj = FISH_ITEMS.get(species);
         return (obj != null ? obj : FISH_ITEMS.values().iterator().next()).get();
     }
 
@@ -220,7 +225,7 @@ public final class ModItems {
         }
     }
 
-    private static RegistryObject<Item> registerBait(String id, boolean artificial) {
+    private static RegistrySupplier<Item> registerBait(String id, boolean artificial) {
         return reg(id, () -> new BaitItem(id, artificial, props()));
     }
 }

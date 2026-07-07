@@ -21,8 +21,12 @@ src/      ← PARKED legacy Forge sources; ported into common/ stage by stage, t
 ## Stages (each ends on a green build before the next)
 1. **[done] Scaffold** — Architectury Gradle multi-project, entry points, `@ExpectPlatform` seam,
    `fabric.mod.json` + `mods.toml`. Empty skeleton builds on both loaders.
-2. Move sources → `common`; convert `DeferredRegister` (items/blocks/BE/menus/villager) to Architectury
-   `DeferredRegister`.
+2. **[done] Move sources → `common`** + convert all 8 registries (items, blocks, block-entities, menus,
+   sounds, recipes, POI/profession, creative tab) to Architectury `DeferredRegister`/`RegistrySupplier`,
+   bound via `ModRegistries.init()` (BLOCKS before ITEMS). `IForgeMenuType.create` → `MenuRegistry.ofExtended`.
+   Common still won't compile — Loom builds the whole module, so green only comes after ALL 36 Forge-coupled
+   files are done. Remaining Forge surface (grep `net.minecraftforge`): network(7), item(6), client(4),
+   block(3), jei(2), config, command, event, quest, and the villager **trades event** in ModVillagers.
 3. Abstract entry point + events (worm/mob drops, villager trades, commands) + client HUD/render events.
 4. Networking → Architectury `NetworkManager`; `getPersistentData` → `SavedData`.
 5. Client: BEWLR renderers (fish/rod), aquarium BER, screens, cast-bar / float-timing HUD, in-world line.

@@ -27,9 +27,9 @@ import net.minecraftforge.common.BasicItemListing;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
+import net.minecraft.core.registries.Registries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,14 +43,20 @@ import java.util.function.Supplier;
 @Mod.EventBusSubscriber(modid = RiverFishing.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class ModVillagers {
     public static final DeferredRegister<PoiType> POI_TYPES =
-            DeferredRegister.create(ForgeRegistries.POI_TYPES, RiverFishing.MODID);
+            DeferredRegister.create(RiverFishing.MODID, Registries.POINT_OF_INTEREST_TYPE);
     public static final DeferredRegister<VillagerProfession> PROFESSIONS =
-            DeferredRegister.create(ForgeRegistries.VILLAGER_PROFESSIONS, RiverFishing.MODID);
+            DeferredRegister.create(RiverFishing.MODID, Registries.VILLAGER_PROFESSION);
 
-    public static final RegistryObject<PoiType> FISHERMAN_POI = POI_TYPES.register("fisherman",
+    /** Register POI + profession (§multiloader). Trades still ride the Forge event (Stage 3 remainder). */
+    public static void init() {
+        POI_TYPES.register();
+        PROFESSIONS.register();
+    }
+
+    public static final RegistrySupplier<PoiType> FISHERMAN_POI = POI_TYPES.register("fisherman",
             () -> new PoiType(Set.copyOf(ModBlocks.FISHING_STALL.get().getStateDefinition().getPossibleStates()), 1, 1));
 
-    public static final RegistryObject<VillagerProfession> FISHERMAN = PROFESSIONS.register("fisherman",
+    public static final RegistrySupplier<VillagerProfession> FISHERMAN = PROFESSIONS.register("fisherman",
             () -> new VillagerProfession("river_fisherman",
                     holder -> holder.is(FISHERMAN_POI.getKey()),
                     holder -> holder.is(FISHERMAN_POI.getKey()),

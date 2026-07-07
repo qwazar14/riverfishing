@@ -1,27 +1,32 @@
 package com.riverfishing;
 
 import com.riverfishing.platform.PlatformHelper;
+import com.riverfishing.registry.ModRegistries;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Common (platform-neutral) entry point for River Fishing.
+ * Common (platform-neutral) entry point for River Fishing. Both loaders call {@link #init()} from their
+ * own bootstrap ({@code RiverFishingForge} / {@code RiverFishingFabric}).
  *
- * <p>Both loaders call {@link #init()} from their own bootstrap ({@code RiverFishingForge} on Forge,
- * {@code RiverFishingFabric} on Fabric). All game logic, items, blocks, the bite engine and the GUI
- * live in this {@code common} module; anything a platform does differently (registration, events,
- * networking, per-loader renderers) is reached through the {@code platform} layer.
- *
- * <p>Migration status: STAGE 1 — scaffold only. Subsystems move in from the parked legacy Forge
- * sources stage by stage (registries → events → networking/data → client). See MIGRATION.md.
+ * <p>Keeps the same {@code MODID} / {@code LOGGER} / {@code id(..)} API the ~100 game-logic classes were
+ * written against, so relocating them into {@code common} needed no call-site churn.
  */
 public final class RiverFishing {
-    public static final String MOD_ID = "riverfishing";
-    public static final Logger LOG = LoggerFactory.getLogger("River Fishing");
+    public static final String MODID = "riverfishing";
+    public static final Logger LOGGER = LoggerFactory.getLogger("River Fishing");
 
     private RiverFishing() {}
 
     public static void init() {
-        LOG.info("[River Fishing] common init on {} platform", PlatformHelper.platformName());
+        LOGGER.info("River Fishing: common init on {}", PlatformHelper.platformName());
+        ModRegistries.init();
+        // Stage 3–4: config (was ForgeConfigSpec), networking (was SimpleChannel), events (worm/mob
+        // drops, villager trades, commands), and the getPersistentData → SavedData rewrite.
+    }
+
+    public static ResourceLocation id(String path) {
+        return new ResourceLocation(MODID, path);
     }
 }
