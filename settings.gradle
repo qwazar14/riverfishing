@@ -1,13 +1,16 @@
 pluginManagement {
     repositories {
+        maven { url "https://maven.fabricmc.net/" }
+        maven { url "https://maven.architectury.dev/" }
+        maven { url "https://maven.minecraftforge.net/" }
         gradlePluginPortal()
-        maven {
-            name = 'MinecraftForge'
-            url = 'https://maven.minecraftforge.net/'
-        }
     }
 }
 
-plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
-}
+// Multi-loader (Architectury) layout — see MIGRATION.md. The legacy single-project Forge build
+// lives on the `forge-1.20.1` branch; this branch is the common/forge/fabric split.
+include("common")
+include("fabric")
+include("forge")
+
+rootProject.name = "riverfishing"

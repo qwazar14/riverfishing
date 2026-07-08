@@ -1,0 +1,176 @@
+package com.riverfishing.client;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.riverfishing.component.ComponentSlot;
+import com.riverfishing.item.LineItem;
+import com.riverfishing.item.ReelItem;
+import com.riverfishing.item.RigItem;
+import com.riverfishing.item.RodData;
+import com.riverfishing.item.RodItem;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+
+/**
+ * Builds an assembled rod's icon on the fly by STACKING sprite layers from the rod's NBT
+ * (§rod-layers): blank + reel + line + rig. This is a Forge {@link BlockEntityWithoutLevelRenderer}
+ * (BEWLR) hooked up via {@code RodItem.initializeClient}; the rod's item model is
+ * {@code builtin/entity}, so the engine hands rendering to this class in every context (inventory,
+ * hand, ground, rod-pod). Because the line is its OWN layer, we can DRAW it only in the inventory —
+ * where there is no 3D line to duplicate it (in-hand and on the pod the real line is rendered).
+ */
+public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
+    private static RodItemRenderer instance;
+
+    public static RodItemRenderer get() {
+        if (instance == null) {
+            Minecraft mc = Minecraft.getInstance();
+            instance = new RodItemRenderer(mc.getBlockEntityRenderDispatcher(), mc.getEntityModels());
+        }
+        return instance;
+    }
+
+    public RodItemRenderer(net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher dispatcher,
+                           net.minecraft.client.model.geom.EntityModelSet models) {
+        super(dispatcher, models);
+    }
+
+    @Override
+    public void renderByItem(ItemStack stack, ItemDisplayContext ctx, PoseStack pose,
+                             MultiBufferSource buffers, int light, int overlay) {
+        Minecraft mc = Minecraft.getInstance();
+        ModelManager mm = mc.getModelManager();
+        ItemRenderer ir = mc.getItemRenderer();
+        BakedModel missing = mm.getMissingModel();
+        String rodKey = stack.getItem() instanceof RodItem r ? r.rodType().jsonKey() : "bamboo";
+        // In hand / on the head the rod is shown edge-on and the flat sprite gets mirrored — use the
+        // pre-flipped rod_m layers there so it reads correctly (§rod-mirror). Inventory keeps normal.
+        boolean mir = mirrored(ctx);
+
+        // The ItemRenderer already centred the whole composite with a translate(-0.5) before handing
+        // off to us, and ir.render() does the SAME -0.5 again for each layer — cancel one so the icon
+        // sits in the middle of the slot instead of the lower-left corner.
+        pose.pushPose();
+        pose.translate(0.5, 0.5, 0.5);
+        // §cast-anim: a casting motion in first person — the rod loads BACK while you charge the throw,
+        // then WHIPS forward on release (driven by the vanilla swing fired on a successful cast). Applied
+        // in the arm frame (before the hand pose) so it pitches in the natural cast plane.
+        applyCastAnim(pose, ctx);
+        // The rod's hand pose lives in code (§rod-debug) so it can be tuned live with /rfrod; the
+        // model's hand display is identity, so this IS the whole in-hand transform. No-op elsewhere.
+        RodHandTransform.apply(pose, ctx);
+
+        int layer = 0;
+        // 1) The bare rod — always.
+        layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.blank(rodKey)),
+                stack, ctx, pose, buffers, light, overlay, layer);
+
+        // 2) The reel — only if one is fitted (reel-less poles have none). Always part of the rod.
+        ItemStack reel = RodData.get(stack, ComponentSlot.REEL);
+        if (reel.getItem() instanceof ReelItem ri) {
+            layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.reel(ri.size()), RodModelLayers.reelGeneric()),
+                    stack, ctx, pose, buffers, light, overlay, layer);
+        }
+
+        // 3+4) The line on the spool and the terminal tackle: shown while the rod is just being held,
+        // hidden once the line is CAST (the 3D line + bobber represents them then) and on the rod-pod.
+        if (showTackle(ctx)) {
+            ItemStack line = RodData.get(stack, ComponentSlot.LINE);
+            if (line.getItem() instanceof LineItem li) {
+                layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.line(li.lineType()), RodModelLayers.lineGeneric()),
+                        stack, ctx, pose, buffers, light, overlay, layer);
+            }
+            ItemStack rig = RodData.get(stack, ComponentSlot.RIG);
+            if (rig.getItem() instanceof RigItem rg) {
+                draw(ir, resolve(mm, missing, mir, RodModelLayers.rig(rg.rigType()), RodModelLayers.rigGeneric()),
+                        stack, ctx, pose, buffers, light, overlay, layer);
+            }
+        }
+
+        pose.popPose();
+    }
+
+    /**
+     * §cast-anim: the first-person casting swing. Wind-up comes from the charge power (rod loads back as
+     * you hold, tracking the power bar); the forward whip comes from the vanilla swing fired on a
+     * successful cast. Only the local player in first person — third-person observers get the vanilla
+     * arm swing itself. No effect in the inventory / on the pod.
+     */
+    private static void applyCastAnim(PoseStack pose, ItemDisplayContext ctx) {
+        if (ctx != ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+                && ctx != ItemDisplayContext.FIRST_PERSON_LEFT_HAND) {
+            return;
+        }
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        float chargePower = 0f;
+        // Wind-up only while actively charging a cast (holding, no line out yet) — not during a retrieve.
+        if (mc.player.isUsingItem() && mc.player.getUseItem().getItem() instanceof RodItem
+                && !ClientLineState.active()) {
+            int used = mc.player.getUseItem().getUseDuration() - mc.player.getUseItemRemainingTicks();
+            chargePower = RodItem.castPower(used);
+        }
+        float swing = mc.player.getAttackAnim(mc.getFrameTime());
+        float pitch = RodHandTransform.castPitch(chargePower, swing);
+        if (pitch != 0f) {
+            pose.mulPose(com.mojang.math.Axis.XP.rotationDegrees(pitch));
+        }
+    }
+
+    /** Hand contexts see the sprite mirrored by the y:-90 hand pose, so use the flipped set. */
+    private static boolean mirrored(ItemDisplayContext ctx) {
+        return RodHandTransform.isHand(ctx);
+    }
+
+    /**
+     * Whether to draw the line + terminal tackle layers (§rod-layers). Always in the inventory/on the
+     * ground (the icon should read as the full assembled rig); in hand only while the line is NOT out
+     * (once cast, the 3D line/bobber shows it); never on the rod-pod (a podded rod is always cast).
+     */
+    private static boolean showTackle(ItemDisplayContext ctx) {
+        return switch (ctx) {
+            case GUI, GROUND, NONE, HEAD -> true;
+            case FIXED -> false; // rod pod — line is out in the water, drawn in 3D
+            default -> !ClientLineState.active(); // in hand: hide once the player has cast
+        };
+    }
+
+    /**
+     * Renders one flat layer at the current pose, nudged in z so the layers don't fight. The layer is
+     * drawn with NONE (identity transform): the rod's own display transform for {@code ctx} was
+     * already applied by the ItemRenderer before it handed off to us, so the layers share that pose.
+     */
+    private int draw(ItemRenderer ir, BakedModel model, ItemStack stack, ItemDisplayContext ctx,
+                     PoseStack pose, MultiBufferSource buffers, int light, int overlay, int layer) {
+        if (model == null) return layer;
+        pose.pushPose();
+        pose.translate(0, 0, layer * 0.012f);
+        ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, model);
+        pose.popPose();
+        return layer + 1;
+    }
+
+    /**
+     * First registered+baked model among the candidates (most-specific first), or null to skip. When
+     * {@code mir} is set, each candidate is tried in its mirrored (rod_m) folder first, falling back
+     * to the normal sprite if no flipped copy exists.
+     */
+    private static BakedModel resolve(ModelManager mm, BakedModel missing, boolean mir, ResourceLocation... locs) {
+        for (ResourceLocation loc : locs) {
+            if (loc == null) continue;
+            if (mir) {
+                BakedModel flipped = com.riverfishing.client.platform.ClientPlatform.bakedModel(RodModelLayers.mirror(loc));
+                if (flipped != null && flipped != missing) return flipped;
+            }
+            BakedModel m = com.riverfishing.client.platform.ClientPlatform.bakedModel(loc);
+            if (m != null && m != missing) return m;
+        }
+        return null;
+    }
+}
