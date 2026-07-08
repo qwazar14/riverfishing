@@ -58,5 +58,9 @@ public final class ClientInit {
 
         // Item BEWLR — Fabric iterates the rod/fish items here (needs them bound); Forge is a mixin no-op.
         ClientPlatform.registerItemRenderers();
+
+        // Non-solid block render layers (aquarium glass, ice hole, bait trap) — Fabric only; Forge reads
+        // "render_type" from the model. Needs the blocks bound, so it lives here with the renderers.
+        ClientPlatform.registerRenderTypes();
     }
 }

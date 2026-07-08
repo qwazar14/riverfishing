@@ -32,6 +32,7 @@
     "trout": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:trout"] } ] } },
     "sterlet": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:sterlet"] } ] } },
     "wild_carp": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:wild_carp"] } ] } },
-    "mirror_carp": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:mirror_carp"] } ] } }
+    "mirror_carp": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:mirror_carp"] } ] } },
+    "grass_carp": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:grass_carp"] } ] } }
   }
 }

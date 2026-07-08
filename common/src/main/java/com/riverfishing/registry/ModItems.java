@@ -53,7 +53,7 @@ public final class ModItems {
             "gudgeon", "ruffe", "bleak", "ide", "chub", "asp",
             "tench", "burbot", "eel", "grayling", "trout", "sterlet",
             // §carp-update: the wild sazan + the mirror strain, plus the koi collectibles.
-            "wild_carp", "mirror_carp",
+            "wild_carp", "mirror_carp", "grass_carp",
             "carp_koi_kohaku", "carp_koi_tancho_sanke", "carp_koi_showa_sanke",
             "carp_koi_asagi", "carp_koi_bekko"
     };
@@ -154,9 +154,9 @@ public final class ModItems {
         registerBait("boilie", false);
         registerBait("livebait", false);
         CHICKEN_LIVER = registerBait("chicken_liver", false);
-        // Mormyshka (§ice-fishing): a tiny weighted winter jig, usually tipped with a grub — treated as a
-        // natural bait so it fits a float/ice rig's bait slot. The winter panfish love it under the ice.
-        registerBait("mormyshka", false);
+        // Mormyshka (§ice-fishing): a tiny weighted winter JIG — an artificial lure (shown as such in the
+        // journal/tooltip), but SlotRole.BAIT still admits it (it's fished tipped with a grub in the ice rig).
+        registerBait("mormyshka", true);
         // ----- Artificial baits (predators only) -----
         registerBait("spinner", true);
         registerBait("spoon", true);

@@ -28,7 +28,7 @@ public final class FishProfile {
     // Fight (used by the vyvazhivanie mini-game)
     public final double fightStrength, fightStamina;
     public final int fightRuns;
-    /** Behaviour pattern: "steady" | "active_then_passive" | "aggressive" | "burst". */
+    /** Behaviour pattern: "steady" | "active_then_passive" | "aggressive" | "burst" | "relentless". */
     public final String fightPattern;
     public final double fightAggression;
 

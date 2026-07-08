@@ -49,8 +49,8 @@ public class JournalScreen extends Screen {
     private static final int ROW_H = 16;
     private static final int GRID_TOP = 54;
     private static final int ROWS = (SPECIES.length + COLS - 1) / COLS;
-    private static final int H = 316;
-    private static final int MAX_W = 340;
+    private static final int H = 363;      // §journal-size: +15% headroom so text never clips
+    private static final int MAX_W = 391;  // §journal-size: +15% wider for the same reason
     // Panel width adapts to the screen (GUI scale) so it never clips off-screen; columns + illustration follow.
     private int W = MAX_W;
     private int COL_W = (MAX_W - 20) / COLS;
@@ -120,7 +120,16 @@ public class JournalScreen extends Screen {
     }
 
     public static void open(CompoundTag data) {
-        Minecraft.getInstance().setScreen(new JournalScreen(data));
+        JournalScreen next = new JournalScreen(data);
+        // A refresh (server re-sends the journal after a skill unlock / quest claim) reuses this same
+        // entry point — carry the reader's place over so they don't get thrown back to the FISH tab.
+        if (Minecraft.getInstance().screen instanceof JournalScreen prev) {
+            next.tab = prev.tab;
+            next.scroll = prev.scroll;
+            next.detail = prev.detail;
+            next.catDetail = prev.catDetail;
+        }
+        Minecraft.getInstance().setScreen(next);
     }
 
     @Override
@@ -754,7 +763,7 @@ public class JournalScreen extends Screen {
     }
 
     private static String weight(int g) {
-        return g >= 1000 ? String.format("%.2f кг", g / 1000.0) : g + " г";
+        return com.riverfishing.item.FishItem.weightLabel(g); // §i18n: localized units (kg/g ↔ кг/г)
     }
 
     private static String waters(FishProfile p) {

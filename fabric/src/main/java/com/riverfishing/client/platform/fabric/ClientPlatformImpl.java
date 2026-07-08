@@ -4,13 +4,16 @@ import com.riverfishing.client.ClientModels;
 import com.riverfishing.client.FishItemRenderer;
 import com.riverfishing.client.LineRenderer;
 import com.riverfishing.client.RodItemRenderer;
+import com.riverfishing.registry.ModBlocks;
 import com.riverfishing.registry.ModItems;
 import dev.architectury.registry.registries.RegistrySupplier;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.model.loading.v1.FabricBakedModelManager;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -46,6 +49,13 @@ public final class ClientPlatformImpl {
     public static void registerLevelRenderer() {
         WorldRenderEvents.AFTER_TRANSLUCENT.register(context ->
                 LineRenderer.render(context.matrixStack(), context.camera().getPosition(), context.tickDelta()));
+    }
+
+    /** Vanilla/Fabric ignores the model's "render_type", so wire the non-solid layers up explicitly. */
+    public static void registerRenderTypes() {
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.AQUARIUM.get(), RenderType.translucent());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.ICE_HOLE.get(), RenderType.translucent());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.BAIT_TRAP.get(), RenderType.cutout());
     }
 
     /** Fabric's model-loading API mixes {@code getModel(ResourceLocation)} in via FabricBakedModelManager. */
