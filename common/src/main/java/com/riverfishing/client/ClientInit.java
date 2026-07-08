@@ -14,24 +14,23 @@ import dev.architectury.registry.menu.MenuRegistry;
  * {@code @Mod.EventBusSubscriber} client classes collapse into this, called once from each loader's
  * client entry point ({@code RiverFishingForge} on the client dist / {@code RiverFishingFabricClient}).
  *
- * <p>Screens, block-entity renderers, the HUD, the disconnect cleanup and the client command all ride
- * Architectury's own client events/registries (safe to register from mod construction — they defer to
- * the right moment on Forge). The three hooks Architectury doesn't wrap — the item BEWLR, the extra
- * models and the in-world line — go through {@link ClientPlatform}.
+ * <p>Split in two so the Forge timing works: {@link #registerEvents()} only adds event listeners (no
+ * registry objects touched) and runs during mod construction; {@link #registerRenderers()} resolves the
+ * menu/block-entity {@code RegistrySupplier}s (which on Forge aren't bound until {@code RegisterEvent},
+ * after the constructor) and is deferred to {@code FMLClientSetupEvent} there. Fabric binds synchronously,
+ * so {@link #init()} just runs both from {@code onInitializeClient}.
  */
 public final class ClientInit {
     private ClientInit() {}
 
+    /** Fabric client entry: everything at once — registry objects are already bound by init time. */
     public static void init() {
-        // Assembly / rig screens (Forge MenuScreens.register → Architectury registerScreenFactory).
-        MenuRegistry.registerScreenFactory(ModMenus.ROD_ASSEMBLY.get(), RodAssemblyScreen::new);
-        MenuRegistry.registerScreenFactory(ModMenus.RIG.get(), RigScreen::new);
+        registerEvents();
+        registerRenderers();
+    }
 
-        // Block-entity renderers (Forge EntityRenderersEvent → Architectury BlockEntityRendererRegistry).
-        BlockEntityRendererRegistry.register(ModBlockEntities.TROPHY_STAND.get(), TrophyStandRenderer::new);
-        BlockEntityRendererRegistry.register(ModBlockEntities.ROD_POD.get(), RodPodRenderer::new);
-        BlockEntityRendererRegistry.register(ModBlockEntities.AQUARIUM.get(), AquariumRenderer::new);
-
+    /** Event listeners only — safe during Forge mod construction (nothing calls {@code .get()}). */
+    public static void registerEvents() {
         // Float-timing + cast-power HUD (Forge RenderGuiEvent.Post → Architectury RENDER_HUD).
         ClientGuiEvent.RENDER_HUD.register(ClientHud::render);
 
@@ -41,9 +40,23 @@ public final class ClientInit {
         // /rfrod live pose debugger (Forge RegisterClientCommandsEvent → Architectury client command).
         ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> RodDebugCommand.register(dispatcher));
 
-        // Platform-only hooks with no Architectury wrapper (§multiloader).
-        ClientPlatform.registerItemRenderers();
+        // Platform-only event hooks (in-world line render + extra-model bake) — no registry objects.
         ClientPlatform.registerExtraModels();
         ClientPlatform.registerLevelRenderer();
+    }
+
+    /** Registry-object-dependent registration — deferred to FMLClientSetupEvent on Forge. */
+    public static void registerRenderers() {
+        // Assembly / rig screens (Forge MenuScreens.register → Architectury registerScreenFactory).
+        MenuRegistry.registerScreenFactory(ModMenus.ROD_ASSEMBLY.get(), RodAssemblyScreen::new);
+        MenuRegistry.registerScreenFactory(ModMenus.RIG.get(), RigScreen::new);
+
+        // Block-entity renderers (Forge EntityRenderersEvent → Architectury BlockEntityRendererRegistry).
+        BlockEntityRendererRegistry.register(ModBlockEntities.TROPHY_STAND.get(), TrophyStandRenderer::new);
+        BlockEntityRendererRegistry.register(ModBlockEntities.ROD_POD.get(), RodPodRenderer::new);
+        BlockEntityRendererRegistry.register(ModBlockEntities.AQUARIUM.get(), AquariumRenderer::new);
+
+        // Item BEWLR — Fabric iterates the rod/fish items here (needs them bound); Forge is a mixin no-op.
+        ClientPlatform.registerItemRenderers();
     }
 }
