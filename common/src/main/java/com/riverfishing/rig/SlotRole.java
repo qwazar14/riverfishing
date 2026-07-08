@@ -30,7 +30,8 @@ public enum SlotRole {
         if (stack.isEmpty()) return false;
         return switch (this) {
             case HOOK -> stack.getItem() instanceof HookItem;
-            case BAIT -> stack.getItem() instanceof BaitItem b && !b.artificial();
+            // Natural baits, plus the mormyshka jig (artificial, but the winter rig's only bait — §ice-fishing).
+            case BAIT -> stack.getItem() instanceof BaitItem b && (!b.artificial() || b.baitId().equals("mormyshka"));
             case GROUNDBAIT -> stack.getItem() instanceof GroundbaitItem;
             case FLOAT -> stack.getItem() == ModItems.FLOAT.get();
             case LEADER -> stack.getItem() instanceof LeaderItem;

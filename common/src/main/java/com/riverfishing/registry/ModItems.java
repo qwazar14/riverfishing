@@ -154,9 +154,9 @@ public final class ModItems {
         registerBait("boilie", false);
         registerBait("livebait", false);
         CHICKEN_LIVER = registerBait("chicken_liver", false);
-        // Mormyshka (§ice-fishing): a tiny weighted winter jig, usually tipped with a grub — treated as a
-        // natural bait so it fits a float/ice rig's bait slot. The winter panfish love it under the ice.
-        registerBait("mormyshka", false);
+        // Mormyshka (§ice-fishing): a tiny weighted winter JIG — an artificial lure (shown as such in the
+        // journal/tooltip), but SlotRole.BAIT still admits it (it's fished tipped with a grub in the ice rig).
+        registerBait("mormyshka", true);
         // ----- Artificial baits (predators only) -----
         registerBait("spinner", true);
         registerBait("spoon", true);

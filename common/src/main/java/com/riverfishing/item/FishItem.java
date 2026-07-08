@@ -126,8 +126,16 @@ public class FishItem extends Item {
         return tag != null && GRADE_PRIME.equals(tag.getString(TAG_GRADE));
     }
 
+    /** Weight as a localized component (§i18n) — "1.50 kg" / "1,50 кг" / "320 g" per the client's lang. */
+    public static Component weightText(int weightG) {
+        return weightG >= 1000
+                ? Component.translatable("unit.riverfishing.kg", String.format("%.2f", weightG / 1000.0))
+                : Component.translatable("unit.riverfishing.g", weightG);
+    }
+
+    /** Flat-string form of {@link #weightText} for plain-text call sites; resolves the caller-side lang. */
     public static String weightLabel(int weightG) {
-        return weightG >= 1000 ? String.format("%.2f кг", weightG / 1000.0) : weightG + " г";
+        return weightText(weightG).getString();
     }
 
     /** Species of this catch: NBT first (authoritative for the individual), else the item's species. */
@@ -194,13 +202,13 @@ public class FishItem extends Item {
         if (w <= 0) {
             return name; // e.g. the creative-tab entry, with no individual data yet
         }
-        String weightLabel = w >= 1000 ? String.format("%.2f кг", w / 1000.0) : w + " г";
         if (isTrophy(stack)) {
             return Component.literal("★ ").append(name)
-                    .append(Component.literal(" (" + weightLabel + ")"))
+                    .append(Component.literal(" (")).append(weightText(w)).append(Component.literal(")"))
                     .withStyle(ChatFormatting.GOLD);
         }
-        return name.copy().append(Component.literal(" (" + weightLabel + ")"));
+        return name.copy()
+                .append(Component.literal(" (")).append(weightText(w)).append(Component.literal(")"));
     }
 
     @Override
@@ -210,7 +218,7 @@ public class FishItem extends Item {
             // The fisherman's buy-trade template (§prime-fish): show the "accepts from N" legend.
             if (tag != null && tag.contains(TAG_MIN_WEIGHT)) {
                 tooltip.add(Component.translatable("tooltip.riverfishing.trade_min_weight",
-                                weightLabel(tag.getInt(TAG_MIN_WEIGHT)))
+                                weightText(tag.getInt(TAG_MIN_WEIGHT)))
                         .withStyle(ChatFormatting.YELLOW));
             }
             return;

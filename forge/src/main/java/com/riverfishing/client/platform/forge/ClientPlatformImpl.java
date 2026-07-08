@@ -44,6 +44,10 @@ public final class ClientPlatformImpl {
         LineRenderer.render(event.getPoseStack(), event.getCamera().getPosition(), event.getPartialTick());
     }
 
+    /** Forge reads {@code "render_type"} from each block model JSON, so nothing to do here. */
+    public static void registerRenderTypes() {
+    }
+
     /** Forge patches {@code getModel(ResourceLocation)} straight onto the model manager. */
     public static BakedModel bakedModel(ResourceLocation loc) {
         return Minecraft.getInstance().getModelManager().getModel(loc);

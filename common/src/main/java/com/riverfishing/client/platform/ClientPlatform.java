@@ -37,6 +37,16 @@ public final class ClientPlatform {
     }
 
     /**
+     * Set the non-solid render layers for our blocks (§aquarium glass/water, ice hole, bait trap mesh).
+     * Forge reads {@code "render_type"} straight from the block model JSON, so this is a no-op there;
+     * vanilla/Fabric ignores that field, so Fabric wires it up via {@code BlockRenderLayerMap}.
+     */
+    @ExpectPlatform
+    public static void registerRenderTypes() {
+        throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
+    }
+
+    /**
      * A baked extra model (§rod-layers / §fish-scale) by its plain {@link ResourceLocation}. Vanilla's
      * {@code ModelManager#getModel} only takes a {@code ModelResourceLocation}; the loader-patched
      * lookup (Forge's overload / Fabric's {@code FabricBakedModelManager}) lives per platform.

@@ -1329,12 +1329,10 @@ public final class FishingManager {
             sp.displayClientMessage(Component.translatable("message.riverfishing.caught_multi",
                     fishName(session.species), 1 + extras).withStyle(ChatFormatting.GOLD), false);
         } else {
-            String weightLabel = session.weightG >= 1000
-                    ? String.format("%.2f кг", session.weightG / 1000.0)
-                    : session.weightG + " г";
             String key = legal ? "message.riverfishing.caught" : "message.riverfishing.caught_foul";
             sp.displayClientMessage(Component.translatable(key,
-                    fishName(session.species), weightLabel, session.lengthCm)
+                    fishName(session.species),
+                    com.riverfishing.item.FishItem.weightText(session.weightG), session.lengthCm)
                     .withStyle(legal ? ChatFormatting.GOLD : ChatFormatting.RED), false);
         }
         endSession(sp, session);
