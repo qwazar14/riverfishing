@@ -49,8 +49,8 @@ public class JournalScreen extends Screen {
     private static final int ROW_H = 16;
     private static final int GRID_TOP = 54;
     private static final int ROWS = (SPECIES.length + COLS - 1) / COLS;
-    private static final int H = 316;
-    private static final int MAX_W = 340;
+    private static final int H = 363;      // §journal-size: +15% headroom so text never clips
+    private static final int MAX_W = 391;  // §journal-size: +15% wider for the same reason
     // Panel width adapts to the screen (GUI scale) so it never clips off-screen; columns + illustration follow.
     private int W = MAX_W;
     private int COL_W = (MAX_W - 20) / COLS;

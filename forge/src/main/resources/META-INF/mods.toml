@@ -11,6 +11,7 @@ issueTrackerURL="https://github.com/qwazar14/riverfishing/issues"
 modId="riverfishing"
 version="${version}"
 displayName="River Fishing"
+logoFile="icon.png"
 authors="Qwazar"
 description='''
 A deep, realistic river & ice-fishing simulator built as a modpack anchor.
