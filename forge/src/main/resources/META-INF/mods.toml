@@ -3,11 +3,9 @@ loaderVersion="[47,)"
 license="MIT"
 issueTrackerURL="https://github.com/qwazar14/riverfishing/issues"
 
-# §multiloader: the shared common mixin (koi release) + the Forge-client BEWLR mixins.
-[[mixins]]
-config="riverfishing.mixins.json"
-[[mixins]]
-config="riverfishing-forge.mixins.json"
+# §multiloader: mixin configs (common koi-release + Forge-client BEWLR) are declared via loom's
+# forge.mixinConfig in build.gradle, which writes them to the jar manifest (MixinConfigs) — the way
+# Forge actually loads them. No [[mixins]] here.
 
 [[mods]]
 modId="riverfishing"

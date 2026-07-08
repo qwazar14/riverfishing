@@ -7,6 +7,16 @@ architectury {
     forge()
 }
 
+loom {
+    forge {
+        // Declare BOTH mixin configs so loom writes them to the jar manifest (MixinConfigs) and passes
+        // them in dev. Without this only the common config propagates, and the Forge-client BEWLR mixins
+        // (RodItemForgeMixin/FishItemForgeMixin) never apply → blank rod/fish icons on Forge.
+        mixinConfig "riverfishing.mixins.json"
+        mixinConfig "riverfishing-forge.mixins.json"
+    }
+}
+
 configurations {
     common {
         canBeResolved = true
