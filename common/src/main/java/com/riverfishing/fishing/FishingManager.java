@@ -880,7 +880,9 @@ public final class FishingManager {
         session.fightPattern = profile.fightPattern;
         session.fightAggression = profile.fightAggression;
         session.fightTimeout = (long) Mth.clamp(
-                700 + weightKg * 80 + ("burst".equals(profile.fightPattern) ? 300 : 0), 700, 2400);
+                700 + weightKg * 80
+                        + ("burst".equals(profile.fightPattern) ? 300
+                        : "relentless".equals(profile.fightPattern) ? 500 : 0), 700, 2400);
 
         session.fighting = true;
         session.tension = 0.0;
@@ -1167,6 +1169,12 @@ public final class FishingManager {
                 level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.7f, 1.2f);
                 level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
                         session.target.getZ() + 0.5, 10, 0.2, 0.1, 0.2, 0.2);
+                if ("relentless".equals(session.fightPattern)) {
+                    // §grass-carp: the amur breaks the surface and goes like a torpedo — a big boil + leap.
+                    level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.05,
+                            session.target.getZ() + 0.5, 28, 0.4, 0.18, 0.4, 0.4);
+                    level.playSound(null, session.target, SoundEvents.DOLPHIN_JUMP, SoundSource.PLAYERS, 0.5f, 1.4f);
+                }
             } else {
                 session.nextRunAt = now + 50;
             }
@@ -1246,6 +1254,7 @@ public final class FishingManager {
         int runs = Math.max(1, profile.fightRuns);
         switch (profile.fightPattern) {
             case "aggressive" -> runs += 2;
+            case "relentless" -> runs += 3; // §grass-carp: the amur just keeps charging
             case "burst" -> runs = Math.max(2, runs);
             default -> { /* steady / active_then_passive use the profile value */ }
         }
@@ -1256,6 +1265,7 @@ public final class FishingManager {
     /** Probability a run starts when the timer is up, by pattern and how far into the fight we are. */
     private static double runChance(FishingSession s, double progress) {
         return switch (s.fightPattern) {
+            case "relentless" -> 0.97; // §grass-carp: fights just as hard at the net as at the strike
             case "aggressive" -> 0.95;
             case "burst" -> 0.70;
             case "active_then_passive" -> progress < 0.5 ? 0.90 : 0.25; // bream: fights early, tires late
@@ -1265,6 +1275,7 @@ public final class FishingManager {
 
     private static int runDuration(FishingSession s, double progress, RandomSource r) {
         return switch (s.fightPattern) {
+            case "relentless" -> 40 + r.nextInt(35); // §grass-carp: long torpedo runs toward open water
             case "aggressive" -> 22 + r.nextInt(18);
             case "burst" -> 50 + r.nextInt(40);
             case "active_then_passive" -> progress < 0.5 ? 30 + r.nextInt(20) : 14 + r.nextInt(10);
@@ -1274,6 +1285,7 @@ public final class FishingManager {
 
     private static int runInterval(FishingSession s, double progress, RandomSource r) {
         return switch (s.fightPattern) {
+            case "relentless" -> 20 + r.nextInt(25); // §grass-carp: barely a breath between charges
             case "aggressive" -> 25 + r.nextInt(30);
             case "burst" -> 80 + r.nextInt(80);
             case "active_then_passive" -> progress < 0.5 ? 30 + r.nextInt(30) : 90 + r.nextInt(60);

@@ -125,6 +125,7 @@ public final class ModVillagers {
         sell(t, 4, "groundbait_cake", 4, 3, 6);      // жмых (sunflower+piston)
         sellStack(t, 4, 18, ModVillagers::assembledFeederRod, 18);
         buyPrime(t, 4, "carp", 6, 12);
+        buyPrime(t, 4, "grass_carp", 9, 14);   // §grass-carp: a hard-fighting prize, pays well
         buyPrime(t, 4, "zander", 6, 10);
         buyPrime(t, 4, "trout", 6, 12);
         buyPrime(t, 4, "grayling", 7, 12);

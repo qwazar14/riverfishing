@@ -53,7 +53,7 @@ public final class ModItems {
             "gudgeon", "ruffe", "bleak", "ide", "chub", "asp",
             "tench", "burbot", "eel", "grayling", "trout", "sterlet",
             // §carp-update: the wild sazan + the mirror strain, plus the koi collectibles.
-            "wild_carp", "mirror_carp",
+            "wild_carp", "mirror_carp", "grass_carp",
             "carp_koi_kohaku", "carp_koi_tancho_sanke", "carp_koi_showa_sanke",
             "carp_koi_asagi", "carp_koi_bekko"
     };
