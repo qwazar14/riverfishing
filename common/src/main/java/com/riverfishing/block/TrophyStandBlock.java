@@ -33,6 +33,13 @@ public class TrophyStandBlock extends BaseEntityBlock {
             Block.box(3, 3, 3, 13, 10, 13),   // body
             Block.box(2, 10, 2, 14, 12, 14)); // cap
 
+    public static final com.mojang.serialization.MapCodec<TrophyStandBlock> CODEC = simpleCodec(TrophyStandBlock::new);
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
     public TrophyStandBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));

@@ -64,33 +64,33 @@ public class AquariumBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         ListTag list = new ListTag();
-        for (ItemStack s : fishes) list.add(s.save(new CompoundTag()));
+        for (ItemStack s : fishes) list.add(s.save(registries, new CompoundTag()));
         tag.put("Fishes", list);
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         fishes.clear();
         if (tag.contains("Fishes")) {
             ListTag list = tag.getList("Fishes", Tag.TAG_COMPOUND);
             for (int i = 0; i < list.size() && fishes.size() < MAX_FISH; i++) {
-                ItemStack s = ItemStack.of(list.getCompound(i));
+                ItemStack s = ItemStack.parseOptional(registries, list.getCompound(i));
                 if (!s.isEmpty()) fishes.add(s);
             }
         } else if (tag.contains("Fish")) { // migrate the old single-fish format
-            ItemStack s = ItemStack.of(tag.getCompound("Fish"));
+            ItemStack s = ItemStack.parseOptional(registries, tag.getCompound("Fish"));
             if (!s.isEmpty()) fishes.add(s);
         }
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
-        saveAdditional(tag);
+        saveAdditional(tag, registries);
         return tag;
     }
 

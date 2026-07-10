@@ -37,6 +37,17 @@ public class RodPodBlock extends BaseEntityBlock {
 
     private final int slotCount;
 
+    public static final com.mojang.serialization.MapCodec<RodPodBlock> CODEC =
+        com.mojang.serialization.codecs.RecordCodecBuilder.mapCodec(i -> i.group(
+            com.mojang.serialization.Codec.INT.fieldOf("slot_count").forGetter(RodPodBlock::slotCount),
+            propertiesCodec()
+        ).apply(i, RodPodBlock::new));
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
     public RodPodBlock(int slotCount, Properties properties) {
         super(properties);
         this.slotCount = slotCount;

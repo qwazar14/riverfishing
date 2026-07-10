@@ -36,22 +36,22 @@ public class TrophyStandBlockEntity extends BlockEntity {
     private static final int Block_UPDATE = 3;
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         // Always write Fish (even empty) so removing a trophy reliably clears it on the client.
-        tag.put("Fish", fish.save(new CompoundTag()));
+        tag.put("Fish", fish.save(registries, new CompoundTag()));
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        this.fish = ItemStack.of(tag.getCompound("Fish"));
+    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        this.fish = ItemStack.parseOptional(registries, tag.getCompound("Fish"));
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
-        saveAdditional(tag);
+        saveAdditional(tag, registries);
         return tag;
     }
 

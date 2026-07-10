@@ -34,6 +34,13 @@ public class MaggotFarmBlock extends BaseEntityBlock {
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 4);
     private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 10, 16);
 
+    public static final com.mojang.serialization.MapCodec<MaggotFarmBlock> CODEC = simpleCodec(MaggotFarmBlock::new);
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
     public MaggotFarmBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(LEVEL, 0));

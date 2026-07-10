@@ -37,6 +37,13 @@ public class AquariumBlock extends BaseEntityBlock {
     /** false = wooden base (bottom), true = glass tank (top). */
     public static final BooleanProperty UPPER = BooleanProperty.create("upper");
 
+    public static final com.mojang.serialization.MapCodec<AquariumBlock> CODEC = simpleCodec(AquariumBlock::new);
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
     public AquariumBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any()
