@@ -58,9 +58,15 @@ public final class ClientPlatformImpl {
         return Minecraft.getInstance().getModelManager().getModel(modelId(loc));
     }
 
-    /** The {@link ModelResourceLocation} an extra sprite-layer model is registered/fetched under. */
+    /**
+     * The {@link ModelResourceLocation} an extra sprite-layer model is registered/fetched under.
+     * NeoForge 21.1 requires side-loaded models (those added via {@link ModelEvent.RegisterAdditional})
+     * to use the {@code standalone} variant — registering under {@code inventory} throws
+     * "Side-loaded models must use the 'standalone' variant" and cascades into a resource-reload retry
+     * (which then double-fires NeoForge's registration events, e.g. "Duplicate cauldron registration").
+     */
     private static ModelResourceLocation modelId(ResourceLocation loc) {
-        return ModelResourceLocation.inventory(loc);
+        return ModelResourceLocation.standalone(loc);
     }
 
     @SubscribeEvent
