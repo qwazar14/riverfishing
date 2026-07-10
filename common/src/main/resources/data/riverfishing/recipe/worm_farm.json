@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PPP",
+    "PDP",
+    "PPP"
+  ],
+  "key": {
+    "P": { "tag": "minecraft:planks" },
+    "D": { "item": "minecraft:dirt" }
+  },
+  "result": { "id": "riverfishing:worm_farm" }
+}

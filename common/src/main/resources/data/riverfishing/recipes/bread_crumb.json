@@ -1,7 +1,0 @@
-{
-  "type": "minecraft:crafting_shapeless",
-  "ingredients": [
-    "minecraft:bread"
-  ],
-  "result": { "id": "riverfishing:bread", "count": 4 }
-}

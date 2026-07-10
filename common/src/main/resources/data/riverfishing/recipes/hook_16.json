@@ -1,5 +1,0 @@
-{
-  "type": "minecraft:crafting_shapeless",
-  "ingredients": [ "minecraft:iron_nugget" ],
-  "result": { "id": "riverfishing:hook_16", "count": 2 }
-}

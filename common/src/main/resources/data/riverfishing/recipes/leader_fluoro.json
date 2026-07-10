@@ -1,8 +1,0 @@
-{
-  "type": "minecraft:crafting_shapeless",
-  "ingredients": [
-    "minecraft:string",
-    "minecraft:prismarine_shard"
-  ],
-  "result": { "id": "riverfishing:leader_fluoro", "count": 1 }
-}

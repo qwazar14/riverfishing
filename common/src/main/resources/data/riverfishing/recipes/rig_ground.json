@@ -1,9 +1,0 @@
-{
-  "type": "minecraft:crafting_shapeless",
-  "ingredients": [
-    "minecraft:string",
-    "minecraft:iron_nugget",
-    "minecraft:iron_nugget"
-  ],
-  "result": { "id": "riverfishing:rig_ground" }
-}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GWG",
+    "RKR",
+    "PSP"
+  ],
+  "key": {
+    "G": { "item": "minecraft:glass" },
+    "W": { "item": "minecraft:water_bucket" },
+    "R": { "item": "minecraft:gravel" },
+    "K": { "item": "minecraft:kelp" },
+    "P": { "tag": "minecraft:planks" },
+    "S": { "tag": "minecraft:signs" }
+  },
+  "result": { "id": "riverfishing:aquarium" }
+}

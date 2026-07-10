@@ -1,8 +1,0 @@
-{
-  "type": "minecraft:crafting_shapeless",
-  "ingredients": [
-    "minecraft:bread",
-    "minecraft:wheat"
-  ],
-  "result": { "id": "riverfishing:groundbait_powder", "count": 2 }
-}
