@@ -48,7 +48,7 @@ public final class ClientPlatformImpl {
 
     public static void registerLevelRenderer() {
         WorldRenderEvents.AFTER_TRANSLUCENT.register(context ->
-                LineRenderer.render(context.matrixStack(), context.camera().getPosition(), context.tickDelta()));
+                LineRenderer.render(context.matrixStack(), context.camera().getPosition(), context.tickCounter().getGameTimeDeltaPartialTick(false)));
     }
 
     /** Vanilla/Fabric ignores the model's "render_type", so wire the non-solid layers up explicitly. */
