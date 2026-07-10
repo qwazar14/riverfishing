@@ -18,6 +18,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
 /**
@@ -29,13 +31,32 @@ import net.neoforged.neoforge.common.NeoForge;
 public final class ClientPlatformImpl {
     private ClientPlatformImpl() {}
 
-    /**
-     * TODO(1.21/NeoForge): attach the rod/fish composite BEWLR. NeoForge 21.1.x has no
-     * {@code RegisterClientExtensionsEvent} (that lands in 21.2+), so the mechanism to register
-     * {@code IClientItemExtensions#getCustomRenderer} here is still to be wired — until then the rod/fish
-     * icons fall back to their builtin/entity model on NeoForge. (Fabric renders them correctly.)
-     */
+    /** Handled by {@link #onRegisterClientExtensions} on the mod bus (see there). */
     public static void registerItemRenderers() {
+    }
+
+    /**
+     * Attach the composited rod icon (§rod-layers) and weight-scaled fish icon (§fish-scale) as
+     * {@link IClientItemExtensions#getCustomRenderer() custom item renderers} — the NeoForge counterpart to
+     * Fabric's {@code BuiltinItemRendererRegistry}. Both item models parent {@code builtin/entity}, so the
+     * baked model reports {@code isCustomRenderer()} and NeoForge routes rendering through these BEWLRs.
+     * (21.1.90+ does have {@code RegisterClientExtensionsEvent} — an earlier port note wrongly assumed it
+     * only landed in 21.2.)
+     */
+    @SubscribeEvent
+    static void onRegisterClientExtensions(RegisterClientExtensionsEvent event) {
+        IClientItemExtensions rod = new IClientItemExtensions() {
+            @Override public BlockEntityWithoutLevelRenderer getCustomRenderer() { return RodItemRenderer.get(); }
+        };
+        for (RegistrySupplier<Item> r : ModItems.RODS) {
+            event.registerItem(rod, r.get());
+        }
+        IClientItemExtensions fish = new IClientItemExtensions() {
+            @Override public BlockEntityWithoutLevelRenderer getCustomRenderer() { return FishItemRenderer.get(); }
+        };
+        for (RegistrySupplier<Item> f : ModItems.FISH_ITEMS.values()) {
+            event.registerItem(fish, f.get());
+        }
     }
 
     /** Handled by {@link #onRegisterAdditional} on the mod bus. */
