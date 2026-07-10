@@ -157,7 +157,7 @@ public final class ModVillagers {
         if (i == null || i == Items.AIR) return;
         ItemStack result = new ItemStack(i, count);
         t.get(level).add((trader, random) ->
-                new MerchantOffer(new ItemStack(Items.EMERALD, emeraldCost), result.copy(), 12, xp, 0.05f));
+                new MerchantOffer(new net.minecraft.world.item.trading.ItemCost(Items.EMERALD, emeraldCost), result.copy(), 12, xp, 0.05f));
     }
 
     /** Villager sells a LAZILY built NBT stack (assembled rig/rod, §assembled-trades). */
@@ -166,7 +166,7 @@ public final class ModVillagers {
         t.get(level).add((trader, random) -> {
             ItemStack out = result.get();
             if (out.isEmpty()) return null;
-            return new MerchantOffer(new ItemStack(Items.EMERALD, emeraldCost), out, 8, xp, 0.05f);
+            return new MerchantOffer(new net.minecraft.world.item.trading.ItemCost(Items.EMERALD, emeraldCost), out, 8, xp, 0.05f);
         });
     }
 
@@ -180,15 +180,12 @@ public final class ModVillagers {
                                  String path, int emeralds, int xp) {
         t.get(level).add((trader, random) -> {
             Item i = item(path);
-            if (!(i instanceof FishItem fishItem)) return null;
-            ItemStack cost = new ItemStack(i);
-            CompoundTag tag = cost.getOrCreateTag();
-            tag.putString(FishItem.TAG_GRADE, FishItem.GRADE_PRIME);
-            FishProfile p = FishProfileManager.get().byId(fishItem.species());
-            if (p != null) {
-                tag.putInt(FishItem.TAG_MIN_WEIGHT, FishItem.primeThresholdG(p.weightMax));
-            }
-            return new MerchantOffer(cost, new ItemStack(Items.EMERALD, emeralds), 12, xp, 0.05f);
+            if (!(i instanceof FishItem)) return null;
+            // TODO(1.21): restore prime-only gating + the "accepts from N" legend via a registered Grade
+            // data component — 1.21 ItemCost matches components exactly, not the old subset-NBT trade cost,
+            // so the previous mechanism is gone. For now the fisherman buys any specimen of the species.
+            return new MerchantOffer(new net.minecraft.world.item.trading.ItemCost(i),
+                    new ItemStack(Items.EMERALD, emeralds), 12, xp, 0.05f);
         });
     }
 
