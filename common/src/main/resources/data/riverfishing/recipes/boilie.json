@@ -6,5 +6,5 @@
     { "item": "minecraft:egg" },
     { "item": "minecraft:sugar" }
   ],
-  "result": { "item": "riverfishing:boilie", "count": 4 }
+  "result": { "id": "riverfishing:boilie", "count": 4 }
 }

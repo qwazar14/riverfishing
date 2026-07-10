@@ -47,7 +47,9 @@ public final class RigData {
                 CompoundTag c = items.getCompound(i);
                 int slot = c.getByte(SLOT) & 255;
                 if (slot < list.size()) {
-                    list.set(slot, ItemStack.parseOptional(provider, c));
+                    // §data-components (1.21): the item lives in its own "Item" sub-tag — the 1.21 ItemStack
+                    // codec is strict and won't parse a tag that also carries our "Slot" byte.
+                    list.set(slot, ItemStack.parseOptional(provider, c.getCompound("Item")));
                 }
             }
         }
@@ -62,7 +64,7 @@ public final class RigData {
             if (!stack.isEmpty()) {
                 CompoundTag c = new CompoundTag();
                 c.putByte(SLOT, (byte) i);
-                stack.save(provider, c);
+                c.put("Item", stack.save(provider, new CompoundTag()));
                 items.add(c);
             }
         }

@@ -10,5 +10,5 @@
     { "item": "minecraft:copper_ingot" },
     { "item": "minecraft:copper_ingot" }
   ],
-  "result": { "item": "riverfishing:reel_6000", "count": 1 }
+  "result": { "id": "riverfishing:reel_6000", "count": 1 }
 }

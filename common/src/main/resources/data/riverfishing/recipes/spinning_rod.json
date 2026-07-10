@@ -6,5 +6,5 @@
     "n": { "item": "minecraft:iron_nugget" },
     "i": { "item": "minecraft:iron_ingot" }
   },
-  "result": { "item": "riverfishing:spinning_rod" }
+  "result": { "id": "riverfishing:spinning_rod" }
 }

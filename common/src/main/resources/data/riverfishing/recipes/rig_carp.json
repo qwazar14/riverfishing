@@ -6,5 +6,5 @@
     { "item": "minecraft:slime_ball" },
     { "item": "minecraft:iron_nugget" }
   ],
-  "result": { "item": "riverfishing:rig_carp" }
+  "result": { "id": "riverfishing:rig_carp" }
 }

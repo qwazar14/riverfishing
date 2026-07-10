@@ -4,5 +4,5 @@
     { "item": "minecraft:bamboo" },
     { "item": "minecraft:feather" }
   ],
-  "result": { "item": "riverfishing:float", "count": 1 }
+  "result": { "id": "riverfishing:float", "count": 1 }
 }

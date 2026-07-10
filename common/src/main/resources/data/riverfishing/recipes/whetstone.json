@@ -5,5 +5,5 @@
     { "item": "minecraft:smooth_stone" },
     { "item": "minecraft:stick" }
   ],
-  "result": { "item": "riverfishing:whetstone" }
+  "result": { "id": "riverfishing:whetstone" }
 }

@@ -13,5 +13,5 @@
     "f": { "item": "minecraft:flint" },
     "l": { "item": "minecraft:lapis_lazuli" }
   },
-  "result": { "item": "riverfishing:digital_alarm" }
+  "result": { "id": "riverfishing:digital_alarm" }
 }

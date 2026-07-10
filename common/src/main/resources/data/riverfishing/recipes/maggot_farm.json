@@ -9,5 +9,5 @@
     "P": { "tag": "minecraft:planks" },
     "F": { "item": "minecraft:rotten_flesh" }
   },
-  "result": { "item": "riverfishing:maggot_farm" }
+  "result": { "id": "riverfishing:maggot_farm" }
 }

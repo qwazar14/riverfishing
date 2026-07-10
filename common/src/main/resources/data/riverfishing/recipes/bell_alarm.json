@@ -5,5 +5,5 @@
     "g": { "item": "minecraft:gold_ingot" },
     "n": { "item": "minecraft:iron_nugget" }
   },
-  "result": { "item": "riverfishing:bell_alarm" }
+  "result": { "id": "riverfishing:bell_alarm" }
 }

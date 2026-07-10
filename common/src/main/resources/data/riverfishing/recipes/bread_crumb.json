@@ -3,5 +3,5 @@
   "ingredients": [
     { "item": "minecraft:bread" }
   ],
-  "result": { "item": "riverfishing:bread", "count": 4 }
+  "result": { "id": "riverfishing:bread", "count": 4 }
 }

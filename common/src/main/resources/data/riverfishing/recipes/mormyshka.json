@@ -14,5 +14,5 @@
     { "item": "minecraft:string" },
     { "item": "minecraft:string" }
   ],
-  "result": { "item": "riverfishing:mormyshka", "count": 1 }
+  "result": { "id": "riverfishing:mormyshka", "count": 1 }
 }

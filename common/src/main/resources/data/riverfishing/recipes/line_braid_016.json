@@ -2,5 +2,5 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [ "SSS", "SCS", "SSS" ],
   "key": { "S": { "item": "minecraft:string" }, "C": { "item": "minecraft:phantom_membrane" } },
-  "result": { "item": "riverfishing:line_braid_016", "count": 2 }
+  "result": { "id": "riverfishing:line_braid_016", "count": 2 }
 }

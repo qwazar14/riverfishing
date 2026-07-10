@@ -7,5 +7,5 @@
     { "item": "minecraft:redstone" },
     { "item": "minecraft:redstone" }
   ],
-  "result": { "item": "riverfishing:reel_3000", "count": 1 }
+  "result": { "id": "riverfishing:reel_3000", "count": 1 }
 }

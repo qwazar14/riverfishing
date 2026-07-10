@@ -6,5 +6,5 @@
     "i": { "item": "minecraft:iron_ingot" },
     "h": { "tag": "riverfishing:hooks" }
   },
-  "result": { "item": "riverfishing:spinner" }
+  "result": { "id": "riverfishing:spinner" }
 }

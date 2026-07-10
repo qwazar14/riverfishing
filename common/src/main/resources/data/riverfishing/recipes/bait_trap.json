@@ -5,5 +5,5 @@
     "s": { "item": "minecraft:stick" },
     "h": { "item": "minecraft:string" }
   },
-  "result": { "item": "riverfishing:bait_trap" }
+  "result": { "id": "riverfishing:bait_trap" }
 }

@@ -9,5 +9,5 @@
     "N": { "item": "minecraft:iron_nugget" },
     "S": { "item": "minecraft:stick" }
   },
-  "result": { "item": "riverfishing:winter_rod" }
+  "result": { "id": "riverfishing:winter_rod" }
 }

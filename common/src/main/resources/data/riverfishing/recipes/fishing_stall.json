@@ -6,5 +6,5 @@
     { "item": "minecraft:string" },
     { "item": "minecraft:iron_ingot" }
   ],
-  "result": { "item": "riverfishing:fishing_stall", "count": 1 }
+  "result": { "id": "riverfishing:fishing_stall", "count": 1 }
 }
