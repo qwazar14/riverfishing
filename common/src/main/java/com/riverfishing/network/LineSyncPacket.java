@@ -13,7 +13,8 @@ import net.minecraft.resources.ResourceLocation;
  * Broadcast to everyone tracking the angler; {@code active=false} clears it.
  */
 public class LineSyncPacket implements ModNetwork.RfPacket {
-    public static final ResourceLocation TYPE = RiverFishing.id("line_sync");
+    public static final net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<LineSyncPacket> TYPE = new net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<>(RiverFishing.id("line_sync"));
+    public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, LineSyncPacket> STREAM_CODEC = net.minecraft.network.codec.StreamCodec.of((buf, pkt) -> pkt.write(buf), LineSyncPacket::decode);
 
     public final int playerId;
     public final boolean active;
@@ -40,7 +41,7 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
     }
 
     @Override
-    public ResourceLocation type() {
+    public net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<? extends net.minecraft.network.protocol.common.custom.CustomPacketPayload> type() {
         return TYPE;
     }
 
