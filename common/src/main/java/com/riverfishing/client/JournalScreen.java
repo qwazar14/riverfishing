@@ -144,7 +144,7 @@ public class JournalScreen extends Screen {
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(g);
+        this.renderBackground(g, mouseX, mouseY, partialTick);
         GuiStyle.panel(g, left, top, W, H);
         renderTabs(g, mouseX, mouseY);
         if (tab == TAB_FISH) {
@@ -697,15 +697,15 @@ public class JournalScreen extends Screen {
                     new ItemStack(net.minecraft.world.item.Items.SUNFLOWER).getHoverName().getString(),
                     new ItemStack(net.minecraft.world.item.Items.PISTON).getHoverName().getString());
         }
-        for (Recipe<?> r : mc.level.getRecipeManager().getRecipes()) {
+        for (net.minecraft.world.item.crafting.RecipeHolder<?> holder : mc.level.getRecipeManager().getRecipes()) {
             ItemStack res;
             try {
-                res = r.getResultItem(mc.level.registryAccess());
+                res = holder.value().getResultItem(mc.level.registryAccess());
             } catch (Throwable ignored) {
                 continue;
             }
             if (res == null || res.isEmpty() || res.getItem() != stack.getItem()) continue;
-            NonNullList<Ingredient> ings = r.getIngredients();
+            NonNullList<Ingredient> ings = holder.value().getIngredients();
             if (ings.isEmpty()) continue;
             LinkedHashSet<String> names = new LinkedHashSet<>();
             for (Ingredient ing : ings) {
@@ -810,13 +810,13 @@ public class JournalScreen extends Screen {
     // ---- input ----
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         boolean scrollView = (tab != TAB_FISH && catDetail < 0) || (tab == TAB_FISH && detail != null);
         if (scrollView) {
-            scroll = Mth.clamp(scroll - (int) (delta * 18), 0, Math.max(0, lastCatH - (H - 44)));
+            scroll = Mth.clamp(scroll - (int) (scrollY * 18), 0, Math.max(0, lastCatH - (H - 44)));
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override

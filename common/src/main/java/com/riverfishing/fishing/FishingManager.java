@@ -279,10 +279,10 @@ public final class FishingManager {
             // costing a THIRD of its durability (+1), so it survives a few abuses before finally breaking.
             if (rod.isDamageableItem()) {
                 int dmg = (int) Math.ceil(rod.getMaxDamage() * 0.33) + 1;
-                rod.hurtAndBreak(dmg, sp, p -> p.broadcastBreakEvent(
+                rod.hurtAndBreak(dmg, sp,
                         hand == InteractionHand.MAIN_HAND
                                 ? net.minecraft.world.entity.EquipmentSlot.MAINHAND
-                                : net.minecraft.world.entity.EquipmentSlot.OFFHAND));
+                                : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
             }
             level.playSound(null, sp.blockPosition(), SoundEvents.SHIELD_BREAK, SoundSource.PLAYERS, 1.0f, 0.6f);
             actionbar(sp, Component.translatable("message.riverfishing.rod_overload_crack").withStyle(ChatFormatting.RED));
@@ -775,10 +775,10 @@ public final class FishingManager {
         // Every strike stresses the blank (§rod-durability); at zero the rod snaps for good.
         ItemStack rodWear = sp.getItemInHand(session.hand);
         if (rodWear.getItem() instanceof RodItem && rodWear.isDamageableItem()) {
-            rodWear.hurtAndBreak(1, sp, p -> p.broadcastBreakEvent(
+            rodWear.hurtAndBreak(1, sp,
                     session.hand == InteractionHand.MAIN_HAND
                             ? net.minecraft.world.entity.EquipmentSlot.MAINHAND
-                            : net.minecraft.world.entity.EquipmentSlot.OFFHAND));
+                            : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
         }
 
         // The fish ate the natural bait on the strike (§consumables) — lures are never consumed.
@@ -1383,7 +1383,7 @@ public final class FishingManager {
                 level.playSound(null, sp.blockPosition(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.8f, 1.0f);
                 if ("master".equals(rankAfter)) {
                     var adv = sp.server.getAdvancements()
-                            .getAdvancement(com.riverfishing.RiverFishing.id("riverfishing/master"));
+                            .get(com.riverfishing.RiverFishing.id("riverfishing/master"));
                     if (adv != null) {
                         sp.getAdvancements().award(adv, "granted");
                     }

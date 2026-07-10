@@ -26,7 +26,7 @@ public final class LineRenderer {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null || ClientLineState.lines().isEmpty()) return;
 
-        float frameSeconds = mc.getDeltaFrameTime() / 20f;
+        float frameSeconds = mc.getTimer().getGameTimeDeltaTicks() / 20f;
         long now = mc.level.getGameTime();
 
         pose.pushPose();
@@ -155,7 +155,7 @@ public final class LineRenderer {
         float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (len <= 1e-4f) return;
         dx /= len; dy /= len; dz /= len;
-        vc.vertex(m, (float) a.x, (float) a.y, (float) a.z).color(r, g, bl, 255).normal(nrm, dx, dy, dz).endVertex();
-        vc.vertex(m, (float) b.x, (float) b.y, (float) b.z).color(r, g, bl, 255).normal(nrm, dx, dy, dz).endVertex();
+        vc.addVertex(m, (float) a.x, (float) a.y, (float) a.z).setColor(r, g, bl, 255).setNormal(dx, dy, dz);
+        vc.addVertex(m, (float) b.x, (float) b.y, (float) b.z).setColor(r, g, bl, 255).setNormal(dx, dy, dz);
     }
 }

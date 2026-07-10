@@ -17,7 +17,7 @@ public final class AnglerAdvancements {
     /** Grant a code-driven advancement by its short path (folder {@code riverfishing/<path>}). */
     public static void grant(ServerPlayer sp, String path) {
         if (sp.getServer() == null) return;
-        Advancement adv = sp.getServer().getAdvancements().getAdvancement(RiverFishing.id("riverfishing/" + path));
+        net.minecraft.advancements.AdvancementHolder adv = sp.getServer().getAdvancements().get(RiverFishing.id("riverfishing/" + path));
         if (adv == null) return;
         var progress = sp.getAdvancements().getOrStartProgress(adv);
         if (progress.isDone()) return;
