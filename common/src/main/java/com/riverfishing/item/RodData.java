@@ -28,24 +28,25 @@ public final class RodData {
     }
 
     public static ItemStack get(ItemStack rod, ComponentSlot slot) {
-        CompoundTag tag = rod.getTag();
-        if (tag == null || !tag.contains(ROOT)) return ItemStack.EMPTY;
+        CompoundTag tag = StackNbt.get(rod);
+        if (!tag.contains(ROOT)) return ItemStack.EMPTY;
         CompoundTag root = tag.getCompound(ROOT);
         String k = key(slot);
         if (!root.contains(k)) return ItemStack.EMPTY;
-        return ItemStack.of(root.getCompound(k));
+        return ItemStack.parseOptional(com.riverfishing.util.RegistryHelper.provider(), root.getCompound(k));
     }
 
     public static void set(ItemStack rod, ComponentSlot slot, ItemStack component) {
-        CompoundTag tag = rod.getOrCreateTag();
-        CompoundTag root = tag.getCompound(ROOT);
-        String k = key(slot);
-        if (component.isEmpty()) {
-            root.remove(k);
-        } else {
-            root.put(k, component.save(new CompoundTag()));
-        }
-        tag.put(ROOT, root);
+        StackNbt.mutate(rod, tag -> {
+            CompoundTag root = tag.getCompound(ROOT);
+            String k = key(slot);
+            if (component.isEmpty()) {
+                root.remove(k);
+            } else {
+                root.put(k, component.save(com.riverfishing.util.RegistryHelper.provider(), new CompoundTag()));
+            }
+            tag.put(ROOT, root);
+        });
     }
 
     /**
@@ -59,12 +60,12 @@ public final class RodData {
 
     /** Float depth setting stored on the ROD ("спуск", §fishing-depth): surface / mid / bottom. */
     public static String getDepth(ItemStack rod) {
-        String d = rod.getTag() != null ? rod.getTag().getString("SetDepth") : "";
+        String d = StackNbt.get(rod).getString("SetDepth");
         return d.isEmpty() ? "mid" : d;
     }
 
     public static void setDepth(ItemStack rod, String depth) {
-        rod.getOrCreateTag().putString("SetDepth", depth);
+        StackNbt.mutate(rod, tag -> tag.putString("SetDepth", depth));
     }
 
     /**

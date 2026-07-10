@@ -14,8 +14,7 @@ public final class WearData {
     private WearData() {}
 
     public static int get(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag == null ? 0 : Mth.clamp(tag.getInt(TAG), 0, 100);
+        return Mth.clamp(StackNbt.get(stack).getInt(TAG), 0, 100);
     }
 
     public static void add(ItemStack stack, int amount) {
@@ -23,7 +22,7 @@ public final class WearData {
     }
 
     public static void set(ItemStack stack, int wear) {
-        stack.getOrCreateTag().putInt(TAG, Mth.clamp(wear, 0, 100));
+        StackNbt.mutate(stack, tag -> tag.putInt(TAG, Mth.clamp(wear, 0, 100)));
     }
 
     /** Breaking-strain multiplier: at 100% wear a line keeps ~45% of its strain. */

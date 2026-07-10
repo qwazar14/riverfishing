@@ -175,9 +175,9 @@ public final class ModItems {
         // ----- Processing: knife + fillets (§11) -----
         FILLET_KNIFE = reg("fillet_knife", () -> new FilletKnifeItem(new Item.Properties().durability(128)));
         RAW_FILLET = reg("raw_fillet", () -> new Item(props().food(
-                new FoodProperties.Builder().nutrition(2).saturationMod(0.2f).build())));
+                new FoodProperties.Builder().nutrition(2).saturationModifier(0.2f).build())));
         COOKED_FILLET = reg("cooked_fillet", () -> new Item(props().food(
-                new FoodProperties.Builder().nutrition(5).saturationMod(0.6f).build())));
+                new FoodProperties.Builder().nutrition(5).saturationModifier(0.6f).build())));
 
         // ----- Maintenance: whetstone (§3.8) -----
         WHETSTONE = reg("whetstone", () -> new WhetstoneItem(new Item.Properties().durability(128)));
