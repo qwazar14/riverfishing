@@ -143,11 +143,11 @@ public class AquariumBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide) return InteractionResult.SUCCESS;
+        if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
         BlockPos master = masterPos(pos, state);
-        if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return InteractionResult.PASS;
+        if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
         ItemStack held = player.getItemInHand(hand);
         // Add a fish (up to 3) when holding one and there's room.
@@ -156,7 +156,7 @@ public class AquariumBlock extends BaseEntityBlock {
                 held.shrink(1);
                 level.playSound(null, master, net.minecraft.sounds.SoundEvents.BUCKET_EMPTY_FISH,
                         net.minecraft.sounds.SoundSource.BLOCKS, 0.7f, 1.1f);
-                return InteractionResult.CONSUME;
+                return net.minecraft.world.ItemInteractionResult.CONSUME;
             }
         }
         // Empty hand takes the last fish back out.
@@ -165,9 +165,9 @@ public class AquariumBlock extends BaseEntityBlock {
             if (!fish.isEmpty() && !player.getInventory().add(fish)) player.drop(fish, false);
             level.playSound(null, master, net.minecraft.sounds.SoundEvents.BUCKET_FILL_FISH,
                     net.minecraft.sounds.SoundSource.BLOCKS, 0.7f, 1.0f);
-            return InteractionResult.CONSUME;
+            return net.minecraft.world.ItemInteractionResult.CONSUME;
         }
-        return InteractionResult.PASS;
+        return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     @Override

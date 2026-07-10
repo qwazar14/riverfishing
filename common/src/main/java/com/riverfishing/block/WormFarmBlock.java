@@ -81,7 +81,7 @@ public class WormFarmBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         ItemStack held = player.getItemInHand(hand);
         boolean compostable = ComposterBlock.COMPOSTABLES.containsKey(held.getItem());
@@ -95,12 +95,12 @@ public class WormFarmBlock extends BaseEntityBlock {
                             6, 0.3, 0.1, 0.3, 0.0);
                 }
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return net.minecraft.world.ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
-        if (level.isClientSide) return InteractionResult.SUCCESS;
+        if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof WormFarmBlockEntity be) {
             be.collect(player);
         }
-        return InteractionResult.CONSUME;
+        return net.minecraft.world.ItemInteractionResult.CONSUME;
     }
 }

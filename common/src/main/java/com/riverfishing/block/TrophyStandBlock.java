@@ -75,24 +75,24 @@ public class TrophyStandBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide) return InteractionResult.SUCCESS;
-        if (!(level.getBlockEntity(pos) instanceof TrophyStandBlockEntity be)) return InteractionResult.PASS;
+        if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
+        if (!(level.getBlockEntity(pos) instanceof TrophyStandBlockEntity be)) return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
         ItemStack held = player.getItemInHand(hand);
         if (be.getFish().isEmpty() && held.getItem() instanceof FishItem) {
             be.setFish(held.copyWithCount(1));
             held.shrink(1);
-            return InteractionResult.CONSUME;
+            return net.minecraft.world.ItemInteractionResult.CONSUME;
         }
         if (!be.getFish().isEmpty() && held.isEmpty()) {
             ItemStack fish = be.getFish();
             be.setFish(ItemStack.EMPTY);
             if (!player.getInventory().add(fish)) player.drop(fish, false);
-            return InteractionResult.CONSUME;
+            return net.minecraft.world.ItemInteractionResult.CONSUME;
         }
-        return InteractionResult.PASS;
+        return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     @Override
