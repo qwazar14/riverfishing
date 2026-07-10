@@ -27,7 +27,7 @@ public class HookItem extends Item implements RodComponentItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.riverfishing.hook_size", hookSize).withStyle(s -> s.withColor(0xA0A0A0)));
         int wear = WearData.get(stack);
         if (wear > 0) {

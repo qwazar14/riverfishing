@@ -108,7 +108,7 @@ public class AquariumBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         // Break the OTHER three cells without drops so only the struck cell drops the aquarium once.
         if (!level.isClientSide && !player.isCreative()) {
             BlockPos master = masterPos(pos, state);
@@ -121,7 +121,7 @@ public class AquariumBlock extends BaseEntityBlock {
                 }
             }
         }
-        super.playerWillDestroy(level, pos, state, player);
+        return super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override

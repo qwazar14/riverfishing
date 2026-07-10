@@ -37,7 +37,7 @@ public class ReelItem extends Item implements RodComponentItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.riverfishing.reel_size", size).withStyle(s -> s.withColor(0xA0A0A0)));
         tooltip.add(Component.translatable("tooltip.riverfishing.reel_drag", String.format("%.1f", maxDragKg())).withStyle(s -> s.withColor(0xA0A0A0)));
         // §tackle-compat: the working line-diameter window this spool takes.
