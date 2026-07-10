@@ -1,55 +1,73 @@
-package com.riverfishing.client.platform.forge;
+package com.riverfishing.client.platform.neoforge;
 
+import com.riverfishing.RiverFishing;
 import com.riverfishing.client.ClientModels;
+import com.riverfishing.client.FishItemRenderer;
 import com.riverfishing.client.LineRenderer;
+import com.riverfishing.client.RodItemRenderer;
+import com.riverfishing.registry.ModItems;
+import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.client.event.ModelEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraft.world.item.Item;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.common.NeoForge;
 
 /**
- * Forge side of the client platform seam (§multiloader) — see
- * {@link com.riverfishing.client.platform.ClientPlatform}. Called once from the client bootstrap during
- * mod construction, so the mod event bus is live and we can still add the model/render listeners.
+ * NeoForge side of the client platform seam (§multiloader, 1.21). The BEWLR + extra-model registration
+ * ride the mod bus via the auto-subscribed handlers below (no {@code Item#initializeClient} on NeoForge);
+ * the in-world line rides the game-bus {@code RenderLevelStageEvent}.
  */
+@EventBusSubscriber(modid = RiverFishing.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ClientPlatformImpl {
     private ClientPlatformImpl() {}
 
     /**
-     * The rod/fish BEWLR is attached through {@code Item#initializeClient}, which is patched onto our
-     * common items by {@code RodItemForgeMixin} / {@code FishItemForgeMixin}. Nothing to register here.
+     * TODO(1.21/NeoForge): attach the rod/fish composite BEWLR. NeoForge 21.1.x has no
+     * {@code RegisterClientExtensionsEvent} (that lands in 21.2+), so the mechanism to register
+     * {@code IClientItemExtensions#getCustomRenderer} here is still to be wired — until then the rod/fish
+     * icons fall back to their builtin/entity model on NeoForge. (Fabric renders them correctly.)
      */
     public static void registerItemRenderers() {
     }
 
+    /** Handled by {@link #onRegisterAdditional} on the mod bus. */
     public static void registerExtraModels() {
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientPlatformImpl::onRegisterAdditional);
     }
 
-    private static void onRegisterAdditional(ModelEvent.RegisterAdditional event) {
-        for (ResourceLocation loc : ClientModels.present(ClientModels.allCandidates())) {
-            event.register(loc);
-        }
-    }
-
-    public static void registerLevelRenderer() {
-        MinecraftForge.EVENT_BUS.addListener(ClientPlatformImpl::onRenderLevel);
-    }
-
-    private static void onRenderLevel(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
-        LineRenderer.render(event.getPoseStack(), event.getCamera().getPosition(), event.getPartialTick());
-    }
-
-    /** Forge reads {@code "render_type"} from each block model JSON, so nothing to do here. */
+    /** NeoForge reads {@code "render_type"} from the block model JSON — nothing to do. */
     public static void registerRenderTypes() {
     }
 
-    /** Forge patches {@code getModel(ResourceLocation)} straight onto the model manager. */
-    public static BakedModel bakedModel(ResourceLocation loc) {
-        return Minecraft.getInstance().getModelManager().getModel(loc);
+    public static void registerLevelRenderer() {
+        NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent e) -> {
+            if (e.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
+            LineRenderer.render(e.getPoseStack(), e.getCamera().getPosition(),
+                    e.getPartialTick().getGameTimeDeltaPartialTick(false));
+        });
     }
+
+    public static BakedModel bakedModel(ResourceLocation loc) {
+        return Minecraft.getInstance().getModelManager().getModel(modelId(loc));
+    }
+
+    /** The {@link ModelResourceLocation} an extra sprite-layer model is registered/fetched under. */
+    private static ModelResourceLocation modelId(ResourceLocation loc) {
+        return ModelResourceLocation.inventory(loc);
+    }
+
+    @SubscribeEvent
+    static void onRegisterAdditional(ModelEvent.RegisterAdditional event) {
+        for (ResourceLocation loc : ClientModels.present(ClientModels.allCandidates())) {
+            event.register(modelId(loc));
+        }
+    }
+
 }
