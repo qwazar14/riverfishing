@@ -25,6 +25,13 @@ import net.minecraft.world.item.Item;
 public final class ClientPlatformImpl {
     private ClientPlatformImpl() {}
 
+    public static void registerScreens() {
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.ROD_ASSEMBLY.get(), com.riverfishing.client.RodAssemblyScreen::new);
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.RIG.get(), com.riverfishing.client.RigScreen::new);
+    }
+
     public static void registerItemRenderers() {
         // The composited rod icon (§rod-layers) — one shared renderer over all rod blanks.
         BuiltinItemRendererRegistry.DynamicItemRenderer rod =

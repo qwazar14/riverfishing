@@ -1,9 +1,9 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:smooth_stone" },
-    { "item": "minecraft:smooth_stone" },
-    { "item": "minecraft:stick" }
+    "minecraft:smooth_stone",
+    "minecraft:smooth_stone",
+    "minecraft:stick"
   ],
   "result": { "id": "riverfishing:whetstone" }
 }

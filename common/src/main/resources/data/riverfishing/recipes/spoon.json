@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [ "g", "h" ],
   "key": {
-    "g": { "item": "minecraft:gold_ingot" },
-    "h": { "tag": "riverfishing:hooks" }
+    "g": "minecraft:gold_ingot",
+    "h": "#riverfishing:hooks"
   },
   "result": { "id": "riverfishing:spoon" }
 }

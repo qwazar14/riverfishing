@@ -5,7 +5,10 @@ import com.riverfishing.client.ClientModels;
 import com.riverfishing.client.FishItemRenderer;
 import com.riverfishing.client.LineRenderer;
 import com.riverfishing.client.RodItemRenderer;
+import com.riverfishing.client.RodAssemblyScreen;
+import com.riverfishing.client.RigScreen;
 import com.riverfishing.registry.ModItems;
+import com.riverfishing.registry.ModMenus;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -17,6 +20,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
@@ -33,6 +37,23 @@ public final class ClientPlatformImpl {
 
     /** Handled by {@link #onRegisterClientExtensions} on the mod bus (see there). */
     public static void registerItemRenderers() {
+    }
+
+    /** Handled by {@link #onRegisterMenuScreens} on the mod bus — see there. */
+    public static void registerScreens() {
+    }
+
+    /**
+     * Register the assembly / rig screens on NeoForge's native {@link RegisterMenuScreensEvent}. Architectury's
+     * {@code registerScreenFactory} defers via {@code FMLClientSetupEvent}, which on NeoForge fires AFTER this
+     * event — so its listener was added too late and the client logged "Failed to create screen for menu type"
+     * (shift-right-click opened the menu server-side but no GUI appeared). Registering here fires at the right
+     * time, with the menu {@code RegistrySupplier}s already bound.
+     */
+    @SubscribeEvent
+    static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(ModMenus.ROD_ASSEMBLY.get(), RodAssemblyScreen::new);
+        event.register(ModMenus.RIG.get(), RigScreen::new);
     }
 
     /**

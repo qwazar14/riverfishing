@@ -5,6 +5,6 @@
     " s ",
     " s "
   ],
-  "key": { "s": { "item": "minecraft:stick" } },
+  "key": { "s": "minecraft:stick" },
   "result": { "id": "riverfishing:rod_pod_1" }
 }

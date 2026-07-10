@@ -6,8 +6,8 @@
     "PPP"
   ],
   "key": {
-    "P": { "tag": "minecraft:planks" },
-    "F": { "item": "minecraft:rotten_flesh" }
+    "P": "#minecraft:planks",
+    "F": "minecraft:rotten_flesh"
   },
   "result": { "id": "riverfishing:maggot_farm" }
 }

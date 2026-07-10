@@ -1,11 +1,11 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:string" },
-    { "item": "minecraft:string" },
-    { "item": "minecraft:string" },
-    { "item": "minecraft:iron_nugget" },
-    { "item": "minecraft:iron_nugget" }
+    "minecraft:string",
+    "minecraft:string",
+    "minecraft:string",
+    "minecraft:iron_nugget",
+    "minecraft:iron_nugget"
   ],
   "result": { "id": "riverfishing:rig_grusha" }
 }

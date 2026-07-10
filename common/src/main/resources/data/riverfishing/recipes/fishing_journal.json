@@ -1,9 +1,9 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:book" },
-    { "item": "riverfishing:hook_12" },
-    { "item": "minecraft:leather" }
+    "minecraft:book",
+    "riverfishing:hook_12",
+    "minecraft:leather"
   ],
   "result": { "id": "riverfishing:fishing_journal", "count": 1 }
 }

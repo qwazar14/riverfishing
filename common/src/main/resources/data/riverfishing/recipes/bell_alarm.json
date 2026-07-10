@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [ " g ", "gng" ],
   "key": {
-    "g": { "item": "minecraft:gold_ingot" },
-    "n": { "item": "minecraft:iron_nugget" }
+    "g": "minecraft:gold_ingot",
+    "n": "minecraft:iron_nugget"
   },
   "result": { "id": "riverfishing:bell_alarm" }
 }

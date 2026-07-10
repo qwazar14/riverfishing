@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [ "n", "i", "h" ],
   "key": {
-    "n": { "item": "minecraft:iron_nugget" },
-    "i": { "item": "minecraft:iron_ingot" },
-    "h": { "tag": "riverfishing:hooks" }
+    "n": "minecraft:iron_nugget",
+    "i": "minecraft:iron_ingot",
+    "h": "#riverfishing:hooks"
   },
   "result": { "id": "riverfishing:spinner" }
 }
