@@ -77,6 +77,10 @@ public final class ClientPlatformImpl {
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.AQUARIUM.get(), RenderType.translucent());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.ICE_HOLE.get(), RenderType.translucent());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.BAIT_TRAP.get(), RenderType.cutout());
+        // §bait-crops: crop cross-models need cutout (NeoForge reads it from the model JSON).
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.CORN_CROP.get(), RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.PEA_CROP.get(), RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.BARLEY_CROP.get(), RenderType.cutout());
     }
 
     /** Fabric's model-loading API mixes {@code getModel(ResourceLocation)} in via FabricBakedModelManager. */

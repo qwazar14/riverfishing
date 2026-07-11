@@ -1,0 +1,41 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "name": "riverfishing:pearl_barley",
+              "conditions": [
+                { "condition": "minecraft:block_state_property", "block": "riverfishing:barley_crop", "properties": { "age": "3" } }
+              ],
+              "functions": [
+                { "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 1, "max": 2 } }
+              ]
+            },
+            { "type": "minecraft:item", "name": "riverfishing:barley_seeds" }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "conditions": [
+        { "condition": "minecraft:block_state_property", "block": "riverfishing:barley_crop", "properties": { "age": "3" } }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "riverfishing:barley_seeds",
+          "functions": [
+            { "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 1, "max": 2 } }
+          ]
+        }
+      ]
+    }
+  ]
+}

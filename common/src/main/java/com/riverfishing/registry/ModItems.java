@@ -158,6 +158,11 @@ public final class ModItems {
         // SlotRole.BAIT admits it (fished tipped with a grub in the ice rig). Its tooltip is the ice-rod
         // descriptor, not the generic "artificial lure (predators only)" line.
         registerBait("mormyshka", true, "tooltip.riverfishing.bait_ice_jig");
+        // §bait-crops: seeds for the plant baits — plantable on farmland (vanilla wheat-style seeds).
+        reg("corn_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.CORN_CROP.get(), props()));
+        reg("pea_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.PEA_CROP.get(), props()));
+        reg("barley_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.BARLEY_CROP.get(), props()));
+
         // ----- Artificial baits (predators only) -----
         registerBait("spinner", true);
         registerBait("spoon", true);

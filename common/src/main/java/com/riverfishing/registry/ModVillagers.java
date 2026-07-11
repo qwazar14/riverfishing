@@ -76,6 +76,10 @@ public final class ModVillagers {
         sell(t, 1, "bloodworm", 1, 8, 1);
         sell(t, 1, "float", 1, 2, 2);
         sell(t, 1, "groundbait_powder", 1, 6, 2);
+        // §bait-crops: seeds for the plant baits — the "buy from traders" leg of the seed economy.
+        sell(t, 1, "corn_seeds", 1, 3, 1);
+        sell(t, 1, "pea_seeds", 1, 3, 1);
+        sell(t, 1, "barley_seeds", 1, 3, 1);
         sell(t, 1, "line_mono_014", 2, 1, 3);       // thin starter line
         sell(t, 1, "worm_farm", 4, 1, 4);           // §bait-farm: breed your own worms early
         buyPrime(t, 1, "bleak", 1, 1);
