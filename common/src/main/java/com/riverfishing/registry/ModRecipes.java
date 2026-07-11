@@ -26,5 +26,9 @@ public final class ModRecipes {
             REGISTER.register("crafting_oil_cake",
                     () -> new SimpleCraftingRecipeSerializer<>(OilCakeRecipe::new));
 
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.LureDyeRecipe>> LURE_DYE =
+            REGISTER.register("crafting_lure_dye",
+                    () -> new SimpleCraftingRecipeSerializer<>(com.riverfishing.item.LureDyeRecipe::new));
+
     private ModRecipes() {}
 }

@@ -43,6 +43,26 @@ public final class ClientPlatformImpl {
     public static void registerScreens() {
     }
 
+    /** Handled by {@link #onRegisterItemColors} on the mod bus — see there. */
+    public static void registerItemColors() {
+    }
+
+    /** §lure-color: tint painted lures by their {@code DyedItemColor} on tint-layer 0. */
+    @SubscribeEvent
+    static void onRegisterItemColors(net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.Item event) {
+        net.minecraft.client.color.item.ItemColor tint = (stack, tintIndex) -> {
+            if (tintIndex != 0) return -1;
+            net.minecraft.world.item.component.DyedItemColor dc =
+                    stack.get(net.minecraft.core.component.DataComponents.DYED_COLOR);
+            return dc != null ? (0xFF000000 | dc.rgb()) : -1;
+        };
+        for (RegistrySupplier<Item> r : ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.BaitItem b && b.artificial()) {
+                event.register(tint, r.get());
+            }
+        }
+    }
+
     /**
      * Register the assembly / rig screens on NeoForge's native {@link RegisterMenuScreensEvent}. Architectury's
      * {@code registerScreenFactory} defers via {@code FMLClientSetupEvent}, which on NeoForge fires AFTER this

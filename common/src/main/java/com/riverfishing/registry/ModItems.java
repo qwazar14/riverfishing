@@ -154,14 +154,26 @@ public final class ModItems {
         registerBait("boilie", false);
         registerBait("livebait", false);
         CHICKEN_LIVER = registerBait("chicken_liver", false);
-        // Mormyshka (§ice-fishing): a tiny weighted winter JIG — an artificial lure (shown as such in the
-        // journal/tooltip), but SlotRole.BAIT still admits it (it's fished tipped with a grub in the ice rig).
-        registerBait("mormyshka", true);
+        // Mormyshka / "Ice Jig" (§ice-fishing): a tiny weighted winter JIG — artificial for gate purposes, but
+        // SlotRole.BAIT admits it (fished tipped with a grub in the ice rig). Its tooltip is the ice-rod
+        // descriptor, not the generic "artificial lure (predators only)" line.
+        registerBait("mormyshka", true, "tooltip.riverfishing.bait_ice_jig");
+        // §bait-crops: seeds for the plant baits — plantable on farmland (vanilla wheat-style seeds).
+        reg("corn_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.CORN_CROP.get(), props()));
+        reg("pea_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.PEA_CROP.get(), props()));
+        reg("barley_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.BARLEY_CROP.get(), props()));
+
         // ----- Artificial baits (predators only) -----
         registerBait("spinner", true);
         registerBait("spoon", true);
         registerBait("wobbler", true);
         registerBait("silicone", true);
+        // §more-lures (§8): topwater popper, mid-running crankbait, deep soft-jig, long-cast castmaster.
+        // All artificial → dyeable/tintable + condition-colour like the others. (Placeholder textures for now.)
+        registerBait("popper", true);
+        registerBait("crankbait", true);
+        registerBait("jig", true);
+        registerBait("castmaster", true);
 
         // ----- Groundbaits -----
         for (String cat : new String[]{"powder", "grain", "pellet", "cake"}) {
@@ -227,5 +239,10 @@ public final class ModItems {
 
     private static RegistrySupplier<Item> registerBait(String id, boolean artificial) {
         return reg(id, () -> new BaitItem(id, artificial, props()));
+    }
+
+    /** Bait with an explicit tooltip key override (e.g. the ice jig's own descriptor). */
+    private static RegistrySupplier<Item> registerBait(String id, boolean artificial, String tooltipKey) {
+        return reg(id, () -> new BaitItem(id, artificial, tooltipKey, props()));
     }
 }

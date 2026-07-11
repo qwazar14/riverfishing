@@ -24,6 +24,7 @@ public class BiteContext {
     public RigType rig;
     public List<Integer> hookSizes = new ArrayList<>(); // from the rig's hook slots
     public List<String> baits = new ArrayList<>();        // from the rig's bait / lure slots
+    public LureColor lureColor;     // §lure-color: painted lure's colour class, or null (undyed / no lure)
     public boolean hasLeader;
     public double leaderProtection; // bite-through resistance of the fitted leader (0..1)
     public double leaderStealth;    // invisibility of the fitted leader (0..1)

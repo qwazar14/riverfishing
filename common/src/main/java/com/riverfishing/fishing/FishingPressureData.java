@@ -21,10 +21,10 @@ import java.util.Map;
 public class FishingPressureData extends SavedData {
     public static final String NAME = "riverfishing_pressure";
 
-    private static final long REGEN_HALFLIFE = 24000L; // pressure halves ~every 20 min idle
-    private static final double CAST_PRESSURE = 0.015;  // ~ an hour+ of steady casting to deplete
-    // §population: a KEPT fish actually leaves the water — 4x the pressure of merely disturbing it.
-    private static final double CATCH_PRESSURE = 0.06;
+    private static final long REGEN_HALFLIFE = 30000L; // pressure halves ~every 25 min idle (slower recovery)
+    private static final double CAST_PRESSURE = 0.022;  // §anti-macro: ~40 min steady casting depletes a spot
+    // §population: a KEPT fish actually leaves the water — a mono-species swarm thins in ~17 catches.
+    private static final double CATCH_PRESSURE = 0.09;
     private static final double MAX_PRESSURE = 1.5;
     private static final double FLOOR = 0.1;            // W_total never drops below 10%
 

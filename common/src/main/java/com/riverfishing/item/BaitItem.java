@@ -16,11 +16,18 @@ import java.util.List;
 public class BaitItem extends Item {
     private final String baitId;
     private final boolean artificial;
+    @Nullable private final String tooltipKey;
 
     public BaitItem(String baitId, boolean artificial, Properties properties) {
+        this(baitId, artificial, null, properties);
+    }
+
+    /** {@code tooltipKey} overrides the generic natural/artificial line — e.g. the ice jig's own descriptor. */
+    public BaitItem(String baitId, boolean artificial, @Nullable String tooltipKey, Properties properties) {
         super(properties);
         this.baitId = baitId;
         this.artificial = artificial;
+        this.tooltipKey = tooltipKey;
     }
 
     public String baitId() { return baitId; }
@@ -28,7 +35,19 @@ public class BaitItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        String key = artificial ? "tooltip.riverfishing.bait_artificial" : "tooltip.riverfishing.bait_natural";
+        String key = tooltipKey != null ? tooltipKey
+                : (artificial ? "tooltip.riverfishing.bait_artificial" : "tooltip.riverfishing.bait_natural");
         tooltip.add(Component.translatable(key).withStyle(s -> s.withColor(0x80A080)));
+
+        // §lure-color: a painted lure names its colour class and the water it fishes best (§8).
+        if (artificial) {
+            net.minecraft.world.item.component.DyedItemColor dc =
+                    stack.get(net.minecraft.core.component.DataComponents.DYED_COLOR);
+            if (dc != null) {
+                com.riverfishing.engine.LureColor lc = com.riverfishing.engine.LureColor.fromRgb(dc.rgb());
+                tooltip.add(Component.translatable("tooltip.riverfishing.lure_color_" + lc.name().toLowerCase())
+                        .withStyle(s -> s.withColor(dc.rgb())));
+            }
+        }
     }
 }

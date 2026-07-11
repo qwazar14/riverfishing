@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [ "minecraft:iron_ingot", "minecraft:string", "#riverfishing:hooks" ],
+  "result": { "id": "riverfishing:jig" }
+}

@@ -1,26 +1,92 @@
 {
   "display": "Щука",
-  "water_bodies": { "river": 1.0, "lake": 1.1, "swamp": 0.7, "pond": 0.6, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 500, "max": 10000, "mean": 2000, "spread": 0.7 },
-  "length_cm": { "min": 35, "max": 120 },
-  "fight": { "strength": 0.85, "stamina": 0.7, "runs": 3, "pattern": "aggressive", "aggression": 0.9 },
+  "water_bodies": {
+    "river": 1.0,
+    "lake": 1.1,
+    "swamp": 0.7,
+    "pond": 0.6,
+    "sea": 0.0,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 500,
+    "max": 10000,
+    "mean": 2000,
+    "spread": 0.7
+  },
+  "length_cm": {
+    "min": 35,
+    "max": 120
+  },
+  "fight": {
+    "strength": 0.85,
+    "stamina": 0.7,
+    "runs": 3,
+    "pattern": "aggressive",
+    "aggression": 0.9
+  },
   "ideal": {
-    "rod": ["spinning"],
-    "reel_size": 3000, "reel_tolerance": 1000,
-    "line": { "type": "braid", "diameter_mm": 0.14, "tolerance_mm": 0.04 },
-    "rig": ["predator"],
+    "rod": [
+      "spinning"
+    ],
+    "reel_size": 3000,
+    "reel_tolerance": 1000,
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.14,
+      "tolerance_mm": 0.04
+    },
+    "rig": [
+      "predator"
+    ],
     "groundbait": [],
-    "bait": { "wobbler": 1.0, "spoon": 0.95, "spinner": 0.9, "livebait": 0.9 },
-    "hook": { "ideal": 4, "tolerance": 2 },
+    "bait": {
+      "livebait": 0.9,
+      "wobbler": 1.0,
+      "spoon": 0.95,
+      "crankbait": 0.9,
+      "spinner": 0.9,
+      "jig": 0.85,
+      "popper": 0.7
+    },
+    "hook": {
+      "ideal": 4,
+      "tolerance": 2
+    },
     "requires_leader": true
   },
-  "season": { "spring": 1.1, "summer": 0.7, "autumn": 1.5, "winter": 0.9 },
-  "time":   { "dawn": 1.3, "day": 0.9, "dusk": 1.3, "night": 0.5 },
-  "weather":{ "clear": 1.0, "rain": 1.1, "thunder": 1.0 },
+  "season": {
+    "spring": 1.1,
+    "summer": 0.7,
+    "autumn": 1.5,
+    "winter": 0.9
+  },
+  "time": {
+    "dawn": 1.3,
+    "day": 0.9,
+    "dusk": 1.3,
+    "night": 0.5
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.1,
+    "thunder": 1.0
+  },
   "depth_pref": "mid",
-  "distance_pref": { "min": 6, "max": 30 },
-  "habitat": { "depth_min": 2, "depth_max": 10, "width_min": 8 },
-  "biomes": { "cold": 1.1, "temperate": 1.0, "swamp": 1.1 },
+  "distance_pref": {
+    "min": 6,
+    "max": 30
+  },
+  "habitat": {
+    "depth_min": 2,
+    "depth_max": 10,
+    "width_min": 8
+  },
+  "biomes": {
+    "cold": 1.1,
+    "temperate": 1.0,
+    "swamp": 1.1
+  },
   "base": 0.9,
   "min_angler_level": 4
 }

@@ -1,25 +1,97 @@
 {
   "display": "Голавль",
-  "water_bodies": { "river": 1.2, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 200, "max": 4000, "mean": 700, "spread": 0.6 },
-  "length_cm": { "min": 20, "max": 60 },
-  "fight": { "strength": 0.6, "stamina": 0.5, "runs": 2, "pattern": "aggressive", "aggression": 0.8 },
-  "ideal": {
-    "rod": ["ultralight", "spinning", "pole"],
-    "reel_size": 2000, "reel_tolerance": 1000,
-    "line": { "type": "mono", "diameter_mm": 0.16, "tolerance_mm": 0.05 },
-    "rig": ["float", "predator"],
-    "groundbait": ["cake"],
-    "bait": { "wobbler": 0.9, "spinner": 0.8, "bread": 0.8, "worm": 0.7, "corn": 0.5 },
-    "hook": { "ideal": 8, "tolerance": 3 }
+  "water_bodies": {
+    "river": 1.2,
+    "lake": 0.0,
+    "pond": 0.0,
+    "swamp": 0.0,
+    "sea": 0.0,
+    "puddle": 0.0
   },
-  "season": { "spring": 1.0, "summer": 1.4, "autumn": 0.8, "winter": 0.0 },
-  "time":   { "dawn": 1.1, "day": 1.2, "dusk": 1.0, "night": 0.1 },
-  "weather":{ "clear": 1.2, "rain": 0.8, "thunder": 0.7 },
+  "weight_g": {
+    "min": 200,
+    "max": 4000,
+    "mean": 700,
+    "spread": 0.6
+  },
+  "length_cm": {
+    "min": 20,
+    "max": 60
+  },
+  "fight": {
+    "strength": 0.6,
+    "stamina": 0.5,
+    "runs": 2,
+    "pattern": "aggressive",
+    "aggression": 0.8
+  },
+  "ideal": {
+    "rod": [
+      "ultralight",
+      "spinning",
+      "pole"
+    ],
+    "reel_size": 2000,
+    "reel_tolerance": 1000,
+    "line": {
+      "type": "mono",
+      "diameter_mm": 0.16,
+      "tolerance_mm": 0.05
+    },
+    "rig": [
+      "float",
+      "predator"
+    ],
+    "groundbait": [
+      "cake"
+    ],
+    "bait": {
+      "bread": 0.8,
+      "worm": 0.7,
+      "corn": 0.5,
+      "popper": 1.0,
+      "wobbler": 0.9,
+      "spinner": 0.8,
+      "crankbait": 0.75,
+      "castmaster": 0.7
+    },
+    "hook": {
+      "ideal": 8,
+      "tolerance": 3
+    }
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 1.4,
+    "autumn": 0.8,
+    "winter": 0.0
+  },
+  "time": {
+    "dawn": 1.1,
+    "day": 1.2,
+    "dusk": 1.0,
+    "night": 0.1
+  },
+  "weather": {
+    "clear": 1.2,
+    "rain": 0.8,
+    "thunder": 0.7
+  },
   "depth_pref": "surface",
-  "distance_pref": { "min": 4, "max": 25 },
-  "habitat": { "depth_min": 1, "depth_max": 4, "width_min": 6, "width_max": 40 },
-  "biomes": { "temperate": 1.0, "warm": 0.8 },
+  "distance_pref": {
+    "min": 4,
+    "max": 25
+  },
+  "habitat": {
+    "depth_min": 1,
+    "depth_max": 4,
+    "width_min": 6,
+    "width_max": 40
+  },
+  "biomes": {
+    "temperate": 1.0,
+    "warm": 0.8
+  },
   "base": 0.8,
   "min_angler_level": 3
 }

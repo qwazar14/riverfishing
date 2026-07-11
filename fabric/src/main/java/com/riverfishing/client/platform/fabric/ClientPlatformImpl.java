@@ -25,6 +25,20 @@ import net.minecraft.world.item.Item;
 public final class ClientPlatformImpl {
     private ClientPlatformImpl() {}
 
+    public static void registerItemColors() {
+        net.minecraft.client.color.item.ItemColor tint = (stack, tintIndex) -> {
+            if (tintIndex != 0) return -1;
+            net.minecraft.world.item.component.DyedItemColor dc =
+                    stack.get(net.minecraft.core.component.DataComponents.DYED_COLOR);
+            return dc != null ? (0xFF000000 | dc.rgb()) : -1;
+        };
+        for (RegistrySupplier<Item> r : ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.BaitItem b && b.artificial()) {
+                net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register(tint, r.get());
+            }
+        }
+    }
+
     public static void registerScreens() {
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.ROD_ASSEMBLY.get(), com.riverfishing.client.RodAssemblyScreen::new);
@@ -63,6 +77,10 @@ public final class ClientPlatformImpl {
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.AQUARIUM.get(), RenderType.translucent());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.ICE_HOLE.get(), RenderType.translucent());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.BAIT_TRAP.get(), RenderType.cutout());
+        // §bait-crops: crop cross-models need cutout (NeoForge reads it from the model JSON).
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.CORN_CROP.get(), RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.PEA_CROP.get(), RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.BARLEY_CROP.get(), RenderType.cutout());
     }
 
     /** Fabric's model-loading API mixes {@code getModel(ResourceLocation)} in via FabricBakedModelManager. */

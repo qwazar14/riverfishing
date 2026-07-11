@@ -20,6 +20,8 @@ public final class BiteEngine {
     private static final double BAIT_HARD_FILTER = 0.15;  // §1.5
     private static final double HOOK_GATE = 0.34;         // below this, the hook is the wrong size band (#6)
     private static final long MAX_WAIT_TICKS = 2400;      // 2 min ceiling (§bite-pacing): waits stay humane
+    private static final double SWARM_KNEE = 1.5;         // §swarm-cap: W_total below this is untouched
+    private static final double SWARM_DAMP = 0.3;         // …above it, only 30% of the excess counts toward speed
     // §deep-conditions: amplify the season / time-of-day / biome swings the profiles already describe, so
     // WHEN and WHERE you fish is strongly felt (a >1 factor grows, a <1 factor shrinks). Kept moderate so
     // off-peak water still has the ungated commons biting.
@@ -207,13 +209,29 @@ public final class BiteEngine {
             w *= c.floatDepth.equals(p.depthPref) ? 1.3 : 0.55;
         }
 
-        // §skill: min_angler_level is now only a RECOMMENDED level — a faint experience nudge, never a
-        // wall. The real pacing is capability (tackle/bait/hook/leader) and location (water/biome/depth/
-        // width) above; a novice CAN land a trophy on the right gear in the right place, just a touch less
-        // often than a seasoned angler.
+        // §ultralight-finesse (§7): the two lure rods split the water instead of one dominating. An
+        // ultralight presents tiny lures delicately for small/wary predators (a bite bonus that fades as
+        // fish get bigger), while a spinning rod is crude for tiddlers but shines on size. Crossover ~1 kg,
+        // so the ultralight finally has a domain the (otherwise strictly-better) spinning rod can't take.
+        if (c.rod == com.riverfishing.component.RodType.ULTRALIGHT) {
+            w *= Math.max(0.4, Math.min(1.6, 1.6 - meanKg * 0.6));
+        } else if (c.rod == com.riverfishing.component.RodType.SPINNING) {
+            w *= Math.min(1.2, 0.85 + meanKg * 0.15);
+        }
+
+        // §lure-color (§8): a painted lure whose colour suits the light/water pulls more takes; the wrong
+        // colour for the conditions puts predators off. Only when a dyed lure is actually on the rig.
+        if (c.lureColor != null) {
+            w *= c.lureColor.conditionMultiplier(c);
+        }
+
+        // §skill-gate (§progression): min_angler_level is a real gate now — each level you're short of a
+        // species' recommendation roughly halves its bite weight (×0.6 per level, floored at 3%). A novice
+        // CAN still fluke a trophy on the right gear in the right place, just rarely; the seasoned angler
+        // catches it steadily. Capability (tackle/bait/hook/leader) + location still gate on top of this.
         if (p.minAnglerLevel > 0 && c.anglerLevel < p.minAnglerLevel) {
-            double ratio = (c.anglerLevel + 1.0) / (p.minAnglerLevel + 1.0);
-            w *= 0.55 + 0.45 * ratio;
+            int deficit = p.minAnglerLevel - c.anglerLevel;
+            w *= Math.max(0.03, Math.pow(0.6, deficit));
         }
         return Math.max(0.0, w);
     }
@@ -238,7 +256,12 @@ public final class BiteEngine {
         if (total <= 1e-6) {
             return new Outcome(weights, 0.0, -1L);
         }
-        double t = T_MIN_TICKS / total;
+        // §swarm-cap (§anti-macro): a big shoal of small fish stacks a huge W_total and floors the wait at
+        // the rod-class minimum, turning a swim into a bite-per-few-seconds conveyor. Compress attractiveness
+        // above a knee: normal single/few-target fishing (W_total below the knee) is untouched, but a swarm's
+        // effective total grows only a fraction, so the pacing stays lively without becoming farmable.
+        double eff = total <= SWARM_KNEE ? total : SWARM_KNEE + (total - SWARM_KNEE) * SWARM_DAMP;
+        double t = T_MIN_TICKS / eff;
         double u = random.nextDouble();
         long ticks = (long) (-t * Math.log(1.0 - u));
         ticks = Math.max(40L, Math.min(MAX_WAIT_TICKS, ticks));

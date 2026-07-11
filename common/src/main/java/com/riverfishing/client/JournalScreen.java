@@ -83,6 +83,7 @@ public class JournalScreen extends Screen {
     private final java.util.Map<String, Integer> spentNow = new java.util.HashMap<>();
     private int left;
     private int top;
+    private float uiScale = 1f;   // §journal-scale: <1 shrinks the whole panel to fit a small (high-GUI-scale) screen
     private int tab = TAB_FISH;
     private String detail;      // opened fish species, or null
     private int catDetail = -1; // opened bait/gear entry index (in the current tab's list), or -1
@@ -134,17 +135,42 @@ public class JournalScreen extends Screen {
 
     @Override
     protected void init() {
-        this.W = Math.min(MAX_W, this.width - 8);
+        this.W = MAX_W;
         this.COL_W = (this.W - 20) / COLS;
-        this.ILLUS_W = Math.min(240, this.W - 16);
+        this.ILLUS_W = 240;
         this.ILLUS_H = this.ILLUS_W * 2 / 3;
+        // §journal-scale: at a high GUI scale the screen is small in GUI units and the full-size journal
+        // (W×H) would clip off the bottom (unusable at scale 4). Shrink the whole panel to fit, centred; the
+        // render + mouse + scissor all go through this factor so clicks and clipping stay aligned.
+        this.uiScale = Math.min(1f, Math.min((this.width - 8f) / MAX_W, (this.height - 8f) / H));
         this.left = (this.width - W) / 2;
-        this.top = Math.max(4, (this.height - H) / 2);
+        this.top = (this.height - H) / 2;
+    }
+
+    /** Screen → journal-space coordinate (the render is scaled by {@link #uiScale} around the screen centre). */
+    private double toJournalX(double sx) { return (sx - this.width / 2.0) / uiScale + this.width / 2.0; }
+    private double toJournalY(double sy) { return (sy - this.height / 2.0) / uiScale + this.height / 2.0; }
+
+    /** Scissor rect given in journal space, pushed in the scaled screen space the content actually draws to. */
+    private void scissorJournal(GuiGraphics g, int x1, int y1, int x2, int y2) {
+        float cx = this.width / 2f, cy = this.height / 2f;
+        g.enableScissor(Math.round(cx + (x1 - cx) * uiScale), Math.round(cy + (y1 - cy) * uiScale),
+                Math.round(cx + (x2 - cx) * uiScale), Math.round(cy + (y2 - cy) * uiScale));
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(g, mouseX, mouseY, partialTick);
+        boolean scaled = uiScale < 0.999f;
+        if (scaled) {
+            g.pose().pushPose();
+            g.pose().translate(this.width / 2f, this.height / 2f, 0);
+            g.pose().scale(uiScale, uiScale, 1f);
+            g.pose().translate(-this.width / 2f, -this.height / 2f, 0);
+            // hover in the same space the panel now draws in
+            mouseX = (int) Math.round(toJournalX(mouseX));
+            mouseY = (int) Math.round(toJournalY(mouseY));
+        }
         GuiStyle.panel(g, left, top, W, H);
         renderTabs(g, mouseX, mouseY);
         if (tab == TAB_FISH) {
@@ -166,7 +192,7 @@ public class JournalScreen extends Screen {
                 renderCatalog(g, list, mouseX, mouseY);
             }
         }
-        super.render(g, mouseX, mouseY, partialTick);
+        if (scaled) g.pose().popPose();
     }
 
     /**
@@ -278,7 +304,7 @@ public class JournalScreen extends Screen {
         int contentTop = top + 38, contentBottom = top + H - 16;
         int visibleH = contentBottom - contentTop;
         scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - visibleH));
-        g.enableScissor(left + 6, contentTop, left + W - 6, contentBottom);
+        scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
         int y = contentTop - scroll;
         drawIllustration(g, sp, left + (W - ILLUS_W) / 2, y, ILLUS_W, ILLUS_H);
         y += ILLUS_H + 8;
@@ -331,7 +357,7 @@ public class JournalScreen extends Screen {
         int contentTop = top + 24, contentBottom = top + H - 6;
         int visibleH = contentBottom - contentTop;
         scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - visibleH));
-        g.enableScissor(left + 6, contentTop, left + W - 6, contentBottom);
+        scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
         int y = contentTop - scroll;
         int stage = -1;
         int maxStage = maxUnlockedStage();
@@ -432,7 +458,7 @@ public class JournalScreen extends Screen {
 
         int contentTop = top + 38, contentBottom = top + H - 6;
         scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - (contentBottom - contentTop)));
-        g.enableScissor(left + 6, contentTop, left + W - 6, contentBottom);
+        scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
         int y = contentTop - scroll;
         List<Component> tooltip = null;
         for (int i = 0; i < perks.length; i++) {
@@ -523,7 +549,7 @@ public class JournalScreen extends Screen {
         int visibleH = contentBottom - contentTop;
         scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - visibleH));
 
-        g.enableScissor(left + 6, contentTop, left + W - 6, contentBottom);
+        scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
         int y = contentTop - scroll;
         int col = 0;
         Kind section = null;
@@ -575,6 +601,18 @@ public class JournalScreen extends Screen {
         g.pose().scale(s, s, s);
         g.renderItem(e.stack(), 0, 0);
         g.pose().popPose();
+
+        // §bait-desc: an optional flavour line for a bait/lure (e.g. the ice jig), shown under the big icon.
+        if (isBait(e.kind())) {
+            String bk = "baitdesc.riverfishing." + e.id();
+            if (I18n.exists(bk)) {
+                int dy = top + 104;
+                for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.translatable(bk), W - 20)) {
+                    g.drawString(this.font, seq, left + 10, dy, GuiStyle.TEXT_HINT, false);
+                    dy += 10;
+                }
+            }
+        }
 
         int y = top + 148;
         y = obtainRender(g, y, e.stack()) + 4;
@@ -831,6 +869,9 @@ public class JournalScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // §journal-scale: hit-test in journal space (the panel is drawn scaled around the screen centre).
+        mouseX = toJournalX(mouseX);
+        mouseY = toJournalY(mouseY);
         if (button == 0) {
             for (int i = 0; i < TAB_KEYS.length; i++) {
                 int x = tabX(i), w = tabW(i);

@@ -35,6 +35,7 @@ public final class ModEvents {
     private static final double WORM_CHANCE = 0.10;          // §9.6 dig with a shovel
     private static final float CHICKEN_LIVER_CHANCE = 0.25f; // §3.6
     private static final float MOB_BAIT_CHANCE = 0.33f;      // drowned bloodworm / zombie maggot
+    private static final float SEED_CHANCE = 0.05f;           // §bait-crops: per seed type, from grass
 
     private ModEvents() {}
 
@@ -73,11 +74,21 @@ public final class ModEvents {
             if (matches(lootKey.location(), "chicken")) addDrop(context, ModItems.CHICKEN_LIVER.get().builtInRegistryHolder().key().location(), CHICKEN_LIVER_CHANCE);
             else if (matches(lootKey.location(), "drowned")) addDrop(context, RiverFishing.id("bloodworm"), MOB_BAIT_CHANCE);
             else if (matches(lootKey.location(), "zombie")) addDrop(context, RiverFishing.id("maggot"), MOB_BAIT_CHANCE);
+            // §bait-crops: bait-crop seeds drop from grass like vanilla wheat seeds (a little rarer).
+            else if (matchesBlock(lootKey.location(), "short_grass") || matchesBlock(lootKey.location(), "tall_grass")) {
+                addDrop(context, RiverFishing.id("corn_seeds"), SEED_CHANCE);
+                addDrop(context, RiverFishing.id("pea_seeds"), SEED_CHANCE);
+                addDrop(context, RiverFishing.id("barley_seeds"), SEED_CHANCE);
+            }
         });
     }
 
     private static boolean matches(ResourceLocation lootId, String entity) {
         return lootId.getNamespace().equals("minecraft") && lootId.getPath().equals("entities/" + entity);
+    }
+
+    private static boolean matchesBlock(ResourceLocation lootId, String block) {
+        return lootId.getNamespace().equals("minecraft") && lootId.getPath().equals("blocks/" + block);
     }
 
     private static void addDrop(LootEvent.LootTableModificationContext context, ResourceLocation itemId, float chance) {

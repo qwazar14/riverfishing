@@ -27,6 +27,10 @@ public class FishingSession {
     public int snagOutcome;
     /** Retrieve tick the snag strikes at (second half of the retrieve, as the lure nears the bank). */
     public int snagAtTick;
+    /** §foul-hook: this retrieve will foul-hook a passing fish (rolled once at cast, ~1%). */
+    public boolean willFoul;
+    /** Retrieve tick the foul-hook strikes at. */
+    public int foulAtTick;
 
     // ---- Ice fishing (§ice-jig): jig the mormyshka in a steady rhythm to draw fish through the hole ----
     public boolean iceFishing;
