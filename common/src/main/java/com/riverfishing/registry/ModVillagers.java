@@ -181,12 +181,16 @@ public final class ModVillagers {
         t.get(level).add((trader, random) -> {
             Item i = item(path);
             if (!(i instanceof FishItem)) return null;
-            // §prime-fish (1.21): gate the buy-cost on the registered PRIME flag so only prime specimens
-            // (≥70% of the species' max weight, set via FishItem.gradePrime at catch) are accepted. 1.21
-            // ItemCost matches components exactly, so this expects PRIME=true and rejects ungraded fish.
+            // §prime-fish (1.21): gate the buy-cost on the registered PRIME component, whose value is the
+            // species' min accepted weight (≥70% of max, set via FishItem.gradePrime at catch). Expecting the
+            // exact threshold both restricts the trade to prime specimens AND makes the cost slot show the
+            // "accepts from N" legend — the client rebuilds the display stack from this predicate.
+            FishProfile profile = FishProfileManager.get().byId(RiverFishing.id(path));
+            if (profile == null) return null;
+            int threshold = FishItem.primeThresholdG(profile.weightMax);
             net.minecraft.world.item.trading.ItemCost cost =
                     new net.minecraft.world.item.trading.ItemCost(i)
-                            .withComponents(b -> b.expect(ModComponents.PRIME.get(), true));
+                            .withComponents(b -> b.expect(ModComponents.PRIME.get(), threshold));
             return new MerchantOffer(cost, new ItemStack(Items.EMERALD, emeralds), 12, xp, 0.05f);
         });
     }

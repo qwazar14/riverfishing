@@ -19,12 +19,18 @@ public final class ModComponents {
     public static final DeferredRegister<DataComponentType<?>> REGISTER =
             DeferredRegister.create(RiverFishing.MODID, Registries.DATA_COMPONENT_TYPE);
 
-    /** Marks a fish specimen as prime grade (§prime-fish, ≥70% of the species' max weight). Set at catch
-     *  time and required by the fisherman's buy-trade {@code ItemCost}, so only prime fish are accepted. */
-    public static final RegistrySupplier<DataComponentType<Boolean>> PRIME =
-            REGISTER.register("prime", () -> DataComponentType.<Boolean>builder()
-                    .persistent(Codec.BOOL)
-                    .networkSynchronized(ByteBufCodecs.BOOL)
+    /**
+     * Prime grade (§prime-fish): present iff the specimen is ≥70% of the species' max weight, and its VALUE
+     * is that species' minimum accepted weight in grams. Set at catch (see {@code FishItem.gradePrime}) and
+     * expected by the fisherman's buy-trade {@code ItemCost} — 1.21 {@code ItemCost} matches components
+     * exactly, so the value doubles as both the match key (same per species) AND the weight the trade slot
+     * shows: {@code ItemCost} reconstructs its display stack from the predicate, so the threshold has to ride
+     * a synced component to appear in the GUI (a server-only display stack would be lost on the wire).
+     */
+    public static final RegistrySupplier<DataComponentType<Integer>> PRIME =
+            REGISTER.register("prime", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
                     .build());
 
     public static void init() {
