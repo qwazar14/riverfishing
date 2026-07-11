@@ -25,6 +25,20 @@ import net.minecraft.world.item.Item;
 public final class ClientPlatformImpl {
     private ClientPlatformImpl() {}
 
+    public static void registerItemColors() {
+        net.minecraft.client.color.item.ItemColor tint = (stack, tintIndex) -> {
+            if (tintIndex != 0) return -1;
+            net.minecraft.world.item.component.DyedItemColor dc =
+                    stack.get(net.minecraft.core.component.DataComponents.DYED_COLOR);
+            return dc != null ? (0xFF000000 | dc.rgb()) : -1;
+        };
+        for (RegistrySupplier<Item> r : ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.BaitItem b && b.artificial()) {
+                net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register(tint, r.get());
+            }
+        }
+    }
+
     public static void registerScreens() {
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.ROD_ASSEMBLY.get(), com.riverfishing.client.RodAssemblyScreen::new);

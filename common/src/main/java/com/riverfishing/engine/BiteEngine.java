@@ -219,6 +219,12 @@ public final class BiteEngine {
             w *= Math.min(1.2, 0.85 + meanKg * 0.15);
         }
 
+        // §lure-color (§8): a painted lure whose colour suits the light/water pulls more takes; the wrong
+        // colour for the conditions puts predators off. Only when a dyed lure is actually on the rig.
+        if (c.lureColor != null) {
+            w *= c.lureColor.conditionMultiplier(c);
+        }
+
         // §skill-gate (§progression): min_angler_level is a real gate now — each level you're short of a
         // species' recommendation roughly halves its bite weight (×0.6 per level, floored at 3%). A novice
         // CAN still fluke a trophy on the right gear in the right place, just rarely; the seasoned angler

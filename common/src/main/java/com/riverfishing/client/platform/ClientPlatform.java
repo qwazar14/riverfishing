@@ -39,6 +39,16 @@ public final class ClientPlatform {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
     }
 
+    /**
+     * Register the tint provider that colours painted lures (§lure-color) — the dyed {@code DyedItemColor}
+     * RGB on tint-layer 0. Fabric uses {@code ColorProviderRegistry}, NeoForge the
+     * {@code RegisterColorHandlersEvent.Item} mod-bus event.
+     */
+    @ExpectPlatform
+    public static void registerItemColors() {
+        throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
+    }
+
     @ExpectPlatform
     public static void registerExtraModels() {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");

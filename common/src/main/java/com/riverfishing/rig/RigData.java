@@ -97,6 +97,20 @@ public final class RigData {
         return baits;
     }
 
+    /** §lure-color: the dyed RGB of an artificial lure loaded in a lure/bait slot, or -1 if none/undyed. */
+    public static int lureColorRgb(ItemStack rig) {
+        int[] found = { -1 };
+        forEachFilled(rig, (role, stack) -> {
+            if (found[0] < 0 && (role == SlotRole.LURE || role == SlotRole.BAIT)
+                    && stack.getItem() instanceof BaitItem b && b.artificial()) {
+                net.minecraft.world.item.component.DyedItemColor dc =
+                        stack.get(net.minecraft.core.component.DataComponents.DYED_COLOR);
+                if (dc != null) found[0] = dc.rgb();
+            }
+        });
+        return found[0];
+    }
+
     /** Groundbait category loaded in the feeder/flat/grusha cage, or null. */
     public static String groundbaitCategory(ItemStack rig) {
         String[] found = new String[1];

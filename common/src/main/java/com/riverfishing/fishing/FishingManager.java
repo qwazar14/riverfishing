@@ -1689,6 +1689,8 @@ public final class FishingManager {
             ctx.castWeightG = rg.rigType().massGrams();
             ctx.hookSizes = RigData.hookSizes(rigStack);
             ctx.baits = RigData.baitIds(rigStack);
+            int lureRgb = RigData.lureColorRgb(rigStack);
+            ctx.lureColor = lureRgb >= 0 ? com.riverfishing.engine.LureColor.fromRgb(lureRgb) : null;
             ctx.hasLeader = RigData.hasLeader(rigStack);
             ctx.leaderProtection = RigData.leaderProtection(rigStack);
             ctx.leaderStealth = RigData.leaderStealth(rigStack);
