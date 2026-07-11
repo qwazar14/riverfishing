@@ -178,6 +178,8 @@
     "tooltip.riverfishing.hook_size":  "Размер: №%s",
     "tooltip.riverfishing.bait_natural":  "Натуральная наживка",
     "tooltip.riverfishing.bait_artificial":  "Искусственная приманка (только хищник)",
+    "tooltip.riverfishing.bait_ice_jig":  "Приманка для зимней удочки",
+    "baitdesc.riverfishing.mormyshka":  "Маленькая снасть, имитирующая муху или креветку.",
     "tooltip.riverfishing.groundbait_use":  "ПКМ по воде — закормить точку",
     "tooltip.riverfishing.fish_length":  "Длина: %s см",
     "unit.riverfishing.kg":  "%s кг",

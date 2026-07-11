@@ -143,6 +143,17 @@ public class RigMenu extends AbstractContainerMenu {
         }
 
         @Override
+        public int getMaxStackSize() {
+            // §rig: a rig carries a SINGLE hook — cap the slot at 1 so shift-click can't dump a whole stack.
+            return role == SlotRole.HOOK ? 1 : super.getMaxStackSize();
+        }
+
+        @Override
+        public int getMaxStackSize(ItemStack stack) {
+            return Math.min(getMaxStackSize(), stack.getMaxStackSize());
+        }
+
+        @Override
         public void setChanged() {
             super.setChanged();
             saveToRig();

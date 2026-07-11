@@ -576,6 +576,18 @@ public class JournalScreen extends Screen {
         g.renderItem(e.stack(), 0, 0);
         g.pose().popPose();
 
+        // §bait-desc: an optional flavour line for a bait/lure (e.g. the ice jig), shown under the big icon.
+        if (isBait(e.kind())) {
+            String bk = "baitdesc.riverfishing." + e.id();
+            if (I18n.exists(bk)) {
+                int dy = top + 104;
+                for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.translatable(bk), W - 20)) {
+                    g.drawString(this.font, seq, left + 10, dy, GuiStyle.TEXT_HINT, false);
+                    dy += 10;
+                }
+            }
+        }
+
         int y = top + 148;
         y = obtainRender(g, y, e.stack()) + 4;
 
