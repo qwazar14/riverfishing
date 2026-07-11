@@ -79,7 +79,8 @@ public final class FishingManager {
     private static final double CAST_REACH = 32.0;
     private static final double MAX_SESSION_DISTANCE = 40.0;
     private static final double ROD_BREAK_RATIO = 2.5; // rig mass > rodMax * this -> the blank snaps (#5)
-    private static final double FOUL_PER_TICK = 0.0007; // §7.1 base foul-hook rate
+    private static final double FOUL_CHANCE = 0.01;     // §9: 1% per spinning retrieve to foul-hook (× config)
+    private static final double TACKLE_BREAK_CHANCE = 0.008; // §10: 0.8% per hook-up, the line parts, rig lost
     // §snag: per fishing action, 3% a dead (глухой) snag that loses the rig, 7% a recoverable one you
     // tug free. Scaled by the difficulty config's snagChance().
     private static final double SNAG_DEAD_CHANCE = 0.03;
@@ -375,6 +376,12 @@ public final class FishingManager {
             if (session.snagOutcome != 0) {
                 session.snagAtTick = (int) (session.retrieveMax * (0.5 + random.nextDouble() * 0.45));
             }
+            // §foul-hook (§9): a moving lure snags a passing fish in the body — a flat 1% per retrieve
+            // (× difficulty). Decided up front; strikes somewhere across the retrieve like the snag does.
+            session.willFoul = random.nextDouble() < FOUL_CHANCE * RiverFishingConfig.foulHookChance();
+            if (session.willFoul) {
+                session.foulAtTick = (int) (session.retrieveMax * (0.3 + random.nextDouble() * 0.5));
+            }
         }
         session.lineColor = switch (ctx.lineType) {
             case BRAID -> 0xFF4A5A3A;   // dark moss green
@@ -609,7 +616,7 @@ public final class FishingManager {
             handleSnag(sp, level, session, session.snagOutcome == 2);
             return;
         }
-        if (level.getRandom().nextDouble() < FOUL_PER_TICK * RiverFishingConfig.foulHookChance()) {
+        if (session.willFoul && session.retrieveTicks >= session.foulAtTick) {
             session.foulHooked = true;
             session.bitten = true;
             hookUp(sp, level, session, now);
@@ -771,6 +778,23 @@ public final class FishingManager {
             return;
         }
         RandomSource random = level.getRandom();
+
+        // §tackle-break (§10): a flat 0.8% catastrophic failure — the line parts on the take and the whole
+        // rig is lost, fish and all. Independent of the weight-vs-strain break in the fight (that's earned);
+        // this is the rare gut-punch that keeps every strike a little tense.
+        if (random.nextDouble() < TACKLE_BREAK_CHANCE) {
+            ItemStack broken = sp.getItemInHand(session.hand);
+            if (broken.getItem() instanceof RodItem) {
+                RodData.set(broken, ComponentSlot.RIG, ItemStack.EMPTY);
+            }
+            addLineWear(broken, 5);
+            level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.LINE_BREAK.get(),
+                    SoundSource.PLAYERS, 0.9f, 1.0f);
+            sp.displayClientMessage(Component.translatable("message.riverfishing.line_break")
+                    .withStyle(ChatFormatting.RED), false);
+            endSession(sp, session);
+            return;
+        }
 
         // Every strike stresses the blank (§rod-durability); at zero the rod snaps for good.
         ItemStack rodWear = sp.getItemInHand(session.hand);

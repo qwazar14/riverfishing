@@ -209,6 +209,16 @@ public final class BiteEngine {
             w *= c.floatDepth.equals(p.depthPref) ? 1.3 : 0.55;
         }
 
+        // §ultralight-finesse (§7): the two lure rods split the water instead of one dominating. An
+        // ultralight presents tiny lures delicately for small/wary predators (a bite bonus that fades as
+        // fish get bigger), while a spinning rod is crude for tiddlers but shines on size. Crossover ~1 kg,
+        // so the ultralight finally has a domain the (otherwise strictly-better) spinning rod can't take.
+        if (c.rod == com.riverfishing.component.RodType.ULTRALIGHT) {
+            w *= Math.max(0.4, Math.min(1.6, 1.6 - meanKg * 0.6));
+        } else if (c.rod == com.riverfishing.component.RodType.SPINNING) {
+            w *= Math.min(1.2, 0.85 + meanKg * 0.15);
+        }
+
         // §skill-gate (§progression): min_angler_level is a real gate now — each level you're short of a
         // species' recommendation roughly halves its bite weight (×0.6 per level, floored at 3%). A novice
         // CAN still fluke a trophy on the right gear in the right place, just rarely; the seasoned angler
