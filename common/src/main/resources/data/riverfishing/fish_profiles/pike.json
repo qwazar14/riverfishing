@@ -41,11 +41,11 @@
     ],
     "groundbait": [],
     "bait": {
+      "livebait": 0.9,
       "wobbler": 1.0,
       "spoon": 0.95,
-      "spinner": 0.9,
-      "livebait": 0.9,
       "crankbait": 0.9,
+      "spinner": 0.9,
       "jig": 0.85,
       "popper": 0.7
     },

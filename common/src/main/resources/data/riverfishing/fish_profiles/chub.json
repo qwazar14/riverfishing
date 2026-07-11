@@ -46,13 +46,13 @@
       "cake"
     ],
     "bait": {
-      "wobbler": 0.9,
-      "spinner": 0.8,
       "bread": 0.8,
       "worm": 0.7,
       "corn": 0.5,
-      "popper": 0.85,
-      "crankbait": 0.8,
+      "popper": 1.0,
+      "wobbler": 0.9,
+      "spinner": 0.8,
+      "crankbait": 0.75,
       "castmaster": 0.7
     },
     "hook": {

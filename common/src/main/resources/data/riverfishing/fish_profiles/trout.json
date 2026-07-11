@@ -43,12 +43,12 @@
     ],
     "groundbait": [],
     "bait": {
-      "spinner": 1.0,
-      "wobbler": 0.9,
-      "silicone": 0.7,
       "worm": 0.6,
-      "castmaster": 0.9,
-      "crankbait": 0.85
+      "castmaster": 1.0,
+      "spinner": 0.95,
+      "wobbler": 0.9,
+      "crankbait": 0.85,
+      "silicone": 0.7
     },
     "hook": {
       "ideal": 8,

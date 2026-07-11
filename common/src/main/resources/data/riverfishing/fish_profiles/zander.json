@@ -41,11 +41,11 @@
     ],
     "groundbait": [],
     "bait": {
-      "silicone": 1.0,
       "livebait": 0.95,
-      "wobbler": 0.8,
+      "silicone": 1.0,
       "jig": 0.95,
-      "crankbait": 0.8
+      "crankbait": 0.85,
+      "wobbler": 0.8
     },
     "hook": {
       "ideal": 4,

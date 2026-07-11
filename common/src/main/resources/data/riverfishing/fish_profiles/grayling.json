@@ -43,10 +43,10 @@
     "groundbait": [],
     "bait": {
       "worm": 0.9,
-      "spinner": 0.9,
       "maggot": 0.8,
       "bloodworm": 0.7,
-      "castmaster": 0.7,
+      "spinner": 0.95,
+      "castmaster": 0.8,
       "crankbait": 0.6
     },
     "hook": {

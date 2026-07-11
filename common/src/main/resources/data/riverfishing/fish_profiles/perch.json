@@ -43,13 +43,13 @@
     "groundbait": [],
     "bait": {
       "mormyshka": 0.9,
-      "silicone": 1.0,
-      "spinner": 0.9,
       "livebait": 0.9,
       "worm": 0.6,
-      "crankbait": 0.95,
+      "crankbait": 1.0,
+      "silicone": 0.95,
+      "spinner": 0.9,
       "jig": 0.8,
-      "popper": 0.75
+      "popper": 0.7
     },
     "hook": {
       "ideal": 8,

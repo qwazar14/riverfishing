@@ -51,8 +51,8 @@
       "corn": 0.8,
       "bread": 0.7,
       "pea": 0.6,
-      "crankbait": 0.7,
-      "popper": 0.6
+      "popper": 0.9,
+      "crankbait": 0.7
     },
     "hook": {
       "ideal": 10,
