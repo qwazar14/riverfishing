@@ -181,11 +181,13 @@ public final class ModVillagers {
         t.get(level).add((trader, random) -> {
             Item i = item(path);
             if (!(i instanceof FishItem)) return null;
-            // TODO(1.21): restore prime-only gating + the "accepts from N" legend via a registered Grade
-            // data component — 1.21 ItemCost matches components exactly, not the old subset-NBT trade cost,
-            // so the previous mechanism is gone. For now the fisherman buys any specimen of the species.
-            return new MerchantOffer(new net.minecraft.world.item.trading.ItemCost(i),
-                    new ItemStack(Items.EMERALD, emeralds), 12, xp, 0.05f);
+            // §prime-fish (1.21): gate the buy-cost on the registered PRIME flag so only prime specimens
+            // (≥70% of the species' max weight, set via FishItem.gradePrime at catch) are accepted. 1.21
+            // ItemCost matches components exactly, so this expects PRIME=true and rejects ungraded fish.
+            net.minecraft.world.item.trading.ItemCost cost =
+                    new net.minecraft.world.item.trading.ItemCost(i)
+                            .withComponents(b -> b.expect(ModComponents.PRIME.get(), true));
+            return new MerchantOffer(cost, new ItemStack(Items.EMERALD, emeralds), 12, xp, 0.05f);
         });
     }
 

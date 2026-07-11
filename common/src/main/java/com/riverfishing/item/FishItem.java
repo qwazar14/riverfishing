@@ -120,6 +120,9 @@ public class FishItem extends Item {
             tag.putString(TAG_GRADE, GRADE_PRIME);
             tag.putInt(TAG_MIN_WEIGHT, thresholdG);
         });
+        // §data-components (1.21): also set the registered flag the villager buy-trade's ItemCost gates on
+        // — 1.21 ItemCost matches components exactly, so it can't subset-match the custom_data grade above.
+        stack.set(com.riverfishing.registry.ModComponents.PRIME.get(), true);
     }
 
     public static boolean isPrime(ItemStack stack) {

@@ -169,6 +169,16 @@ public class JournalScreen extends Screen {
         super.render(g, mouseX, mouseY, partialTick);
     }
 
+    /**
+     * §journal-blur (1.21): skip the new menu-background blur. 1.21's {@code renderBackground} runs a
+     * gaussian blur post-effect over the world behind the screen; on the bestiary's parchment panel that
+     * reads as a washed-out, "размытый" page. The panel is opaque, so a plain (unblurred) backdrop is
+     * cleaner and crisper. No-op keeps the world sharp behind the journal.
+     */
+    @Override
+    protected void renderBlurredBackground(float partialTick) {
+    }
+
     // ---- tabs ----
 
     private int tabW(int i) {

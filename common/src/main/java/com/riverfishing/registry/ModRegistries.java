@@ -12,6 +12,7 @@ public final class ModRegistries {
     private ModRegistries() {}
 
     public static void init() {
+        ModComponents.init();    // registered data components (the prime-fish flag the buy-trade gates on)
         ModBlocks.init();        // also queues block-items into ModItems.REGISTER (class-load side effect)
         ModItems.init();
         ModBlockEntities.init();
