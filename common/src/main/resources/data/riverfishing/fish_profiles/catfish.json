@@ -1,25 +1,90 @@
 {
   "display": "Сом",
-  "water_bodies": { "river": 1.1, "lake": 1.0, "swamp": 0.3, "pond": 0.2, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 2000, "max": 40000, "mean": 7000, "spread": 0.8 },
-  "length_cm": { "min": 60, "max": 200 },
-  "fight": { "strength": 1.0, "stamina": 1.0, "runs": 5, "pattern": "burst", "aggression": 1.0 },
-  "ideal": {
-    "rod": ["bottom"],
-    "reel_size": 7000, "reel_tolerance": 1000,
-    "line": { "type": "braid", "diameter_mm": 0.18, "tolerance_mm": 0.04 },
-    "rig": ["catfish", "grusha"],
-    "groundbait": ["cake"],
-    "bait": { "livebait": 1.0, "chicken_liver": 1.0, "worm": 0.7, "boilie": 0.6 },
-    "hook": { "ideal": 4, "tolerance": 2 }
+  "water_bodies": {
+    "river": 1.1,
+    "lake": 1.0,
+    "swamp": 0.3,
+    "pond": 0.2,
+    "sea": 0.0,
+    "puddle": 0.0
   },
-  "season": { "spring": 0.7, "summer": 1.5, "autumn": 0.6, "winter": 0.0 },
-  "time":   { "dawn": 0.9, "day": 0.3, "dusk": 1.2, "night": 1.4 },
-  "weather":{ "clear": 0.8, "rain": 1.1, "thunder": 1.2 },
+  "weight_g": {
+    "min": 2000,
+    "max": 40000,
+    "mean": 7000,
+    "spread": 0.8
+  },
+  "length_cm": {
+    "min": 60,
+    "max": 200
+  },
+  "fight": {
+    "strength": 1.0,
+    "stamina": 1.0,
+    "runs": 5,
+    "pattern": "burst",
+    "aggression": 1.0
+  },
+  "ideal": {
+    "rod": [
+      "bottom"
+    ],
+    "reel_size": 7000,
+    "reel_tolerance": 1000,
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.18,
+      "tolerance_mm": 0.04
+    },
+    "rig": [
+      "catfish",
+      "grusha"
+    ],
+    "groundbait": [
+      "cake"
+    ],
+    "bait": {
+      "livebait": 1.0,
+      "chicken_liver": 1.0,
+      "worm": 0.7,
+      "boilie": 0.6,
+      "jig": 0.8
+    },
+    "hook": {
+      "ideal": 4,
+      "tolerance": 2
+    }
+  },
+  "season": {
+    "spring": 0.7,
+    "summer": 1.5,
+    "autumn": 0.6,
+    "winter": 0.0
+  },
+  "time": {
+    "dawn": 0.9,
+    "day": 0.3,
+    "dusk": 1.2,
+    "night": 1.4
+  },
+  "weather": {
+    "clear": 0.8,
+    "rain": 1.1,
+    "thunder": 1.2
+  },
   "depth_pref": "bottom",
-  "distance_pref": { "min": 10, "max": 40 },
-  "habitat": { "depth_min": 5, "width_min": 16 },
-  "biomes": { "temperate": 1.0, "warm": 1.2 },
+  "distance_pref": {
+    "min": 10,
+    "max": 40
+  },
+  "habitat": {
+    "depth_min": 5,
+    "width_min": 16
+  },
+  "biomes": {
+    "temperate": 1.0,
+    "warm": 1.2
+  },
   "base": 0.5,
   "min_angler_level": 6
 }

@@ -163,6 +163,12 @@ public final class ModItems {
         registerBait("spoon", true);
         registerBait("wobbler", true);
         registerBait("silicone", true);
+        // §more-lures (§8): topwater popper, mid-running crankbait, deep soft-jig, long-cast castmaster.
+        // All artificial → dyeable/tintable + condition-colour like the others. (Placeholder textures for now.)
+        registerBait("popper", true);
+        registerBait("crankbait", true);
+        registerBait("jig", true);
+        registerBait("castmaster", true);
 
         // ----- Groundbaits -----
         for (String cat : new String[]{"powder", "grain", "pellet", "cake"}) {
