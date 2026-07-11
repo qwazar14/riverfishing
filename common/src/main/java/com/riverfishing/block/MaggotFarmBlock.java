@@ -34,6 +34,13 @@ public class MaggotFarmBlock extends BaseEntityBlock {
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 4);
     private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 10, 16);
 
+    public static final com.mojang.serialization.MapCodec<MaggotFarmBlock> CODEC = simpleCodec(MaggotFarmBlock::new);
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
     public MaggotFarmBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(LEVEL, 0));
@@ -69,10 +76,10 @@ public class MaggotFarmBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         ItemStack held = player.getItemInHand(hand);
-        if (level.isClientSide) return InteractionResult.SUCCESS;
+        if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof MaggotFarmBlockEntity be) {
             if (held.is(Items.ROTTEN_FLESH)) {
                 be.depositOne(player, held);
@@ -80,6 +87,6 @@ public class MaggotFarmBlock extends BaseEntityBlock {
                 be.collect(player);
             }
         }
-        return InteractionResult.CONSUME;
+        return net.minecraft.world.ItemInteractionResult.CONSUME;
     }
 }

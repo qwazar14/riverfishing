@@ -63,7 +63,7 @@ public final class ModBlocks {
     // Copies vanilla ICE properties wholesale so the physics match exactly (slip, melt, break-to-water).
     public static final RegistrySupplier<Block> ICE_HOLE = registerSimple("ice_hole",
             () -> new com.riverfishing.block.IceHoleBlock(
-                    BlockBehaviour.Properties.copy(net.minecraft.world.level.block.Blocks.ICE)));
+                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.ICE)));
 
     private ModBlocks() {}
 

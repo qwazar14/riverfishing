@@ -26,6 +26,19 @@ public final class ClientPlatform {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
     }
 
+    /**
+     * Register the assembly / rig menu screen factories. On Fabric this delegates to Architectury's
+     * {@code MenuRegistry.registerScreenFactory}; on NeoForge that path is deferred to
+     * {@code FMLClientSetupEvent}, which fires <em>after</em> {@code RegisterMenuScreensEvent} — too late,
+     * so the client had no factory and menus opened with "Failed to create screen for menu type". NeoForge
+     * therefore registers screens directly on the native {@code RegisterMenuScreensEvent} instead (this is a
+     * no-op there).
+     */
+    @ExpectPlatform
+    public static void registerScreens() {
+        throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
+    }
+
     @ExpectPlatform
     public static void registerExtraModels() {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");

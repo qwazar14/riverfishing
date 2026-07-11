@@ -6,6 +6,8 @@ import com.riverfishing.item.GroundbaitItem;
 import com.riverfishing.item.HookItem;
 import com.riverfishing.item.LeaderItem;
 import com.riverfishing.item.RigItem;
+import com.riverfishing.item.StackNbt;
+import com.riverfishing.util.RegistryHelper;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -37,14 +39,17 @@ public final class RigData {
 
     public static NonNullList<ItemStack> load(ItemStack rig) {
         NonNullList<ItemStack> list = NonNullList.withSize(slotCount(rigType(rig)), ItemStack.EMPTY);
-        CompoundTag tag = rig.getTag();
-        if (tag != null && tag.contains(ROOT)) {
+        CompoundTag tag = StackNbt.get(rig);
+        if (tag.contains(ROOT)) {
             ListTag items = tag.getCompound(ROOT).getList(ITEMS, Tag.TAG_COMPOUND);
+            var provider = RegistryHelper.provider();
             for (int i = 0; i < items.size(); i++) {
                 CompoundTag c = items.getCompound(i);
                 int slot = c.getByte(SLOT) & 255;
                 if (slot < list.size()) {
-                    list.set(slot, ItemStack.of(c));
+                    // §data-components (1.21): the item lives in its own "Item" sub-tag — the 1.21 ItemStack
+                    // codec is strict and won't parse a tag that also carries our "Slot" byte.
+                    list.set(slot, ItemStack.parseOptional(provider, c.getCompound("Item")));
                 }
             }
         }
@@ -52,19 +57,20 @@ public final class RigData {
     }
 
     public static void save(ItemStack rig, NonNullList<ItemStack> contents) {
+        var provider = RegistryHelper.provider();
         ListTag items = new ListTag();
         for (int i = 0; i < contents.size(); i++) {
             ItemStack stack = contents.get(i);
             if (!stack.isEmpty()) {
                 CompoundTag c = new CompoundTag();
                 c.putByte(SLOT, (byte) i);
-                stack.save(c);
+                c.put("Item", stack.save(provider, new CompoundTag()));
                 items.add(c);
             }
         }
         CompoundTag root = new CompoundTag();
         root.put(ITEMS, items);
-        rig.getOrCreateTag().put(ROOT, root);
+        StackNbt.mutate(rig, tag -> tag.put(ROOT, root));
     }
 
     // ---- queries for the bite engine ----

@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [ "  s", " b ", "i  " ],
+  "key": {
+    "s": { "item": "minecraft:stick" },
+    "b": { "item": "minecraft:bamboo" },
+    "i": { "item": "minecraft:iron_ingot" }
+  },
+  "result": { "id": "riverfishing:pole_rod" }
+}

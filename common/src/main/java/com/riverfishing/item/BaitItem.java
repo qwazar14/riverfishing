@@ -27,7 +27,7 @@ public class BaitItem extends Item {
     public boolean artificial() { return artificial; }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         String key = artificial ? "tooltip.riverfishing.bait_artificial" : "tooltip.riverfishing.bait_natural";
         tooltip.add(Component.translatable(key).withStyle(s -> s.withColor(0x80A080)));
     }

@@ -25,6 +25,13 @@ import net.minecraft.world.item.Item;
 public final class ClientPlatformImpl {
     private ClientPlatformImpl() {}
 
+    public static void registerScreens() {
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.ROD_ASSEMBLY.get(), com.riverfishing.client.RodAssemblyScreen::new);
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.RIG.get(), com.riverfishing.client.RigScreen::new);
+    }
+
     public static void registerItemRenderers() {
         // The composited rod icon (§rod-layers) — one shared renderer over all rod blanks.
         BuiltinItemRendererRegistry.DynamicItemRenderer rod =
@@ -48,7 +55,7 @@ public final class ClientPlatformImpl {
 
     public static void registerLevelRenderer() {
         WorldRenderEvents.AFTER_TRANSLUCENT.register(context ->
-                LineRenderer.render(context.matrixStack(), context.camera().getPosition(), context.tickDelta()));
+                LineRenderer.render(context.matrixStack(), context.camera().getPosition(), context.tickCounter().getGameTimeDeltaPartialTick(false)));
     }
 
     /** Vanilla/Fabric ignores the model's "render_type", so wire the non-solid layers up explicitly. */

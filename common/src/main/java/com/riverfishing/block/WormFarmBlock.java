@@ -39,6 +39,13 @@ public class WormFarmBlock extends BaseEntityBlock {
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 4);
     private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 10, 16);
 
+    public static final com.mojang.serialization.MapCodec<WormFarmBlock> CODEC = simpleCodec(WormFarmBlock::new);
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
     public WormFarmBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(LEVEL, 0));
@@ -74,7 +81,7 @@ public class WormFarmBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         ItemStack held = player.getItemInHand(hand);
         boolean compostable = ComposterBlock.COMPOSTABLES.containsKey(held.getItem());
@@ -88,12 +95,12 @@ public class WormFarmBlock extends BaseEntityBlock {
                             6, 0.3, 0.1, 0.3, 0.0);
                 }
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return net.minecraft.world.ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
-        if (level.isClientSide) return InteractionResult.SUCCESS;
+        if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof WormFarmBlockEntity be) {
             be.collect(player);
         }
-        return InteractionResult.CONSUME;
+        return net.minecraft.world.ItemInteractionResult.CONSUME;
     }
 }

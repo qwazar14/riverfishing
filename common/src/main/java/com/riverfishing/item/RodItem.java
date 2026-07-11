@@ -114,7 +114,7 @@ public class RodItem extends Item {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack, net.minecraft.world.entity.LivingEntity entity) {
         return 72000; // effectively "hold as long as you like"
     }
 
@@ -140,7 +140,7 @@ public class RodItem extends Item {
         }
         // Releasing a charge: the power at THIS moment decides the cast distance (§cast-minigame). Lure
         // rods charge-and-cast the same way now (§spin-charge, 2.3) — no more instant click-cast.
-        int used = getUseDuration(stack) - timeLeft;
+        int used = getUseDuration(stack, entity) - timeLeft;
         InteractionHand hand = sp.getOffhandItem() == stack ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         FishingManager.chargedCast(sp, hand, castPower(used));
     }
@@ -176,7 +176,7 @@ public class RodItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         boolean assembled = RodData.isAssembled(stack);
         tooltip.add(Component.translatable(assembled
                         ? "tooltip.riverfishing.rod_assembled"

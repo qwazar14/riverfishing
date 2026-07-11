@@ -54,10 +54,10 @@ public class FishItem extends Item {
         net.minecraft.world.level.Level level = entity.level();
         if (level.isClientSide) return false;
         if (entity.isInWater()) {
-            CompoundTag tag = stack.getOrCreateTag();
+            CompoundTag tag = StackNbt.get(stack);
             long now = level.getGameTime();
             if (!tag.contains(TAG_RELEASE_AT)) {
-                tag.putLong(TAG_RELEASE_AT, now + RELEASE_TICKS);
+                StackNbt.mutate(stack, t -> t.putLong(TAG_RELEASE_AT, now + RELEASE_TICKS));
                 entity.setItem(stack); // sync the countdown to clients so they shrink the render
             } else if (now >= tag.getLong(TAG_RELEASE_AT)) {
                 if (level instanceof net.minecraft.server.level.ServerLevel sl) {
@@ -71,8 +71,8 @@ public class FishItem extends Item {
                 entity.discard();
                 return true; // handled: the fish is released
             }
-        } else if (stack.hasTag() && stack.getTag().contains(TAG_RELEASE_AT)) {
-            stack.getTag().remove(TAG_RELEASE_AT); // pulled back onto land — cancel the release
+        } else if (StackNbt.contains(stack, TAG_RELEASE_AT)) {
+            StackNbt.mutate(stack, t -> t.remove(TAG_RELEASE_AT)); // pulled back onto land — cancel release
             entity.setItem(stack);
         }
         return false; // keep the item's normal physics
@@ -95,18 +95,18 @@ public class FishItem extends Item {
     public static ItemStack create(Item fishItem, ResourceLocation species, int weightG, int lengthCm,
                                    boolean legal, boolean trophy) {
         ItemStack stack = new ItemStack(fishItem);
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putString(TAG_SPECIES, species.toString());
-        tag.putInt(TAG_WEIGHT, weightG);
-        tag.putInt(TAG_LENGTH, lengthCm);
-        tag.putBoolean(TAG_LEGAL, legal);
-        if (trophy) tag.putBoolean(TAG_TROPHY, true);
+        StackNbt.mutate(stack, tag -> {
+            tag.putString(TAG_SPECIES, species.toString());
+            tag.putInt(TAG_WEIGHT, weightG);
+            tag.putInt(TAG_LENGTH, lengthCm);
+            tag.putBoolean(TAG_LEGAL, legal);
+            if (trophy) tag.putBoolean(TAG_TROPHY, true);
+        });
         return stack;
     }
 
     public static boolean isTrophy(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.getBoolean(TAG_TROPHY);
+        return StackNbt.get(stack).getBoolean(TAG_TROPHY);
     }
 
     /** The fisherman's minimum accepted weight for a species (§prime-fish). */
@@ -116,14 +116,18 @@ public class FishItem extends Item {
 
     /** Marks a fresh catch as prime grade — the buyer takes it (§prime-fish). */
     public static void gradePrime(ItemStack stack, int thresholdG) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putString(TAG_GRADE, GRADE_PRIME);
-        tag.putInt(TAG_MIN_WEIGHT, thresholdG);
+        StackNbt.mutate(stack, tag -> {
+            tag.putString(TAG_GRADE, GRADE_PRIME);
+            tag.putInt(TAG_MIN_WEIGHT, thresholdG);
+        });
+        // §data-components (1.21): also set the registered PRIME component the villager buy-trade's ItemCost
+        // gates on — its value is the species' min accepted weight, which is the same for every prime specimen
+        // of the species, so it both matches the trade's expected value and drives the "accepts from N" legend.
+        stack.set(com.riverfishing.registry.ModComponents.PRIME.get(), thresholdG);
     }
 
     public static boolean isPrime(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && GRADE_PRIME.equals(tag.getString(TAG_GRADE));
+        return GRADE_PRIME.equals(StackNbt.get(stack).getString(TAG_GRADE));
     }
 
     /** Weight as a localized component (§i18n) — "1.50 kg" / "1,50 кг" / "320 g" per the client's lang. */
@@ -141,21 +145,19 @@ public class FishItem extends Item {
     /** Species of this catch: NBT first (authoritative for the individual), else the item's species. */
     @Nullable
     public static ResourceLocation getSpecies(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag != null && tag.contains(TAG_SPECIES)) {
+        CompoundTag tag = StackNbt.get(stack);
+        if (tag.contains(TAG_SPECIES)) {
             return ResourceLocation.tryParse(tag.getString(TAG_SPECIES));
         }
         return stack.getItem() instanceof FishItem fish ? fish.species : null;
     }
 
     public static int getWeightG(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag == null ? 0 : tag.getInt(TAG_WEIGHT);
+        return StackNbt.get(stack).getInt(TAG_WEIGHT);
     }
 
     public static int getLengthCm(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag == null ? 0 : tag.getInt(TAG_LENGTH);
+        return StackNbt.get(stack).getInt(TAG_LENGTH);
     }
 
     /** Species drawn FOLDED in half on their icon, so they use half the length→scale rule (§fish-scale). */
@@ -179,8 +181,8 @@ public class FishItem extends Item {
     }
 
     public static boolean isLegal(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag == null || !tag.contains(TAG_LEGAL) || tag.getBoolean(TAG_LEGAL);
+        CompoundTag tag = StackNbt.get(stack);
+        return !tag.contains(TAG_LEGAL) || tag.getBoolean(TAG_LEGAL);
     }
 
     private static String displayKey(ResourceLocation species) {
@@ -212,13 +214,16 @@ public class FishItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        CompoundTag tag = stack.getTag();
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        CompoundTag tag = StackNbt.get(stack);
         if (getWeightG(stack) <= 0) {
-            // The fisherman's buy-trade template (§prime-fish): show the "accepts from N" legend.
-            if (tag != null && tag.contains(TAG_MIN_WEIGHT)) {
-                tooltip.add(Component.translatable("tooltip.riverfishing.trade_min_weight",
-                                weightText(tag.getInt(TAG_MIN_WEIGHT)))
+            // The fisherman's buy-trade cost has no weight — show the "accepts from N" legend (§prime-fish).
+            // 1.21: the cost's display stack is rebuilt on the client from the ItemCost's component predicate,
+            // so the threshold arrives via the PRIME component; fall back to the legacy custom_data key.
+            Integer primeMin = stack.get(com.riverfishing.registry.ModComponents.PRIME.get());
+            int min = primeMin != null ? primeMin : (tag.contains(TAG_MIN_WEIGHT) ? tag.getInt(TAG_MIN_WEIGHT) : -1);
+            if (min >= 0) {
+                tooltip.add(Component.translatable("tooltip.riverfishing.trade_min_weight", weightText(min))
                         .withStyle(ChatFormatting.YELLOW));
             }
             return;

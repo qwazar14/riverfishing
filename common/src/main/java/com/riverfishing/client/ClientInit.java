@@ -47,9 +47,9 @@ public final class ClientInit {
 
     /** Registry-object-dependent registration — deferred to FMLClientSetupEvent on Forge. */
     public static void registerRenderers() {
-        // Assembly / rig screens (Forge MenuScreens.register → Architectury registerScreenFactory).
-        MenuRegistry.registerScreenFactory(ModMenus.ROD_ASSEMBLY.get(), RodAssemblyScreen::new);
-        MenuRegistry.registerScreenFactory(ModMenus.RIG.get(), RigScreen::new);
+        // Assembly / rig screens — per platform: Fabric via Architectury registerScreenFactory, NeoForge via
+        // the native RegisterMenuScreensEvent (Architectury's deferred path misses the event there). §multiloader
+        ClientPlatform.registerScreens();
 
         // Block-entity renderers (Forge EntityRenderersEvent → Architectury BlockEntityRendererRegistry).
         BlockEntityRendererRegistry.register(ModBlockEntities.TROPHY_STAND.get(), TrophyStandRenderer::new);

@@ -12,7 +12,8 @@ import net.minecraft.server.level.ServerPlayer;
  * The server re-validates (goal complete, not yet rewarded) before granting.
  */
 public class QuestClaimPacket implements ModNetwork.RfPacket {
-    public static final ResourceLocation TYPE = RiverFishing.id("quest_claim");
+    public static final net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<QuestClaimPacket> TYPE = new net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<>(RiverFishing.id("quest_claim"));
+    public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, QuestClaimPacket> STREAM_CODEC = net.minecraft.network.codec.StreamCodec.of((buf, pkt) -> pkt.write(buf), QuestClaimPacket::decode);
 
     private final String questId;
 
@@ -21,7 +22,7 @@ public class QuestClaimPacket implements ModNetwork.RfPacket {
     }
 
     @Override
-    public ResourceLocation type() {
+    public net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<? extends net.minecraft.network.protocol.common.custom.CustomPacketPayload> type() {
         return TYPE;
     }
 

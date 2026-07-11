@@ -9,7 +9,8 @@ import net.minecraft.resources.ResourceLocation;
 
 /** Server → client: the player's journal records, so the client can open the bestiary screen (§15). */
 public class JournalOpenPacket implements ModNetwork.RfPacket {
-    public static final ResourceLocation TYPE = RiverFishing.id("journal_open");
+    public static final net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<JournalOpenPacket> TYPE = new net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<>(RiverFishing.id("journal_open"));
+    public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, JournalOpenPacket> STREAM_CODEC = net.minecraft.network.codec.StreamCodec.of((buf, pkt) -> pkt.write(buf), JournalOpenPacket::decode);
 
     private final CompoundTag data;
 
@@ -18,7 +19,7 @@ public class JournalOpenPacket implements ModNetwork.RfPacket {
     }
 
     @Override
-    public ResourceLocation type() {
+    public net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<? extends net.minecraft.network.protocol.common.custom.CustomPacketPayload> type() {
         return TYPE;
     }
 

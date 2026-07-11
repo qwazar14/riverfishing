@@ -332,9 +332,9 @@ public class RodPodBlockEntity extends BlockEntity {
     // ---- persistence ----
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        ContainerHelper.saveAllItems(tag, rods);
+    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        ContainerHelper.saveAllItems(tag, rods, registries);
         ListTag list = new ListTag();
         for (int i = 0; i < lines.length; i++) {
             if (lines[i] != null) {
@@ -352,10 +352,10 @@ public class RodPodBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         this.rods = NonNullList.withSize(slotCount, ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(tag, rods);
+        ContainerHelper.loadAllItems(tag, rods, registries);
         this.lines = new PodLine[slotCount];
         ListTag list = tag.getList("Lines", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
@@ -384,9 +384,9 @@ public class RodPodBlockEntity extends BlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
-        saveAdditional(tag);
+        saveAdditional(tag, registries);
         return tag;
     }
 

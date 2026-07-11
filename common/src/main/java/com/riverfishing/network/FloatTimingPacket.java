@@ -11,7 +11,8 @@ import net.minecraft.resources.ResourceLocation;
  * with a GREEN target zone (100% hook) and flanking ORANGE band (25% hook); the server is authoritative.
  */
 public class FloatTimingPacket implements ModNetwork.RfPacket {
-    public static final ResourceLocation TYPE = RiverFishing.id("float_timing");
+    public static final net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<FloatTimingPacket> TYPE = new net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<>(RiverFishing.id("float_timing"));
+    public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, FloatTimingPacket> STREAM_CODEC = net.minecraft.network.codec.StreamCodec.of((buf, pkt) -> pkt.write(buf), FloatTimingPacket::decode);
 
     public final boolean active;
     public final long startTick;
@@ -35,7 +36,7 @@ public class FloatTimingPacket implements ModNetwork.RfPacket {
     }
 
     @Override
-    public ResourceLocation type() {
+    public net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<? extends net.minecraft.network.protocol.common.custom.CustomPacketPayload> type() {
         return TYPE;
     }
 

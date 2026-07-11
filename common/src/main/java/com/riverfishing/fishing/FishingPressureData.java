@@ -34,7 +34,7 @@ public class FishingPressureData extends SavedData {
     private final Map<Long, Map<String, Entry>> chunks = new HashMap<>();
 
     public static FishingPressureData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(FishingPressureData::load, FishingPressureData::new, NAME);
+        return level.getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(FishingPressureData::new, FishingPressureData::load, (net.minecraft.util.datafix.DataFixTypes) null), NAME);
     }
 
     /** Register a cast on a chunk (scaled by the difficulty depletion multiplier, §14): disturbance only. */
@@ -87,7 +87,7 @@ public class FishingPressureData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag) {
+    public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag list = new ListTag();
         for (Map.Entry<Long, Map<String, Entry>> chunk : chunks.entrySet()) {
             CompoundTag c = new CompoundTag();
@@ -107,7 +107,7 @@ public class FishingPressureData extends SavedData {
         return tag;
     }
 
-    public static FishingPressureData load(CompoundTag tag) {
+    public static FishingPressureData load(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         FishingPressureData data = new FishingPressureData();
         ListTag list = tag.getList("Chunks", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {

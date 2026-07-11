@@ -55,8 +55,8 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         // §release: a dropped fish shrinks away over its final 2 s in the water (the client mirrors
         // the server countdown stored in NBT). Only the loose item entity shrinks, not the inventory.
         if ((ctx == ItemDisplayContext.GROUND || ctx == ItemDisplayContext.NONE) && mc.level != null) {
-            net.minecraft.nbt.CompoundTag tag = stack.getTag();
-            if (tag != null && tag.contains(FishItem.TAG_RELEASE_AT)) {
+            net.minecraft.nbt.CompoundTag tag = com.riverfishing.item.StackNbt.get(stack);
+            if (tag.contains(FishItem.TAG_RELEASE_AT)) {
                 float remain = tag.getLong(FishItem.TAG_RELEASE_AT) - mc.level.getGameTime();
                 s *= Mth.clamp(remain / (float) FishItem.RELEASE_TICKS, 0f, 1f);
                 if (s <= 0.001f) return; // fully released — nothing left to draw

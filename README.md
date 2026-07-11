@@ -1,13 +1,15 @@
 # River Fishing 🎣
 
-A deep, **realistic river & ice-fishing simulator** for Minecraft **1.20.1 / Forge 47.x**, built as a
-modpack-anchor activity. Fishing is a *process*, not a click on the water: assemble a rod from a
+A deep, **realistic river & ice-fishing simulator** for Minecraft **1.20.1** on **Forge & Fabric**, built
+as a modpack-anchor activity. Fishing is a *process*, not a click on the water: assemble a rod from a
 blank + reel + line + rig + hook, match bait and groundbait to the fish you want, read the water, cast,
-and outsmart 29 species that each live by their own rules. Success = how well your whole setup matches a
+and outsmart 30 species that each live by their own rules. Success = how well your whole setup matches a
 given fish under the current conditions.
 
-> **Status:** feature-complete for Forge 1.20.1. A **Fabric port + newer Minecraft versions** are next
-> (the Forge 1.20.1 build is preserved on the `forge-1.20.1` branch).
+> **Status:** runs on **Forge and Fabric** (Minecraft 1.20.1) — see release **0.2.0**; newer Minecraft
+> versions are next. **Requires [Architectury API](https://www.curseforge.com/minecraft/mc-mods/architectury-api)**;
+> on Fabric also **[Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api)**. (The original
+> single-loader Forge build is archived on the `forge-1.20.1` branch.)
 
 ---
 
@@ -87,8 +89,8 @@ to see what's biting and how the pressure is trending.
 
 ## Building
 
-This project needs a **JDK 17**. If you don't have a system JDK, PrismLauncher's bundled
-`java-runtime-gamma` is a full JDK 17 and works:
+An **Architectury** multi-loader project (`common` / `forge` / `fabric`). Needs a **JDK 17**; if you
+don't have a system JDK, PrismLauncher's bundled `java-runtime-gamma` is a full JDK 17 and works:
 
 ```powershell
 # from the project root, in PowerShell:
@@ -96,8 +98,9 @@ $env:JAVA_HOME = "C:\Users\<you>\AppData\Roaming\PrismLauncher\java\java-runtime
 .\gradlew.bat build
 ```
 
-The built mod jar lands in `build/libs/riverfishing-0.1.0.jar`. Useful tasks:
-`.\gradlew.bat compileJava`, `.\gradlew.bat runClient` (launches a dev client).
+The loader jars land in `forge/build/libs/riverfishing-forge-0.2.0.jar` and
+`fabric/build/libs/riverfishing-fabric-0.2.0.jar` (use the plain jar, not `-dev`/`-sources`). Dev clients:
+`.\gradlew.bat :forge:runClient` and `.\gradlew.bat :fabric:runClient`.
 
 ## Debug commands (ops)
 

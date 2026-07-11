@@ -35,7 +35,7 @@ public final class ClientModels {
         ResourceManager rm = Minecraft.getInstance().getResourceManager();
         List<ResourceLocation> out = new ArrayList<>();
         for (ResourceLocation loc : in) {
-            ResourceLocation json = new ResourceLocation(loc.getNamespace(), "models/" + loc.getPath() + ".json");
+            ResourceLocation json = ResourceLocation.fromNamespaceAndPath(loc.getNamespace(), "models/" + loc.getPath() + ".json");
             if (rm.getResource(json).isPresent()) {
                 out.add(loc);
             }

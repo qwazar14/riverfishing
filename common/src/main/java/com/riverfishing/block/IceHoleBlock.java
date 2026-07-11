@@ -52,7 +52,7 @@ public class IceHoleBlock extends IceBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         ItemStack held = player.getItemInHand(hand);
         boolean winterRod = held.getItem() instanceof RodItem rod && rod.rodType() == RodType.WINTER;
@@ -61,14 +61,14 @@ public class IceHoleBlock extends IceBlock {
                 player.displayClientMessage(Component.translatable("message.riverfishing.need_winter_rod")
                         .withStyle(ChatFormatting.YELLOW), true);
             }
-            return InteractionResult.PASS;
+            return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (!RodData.isAssembled(held)) {
             if (!level.isClientSide) {
                 player.displayClientMessage(Component.translatable("message.riverfishing.not_assembled")
                         .withStyle(ChatFormatting.RED), true);
             }
-            return InteractionResult.CONSUME;
+            return net.minecraft.world.ItemInteractionResult.CONSUME;
         }
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
             if (FishingManager.hasSession(sp)) {
@@ -77,6 +77,6 @@ public class IceHoleBlock extends IceBlock {
                 FishingManager.startIceFishing(sp, pos, hand);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return net.minecraft.world.ItemInteractionResult.sidedSuccess(level.isClientSide);
     }
 }

@@ -36,7 +36,7 @@ public class FeedZoneData extends SavedData {
     private final Map<Long, Zone> zones = new HashMap<>();
 
     public static FeedZoneData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(FeedZoneData::load, FeedZoneData::new, NAME);
+        return level.getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(FeedZoneData::new, FeedZoneData::load, (net.minecraft.util.datafix.DataFixTypes) null), NAME);
     }
 
     private static long key(int x, int z) {
@@ -91,7 +91,7 @@ public class FeedZoneData extends SavedData {
     // ---- persistence ----
 
     @Override
-    public CompoundTag save(CompoundTag tag) {
+    public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag list = new ListTag();
         for (Zone z : zones.values()) {
             CompoundTag t = new CompoundTag();
@@ -107,7 +107,7 @@ public class FeedZoneData extends SavedData {
         return tag;
     }
 
-    public static FeedZoneData load(CompoundTag tag) {
+    public static FeedZoneData load(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         FeedZoneData data = new FeedZoneData();
         ListTag list = tag.getList("zones", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {

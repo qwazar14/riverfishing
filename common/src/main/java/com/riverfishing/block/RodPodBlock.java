@@ -37,6 +37,17 @@ public class RodPodBlock extends BaseEntityBlock {
 
     private final int slotCount;
 
+    public static final com.mojang.serialization.MapCodec<RodPodBlock> CODEC =
+        com.mojang.serialization.codecs.RecordCodecBuilder.mapCodec(i -> i.group(
+            com.mojang.serialization.Codec.INT.fieldOf("slot_count").forGetter(RodPodBlock::slotCount),
+            propertiesCodec()
+        ).apply(i, RodPodBlock::new));
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
     public RodPodBlock(int slotCount, Properties properties) {
         super(properties);
         this.slotCount = slotCount;
@@ -100,14 +111,17 @@ public class RodPodBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
+            return net.minecraft.world.ItemInteractionResult.SUCCESS;
         }
         if (level.getBlockEntity(pos) instanceof RodPodBlockEntity be) {
-            return be.onUse(player, hand);
+            InteractionResult r = be.onUse(player, hand);
+            if (r == InteractionResult.PASS) return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            if (r == InteractionResult.FAIL) return net.minecraft.world.ItemInteractionResult.FAIL;
+            return net.minecraft.world.ItemInteractionResult.SUCCESS;
         }
-        return InteractionResult.PASS;
+        return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 }

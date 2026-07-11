@@ -1,6 +1,0 @@
-{
-  "type": "minecraft:crafting_shaped",
-  "pattern": [ "  b", " b ", "b  " ],
-  "key": { "b": { "item": "minecraft:bamboo" } },
-  "result": { "item": "riverfishing:bamboo_rod" }
-}

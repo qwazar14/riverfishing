@@ -1,0 +1,56 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+issueTrackerURL="https://github.com/qwazar14/riverfishing/issues"
+
+# §multiloader (1.21.1): NeoForge loads mixin configs from this file. The common koi-release mixin
+# applies on both loaders; the Forge-client BEWLR mixins are replaced on NeoForge by
+# RegisterClientExtensionsEvent (see the client stage), so no NeoForge client mixin config here yet.
+[[mixins]]
+config="riverfishing.mixins.json"
+
+[[mods]]
+modId="riverfishing"
+version="${version}"
+displayName="River Fishing"
+logoFile="icon.png"
+authors="Qwazar"
+description='''
+A deep, realistic river & ice-fishing simulator built as a modpack anchor.
+'''
+
+[[dependencies.riverfishing]]
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.riverfishing]]
+    modId="minecraft"
+    type="required"
+    versionRange="[1.21,1.22)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.riverfishing]]
+    modId="architectury"
+    type="required"
+    versionRange="[13,)"
+    ordering="AFTER"
+    side="BOTH"
+
+# Soft dependencies — features light up if present (§recommended-companions).
+[[dependencies.riverfishing]]
+    modId="sereneseasons"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.riverfishing]]
+    modId="biomesoplenty"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
