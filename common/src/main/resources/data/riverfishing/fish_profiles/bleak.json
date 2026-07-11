@@ -20,5 +20,5 @@
   "distance_pref": { "min": 2, "max": 12 },
   "habitat": { "depth_min": 1, "depth_max": 2, "width_min": 6 },
   "biomes": { "temperate": 1.0, "warm": 0.9 },
-  "base": 1.3
+  "base": 0.95
 }

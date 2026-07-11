@@ -1353,7 +1353,10 @@ public final class FishingManager {
     /** Angler progression: grant XP for a legal catch, with new-species / personal-best bonuses and level/rank feedback. */
     private static void awardAnglerXp(ServerPlayer sp, ServerLevel level, int weightG, int lengthCm,
                                       boolean newSpecies, boolean personalBest, boolean trophy) {
-        int xp = 8 + weightG / 40 + lengthCm / 2;
+        // §xp-by-size (§anti-macro): weight-dominated, with only a token flat base — so a swarm of tiny
+        // fish is poor XP/hour and targeting bigger fish pays. (bleak ~5, roach ~9, bream ~46, carp ~155,
+        // catfish ~307). Was a flat 8 + weight/40, which over-rewarded mass-caught minnows.
+        int xp = 2 + weightG / 25 + lengthCm / 4;
         if (newSpecies) xp += 50;
         else if (personalBest) xp += 20;
         if (trophy) xp *= 3; // a trophy specimen is the jackpot
