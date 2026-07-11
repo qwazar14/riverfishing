@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "riverfishing:item/silicone"
+    "layer0": "riverfishing:item/jig"
   }
 }
