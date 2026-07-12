@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -110,7 +110,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         float startY = -((n - 1) * lineH) / 2f - 2f;
         for (int i = 0; i < n; i++) {
             ItemStack fish = fishes.get(i);
-            ResourceLocation sp = FishItem.getSpecies(fish);
+            Identifier sp = FishItem.getSpecies(fish);
             Component name = sp != null
                     ? Component.translatable("fish." + sp.getNamespace() + "." + sp.getPath())
                     : fish.getHoverName();

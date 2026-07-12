@@ -2,7 +2,7 @@ package com.riverfishing.client.platform;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * The CLIENT platform-abstraction seam (§multiloader). These three hooks have no Architectury wrapper,
@@ -70,12 +70,12 @@ public final class ClientPlatform {
     }
 
     /**
-     * A baked extra model (§rod-layers / §fish-scale) by its plain {@link ResourceLocation}. Vanilla's
+     * A baked extra model (§rod-layers / §fish-scale) by its plain {@link Identifier}. Vanilla's
      * {@code ModelManager#getModel} only takes a {@code ModelResourceLocation}; the loader-patched
      * lookup (Forge's overload / Fabric's {@code FabricBakedModelManager}) lives per platform.
      */
     @ExpectPlatform
-    public static BakedModel bakedModel(ResourceLocation loc) {
+    public static BakedModel bakedModel(Identifier loc) {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
     }
 }

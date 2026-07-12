@@ -12,7 +12,7 @@ import dev.architectury.event.events.common.CommandRegistrationEvent;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
@@ -34,7 +34,7 @@ public final class JournalCommand {
     private static int unlockAll(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
         ServerPlayer sp = c.getSource().getPlayerOrException();
         for (String species : ModItems.FISH_SPECIES) {
-            ResourceLocation id = RiverFishing.id(species);
+            Identifier id = RiverFishing.id(species);
             FishProfile p = FishProfileManager.get().byId(id);
             int w = p != null ? (int) Math.round(p.weightMax) : 100000;
             JournalData.record(sp, id, w);

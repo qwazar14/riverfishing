@@ -21,7 +21,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -290,7 +290,7 @@ public class JournalScreen extends Screen {
     // ---- FISH: detail with illustration ----
 
     private void renderFishDetail(GuiGraphics g, String sp) {
-        ResourceLocation id = RiverFishing.id(sp);
+        Identifier id = RiverFishing.id(sp);
         // fixed header
         drawFishIcon(g, sp, left + 10, top + 22);
         g.drawString(this.font, Component.translatable("fish.riverfishing." + sp),
@@ -530,7 +530,7 @@ public class JournalScreen extends Screen {
         g.fill(bx - 3, by - 3, bx + bw + 3, by + bh + 3, GuiStyle.PANEL_EDGE);
         g.fill(bx - 2, by - 2, bx + bw + 2, by + bh + 2, GuiStyle.TITLE_BAR);
         g.fill(bx - 1, by - 1, bx + bw + 1, by + bh + 1, 0xFF2B2016);
-        ResourceLocation tex = RiverFishing.id("textures/gui/journal/fish/" + sp + ".png");
+        Identifier tex = RiverFishing.id("textures/gui/journal/fish/" + sp + ".png");
         if (Minecraft.getInstance().getResourceManager().getResource(tex).isPresent()) {
             g.blit(tex, bx, by, bw, bh, 0f, 0f, 16, 16, 16, 16);
         } else {
@@ -739,7 +739,7 @@ public class JournalScreen extends Screen {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return List.of();
         // §oilcake-info: the oil cake is a CUSTOM recipe (no listed ingredients) — spell it out by hand.
-        ResourceLocation itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
+        Identifier itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (itemId != null && itemId.getPath().equals("groundbait_cake")) {
             return List.of(
                     new ItemStack(net.minecraft.world.item.Items.SUNFLOWER).getHoverName().getString(),
@@ -789,7 +789,7 @@ public class JournalScreen extends Screen {
 
     // ---- shared helpers ----
 
-    private static ResourceLocation fishTex(String sp) {
+    private static Identifier fishTex(String sp) {
         return RiverFishing.id("textures/item/fish/" + sp + ".png");
     }
 

@@ -2,7 +2,7 @@ package com.riverfishing.client;
 
 import com.riverfishing.registry.ModItems;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import java.util.ArrayList;
@@ -18,8 +18,8 @@ public final class ClientModels {
     private ClientModels() {}
 
     /** Every layer/icon model that MIGHT exist — the rod sprite layers plus the per-species fish icons. */
-    public static List<ResourceLocation> allCandidates() {
-        List<ResourceLocation> list = new ArrayList<>(RodModelLayers.candidates());
+    public static List<Identifier> allCandidates() {
+        List<Identifier> list = new ArrayList<>(RodModelLayers.candidates());
         for (String sp : ModItems.FISH_SPECIES) {
             list.add(FishItemRenderer.iconModel(sp));
         }
@@ -31,11 +31,11 @@ public final class ClientModels {
      * spam the log (§rod-layers). Safe to call at model-registration time on either loader — the client
      * resource manager is up by then.
      */
-    public static List<ResourceLocation> present(List<ResourceLocation> in) {
+    public static List<Identifier> present(List<Identifier> in) {
         ResourceManager rm = Minecraft.getInstance().getResourceManager();
-        List<ResourceLocation> out = new ArrayList<>();
-        for (ResourceLocation loc : in) {
-            ResourceLocation json = ResourceLocation.fromNamespaceAndPath(loc.getNamespace(), "models/" + loc.getPath() + ".json");
+        List<Identifier> out = new ArrayList<>();
+        for (Identifier loc : in) {
+            Identifier json = Identifier.fromNamespaceAndPath(loc.getNamespace(), "models/" + loc.getPath() + ".json");
             if (rm.getResource(json).isPresent()) {
                 out.add(loc);
             }

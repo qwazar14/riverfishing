@@ -37,7 +37,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -111,7 +111,7 @@ public final class FishingManager {
     }
 
     /** Start a fight straight from a podded line the player just grabbed during its bite window. */
-    public static void startPodFight(ServerPlayer sp, BlockPos target, ResourceLocation species,
+    public static void startPodFight(ServerPlayer sp, BlockPos target, Identifier species,
                                      double lineStrainKg, double dragKg, boolean hasLeader, RigType rigType) {
         ServerLevel level = sp.serverLevel();
         long now = level.getGameTime();
@@ -309,7 +309,7 @@ public final class FishingManager {
             return false;
         }
 
-        ResourceLocation species = maybeKoi(outcome.pickSpecies(random), ctx, random);
+        Identifier species = maybeKoi(outcome.pickSpecies(random), ctx, random);
 
         // Chunk fishing pressure (Module 7): a fished-out spot makes bites much slower (W_total falls).
         FishingPressureData pressure = FishingPressureData.get(level);
@@ -469,7 +469,7 @@ public final class FishingManager {
             actionbar(sp, Component.translatable("message.riverfishing.no_bites_here").withStyle(ChatFormatting.GRAY));
             return false;
         }
-        ResourceLocation species = maybeKoi(outcome.pickSpecies(random), ctx, random);
+        Identifier species = maybeKoi(outcome.pickSpecies(random), ctx, random);
 
         FishingPressureData pressure = FishingPressureData.get(level);
         long chunkKey = new ChunkPos(waterPos).toLong();
@@ -547,7 +547,7 @@ public final class FishingManager {
     // §koi: the five ornamental koi are a hidden collectible — never in the normal bite pool
     // (their profile base is 0). Instead, a CARP-rig catch of a carp-family fish has a small chance
     // to turn out to be a koi. A cherry-grove pond is proper koi water, so there it's far likelier.
-    private static final ResourceLocation[] KOI = {
+    private static final Identifier[] KOI = {
             com.riverfishing.RiverFishing.id("carp_koi_kohaku"),
             com.riverfishing.RiverFishing.id("carp_koi_tancho_sanke"),
             com.riverfishing.RiverFishing.id("carp_koi_showa_sanke"),
@@ -557,13 +557,13 @@ public final class FishingManager {
     private static final double KOI_CHANCE = 0.005;       // 0.5% on carp tackle anywhere
     private static final double KOI_CHANCE_CHERRY = 0.35; // far higher in a cherry-grove pond
 
-    private static ResourceLocation maybeKoi(ResourceLocation picked, BiteContext ctx, RandomSource random) {
+    private static Identifier maybeKoi(Identifier picked, BiteContext ctx, RandomSource random) {
         if (ctx.rig != RigType.CARP || !isCarpFamily(picked)) return picked;
         double chance = ctx.biomeGroups.contains("cherry") ? KOI_CHANCE_CHERRY : KOI_CHANCE;
         return random.nextDouble() < chance ? KOI[random.nextInt(KOI.length)] : picked;
     }
 
-    private static boolean isCarpFamily(ResourceLocation id) {
+    private static boolean isCarpFamily(Identifier id) {
         String p = id.getPath();
         return "carp".equals(p) || "mirror_carp".equals(p) || "wild_carp".equals(p);
     }
@@ -1427,7 +1427,7 @@ public final class FishingManager {
         return 0;
     }
 
-    private static void giveFish(ServerPlayer sp, ResourceLocation species, int weightG, int lengthCm,
+    private static void giveFish(ServerPlayer sp, Identifier species, int weightG, int lengthCm,
                                  boolean legal, boolean trophy) {
         ItemStack fish = FishItem.create(ModItems.fishItem(species), species, weightG, lengthCm, legal, trophy);
         // §prime-fish: a legal top-of-range specimen gets the prime grade — the fisherman buys these.
@@ -1596,7 +1596,7 @@ public final class FishingManager {
         session.lengthCm = (int) Math.round(Mth.clamp(length, p.lengthMin, p.lengthMax));
     }
 
-    private static Component fishName(ResourceLocation species) {
+    private static Component fishName(Identifier species) {
         return Component.translatable("fish." + species.getNamespace() + "." + species.getPath());
     }
 

@@ -3,7 +3,7 @@ package com.riverfishing.client;
 import com.riverfishing.RiverFishing;
 import com.riverfishing.component.LineType;
 import com.riverfishing.component.RigType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,40 +30,40 @@ public final class RodModelLayers {
             {"stick", "bamboo", "pole", "winter", "ultralight", "spinning", "feeder", "bottom", "carp"};
     public static final int[] REEL_SIZES = {1000, 2000, 3000, 4000, 5000, 6000, 7000};
 
-    public static ResourceLocation loc(String path) {
+    public static Identifier loc(String path) {
         return RiverFishing.id("item/rod/" + path);
     }
 
     /** The mirrored (hand) counterpart of a rod layer model (§rod-mirror). */
-    public static ResourceLocation mirror(ResourceLocation normal) {
-        return ResourceLocation.fromNamespaceAndPath(normal.getNamespace(), normal.getPath().replace("item/rod/", "item/rod_m/"));
+    public static Identifier mirror(Identifier normal) {
+        return Identifier.fromNamespaceAndPath(normal.getNamespace(), normal.getPath().replace("item/rod/", "item/rod_m/"));
     }
 
-    public static ResourceLocation blank(String rodKey) {
+    public static Identifier blank(String rodKey) {
         return loc("blank_" + rodKey);
     }
 
-    public static ResourceLocation reel(int size) {
+    public static Identifier reel(int size) {
         return loc("reel_" + size);
     }
 
-    public static ResourceLocation reelGeneric() {
+    public static Identifier reelGeneric() {
         return loc("reel");
     }
 
-    public static ResourceLocation line(LineType type) {
+    public static Identifier line(LineType type) {
         return type == null ? null : loc("line_" + type.jsonKey());
     }
 
-    public static ResourceLocation lineGeneric() {
+    public static Identifier lineGeneric() {
         return loc("line");
     }
 
-    public static ResourceLocation rig(RigType type) {
+    public static Identifier rig(RigType type) {
         return type == null ? null : loc("rig_" + type.name().toLowerCase(Locale.ROOT));
     }
 
-    public static ResourceLocation rigGeneric() {
+    public static Identifier rigGeneric() {
         return loc("rig");
     }
 
@@ -71,8 +71,8 @@ public final class RodModelLayers {
      * Every layer model that MIGHT exist, normal AND mirrored (§rod-mirror) — the client registers
      * whichever have a JSON present.
      */
-    public static List<ResourceLocation> candidates() {
-        List<ResourceLocation> normal = new ArrayList<>();
+    public static List<Identifier> candidates() {
+        List<Identifier> normal = new ArrayList<>();
         for (String k : ROD_KEYS) normal.add(blank(k));
         normal.add(reelGeneric());
         for (int s : REEL_SIZES) normal.add(reel(s));
@@ -81,8 +81,8 @@ public final class RodModelLayers {
         normal.add(rigGeneric());
         for (RigType t : RigType.values()) normal.add(rig(t));
 
-        List<ResourceLocation> all = new ArrayList<>(normal);
-        for (ResourceLocation loc : normal) all.add(mirror(loc));
+        List<Identifier> all = new ArrayList<>(normal);
+        for (Identifier loc : normal) all.add(mirror(loc));
         return all;
     }
 }

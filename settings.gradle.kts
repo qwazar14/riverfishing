@@ -20,10 +20,12 @@ stonecutter {
     kotlinController = true
     centralScript = "build.gradle"
     create(rootProject) {
-        branch("common")   { versions("1.21.1", "26.1.2") }
-        branch("fabric")   { versions("1.21.1", "26.1.2") }
-        branch("neoforge") { versions("1.21.1", "26.1.2") }
-        vcsVersion = "1.21.1"
+        // 26.x family only (all unobfuscated). 1.21.1 was the port base; it stays frozen/released on the
+        // mc-1.21.1 branch. 26.2 gets added once 26.1.2 compiles + runs.
+        branch("common")   { versions("26.1.2") }
+        branch("fabric")   { versions("26.1.2") }
+        branch("neoforge") { versions("26.1.2") }
+        vcsVersion = "26.1.2"
     }
 }
 

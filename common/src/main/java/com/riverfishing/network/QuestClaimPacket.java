@@ -4,7 +4,7 @@ import com.riverfishing.RiverFishing;
 import com.riverfishing.quest.Quests;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 /**

@@ -5,7 +5,7 @@ import dev.architectury.utils.EnvExecutor;
 import net.fabricmc.api.EnvType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /** Server → client: the player's journal records, so the client can open the bestiary screen (§15). */
 public class JournalOpenPacket implements ModNetwork.RfPacket {

@@ -5,7 +5,7 @@ import com.riverfishing.engine.Season;
 import com.riverfishing.engine.TimeOfDay;
 import com.riverfishing.engine.Weather;
 import com.riverfishing.water.WaterType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 
 import java.util.HashMap;
@@ -18,7 +18,7 @@ import java.util.Set;
  * later, the journal hints (§15) — so balance and tips can never drift apart.
  */
 public final class FishProfile {
-    public final ResourceLocation id;
+    public final Identifier id;
 
     // Presence / size
     public final Map<String, Double> waterBodies;
@@ -128,7 +128,7 @@ public final class FishProfile {
 
     // ---- JSON parsing (§13 schema) ----
 
-    public static FishProfile fromJson(ResourceLocation id, JsonObject json) {
+    public static FishProfile fromJson(Identifier id, JsonObject json) {
         Builder b = new Builder(id);
 
         b.waterBodies = readDoubleMap(GsonHelper.getAsJsonObject(json, "water_bodies", new JsonObject()));
@@ -205,7 +205,7 @@ public final class FishProfile {
     }
 
     private static final class Builder {
-        final ResourceLocation id;
+        final Identifier id;
         Map<String, Double> waterBodies = new HashMap<>();
         double weightMin, weightMax, weightMean, weightSpread;
         double lengthMin, lengthMax;
@@ -233,6 +233,6 @@ public final class FishProfile {
         double widthMin = 0, widthMax = 99999;
         Map<String, Double> biomes = new HashMap<>();
 
-        Builder(ResourceLocation id) { this.id = id; }
+        Builder(Identifier id) { this.id = id; }
     }
 }

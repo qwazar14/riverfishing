@@ -3,15 +3,15 @@ package com.riverfishing.client;
 import com.riverfishing.RiverFishing;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Shared GUI styling for the mod's screens: a warm wood-and-brass panel over a parchment face, plus
  * sunken leather-wood slots, drawn from small 9-sliceable textures so every menu shares one look.
  */
 public final class GuiStyle {
-    private static final ResourceLocation PANEL_TEX = RiverFishing.id("textures/gui/panel.png");
-    private static final ResourceLocation SLOT_TEX = RiverFishing.id("textures/gui/slot.png");
+    private static final Identifier PANEL_TEX = RiverFishing.id("textures/gui/panel.png");
+    private static final Identifier SLOT_TEX = RiverFishing.id("textures/gui/slot.png");
     private static final int PANEL_SIZE = 64;
     private static final int PANEL_BORDER = 8;
 
@@ -45,7 +45,7 @@ public final class GuiStyle {
     }
 
     /** Blits a texture as a 9-slice so a small panel image can fill any panel size. */
-    private static void nineSlice(GuiGraphics g, ResourceLocation tex, int x, int y, int w, int h, int b, int ts) {
+    private static void nineSlice(GuiGraphics g, Identifier tex, int x, int y, int w, int h, int b, int ts) {
         int in = ts - 2 * b;      // inner (tileable) span in the source
         int cw = w - 2 * b;       // centre width in the destination
         int ch = h - 2 * b;
@@ -63,7 +63,7 @@ public final class GuiStyle {
         part(g, tex, x + b, y + b, cw, ch, b, b, in, in, ts);
     }
 
-    private static void part(GuiGraphics g, ResourceLocation tex, int dx, int dy, int dw, int dh,
+    private static void part(GuiGraphics g, Identifier tex, int dx, int dy, int dw, int dh,
                              int su, int sv, int sw, int sh, int ts) {
         if (dw <= 0 || dh <= 0) return;
         g.blit(tex, dx, dy, dw, dh, (float) su, (float) sv, sw, sh, ts, ts);

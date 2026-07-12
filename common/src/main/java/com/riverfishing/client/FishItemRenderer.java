@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelManager;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -37,14 +37,14 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
     }
 
     /** Icon model location for a species (registered as an additional model). */
-    public static ResourceLocation iconModel(String speciesPath) {
+    public static Identifier iconModel(String speciesPath) {
         return RiverFishing.id("item/fish_icon/" + speciesPath);
     }
 
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext ctx, PoseStack pose,
                              MultiBufferSource buffers, int light, int overlay) {
-        ResourceLocation sp = FishItem.getSpecies(stack);
+        Identifier sp = FishItem.getSpecies(stack);
         if (sp == null) return;
         Minecraft mc = Minecraft.getInstance();
         ModelManager mm = mc.getModelManager();

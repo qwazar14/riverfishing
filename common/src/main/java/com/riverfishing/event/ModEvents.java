@@ -11,7 +11,7 @@ import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.registry.ReloadListenerRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.item.ItemStack;
@@ -83,15 +83,15 @@ public final class ModEvents {
         });
     }
 
-    private static boolean matches(ResourceLocation lootId, String entity) {
+    private static boolean matches(Identifier lootId, String entity) {
         return lootId.getNamespace().equals("minecraft") && lootId.getPath().equals("entities/" + entity);
     }
 
-    private static boolean matchesBlock(ResourceLocation lootId, String block) {
+    private static boolean matchesBlock(Identifier lootId, String block) {
         return lootId.getNamespace().equals("minecraft") && lootId.getPath().equals("blocks/" + block);
     }
 
-    private static void addDrop(LootEvent.LootTableModificationContext context, ResourceLocation itemId, float chance) {
+    private static void addDrop(LootEvent.LootTableModificationContext context, Identifier itemId, float chance) {
         var item = BuiltInRegistries.ITEM.get(itemId);
         context.addPool(LootPool.lootPool()
                 .add(LootItem.lootTableItem(item))

@@ -18,7 +18,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -401,7 +401,7 @@ public class RodPodBlockEntity extends BlockEntity {
     /** A cast line resting on the pod. */
     private static final class PodLine {
         BlockPos target;
-        ResourceLocation species;
+        Identifier species;
         long biteAtTick;
         boolean bitten;
         boolean phantom;
@@ -447,7 +447,7 @@ public class RodPodBlockEntity extends BlockEntity {
         static PodLine fromNbt(CompoundTag c) {
             PodLine line = new PodLine();
             line.target = BlockPos.of(c.getLong("Target"));
-            line.species = ResourceLocation.tryParse(c.getString("Species"));
+            line.species = Identifier.tryParse(c.getString("Species"));
             line.biteAtTick = c.getLong("BiteAt");
             line.bitten = c.getBoolean("Bitten");
             line.phantom = c.getBoolean("Phantom");

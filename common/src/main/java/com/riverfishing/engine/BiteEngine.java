@@ -1,7 +1,7 @@
 package com.riverfishing.engine;
 
 import com.riverfishing.fish.FishProfile;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 
 import java.util.Collection;
@@ -244,7 +244,7 @@ public final class BiteEngine {
     // ---- Scheduling ----
 
     public static Outcome evaluate(Collection<FishProfile> profiles, BiteContext c, RandomSource random) {
-        Map<ResourceLocation, Double> weights = new LinkedHashMap<>();
+        Map<Identifier, Double> weights = new LinkedHashMap<>();
         double total = 0.0;
         for (FishProfile p : profiles) {
             double w = speciesWeight(p, c);
@@ -270,12 +270,12 @@ public final class BiteEngine {
 
     /** Result of an evaluation: per-species weights, total, and a sampled time-to-bite. */
     public static final class Outcome {
-        private final Map<ResourceLocation, Double> weights;
+        private final Map<Identifier, Double> weights;
         public final double totalWeight;
         /** Ticks until the bite; -1 means nothing is biting here. */
         public final long ticksToBite;
 
-        Outcome(Map<ResourceLocation, Double> weights, double totalWeight, long ticksToBite) {
+        Outcome(Map<Identifier, Double> weights, double totalWeight, long ticksToBite) {
             this.weights = weights;
             this.totalWeight = totalWeight;
             this.ticksToBite = ticksToBite;
@@ -286,10 +286,10 @@ public final class BiteEngine {
         }
 
         /** Picks which species bit, weighted by W (§1.4). */
-        public ResourceLocation pickSpecies(RandomSource random) {
+        public Identifier pickSpecies(RandomSource random) {
             double roll = random.nextDouble() * totalWeight;
-            ResourceLocation last = null;
-            for (Map.Entry<ResourceLocation, Double> e : weights.entrySet()) {
+            Identifier last = null;
+            for (Map.Entry<Identifier, Double> e : weights.entrySet()) {
                 last = e.getKey();
                 roll -= e.getValue();
                 if (roll <= 0) return e.getKey();

@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelManager;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
@@ -161,8 +161,8 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      * {@code mir} is set, each candidate is tried in its mirrored (rod_m) folder first, falling back
      * to the normal sprite if no flipped copy exists.
      */
-    private static BakedModel resolve(ModelManager mm, BakedModel missing, boolean mir, ResourceLocation... locs) {
-        for (ResourceLocation loc : locs) {
+    private static BakedModel resolve(ModelManager mm, BakedModel missing, boolean mir, Identifier... locs) {
+        for (Identifier loc : locs) {
             if (loc == null) continue;
             if (mir) {
                 BakedModel flipped = com.riverfishing.client.platform.ClientPlatform.bakedModel(RodModelLayers.mirror(loc));

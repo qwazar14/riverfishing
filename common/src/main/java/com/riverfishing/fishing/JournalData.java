@@ -1,7 +1,7 @@
 package com.riverfishing.fishing;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 
 /**
@@ -22,7 +22,7 @@ public final class JournalData {
         return PlayerData.root(player).getCompound(TAG);
     }
 
-    public static void record(Player player, ResourceLocation species, int weightG) {
+    public static void record(Player player, Identifier species, int weightG) {
         CompoundTag root = get(player);
         CompoundTag fish = root.getCompound(species.toString());
         fish.putInt("count", fish.getInt("count") + 1);
@@ -50,12 +50,12 @@ public final class JournalData {
     }
 
     /** True if the player has never landed this species before (call BEFORE {@link #record}). */
-    public static boolean isNewSpecies(Player player, ResourceLocation species) {
+    public static boolean isNewSpecies(Player player, Identifier species) {
         return get(player).getCompound(species.toString()).getInt("count") == 0;
     }
 
     /** True if {@code weightG} beats the player's stored best (call BEFORE {@link #record}). */
-    public static boolean isPersonalBest(Player player, ResourceLocation species, int weightG) {
+    public static boolean isPersonalBest(Player player, Identifier species, int weightG) {
         return weightG > get(player).getCompound(species.toString()).getInt("best");
     }
 

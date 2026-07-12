@@ -21,7 +21,7 @@ import com.riverfishing.item.WhetstoneItem;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 
@@ -57,7 +57,7 @@ public final class ModItems {
             "carp_koi_kohaku", "carp_koi_tancho_sanke", "carp_koi_showa_sanke",
             "carp_koi_asagi", "carp_koi_bekko"
     };
-    public static final Map<ResourceLocation, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
+    public static final Map<Identifier, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
     // ---- Baits referenced by event drops ----
     public static final RegistrySupplier<Item> WORM;
     public static final RegistrySupplier<Item> CHICKEN_LIVER;
@@ -206,13 +206,13 @@ public final class ModItems {
 
         // ----- Caught fish: a distinct item + texture per species (Module 8) -----
         for (String sp : FISH_SPECIES) {
-            ResourceLocation id = RiverFishing.id(sp);
+            Identifier id = RiverFishing.id(sp);
             FISH_ITEMS.put(id, reg(sp, () -> new FishItem(id, props().stacksTo(1))));
         }
     }
 
     /** The item representing a given fish species (Module 8). */
-    public static Item fishItem(ResourceLocation species) {
+    public static Item fishItem(Identifier species) {
         RegistrySupplier<Item> obj = FISH_ITEMS.get(species);
         return (obj != null ? obj : FISH_ITEMS.values().iterator().next()).get();
     }

@@ -3,7 +3,7 @@ package com.riverfishing.item;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -29,9 +29,9 @@ public class FishItem extends Item {
     public static final String GRADE_PRIME = "prime";
     public static final String TAG_MIN_WEIGHT = "MinW";
 
-    private final ResourceLocation species;
+    private final Identifier species;
 
-    public FishItem(ResourceLocation species, Properties properties) {
+    public FishItem(Identifier species, Properties properties) {
         super(properties);
         this.species = species;
     }
@@ -41,7 +41,7 @@ public class FishItem extends Item {
     public static final String TAG_RELEASE_AT = "ReleaseAt";
     public static final int RELEASE_TICKS = 40;
 
-    public ResourceLocation species() {
+    public Identifier species() {
         return species;
     }
 
@@ -80,7 +80,7 @@ public class FishItem extends Item {
 
     /** A koi carp — a collectible ornamental fish, not really food (§koi). */
     public static boolean isKoi(ItemStack stack) {
-        ResourceLocation sp = getSpecies(stack);
+        Identifier sp = getSpecies(stack);
         return sp != null && sp.getPath().startsWith("carp_koi_");
     }
 
@@ -88,11 +88,11 @@ public class FishItem extends Item {
     // platform in the client bootstrap (Forge IClientItemExtensions / Fabric BuiltinItemRendererRegistry),
     // no longer via Forge's Item#initializeClient.
 
-    public static ItemStack create(Item fishItem, ResourceLocation species, int weightG, int lengthCm, boolean legal) {
+    public static ItemStack create(Item fishItem, Identifier species, int weightG, int lengthCm, boolean legal) {
         return create(fishItem, species, weightG, lengthCm, legal, false);
     }
 
-    public static ItemStack create(Item fishItem, ResourceLocation species, int weightG, int lengthCm,
+    public static ItemStack create(Item fishItem, Identifier species, int weightG, int lengthCm,
                                    boolean legal, boolean trophy) {
         ItemStack stack = new ItemStack(fishItem);
         StackNbt.mutate(stack, tag -> {
@@ -144,10 +144,10 @@ public class FishItem extends Item {
 
     /** Species of this catch: NBT first (authoritative for the individual), else the item's species. */
     @Nullable
-    public static ResourceLocation getSpecies(ItemStack stack) {
+    public static Identifier getSpecies(ItemStack stack) {
         CompoundTag tag = StackNbt.get(stack);
         if (tag.contains(TAG_SPECIES)) {
-            return ResourceLocation.tryParse(tag.getString(TAG_SPECIES));
+            return Identifier.tryParse(tag.getString(TAG_SPECIES));
         }
         return stack.getItem() instanceof FishItem fish ? fish.species : null;
     }
@@ -174,7 +174,7 @@ public class FishItem extends Item {
     public static float getIconScale(ItemStack stack) {
         int len = getLengthCm(stack);
         if (len <= 0) return 1.0f; // creative-tab / JEI entry with no individual data
-        ResourceLocation sp = getSpecies(stack);
+        Identifier sp = getSpecies(stack);
         boolean folded = sp != null && FOLDED_ICON.contains(sp.getPath());
         float scale = len / (folded ? 100.0f : 50.0f);
         return Math.max(0.45f, Math.min(2.0f, scale));
@@ -185,7 +185,7 @@ public class FishItem extends Item {
         return !tag.contains(TAG_LEGAL) || tag.getBoolean(TAG_LEGAL);
     }
 
-    private static String displayKey(ResourceLocation species) {
+    private static String displayKey(Identifier species) {
         return "fish." + species.getNamespace() + "." + species.getPath();
     }
 
@@ -197,7 +197,7 @@ public class FishItem extends Item {
 
     @Override
     public Component getName(ItemStack stack) {
-        ResourceLocation sp = getSpecies(stack);
+        Identifier sp = getSpecies(stack);
         if (sp == null) return super.getName(stack);
         Component name = Component.translatable(displayKey(sp));
         int w = getWeightG(stack);
