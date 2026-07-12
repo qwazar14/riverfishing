@@ -1,9 +1,8 @@
-plugins {
-    id "dev.architectury.loom"
-    id "architectury-plugin"
-}
-
 def mcVersion = stonecutter.current.version
+// §26.x-unobf: 26.1+ ships REAL names (no mappings, no remapping) — apply the no-remap loom variant.
+def unobf = stonecutter.eval(mcVersion, ">=26.1")
+apply plugin: (unobf ? "dev.architectury.loom-no-remap" : "dev.architectury.loom")
+apply plugin: "architectury-plugin"
 
 base { archivesName = "${rootProject.archives_base_name}-common" }
 version = "${rootProject.mod_version}+${mcVersion}"
@@ -22,12 +21,13 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:${mcVersion}"
-    if (!stonecutter.eval(mcVersion, ">=26.1")) {
-        mappings loom.officialMojangMappings()   // §unobf: 26.1+ ships real names, no mappings
+    if (!unobf) {
+        mappings loom.officialMojangMappings()
     }
     // Fabric Loader for @Environment + mixin deps (do NOT use other Fabric APIs from common).
-    modImplementation "net.fabricmc:fabric-loader:${project.property('fabric_loader_version')}"
-    modApi "dev.architectury:architectury:${project.property('architectury_api_version')}"
+    // §26.x-unobf: no remapping → mod deps are plain deps (modImplementation/modApi don't apply).
+    add(unobf ? "implementation" : "modImplementation", "net.fabricmc:fabric-loader:${project.property('fabric_loader_version')}")
+    add(unobf ? "api" : "modApi", "dev.architectury:architectury:${project.property('architectury_api_version')}")
     // §multiloader: JSR-305 @Nullable (no longer transitive without Forge on the common classpath).
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 }

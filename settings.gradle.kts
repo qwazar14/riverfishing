@@ -8,10 +8,6 @@ pluginManagement {
         maven("https://maven.kikugie.dev/releases")
         maven("https://maven.kikugie.dev/snapshots")
     }
-    plugins {
-        id("dev.architectury.loom") version "1.17.491"
-        id("architectury-plugin") version "3.5.169"
-    }
 }
 
 plugins {

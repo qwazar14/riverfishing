@@ -1,10 +1,12 @@
 plugins {
-    id "dev.architectury.loom"
-    id "architectury-plugin"
     id "com.github.johnrengelman.shadow" version "8.1.1"
 }
 
 def mcVersion = stonecutter.current.version
+// §26.x-unobf: 26.1+ ships REAL names (no mappings, no remapping) — apply the no-remap loom variant.
+def unobf = stonecutter.eval(mcVersion, ">=26.1")
+apply plugin: (unobf ? "dev.architectury.loom-no-remap" : "dev.architectury.loom")
+apply plugin: "architectury-plugin"
 
 base { archivesName = "${rootProject.archives_base_name}-fabric" }
 version = "${rootProject.mod_version}+${mcVersion}"
@@ -28,22 +30,25 @@ configurations {
     }
     compileClasspath.extendsFrom common
     runtimeClasspath.extendsFrom common
-    developmentFabric.extendsFrom common
 
     shadowBundle {
         canBeResolved = true
         canBeConsumed = false
     }
 }
+// The dev-launch configuration only exists on the remapping (obfuscated) toolchain.
+def devFabric = configurations.findByName("developmentFabric")
+if (devFabric != null) devFabric.extendsFrom(configurations.common)
 
 dependencies {
     minecraft "com.mojang:minecraft:${mcVersion}"
-    if (!stonecutter.eval(mcVersion, ">=26.1")) {
-        mappings loom.officialMojangMappings()   // §unobf: 26.1+ ships real names, no mappings
+    if (!unobf) {
+        mappings loom.officialMojangMappings()
     }
-    modImplementation "net.fabricmc:fabric-loader:${project.property('fabric_loader_version')}"
-    modApi "net.fabricmc.fabric-api:fabric-api:${project.property('fabric_api_version')}"
-    modApi "dev.architectury:architectury-fabric:${project.property('architectury_api_version')}"
+    // §26.x-unobf: no remapping → mod deps are plain deps (modImplementation/modApi don't apply).
+    add(unobf ? "implementation" : "modImplementation", "net.fabricmc:fabric-loader:${project.property('fabric_loader_version')}")
+    add(unobf ? "api" : "modApi", "net.fabricmc.fabric-api:fabric-api:${project.property('fabric_api_version')}")
+    add(unobf ? "api" : "modApi", "dev.architectury:architectury-fabric:${project.property('architectury_api_version')}")
 
     common(project(path: ":common:${mcVersion}", configuration: "namedElements")) { transitive false }
     shadowBundle project(path: ":common:${mcVersion}", configuration: "transformProductionFabric")
@@ -61,10 +66,17 @@ shadowJar {
     archiveClassifier = "dev-shadow"
 }
 
-remapJar {
-    inputFile.set shadowJar.archiveFile
-    dependsOn shadowJar
-    archiveClassifier = null
+if (!unobf) {
+    remapJar {
+        inputFile.set shadowJar.archiveFile
+        dependsOn shadowJar
+        archiveClassifier = null
+    }
+} else {
+    // §26.x-unobf: no remap step — the shadow jar (common bundled in) IS the production jar.
+    jar { archiveClassifier = "slim" }
+    shadowJar { archiveClassifier = null }
+    build.dependsOn shadowJar
 }
 
 java {
