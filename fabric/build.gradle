@@ -1,10 +1,24 @@
 plugins {
+    id "dev.architectury.loom"
+    id "architectury-plugin"
     id "com.github.johnrengelman.shadow" version "8.1.1"
 }
+
+def mcVersion = stonecutter.current.version
+
+base { archivesName = "${rootProject.archives_base_name}-fabric" }
+version = "${rootProject.mod_version}+${mcVersion}"
+group = rootProject.maven_group
 
 architectury {
     platformSetupLoomIde()
     fabric()
+}
+
+repositories {
+    maven { url "https://maven.architectury.dev/" }
+    maven { url "https://maven.fabricmc.net/" }
+    maven { url "https://maven.terraformersmc.com/releases/" }
 }
 
 configurations {
@@ -23,12 +37,16 @@ configurations {
 }
 
 dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
-    modApi "dev.architectury:architectury-fabric:${rootProject.architectury_api_version}"
+    minecraft "com.mojang:minecraft:${mcVersion}"
+    if (!stonecutter.eval(mcVersion, ">=26.1")) {
+        mappings loom.officialMojangMappings()   // §unobf: 26.1+ ships real names, no mappings
+    }
+    modImplementation "net.fabricmc:fabric-loader:${project.property('fabric_loader_version')}"
+    modApi "net.fabricmc.fabric-api:fabric-api:${project.property('fabric_api_version')}"
+    modApi "dev.architectury:architectury-fabric:${project.property('architectury_api_version')}"
 
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowBundle project(path: ":common", configuration: "transformProductionFabric")
+    common(project(path: ":common:${mcVersion}", configuration: "namedElements")) { transitive false }
+    shadowBundle project(path: ":common:${mcVersion}", configuration: "transformProductionFabric")
 }
 
 processResources {
@@ -47,4 +65,16 @@ remapJar {
     inputFile.set shadowJar.archiveFile
     dependsOn shadowJar
     archiveClassifier = null
+}
+
+java {
+    withSourcesJar()
+    def jv = JavaVersion.toVersion(project.property("java_version") as int)
+    sourceCompatibility = jv
+    targetCompatibility = jv
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = project.property("java_version") as int
 }

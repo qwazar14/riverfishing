@@ -1,14 +1,45 @@
+plugins {
+    id "dev.architectury.loom"
+    id "architectury-plugin"
+}
+
+def mcVersion = stonecutter.current.version
+
+base { archivesName = "${rootProject.archives_base_name}-common" }
+version = "${rootProject.mod_version}+${mcVersion}"
+group = rootProject.maven_group
+
 architectury {
     common rootProject.enabled_platforms.split(",")
+    minecraft = mcVersion
+}
+
+repositories {
+    maven { url "https://maven.architectury.dev/" }
+    maven { url "https://maven.fabricmc.net/" }
+    maven { url "https://maven.neoforged.net/releases/" }
 }
 
 dependencies {
-    // We depend on Fabric Loader here to use the Fabric @Environment annotations and get the mixin
-    // dependencies. Do NOT use other Fabric APIs directly from common — go through the platform layer.
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modApi "dev.architectury:architectury:${rootProject.architectury_api_version}"
-
-    // §multiloader: javax.annotation.Nullable came transitively from Forge in the single-project build;
-    // the multiloader common classpath has no JSR-305, so pull it in (compile-time annotations only).
+    minecraft "com.mojang:minecraft:${mcVersion}"
+    if (!stonecutter.eval(mcVersion, ">=26.1")) {
+        mappings loom.officialMojangMappings()   // §unobf: 26.1+ ships real names, no mappings
+    }
+    // Fabric Loader for @Environment + mixin deps (do NOT use other Fabric APIs from common).
+    modImplementation "net.fabricmc:fabric-loader:${project.property('fabric_loader_version')}"
+    modApi "dev.architectury:architectury:${project.property('architectury_api_version')}"
+    // §multiloader: JSR-305 @Nullable (no longer transitive without Forge on the common classpath).
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+}
+
+java {
+    withSourcesJar()
+    def jv = JavaVersion.toVersion(project.property("java_version") as int)
+    sourceCompatibility = jv
+    targetCompatibility = jv
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = project.property("java_version") as int
 }
