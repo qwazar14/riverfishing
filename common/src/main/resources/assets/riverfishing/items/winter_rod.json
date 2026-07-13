@@ -4,7 +4,7 @@
     "models": [
       {
         "type": "minecraft:model",
-        "model": "riverfishing:item/winter_rod"
+        "model": "riverfishing:item/rod_layer/blank_winter"
       },
       {
         "type": "minecraft:select",

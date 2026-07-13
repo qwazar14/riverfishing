@@ -4,7 +4,7 @@
     "models": [
       {
         "type": "minecraft:model",
-        "model": "riverfishing:item/spinning_rod"
+        "model": "riverfishing:item/rod_layer/blank_spinning"
       },
       {
         "type": "minecraft:select",

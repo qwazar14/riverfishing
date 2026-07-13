@@ -4,7 +4,7 @@
     "models": [
       {
         "type": "minecraft:model",
-        "model": "riverfishing:item/bamboo_rod"
+        "model": "riverfishing:item/rod_layer/blank_bamboo"
       },
       {
         "type": "minecraft:select",

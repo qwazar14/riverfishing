@@ -27,7 +27,7 @@ RIGS = {"primitive": "rig_primitive", "float_light": "rig_float", "float": "rig_
         "flat_feeder": "rig_flat_feeder", "ground": "rig_ground", "predator": "rig_predator",
         "carp": "rig_carp", "catfish": "rig_catfish"}
 # tiny z-lift per overlay category so coplanar composite layers don't z-fight in hand/gui
-Z_OFF = {"reel": 0.02, "line": 0.04, "rig": 0.06}
+Z_OFF = {"blank": 0.0, "reel": 0.02, "line": 0.04, "rig": 0.06}
 
 FISH = ["asp", "bleak", "bream", "burbot", "carp", "carp_koi_asagi", "carp_koi_bekko",
         "carp_koi_kohaku", "carp_koi_showa_sanke", "carp_koi_tancho_sanke", "catfish", "chub",
@@ -90,7 +90,10 @@ def main():
 
     # ---- rods ----
     rod_display = read(os.path.join(MODELS, "bamboo_rod.json")).get("display", {})
-    layers = [("reel_%d" % r, "reel") for r in REELS] \
+    # the BASE of every composite is the DRAWN blank sprite from textures/item/rod/blank_<key>.png —
+    # NOT the old standalone <rod>.png (that's the pre-compositor icon, §rod-layers)
+    layers = [("blank_%s" % rod, "blank") for rod in RODS] \
+        + [("reel_%d" % r, "reel") for r in REELS] \
         + [("line_%s" % t, "line") for t in LINES] \
         + sorted({(s, "rig") for s in RIGS.values()})
     for sprite, cat in layers:
@@ -104,7 +107,7 @@ def main():
     line_select = select(1, [(t, "line_%s" % t) for t in LINES])
     rig_select = select(2, sorted({(s, s) for s in RIGS.values()}))
     for rod in RODS:
-        models = [{"type": "minecraft:model", "model": "riverfishing:item/%s_rod" % rod},
+        models = [{"type": "minecraft:model", "model": "riverfishing:item/rod_layer/blank_%s" % rod},
                   reel_select, line_select, rig_select]
         write(os.path.join(ITEMS, "%s_rod.json" % rod), {"model": {"type": "minecraft:composite", "models": models}})
 

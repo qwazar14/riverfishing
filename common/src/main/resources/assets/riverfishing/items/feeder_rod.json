@@ -4,7 +4,7 @@
     "models": [
       {
         "type": "minecraft:model",
-        "model": "riverfishing:item/feeder_rod"
+        "model": "riverfishing:item/rod_layer/blank_feeder"
       },
       {
         "type": "minecraft:select",

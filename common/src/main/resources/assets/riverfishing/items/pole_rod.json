@@ -4,7 +4,7 @@
     "models": [
       {
         "type": "minecraft:model",
-        "model": "riverfishing:item/pole_rod"
+        "model": "riverfishing:item/rod_layer/blank_pole"
       },
       {
         "type": "minecraft:select",
