@@ -24,8 +24,8 @@ public final class RodHandTransform {
     // ===== TUNED HAND TRANSFORM — paste /rfrod show values here, then rebuild =====
     public static final float[] TP  = {0f, 3f,   3.5f, 0f,  -90f, -48f, 0.85f}; // third person, right
     public static final float[] TPL = {0f, 3f,   3.5f, 90f, -90f,  40f, 0.85f}; // third person, left
-    public static final float[] FP  = {0f, 3.1f, 0.8f, 0f,  -90f,  10f, 0.68f}; // first person, right
-    public static final float[] FPL = {0f, 2.3f, 0.8f, 0f,  -90f,   0f, 0.68f}; // first person, left
+    public static final float[] FP  = {2.7f, 3.2f, 0.8f, 0f, -90f, 10f, 0.68f}; // first person, right
+    public static final float[] FPL = {-2.7f, 3.2f, 0.8f, 0f, -90f, 10f, 0.68f}; // first person, left
     // ==============================================================================
 
     private static final float[] TP_DEFAULT = TP.clone();

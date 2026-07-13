@@ -103,7 +103,9 @@ public final class ModBlocks {
     }
 
     private static Item.Properties itemProps(String name) {
-        return new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(
+        // §26.1: BlockItems no longer inherit the block translation key — request the block.<ns>.<path>
+        // description prefix explicitly (otherwise the item shows a raw item.riverfishing.* key).
+        return new Item.Properties().useBlockDescriptionPrefix().setId(net.minecraft.resources.ResourceKey.create(
                 Registries.ITEM, RiverFishing.id(name)));
     }
 
