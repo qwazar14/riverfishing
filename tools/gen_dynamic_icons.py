@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """§26.1 dynamic icons, fully data-driven (the BEWLR compositor replacement):
 
-RODS (§rod-layers): items/<rod>.json becomes a minecraft:composite — the blank base model plus
-conditional overlay layers (per-size reel, per-type line, per-type rig), each gated by a
-minecraft:component_matches condition on the rod's custom_data (RodComponents sub-NBT subset match).
+RODS (§rod-layers): items/<rod>.json becomes a minecraft:composite — the blank base model plus three
+minecraft:select overlays keyed on custom_model_data STRINGS (0=reel sprite, 1=line type, 2=rig
+sprite), which RodData.refreshIconLayers keeps in sync with the installed components.
+(26.1 does NOT register the component_matches condition, so custom_data can't be matched directly.)
 
 FISH (§fish-scale): items/<fish>.json becomes a minecraft:range_dispatch on custom_model_data
 float[0] — FishItem.create() writes the icon scale there at the catch — dispatching to scale-bucket
@@ -70,14 +71,16 @@ def scaled_display(display, s):
     return out
 
 
-def cond(nbt_subset, layer_model):
+def select(index, cases):
+    """A custom_model_data STRING select: strings[index] -> overlay layer model, absent -> empty."""
     return {
-        "type": "minecraft:condition",
-        "property": "minecraft:component_matches",
-        "predicate": "minecraft:custom_data",
-        "value": {"RodComponents": nbt_subset},
-        "on_true": {"type": "minecraft:model", "model": "riverfishing:item/rod_layer/" + layer_model},
-        "on_false": {"type": "minecraft:empty"},
+        "type": "minecraft:select",
+        "property": "minecraft:custom_model_data",
+        "index": index,
+        "cases": [{"when": when, "model": {"type": "minecraft:model",
+                                           "model": "riverfishing:item/rod_layer/" + layer}}
+                  for when, layer in cases],
+        "fallback": {"type": "minecraft:empty"},
     }
 
 
@@ -97,15 +100,12 @@ def main():
             "display": shifted_display(rod_display, Z_OFF[cat]),
         })
 
+    reel_select = select(0, [("reel_%d" % r, "reel_%d" % r) for r in REELS])
+    line_select = select(1, [(t, "line_%s" % t) for t in LINES])
+    rig_select = select(2, sorted({(s, s) for s in RIGS.values()}))
     for rod in RODS:
-        models = [{"type": "minecraft:model", "model": "riverfishing:item/%s_rod" % rod}]
-        for r in REELS:
-            models.append(cond({"Reel": {"id": "riverfishing:reel_%d" % r}}, "reel_%d" % r))
-        for t, dias in LINES.items():
-            for d in dias:
-                models.append(cond({"Line": {"id": "riverfishing:line_%s_%s" % (t, d)}}, "line_%s" % t))
-        for rig, sprite in RIGS.items():
-            models.append(cond({"Rig": {"id": "riverfishing:rig_%s" % rig}}, sprite))
+        models = [{"type": "minecraft:model", "model": "riverfishing:item/%s_rod" % rod},
+                  reel_select, line_select, rig_select]
         write(os.path.join(ITEMS, "%s_rod.json" % rod), {"model": {"type": "minecraft:composite", "models": models}})
 
     # ---- fish ----

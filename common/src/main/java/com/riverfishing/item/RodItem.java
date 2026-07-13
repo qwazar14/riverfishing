@@ -119,6 +119,19 @@ public class RodItem extends Item {
         }
     }
 
+    /**
+     * §26.1 §rod-layers: rods from trades or pre-icon worlds carry components in custom_data but no
+     * custom_model_data layer strings yet — heal them once so the composited icon shows immediately.
+     */
+    @Override
+    public void inventoryTick(ItemStack stack, net.minecraft.server.level.ServerLevel level,
+                              net.minecraft.world.entity.Entity entity, net.minecraft.world.entity.EquipmentSlot slot) {
+        if (!stack.has(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA)
+                && StackNbt.get(stack).contains(RodData.ROOT)) {
+            RodData.refreshIconLayers(stack);
+        }
+    }
+
     @Override
     public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
         if (level.isClientSide() || !(entity instanceof ServerPlayer sp)) return false;

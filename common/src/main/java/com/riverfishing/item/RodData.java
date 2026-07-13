@@ -47,6 +47,39 @@ public final class RodData {
             }
             tag.put(ROOT, root);
         });
+        refreshIconLayers(rod);
+    }
+
+    /**
+     * §26.1 §rod-layers: the composited rod icon is data-driven now — the client item definition
+     * SELECTs overlay layers on custom_model_data STRINGS (0 = reel sprite, 1 = line type,
+     * 2 = rig sprite). Kept in sync here on every component change (26.1 has no item-model
+     * condition that can look inside custom_data).
+     */
+    public static void refreshIconLayers(ItemStack rod) {
+        String reel = "", line = "", rig = "";
+        if (get(rod, ComponentSlot.REEL).getItem() instanceof ReelItem ri) {
+            reel = "reel_" + ri.size();
+        }
+        if (get(rod, ComponentSlot.LINE).getItem() instanceof LineItem li) {
+            line = li.lineType().jsonKey();
+        }
+        if (get(rod, ComponentSlot.RIG).getItem() instanceof RigItem gi) {
+            rig = rigSprite(gi.rigType());
+        }
+        rod.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
+                new net.minecraft.world.item.component.CustomModelData(
+                        java.util.List.of(), java.util.List.of(),
+                        java.util.List.of(reel, line, rig), java.util.List.of()));
+    }
+
+    /** Overlay sprite for a rig type — float_light/winter have no own glyph, nearest look-alike. */
+    private static String rigSprite(RigType type) {
+        return switch (type.jsonKey()) {
+            case "float_light" -> "rig_float";
+            case "winter" -> "rig_primitive";
+            default -> "rig_" + type.jsonKey();
+        };
     }
 
     /**

@@ -5,8 +5,10 @@
     "S "
   ],
   "key": {
-    "I": { "item": "minecraft:iron_ingot" },
-    "S": { "item": "minecraft:stick" }
+    "I": "minecraft:iron_ingot",
+    "S": "minecraft:stick"
   },
-  "result": { "id": "riverfishing:fillet_knife" }
+  "result": {
+    "id": "riverfishing:fillet_knife"
+  }
 }

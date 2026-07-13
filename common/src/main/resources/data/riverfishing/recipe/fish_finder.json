@@ -1,10 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [ "iri", "iqi", "iii" ],
+  "pattern": [
+    "iri",
+    "iqi",
+    "iii"
+  ],
   "key": {
-    "i": { "item": "minecraft:iron_ingot" },
-    "r": { "item": "minecraft:redstone" },
-    "q": { "item": "minecraft:quartz" }
+    "i": "minecraft:iron_ingot",
+    "r": "minecraft:redstone",
+    "q": "minecraft:quartz"
   },
-  "result": { "id": "riverfishing:fish_finder" }
+  "result": {
+    "id": "riverfishing:fish_finder"
+  }
 }

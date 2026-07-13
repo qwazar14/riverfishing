@@ -1,8 +1,11 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:wheat" },
-    { "item": "minecraft:wheat_seeds" }
+    "minecraft:wheat",
+    "minecraft:wheat_seeds"
   ],
-  "result": { "id": "riverfishing:groundbait_grain", "count": 2 }
+  "result": {
+    "id": "riverfishing:groundbait_grain",
+    "count": 2
+  }
 }

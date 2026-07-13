@@ -1,8 +1,11 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:string" },
-    { "item": "minecraft:iron_nugget" }
+    "minecraft:string",
+    "minecraft:iron_nugget"
   ],
-  "result": { "id": "riverfishing:leader", "count": 1 }
+  "result": {
+    "id": "riverfishing:leader",
+    "count": 1
+  }
 }

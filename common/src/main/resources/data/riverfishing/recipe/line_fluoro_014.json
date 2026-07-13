@@ -1,6 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [ "SSS", "SCS", "SSS" ],
-  "key": { "S": { "item": "minecraft:string" }, "C": { "item": "minecraft:amethyst_shard" } },
-  "result": { "id": "riverfishing:line_fluoro_014", "count": 2 }
+  "pattern": [
+    "SSS",
+    "SCS",
+    "SSS"
+  ],
+  "key": {
+    "S": "minecraft:string",
+    "C": "minecraft:amethyst_shard"
+  },
+  "result": {
+    "id": "riverfishing:line_fluoro_014",
+    "count": 2
+  }
 }

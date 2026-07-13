@@ -1,10 +1,13 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:barrel" },
-    { "item": "minecraft:string" },
-    { "item": "minecraft:string" },
-    { "item": "minecraft:iron_ingot" }
+    "minecraft:barrel",
+    "minecraft:string",
+    "minecraft:string",
+    "minecraft:iron_ingot"
   ],
-  "result": { "id": "riverfishing:fishing_stall", "count": 1 }
+  "result": {
+    "id": "riverfishing:fishing_stall",
+    "count": 1
+  }
 }
