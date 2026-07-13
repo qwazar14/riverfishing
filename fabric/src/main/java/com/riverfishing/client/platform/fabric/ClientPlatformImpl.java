@@ -23,11 +23,7 @@ public final class ClientPlatformImpl {
                 com.riverfishing.registry.ModMenus.RIG.get(), com.riverfishing.client.RigScreen::new);
     }
 
-    /**
-     * §26.1 TODO(line-render): Fabric removed WorldRenderEvents with the frame-graph renderer and offers
-     * no replacement hook yet — the in-world cast-line (§line-multiplayer) is temporarily not drawn on
-     * Fabric (rod-pod lines still render through their BER). Follow-up: a small LevelRenderer mixin.
-     */
+    /** §26.1: handled by FeatureRenderDispatcherMixin (WorldRenderEvents is gone) — nothing to register. */
     public static void registerLevelRenderer() {
     }
 

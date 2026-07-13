@@ -151,11 +151,13 @@ public class JournalScreen extends Screen {
     private double toJournalX(double sx) { return (sx - this.width / 2.0) / uiScale + this.width / 2.0; }
     private double toJournalY(double sy) { return (sy - this.height / 2.0) / uiScale + this.height / 2.0; }
 
-    /** Scissor rect given in journal space, pushed in the scaled screen space the content actually draws to. */
+    /**
+     * Scissor rect in journal space. §26.1: enableScissor now transforms the rect by the CURRENT pose
+     * itself — the uiScale matrix is already on the stack, so passing journal coords directly is correct
+     * (the old manual re-scale would double-apply and clip a stripe of the page).
+     */
     private void scissorJournal(GuiGraphicsExtractor g, int x1, int y1, int x2, int y2) {
-        float cx = this.width / 2f, cy = this.height / 2f;
-        g.enableScissor(Math.round(cx + (x1 - cx) * uiScale), Math.round(cy + (y1 - cy) * uiScale),
-                Math.round(cx + (x2 - cx) * uiScale), Math.round(cy + (y2 - cy) * uiScale));
+        g.enableScissor(x1, y1, x2, y2);
     }
 
     @Override
