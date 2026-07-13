@@ -25,7 +25,7 @@ public final class GuiStyle {
     public static final int SLOT_BG = 0xFF5C4A34;
     public static final int SLOT_DARK = 0xFF2B2016;
     public static final int SLOT_HI = 0xFF7A6446;
-    public static final int TEXT = 0x3A2A18;
+    public static final int TEXT = 0xFF3A2A18; // §26.1: text() respects alpha — 0x00-alpha renders invisible
     public static final int TEXT_HINT = 0xFF6E5A3C;
     public static final int GHOST = 0xFF9C8968;
 

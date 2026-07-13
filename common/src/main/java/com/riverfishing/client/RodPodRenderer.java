@@ -168,7 +168,7 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity, Ro
         float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (len <= 0) return;
         dx /= len; dy /= len; dz /= len;
-        vc.addVertex(pose, s.x1(), s.y1(), s.z1()).setColor(25, 25, 25, 255).setNormal(dx, dy, dz);
-        vc.addVertex(pose, s.x2(), s.y2(), s.z2()).setColor(25, 25, 25, 255).setNormal(dx, dy, dz);
+        vc.addVertex(pose, s.x1(), s.y1(), s.z1()).setColor(25, 25, 25, 255).setNormal(dx, dy, dz).setLineWidth(2.0f);
+        vc.addVertex(pose, s.x2(), s.y2(), s.z2()).setColor(25, 25, 25, 255).setNormal(dx, dy, dz).setLineWidth(2.0f);
     }
 }
