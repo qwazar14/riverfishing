@@ -77,12 +77,17 @@ def normal_display(base_display, dz):
 
 
 def hand_display(dz):
-    """The tuned hand poses; ry=-90 turns the sprite normal onto ±X, so the depth lift rides tx."""
+    """The tuned hand poses; ry=-90 turns the sprite normal onto ±X, so the depth lift rides tx.
+    Vanilla applies LEFT-hand display entries with all three rotation angles NEGATED (translation
+    untouched) — pre-negate the tuned values so the in-game pose comes out exactly as tuned."""
     out = {}
     for ctx, p in HAND_DISPLAY.items():
         tx, ty, tz = p["translation"]
+        rot = p["rotation"]
+        if ctx.endswith("_lefthand"):
+            rot = [-r for r in rot]
         out[ctx] = {
-            "rotation": p["rotation"],
+            "rotation": rot,
             "translation": [round(tx - dz, 4), ty, tz],
             "scale": [p["scale"]] * 3,
         }
