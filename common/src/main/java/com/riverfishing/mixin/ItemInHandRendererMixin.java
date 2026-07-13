@@ -48,5 +48,8 @@ public class ItemInHandRendererMixin {
         if (pitch != 0f) {
             pose.mulPose(Axis.XP.rotationDegrees(pitch));
         }
+        // §rod-debug: the whole first-person hand pose lives in code so /rfrod tunes it LIVE —
+        // the model's hand display only carries the per-layer depth lift.
+        RodHandTransform.apply(pose, ctx);
     }
 }
