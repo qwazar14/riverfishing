@@ -57,7 +57,7 @@ public final class FloatTimingClient {
         int barW = 160;
         int barH = 12;
         int x = (screenW - barW) / 2;
-        int y = screenH - 72;
+        int y = screenH - 88; // §qte-bar: lifted above the actionbar text (was overlapping it)
 
         g.fill(x - 2, y - 2, x + barW + 2, y + barH + 2, 0xD0202020);
         g.fill(x, y, x + barW, y + barH, 0xFF3A3A3A);

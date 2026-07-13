@@ -389,6 +389,7 @@ public final class FishingManager {
             default -> 0xFFE8E4D0;      // warm mono white
         };
         session.rodStackRef = rod;
+        com.riverfishing.item.RodData.setLineOut(rod, true); // §rod-layers: hide in-hand tackle overlays
         SESSIONS.put(sp.getUUID(), session);
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, waterPos, 0f, session.lineColor,
                 rodClass == RodClass.FLOAT));
@@ -492,6 +493,7 @@ public final class FishingManager {
             default -> 0xFFE8E4D0;
         };
         session.rodStackRef = rod;
+        com.riverfishing.item.RodData.setLineOut(rod, true); // §rod-layers: hide in-hand tackle overlays
         SESSIONS.put(sp.getUUID(), session);
         pressure.addCast(chunkKey, now);
         // §ice-fishing: no float on the line under the ice — the line just drops into the hole (bobber=false).
@@ -1488,6 +1490,10 @@ public final class FishingManager {
             clearFloatTiming(sp); // hide the strike-timing HUD (float or lure §strike-qte)
         }
         SESSIONS.remove(sp.getUUID());
+        // §rod-layers: the line is back in — show the in-hand tackle overlays again.
+        if (!session.rodStackRef.isEmpty()) {
+            com.riverfishing.item.RodData.setLineOut(session.rodStackRef, false);
+        }
         // Clear the line for everyone who can see this angler (§line-multiplayer).
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), false, null, 0f, 0, false));
     }

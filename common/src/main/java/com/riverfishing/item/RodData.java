@@ -69,8 +69,27 @@ public final class RodData {
         }
         rod.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
                 new net.minecraft.world.item.component.CustomModelData(
-                        java.util.List.of(), java.util.List.of(),
+                        java.util.List.of(), java.util.List.of(lineOut(rod)),
                         java.util.List.of(reel, line, rig), java.util.List.of()));
+    }
+
+    /**
+     * §rod-layers: FLAG 0 = the line is cast/out — the in-hand icon hides the line+rig overlays then
+     * (the 3D line + bobber represents them, exactly like the old BEWLR did). Set by FishingManager
+     * on cast, cleared when the session ends.
+     */
+    public static void setLineOut(ItemStack rod, boolean out) {
+        var cmd = rod.get(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA);
+        java.util.List<String> strings = cmd != null && cmd.strings().size() >= 3
+                ? cmd.strings() : java.util.List.of("", "", "");
+        rod.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
+                new net.minecraft.world.item.component.CustomModelData(
+                        java.util.List.of(), java.util.List.of(out), strings, java.util.List.of()));
+    }
+
+    private static boolean lineOut(ItemStack rod) {
+        var cmd = rod.get(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA);
+        return cmd != null && !cmd.flags().isEmpty() && Boolean.TRUE.equals(cmd.flags().get(0));
     }
 
     /** Overlay sprite for a rig type — float_light/winter have no own glyph, nearest look-alike. */

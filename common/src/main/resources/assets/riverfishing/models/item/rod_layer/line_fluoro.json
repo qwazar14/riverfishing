@@ -13,7 +13,7 @@
       "translation": [
         0,
         0,
-        0.04
+        0.06
       ],
       "scale": [
         1,
@@ -30,7 +30,7 @@
       "translation": [
         0,
         2,
-        0.04
+        0.06
       ],
       "scale": [
         0.5,
@@ -47,7 +47,7 @@
       "translation": [
         0,
         0,
-        0.04
+        0.06
       ],
       "scale": [
         1,
@@ -64,75 +64,7 @@
       "translation": [
         0,
         13,
-        7.04
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    "thirdperson_righthand": {
-      "rotation": [
-        0,
-        0,
-        0
-      ],
-      "translation": [
-        0,
-        0,
-        0.04
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    "thirdperson_lefthand": {
-      "rotation": [
-        0,
-        0,
-        0
-      ],
-      "translation": [
-        0,
-        0,
-        0.04
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    "firstperson_righthand": {
-      "rotation": [
-        0,
-        0,
-        0
-      ],
-      "translation": [
-        0,
-        0,
-        0.04
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    "firstperson_lefthand": {
-      "rotation": [
-        0,
-        0,
-        0
-      ],
-      "translation": [
-        0,
-        0,
-        0.04
+        7.06
       ],
       "scale": [
         1,
