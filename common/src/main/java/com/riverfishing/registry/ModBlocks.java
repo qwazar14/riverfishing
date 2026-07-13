@@ -60,26 +60,39 @@ public final class ModBlocks {
                     blockProps("aquarium").strength(1.2f).sound(SoundType.GLASS).noOcclusion()));
 
     // Drilled ice hole (§ice-fishing) — the auger makes one; right-click it with a winter rod to fish.
-    // Copies vanilla ICE properties wholesale so the physics match exactly (slip, melt, break-to-water).
+    // §26.1: no ofFullCopy (copied Properties can carry the source block's state lambdas — see the crop
+    // note below) — vanilla ICE's physics rebuilt explicitly: slip, melt-by-light, break-to-water.
     public static final RegistrySupplier<Block> ICE_HOLE = registerSimple("ice_hole",
             () -> new com.riverfishing.block.IceHoleBlock(
-                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.ICE)
-                            .setId(net.minecraft.resources.ResourceKey.create(Registries.BLOCK, RiverFishing.id("ice_hole")))));
+                    blockProps("ice_hole")
+                            .mapColor(net.minecraft.world.level.material.MapColor.ICE)
+                            .friction(0.98f)
+                            .randomTicks()
+                            .strength(0.5f)
+                            .sound(SoundType.GLASS)
+                            .noOcclusion()));
 
     // §bait-crops: farmland crops for the plant baits (corn / pea / barley→pearl barley). No BlockItem —
-    // their ITEM is the seed (an ItemNameBlockItem in ModItems), exactly like vanilla wheat.
+    // their ITEM is the seed (a BlockItem in ModItems), exactly like vanilla wheat.
+    // §26.1: NO ofFullCopy(WHEAT)! Wheat's Properties now carry a state lambda that reads wheat's
+    // AGE_7 — eagerly evaluated on OUR states (AGE_3) it crashes at registration ("Cannot get property
+    // age..."). Build the standard crop property set from scratch instead.
+    private static BlockBehaviour.Properties cropProps(String name) {
+        return blockProps(name)
+                .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                .noCollision()
+                .randomTicks()
+                .instabreak()
+                .sound(SoundType.CROP)
+                .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY);
+    }
+
     public static final RegistrySupplier<Block> CORN_CROP = BLOCKS.register("corn_crop",
-            () -> new com.riverfishing.block.BaitCropBlock("corn_seeds",
-                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)
-                            .setId(net.minecraft.resources.ResourceKey.create(Registries.BLOCK, RiverFishing.id("corn_crop")))));
+            () -> new com.riverfishing.block.BaitCropBlock("corn_seeds", cropProps("corn_crop")));
     public static final RegistrySupplier<Block> PEA_CROP = BLOCKS.register("pea_crop",
-            () -> new com.riverfishing.block.BaitCropBlock("pea_seeds",
-                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)
-                            .setId(net.minecraft.resources.ResourceKey.create(Registries.BLOCK, RiverFishing.id("pea_crop")))));
+            () -> new com.riverfishing.block.BaitCropBlock("pea_seeds", cropProps("pea_crop")));
     public static final RegistrySupplier<Block> BARLEY_CROP = BLOCKS.register("barley_crop",
-            () -> new com.riverfishing.block.BaitCropBlock("barley_seeds",
-                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)
-                            .setId(net.minecraft.resources.ResourceKey.create(Registries.BLOCK, RiverFishing.id("barley_crop")))));
+            () -> new com.riverfishing.block.BaitCropBlock("barley_seeds", cropProps("barley_crop")));
 
     private ModBlocks() {}
 
