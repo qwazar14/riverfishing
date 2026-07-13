@@ -1,18 +1,21 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:gold_nugget" },
+    "minecraft:gold_nugget",
     [
-      { "item": "riverfishing:hook_16" },
-      { "item": "riverfishing:hook_14" },
-      { "item": "riverfishing:hook_12" },
-      { "item": "riverfishing:hook_10" },
-      { "item": "riverfishing:hook_8" },
-      { "item": "riverfishing:hook_6" },
-      { "item": "riverfishing:hook_4" }
+      "riverfishing:hook_16",
+      "riverfishing:hook_14",
+      "riverfishing:hook_12",
+      "riverfishing:hook_10",
+      "riverfishing:hook_8",
+      "riverfishing:hook_6",
+      "riverfishing:hook_4"
     ],
-    { "item": "minecraft:string" },
-    { "item": "minecraft:string" }
+    "minecraft:string",
+    "minecraft:string"
   ],
-  "result": { "id": "riverfishing:mormyshka", "count": 1 }
+  "result": {
+    "id": "riverfishing:mormyshka",
+    "count": 1
+  }
 }

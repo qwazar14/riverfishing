@@ -14,7 +14,7 @@ public final class WearData {
     private WearData() {}
 
     public static int get(ItemStack stack) {
-        return Mth.clamp(StackNbt.get(stack).getInt(TAG), 0, 100);
+        return Mth.clamp(StackNbt.get(stack).getIntOr(TAG, 0), 0, 100);
     }
 
     public static void add(ItemStack stack, int amount) {

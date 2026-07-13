@@ -77,7 +77,7 @@ public class RigMenu extends AbstractContainerMenu {
     }
 
     private void saveToRig() {
-        if (player.level().isClientSide) return;
+        if (player.level().isClientSide()) return;
         NonNullList<ItemStack> out = NonNullList.withSize(roles.length, ItemStack.EMPTY);
         for (int i = 0; i < roles.length; i++) {
             out.set(i, contents.getItem(i));

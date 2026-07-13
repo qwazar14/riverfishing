@@ -6,8 +6,10 @@
     "i i"
   ],
   "key": {
-    "i": { "item": "minecraft:iron_ingot" },
-    "n": { "item": "minecraft:iron_nugget" }
+    "i": "minecraft:iron_ingot",
+    "n": "minecraft:iron_nugget"
   },
-  "result": { "id": "riverfishing:rod_pod_3" }
+  "result": {
+    "id": "riverfishing:rod_pod_3"
+  }
 }

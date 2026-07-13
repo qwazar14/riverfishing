@@ -6,7 +6,7 @@ import dev.architectury.networking.NetworkManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -43,10 +43,10 @@ public class SkillUnlockPacket implements ModNetwork.RfPacket {
         if (!(ctx.getPlayer() instanceof ServerPlayer sp)) return;
         AnglerSkills.Perk perk = AnglerSkills.Perk.byId(perkId);
         if (AnglerSkills.tryUnlock(sp, perk)) {
-            sp.displayClientMessage(Component.translatable("skill.riverfishing." + perk.id)
+            sp.sendOverlayMessage(Component.translatable("skill.riverfishing." + perk.id)
                     .append(" ").append(Component.translatable("skill.riverfishing.learned"))
-                    .withStyle(ChatFormatting.GREEN), true);
-            sp.serverLevel().playSound(null, sp.blockPosition(), SoundEvents.PLAYER_LEVELUP,
+                    .withStyle(ChatFormatting.GREEN));
+            sp.level().playSound(null, sp.blockPosition(), SoundEvents.PLAYER_LEVELUP,
                     SoundSource.PLAYERS, 0.5f, 1.6f);
             // Push the refreshed record so the open journal shows the new rank / spent point.
             ModNetwork.toPlayer(sp, new JournalOpenPacket(

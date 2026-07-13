@@ -6,7 +6,9 @@
     "S  "
   ],
   "key": {
-    "S": { "item": "minecraft:stick" }
+    "S": "minecraft:stick"
   },
-  "result": { "id": "riverfishing:stick_rod" }
+  "result": {
+    "id": "riverfishing:stick_rod"
+  }
 }

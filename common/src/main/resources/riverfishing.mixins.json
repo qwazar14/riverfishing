@@ -2,11 +2,15 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.riverfishing.mixin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ItemEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "client": [
+    "ItemInHandRendererMixin",
+    "ItemInHandLayerMixin"
+  ]
 }

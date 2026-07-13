@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -38,12 +37,12 @@ public class WaterProbeItem extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         boolean handled = scan(level, player);
         return handled
-                ? InteractionResultHolder.sidedSuccess(stack, level.isClientSide)
-                : InteractionResultHolder.pass(stack);
+                ? InteractionResult.SUCCESS
+                : InteractionResult.PASS;
     }
 
     @Override
@@ -55,39 +54,39 @@ public class WaterProbeItem extends Item {
         // Admin probe on a Fishing Stall reports the POI record (villager job-site diagnostics).
         if (admin && level.getBlockState(ctx.getClickedPos())
                 .is(com.riverfishing.registry.ModBlocks.FISHING_STALL.get())) {
-            if (!level.isClientSide && player instanceof ServerPlayer sp && level instanceof ServerLevel sl) {
+            if (!level.isClientSide() && player instanceof ServerPlayer sp && level instanceof ServerLevel sl) {
                 var poi = sl.getPoiManager().getType(ctx.getClickedPos());
                 boolean mapped = net.minecraft.world.entity.ai.village.poi.PoiTypes
                         .forState(sl.getBlockState(ctx.getClickedPos())).isPresent();
-                sp.displayClientMessage(Component.literal(
+                sp.sendSystemMessage(Component.literal(
                         "POI record at stall: "
                         + (poi.isPresent() ? poi.get().unwrapKey().map(Object::toString).orElse("?") : "NONE")
                         + " | state mapped: " + mapped
                         + (poi.isEmpty() ? " -> break & re-place the stall" : ""))
-                        .withStyle(poi.isPresent() ? ChatFormatting.GREEN : ChatFormatting.RED), false);
+                        .withStyle(poi.isPresent() ? ChatFormatting.GREEN : ChatFormatting.RED));
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return InteractionResult.SUCCESS;
         }
 
         // Clicking the bank or the bottom under water still scans — the water is along the same ray.
         return scan(level, player)
-                ? InteractionResult.sidedSuccess(level.isClientSide)
+                ? InteractionResult.SUCCESS
                 : InteractionResult.PASS;
     }
 
     /** Finds water along the player's view (24 blocks, any fluid shape) and runs the analysis. */
     private boolean scan(Level level, Player player) {
         BlockPos waterPos = findWater(level, player);
-        if (!level.isClientSide && player instanceof ServerPlayer sp && level instanceof ServerLevel sl) {
+        if (!level.isClientSide() && player instanceof ServerPlayer sp && level instanceof ServerLevel sl) {
             com.riverfishing.RiverFishing.LOGGER.info("[RiverFishing] probe scan by {}: admin={}, water={}",
-                    sp.getGameProfile().getName(), admin, waterPos);
+                    sp.getGameProfile().name(), admin, waterPos);
             if (waterPos == null) {
                 // Chat (not action bar) so the feedback can never be missed.
-                sp.displayClientMessage(Component.translatable("message.riverfishing.no_water")
-                        .withStyle(ChatFormatting.RED), false);
+                sp.sendSystemMessage(Component.translatable("message.riverfishing.no_water")
+                        .withStyle(ChatFormatting.RED));
             } else {
                 FishingManager.analyzeWater(sp, sl, waterPos, admin);
-                player.getCooldowns().addCooldown(this, 10);
+                player.getCooldowns().addCooldown(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(this), 10);
             }
         }
         return waterPos != null;
@@ -112,8 +111,8 @@ public class WaterProbeItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable(admin
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable(admin
                 ? "tooltip.riverfishing.hydro_probe" : "tooltip.riverfishing.fish_finder")
                 .withStyle(ChatFormatting.DARK_GRAY));
     }

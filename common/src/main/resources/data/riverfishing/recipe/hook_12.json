@@ -1,5 +1,10 @@
 {
   "type": "minecraft:crafting_shapeless",
-  "ingredients": [ { "item": "riverfishing:hook_14" }, { "item": "minecraft:iron_nugget" } ],
-  "result": { "id": "riverfishing:hook_12" }
+  "ingredients": [
+    "riverfishing:hook_14",
+    "minecraft:iron_nugget"
+  ],
+  "result": {
+    "id": "riverfishing:hook_12"
+  }
 }

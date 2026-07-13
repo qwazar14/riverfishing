@@ -21,7 +21,7 @@ import com.riverfishing.item.WhetstoneItem;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 
@@ -57,7 +57,7 @@ public final class ModItems {
             "carp_koi_kohaku", "carp_koi_tancho_sanke", "carp_koi_showa_sanke",
             "carp_koi_asagi", "carp_koi_bekko"
     };
-    public static final Map<ResourceLocation, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
+    public static final Map<Identifier, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
     // ---- Baits referenced by event drops ----
     public static final RegistrySupplier<Item> WORM;
     public static final RegistrySupplier<Item> CHICKEN_LIVER;
@@ -84,8 +84,20 @@ public final class ModItems {
         return obj;
     }
 
-    private static Item.Properties props() {
-        return new Item.Properties();
+    // §26.1: every Item.Properties must carry its registry id (the Item ctor throws without it).
+    private static Item.Properties props(String name) {
+        return new Item.Properties().setId(net.minecraft.resources.ResourceKey.create(
+                Registries.ITEM, RiverFishing.id(name)));
+    }
+
+    /** §26.1: anvil repair moved into Item.Properties.repairable — the priciest recipe ingredient. */
+    private static Item rodRepairItem(RodType type) {
+        String key = type.jsonKey();
+        if ("stick".equals(key)) return net.minecraft.world.item.Items.STICK;
+        if ("bamboo".equals(key)) return net.minecraft.world.item.Items.BAMBOO;
+        if ("feeder".equals(key) || "bottom".equals(key)) return net.minecraft.world.item.Items.GOLD_INGOT;
+        if ("carp".equals(key)) return net.minecraft.world.item.Items.DIAMOND;
+        return net.minecraft.world.item.Items.IRON_INGOT; // pole / ultralight / spinning / winter
     }
 
     /** Rod blank durability by tier (§rod-durability). Plain if-chain: no synthetic switch classes. */
@@ -107,14 +119,15 @@ public final class ModItems {
         // anvil-repaired with the priciest ingredient of their recipe (§rod-durability). -----
         for (RodType type : RodType.values()) {
             RegistrySupplier<Item> rod = reg(type.jsonKey() + "_rod",
-                    () -> new RodItem(type, props().durability(rodDurability(type))));
+                    () -> new RodItem(type, props(type.jsonKey() + "_rod").durability(rodDurability(type))
+                            .repairable(rodRepairItem(type))));
             RODS.add(rod);
         }
 
         // ----- Reels -----
         for (int size : new int[]{1000, 2000, 3000, 4000, 5000, 6000, 7000}) {
             final int s = size;
-            reg("reel_" + size, () -> new ReelItem(s, props()));
+            reg("reel_" + size, () -> new ReelItem(s, props("reel_" + s)));
         }
 
         // ----- Lines (§line-update): mono = all-rounder, braid = thin & strong, fluoro = clear/finesse.
@@ -127,19 +140,19 @@ public final class ModItems {
 
         // ----- Rigs -----
         for (RigType type : RigType.values()) {
-            reg("rig_" + type.jsonKey(), () -> new RigItem(type, props()));
+            reg("rig_" + type.jsonKey(), () -> new RigItem(type, props("rig_" + type.jsonKey())));
         }
 
         // ----- In-rig components (Module 4) -----
-        LEADER = reg("leader", () -> new LeaderItem(1.0, 0.1, props()));            // steel: bomb-proof, but very visible (spooks bites)
-        LEADER_FLUORO = reg("leader_fluoro", () -> new LeaderItem(0.85, 0.9, props())); // fluorocarbon: near-invisible, strong (rarely bitten through)
-        LEADER_TITANIUM = reg("leader_titanium", () -> new LeaderItem(1.0, 0.6, props())); // titanium: bomb-proof AND fairly stealthy (trade-only)
-        FLOAT = reg("float", () -> new Item(props()));
+        LEADER = reg("leader", () -> new LeaderItem(1.0, 0.1, props("leader")));            // steel: bomb-proof, but very visible (spooks bites)
+        LEADER_FLUORO = reg("leader_fluoro", () -> new LeaderItem(0.85, 0.9, props("leader_fluoro"))); // fluorocarbon: near-invisible, strong (rarely bitten through)
+        LEADER_TITANIUM = reg("leader_titanium", () -> new LeaderItem(1.0, 0.6, props("leader_titanium"))); // titanium: bomb-proof AND fairly stealthy (trade-only)
+        FLOAT = reg("float", () -> new Item(props("float")));
 
         // ----- Hooks (angling sizes; bigger number = smaller hook) -----
         for (int size : new int[]{16, 14, 12, 10, 8, 6, 4}) {
             final int s = size;
-            reg("hook_" + size, () -> new HookItem(s, props()));
+            reg("hook_" + size, () -> new HookItem(s, props("hook_" + s)));
         }
 
         // ----- Natural baits -----
@@ -159,9 +172,9 @@ public final class ModItems {
         // descriptor, not the generic "artificial lure (predators only)" line.
         registerBait("mormyshka", true, "tooltip.riverfishing.bait_ice_jig");
         // §bait-crops: seeds for the plant baits — plantable on farmland (vanilla wheat-style seeds).
-        reg("corn_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.CORN_CROP.get(), props()));
-        reg("pea_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.PEA_CROP.get(), props()));
-        reg("barley_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.BARLEY_CROP.get(), props()));
+        reg("corn_seeds", () -> new net.minecraft.world.item.BlockItem(ModBlocks.CORN_CROP.get(), props("corn_seeds").useItemDescriptionPrefix()));
+        reg("pea_seeds", () -> new net.minecraft.world.item.BlockItem(ModBlocks.PEA_CROP.get(), props("pea_seeds").useItemDescriptionPrefix()));
+        reg("barley_seeds", () -> new net.minecraft.world.item.BlockItem(ModBlocks.BARLEY_CROP.get(), props("barley_seeds").useItemDescriptionPrefix()));
 
         // ----- Artificial baits (predators only) -----
         registerBait("spinner", true);
@@ -177,42 +190,42 @@ public final class ModItems {
 
         // ----- Groundbaits -----
         for (String cat : new String[]{"powder", "grain", "pellet", "cake"}) {
-            reg("groundbait_" + cat, () -> new GroundbaitItem(cat, props()));
+            reg("groundbait_" + cat, () -> new GroundbaitItem(cat, props("groundbait_" + cat)));
         }
 
         // ----- Bite alarms (Module 3) -----
-        BELL_ALARM = reg("bell_alarm", () -> new AlarmItem(AlarmType.BELL, props()));
-        DIGITAL_ALARM = reg("digital_alarm", () -> new AlarmItem(AlarmType.DIGITAL, props()));
+        BELL_ALARM = reg("bell_alarm", () -> new AlarmItem(AlarmType.BELL, props("bell_alarm")));
+        DIGITAL_ALARM = reg("digital_alarm", () -> new AlarmItem(AlarmType.DIGITAL, props("digital_alarm")));
 
         // ----- Processing: knife + fillets (§11) -----
-        FILLET_KNIFE = reg("fillet_knife", () -> new FilletKnifeItem(new Item.Properties().durability(128)));
-        RAW_FILLET = reg("raw_fillet", () -> new Item(props().food(
+        FILLET_KNIFE = reg("fillet_knife", () -> new FilletKnifeItem(props("fillet_knife").durability(128)));
+        RAW_FILLET = reg("raw_fillet", () -> new Item(props("raw_fillet").food(
                 new FoodProperties.Builder().nutrition(2).saturationModifier(0.2f).build())));
-        COOKED_FILLET = reg("cooked_fillet", () -> new Item(props().food(
+        COOKED_FILLET = reg("cooked_fillet", () -> new Item(props("cooked_fillet").food(
                 new FoodProperties.Builder().nutrition(5).saturationModifier(0.6f).build())));
 
         // ----- Maintenance: whetstone (§3.8) -----
-        WHETSTONE = reg("whetstone", () -> new WhetstoneItem(new Item.Properties().durability(128)));
+        WHETSTONE = reg("whetstone", () -> new WhetstoneItem(props("whetstone").durability(128)));
 
         // ----- Ice fishing (§ice-fishing): the auger drills a hole through an ice sheet -----
-        reg("ice_auger", () -> new com.riverfishing.item.IceAugerItem(new Item.Properties().durability(64)));
+        reg("ice_auger", () -> new com.riverfishing.item.IceAugerItem(props("ice_auger").durability(64)));
 
         // ----- Records: fishing journal (§15) -----
-        reg("fishing_journal", () -> new JournalItem(props().stacksTo(1)));
+        reg("fishing_journal", () -> new JournalItem(props("fishing_journal").stacksTo(1)));
 
         // ----- Water analysis (§QoL): player fish finder + admin probe -----
-        reg("fish_finder", () -> new com.riverfishing.item.WaterProbeItem(false, props().stacksTo(1)));
-        reg("hydro_probe", () -> new com.riverfishing.item.WaterProbeItem(true, props().stacksTo(1)));
+        reg("fish_finder", () -> new com.riverfishing.item.WaterProbeItem(false, props("fish_finder").stacksTo(1)));
+        reg("hydro_probe", () -> new com.riverfishing.item.WaterProbeItem(true, props("hydro_probe").stacksTo(1)));
 
         // ----- Caught fish: a distinct item + texture per species (Module 8) -----
         for (String sp : FISH_SPECIES) {
-            ResourceLocation id = RiverFishing.id(sp);
-            FISH_ITEMS.put(id, reg(sp, () -> new FishItem(id, props().stacksTo(1))));
+            Identifier id = RiverFishing.id(sp);
+            FISH_ITEMS.put(id, reg(sp, () -> new FishItem(id, props(sp).stacksTo(1))));
         }
     }
 
     /** The item representing a given fish species (Module 8). */
-    public static Item fishItem(ResourceLocation species) {
+    public static Item fishItem(Identifier species) {
         RegistrySupplier<Item> obj = FISH_ITEMS.get(species);
         return (obj != null ? obj : FISH_ITEMS.values().iterator().next()).get();
     }
@@ -233,16 +246,16 @@ public final class ModItems {
         for (double d : diameters) {
             final double dia = d;
             String suffix = String.format("%03d", Math.round(d * 100)); // 0.14 -> "014"
-            reg("line_" + type.jsonKey() + "_" + suffix, () -> new LineItem(type, dia, props()));
+            reg("line_" + type.jsonKey() + "_" + suffix, () -> new LineItem(type, dia, props("line_" + type.jsonKey() + "_" + suffix)));
         }
     }
 
     private static RegistrySupplier<Item> registerBait(String id, boolean artificial) {
-        return reg(id, () -> new BaitItem(id, artificial, props()));
+        return reg(id, () -> new BaitItem(id, artificial, props(id)));
     }
 
     /** Bait with an explicit tooltip key override (e.g. the ice jig's own descriptor). */
     private static RegistrySupplier<Item> registerBait(String id, boolean artificial, String tooltipKey) {
-        return reg(id, () -> new BaitItem(id, artificial, tooltipKey, props()));
+        return reg(id, () -> new BaitItem(id, artificial, tooltipKey, props(id)));
     }
 }

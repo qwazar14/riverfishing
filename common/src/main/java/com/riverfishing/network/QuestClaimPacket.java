@@ -4,7 +4,7 @@ import com.riverfishing.RiverFishing;
 import com.riverfishing.quest.Quests;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
@@ -37,7 +37,7 @@ public class QuestClaimPacket implements ModNetwork.RfPacket {
 
     public void handleServer(NetworkManager.PacketContext ctx) {
         if (ctx.getPlayer() instanceof ServerPlayer sp) {
-            Quests.claim(sp, sp.serverLevel(), questId);
+            Quests.claim(sp, sp.level(), questId);
         }
     }
 }

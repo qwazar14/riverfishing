@@ -21,6 +21,15 @@ import java.util.Map;
 public class FishingPressureData extends SavedData {
     public static final String NAME = "riverfishing_pressure";
 
+    // §26.1: SavedData.Factory is gone — a codec-backed SavedDataType drives load/save now; the CompoundTag
+    // round-trip below reuses the existing save()/load() bodies unchanged.
+    private static final net.minecraft.world.level.saveddata.SavedDataType<FishingPressureData> TYPE =
+            new net.minecraft.world.level.saveddata.SavedDataType<>(
+                    net.minecraft.resources.Identifier.fromNamespaceAndPath("riverfishing", NAME.replace("riverfishing_", "")),
+                    FishingPressureData::new,
+                    net.minecraft.nbt.CompoundTag.CODEC.xmap(t -> FishingPressureData.load(t, null), d -> d.save(new CompoundTag(), null)),
+                    null);
+
     private static final long REGEN_HALFLIFE = 30000L; // pressure halves ~every 25 min idle (slower recovery)
     private static final double CAST_PRESSURE = 0.022;  // §anti-macro: ~40 min steady casting depletes a spot
     // §population: a KEPT fish actually leaves the water — a mono-species swarm thins in ~17 catches.
@@ -34,7 +43,7 @@ public class FishingPressureData extends SavedData {
     private final Map<Long, Map<String, Entry>> chunks = new HashMap<>();
 
     public static FishingPressureData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(FishingPressureData::new, FishingPressureData::load, (net.minecraft.util.datafix.DataFixTypes) null), NAME);
+        return level.getDataStorage().computeIfAbsent(TYPE);
     }
 
     /** Register a cast on a chunk (scaled by the difficulty depletion multiplier, §14): disturbance only. */
@@ -86,7 +95,7 @@ public class FishingPressureData extends SavedData {
         return e.pressure * Math.pow(0.5, elapsed / REGEN_HALFLIFE);
     }
 
-    @Override
+    // §26.1: SavedData has no save() anymore — kept as the body behind the TYPE codec above.
     public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag list = new ListTag();
         for (Map.Entry<Long, Map<String, Entry>> chunk : chunks.entrySet()) {
@@ -109,20 +118,20 @@ public class FishingPressureData extends SavedData {
 
     public static FishingPressureData load(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         FishingPressureData data = new FishingPressureData();
-        ListTag list = tag.getList("Chunks", Tag.TAG_COMPOUND);
+        ListTag list = tag.getListOrEmpty("Chunks");
         for (int i = 0; i < list.size(); i++) {
-            CompoundTag c = list.getCompound(i);
+            CompoundTag c = list.getCompoundOrEmpty(i);
             Map<String, Entry> perSpecies = new HashMap<>();
             if (c.contains("E")) {
-                ListTag entries = c.getList("E", Tag.TAG_COMPOUND);
+                ListTag entries = c.getListOrEmpty("E");
                 for (int j = 0; j < entries.size(); j++) {
-                    CompoundTag t = entries.getCompound(j);
-                    perSpecies.put(t.getString("S"), new Entry(t.getDouble("P"), t.getLong("T")));
+                    CompoundTag t = entries.getCompoundOrEmpty(j);
+                    perSpecies.put(t.getStringOr("S", ""), new Entry(t.getDoubleOr("P", 0d), t.getLongOr("T", 0L)));
                 }
             } else if (c.contains("P")) {
-                perSpecies.put(GLOBAL, new Entry(c.getDouble("P"), c.getLong("T"))); // old single-value format
+                perSpecies.put(GLOBAL, new Entry(c.getDoubleOr("P", 0d), c.getLongOr("T", 0L))); // old single-value format
             }
-            data.chunks.put(c.getLong("Chunk"), perSpecies);
+            data.chunks.put(c.getLongOr("Chunk", 0L), perSpecies);
         }
         return data;
     }

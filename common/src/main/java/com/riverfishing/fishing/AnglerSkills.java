@@ -48,9 +48,9 @@ public final class AnglerSkills {
     }
 
     public static int spentPoints(Player player) {
-        CompoundTag skills = JournalData.get(player).getCompound(SKILLS);
+        CompoundTag skills = JournalData.get(player).getCompoundOrEmpty(SKILLS);
         int sum = 0;
-        for (Perk p : Perk.values()) sum += skills.getInt(p.id);
+        for (Perk p : Perk.values()) sum += skills.getIntOr(p.id, 0);
         return sum;
     }
 
@@ -59,7 +59,7 @@ public final class AnglerSkills {
     }
 
     public static int rank(Player player, Perk perk) {
-        return JournalData.get(player).getCompound(SKILLS).getInt(perk.id);
+        return JournalData.get(player).getCompoundOrEmpty(SKILLS).getIntOr(perk.id, 0);
     }
 
     /** Spend one point on a perk (§skills). Server-validated: a free point + below max rank. */
@@ -67,8 +67,8 @@ public final class AnglerSkills {
         if (perk == null) return false;
         if (availablePoints(player) <= 0) return false;
         CompoundTag root = JournalData.get(player);
-        CompoundTag skills = root.getCompound(SKILLS);
-        int cur = skills.getInt(perk.id);
+        CompoundTag skills = root.getCompoundOrEmpty(SKILLS);
+        int cur = skills.getIntOr(perk.id, 0);
         if (cur >= perk.maxRank) return false;
         skills.putInt(perk.id, cur + 1);
         root.put(SKILLS, skills);

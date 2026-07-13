@@ -2,7 +2,7 @@ package com.riverfishing.client;
 
 import com.riverfishing.component.ComponentSlot;
 import com.riverfishing.menu.RodAssemblyMenu;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,9 +24,8 @@ public class RodAssemblyScreen extends AbstractContainerScreen<RodAssemblyMenu> 
     }
 
     public RodAssemblyScreen(RodAssemblyMenu menu, Inventory inv, Component title) {
-        super(menu, inv, title);
-        this.imageWidth = 176;
-        this.imageHeight = 190; // taller: the socketed rig's own slots live inline (§rig-inline)
+        // §26.1: imageWidth/Height are final now — 176×190, taller for the inline rig slots (§rig-inline)
+        super(menu, inv, title, 176, 190);
         this.inventoryLabelY = this.imageHeight - 94;
         this.titleLabelX = 10;
         this.titleLabelY = 8;   // inside the header band, under the wood frame (§gui-cyrillic)
@@ -62,11 +61,11 @@ public class RodAssemblyScreen extends AbstractContainerScreen<RodAssemblyMenu> 
         }
 
         @Override
-        protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        protected void extractWidgetRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
             int x = getX();
             // "Спуск" caption above the track
             Component cap = Component.translatable("guide.riverfishing.depth_short");
-            g.drawString(RodAssemblyScreen.this.font, cap,
+            g.text(RodAssemblyScreen.this.font, cap,
                     x + 7 - RodAssemblyScreen.this.font.width(cap) / 2, getY() - 10, GuiStyle.TEXT_HINT, false);
             // track
             g.fill(x + 5, getY(), x + 9, getY() + this.height, 0xFF2A1E12);
@@ -82,7 +81,7 @@ public class RodAssemblyScreen extends AbstractContainerScreen<RodAssemblyMenu> 
             g.fill(x + 2, hy - 2, x + 12, hy + 3, 0xFFC89C4A);
             // hovering shows the depth name
             if (isHovered()) {
-                g.renderTooltip(RodAssemblyScreen.this.font,
+                g.setTooltipForNextFrame(RodAssemblyScreen.this.font,
                         Component.translatable("depthset.riverfishing."
                                 + com.riverfishing.item.RodData.getDepth(menu.rodStack())),
                         mouseX, mouseY);
@@ -90,13 +89,13 @@ public class RodAssemblyScreen extends AbstractContainerScreen<RodAssemblyMenu> 
         }
 
         @Override
-        public void onClick(double mouseX, double mouseY) {
-            setFromMouse(mouseY);
+        public void onClick(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
+            setFromMouse(event.y());
         }
 
         @Override
-        protected void onDrag(double mouseX, double mouseY, double dragX, double dragY) {
-            setFromMouse(mouseY);
+        protected void onDrag(net.minecraft.client.input.MouseButtonEvent event, double dragX, double dragY) {
+            setFromMouse(event.y());
         }
 
         private void setFromMouse(double mouseY) {
@@ -129,8 +128,7 @@ public class RodAssemblyScreen extends AbstractContainerScreen<RodAssemblyMenu> 
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(graphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         // The depth slider only exists on FLOAT-class rods while a float is actually rigged
         // (§fishing-depth) — never on spinning or long-cast bottom rods.
         if (depthSlider != null) {
@@ -140,7 +138,7 @@ public class RodAssemblyScreen extends AbstractContainerScreen<RodAssemblyMenu> 
             depthSlider.visible = show;
             depthSlider.active = show;
         }
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
 
         // Flag a component slot the carried item can't go into (Module 6).
         ItemStack carried = this.menu.getCarried();
@@ -154,13 +152,11 @@ public class RodAssemblyScreen extends AbstractContainerScreen<RodAssemblyMenu> 
             }
         }
 
-        this.renderTooltip(graphics, mouseX, mouseY);
-
         if (!carried.isEmpty() && this.hoveredSlot != null) {
             int idx = this.menu.slots.indexOf(this.hoveredSlot);
             Component reason = this.menu.rejectionReason(idx, carried);
             if (reason != null) {
-                graphics.renderTooltip(this.font, reason, mouseX, mouseY);
+                graphics.setTooltipForNextFrame(this.font, reason, mouseX, mouseY);
             }
         }
 
@@ -173,14 +169,15 @@ public class RodAssemblyScreen extends AbstractContainerScreen<RodAssemblyMenu> 
             graphics.fill(bx, by, bx + bw, by + 12, 0xE0301010);
             graphics.fill(bx, by, bx + bw, by + 1, 0xFFE0503A);
             graphics.fill(bx, by + 11, bx + bw, by + 12, 0xFFE0503A);
-            graphics.drawString(this.font, text, bx + 4, by + 2, 0xFFF0C0B0, false);
+            graphics.text(this.font, text, bx + 4, by + 2, 0xFFF0C0B0, false);
         } else {
             warning = null;
         }
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
         int x = this.leftPos;
         int y = this.topPos;
         GuiStyle.panel(graphics, x, y, imageWidth, imageHeight);
@@ -234,17 +231,17 @@ public class RodAssemblyScreen extends AbstractContainerScreen<RodAssemblyMenu> 
     }
 
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, GuiStyle.TEXT, false);
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        graphics.text(this.font, this.title, this.titleLabelX, this.titleLabelY, GuiStyle.TEXT, false);
         for (int i = 0; i < this.menu.componentSlotCount(); i++) {
             ComponentSlot type = this.menu.componentSlotType(i);
             if (type == null) continue;
             Slot slot = this.menu.slots.get(i);
             Component label = Component.translatable("menu.riverfishing.slot." + type.name().toLowerCase());
             int lx = slot.x + 8 - this.font.width(label) / 2;
-            graphics.drawString(this.font, label, lx, slot.y - 11, GuiStyle.TEXT, false);
+            graphics.text(this.font, label, lx, slot.y - 11, GuiStyle.TEXT, false);
         }
-        graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, GuiStyle.TEXT, false);
+        graphics.text(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, GuiStyle.TEXT, false);
     }
 
     private static int accentColor(ComponentSlot type) {

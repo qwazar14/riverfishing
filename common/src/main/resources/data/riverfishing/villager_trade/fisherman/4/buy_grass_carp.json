@@ -1,0 +1,15 @@
+{
+  "wants": {
+    "id": "riverfishing:grass_carp",
+    "components": {
+      "riverfishing:prime": 17500
+    }
+  },
+  "gives": {
+    "id": "minecraft:emerald",
+    "count": 9
+  },
+  "max_uses": 12,
+  "xp": 14,
+  "reputation_discount": 0.05
+}

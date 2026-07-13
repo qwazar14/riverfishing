@@ -1,0 +1,36 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "riverfishing:item/rod_m/rig_predator"
+  },
+  "display": {
+    "thirdperson_righthand": {
+      "translation": [
+        0,
+        0,
+        0.09
+      ]
+    },
+    "thirdperson_lefthand": {
+      "translation": [
+        0,
+        0,
+        0.09
+      ]
+    },
+    "firstperson_righthand": {
+      "translation": [
+        0,
+        0,
+        0.09
+      ]
+    },
+    "firstperson_lefthand": {
+      "translation": [
+        0,
+        0,
+        0.09
+      ]
+    }
+  }
+}

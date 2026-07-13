@@ -34,65 +34,95 @@ public final class ModBlocks {
     // Bait trap (§livebait): stands in water and slowly gathers live bait.
     public static final RegistrySupplier<Block> BAIT_TRAP = registerSimple("bait_trap",
             () -> new com.riverfishing.block.BaitTrapBlock(
-                    BlockBehaviour.Properties.of().strength(0.6f).sound(SoundType.SCAFFOLDING).noOcclusion()));
+                    blockProps("bait_trap").strength(0.6f).sound(SoundType.SCAFFOLDING).noOcclusion()));
 
     // Worm farm (§bait-farm): a composter-style crate on soil — feed organics, the worms eat through it.
     public static final RegistrySupplier<Block> WORM_FARM = registerSimple("worm_farm",
             () -> new com.riverfishing.block.WormFarmBlock(
-                    BlockBehaviour.Properties.of().strength(0.6f).sound(SoundType.WOOD).noOcclusion()));
+                    blockProps("worm_farm").strength(0.6f).sound(SoundType.WOOD).noOcclusion()));
 
     // Maggot farm (§bait-farm): load rotten flesh, each piece breeds into 4 maggots over time.
     public static final RegistrySupplier<Block> MAGGOT_FARM = registerSimple("maggot_farm",
             () -> new com.riverfishing.block.MaggotFarmBlock(
-                    BlockBehaviour.Properties.of().strength(0.6f).sound(SoundType.WOOD).noOcclusion()));
+                    blockProps("maggot_farm").strength(0.6f).sound(SoundType.WOOD).noOcclusion()));
 
     // Fisherman's workstation / POI job-site block (§8). noOcclusion: the model is a stall, not a cube.
     public static final RegistrySupplier<Block> FISHING_STALL = registerSimple("fishing_stall",
-            () -> new Block(BlockBehaviour.Properties.of().strength(2.0f).sound(SoundType.WOOD).noOcclusion()));
+            () -> new Block(blockProps("fishing_stall").strength(2.0f).sound(SoundType.WOOD).noOcclusion()));
 
     // Trophy stand (§15.5) — mounts a caught fish.
     public static final RegistrySupplier<Block> TROPHY_STAND = registerSimple("trophy_stand",
-            () -> new TrophyStandBlock(BlockBehaviour.Properties.of().strength(1.0f).sound(SoundType.WOOD).noOcclusion()));
+            () -> new TrophyStandBlock(blockProps("trophy_stand").strength(1.0f).sound(SoundType.WOOD).noOcclusion()));
 
     // Aquarium (§aquarium) — a 2×2 glass-and-wood display that mounts a caught fish with a nameplate.
     public static final RegistrySupplier<Block> AQUARIUM = registerSimple("aquarium",
             () -> new com.riverfishing.block.AquariumBlock(
-                    BlockBehaviour.Properties.of().strength(1.2f).sound(SoundType.GLASS).noOcclusion()));
+                    blockProps("aquarium").strength(1.2f).sound(SoundType.GLASS).noOcclusion()));
 
     // Drilled ice hole (§ice-fishing) — the auger makes one; right-click it with a winter rod to fish.
-    // Copies vanilla ICE properties wholesale so the physics match exactly (slip, melt, break-to-water).
+    // §26.1: no ofFullCopy (copied Properties can carry the source block's state lambdas — see the crop
+    // note below) — vanilla ICE's physics rebuilt explicitly: slip, melt-by-light, break-to-water.
     public static final RegistrySupplier<Block> ICE_HOLE = registerSimple("ice_hole",
             () -> new com.riverfishing.block.IceHoleBlock(
-                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.ICE)));
+                    blockProps("ice_hole")
+                            .mapColor(net.minecraft.world.level.material.MapColor.ICE)
+                            .friction(0.98f)
+                            .randomTicks()
+                            .strength(0.5f)
+                            .sound(SoundType.GLASS)
+                            .noOcclusion()));
 
     // §bait-crops: farmland crops for the plant baits (corn / pea / barley→pearl barley). No BlockItem —
-    // their ITEM is the seed (an ItemNameBlockItem in ModItems), exactly like vanilla wheat.
+    // their ITEM is the seed (a BlockItem in ModItems), exactly like vanilla wheat.
+    // §26.1: NO ofFullCopy(WHEAT)! Wheat's Properties now carry a state lambda that reads wheat's
+    // AGE_7 — eagerly evaluated on OUR states (AGE_3) it crashes at registration ("Cannot get property
+    // age..."). Build the standard crop property set from scratch instead.
+    private static BlockBehaviour.Properties cropProps(String name) {
+        return blockProps(name)
+                .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                .noCollision()
+                .randomTicks()
+                .instabreak()
+                .sound(SoundType.CROP)
+                .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY);
+    }
+
     public static final RegistrySupplier<Block> CORN_CROP = BLOCKS.register("corn_crop",
-            () -> new com.riverfishing.block.BaitCropBlock("corn_seeds",
-                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)));
+            () -> new com.riverfishing.block.BaitCropBlock("corn_seeds", cropProps("corn_crop")));
     public static final RegistrySupplier<Block> PEA_CROP = BLOCKS.register("pea_crop",
-            () -> new com.riverfishing.block.BaitCropBlock("pea_seeds",
-                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)));
+            () -> new com.riverfishing.block.BaitCropBlock("pea_seeds", cropProps("pea_crop")));
     public static final RegistrySupplier<Block> BARLEY_CROP = BLOCKS.register("barley_crop",
-            () -> new com.riverfishing.block.BaitCropBlock("barley_seeds",
-                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)));
+            () -> new com.riverfishing.block.BaitCropBlock("barley_seeds", cropProps("barley_crop")));
 
     private ModBlocks() {}
+
+    // §26.1: every Block/Item Properties must carry its registry id (the ctors throw without it).
+    static BlockBehaviour.Properties blockProps(String name) {
+        return BlockBehaviour.Properties.of().setId(net.minecraft.resources.ResourceKey.create(
+                Registries.BLOCK, RiverFishing.id(name)));
+    }
+
+    private static Item.Properties itemProps(String name) {
+        // §26.1: BlockItems no longer inherit the block translation key — request the block.<ns>.<path>
+        // description prefix explicitly (otherwise the item shows a raw item.riverfishing.* key).
+        return new Item.Properties().useBlockDescriptionPrefix().setId(net.minecraft.resources.ResourceKey.create(
+                Registries.ITEM, RiverFishing.id(name)));
+    }
 
     private static RegistrySupplier<Block> registerSimple(String name, Supplier<Block> supplier) {
         RegistrySupplier<Block> block = BLOCKS.register(name, supplier);
         RegistrySupplier<Item> item = ModItems.REGISTER.register(name,
-                () -> new BlockItem(block.get(), new Item.Properties()));
+                () -> new BlockItem(block.get(), itemProps(name)));
         ModItems.ALL.add(item);
         return block;
     }
 
     private static RegistrySupplier<Block> registerPod(String name, int slots) {
         RegistrySupplier<Block> block = BLOCKS.register(name, () -> new RodPodBlock(slots,
-                BlockBehaviour.Properties.of().strength(1.5f).sound(SoundType.WOOD).noOcclusion()));
+                blockProps(name).strength(1.5f).sound(SoundType.WOOD).noOcclusion()));
         POD_BLOCKS.add(block);
         RegistrySupplier<Item> item = ModItems.REGISTER.register(name,
-                () -> new BlockItem(block.get(), new Item.Properties()));
+                () -> new BlockItem(block.get(), itemProps(name)));
         ModItems.ALL.add(item);
         return block;
     }

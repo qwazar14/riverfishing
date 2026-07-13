@@ -64,11 +64,11 @@ public class WormFarmBlockEntity extends BlockEntity {
 
     void collect(Player player) {
         if (worms <= 0) {
-            player.displayClientMessage(Component.translatable("message.riverfishing.farm_empty")
-                    .withStyle(ChatFormatting.GRAY), true);
+            player.sendOverlayMessage(Component.translatable("message.riverfishing.farm_empty")
+                    .withStyle(ChatFormatting.GRAY));
             return;
         }
-        var worm = BuiltInRegistries.ITEM.get(com.riverfishing.RiverFishing.id("worm"));
+        var worm = BuiltInRegistries.ITEM.getValue(com.riverfishing.RiverFishing.id("worm"));
         if (worm != null) {
             ItemStack out = new ItemStack(worm, worms);
             if (!player.getInventory().add(out)) {
@@ -83,18 +83,18 @@ public class WormFarmBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
         tag.putInt("Worms", worms);
         tag.putInt("Progress", progress);
         tag.putInt("NextAt", nextAt);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        worms = tag.contains("Worms") ? tag.getInt("Worms") : tag.getInt("Stored");
-        progress = tag.getInt("Progress");
-        nextAt = tag.contains("NextAt") ? tag.getInt("NextAt") : -1;
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        worms = tag.getInt("Worms").orElseGet(() -> tag.getIntOr("Stored", 0));
+        progress = tag.getIntOr("Progress", 0);
+        nextAt = tag.getInt("NextAt").orElse(-1);
     }
 }

@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -26,13 +26,13 @@ public final class LineRenderer {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null || ClientLineState.lines().isEmpty()) return;
 
-        float frameSeconds = mc.getTimer().getGameTimeDeltaTicks() / 20f;
+        float frameSeconds = mc.getDeltaTracker().getGameTimeDeltaTicks() / 20f;
         long now = mc.level.getGameTime();
 
         pose.pushPose();
         pose.translate(-cam.x, -cam.y, -cam.z);
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-        VertexConsumer vc = buffers.getBuffer(RenderType.lines());
+        VertexConsumer vc = buffers.getBuffer(net.minecraft.client.renderer.rendertype.RenderTypes.lines());
         Matrix4f m = pose.last().pose();
         Matrix3f nrm = pose.last().normal();
 
@@ -53,7 +53,7 @@ public final class LineRenderer {
         }
 
         if (drew) {
-            buffers.endBatch(RenderType.lines());
+            buffers.endBatch(net.minecraft.client.renderer.rendertype.RenderTypes.lines());
         }
         pose.popPose();
     }
@@ -126,8 +126,10 @@ public final class LineRenderer {
         float swing = Mth.sin(Mth.sqrt(swingProgress) * (float) Math.PI);
 
         if (player == mc.player && mc.options.getCameraType().isFirstPerson()) {
-            double fovScale = 960.0 / mc.options.fov().get();
-            Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane()
+            double fov = mc.options.fov().get();
+            double fovScale = 960.0 / fov;
+            // §26.1: getNearPlane now takes the fov in degrees instead of reading it itself.
+            Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane((float) fov)
                     .getPointOnPlane(arm * 0.525f, -0.1f)
                     .scale(fovScale)
                     .yRot(swing * 0.5f)
@@ -155,7 +157,7 @@ public final class LineRenderer {
         float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (len <= 1e-4f) return;
         dx /= len; dy /= len; dz /= len;
-        vc.addVertex(m, (float) a.x, (float) a.y, (float) a.z).setColor(r, g, bl, 255).setNormal(dx, dy, dz);
-        vc.addVertex(m, (float) b.x, (float) b.y, (float) b.z).setColor(r, g, bl, 255).setNormal(dx, dy, dz);
+        vc.addVertex(m, (float) a.x, (float) a.y, (float) a.z).setColor(r, g, bl, 255).setNormal(dx, dy, dz).setLineWidth(2.0f);
+        vc.addVertex(m, (float) b.x, (float) b.y, (float) b.z).setColor(r, g, bl, 255).setNormal(dx, dy, dz).setLineWidth(2.0f);
     }
 }

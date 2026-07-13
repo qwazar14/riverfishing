@@ -28,31 +28,39 @@ public class TrophyStandBlockEntity extends BlockEntity {
     public void setFish(ItemStack stack) {
         this.fish = stack;
         setChanged();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block_UPDATE);
         }
     }
 
     private static final int Block_UPDATE = 3;
 
+    // §26.1: the block's onRemove hook is gone — the BE pops its own mounted fish on removal.
     @Override
-    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        // Always write Fish (even empty) so removing a trophy reliably clears it on the client.
-        tag.put("Fish", fish.save(registries, new CompoundTag()));
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (level != null && !level.isClientSide() && !fish.isEmpty()) {
+            net.minecraft.world.level.block.Block.popResource(level, pos, fish);
+            fish = ItemStack.EMPTY;
+        }
+        super.preRemoveSideEffects(pos, state);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        this.fish = ItemStack.parseOptional(registries, tag.getCompound("Fish"));
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
+        // Always write Fish (even empty) so removing a trophy reliably clears it on the client.
+        tag.store("Fish", ItemStack.OPTIONAL_CODEC, fish);
+    }
+
+    @Override
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        this.fish = tag.read("Fish", ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
     }
 
     @Override
     public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        saveAdditional(tag, registries);
-        return tag;
+        return saveCustomOnly(registries);
     }
 
     @Nullable

@@ -58,7 +58,7 @@ public final class ModNetwork {
     public static void toTracking(ServerPlayer player, RfPacket packet) {
         List<ServerPlayer> targets = new ArrayList<>();
         targets.add(player);
-        for (ServerPlayer other : player.serverLevel().players()) {
+        for (ServerPlayer other : player.level().players()) {
             if (other != player && other.distanceToSqr(player) <= 128.0 * 128.0) {
                 targets.add(other);
             }

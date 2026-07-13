@@ -15,13 +15,13 @@ import com.riverfishing.quest.Quests;
 import com.riverfishing.registry.ModItems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -151,22 +151,23 @@ public class JournalScreen extends Screen {
     private double toJournalX(double sx) { return (sx - this.width / 2.0) / uiScale + this.width / 2.0; }
     private double toJournalY(double sy) { return (sy - this.height / 2.0) / uiScale + this.height / 2.0; }
 
-    /** Scissor rect given in journal space, pushed in the scaled screen space the content actually draws to. */
-    private void scissorJournal(GuiGraphics g, int x1, int y1, int x2, int y2) {
-        float cx = this.width / 2f, cy = this.height / 2f;
-        g.enableScissor(Math.round(cx + (x1 - cx) * uiScale), Math.round(cy + (y1 - cy) * uiScale),
-                Math.round(cx + (x2 - cx) * uiScale), Math.round(cy + (y2 - cy) * uiScale));
+    /**
+     * Scissor rect in journal space. §26.1: enableScissor now transforms the rect by the CURRENT pose
+     * itself — the uiScale matrix is already on the stack, so passing journal coords directly is correct
+     * (the old manual re-scale would double-apply and clip a stripe of the page).
+     */
+    private void scissorJournal(GuiGraphicsExtractor g, int x1, int y1, int x2, int y2) {
+        g.enableScissor(x1, y1, x2, y2);
     }
 
     @Override
-    public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(g, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         boolean scaled = uiScale < 0.999f;
         if (scaled) {
-            g.pose().pushPose();
-            g.pose().translate(this.width / 2f, this.height / 2f, 0);
-            g.pose().scale(uiScale, uiScale, 1f);
-            g.pose().translate(-this.width / 2f, -this.height / 2f, 0);
+            g.pose().pushMatrix();
+            g.pose().translate(this.width / 2f, this.height / 2f);
+            g.pose().scale(uiScale, uiScale);
+            g.pose().translate(-this.width / 2f, -this.height / 2f);
             // hover in the same space the panel now draws in
             mouseX = (int) Math.round(toJournalX(mouseX));
             mouseY = (int) Math.round(toJournalY(mouseY));
@@ -186,23 +187,21 @@ public class JournalScreen extends Screen {
                 renderCatDetail(g, list.get(catDetail));
             } else {
                 if (tab == TAB_BAIT) {
-                    g.drawString(this.font, Component.translatable("journal.riverfishing.tab_bait_hint"),
+                    g.text(this.font, Component.translatable("journal.riverfishing.tab_bait_hint"),
                             left + 10, top + 24, GuiStyle.TEXT_HINT, false);
                 }
                 renderCatalog(g, list, mouseX, mouseY);
             }
         }
-        if (scaled) g.pose().popPose();
+        if (scaled) g.pose().popMatrix();
     }
 
     /**
-     * §journal-blur (1.21): skip the new menu-background blur. 1.21's {@code renderBackground} runs a
-     * gaussian blur post-effect over the world behind the screen; on the bestiary's parchment panel that
-     * reads as a washed-out, "размытый" page. The panel is opaque, so a plain (unblurred) backdrop is
-     * cleaner and crisper. No-op keeps the world sharp behind the journal.
+     * §journal-blur: skip the menu-background blur — on the bestiary's parchment panel it reads as a
+     * washed-out, "размытый" page. The panel is opaque, so a plain (unblurred) backdrop is cleaner.
      */
     @Override
-    protected void renderBlurredBackground(float partialTick) {
+    protected void extractBlurredBackground(GuiGraphicsExtractor g) {
     }
 
     // ---- tabs ----
@@ -217,7 +216,7 @@ public class JournalScreen extends Screen {
         return x;
     }
 
-    private void renderTabs(GuiGraphics g, int mouseX, int mouseY) {
+    private void renderTabs(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         int y0 = top + 3, y1 = top + 18;
         for (int i = 0; i < TAB_KEYS.length; i++) {
             int x = tabX(i), w = tabW(i);
@@ -231,23 +230,23 @@ public class JournalScreen extends Screen {
             g.fill(x + w - 1, y0, x + w, y1, 0xFF3A2A16);
             if (!active) g.fill(x, y1 - 1, x + w, y1, 0xFF3A2A16);
             int tc = active ? GuiStyle.TEXT : 0xFFEDE2C6;
-            g.drawString(this.font, Component.translatable(TAB_KEYS[i]), x + 7, top + 6, tc, !active);
+            g.text(this.font, Component.translatable(TAB_KEYS[i]), x + 7, top + 6, tc, !active);
         }
     }
 
     // ---- FISH: grid ----
 
-    private void renderFishGrid(GuiGraphics g, int mouseX, int mouseY) {
+    private void renderFishGrid(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         int discovered = 0;
         for (String sp : SPECIES) if (data.contains(key(sp))) discovered++;
-        long xp = data.getLong(JournalData.XP);
+        long xp = data.getLongOr(JournalData.XP, 0L);
         int level = JournalData.levelForXp(xp);
 
         String angler = this.font.plainSubstrByWidth(
                 Component.translatable("journal.riverfishing.angler", level,
                         Component.translatable("rank.riverfishing." + JournalData.rankKey(level)),
                         xp, JournalData.xpForLevel(level + 1) - xp).getString(), W - 20);
-        g.drawString(this.font, angler, left + 10, top + 22, GuiStyle.TEXT, false);
+        g.text(this.font, angler, left + 10, top + 22, GuiStyle.TEXT, false);
 
         long lvlBase = JournalData.xpForLevel(level);
         long lvlNext = JournalData.xpForLevel(level + 1);
@@ -257,8 +256,8 @@ public class JournalScreen extends Screen {
         g.fill(bx, by, bx + bw, by + 3, 0xFF1E1610);
         g.fill(bx, by, bx + (int) (bw * Math.min(1f, frac)), by + 3, 0xFFC89C4A);
 
-        g.drawString(this.font, Component.translatable("journal.riverfishing.total",
-                data.getInt("total"), discovered + "/" + SPECIES.length), left + 10, top + 40,
+        g.text(this.font, Component.translatable("journal.riverfishing.total",
+                data.getIntOr("total", 0), discovered + "/" + SPECIES.length), left + 10, top + 40,
                 GuiStyle.TEXT_HINT, false);
 
         List<Component> tooltip = null;
@@ -272,32 +271,32 @@ public class JournalScreen extends Screen {
                 drawFishIcon(g, sp, x, y);
                 String name = this.font.plainSubstrByWidth(
                         Component.translatable("fish.riverfishing." + sp).getString(), COL_W - 24);
-                g.drawString(this.font, name, x + 20, y + 4, hovered ? 0xFFB8860B : GuiStyle.TEXT, false);
+                g.text(this.font, name, x + 20, y + 4, hovered ? 0xFFB8860B : GuiStyle.TEXT, false);
                 if (hovered) {
-                    CompoundTag fish = data.getCompound(key(sp));
+                    CompoundTag fish = data.getCompoundOrEmpty(key(sp));
                     tooltip = new ArrayList<>();
                     tooltip.add(Component.translatable("fish.riverfishing." + sp));
-                    tooltip.add(Component.literal("x" + fish.getInt("count") + "  •  " + weight(fish.getInt("best"))));
+                    tooltip.add(Component.literal("x" + fish.getIntOr("count", 0) + "  •  " + weight(fish.getIntOr("best", 0))));
                 }
             } else {
                 g.fill(x, y, x + 16, y + 16, 0xFF555555);
-                g.drawString(this.font, "???", x + 20, y + 4, GuiStyle.GHOST, false);
+                g.text(this.font, "???", x + 20, y + 4, GuiStyle.GHOST, false);
             }
         }
-        if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
+        if (tooltip != null) g.setComponentTooltipForNextFrame(this.font, tooltip, mouseX, mouseY);
     }
 
     // ---- FISH: detail with illustration ----
 
-    private void renderFishDetail(GuiGraphics g, String sp) {
-        ResourceLocation id = RiverFishing.id(sp);
+    private void renderFishDetail(GuiGraphicsExtractor g, String sp) {
+        Identifier id = RiverFishing.id(sp);
         // fixed header
         drawFishIcon(g, sp, left + 10, top + 22);
-        g.drawString(this.font, Component.translatable("fish.riverfishing." + sp),
+        g.text(this.font, Component.translatable("fish.riverfishing." + sp),
                 left + 30, top + 26, GuiStyle.TEXT, false);
-        CompoundTag rec = data.getCompound(key(sp));
-        String recStr = "x" + rec.getInt("count") + "  •  " + weight(rec.getInt("best"));
-        g.drawString(this.font, recStr, left + W - 10 - this.font.width(recStr), top + 26,
+        CompoundTag rec = data.getCompoundOrEmpty(key(sp));
+        String recStr = "x" + rec.getIntOr("count", 0) + "  •  " + weight(rec.getIntOr("best", 0));
+        g.text(this.font, recStr, left + W - 10 - this.font.width(recStr), top + 26,
                 GuiStyle.TEXT_HINT, false);
 
         // scrollable body: illustration → description → how-to-catch
@@ -311,7 +310,7 @@ public class JournalScreen extends Screen {
         String desc = descText(sp);
         if (!desc.isEmpty()) {
             for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.literal(desc), W - 20)) {
-                g.drawString(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
+                g.text(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
                 y += 11;
             }
             y += 4;
@@ -323,7 +322,7 @@ public class JournalScreen extends Screen {
             y = line(g, y, "guide.riverfishing.tackle", tackle(p));
             y = line(g, y, "guide.riverfishing.best", best(p.season, "season") + "  •  " + best(p.time, "time"));
             if (p.minAnglerLevel > 0) {
-                g.drawString(this.font, Component.translatable("jei.riverfishing.level", p.minAnglerLevel),
+                g.text(this.font, Component.translatable("jei.riverfishing.level", p.minAnglerLevel),
                         left + 10, y, 0xFFB05A00, false);
                 y += 12;
             }
@@ -332,7 +331,7 @@ public class JournalScreen extends Screen {
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
 
-        g.drawString(this.font, Component.translatable("guide.riverfishing.back"),
+        g.text(this.font, Component.translatable("guide.riverfishing.back"),
                 left + 10, top + H - 14, GuiStyle.GHOST, false);
     }
 
@@ -345,7 +344,7 @@ public class JournalScreen extends Screen {
 
     /** Is this quest's reward already claimed? Server truth (rf_claimed) + optimistic local clicks. */
     private boolean isClaimed(Quests.Quest q) {
-        return claimedNow.contains(q.id()) || data.getCompound("rf_claimed").getBoolean(q.id());
+        return claimedNow.contains(q.id()) || data.getCompoundOrEmpty("rf_claimed").getBooleanOr(q.id(), false);
     }
 
     /** §stage-reveal: highest stage the player can see; a stage opens at 70% of the previous (in Quests). */
@@ -353,7 +352,7 @@ public class JournalScreen extends Screen {
         return Quests.maxUnlockedStage(data);
     }
 
-    private void renderQuests(GuiGraphics g, int mouseX, int mouseY) {
+    private void renderQuests(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         int contentTop = top + 24, contentBottom = top + H - 6;
         int visibleH = contentBottom - contentTop;
         scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - visibleH));
@@ -369,11 +368,11 @@ public class JournalScreen extends Screen {
             if (q.stage() != stage) {
                 if (stage != -1) y += 5;
                 stage = q.stage();
-                g.drawString(this.font, Component.translatable("quest.riverfishing.stage." + stage),
+                g.text(this.font, Component.translatable("quest.riverfishing.stage." + stage),
                         left + 10, y, locked ? 0xFF6A5A3A : 0xFFB0842C, false);
                 y += 13;
                 if (locked) { // §stage-reveal: hide this stage's goals until the previous one is done
-                    g.drawString(this.font, Component.translatable("quest.riverfishing.stage_locked", maxStage),
+                    g.text(this.font, Component.translatable("quest.riverfishing.stage_locked", maxStage),
                             left + 12, y, GuiStyle.GHOST, false);
                     y += 13;
                 }
@@ -393,17 +392,17 @@ public class JournalScreen extends Screen {
             g.fill(left + 11, y + 1, left + 17, y + 7, boxInner);
             String title = this.font.plainSubstrByWidth(q.title().getString(), W - 110);
             int tc = claimed ? 0xFF6E5A3C : (ready ? 0xFF9A6E10 : GuiStyle.TEXT);
-            g.drawString(this.font, title, left + 24, y, tc, false);
+            g.text(this.font, title, left + 24, y, tc, false);
             ItemStack rw = q.rewardStack();
             int rx = left + W - 26;
-            if (!rw.isEmpty()) g.renderItem(rw, rx, y - 4);
+            if (!rw.isEmpty()) g.item(rw, rx, y - 4);
             if (ready) {
                 Component claim = Component.translatable("quest.riverfishing.claim");
-                g.drawString(this.font, claim, rx - 6 - this.font.width(claim), y, 0xFFB05A00, false);
+                g.text(this.font, claim, rx - 6 - this.font.width(claim), y, 0xFFB05A00, false);
             } else if (!done) {
                 String prog = q.goal().progress(data);
                 if (!prog.isEmpty()) {
-                    g.drawString(this.font, prog, rx - 6 - this.font.width(prog), y, GuiStyle.TEXT_HINT, false);
+                    g.text(this.font, prog, rx - 6 - this.font.width(prog), y, GuiStyle.TEXT_HINT, false);
                 }
             }
             boolean hov = mouseX >= left + 8 && mouseX < left + W - 8 && mouseY >= y - 2 && mouseY < y + 12
@@ -423,17 +422,17 @@ public class JournalScreen extends Screen {
         lastCatH = (y + scroll) - contentTop;
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
-        if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
+        if (tooltip != null) g.setComponentTooltipForNextFrame(this.font, tooltip, mouseX, mouseY);
     }
 
     // ---- SKILLS tab (§skills) ----
 
     private int anglerLevel() {
-        return JournalData.levelForXp(data.getLong(JournalData.XP));
+        return JournalData.levelForXp(data.getLongOr(JournalData.XP, 0L));
     }
 
     private int skillRank(com.riverfishing.fishing.AnglerSkills.Perk p) {
-        return data.getCompound("skills").getInt(p.id) + spentNow.getOrDefault(p.id, 0);
+        return data.getCompoundOrEmpty("skills").getIntOr(p.id, 0) + spentNow.getOrDefault(p.id, 0);
     }
 
     private int availablePts() {
@@ -450,10 +449,10 @@ public class JournalScreen extends Screen {
         };
     }
 
-    private void renderSkills(GuiGraphics g, int mouseX, int mouseY) {
+    private void renderSkills(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         var perks = com.riverfishing.fishing.AnglerSkills.Perk.values();
         int avail = availablePts();
-        g.drawString(this.font, Component.translatable("journal.riverfishing.skill_points", avail),
+        g.text(this.font, Component.translatable("journal.riverfishing.skill_points", avail),
                 left + 10, top + 24, avail > 0 ? 0xFF3FA34A : GuiStyle.TEXT_HINT, false);
 
         int contentTop = top + 38, contentBottom = top + H - 6;
@@ -468,11 +467,11 @@ public class JournalScreen extends Screen {
             boolean canBuy = avail > 0 && !maxed;
 
             // branch label
-            g.drawString(this.font, Component.translatable("skill.riverfishing.branch." + p.branch),
+            g.text(this.font, Component.translatable("skill.riverfishing.branch." + p.branch),
                     left + 10, y, 0xFFB0842C, false);
             y += 11;
             // name + current bonus
-            g.drawString(this.font, Component.translatable("skill.riverfishing." + p.id)
+            g.text(this.font, Component.translatable("skill.riverfishing." + p.id)
                     .append(Component.literal("  " + skillBonus(p, rank))
                             .withStyle(rank > 0 ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY)),
                     left + 12, y, GuiStyle.TEXT, false);
@@ -489,7 +488,7 @@ public class JournalScreen extends Screen {
             String descKey = "skill.riverfishing." + p.id + ".desc";
             for (net.minecraft.util.FormattedCharSequence seq
                     : this.font.split(Component.translatable(descKey), W - 60)) {
-                g.drawString(this.font, seq, left + 12, y, GuiStyle.TEXT_HINT, false);
+                g.text(this.font, seq, left + 12, y, GuiStyle.TEXT_HINT, false);
                 y += 10;
             }
             // "+" buy button
@@ -500,10 +499,10 @@ public class JournalScreen extends Screen {
                 boolean hov = mouseX >= bx && mouseX < bx + 12 && mouseY >= by && mouseY < by + 12;
                 g.fill(bx, by, bx + 12, by + 12, hov ? 0xFF57C063 : 0xFF3FA34A);
                 g.fill(bx + 1, by + 1, bx + 11, by + 11, hov ? 0xFF6FD07B : 0xFF4FB459);
-                g.drawCenteredString(this.font, "+", bx + 6, by + 2, 0xFFFFFFFF);
+                g.centeredText(this.font, "+", bx + 6, by + 2, 0xFFFFFFFF);
                 skillRects[i][0] = bx; skillRects[i][1] = by; skillRects[i][2] = bx + 12; skillRects[i][3] = by + 12;
             } else if (maxed) {
-                g.drawString(this.font, Component.translatable("skill.riverfishing.maxed")
+                g.text(this.font, Component.translatable("skill.riverfishing.maxed")
                         .withStyle(ChatFormatting.DARK_GREEN), left + W - 20 - this.font.width(
                                 Component.translatable("skill.riverfishing.maxed")), by + 2, GuiStyle.GHOST, false);
             }
@@ -512,10 +511,10 @@ public class JournalScreen extends Screen {
         lastCatH = (y + scroll) - contentTop;
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
-        if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
+        if (tooltip != null) g.setComponentTooltipForNextFrame(this.font, tooltip, mouseX, mouseY);
     }
 
-    private void renderScrollbar(GuiGraphics g, int contentTop, int contentBottom) {
+    private void renderScrollbar(GuiGraphicsExtractor g, int contentTop, int contentBottom) {
         int visibleH = contentBottom - contentTop;
         int maxScroll = Math.max(0, lastCatH - visibleH);
         if (maxScroll <= 0) return;
@@ -526,25 +525,25 @@ public class JournalScreen extends Screen {
         g.fill(tx, knobY, tx + 2, knobY + knobH, 0xFF8A6E3C);
     }
 
-    private void drawIllustration(GuiGraphics g, String sp, int bx, int by, int bw, int bh) {
+    private void drawIllustration(GuiGraphicsExtractor g, String sp, int bx, int by, int bw, int bh) {
         g.fill(bx - 3, by - 3, bx + bw + 3, by + bh + 3, GuiStyle.PANEL_EDGE);
         g.fill(bx - 2, by - 2, bx + bw + 2, by + bh + 2, GuiStyle.TITLE_BAR);
         g.fill(bx - 1, by - 1, bx + bw + 1, by + bh + 1, 0xFF2B2016);
-        ResourceLocation tex = RiverFishing.id("textures/gui/journal/fish/" + sp + ".png");
+        Identifier tex = RiverFishing.id("textures/gui/journal/fish/" + sp + ".png");
         if (Minecraft.getInstance().getResourceManager().getResource(tex).isPresent()) {
-            g.blit(tex, bx, by, bw, bh, 0f, 0f, 16, 16, 16, 16);
+            g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, tex, bx, by, 0f, 0f, bw, bh, 16, 16, 16, 16);
         } else {
             g.fill(bx, by, bx + bw, by + bh, 0xFF223038);
             int isz = 64;
-            g.blit(fishTex(sp), bx + (bw - isz) / 2, by + (bh - isz) / 2 - 6, isz, isz, 0f, 0f, 16, 16, 16, 16);
+            g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, fishTex(sp), bx + (bw - isz) / 2, by + (bh - isz) / 2 - 6, 0f, 0f, isz, isz, 16, 16, 16, 16);
             Component hint = Component.translatable("journal.riverfishing.no_illustration");
-            g.drawString(this.font, hint, bx + (bw - this.font.width(hint)) / 2, by + bh - 14, GuiStyle.GHOST, false);
+            g.text(this.font, hint, bx + (bw - this.font.width(hint)) / 2, by + bh - 14, GuiStyle.GHOST, false);
         }
     }
 
     // ---- BAIT / GEAR: scrolling sectioned catalog ----
 
-    private void renderCatalog(GuiGraphics g, List<Cat> list, int mouseX, int mouseY) {
+    private void renderCatalog(GuiGraphicsExtractor g, List<Cat> list, int mouseX, int mouseY) {
         int contentTop = top + 38, contentBottom = top + H - 6;
         int visibleH = contentBottom - contentTop;
         scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - visibleH));
@@ -560,17 +559,17 @@ public class JournalScreen extends Screen {
                 if (col != 0) { y += ROW_H; col = 0; }
                 if (i != 0) y += 3;
                 section = e.kind();
-                g.drawString(this.font, Component.translatable(sectionKey(section)), left + 10, y, 0xFFB0842C, false);
+                g.text(this.font, Component.translatable(sectionKey(section)), left + 10, y, 0xFFB0842C, false);
                 y += 12;
             }
             int x = left + 10 + col * COL_W;
             catRects[i][0] = x;
             catRects[i][1] = y;
-            g.renderItem(e.stack(), x, y);
+            g.item(e.stack(), x, y);
             String name = this.font.plainSubstrByWidth(e.stack().getHoverName().getString(), COL_W - 24);
             boolean hov = mouseX >= x && mouseX < x + COL_W - 8 && mouseY >= y && mouseY < y + ROW_H - 1
                     && mouseY >= contentTop && mouseY < contentBottom;
-            g.drawString(this.font, name, x + 20, y + 4, hov ? 0xFFB8860B : GuiStyle.TEXT, false);
+            g.text(this.font, name, x + 20, y + 4, hov ? 0xFFB8860B : GuiStyle.TEXT, false);
             if (hov) tooltip = catTooltip(e);
             if (++col >= COLS) { col = 0; y += ROW_H; }
         }
@@ -586,21 +585,21 @@ public class JournalScreen extends Screen {
             g.fill(tx, contentTop, tx + 2, contentBottom, 0x40000000);
             g.fill(tx, knobY, tx + 2, knobY + knobH, 0xFF8A6E3C);
         }
-        if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
+        if (tooltip != null) g.setComponentTooltipForNextFrame(this.font, tooltip, mouseX, mouseY);
     }
 
-    private void renderCatDetail(GuiGraphics g, Cat e) {
-        g.renderItem(e.stack(), left + 10, top + 22);
-        g.drawString(this.font, e.stack().getHoverName(), left + 30, top + 26, GuiStyle.TEXT, false);
-        g.drawString(this.font, Component.translatable(kindKey(e.kind())), left + 10, top + 44,
+    private void renderCatDetail(GuiGraphicsExtractor g, Cat e) {
+        g.item(e.stack(), left + 10, top + 22);
+        g.text(this.font, e.stack().getHoverName(), left + 30, top + 26, GuiStyle.TEXT, false);
+        g.text(this.font, Component.translatable(kindKey(e.kind())), left + 10, top + 44,
                 GuiStyle.TEXT_HINT, false);
 
         float s = 5f;
-        g.pose().pushPose();
-        g.pose().translate(left + W / 2f - 8 * s, top + 60, 0);
-        g.pose().scale(s, s, s);
-        g.renderItem(e.stack(), 0, 0);
-        g.pose().popPose();
+        g.pose().pushMatrix();
+        g.pose().translate(left + W / 2f - 8 * s, top + 60);
+        g.pose().scale(s, s);
+        g.item(e.stack(), 0, 0);
+        g.pose().popMatrix();
 
         // §bait-desc: an optional flavour line for a bait/lure (e.g. the ice jig), shown under the big icon.
         if (isBait(e.kind())) {
@@ -608,7 +607,7 @@ public class JournalScreen extends Screen {
             if (I18n.exists(bk)) {
                 int dy = top + 104;
                 for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.translatable(bk), W - 20)) {
-                    g.drawString(this.font, seq, left + 10, dy, GuiStyle.TEXT_HINT, false);
+                    g.text(this.font, seq, left + 10, dy, GuiStyle.TEXT_HINT, false);
                     dy += 10;
                 }
             }
@@ -623,18 +622,18 @@ public class JournalScreen extends Screen {
 
         if (isBait(e.kind())) {
             boolean gb = e.kind() == Kind.GROUNDBAIT;
-            g.drawString(this.font, Component.translatable(gb
+            g.text(this.font, Component.translatable(gb
                     ? "journal.riverfishing.bait_attracts" : "journal.riverfishing.bait_catches"),
                     left + 10, y, GuiStyle.TEXT_HINT, false);
             y += 12;
             List<String> fish = fishFor(e, 12);
             String list = fish.isEmpty() ? "—" : String.join(", ", fish);
             for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.literal(list), W - 20)) {
-                g.drawString(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
+                g.text(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
                 y += 11;
             }
         }
-        g.drawString(this.font, Component.translatable("guide.riverfishing.back"),
+        g.text(this.font, Component.translatable("guide.riverfishing.back"),
                 left + 10, top + H - 14, GuiStyle.GHOST, false);
     }
 
@@ -643,7 +642,7 @@ public class JournalScreen extends Screen {
      * the reel band + line window; reels list the rods they fit + the thickest line they spool; lines list
      * the smallest reel that can hold them.
      */
-    private int compatLines(GuiGraphics g, int y, Cat e) {
+    private int compatLines(GuiGraphicsExtractor g, int y, Cat e) {
         Item it = e.stack().getItem();
         if (it instanceof RodItem rod) {
             var rt = rod.rodType();
@@ -672,21 +671,21 @@ public class JournalScreen extends Screen {
     }
 
     /** "How to get": the crafting recipe's ingredients when one exists, else a generic hint. */
-    private int obtainRender(GuiGraphics g, int y, ItemStack stack) {
+    private int obtainRender(GuiGraphicsExtractor g, int y, ItemStack stack) {
         List<String> ings = craftIngredients(stack);
         if (!ings.isEmpty()) {
-            g.drawString(this.font, Component.translatable("journal.riverfishing.obtain_craft"),
+            g.text(this.font, Component.translatable("journal.riverfishing.obtain_craft"),
                     left + 10, y, GuiStyle.TEXT_HINT, false);
             y += 12;
             for (net.minecraft.util.FormattedCharSequence seq
                     : this.font.split(Component.literal(String.join(", ", ings)), W - 20)) {
-                g.drawString(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
+                g.text(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
                 y += 11;
             }
         } else {
             for (net.minecraft.util.FormattedCharSequence seq
                     : this.font.split(Component.translatable("journal.riverfishing.obtain_other"), W - 20)) {
-                g.drawString(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
+                g.text(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
                 y += 11;
             }
         }
@@ -739,27 +738,40 @@ public class JournalScreen extends Screen {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return List.of();
         // §oilcake-info: the oil cake is a CUSTOM recipe (no listed ingredients) — spell it out by hand.
-        ResourceLocation itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
+        Identifier itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (itemId != null && itemId.getPath().equals("groundbait_cake")) {
             return List.of(
                     new ItemStack(net.minecraft.world.item.Items.SUNFLOWER).getHoverName().getString(),
                     new ItemStack(net.minecraft.world.item.Items.PISTON).getHoverName().getString());
         }
-        for (net.minecraft.world.item.crafting.RecipeHolder<?> holder : mc.level.getRecipeManager().getRecipes()) {
+        // §26.1: recipes are server-side only now (the client gets display-book data, not Recipe objects).
+        // In singleplayer read the integrated server's manager; on a remote server the hint is just omitted.
+        var server = mc.getSingleplayerServer();
+        if (server == null) return List.of();
+        for (net.minecraft.world.item.crafting.RecipeHolder<?> holder : server.getRecipeManager().getRecipes()) {
             ItemStack res;
             try {
-                res = holder.value().getResultItem(mc.level.registryAccess());
+                // Shaped/shapeless assemble() ignores the input and returns the result copy; customs throw
+                // or mismatch and get skipped, same as the old getResultItem try-catch did.
+                res = holder.value() instanceof net.minecraft.world.item.crafting.CraftingRecipe cr
+                        ? cr.assemble(net.minecraft.world.item.crafting.CraftingInput.EMPTY)
+                        : ItemStack.EMPTY;
             } catch (Throwable ignored) {
                 continue;
             }
             if (res == null || res.isEmpty() || res.getItem() != stack.getItem()) continue;
-            NonNullList<Ingredient> ings = holder.value().getIngredients();
+            List<Ingredient> ings;
+            try {
+                ings = holder.value().placementInfo().ingredients();
+            } catch (Throwable ignored) {
+                continue;
+            }
             if (ings.isEmpty()) continue;
             LinkedHashSet<String> names = new LinkedHashSet<>();
             for (Ingredient ing : ings) {
                 if (ing.isEmpty()) continue;
-                ItemStack[] arr = ing.getItems();
-                if (arr.length > 0) names.add(arr[0].getHoverName().getString());
+                var first = ing.items().findFirst();
+                first.ifPresent(h -> names.add(new ItemStack(h.value()).getHoverName().getString()));
             }
             if (!names.isEmpty()) return new ArrayList<>(names);
         }
@@ -789,22 +801,22 @@ public class JournalScreen extends Screen {
 
     // ---- shared helpers ----
 
-    private static ResourceLocation fishTex(String sp) {
+    private static Identifier fishTex(String sp) {
         return RiverFishing.id("textures/item/fish/" + sp + ".png");
     }
 
     /** Fish are builtin/entity items whose BEWLR the GUI shades dark; blit the texture directly instead. */
-    private void drawFishIcon(GuiGraphics g, String sp, int x, int y) {
-        g.blit(fishTex(sp), x, y, 16, 16, 0f, 0f, 16, 16, 16, 16);
+    private void drawFishIcon(GuiGraphicsExtractor g, String sp, int x, int y) {
+        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, fishTex(sp), x, y, 0f, 0f, 16, 16, 16, 16, 16, 16);
     }
 
-    private int line(GuiGraphics g, int y, String labelKey, String value) {
+    private int line(GuiGraphicsExtractor g, int y, String labelKey, String value) {
         Component label = Component.translatable(labelKey);
-        g.drawString(this.font, label, left + 10, y, GuiStyle.TEXT_HINT, false);
+        g.text(this.font, label, left + 10, y, GuiStyle.TEXT_HINT, false);
         int vx = left + 14 + this.font.width(label);
         for (net.minecraft.util.FormattedCharSequence seq
                 : this.font.split(Component.literal(value.isEmpty() ? "—" : value), W - (vx - left) - 10)) {
-            g.drawString(this.font, seq, vx, y, GuiStyle.TEXT, false);
+            g.text(this.font, seq, vx, y, GuiStyle.TEXT, false);
             y += 11;
         }
         return y + 2;
@@ -868,11 +880,11 @@ public class JournalScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
         // §journal-scale: hit-test in journal space (the panel is drawn scaled around the screen centre).
-        mouseX = toJournalX(mouseX);
-        mouseY = toJournalY(mouseY);
-        if (button == 0) {
+        double mouseX = toJournalX(event.x());
+        double mouseY = toJournalY(event.y());
+        if (event.button() == 0) {
             for (int i = 0; i < TAB_KEYS.length; i++) {
                 int x = tabX(i), w = tabW(i);
                 if (mouseX >= x && mouseX < x + w && mouseY >= top + 3 && mouseY < top + 18) {
@@ -936,7 +948,7 @@ public class JournalScreen extends Screen {
                 }
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     private static String key(String species) {

@@ -18,7 +18,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -125,7 +125,7 @@ public class RodPodBlockEntity extends BlockEntity {
 
     public InteractionResult onUse(Player player, InteractionHand hand) {
         if (!(player instanceof ServerPlayer sp)) return InteractionResult.CONSUME;
-        ServerLevel level = sp.serverLevel();
+        ServerLevel level = sp.level();
         long now = level.getGameTime();
         ItemStack held = sp.getItemInHand(hand);
 
@@ -309,7 +309,7 @@ public class RodPodBlockEntity extends BlockEntity {
     }
 
     private void actionbar(ServerPlayer sp, String key, ChatFormatting color) {
-        sp.displayClientMessage(Component.translatable(key).withStyle(color), true);
+        sp.sendOverlayMessage(Component.translatable(key).withStyle(color));
     }
 
     // ---- drops on break ----
@@ -329,13 +329,28 @@ public class RodPodBlockEntity extends BlockEntity {
         return drops;
     }
 
+    // §26.1: the block's onRemove hook is gone — the BE pops its own docked rods/alarms on removal.
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (level != null && !level.isClientSide()) {
+            for (ItemStack rod : getRodsForDrop()) {
+                if (!rod.isEmpty()) net.minecraft.world.level.block.Block.popResource(level, pos, rod);
+            }
+            for (ItemStack alarm : getAlarmsForDrop()) {
+                net.minecraft.world.level.block.Block.popResource(level, pos, alarm);
+            }
+            for (int i = 0; i < rods.size(); i++) rods.set(i, ItemStack.EMPTY); // don't double-drop
+        }
+        super.preRemoveSideEffects(pos, state);
+    }
+
     // ---- persistence ----
 
     @Override
-    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        ContainerHelper.saveAllItems(tag, rods, registries);
-        ListTag list = new ListTag();
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
+        ContainerHelper.saveAllItems(tag, rods);
+        java.util.List<CompoundTag> list = new java.util.ArrayList<>();
         for (int i = 0; i < lines.length; i++) {
             if (lines[i] != null) {
                 CompoundTag c = lines[i].toNbt();
@@ -343,7 +358,7 @@ public class RodPodBlockEntity extends BlockEntity {
                 list.add(c);
             }
         }
-        tag.put("Lines", list);
+        tag.store("Lines", CompoundTag.CODEC.listOf(), list);
         int[] alarmOrds = new int[slotCount];
         for (int i = 0; i < slotCount; i++) {
             alarmOrds[i] = alarmAt(i).ordinal();
@@ -352,22 +367,20 @@ public class RodPodBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
         this.rods = NonNullList.withSize(slotCount, ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(tag, rods, registries);
+        ContainerHelper.loadAllItems(tag, rods);
         this.lines = new PodLine[slotCount];
-        ListTag list = tag.getList("Lines", Tag.TAG_COMPOUND);
-        for (int i = 0; i < list.size(); i++) {
-            CompoundTag c = list.getCompound(i);
-            int slot = c.getInt("Slot");
+        for (CompoundTag c : tag.read("Lines", CompoundTag.CODEC.listOf()).orElse(java.util.List.of())) {
+            int slot = c.getIntOr("Slot", 0);
             if (slot >= 0 && slot < slotCount) {
                 lines[slot] = PodLine.fromNbt(c);
             }
         }
         this.alarms = new AlarmType[slotCount];
         Arrays.fill(this.alarms, AlarmType.NONE);
-        int[] alarmOrds = tag.getIntArray("Alarms");
+        int[] alarmOrds = tag.getIntArray("Alarms").orElse(new int[0]);
         AlarmType[] all = AlarmType.values();
         for (int i = 0; i < slotCount && i < alarmOrds.length; i++) {
             int ord = alarmOrds[i];
@@ -378,16 +391,14 @@ public class RodPodBlockEntity extends BlockEntity {
     /** Mark dirty and push a block update so the client renderer sees docked rods change. */
     private void sync() {
         setChanged();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
     }
 
     @Override
     public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        saveAdditional(tag, registries);
-        return tag;
+        return saveCustomOnly(registries);
     }
 
     @Nullable
@@ -401,7 +412,7 @@ public class RodPodBlockEntity extends BlockEntity {
     /** A cast line resting on the pod. */
     private static final class PodLine {
         BlockPos target;
-        ResourceLocation species;
+        Identifier species;
         long biteAtTick;
         boolean bitten;
         boolean phantom;
@@ -446,23 +457,23 @@ public class RodPodBlockEntity extends BlockEntity {
 
         static PodLine fromNbt(CompoundTag c) {
             PodLine line = new PodLine();
-            line.target = BlockPos.of(c.getLong("Target"));
-            line.species = ResourceLocation.tryParse(c.getString("Species"));
-            line.biteAtTick = c.getLong("BiteAt");
-            line.bitten = c.getBoolean("Bitten");
-            line.phantom = c.getBoolean("Phantom");
-            line.selfHooked = c.getBoolean("SelfHooked");
-            line.windowEnd = c.getLong("WindowEnd");
-            line.lineStrainKg = c.getDouble("Strain");
-            line.dragKg = c.getDouble("Drag");
-            line.hasLeader = c.getBoolean("Leader");
+            line.target = BlockPos.of(c.getLongOr("Target", 0L));
+            line.species = Identifier.tryParse(c.getStringOr("Species", ""));
+            line.biteAtTick = c.getLongOr("BiteAt", 0L);
+            line.bitten = c.getBooleanOr("Bitten", false);
+            line.phantom = c.getBooleanOr("Phantom", false);
+            line.selfHooked = c.getBooleanOr("SelfHooked", false);
+            line.windowEnd = c.getLongOr("WindowEnd", 0L);
+            line.lineStrainKg = c.getDoubleOr("Strain", 0d);
+            line.dragKg = c.getDoubleOr("Drag", 0d);
+            line.hasLeader = c.getBooleanOr("Leader", false);
             if (c.contains("Rig")) {
                 try {
-                    line.rigType = RigType.valueOf(c.getString("Rig"));
+                    line.rigType = RigType.valueOf(c.getStringOr("Rig", ""));
                 } catch (IllegalArgumentException ignored) {
                 }
             }
-            line.active = !c.contains("Active") || c.getBoolean("Active");
+            line.active = !c.contains("Active") || c.getBooleanOr("Active", false);
             return line;
         }
     }

@@ -1,14 +1,45 @@
+def mcVersion = stonecutter.current.version
+// §26.x-unobf: 26.1+ ships REAL names (no mappings, no remapping) — apply the no-remap loom variant.
+def unobf = stonecutter.eval(mcVersion, ">=26.1")
+apply plugin: (unobf ? "dev.architectury.loom-no-remap" : "dev.architectury.loom")
+apply plugin: "architectury-plugin"
+
+base { archivesName = "${rootProject.archives_base_name}-common" }
+version = "${rootProject.mod_version}+${mcVersion}"
+group = rootProject.maven_group
+
 architectury {
     common rootProject.enabled_platforms.split(",")
+    minecraft = mcVersion
+}
+
+repositories {
+    maven { url "https://maven.architectury.dev/" }
+    maven { url "https://maven.fabricmc.net/" }
+    maven { url "https://maven.neoforged.net/releases/" }
 }
 
 dependencies {
-    // We depend on Fabric Loader here to use the Fabric @Environment annotations and get the mixin
-    // dependencies. Do NOT use other Fabric APIs directly from common — go through the platform layer.
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modApi "dev.architectury:architectury:${rootProject.architectury_api_version}"
-
-    // §multiloader: javax.annotation.Nullable came transitively from Forge in the single-project build;
-    // the multiloader common classpath has no JSR-305, so pull it in (compile-time annotations only).
+    minecraft "com.mojang:minecraft:${mcVersion}"
+    if (!unobf) {
+        mappings loom.officialMojangMappings()
+    }
+    // Fabric Loader for @Environment + mixin deps (do NOT use other Fabric APIs from common).
+    // §26.x-unobf: no remapping → mod deps are plain deps (modImplementation/modApi don't apply).
+    add(unobf ? "implementation" : "modImplementation", "net.fabricmc:fabric-loader:${project.property('fabric_loader_version')}")
+    add(unobf ? "api" : "modApi", "dev.architectury:architectury:${project.property('architectury_api_version')}")
+    // §multiloader: JSR-305 @Nullable (no longer transitive without Forge on the common classpath).
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+}
+
+java {
+    withSourcesJar()
+    def jv = JavaVersion.toVersion(project.property("java_version") as int)
+    sourceCompatibility = jv
+    targetCompatibility = jv
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = project.property("java_version") as int
 }

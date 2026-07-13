@@ -6,8 +6,10 @@
     "PPP"
   ],
   "key": {
-    "P": { "tag": "minecraft:planks" },
-    "D": { "item": "minecraft:dirt" }
+    "P": "#minecraft:planks",
+    "D": "minecraft:dirt"
   },
-  "result": { "id": "riverfishing:worm_farm" }
+  "result": {
+    "id": "riverfishing:worm_farm"
+  }
 }

@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.Nullable;
@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
  * BlockEntity + fish); the other three are parts that place/break together with it.
  */
 public class AquariumBlock extends BaseEntityBlock {
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     /** false = left cell, true = right cell (along the width axis = FACING clockwise). */
     public static final BooleanProperty RIGHT = BooleanProperty.create("right");
     /** false = wooden base (bottom), true = glass tank (top). */
@@ -84,7 +84,7 @@ public class AquariumBlock extends BaseEntityBlock {
         // Need the three extra cells free (the clicked one is already known replaceable).
         BlockPos[] extra = { base.relative(cw), base.above(), base.above().relative(cw) };
         for (BlockPos p : extra) {
-            if (p.getY() > level.getMaxBuildHeight() || !level.getBlockState(p).canBeReplaced()) {
+            if (p.getY() > level.getMaxY() || !level.getBlockState(p).canBeReplaced()) {
                 return null; // not enough room — placement fails
             }
         }
@@ -93,7 +93,7 @@ public class AquariumBlock extends BaseEntityBlock {
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
         Direction facing = state.getValue(FACING);
         Direction cw = facing.getClockWise();
         BlockState part = defaultBlockState().setValue(FACING, facing);
@@ -110,7 +110,7 @@ public class AquariumBlock extends BaseEntityBlock {
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         // Break the OTHER three cells without drops so only the struck cell drops the aquarium once.
-        if (!level.isClientSide && !player.isCreative()) {
+        if (!level.isClientSide() && !player.isCreative()) {
             BlockPos master = masterPos(pos, state);
             for (BlockPos p : cells(master, state.getValue(FACING))) {
                 if (p.equals(pos)) continue;
@@ -124,30 +124,26 @@ public class AquariumBlock extends BaseEntityBlock {
         return super.playerWillDestroy(level, pos, state, player);
     }
 
+    // §26.1: onRemove is gone — the fish pop from AquariumBlockEntity#preRemoveSideEffects, and the
+    // multiblock teardown (piston/explosion — nothing may float) moved to this replacement hook.
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
-        if (!state.is(newState.getBlock())) {
-            // Pop every mounted fish from the master cell.
-            if (isMaster(state) && level.getBlockEntity(pos) instanceof AquariumBlockEntity be) {
-                for (ItemStack f : be.getFishes()) popResource(level, pos, f);
+    protected void affectNeighborsAfterRemoval(BlockState state, net.minecraft.server.level.ServerLevel level,
+                                               BlockPos pos, boolean moved) {
+        BlockPos master = masterPos(pos, state);
+        for (BlockPos p : cells(master, state.getValue(FACING))) {
+            if (!p.equals(pos) && level.getBlockState(p).getBlock() == this) {
+                level.setBlock(p, Blocks.AIR.defaultBlockState(), 35);
             }
-            // Non-player removal (piston/explosion): drag the other cells out so nothing floats.
-            BlockPos master = masterPos(pos, state);
-            for (BlockPos p : cells(master, state.getValue(FACING))) {
-                if (!p.equals(pos) && level.getBlockState(p).getBlock() == this) {
-                    level.setBlock(p, Blocks.AIR.defaultBlockState(), 35);
-                }
-            }
-            super.onRemove(state, level, pos, newState, moved);
         }
+        super.affectNeighborsAfterRemoval(state, level, pos, moved);
     }
 
     @Override
-    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
+        if (level.isClientSide()) return net.minecraft.world.InteractionResult.SUCCESS;
         BlockPos master = masterPos(pos, state);
-        if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
 
         ItemStack held = player.getItemInHand(hand);
         // Add a fish (up to 3) when holding one and there's room.
@@ -156,7 +152,7 @@ public class AquariumBlock extends BaseEntityBlock {
                 held.shrink(1);
                 level.playSound(null, master, net.minecraft.sounds.SoundEvents.BUCKET_EMPTY_FISH,
                         net.minecraft.sounds.SoundSource.BLOCKS, 0.7f, 1.1f);
-                return net.minecraft.world.ItemInteractionResult.CONSUME;
+                return net.minecraft.world.InteractionResult.CONSUME;
             }
         }
         // Empty hand takes the last fish back out.
@@ -165,9 +161,9 @@ public class AquariumBlock extends BaseEntityBlock {
             if (!fish.isEmpty() && !player.getInventory().add(fish)) player.drop(fish, false);
             level.playSound(null, master, net.minecraft.sounds.SoundEvents.BUCKET_FILL_FISH,
                     net.minecraft.sounds.SoundSource.BLOCKS, 0.7f, 1.0f);
-            return net.minecraft.world.ItemInteractionResult.CONSUME;
+            return net.minecraft.world.InteractionResult.CONSUME;
         }
-        return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override

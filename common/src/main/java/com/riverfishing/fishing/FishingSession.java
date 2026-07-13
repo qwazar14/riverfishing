@@ -3,7 +3,7 @@ package com.riverfishing.fishing;
 import com.riverfishing.component.RigType;
 import com.riverfishing.component.RodClass;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.world.InteractionHand;
 
@@ -11,7 +11,7 @@ import net.minecraft.world.InteractionHand;
 public class FishingSession {
     public final InteractionHand hand;
     public final BlockPos target;
-    public final ResourceLocation species;
+    public final Identifier species;
     public final RodClass rodClass;
 
     /** Engine's sampled time-to-bite, in ticks. */
@@ -98,7 +98,7 @@ public class FishingSession {
     public long pullWindowEnd;
 
     public FishingSession(InteractionHand hand, BlockPos target, RodClass rodClass,
-                          long biteDelay, long biteAtTick, ResourceLocation species) {
+                          long biteDelay, long biteAtTick, Identifier species) {
         this.hand = hand;
         this.target = target;
         this.rodClass = rodClass;

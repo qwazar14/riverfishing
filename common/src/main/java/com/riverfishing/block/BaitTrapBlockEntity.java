@@ -74,11 +74,11 @@ public class BaitTrapBlockEntity extends BlockEntity {
 
     void collect(Player player) {
         if (stored <= 0) {
-            player.displayClientMessage(Component.translatable("message.riverfishing.trap_empty")
-                    .withStyle(ChatFormatting.GRAY), true);
+            player.sendOverlayMessage(Component.translatable("message.riverfishing.trap_empty")
+                    .withStyle(ChatFormatting.GRAY));
             return;
         }
-        var livebait = BuiltInRegistries.ITEM.get(com.riverfishing.RiverFishing.id("livebait"));
+        var livebait = BuiltInRegistries.ITEM.getValue(com.riverfishing.RiverFishing.id("livebait"));
         if (livebait != null) {
             ItemStack out = new ItemStack(livebait, stored);
             if (!player.getInventory().add(out)) {
@@ -93,18 +93,18 @@ public class BaitTrapBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
         tag.putInt("Stored", stored);
         tag.putInt("Progress", progress);
         tag.putInt("NextAt", nextAt);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        stored = tag.getInt("Stored");
-        progress = tag.getInt("Progress");
-        nextAt = tag.contains("NextAt") ? tag.getInt("NextAt") : -1;
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        stored = tag.getIntOr("Stored", 0);
+        progress = tag.getIntOr("Progress", 0);
+        nextAt = tag.getInt("NextAt").orElse(-1);
     }
 }

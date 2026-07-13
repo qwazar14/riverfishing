@@ -1,10 +1,8 @@
 package com.riverfishing.item;
 
 import com.riverfishing.RiverFishing;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -16,10 +14,6 @@ import net.minecraft.world.level.Level;
  */
 public class LivebaitRecipe extends CustomRecipe {
     public static final int MAX_WEIGHT_G = 100;
-
-    public LivebaitRecipe(CraftingBookCategory category) {
-        super(category);
-    }
 
     @Override
     public boolean matches(CraftingInput input, Level level) {
@@ -36,18 +30,13 @@ public class LivebaitRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
-        var livebait = BuiltInRegistries.ITEM.get(RiverFishing.id("livebait"));
+    public ItemStack assemble(CraftingInput input) {
+        var livebait = BuiltInRegistries.ITEM.getValue(RiverFishing.id("livebait"));
         return livebait == null ? ItemStack.EMPTY : new ItemStack(livebait);
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width * height >= 1;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<LivebaitRecipe> getSerializer() {
         return com.riverfishing.registry.ModRecipes.LIVEBAIT.get();
     }
 }

@@ -4,7 +4,7 @@ import com.riverfishing.RiverFishing;
 import dev.architectury.utils.EnvExecutor;
 import net.fabricmc.api.EnvType;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Server → client: a strike-timing mini-game has started (or ended). The client renders the runner bar

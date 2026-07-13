@@ -30,23 +30,75 @@ public final class RodData {
     public static ItemStack get(ItemStack rod, ComponentSlot slot) {
         CompoundTag tag = StackNbt.get(rod);
         if (!tag.contains(ROOT)) return ItemStack.EMPTY;
-        CompoundTag root = tag.getCompound(ROOT);
+        CompoundTag root = tag.getCompoundOrEmpty(ROOT);
         String k = key(slot);
         if (!root.contains(k)) return ItemStack.EMPTY;
-        return ItemStack.parseOptional(com.riverfishing.util.RegistryHelper.provider(), root.getCompound(k));
+        return com.riverfishing.util.RegistryHelper.loadStack(root.getCompoundOrEmpty(k));
     }
 
     public static void set(ItemStack rod, ComponentSlot slot, ItemStack component) {
         StackNbt.mutate(rod, tag -> {
-            CompoundTag root = tag.getCompound(ROOT);
+            CompoundTag root = tag.getCompoundOrEmpty(ROOT);
             String k = key(slot);
             if (component.isEmpty()) {
                 root.remove(k);
             } else {
-                root.put(k, component.save(com.riverfishing.util.RegistryHelper.provider(), new CompoundTag()));
+                root.put(k, com.riverfishing.util.RegistryHelper.saveStack(component));
             }
             tag.put(ROOT, root);
         });
+        refreshIconLayers(rod);
+    }
+
+    /**
+     * §26.1 §rod-layers: the composited rod icon is data-driven now — the client item definition
+     * SELECTs overlay layers on custom_model_data STRINGS (0 = reel sprite, 1 = line type,
+     * 2 = rig sprite). Kept in sync here on every component change (26.1 has no item-model
+     * condition that can look inside custom_data).
+     */
+    public static void refreshIconLayers(ItemStack rod) {
+        String reel = "", line = "", rig = "";
+        if (get(rod, ComponentSlot.REEL).getItem() instanceof ReelItem ri) {
+            reel = "reel_" + ri.size();
+        }
+        if (get(rod, ComponentSlot.LINE).getItem() instanceof LineItem li) {
+            line = li.lineType().jsonKey();
+        }
+        if (get(rod, ComponentSlot.RIG).getItem() instanceof RigItem gi) {
+            rig = rigSprite(gi.rigType());
+        }
+        rod.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
+                new net.minecraft.world.item.component.CustomModelData(
+                        java.util.List.of(), java.util.List.of(lineOut(rod)),
+                        java.util.List.of(reel, line, rig), java.util.List.of()));
+    }
+
+    /**
+     * §rod-layers: FLAG 0 = the line is cast/out — the in-hand icon hides the line+rig overlays then
+     * (the 3D line + bobber represents them, exactly like the old BEWLR did). Set by FishingManager
+     * on cast, cleared when the session ends.
+     */
+    public static void setLineOut(ItemStack rod, boolean out) {
+        var cmd = rod.get(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA);
+        java.util.List<String> strings = cmd != null && cmd.strings().size() >= 3
+                ? cmd.strings() : java.util.List.of("", "", "");
+        rod.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
+                new net.minecraft.world.item.component.CustomModelData(
+                        java.util.List.of(), java.util.List.of(out), strings, java.util.List.of()));
+    }
+
+    private static boolean lineOut(ItemStack rod) {
+        var cmd = rod.get(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA);
+        return cmd != null && !cmd.flags().isEmpty() && Boolean.TRUE.equals(cmd.flags().get(0));
+    }
+
+    /** Overlay sprite for a rig type — float_light/winter have no own glyph, nearest look-alike. */
+    private static String rigSprite(RigType type) {
+        return switch (type.jsonKey()) {
+            case "float_light" -> "rig_float";
+            case "winter" -> "rig_primitive";
+            default -> "rig_" + type.jsonKey();
+        };
     }
 
     /**
@@ -60,7 +112,7 @@ public final class RodData {
 
     /** Float depth setting stored on the ROD ("спуск", §fishing-depth): surface / mid / bottom. */
     public static String getDepth(ItemStack rod) {
-        String d = StackNbt.get(rod).getString("SetDepth");
+        String d = StackNbt.get(rod).getStringOr("SetDepth", "");
         return d.isEmpty() ? "mid" : d;
     }
 
@@ -81,7 +133,7 @@ public final class RodData {
         if (rig.getItem() instanceof com.riverfishing.item.RigItem ri && ri.rigType() == native_) {
             return; // already the native rig — keep its contents
         }
-        Item rigItem = BuiltInRegistries.ITEM.get(RiverFishing.id("rig_" + native_.jsonKey()));
+        Item rigItem = BuiltInRegistries.ITEM.getValue(RiverFishing.id("rig_" + native_.jsonKey()));
         set(rod, ComponentSlot.RIG, rigItem != null ? new ItemStack(rigItem) : ItemStack.EMPTY);
     }
 }

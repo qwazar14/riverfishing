@@ -6,12 +6,14 @@
     "rfl"
   ],
   "key": {
-    "g": { "item": "minecraft:glass_pane" },
-    "i": { "item": "minecraft:iron_ingot" },
-    "b": { "item": "riverfishing:bell_alarm" },
-    "r": { "item": "minecraft:redstone" },
-    "f": { "item": "minecraft:flint" },
-    "l": { "item": "minecraft:lapis_lazuli" }
+    "g": "minecraft:glass_pane",
+    "i": "minecraft:iron_ingot",
+    "b": "riverfishing:bell_alarm",
+    "r": "minecraft:redstone",
+    "f": "minecraft:flint",
+    "l": "minecraft:lapis_lazuli"
   },
-  "result": { "id": "riverfishing:digital_alarm" }
+  "result": {
+    "id": "riverfishing:digital_alarm"
+  }
 }

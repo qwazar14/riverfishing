@@ -45,38 +45,38 @@ public class IceHoleBlock extends IceBlock {
         super.randomTick(state, level, pos, random);
         if (!level.getBlockState(pos).is(this)) return; // melted away this tick
         if (random.nextFloat() < 0.25f
-                && !level.getBiome(pos).value().warmEnoughToRain(pos)
+                && !level.getBiome(pos).value().warmEnoughToRain(pos, level.getSeaLevel())
                 && !level.hasNearbyAlivePlayer(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 4.0)) {
             level.setBlockAndUpdate(pos, Blocks.ICE.defaultBlockState());
         }
     }
 
     @Override
-    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         ItemStack held = player.getItemInHand(hand);
         boolean winterRod = held.getItem() instanceof RodItem rod && rod.rodType() == RodType.WINTER;
         if (!winterRod) {
-            if (!level.isClientSide) {
-                player.displayClientMessage(Component.translatable("message.riverfishing.need_winter_rod")
-                        .withStyle(ChatFormatting.YELLOW), true);
+            if (!level.isClientSide()) {
+                player.sendOverlayMessage(Component.translatable("message.riverfishing.need_winter_rod")
+                        .withStyle(ChatFormatting.YELLOW));
             }
-            return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         if (!RodData.isAssembled(held)) {
-            if (!level.isClientSide) {
-                player.displayClientMessage(Component.translatable("message.riverfishing.not_assembled")
-                        .withStyle(ChatFormatting.RED), true);
+            if (!level.isClientSide()) {
+                player.sendOverlayMessage(Component.translatable("message.riverfishing.not_assembled")
+                        .withStyle(ChatFormatting.RED));
             }
-            return net.minecraft.world.ItemInteractionResult.CONSUME;
+            return net.minecraft.world.InteractionResult.CONSUME;
         }
-        if (!level.isClientSide && player instanceof ServerPlayer sp) {
+        if (!level.isClientSide() && player instanceof ServerPlayer sp) {
             if (FishingManager.hasSession(sp)) {
                 FishingManager.handleRodUse(sp, hand); // already fishing this hole → jig / strike
             } else {
                 FishingManager.startIceFishing(sp, pos, hand);
             }
         }
-        return net.minecraft.world.ItemInteractionResult.sidedSuccess(level.isClientSide);
+        return net.minecraft.world.InteractionResult.SUCCESS;
     }
 }

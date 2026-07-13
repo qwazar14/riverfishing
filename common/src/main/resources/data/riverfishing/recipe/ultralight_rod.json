@@ -1,9 +1,15 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [ "  b", " b ", "i  " ],
+  "pattern": [
+    "  b",
+    " b ",
+    "i  "
+  ],
   "key": {
-    "b": { "item": "minecraft:bamboo" },
-    "i": { "item": "minecraft:iron_ingot" }
+    "b": "minecraft:bamboo",
+    "i": "minecraft:iron_ingot"
   },
-  "result": { "id": "riverfishing:ultralight_rod" }
+  "result": {
+    "id": "riverfishing:ultralight_rod"
+  }
 }

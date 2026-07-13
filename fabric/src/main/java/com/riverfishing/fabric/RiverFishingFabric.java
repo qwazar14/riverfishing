@@ -21,7 +21,7 @@ public final class RiverFishingFabric implements ModInitializer {
         // §fabric-poi: Architectury registers the Fishing-Stall PoiType but not its blockstate→POI mapping
         // (Forge auto-does this), so villagers never claim the job site or take the fisherman profession.
         // Map the stall's states into PoiTypes.TYPE_BY_STATE ourselves now that the registry is bound.
-        Holder<PoiType> poi = BuiltInRegistries.POINT_OF_INTEREST_TYPE.getHolderOrThrow(ModVillagers.FISHERMAN_POI.getKey());
+        Holder<PoiType> poi = BuiltInRegistries.POINT_OF_INTEREST_TYPE.get(ModVillagers.FISHERMAN_POI.getKey()).orElseThrow();
         PoiTypesInvoker.riverfishing$registerBlockStates(poi, poi.value().matchingStates());
     }
 }

@@ -1,0 +1,36 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "riverfishing:item/rod_m/line_braid"
+  },
+  "display": {
+    "thirdperson_righthand": {
+      "translation": [
+        0,
+        0,
+        0.06
+      ]
+    },
+    "thirdperson_lefthand": {
+      "translation": [
+        0,
+        0,
+        0.06
+      ]
+    },
+    "firstperson_righthand": {
+      "translation": [
+        0,
+        0,
+        0.06
+      ]
+    },
+    "firstperson_lefthand": {
+      "translation": [
+        0,
+        0,
+        0.06
+      ]
+    }
+  }
+}

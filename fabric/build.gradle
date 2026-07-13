@@ -1,10 +1,28 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "8.1.1"
+    id "com.gradleup.shadow" version "8.3.8"
 }
 
-architectury {
-    platformSetupLoomIde()
-    fabric()
+def mcVersion = stonecutter.current.version
+// §26.x-unobf: 26.1+ ships REAL names (no mappings, no remapping) — apply the no-remap loom variant.
+def unobf = stonecutter.eval(mcVersion, ">=26.1")
+apply plugin: (unobf ? "dev.architectury.loom-no-remap" : "dev.architectury.loom")
+apply plugin: "architectury-plugin"
+
+base { archivesName = "${rootProject.archives_base_name}-fabric" }
+version = "${rootProject.mod_version}+${mcVersion}"
+group = rootProject.maven_group
+
+if (!unobf) {
+    architectury {
+        platformSetupLoomIde()
+        fabric()
+    }
+}
+
+repositories {
+    maven { url "https://maven.architectury.dev/" }
+    maven { url "https://maven.fabricmc.net/" }
+    maven { url "https://maven.terraformersmc.com/releases/" }
 }
 
 configurations {
@@ -14,21 +32,51 @@ configurations {
     }
     compileClasspath.extendsFrom common
     runtimeClasspath.extendsFrom common
-    developmentFabric.extendsFrom common
 
     shadowBundle {
         canBeResolved = true
         canBeConsumed = false
     }
 }
+// The dev-launch configuration only exists on the remapping (obfuscated) toolchain.
+def devFabric = configurations.findByName("developmentFabric")
+if (devFabric != null) devFabric.extendsFrom(configurations.common)
 
 dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
-    modApi "dev.architectury:architectury-fabric:${rootProject.architectury_api_version}"
+    minecraft "com.mojang:minecraft:${mcVersion}"
+    if (!unobf) {
+        mappings loom.officialMojangMappings()
+    }
+    // §26.x-unobf: no remapping → mod deps are plain deps (modImplementation/modApi don't apply).
+    add(unobf ? "implementation" : "modImplementation", "net.fabricmc:fabric-loader:${project.property('fabric_loader_version')}")
+    add(unobf ? "api" : "modApi", "net.fabricmc.fabric-api:fabric-api:${project.property('fabric_api_version')}")
+    add(unobf ? "api" : "modApi", "dev.architectury:architectury-fabric:${project.property('architectury_api_version')}")
 
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowBundle project(path: ":common", configuration: "transformProductionFabric")
+    if (!unobf) {
+        common(project(path: ":common:${mcVersion}", configuration: "namedElements")) { transitive false }
+        shadowBundle project(path: ":common:${mcVersion}", configuration: "transformProductionFabric")
+    }
+}
+
+// §26.x-unobf: ANY project() dependency on the common node trips loom-no-remap's artifact transforms
+// into a compileJava self-cycle — compile straight against the common node's class/resource dirs instead
+// (everything is already real-named, no remap or arch-transform needed at compile time).
+if (unobf) {
+    def commonProj = project(":common:${mcVersion}")
+    evaluationDependsOn(":common:${mcVersion}")
+    dependencies {
+        common files(commonProj.sourceSets.main.output.classesDirs)
+        common files(commonProj.sourceSets.main.output.resourcesDir)
+    }
+    compileJava.dependsOn(commonProj.tasks.named("compileJava"), commonProj.tasks.named("processResources"))
+    tasks.named("processResources") { dependsOn(commonProj.tasks.named("processResources")) }
+    // Bundle the ARCH-TRANSFORMED common jar (@ExpectPlatform bodies dispatched to the fabric impls) —
+    // raw sourceSets output would ship AssertionError stubs.
+    def commonTransform = commonProj.tasks.named("transformProductionFabric")
+    shadowJar {
+        from(commonTransform.map { zipTree(it.outputs.files.singleFile) })
+        dependsOn(commonTransform)
+    }
 }
 
 processResources {
@@ -43,8 +91,27 @@ shadowJar {
     archiveClassifier = "dev-shadow"
 }
 
-remapJar {
-    inputFile.set shadowJar.archiveFile
-    dependsOn shadowJar
-    archiveClassifier = null
+if (!unobf) {
+    remapJar {
+        inputFile.set shadowJar.archiveFile
+        dependsOn shadowJar
+        archiveClassifier = null
+    }
+} else {
+    // §26.x-unobf: no remap step — the shadow jar (common bundled in) IS the production jar.
+    jar { archiveClassifier = "slim" }
+    shadowJar { archiveClassifier = null }
+    build.dependsOn shadowJar
+}
+
+java {
+    withSourcesJar()
+    def jv = JavaVersion.toVersion(project.property("java_version") as int)
+    sourceCompatibility = jv
+    targetCompatibility = jv
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = project.property("java_version") as int
 }

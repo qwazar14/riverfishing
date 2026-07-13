@@ -40,8 +40,8 @@ public final class ClientInit {
         // /rfrod live pose debugger (Forge RegisterClientCommandsEvent → Architectury client command).
         ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> RodDebugCommand.register(dispatcher));
 
-        // Platform-only event hooks (in-world line render + extra-model bake) — no registry objects.
-        ClientPlatform.registerExtraModels();
+        // Platform-only event hook (in-world line render) — no registry objects. §26.1: the extra-model
+        // bake is gone with the BEWLR icons; item models are data-driven client items now.
         ClientPlatform.registerLevelRenderer();
     }
 
@@ -55,9 +55,6 @@ public final class ClientInit {
         BlockEntityRendererRegistry.register(ModBlockEntities.TROPHY_STAND.get(), TrophyStandRenderer::new);
         BlockEntityRendererRegistry.register(ModBlockEntities.ROD_POD.get(), RodPodRenderer::new);
         BlockEntityRendererRegistry.register(ModBlockEntities.AQUARIUM.get(), AquariumRenderer::new);
-
-        // Item BEWLR — Fabric iterates the rod/fish items here (needs them bound); Forge is a mixin no-op.
-        ClientPlatform.registerItemRenderers();
 
         // §lure-color: tint provider for painted lures (needs the items bound, so it lives here).
         ClientPlatform.registerItemColors();

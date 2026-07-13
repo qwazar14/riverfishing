@@ -1,0 +1,12 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 8
+  },
+  "gives": {
+    "id": "riverfishing:winter_rod"
+  },
+  "max_uses": 12,
+  "xp": 12,
+  "reputation_discount": 0.05
+}

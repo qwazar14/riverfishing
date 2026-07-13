@@ -1,7 +1,7 @@
 package com.riverfishing.fishing;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 
 /**
@@ -19,16 +19,16 @@ public final class JournalData {
     private JournalData() {}
 
     public static CompoundTag get(Player player) {
-        return PlayerData.root(player).getCompound(TAG);
+        return PlayerData.root(player).getCompoundOrEmpty(TAG);
     }
 
-    public static void record(Player player, ResourceLocation species, int weightG) {
+    public static void record(Player player, Identifier species, int weightG) {
         CompoundTag root = get(player);
-        CompoundTag fish = root.getCompound(species.toString());
-        fish.putInt("count", fish.getInt("count") + 1);
-        fish.putInt("best", Math.max(fish.getInt("best"), weightG));
+        CompoundTag fish = root.getCompoundOrEmpty(species.toString());
+        fish.putInt("count", fish.getIntOr("count", 0) + 1);
+        fish.putInt("best", Math.max(fish.getIntOr("best", 0), weightG));
         root.put(species.toString(), fish);
-        root.putInt(TOTAL, root.getInt(TOTAL) + 1);
+        root.putInt(TOTAL, root.getIntOr(TOTAL, 0) + 1);
         PlayerData.root(player).put(TAG, root);
         PlayerData.markDirty(player);
     }
@@ -36,7 +36,7 @@ public final class JournalData {
     /** Records a trophy-grade catch (§quests): a separate counter for trophy-hunting goals. */
     public static void addTrophy(Player player) {
         CompoundTag root = get(player);
-        root.putInt(TROPHIES, root.getInt(TROPHIES) + 1);
+        root.putInt(TROPHIES, root.getIntOr(TROPHIES, 0) + 1);
         PlayerData.root(player).put(TAG, root);
         PlayerData.markDirty(player);
     }
@@ -44,30 +44,30 @@ public final class JournalData {
     /** Records a fish landed through the ice (§winter-quests): a counter for winter-fishing goals. */
     public static void addIceCatch(Player player) {
         CompoundTag root = get(player);
-        root.putInt(ICE, root.getInt(ICE) + 1);
+        root.putInt(ICE, root.getIntOr(ICE, 0) + 1);
         PlayerData.root(player).put(TAG, root);
         PlayerData.markDirty(player);
     }
 
     /** True if the player has never landed this species before (call BEFORE {@link #record}). */
-    public static boolean isNewSpecies(Player player, ResourceLocation species) {
-        return get(player).getCompound(species.toString()).getInt("count") == 0;
+    public static boolean isNewSpecies(Player player, Identifier species) {
+        return get(player).getCompoundOrEmpty(species.toString()).getIntOr("count", 0) == 0;
     }
 
     /** True if {@code weightG} beats the player's stored best (call BEFORE {@link #record}). */
-    public static boolean isPersonalBest(Player player, ResourceLocation species, int weightG) {
-        return weightG > get(player).getCompound(species.toString()).getInt("best");
+    public static boolean isPersonalBest(Player player, Identifier species, int weightG) {
+        return weightG > get(player).getCompoundOrEmpty(species.toString()).getIntOr("best", 0);
     }
 
     // ---- Angler progression: XP -> level -> rank, stored in the same NBT root ----
 
     public static long getXp(Player player) {
-        return get(player).getLong(XP);
+        return get(player).getLongOr(XP, 0L);
     }
 
     public static void addXp(Player player, long amount) {
         CompoundTag root = get(player);
-        root.putLong(XP, root.getLong(XP) + Math.max(0, amount));
+        root.putLong(XP, root.getLongOr(XP, 0L) + Math.max(0, amount));
         PlayerData.root(player).put(TAG, root);
         PlayerData.markDirty(player);
     }

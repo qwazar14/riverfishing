@@ -1,8 +1,11 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:wheat" },
-    { "item": "minecraft:water_bucket" }
+    "minecraft:wheat",
+    "minecraft:water_bucket"
   ],
-  "result": { "id": "riverfishing:dough", "count": 1 }
+  "result": {
+    "id": "riverfishing:dough",
+    "count": 1
+  }
 }

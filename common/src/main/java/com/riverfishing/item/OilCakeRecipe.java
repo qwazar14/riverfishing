@@ -1,12 +1,10 @@
 package com.riverfishing.item;
 
 import com.riverfishing.RiverFishing;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -20,9 +18,6 @@ import net.minecraft.world.level.Level;
 public class OilCakeRecipe extends CustomRecipe {
     private static final int RESULT_COUNT = 6; // §balance: doubled (was 3) — groundbait burns fast (1/cast)
 
-    public OilCakeRecipe(CraftingBookCategory category) {
-        super(category);
-    }
 
     @Override
     public boolean matches(CraftingInput input, Level level) {
@@ -38,8 +33,8 @@ public class OilCakeRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
-        var cake = BuiltInRegistries.ITEM.get(RiverFishing.id("groundbait_cake"));
+    public ItemStack assemble(CraftingInput input) {
+        var cake = BuiltInRegistries.ITEM.getValue(RiverFishing.id("groundbait_cake"));
         return cake == null ? ItemStack.EMPTY : new ItemStack(cake, RESULT_COUNT);
     }
 
@@ -55,12 +50,7 @@ public class OilCakeRecipe extends CustomRecipe {
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width * height >= 2;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<OilCakeRecipe> getSerializer() {
         return com.riverfishing.registry.ModRecipes.OIL_CAKE.get();
     }
 }

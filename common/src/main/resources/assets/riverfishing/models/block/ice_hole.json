@@ -3,11 +3,29 @@
   "render_type": "minecraft:translucent",
   "textures": {
     "particle": "minecraft:block/ice",
-    "up": "riverfishing:block/ice_hole",
-    "down": "minecraft:block/ice",
-    "north": "minecraft:block/ice",
-    "south": "minecraft:block/ice",
-    "east": "minecraft:block/ice",
-    "west": "minecraft:block/ice"
+    "up": {
+      "sprite": "riverfishing:block/ice_hole",
+      "force_translucent": true
+    },
+    "down": {
+      "sprite": "minecraft:block/ice",
+      "force_translucent": true
+    },
+    "north": {
+      "sprite": "minecraft:block/ice",
+      "force_translucent": true
+    },
+    "south": {
+      "sprite": "minecraft:block/ice",
+      "force_translucent": true
+    },
+    "east": {
+      "sprite": "minecraft:block/ice",
+      "force_translucent": true
+    },
+    "west": {
+      "sprite": "minecraft:block/ice",
+      "force_translucent": true
+    }
   }
 }

@@ -1,10 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [ "  d", "ni ", "ii " ],
+  "pattern": [
+    "  d",
+    "ni ",
+    "ii "
+  ],
   "key": {
-    "d": { "item": "minecraft:diamond" },
-    "n": { "item": "minecraft:iron_nugget" },
-    "i": { "item": "minecraft:iron_ingot" }
+    "d": "minecraft:diamond",
+    "n": "minecraft:iron_nugget",
+    "i": "minecraft:iron_ingot"
   },
-  "result": { "id": "riverfishing:carp_rod" }
+  "result": {
+    "id": "riverfishing:carp_rod"
+  }
 }

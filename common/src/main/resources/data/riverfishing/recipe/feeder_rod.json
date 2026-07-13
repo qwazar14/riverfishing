@@ -1,10 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [ "  g", "ni ", "i  " ],
+  "pattern": [
+    "  g",
+    "ni ",
+    "i  "
+  ],
   "key": {
-    "g": { "item": "minecraft:gold_ingot" },
-    "n": { "item": "minecraft:iron_nugget" },
-    "i": { "item": "minecraft:iron_ingot" }
+    "g": "minecraft:gold_ingot",
+    "n": "minecraft:iron_nugget",
+    "i": "minecraft:iron_ingot"
   },
-  "result": { "id": "riverfishing:feeder_rod" }
+  "result": {
+    "id": "riverfishing:feeder_rod"
+  }
 }

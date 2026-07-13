@@ -11,7 +11,7 @@ import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.registry.ReloadListenerRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.item.ItemStack;
@@ -41,14 +41,14 @@ public final class ModEvents {
 
     public static void init() {
         // Data-driven fish profiles reload with datapacks (§13).
-        ReloadListenerRegistry.register(PackType.SERVER_DATA, FishProfileManager.get());
+        ReloadListenerRegistry.register(PackType.SERVER_DATA, FishProfileManager.get(), RiverFishing.id("fish_profiles"));
 
         // Drive each player's fishing session + fed-spot particles server-side.
         TickEvent.PLAYER_POST.register(player -> {
             if (player instanceof ServerPlayer sp) {
                 FishingManager.tick(sp);
                 if (sp.tickCount % 10 == 0) {
-                    var level = sp.serverLevel();
+                    var level = sp.level();
                     com.riverfishing.fishing.FeedZoneData.get(level)
                             .emitParticles(level, sp.blockPosition(), level.getGameTime());
                 }
@@ -71,11 +71,11 @@ public final class ModEvents {
         // Bait from mobs (§bait-gathering): chicken liver, drowned bloodworm, zombie maggot — injected
         // into the vanilla entity loot tables so it works identically on Forge and Fabric.
         LootEvent.MODIFY_LOOT_TABLE.register((lootKey, context, builtin) -> {
-            if (matches(lootKey.location(), "chicken")) addDrop(context, ModItems.CHICKEN_LIVER.get().builtInRegistryHolder().key().location(), CHICKEN_LIVER_CHANCE);
-            else if (matches(lootKey.location(), "drowned")) addDrop(context, RiverFishing.id("bloodworm"), MOB_BAIT_CHANCE);
-            else if (matches(lootKey.location(), "zombie")) addDrop(context, RiverFishing.id("maggot"), MOB_BAIT_CHANCE);
+            if (matches(lootKey.identifier(), "chicken")) addDrop(context, net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(ModItems.CHICKEN_LIVER.get()), CHICKEN_LIVER_CHANCE);
+            else if (matches(lootKey.identifier(), "drowned")) addDrop(context, RiverFishing.id("bloodworm"), MOB_BAIT_CHANCE);
+            else if (matches(lootKey.identifier(), "zombie")) addDrop(context, RiverFishing.id("maggot"), MOB_BAIT_CHANCE);
             // §bait-crops: bait-crop seeds drop from grass like vanilla wheat seeds (a little rarer).
-            else if (matchesBlock(lootKey.location(), "short_grass") || matchesBlock(lootKey.location(), "tall_grass")) {
+            else if (matchesBlock(lootKey.identifier(), "short_grass") || matchesBlock(lootKey.identifier(), "tall_grass")) {
                 addDrop(context, RiverFishing.id("corn_seeds"), SEED_CHANCE);
                 addDrop(context, RiverFishing.id("pea_seeds"), SEED_CHANCE);
                 addDrop(context, RiverFishing.id("barley_seeds"), SEED_CHANCE);
@@ -83,16 +83,16 @@ public final class ModEvents {
         });
     }
 
-    private static boolean matches(ResourceLocation lootId, String entity) {
+    private static boolean matches(Identifier lootId, String entity) {
         return lootId.getNamespace().equals("minecraft") && lootId.getPath().equals("entities/" + entity);
     }
 
-    private static boolean matchesBlock(ResourceLocation lootId, String block) {
+    private static boolean matchesBlock(Identifier lootId, String block) {
         return lootId.getNamespace().equals("minecraft") && lootId.getPath().equals("blocks/" + block);
     }
 
-    private static void addDrop(LootEvent.LootTableModificationContext context, ResourceLocation itemId, float chance) {
-        var item = BuiltInRegistries.ITEM.get(itemId);
+    private static void addDrop(LootEvent.LootTableModificationContext context, Identifier itemId, float chance) {
+        var item = BuiltInRegistries.ITEM.getValue(itemId);
         context.addPool(LootPool.lootPool()
                 .add(LootItem.lootTableItem(item))
                 .when(LootItemRandomChanceCondition.randomChance(chance))
