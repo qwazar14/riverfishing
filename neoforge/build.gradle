@@ -1,5 +1,5 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "8.1.1"
+    id "com.gradleup.shadow" version "8.3.8"
 }
 
 def mcVersion = stonecutter.current.version
@@ -48,8 +48,29 @@ dependencies {
     // §26.x-unobf: no remapping → mod deps are plain deps (modApi doesn't apply).
     add(unobf ? "api" : "modApi", "dev.architectury:architectury-neoforge:${project.property('architectury_api_version')}")
 
-    common(project(path: ":common:${mcVersion}", configuration: "namedElements")) { transitive false }
-    shadowBundle project(path: ":common:${mcVersion}", configuration: "transformProductionNeoForge")
+    if (!unobf) {
+        common(project(path: ":common:${mcVersion}", configuration: "namedElements")) { transitive false }
+        shadowBundle project(path: ":common:${mcVersion}", configuration: "transformProductionNeoForge")
+    }
+}
+
+// §26.x-unobf: ANY project() dependency on the common node trips loom-no-remap's artifact transforms
+// into a compileJava self-cycle — compile straight against the common node's class/resource dirs, and
+// bundle the ARCH-TRANSFORMED common jar (@ExpectPlatform bodies dispatched) into the shadow jar.
+if (unobf) {
+    evaluationDependsOn(":common:${mcVersion}")
+    def commonProj = project(":common:${mcVersion}")
+    dependencies {
+        common files(commonProj.sourceSets.main.output.classesDirs)
+        common files(commonProj.sourceSets.main.output.resourcesDir)
+    }
+    compileJava.dependsOn(commonProj.tasks.named("compileJava"), commonProj.tasks.named("processResources"))
+    tasks.named("processResources") { dependsOn(commonProj.tasks.named("processResources")) }
+    def commonTransform = commonProj.tasks.named("transformProductionNeoForge")
+    shadowJar {
+        from(commonTransform.map { zipTree(it.outputs.files.singleFile) })
+        dependsOn(commonTransform)
+    }
 }
 
 processResources {

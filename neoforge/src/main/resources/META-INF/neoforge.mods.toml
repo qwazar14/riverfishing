@@ -22,21 +22,21 @@ A deep, realistic river & ice-fishing simulator built as a modpack anchor.
 [[dependencies.riverfishing]]
     modId="neoforge"
     type="required"
-    versionRange="[21.1,)"
+    versionRange="[26.1,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.riverfishing]]
     modId="minecraft"
     type="required"
-    versionRange="[1.21,1.22)"
+    versionRange="[26.1,27)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.riverfishing]]
     modId="architectury"
     type="required"
-    versionRange="[13,)"
+    versionRange="[20,)"
     ordering="AFTER"
     side="BOTH"
 

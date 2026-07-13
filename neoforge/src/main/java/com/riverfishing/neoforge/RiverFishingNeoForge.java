@@ -18,7 +18,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 public final class RiverFishingNeoForge {
     public RiverFishingNeoForge(IEventBus modBus) {
         RiverFishing.init();
-        if (FMLEnvironment.dist == Dist.CLIENT) {
+        if (FMLEnvironment.getDist() == Dist.CLIENT) {
             com.riverfishing.client.ClientInit.registerEvents();
             modBus.addListener((FMLClientSetupEvent e) ->
                     e.enqueueWork(com.riverfishing.client.ClientInit::registerRenderers));
