@@ -198,17 +198,17 @@ public final class ModItems {
         DIGITAL_ALARM = reg("digital_alarm", () -> new AlarmItem(AlarmType.DIGITAL, props("digital_alarm")));
 
         // ----- Processing: knife + fillets (§11) -----
-        FILLET_KNIFE = reg("fillet_knife", () -> new FilletKnifeItem(new Item.Properties().durability(128)));
+        FILLET_KNIFE = reg("fillet_knife", () -> new FilletKnifeItem(props("fillet_knife").durability(128)));
         RAW_FILLET = reg("raw_fillet", () -> new Item(props("raw_fillet").food(
                 new FoodProperties.Builder().nutrition(2).saturationModifier(0.2f).build())));
         COOKED_FILLET = reg("cooked_fillet", () -> new Item(props("cooked_fillet").food(
                 new FoodProperties.Builder().nutrition(5).saturationModifier(0.6f).build())));
 
         // ----- Maintenance: whetstone (§3.8) -----
-        WHETSTONE = reg("whetstone", () -> new WhetstoneItem(new Item.Properties().durability(128)));
+        WHETSTONE = reg("whetstone", () -> new WhetstoneItem(props("whetstone").durability(128)));
 
         // ----- Ice fishing (§ice-fishing): the auger drills a hole through an ice sheet -----
-        reg("ice_auger", () -> new com.riverfishing.item.IceAugerItem(new Item.Properties().durability(64)));
+        reg("ice_auger", () -> new com.riverfishing.item.IceAugerItem(props("ice_auger").durability(64)));
 
         // ----- Records: fishing journal (§15) -----
         reg("fishing_journal", () -> new JournalItem(props("fishing_journal").stacksTo(1)));
