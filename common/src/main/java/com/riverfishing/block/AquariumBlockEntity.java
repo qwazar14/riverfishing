@@ -48,6 +48,18 @@ public class AquariumBlockEntity extends BlockEntity {
         return true;
     }
 
+    // §26.1: the block's onRemove hook is gone — the BE now pops its own contents on removal.
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (level != null && !level.isClientSide()) {
+            for (ItemStack f : fishes) {
+                net.minecraft.world.level.block.Block.popResource(level, pos, f);
+            }
+            fishes.clear();
+        }
+        super.preRemoveSideEffects(pos, state);
+    }
+
     /** Remove and return the most-recently added fish, or EMPTY when the tank is empty. */
     public ItemStack removeLastFish() {
         if (fishes.isEmpty()) return ItemStack.EMPTY;
@@ -58,40 +70,32 @@ public class AquariumBlockEntity extends BlockEntity {
 
     private void sync() {
         setChanged();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        ListTag list = new ListTag();
-        for (ItemStack s : fishes) list.add(s.save(registries, new CompoundTag()));
-        tag.put("Fishes", list);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
+        tag.store("Fishes", ItemStack.OPTIONAL_CODEC.listOf(), java.util.List.copyOf(fishes));
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
         fishes.clear();
-        if (tag.contains("Fishes")) {
-            ListTag list = tag.getList("Fishes", Tag.TAG_COMPOUND);
-            for (int i = 0; i < list.size() && fishes.size() < MAX_FISH; i++) {
-                ItemStack s = ItemStack.parseOptional(registries, list.getCompound(i));
-                if (!s.isEmpty()) fishes.add(s);
-            }
-        } else if (tag.contains("Fish")) { // migrate the old single-fish format
-            ItemStack s = ItemStack.parseOptional(registries, tag.getCompound("Fish"));
-            if (!s.isEmpty()) fishes.add(s);
+        for (ItemStack s : tag.read("Fishes", ItemStack.OPTIONAL_CODEC.listOf()).orElse(java.util.List.of())) {
+            if (!s.isEmpty() && fishes.size() < MAX_FISH) fishes.add(s);
+        }
+        if (fishes.isEmpty()) { // migrate the old single-fish format
+            tag.read("Fish", ItemStack.OPTIONAL_CODEC).filter(s -> !s.isEmpty()).ifPresent(fishes::add);
         }
     }
 
     @Override
     public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        saveAdditional(tag, registries);
-        return tag;
+        return saveCustomOnly(registries);
     }
 
     @Nullable

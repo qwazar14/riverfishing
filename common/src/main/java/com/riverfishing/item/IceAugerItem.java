@@ -51,13 +51,13 @@ public class IceAugerItem extends Item {
         // A hole only makes sense over water — otherwise you've just cracked a decorative ice block.
         boolean waterBelow = level.getFluidState(pos.below()).is(FluidTags.WATER);
         if (!waterBelow) {
-            if (!level.isClientSide && player != null) {
-                player.displayClientMessage(Component.translatable("message.riverfishing.auger_no_water")
-                        .withStyle(ChatFormatting.RED), true);
+            if (!level.isClientSide() && player != null) {
+                player.sendOverlayMessage(Component.translatable("message.riverfishing.auger_no_water")
+                        .withStyle(ChatFormatting.RED));
             }
             return InteractionResult.CONSUME;
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             // Turn the ice into a drilled-hole block — a proper fishing hole you work with a winter rod. A
             // pickaxe just breaks the ice, so only the auger makes a hole you can ice-fish (§ice-fishing).
             level.setBlock(pos, com.riverfishing.registry.ModBlocks.ICE_HOLE.get().defaultBlockState(), 3);
@@ -69,16 +69,16 @@ public class IceAugerItem extends Item {
             level.playSound(null, pos, SoundEvents.GENERIC_SPLASH, SoundSource.BLOCKS, 0.5f, 1.2f);
             if (player != null) {
                 ctx.getItemInHand().hurtAndBreak(1, player, ctx.getHand() == net.minecraft.world.InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
-                player.getCooldowns().addCooldown(this, 15);
-                player.displayClientMessage(Component.translatable("message.riverfishing.auger_hole")
-                        .withStyle(ChatFormatting.AQUA), true);
+                player.getCooldowns().addCooldown(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(this), 15);
+                player.sendOverlayMessage(Component.translatable("message.riverfishing.auger_hole")
+                        .withStyle(ChatFormatting.AQUA));
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.riverfishing.ice_auger").withStyle(s -> s.withColor(0x80A0C0)));
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("tooltip.riverfishing.ice_auger").withStyle(s -> s.withColor(0x80A0C0)));
     }
 }

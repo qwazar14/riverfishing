@@ -113,7 +113,7 @@ public final class FishingManager {
     /** Start a fight straight from a podded line the player just grabbed during its bite window. */
     public static void startPodFight(ServerPlayer sp, BlockPos target, Identifier species,
                                      double lineStrainKg, double dragKg, boolean hasLeader, RigType rigType) {
-        ServerLevel level = sp.serverLevel();
+        ServerLevel level = sp.level();
         long now = level.getGameTime();
         FishingSession session = new FishingSession(InteractionHand.MAIN_HAND, target, RodClass.BOTTOM, 0, now, species);
         session.lineStrainKg = lineStrainKg;
@@ -139,7 +139,7 @@ public final class FishingManager {
 
     public static boolean handleRodUse(Player player, InteractionHand hand) {
         if (!(player instanceof ServerPlayer sp)) return false;
-        ServerLevel level = sp.serverLevel();
+        ServerLevel level = sp.level();
         long now = level.getGameTime();
         FishingSession session = SESSIONS.get(sp.getUUID());
 
@@ -189,7 +189,7 @@ public final class FishingManager {
 
     /** Entry point for the power-bar cast (§cast-minigame): called when the player releases the charge. */
     public static boolean chargedCast(ServerPlayer sp, InteractionHand hand, float power) {
-        ServerLevel level = sp.serverLevel();
+        ServerLevel level = sp.level();
         if (SESSIONS.containsKey(sp.getUUID())) return false;
         return startCast(sp, level, hand, level.getGameTime(), Mth.clamp(power, 0.05f, 1.0f));
     }
@@ -285,7 +285,7 @@ public final class FishingManager {
                                 ? net.minecraft.world.entity.EquipmentSlot.MAINHAND
                                 : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
             }
-            level.playSound(null, sp.blockPosition(), SoundEvents.SHIELD_BREAK, SoundSource.PLAYERS, 1.0f, 0.6f);
+            level.playSound(null, sp.blockPosition(), SoundEvents.SHIELD_BREAK.value(), SoundSource.PLAYERS, 1.0f, 0.6f);
             actionbar(sp, Component.translatable("message.riverfishing.rod_overload_crack").withStyle(ChatFormatting.RED));
             return false;
         }
@@ -313,7 +313,7 @@ public final class FishingManager {
 
         // Chunk fishing pressure (Module 7): a fished-out spot makes bites much slower (W_total falls).
         FishingPressureData pressure = FishingPressureData.get(level);
-        long chunkKey = new ChunkPos(waterPos).toLong();
+        long chunkKey = ChunkPos.pack(waterPos);
         double depletion = pressure.attractiveness(chunkKey, now, spawnRegen(level));
         // §skills QUICK_BITE: a keen angler feels the bite sooner (shorter wait).
         // §rod-test: an under-loaded blank presents the bait clumsily — a SILENT ~20% fewer bites
@@ -440,7 +440,7 @@ public final class FishingManager {
      * fish bite; the session is then worked by jigging ({@link #iceJig}) until the кивок twitches.
      */
     public static boolean startIceFishing(ServerPlayer sp, BlockPos holePos, InteractionHand hand) {
-        ServerLevel level = sp.serverLevel();
+        ServerLevel level = sp.level();
         long now = level.getGameTime();
         ItemStack rod = sp.getItemInHand(hand);
         if (!RodData.isAssembled(rod)) {
@@ -472,7 +472,7 @@ public final class FishingManager {
         Identifier species = maybeKoi(outcome.pickSpecies(random), ctx, random);
 
         FishingPressureData pressure = FishingPressureData.get(level);
-        long chunkKey = new ChunkPos(waterPos).toLong();
+        long chunkKey = ChunkPos.pack(waterPos);
         double depletion = pressure.attractiveness(chunkKey, now, spawnRegen(level));
         // A patient winter wait — jigging the mormyshka in a steady rhythm is what pulls the bite in.
         long delay = (long) Mth.clamp(outcome.ticksToBite / Math.max(0.1, depletion) * AnglerSkills.biteSpeedMult(sp), 200, 2400);
@@ -535,7 +535,7 @@ public final class FishingManager {
      * frenzy with no saved state. During a window bites are 3x faster and fish splash visibly.
      */
     public static boolean isFrenzy(ServerLevel level) {
-        long dayTime = level.getDayTime();
+        long dayTime = level.getOverworldClockTime();
         long day = dayTime / 24000L;
         long t = dayTime % 24000L;
         java.util.Random r = new java.util.Random(level.getSeed() ^ (day * 0x9E3779B97F4A7C15L));
@@ -571,7 +571,7 @@ public final class FishingManager {
     /** First water block scanning straight down a column — where the charged cast lands. */
     private static BlockPos findWaterColumn(ServerLevel level, double x, double yStart, double z) {
         BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos(Mth.floor(x), Mth.floor(yStart), Mth.floor(z));
-        for (int i = 0; i < 24 && p.getY() > level.getMinBuildHeight(); i++, p.move(0, -1, 0)) {
+        for (int i = 0; i < 24 && p.getY() > level.getMinY(); i++, p.move(0, -1, 0)) {
             if (WaterBodyDetector.isWater(level, p)) {
                 return p.immutable();
             }
@@ -583,7 +583,7 @@ public final class FishingManager {
     public static void retrieveTick(ServerPlayer sp) {
         FishingSession session = SESSIONS.get(sp.getUUID());
         if (session == null || session.rodClass != RodClass.ACTIVE || session.bitten || session.fighting) return;
-        ServerLevel level = sp.serverLevel();
+        ServerLevel level = sp.level();
         long now = level.getGameTime();
 
         if (session.biteAtTick < 0) {
@@ -652,7 +652,7 @@ public final class FishingManager {
                 RodData.set(rod, ComponentSlot.RIG, ItemStack.EMPTY);
             }
             addLineWear(rod, 3);
-            sp.displayClientMessage(Component.translatable("message.riverfishing.snag_lost").withStyle(ChatFormatting.RED), false);
+            sp.sendSystemMessage(Component.translatable("message.riverfishing.snag_lost").withStyle(ChatFormatting.RED));
         }
         endSession(sp, session);
     }
@@ -666,8 +666,8 @@ public final class FishingManager {
             // §strike-qte (2.4): letting go of the retrieve DURING the take is a valid hook-set — check the
             // runner now. (Clicking again works too, via handleRodUse.) If it's not up yet, do nothing and
             // leave the bite window open (tick() times it out if the player never reacts).
-            if (session.floatPeriod > 0 && sp.serverLevel().getGameTime() <= session.biteWindowEnd) {
-                activeStrike(sp, sp.serverLevel(), session, sp.serverLevel().getGameTime());
+            if (session.floatPeriod > 0 && sp.level().getGameTime() <= session.biteWindowEnd) {
+                activeStrike(sp, sp.level(), session, sp.level().getGameTime());
             }
             return;
         }
@@ -680,7 +680,7 @@ public final class FishingManager {
     public static void tick(ServerPlayer sp) {
         FishingSession session = SESSIONS.get(sp.getUUID());
         if (session == null) return;
-        ServerLevel level = sp.serverLevel();
+        ServerLevel level = sp.level();
         long now = level.getGameTime();
 
         // The line is tied to THE rod it was cast with: switching hotbar slots (a different stack in
@@ -790,8 +790,8 @@ public final class FishingManager {
             addLineWear(broken, 5);
             level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.LINE_BREAK.get(),
                     SoundSource.PLAYERS, 0.9f, 1.0f);
-            sp.displayClientMessage(Component.translatable("message.riverfishing.line_break")
-                    .withStyle(ChatFormatting.RED), false);
+            sp.sendSystemMessage(Component.translatable("message.riverfishing.line_break")
+                    .withStyle(ChatFormatting.RED));
             endSession(sp, session);
             return;
         }
@@ -993,7 +993,7 @@ public final class FishingManager {
         }
 
         // §fight-mystery: NO species name during the fight — you learn what it was when you land it.
-        session.bossBar = new ServerBossEvent(
+        session.bossBar = new ServerBossEvent(java.util.UUID.randomUUID(), 
                 Component.translatable("message.riverfishing.fighting"),
                 BossEvent.BossBarColor.GREEN, BossEvent.BossBarOverlay.PROGRESS);
         session.bossBar.setProgress(0.0f);
@@ -1045,7 +1045,7 @@ public final class FishingManager {
         session.fightStartTick = now;
         session.fightTimeout = 600;
         session.fightPattern = "steady";
-        session.bossBar = new ServerBossEvent(
+        session.bossBar = new ServerBossEvent(java.util.UUID.randomUUID(), 
                 Component.translatable("message.riverfishing.fighting"),
                 BossEvent.BossBarColor.GREEN, BossEvent.BossBarOverlay.PROGRESS);
         session.bossBar.setProgress(0.0f);
@@ -1122,12 +1122,12 @@ public final class FishingManager {
         if (treasure) {
             JournalData.addXp(sp, 15);
             level.playSound(null, session.target, SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.6f, 1.3f);
-            sp.displayClientMessage(Component.translatable("message.riverfishing.treasure_catch", lootName)
-                    .withStyle(ChatFormatting.GOLD), false);
+            sp.sendSystemMessage(Component.translatable("message.riverfishing.treasure_catch", lootName)
+                    .withStyle(ChatFormatting.GOLD));
         } else {
             level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.6f, 0.8f);
-            sp.displayClientMessage(Component.translatable("message.riverfishing.junk_catch", lootName)
-                    .withStyle(ChatFormatting.GRAY), false);
+            sp.sendSystemMessage(Component.translatable("message.riverfishing.junk_catch", lootName)
+                    .withStyle(ChatFormatting.GRAY));
         }
         endSession(sp, session);
     }
@@ -1327,7 +1327,7 @@ public final class FishingManager {
         boolean legal = !session.foulHooked;
         giveFish(sp, session.species, session.weightG, session.lengthCm, legal, session.trophy);
         // §population: a landed fish leaves the water for real — depletion lands on THIS species only.
-        FishingPressureData.get(level).addCatch(new ChunkPos(session.target).toLong(),
+        FishingPressureData.get(level).addCatch(ChunkPos.pack(session.target),
                 session.species.getPath(), level.getGameTime());
         if (legal) {
             boolean newSpecies = JournalData.isNewSpecies(sp, session.species);
@@ -1340,8 +1340,8 @@ public final class FishingManager {
             checkCatchAdvancements(sp, level, session); // §challenges (code-driven)
         }
         if (session.trophy && legal) {
-            sp.displayClientMessage(Component.translatable("message.riverfishing.trophy_catch")
-                    .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+            sp.sendSystemMessage(Component.translatable("message.riverfishing.trophy_catch")
+                    .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
             level.playSound(null, sp.blockPosition(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.9f, 1.2f);
             // A little celebration: sparks over the water and confetti around the angler.
             level.sendParticles(ParticleTypes.END_ROD, session.target.getX() + 0.5, session.target.getY() + 1.2,
@@ -1362,14 +1362,14 @@ public final class FishingManager {
         // The catch lands in the player's hands — celebrate there so it's always audible (§sound-range).
         level.playSound(null, sp.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.5f, 1.4f);
         if (extras > 0) {
-            sp.displayClientMessage(Component.translatable("message.riverfishing.caught_multi",
-                    fishName(session.species), 1 + extras).withStyle(ChatFormatting.GOLD), false);
+            sp.sendSystemMessage(Component.translatable("message.riverfishing.caught_multi",
+                    fishName(session.species), 1 + extras).withStyle(ChatFormatting.GOLD));
         } else {
             String key = legal ? "message.riverfishing.caught" : "message.riverfishing.caught_foul";
-            sp.displayClientMessage(Component.translatable(key,
+            sp.sendSystemMessage(Component.translatable(key,
                     fishName(session.species),
                     com.riverfishing.item.FishItem.weightText(session.weightG), session.lengthCm)
-                    .withStyle(legal ? ChatFormatting.GOLD : ChatFormatting.RED), false);
+                    .withStyle(legal ? ChatFormatting.GOLD : ChatFormatting.RED));
         }
         endSession(sp, session);
     }
@@ -1389,27 +1389,27 @@ public final class FishingManager {
         JournalData.addXp(sp, xp);
         int after = JournalData.getLevel(sp);
 
-        sp.displayClientMessage(Component.translatable("message.riverfishing.xp_gained", xp)
-                .withStyle(ChatFormatting.AQUA), true); // action bar
+        sp.sendOverlayMessage(Component.translatable("message.riverfishing.xp_gained", xp)
+                .withStyle(ChatFormatting.AQUA)); // action bar
 
         if (newSpecies) {
-            sp.displayClientMessage(Component.translatable("message.riverfishing.new_species")
-                    .withStyle(ChatFormatting.LIGHT_PURPLE), false);
+            sp.sendSystemMessage(Component.translatable("message.riverfishing.new_species")
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
             level.playSound(null, sp.blockPosition(), SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.4f, 1.6f);
         }
         if (after > before) {
             level.playSound(null, sp.blockPosition(), SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.7f, 1.0f);
-            sp.displayClientMessage(Component.translatable("message.riverfishing.level_up", after)
-                    .withStyle(ChatFormatting.GOLD), false);
+            sp.sendSystemMessage(Component.translatable("message.riverfishing.level_up", after)
+                    .withStyle(ChatFormatting.GOLD));
             String rankBefore = JournalData.rankKey(before);
             String rankAfter = JournalData.rankKey(after);
             if (!rankBefore.equals(rankAfter)) {
-                sp.displayClientMessage(Component.translatable("message.riverfishing.rank_up",
+                sp.sendSystemMessage(Component.translatable("message.riverfishing.rank_up",
                                 Component.translatable("rank.riverfishing." + rankAfter))
-                        .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+                        .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
                 level.playSound(null, sp.blockPosition(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.8f, 1.0f);
                 if ("master".equals(rankAfter)) {
-                    var adv = sp.server.getAdvancements()
+                    var adv = sp.level().getServer().getAdvancements()
                             .get(com.riverfishing.RiverFishing.id("riverfishing/master"));
                     if (adv != null) {
                         sp.getAdvancements().award(adv, "granted");
@@ -1468,13 +1468,13 @@ public final class FishingManager {
                     SoundSource.PLAYERS, 0.9f, 1.0f);
             level.playSound(null, session.target, com.riverfishing.registry.ModSounds.LINE_BREAK.get(),
                     SoundSource.PLAYERS, 0.6f, 1.0f);
-            sp.displayClientMessage(Component.translatable(
+            sp.sendSystemMessage(Component.translatable(
                     leader ? "message.riverfishing.leader_bite_off" : "message.riverfishing.line_break")
-                    .withStyle(ChatFormatting.RED), false);
+                    .withStyle(ChatFormatting.RED));
         } else {
             level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.6f, 0.7f);
-            sp.displayClientMessage(Component.translatable("message.riverfishing.shake_off")
-                    .withStyle(ChatFormatting.YELLOW), false);
+            sp.sendSystemMessage(Component.translatable("message.riverfishing.shake_off")
+                    .withStyle(ChatFormatting.YELLOW));
         }
         endSession(sp, session);
     }
@@ -1522,7 +1522,7 @@ public final class FishingManager {
         s.floatZoneHalf = greenHalf;
         float orangeHalf = Math.min(0.47f, greenHalf + 0.11f);
         s.floatOrangeHalf = orangeHalf;
-        float c = orangeHalf + sp.serverLevel().getRandom().nextFloat() * (1f - 2f * orangeHalf);
+        float c = orangeHalf + sp.level().getRandom().nextFloat() * (1f - 2f * orangeHalf);
         s.floatZoneCenter = c;
         s.floatStart = now;
         ModNetwork.toPlayer(sp, new FloatTimingPacket(true, now, window, s.floatPeriod,
@@ -1710,11 +1710,11 @@ public final class FishingManager {
         // §population: per-species depletion at this spot — a fished-out species stops biting HERE while
         // the others carry on; recovery is time-based (faster in spring, §spawn-recovery).
         FishingPressureData popData = FishingPressureData.get(level);
-        long popChunk = new ChunkPos(waterPos).toLong();
+        long popChunk = ChunkPos.pack(waterPos);
         double popRegen = spawnRegen(level);
         ctx.speciesFactor = id -> popData.speciesAttractiveness(popChunk, id.getPath(), now, popRegen);
         ctx.season = SeasonProvider.getSeason(level);
-        ctx.time = TimeOfDay.fromDayTime(level.getDayTime());
+        ctx.time = TimeOfDay.fromDayTime(level.getOverworldClockTime());
         ctx.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
         ctx.pressureFactor = com.riverfishing.engine.BarometricPressure.biteFactor(level);
         ctx.biomeTemperature = level.getBiome(waterPos).value().getBaseTemperature();
@@ -1757,7 +1757,7 @@ public final class FishingManager {
         env.waterDepth = measureDepth(level, waterPos);
         env.biomeGroups = biomeGroups(level, waterPos, body);
         env.season = SeasonProvider.getSeason(level);
-        env.time = TimeOfDay.fromDayTime(level.getDayTime());
+        env.time = TimeOfDay.fromDayTime(level.getOverworldClockTime());
         env.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
         env.biomeTemperature = level.getBiome(waterPos).value().getBaseTemperature();
         env.anglerLevel = Integer.MAX_VALUE; // environment view ignores the holder's level
@@ -1770,26 +1770,26 @@ public final class FishingManager {
         here.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
 
         if (admin) {
-            sp.displayClientMessage(Component.literal("== RiverFishing probe ==").withStyle(ChatFormatting.GOLD), false);
-            sp.displayClientMessage(Component.literal(String.format("water=%s width=%.0f depth=%d biomes=%s",
+            sp.sendSystemMessage(Component.literal("== RiverFishing probe ==").withStyle(ChatFormatting.GOLD));
+            sp.sendSystemMessage(Component.literal(String.format("water=%s width=%.0f depth=%d biomes=%s",
                     body.type().key(), body.width(), env.waterDepth, env.biomeGroups))
-                    .withStyle(ChatFormatting.GRAY), false);
-            sp.displayClientMessage(Component.literal(String.format("season=%s time=%s weather=%s frenzy=%s",
+                    .withStyle(ChatFormatting.GRAY));
+            sp.sendSystemMessage(Component.literal(String.format("season=%s time=%s weather=%s frenzy=%s",
                     env.season == null ? "-" : env.season.jsonKey(), env.time.jsonKey(),
                     env.weather.jsonKey(), isFrenzy(level)))
-                    .withStyle(ChatFormatting.GRAY), false);
-            sp.displayClientMessage(Component.literal(String.format("pressure=%.1fhPa trend=%+.1f factor=%.2f",
+                    .withStyle(ChatFormatting.GRAY));
+            sp.sendSystemMessage(Component.literal(String.format("pressure=%.1fhPa trend=%+.1f factor=%.2f",
                     BarometricPressure.hPa(level), BarometricPressure.trend(level),
                     BarometricPressure.biteFactor(level)))
-                    .withStyle(ChatFormatting.GRAY), false);
+                    .withStyle(ChatFormatting.GRAY));
             for (var e : here) {
                 FishProfile p = e.getKey();
                 String bait = topBait(p);
-                sp.displayClientMessage(Component.literal(String.format("E=%.2f  ", e.getValue()))
+                sp.sendSystemMessage(Component.literal(String.format("E=%.2f  ", e.getValue()))
                         .withStyle(ChatFormatting.AQUA)
                         .append(fishName(p.id))
                         .append(Component.literal(String.format("  lvl>=%d  bait: %s", p.minAnglerLevel, bait))
-                                .withStyle(ChatFormatting.DARK_GRAY)), false);
+                                .withStyle(ChatFormatting.DARK_GRAY)));
             }
             // Diagnosis (§QoL): group the GATED species by the first gate that blocks them here.
             java.util.Map<String, java.util.List<String>> blocked = new java.util.LinkedHashMap<>();
@@ -1800,16 +1800,16 @@ public final class FishingManager {
                         .add(fishName(p.id).getString());
             }
             for (var e : blocked.entrySet()) {
-                sp.displayClientMessage(Component.literal("blocked[" + e.getKey() + "]: "
-                        + String.join(", ", e.getValue())).withStyle(ChatFormatting.DARK_GRAY), false);
+                sp.sendSystemMessage(Component.literal("blocked[" + e.getKey() + "]: "
+                        + String.join(", ", e.getValue())).withStyle(ChatFormatting.DARK_GRAY));
             }
             return;
         }
 
         // Player-facing fish finder: just the species list, no numbers.
         if (here.isEmpty()) {
-            sp.displayClientMessage(Component.translatable("finder.riverfishing.none")
-                    .withStyle(ChatFormatting.GRAY), false);
+            sp.sendSystemMessage(Component.translatable("finder.riverfishing.none")
+                    .withStyle(ChatFormatting.GRAY));
             return;
         }
         net.minecraft.network.chat.MutableComponent list = Component.empty();
@@ -1819,10 +1819,10 @@ public final class FishingManager {
             list.append(fishName(e.getKey().id));
             if (++shown >= 8) break;
         }
-        sp.displayClientMessage(Component.translatable("finder.riverfishing.header")
-                .withStyle(ChatFormatting.AQUA), false);
-        sp.displayClientMessage(list.withStyle(ChatFormatting.WHITE), false);
-        sp.displayClientMessage(pressureLine(level), false);
+        sp.sendSystemMessage(Component.translatable("finder.riverfishing.header")
+                .withStyle(ChatFormatting.AQUA));
+        sp.sendSystemMessage(list.withStyle(ChatFormatting.WHITE));
+        sp.sendSystemMessage(pressureLine(level));
         level.playSound(null, sp.blockPosition(), SoundEvents.NOTE_BLOCK_BIT.value(), SoundSource.PLAYERS, 0.6f, 1.5f);
     }
 
@@ -1907,7 +1907,7 @@ public final class FishingManager {
         // §koi: cherry groves are koi water. Match by name so vanilla cherry_grove AND BoP
         // cherry_blossom_grove both count without needing a dedicated tag.
         biome.unwrapKey().ifPresent(k -> {
-            if (k.location().getPath().contains("cherry")) groups.add("cherry");
+            if (k.identifier().getPath().contains("cherry")) groups.add("cherry");
         });
         return groups;
     }
@@ -1945,6 +1945,6 @@ public final class FishingManager {
     }
 
     private static void actionbar(ServerPlayer sp, Component message) {
-        sp.displayClientMessage(message, true);
+        sp.sendOverlayMessage(message);
     }
 }

@@ -27,11 +27,11 @@ public class HookItem extends Item implements RodComponentItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.riverfishing.hook_size", hookSize).withStyle(s -> s.withColor(0xA0A0A0)));
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("tooltip.riverfishing.hook_size", hookSize).withStyle(s -> s.withColor(0xA0A0A0)));
         int wear = WearData.get(stack);
         if (wear > 0) {
-            tooltip.add(Component.translatable("tooltip.riverfishing.hook_dull", wear)
+            tooltip.accept(Component.translatable("tooltip.riverfishing.hook_dull", wear)
                     .withStyle(s -> s.withColor(wear >= 70 ? 0xD05050 : 0xC0A060)));
         }
     }

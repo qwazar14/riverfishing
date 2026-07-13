@@ -1,0 +1,15 @@
+{
+  "wants": {
+    "id": "riverfishing:eel",
+    "components": {
+      "riverfishing:prime": 2800
+    }
+  },
+  "gives": {
+    "id": "minecraft:emerald",
+    "count": 8
+  },
+  "max_uses": 12,
+  "xp": 15,
+  "reputation_discount": 0.05
+}

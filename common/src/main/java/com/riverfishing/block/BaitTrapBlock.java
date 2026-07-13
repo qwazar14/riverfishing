@@ -67,12 +67,14 @@ public class BaitTrapBlock extends BaseEntityBlock implements SimpleWaterloggedB
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction dir, BlockState neighbor,
-                                  LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+    protected BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader level,
+                                     net.minecraft.world.level.ScheduledTickAccess ticks, BlockPos pos,
+                                     Direction dir, BlockPos neighborPos, BlockState neighbor,
+                                     net.minecraft.util.RandomSource random) {
         if (state.getValue(WATERLOGGED)) {
-            level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+            ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
         }
-        return super.updateShape(state, dir, neighbor, level, pos, neighborPos);
+        return super.updateShape(state, level, ticks, pos, dir, neighborPos, neighbor, random);
     }
 
     @Override
@@ -95,17 +97,17 @@ public class BaitTrapBlock extends BaseEntityBlock implements SimpleWaterloggedB
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
                                                                   BlockEntityType<T> type) {
-        if (level.isClientSide || type != ModBlockEntities.BAIT_TRAP.get()) return null;
+        if (level.isClientSide() || type != ModBlockEntities.BAIT_TRAP.get()) return null;
         return (lvl, pos, st, be) -> ((BaitTrapBlockEntity) be).serverTick(lvl);
     }
 
     @Override
-    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
+        if (level.isClientSide()) return net.minecraft.world.InteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof BaitTrapBlockEntity be) {
             be.collect(player);
         }
-        return net.minecraft.world.ItemInteractionResult.CONSUME;
+        return net.minecraft.world.InteractionResult.CONSUME;
     }
 }

@@ -30,20 +30,20 @@ public final class RodData {
     public static ItemStack get(ItemStack rod, ComponentSlot slot) {
         CompoundTag tag = StackNbt.get(rod);
         if (!tag.contains(ROOT)) return ItemStack.EMPTY;
-        CompoundTag root = tag.getCompound(ROOT);
+        CompoundTag root = tag.getCompoundOrEmpty(ROOT);
         String k = key(slot);
         if (!root.contains(k)) return ItemStack.EMPTY;
-        return ItemStack.parseOptional(com.riverfishing.util.RegistryHelper.provider(), root.getCompound(k));
+        return com.riverfishing.util.RegistryHelper.loadStack(root.getCompoundOrEmpty(k));
     }
 
     public static void set(ItemStack rod, ComponentSlot slot, ItemStack component) {
         StackNbt.mutate(rod, tag -> {
-            CompoundTag root = tag.getCompound(ROOT);
+            CompoundTag root = tag.getCompoundOrEmpty(ROOT);
             String k = key(slot);
             if (component.isEmpty()) {
                 root.remove(k);
             } else {
-                root.put(k, component.save(com.riverfishing.util.RegistryHelper.provider(), new CompoundTag()));
+                root.put(k, com.riverfishing.util.RegistryHelper.saveStack(component));
             }
             tag.put(ROOT, root);
         });
@@ -60,7 +60,7 @@ public final class RodData {
 
     /** Float depth setting stored on the ROD ("спуск", §fishing-depth): surface / mid / bottom. */
     public static String getDepth(ItemStack rod) {
-        String d = StackNbt.get(rod).getString("SetDepth");
+        String d = StackNbt.get(rod).getStringOr("SetDepth", "");
         return d.isEmpty() ? "mid" : d;
     }
 
@@ -81,7 +81,7 @@ public final class RodData {
         if (rig.getItem() instanceof com.riverfishing.item.RigItem ri && ri.rigType() == native_) {
             return; // already the native rig — keep its contents
         }
-        Item rigItem = BuiltInRegistries.ITEM.get(RiverFishing.id("rig_" + native_.jsonKey()));
+        Item rigItem = BuiltInRegistries.ITEM.getValue(RiverFishing.id("rig_" + native_.jsonKey()));
         set(rod, ComponentSlot.RIG, rigItem != null ? new ItemStack(rigItem) : ItemStack.EMPTY);
     }
 }

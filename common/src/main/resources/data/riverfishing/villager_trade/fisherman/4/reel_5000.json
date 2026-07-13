@@ -1,0 +1,12 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 10
+  },
+  "gives": {
+    "id": "riverfishing:reel_5000"
+  },
+  "max_uses": 12,
+  "xp": 15,
+  "reputation_discount": 0.05
+}

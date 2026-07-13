@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
  * take a rod back (grabbing a biting rod sets the hook and starts the fight).
  */
 public class RodPodBlock extends BaseEntityBlock {
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     private static final VoxelShape SHAPE = Block.box(2, 0, 6, 14, 8, 10);
 
     private final int slotCount;
@@ -90,38 +90,25 @@ public class RodPodBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide) return null;
+        if (level.isClientSide()) return null;
         return createTickerHelper(type, ModBlockEntities.ROD_POD.get(),
                 (lvl, pos, st, be) -> be.serverTick(lvl));
     }
 
-    @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            if (level.getBlockEntity(pos) instanceof RodPodBlockEntity be) {
-                for (ItemStack rod : be.getRodsForDrop()) {
-                    if (!rod.isEmpty()) popResource(level, pos, rod);
-                }
-                for (ItemStack alarm : be.getAlarmsForDrop()) {
-                    popResource(level, pos, alarm);
-                }
-            }
-            super.onRemove(state, level, pos, newState, movedByPiston);
-        }
-    }
+    // §26.1: onRemove is gone — the docked rods/alarms pop from RodPodBlockEntity#preRemoveSideEffects.
 
     @Override
-    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide) {
-            return net.minecraft.world.ItemInteractionResult.SUCCESS;
+        if (level.isClientSide()) {
+            return net.minecraft.world.InteractionResult.SUCCESS;
         }
         if (level.getBlockEntity(pos) instanceof RodPodBlockEntity be) {
             InteractionResult r = be.onUse(player, hand);
-            if (r == InteractionResult.PASS) return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-            if (r == InteractionResult.FAIL) return net.minecraft.world.ItemInteractionResult.FAIL;
-            return net.minecraft.world.ItemInteractionResult.SUCCESS;
+            if (r == InteractionResult.PASS) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
+            if (r == InteractionResult.FAIL) return net.minecraft.world.InteractionResult.FAIL;
+            return net.minecraft.world.InteractionResult.SUCCESS;
         }
-        return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 }

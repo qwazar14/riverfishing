@@ -41,7 +41,7 @@ public class BaitCropBlock extends CropBlock {
 
     @Override
     protected ItemLike getBaseSeedId() {
-        return BuiltInRegistries.ITEM.get(RiverFishing.id(seedPath));
+        return BuiltInRegistries.ITEM.getValue(RiverFishing.id(seedPath));
     }
 
     @Override

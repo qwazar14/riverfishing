@@ -9,7 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -18,7 +18,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
@@ -44,20 +44,20 @@ public class RodItem extends Item {
     // via Forge's Item#initializeClient, which doesn't exist on the vanilla/common Item.
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack rod = player.getItemInHand(hand);
         if (player.isSecondaryUseActive()) {
             // Open the rod-assembly GUI — reeling in any line first (§session-guard).
-            if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
+            if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
                 FishingManager.reelInIfAny(serverPlayer);
                 openAssembly(serverPlayer, hand);
             }
-            return InteractionResultHolder.sidedSuccess(rod, level.isClientSide);
+            return InteractionResult.SUCCESS;
         }
         // With an ACTIVE session the click is a strike / reel pulse (server-side); the client guesses
         // session state from its own line renderer so both sides agree on hold behaviour.
         boolean sessionAction;
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             sessionAction = FishingManager.handleRodUse(player, hand);
         } else {
             sessionAction = dev.architectury.utils.EnvExecutor.getEnvSpecific(
@@ -69,38 +69,27 @@ public class RodItem extends Item {
         // the next hold, after the lure lands). The cast itself fires in releaseUsing().
         if (rodType.activeRetrieve()) {
             player.startUsingItem(hand);
-            return InteractionResultHolder.consume(rod);
+            return InteractionResult.CONSUME;
         }
 
         if (sessionAction) {
-            return InteractionResultHolder.sidedSuccess(rod, level.isClientSide);
+            return InteractionResult.SUCCESS;
         }
 
         // No session: begin the power-bar charge (§cast-minigame) — the cast fires on release.
         if (!RodData.isAssembled(rod)) {
-            if (!level.isClientSide) {
-                player.displayClientMessage(Component.translatable("message.riverfishing.not_assembled")
-                        .withStyle(ChatFormatting.RED), true);
+            if (!level.isClientSide()) {
+                player.sendOverlayMessage(Component.translatable("message.riverfishing.not_assembled")
+                        .withStyle(ChatFormatting.RED));
             }
-            return InteractionResultHolder.fail(rod);
+            return InteractionResult.FAIL;
         }
         player.startUsingItem(hand);
-        return InteractionResultHolder.consume(rod);
+        return InteractionResult.CONSUME;
     }
 
-    /**
-     * Anvil repair with the priciest ingredient of the rod's recipe (§rod-durability):
-     * bamboo rods take bamboo, iron-built rods take iron, gold-built take gold, the carp rod a diamond.
-     */
-    @Override
-    public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
-        String key = rodType.jsonKey();
-        if ("stick".equals(key)) return repair.is(net.minecraft.world.item.Items.STICK);
-        if ("bamboo".equals(key)) return repair.is(net.minecraft.world.item.Items.BAMBOO);
-        if ("feeder".equals(key) || "bottom".equals(key)) return repair.is(net.minecraft.world.item.Items.GOLD_INGOT);
-        if ("carp".equals(key)) return repair.is(net.minecraft.world.item.Items.DIAMOND);
-        return repair.is(net.minecraft.world.item.Items.IRON_INGOT); // pole / ultralight / spinning
-    }
+    // §26.1: anvil repair moved into Item.Properties.repairable — see ModItems.rodRepairItem (the
+    // priciest ingredient of the rod's recipe: bamboo→bamboo, gold-built→gold, carp→diamond, else iron).
 
     /**
      * Cast power from charge ticks (§cast-minigame): a triangle wave — power climbs for a second,
@@ -119,30 +108,31 @@ public class RodItem extends Item {
     }
 
     @Override
-    public UseAnim getUseAnimation(ItemStack stack) {
-        return UseAnim.NONE;
+    public ItemUseAnimation getUseAnimation(ItemStack stack) {
+        return ItemUseAnimation.NONE;
     }
 
     @Override
     public void onUseTick(Level level, LivingEntity entity, ItemStack stack, int remainingUseDuration) {
-        if (!level.isClientSide && entity instanceof ServerPlayer sp) {
+        if (!level.isClientSide() && entity instanceof ServerPlayer sp) {
             FishingManager.retrieveTick(sp);
         }
     }
 
     @Override
-    public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
-        if (level.isClientSide || !(entity instanceof ServerPlayer sp)) return;
+    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
+        if (level.isClientSide() || !(entity instanceof ServerPlayer sp)) return false;
         if (FishingManager.hasSession(sp)) {
             // Was holding a retrieve — or, on a lure rod, letting go during the take sets the hook (2.4).
             FishingManager.onRetrieveStop(sp);
-            return;
+            return true;
         }
         // Releasing a charge: the power at THIS moment decides the cast distance (§cast-minigame). Lure
         // rods charge-and-cast the same way now (§spin-charge, 2.3) — no more instant click-cast.
         int used = getUseDuration(stack, entity) - timeLeft;
         InteractionHand hand = sp.getOffhandItem() == stack ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         FishingManager.chargedCast(sp, hand, castPower(used));
+        return true;
     }
 
     private void openAssembly(ServerPlayer player, InteractionHand hand) {
@@ -176,28 +166,28 @@ public class RodItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
         boolean assembled = RodData.isAssembled(stack);
-        tooltip.add(Component.translatable(assembled
+        tooltip.accept(Component.translatable(assembled
                         ? "tooltip.riverfishing.rod_assembled"
                         : "tooltip.riverfishing.rod_unassembled")
                 .withStyle(assembled ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
         // Rod test (§rod-test): the rigged-weight window this blank is built for.
         if (rodType.castWeightMax() > 0) {
-            tooltip.add(Component.translatable("tooltip.riverfishing.rod_test",
+            tooltip.accept(Component.translatable("tooltip.riverfishing.rod_test",
                     (int) rodType.castWeightMin(), (int) rodType.castWeightMax())
                     .withStyle(ChatFormatting.GRAY));
         }
         appendComponentLine(stack, ComponentSlot.REEL, tooltip);
         appendComponentLine(stack, ComponentSlot.LINE, tooltip);
         appendComponentLine(stack, ComponentSlot.RIG, tooltip);
-        tooltip.add(Component.translatable("tooltip.riverfishing.rod_hint").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.accept(Component.translatable("tooltip.riverfishing.rod_hint").withStyle(ChatFormatting.DARK_GRAY));
     }
 
-    private void appendComponentLine(ItemStack rod, ComponentSlot slot, List<Component> tooltip) {
+    private void appendComponentLine(ItemStack rod, ComponentSlot slot, java.util.function.Consumer<Component> tooltip) {
         ItemStack comp = RodData.get(rod, slot);
         if (!comp.isEmpty()) {
-            tooltip.add(Component.literal(" • ").append(comp.getHoverName()).withStyle(ChatFormatting.GRAY));
+            tooltip.accept(Component.literal(" • ").append(comp.getHoverName()).withStyle(ChatFormatting.GRAY));
         }
     }
 }

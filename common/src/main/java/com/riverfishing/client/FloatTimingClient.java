@@ -2,7 +2,7 @@ package com.riverfishing.client;
 
 import com.riverfishing.network.FloatTimingPacket;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 
 /** Client-side state + HUD for the float strike-timing mini-game (#5). */
@@ -41,7 +41,7 @@ public final class FloatTimingClient {
         return phase < 0.5f ? phase * 2f : 2f - phase * 2f;
     }
 
-    public static void render(GuiGraphics g, int screenW, int screenH, float partialTick) {
+    public static void render(GuiGraphicsExtractor g, int screenW, int screenH, float partialTick) {
         if (!active) return;
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) {
@@ -75,6 +75,6 @@ public final class FloatTimingClient {
         g.fill(mx - 1, y - 3, mx + 2, y + barH + 3, 0xFFFFE040); // moving marker
 
         Component label = Component.translatable("hud.riverfishing.strike_timing");
-        g.drawCenteredString(mc.font, label, screenW / 2, y - 12, 0xFFFFFFFF);
+        g.centeredText(mc.font, label, screenW / 2, y - 12, 0xFFFFFFFF);
     }
 }

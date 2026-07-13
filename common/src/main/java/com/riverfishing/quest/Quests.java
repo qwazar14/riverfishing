@@ -50,15 +50,15 @@ public final class Quests {
     private static Goal species(String sp, int count) {
         String key = rec(sp);
         return new Goal() {
-            public boolean complete(CompoundTag j) { return j.getCompound(key).getInt("count") >= count; }
-            public String progress(CompoundTag j) { return Math.min(count, j.getCompound(key).getInt("count")) + "/" + count; }
+            public boolean complete(CompoundTag j) { return j.getCompoundOrEmpty(key).getIntOr("count", 0) >= count; }
+            public String progress(CompoundTag j) { return Math.min(count, j.getCompoundOrEmpty(key).getIntOr("count", 0)) + "/" + count; }
         };
     }
 
     /** Catch a specimen of a species at or above {@code minGrams}. */
     private static Goal weight(String sp, int minGrams) {
         String key = rec(sp);
-        return j -> j.getCompound(key).getInt("best") >= minGrams;
+        return j -> j.getCompoundOrEmpty(key).getIntOr("best", 0) >= minGrams;
     }
 
     private static Goal distinct(int n) {
@@ -70,34 +70,34 @@ public final class Quests {
 
     private static Goal total(int n) {
         return new Goal() {
-            public boolean complete(CompoundTag j) { return j.getInt(JournalData.TOTAL) >= n; }
-            public String progress(CompoundTag j) { return Math.min(n, j.getInt(JournalData.TOTAL)) + "/" + n; }
+            public boolean complete(CompoundTag j) { return j.getIntOr(JournalData.TOTAL, 0) >= n; }
+            public String progress(CompoundTag j) { return Math.min(n, j.getIntOr(JournalData.TOTAL, 0)) + "/" + n; }
         };
     }
 
     private static Goal level(int l) {
-        return j -> JournalData.levelForXp(j.getLong(JournalData.XP)) >= l;
+        return j -> JournalData.levelForXp(j.getLongOr(JournalData.XP, 0L)) >= l;
     }
 
     private static Goal trophies(int n) {
         return new Goal() {
-            public boolean complete(CompoundTag j) { return j.getInt(JournalData.TROPHIES) >= n; }
-            public String progress(CompoundTag j) { return Math.min(n, j.getInt(JournalData.TROPHIES)) + "/" + n; }
+            public boolean complete(CompoundTag j) { return j.getIntOr(JournalData.TROPHIES, 0) >= n; }
+            public String progress(CompoundTag j) { return Math.min(n, j.getIntOr(JournalData.TROPHIES, 0)) + "/" + n; }
         };
     }
 
     /** Land {@code n} fish through the ice (§winter-quests). */
     private static Goal ice(int n) {
         return new Goal() {
-            public boolean complete(CompoundTag j) { return j.getInt(JournalData.ICE) >= n; }
-            public String progress(CompoundTag j) { return Math.min(n, j.getInt(JournalData.ICE)) + "/" + n; }
+            public boolean complete(CompoundTag j) { return j.getIntOr(JournalData.ICE, 0) >= n; }
+            public String progress(CompoundTag j) { return Math.min(n, j.getIntOr(JournalData.ICE, 0)) + "/" + n; }
         };
     }
 
     private static Goal koi() {
         return j -> {
             for (String sp : ModItems.FISH_SPECIES) {
-                if (sp.startsWith("carp_koi_") && j.getCompound(rec(sp)).getInt("count") > 0) return true;
+                if (sp.startsWith("carp_koi_") && j.getCompoundOrEmpty(rec(sp)).getIntOr("count", 0) > 0) return true;
             }
             return false;
         };
@@ -106,7 +106,7 @@ public final class Quests {
     private static int distinctCount(CompoundTag j) {
         int c = 0;
         for (String sp : ModItems.FISH_SPECIES) {
-            if (j.getCompound(rec(sp)).getInt("count") > 0) c++;
+            if (j.getCompoundOrEmpty(rec(sp)).getIntOr("count", 0) > 0) c++;
         }
         return c;
     }
@@ -166,7 +166,7 @@ public final class Quests {
 
     private static Supplier<ItemStack> item(String id, int count) {
         return () -> {
-            Item it = BuiltInRegistries.ITEM.get(RiverFishing.id(id));
+            Item it = BuiltInRegistries.ITEM.getValue(RiverFishing.id(id));
             return it == null ? ItemStack.EMPTY : new ItemStack(it, count);
         };
     }
@@ -240,8 +240,8 @@ public final class Quests {
             if (QuestData.isRewarded(sp, q.id() + "_seen")) continue;
             if (!q.goal().complete(journal)) continue;
             QuestData.markRewarded(sp, q.id() + "_seen");
-            sp.displayClientMessage(Component.translatable("message.riverfishing.quest_ready", q.title())
-                    .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+            sp.sendSystemMessage(Component.translatable("message.riverfishing.quest_ready", q.title())
+                    .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
             level.playSound(null, sp.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP,
                     SoundSource.PLAYERS, 0.7f, 1.4f);
         }
@@ -262,8 +262,8 @@ public final class Quests {
             ItemStack reward = q.rewardStack();
             if (!reward.isEmpty() && !sp.getInventory().add(reward)) sp.drop(reward, false);
             if (q.xp() > 0) JournalData.addXp(sp, q.xp());
-            sp.displayClientMessage(Component.translatable("message.riverfishing.quest_done", q.title())
-                    .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+            sp.sendSystemMessage(Component.translatable("message.riverfishing.quest_done", q.title())
+                    .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
             level.playSound(null, sp.blockPosition(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
                     SoundSource.PLAYERS, 0.7f, 1.3f);
             onProgress(sp, level);

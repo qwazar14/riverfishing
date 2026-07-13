@@ -29,7 +29,7 @@ public final class StackNbt {
 
     /** Whether the stack's custom data contains {@code key}. */
     public static boolean contains(ItemStack stack, String key) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).contains(key);
+        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains(key);
     }
 
     /** Read-modify-write: apply {@code f} to a mutable copy and store it back (old {@code getOrCreateTag} + edit). */

@@ -23,7 +23,7 @@ public final class WaterBodyCache {
     private final LinkedHashMap<Long, Entry> entries =
             new LinkedHashMap<>(256, 0.75f, true) {
                 @Override
-                protected boolean removeEldestEntry(Map.Entry<Long, Entry> eldest) {
+                protected boolean removeEldestEntry(java.util.Map.Entry<Long, WaterBodyCache.Entry> eldest) {
                     return size() > MAX_ENTRIES;
                 }
             };

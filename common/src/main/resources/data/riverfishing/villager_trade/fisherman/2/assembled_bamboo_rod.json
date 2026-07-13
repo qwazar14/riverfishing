@@ -1,0 +1,18 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 9
+  },
+  "gives": {
+    "id": "riverfishing:bamboo_rod"
+  },
+  "given_item_modifiers": [
+    {
+      "function": "minecraft:set_custom_data",
+      "tag": "{RodComponents:{Line:{id:\"riverfishing:line_mono_018\",count:1},Rig:{id:\"riverfishing:rig_float_light\",count:1,components:{\"minecraft:custom_data\":{RigContents:{Items:[{Slot:0b,Item:{id:\"riverfishing:float\",count:1}},{Slot:1b,Item:{id:\"riverfishing:hook_10\",count:1}}]}}}}}}"
+    }
+  ],
+  "max_uses": 8,
+  "xp": 8,
+  "reputation_discount": 0.05
+}

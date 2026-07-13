@@ -62,8 +62,8 @@ public class MaggotFarmBlockEntity extends BlockEntity {
     /** One piece of flesh per click (§bait-farm, composter-style); the heap rises a layer every 4. */
     void depositOne(Player player, ItemStack held) {
         if (flesh >= MAX_FLESH) {
-            player.displayClientMessage(Component.translatable("message.riverfishing.maggot_farm_full")
-                    .withStyle(ChatFormatting.GRAY), true);
+            player.sendOverlayMessage(Component.translatable("message.riverfishing.maggot_farm_full")
+                    .withStyle(ChatFormatting.GRAY));
             return;
         }
         if (!player.getAbilities().instabuild) held.shrink(1);
@@ -73,8 +73,8 @@ public class MaggotFarmBlockEntity extends BlockEntity {
             updateLevel(level);
             level.playSound(null, worldPosition, SoundEvents.COMPOSTER_FILL_SUCCESS, SoundSource.BLOCKS, 0.8f, 0.8f);
         }
-        player.displayClientMessage(Component.translatable("message.riverfishing.maggot_farm_fill",
-                flesh + "/" + MAX_FLESH).withStyle(ChatFormatting.GREEN), true);
+        player.sendOverlayMessage(Component.translatable("message.riverfishing.maggot_farm_fill",
+                flesh + "/" + MAX_FLESH).withStyle(ChatFormatting.GREEN));
     }
 
     /** Keep the block's visible fill (LEVEL 0..4) in step with the flesh count (4 pieces per layer). */
@@ -89,11 +89,11 @@ public class MaggotFarmBlockEntity extends BlockEntity {
 
     void collect(Player player) {
         if (maggots <= 0) {
-            player.displayClientMessage(Component.translatable("message.riverfishing.maggot_farm_empty")
-                    .withStyle(ChatFormatting.GRAY), true);
+            player.sendOverlayMessage(Component.translatable("message.riverfishing.maggot_farm_empty")
+                    .withStyle(ChatFormatting.GRAY));
             return;
         }
-        var maggot = BuiltInRegistries.ITEM.get(com.riverfishing.RiverFishing.id("maggot"));
+        var maggot = BuiltInRegistries.ITEM.getValue(com.riverfishing.RiverFishing.id("maggot"));
         if (maggot != null) {
             ItemStack out = new ItemStack(maggot, maggots);
             if (!player.getInventory().add(out)) {
@@ -108,8 +108,8 @@ public class MaggotFarmBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
         tag.putInt("Flesh", flesh);
         tag.putInt("Maggots", maggots);
         tag.putInt("Progress", progress);
@@ -117,11 +117,11 @@ public class MaggotFarmBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        flesh = Math.min(MAX_FLESH, tag.getInt("Flesh"));
-        maggots = tag.getInt("Maggots");
-        progress = tag.getInt("Progress");
-        nextAt = tag.contains("NextAt") ? tag.getInt("NextAt") : -1;
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        flesh = Math.min(MAX_FLESH, tag.getIntOr("Flesh", 0));
+        maggots = tag.getIntOr("Maggots", 0);
+        progress = tag.getIntOr("Progress", 0);
+        nextAt = tag.getInt("NextAt").orElse(-1);
     }
 }

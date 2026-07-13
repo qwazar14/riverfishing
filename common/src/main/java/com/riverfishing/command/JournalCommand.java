@@ -26,7 +26,7 @@ public final class JournalCommand {
     public static void init() {
         CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) ->
                 dispatcher.register(Commands.literal("rffish")
-                        .requires(s -> s.hasPermission(2))
+                        .requires(net.minecraft.commands.Commands.hasPermission(net.minecraft.commands.Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.literal("unlockall").executes(JournalCommand::unlockAll))
                         .then(Commands.literal("reset").executes(JournalCommand::reset))));
     }
@@ -40,10 +40,10 @@ public final class JournalCommand {
             JournalData.record(sp, id, w);
         }
         net.minecraft.nbt.CompoundTag root = JournalData.get(sp);
-        root.putInt(JournalData.TOTAL, Math.max(root.getInt(JournalData.TOTAL), 120));
-        root.putInt(JournalData.TROPHIES, Math.max(root.getInt(JournalData.TROPHIES), 10));
-        root.putInt(JournalData.ICE, Math.max(root.getInt(JournalData.ICE), 40));
-        root.putLong(JournalData.XP, Math.max(root.getLong(JournalData.XP), JournalData.xpForLevel(25)));
+        root.putInt(JournalData.TOTAL, Math.max(root.getIntOr(JournalData.TOTAL, 0), 120));
+        root.putInt(JournalData.TROPHIES, Math.max(root.getIntOr(JournalData.TROPHIES, 0), 10));
+        root.putInt(JournalData.ICE, Math.max(root.getIntOr(JournalData.ICE, 0), 40));
+        root.putLong(JournalData.XP, Math.max(root.getLongOr(JournalData.XP, 0L), JournalData.xpForLevel(25)));
         PlayerData.root(sp).put(JournalData.TAG, root);
         PlayerData.markDirty(sp);
         c.getSource().sendSuccess(() ->

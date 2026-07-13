@@ -65,7 +65,7 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
             boolean isNative = native_ != null && rig.getItem() instanceof com.riverfishing.item.RigItem ri
                     && ri.rigType() == native_;
             if (!isNative && native_ != null) {
-                var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
+                var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(
                         com.riverfishing.RiverFishing.id("rig_" + native_.jsonKey()));
                 rig = item != null ? new ItemStack(item) : ItemStack.EMPTY;
             }
@@ -125,7 +125,7 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
     }
 
     private void saveRigContents() {
-        if (syncingRig || player.level().isClientSide) return;
+        if (syncingRig || player.level().isClientSide()) return;
         ItemStack r = socketedRig();
         if (!(r.getItem() instanceof com.riverfishing.item.RigItem)) return;
         com.riverfishing.rig.SlotRole[] roles = rigRoles();
@@ -237,7 +237,7 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
     }
 
     private void saveToRod() {
-        if (player.level().isClientSide) return;
+        if (player.level().isClientSide()) return;
         for (int i = 0; i < slotTypes.length; i++) {
             RodData.set(rod, slotTypes[i], components.getItem(i));
         }

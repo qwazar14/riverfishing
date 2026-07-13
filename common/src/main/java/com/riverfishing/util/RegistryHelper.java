@@ -27,4 +27,29 @@ public final class RegistryHelper {
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         return mc.getConnection() != null ? mc.getConnection().registryAccess() : null;
     }
+
+    // ---- §26.1: ItemStack.save/parseOptional(provider, tag) are gone — nested-stack NBT (rod/rig
+    // contents inside custom_data) goes through the stack codec with registry-aware NbtOps instead.
+
+    private static com.mojang.serialization.DynamicOps<net.minecraft.nbt.Tag> nbtOps() {
+        HolderLookup.Provider p = provider();
+        return p != null
+                ? p.createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE)
+                : net.minecraft.nbt.NbtOps.INSTANCE;
+    }
+
+    /** Old {@code stack.save(provider, new CompoundTag())}: non-empty stack → {id,count,components?}. */
+    public static net.minecraft.nbt.CompoundTag saveStack(net.minecraft.world.item.ItemStack stack) {
+        return (net.minecraft.nbt.CompoundTag) net.minecraft.world.item.ItemStack.OPTIONAL_CODEC
+                .encodeStart(nbtOps(), stack)
+                .result().orElseGet(net.minecraft.nbt.CompoundTag::new);
+    }
+
+    /** Old {@code ItemStack.parseOptional(provider, tag)}: missing/broken data → EMPTY, never null. */
+    public static net.minecraft.world.item.ItemStack loadStack(net.minecraft.nbt.CompoundTag tag) {
+        if (tag.isEmpty()) return net.minecraft.world.item.ItemStack.EMPTY;
+        return net.minecraft.world.item.ItemStack.OPTIONAL_CODEC
+                .parse(nbtOps(), tag)
+                .result().orElse(net.minecraft.world.item.ItemStack.EMPTY);
+    }
 }

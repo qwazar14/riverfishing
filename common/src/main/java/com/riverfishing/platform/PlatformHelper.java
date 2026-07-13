@@ -24,4 +24,16 @@ public final class PlatformHelper {
     public static boolean isModLoaded(String modId) {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
     }
+
+    /**
+     * §26.1: the vanilla {@code BlockEntityType} constructor and Builder went private — each loader
+     * exposes its own factory (Fabric {@code FabricBlockEntityTypeBuilder} / NeoForge's widened ctor).
+     */
+    @ExpectPlatform
+    public static <T extends net.minecraft.world.level.block.entity.BlockEntity>
+    net.minecraft.world.level.block.entity.BlockEntityType<T> createBlockEntityType(
+            java.util.function.BiFunction<net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, T> factory,
+            net.minecraft.world.level.block.Block... blocks) {
+        throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
+    }
 }

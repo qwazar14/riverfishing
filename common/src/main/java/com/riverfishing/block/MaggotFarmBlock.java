@@ -71,15 +71,15 @@ public class MaggotFarmBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
                                                                   BlockEntityType<T> type) {
-        if (level.isClientSide || type != ModBlockEntities.MAGGOT_FARM.get()) return null;
+        if (level.isClientSide() || type != ModBlockEntities.MAGGOT_FARM.get()) return null;
         return (lvl, pos, st, be) -> ((MaggotFarmBlockEntity) be).serverTick(lvl);
     }
 
     @Override
-    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         ItemStack held = player.getItemInHand(hand);
-        if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
+        if (level.isClientSide()) return net.minecraft.world.InteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof MaggotFarmBlockEntity be) {
             if (held.is(Items.ROTTEN_FLESH)) {
                 be.depositOne(player, held);
@@ -87,6 +87,6 @@ public class MaggotFarmBlock extends BaseEntityBlock {
                 be.collect(player);
             }
         }
-        return net.minecraft.world.ItemInteractionResult.CONSUME;
+        return net.minecraft.world.InteractionResult.CONSUME;
     }
 }

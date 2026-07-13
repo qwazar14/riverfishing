@@ -11,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -40,19 +40,19 @@ public class GroundbaitItem extends Item {
     public String category() { return category; }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (level.isClientSide || !(player instanceof ServerPlayer sp)) {
-            return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+        if (level.isClientSide() || !(player instanceof ServerPlayer sp)) {
+            return InteractionResult.SUCCESS;
         }
-        ServerLevel serverLevel = sp.serverLevel();
+        ServerLevel serverLevel = sp.level();
         HitResult hit = sp.pick(REACH, 1.0f, true);
         if (hit.getType() != HitResult.Type.BLOCK) {
-            return InteractionResultHolder.fail(stack);
+            return InteractionResult.FAIL;
         }
         BlockPos pos = ((BlockHitResult) hit).getBlockPos();
         if (!WaterBodyDetector.isWater(serverLevel, pos)) {
-            return InteractionResultHolder.fail(stack);
+            return InteractionResult.FAIL;
         }
 
         FeedZoneData.get(serverLevel).feed(pos, category, serverLevel.getGameTime());
@@ -64,12 +64,12 @@ public class GroundbaitItem extends Item {
         // §groundbait-particles: a coloured cloud of THIS groundbait so different feeds look different.
         serverLevel.sendParticles(FeedZoneData.particleFor(category), pos.getX() + 0.5, pos.getY() + 1.05,
                 pos.getZ() + 0.5, 20, 0.4, 0.06, 0.4, 0.0);
-        sp.displayClientMessage(Component.translatable("message.riverfishing.fed_spot").withStyle(ChatFormatting.GREEN), true);
-        return InteractionResultHolder.consume(stack);
+        sp.sendOverlayMessage(Component.translatable("message.riverfishing.fed_spot").withStyle(ChatFormatting.GREEN));
+        return InteractionResult.CONSUME;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.riverfishing.groundbait_use").withStyle(s -> s.withColor(0x80A080)));
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("tooltip.riverfishing.groundbait_use").withStyle(s -> s.withColor(0x80A080)));
     }
 }

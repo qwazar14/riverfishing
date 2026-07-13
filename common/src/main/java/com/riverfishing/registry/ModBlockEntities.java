@@ -19,35 +19,22 @@ public final class ModBlockEntities {
     }
 
     public static final RegistrySupplier<BlockEntityType<RodPodBlockEntity>> ROD_POD =
-            REGISTER.register("rod_pod", () -> BlockEntityType.Builder.of(
-                    RodPodBlockEntity::new,
-                    ModBlocks.ROD_POD_1.get(), ModBlocks.ROD_POD_3.get()
-            ).build(null));
+            REGISTER.register("rod_pod", () -> com.riverfishing.platform.PlatformHelper.createBlockEntityType(RodPodBlockEntity::new, ModBlocks.ROD_POD_1.get(), ModBlocks.ROD_POD_3.get()));
 
     public static final RegistrySupplier<BlockEntityType<BaitTrapBlockEntity>> BAIT_TRAP =
-            REGISTER.register("bait_trap", () -> BlockEntityType.Builder.of(
-                    BaitTrapBlockEntity::new, ModBlocks.BAIT_TRAP.get()
-            ).build(null));
+            REGISTER.register("bait_trap", () -> com.riverfishing.platform.PlatformHelper.createBlockEntityType(BaitTrapBlockEntity::new, ModBlocks.BAIT_TRAP.get()));
 
     public static final RegistrySupplier<BlockEntityType<com.riverfishing.block.WormFarmBlockEntity>> WORM_FARM =
-            REGISTER.register("worm_farm", () -> BlockEntityType.Builder.of(
-                    com.riverfishing.block.WormFarmBlockEntity::new, ModBlocks.WORM_FARM.get()
-            ).build(null));
+            REGISTER.register("worm_farm", () -> com.riverfishing.platform.PlatformHelper.createBlockEntityType(com.riverfishing.block.WormFarmBlockEntity::new, ModBlocks.WORM_FARM.get()));
 
     public static final RegistrySupplier<BlockEntityType<com.riverfishing.block.MaggotFarmBlockEntity>> MAGGOT_FARM =
-            REGISTER.register("maggot_farm", () -> BlockEntityType.Builder.of(
-                    com.riverfishing.block.MaggotFarmBlockEntity::new, ModBlocks.MAGGOT_FARM.get()
-            ).build(null));
+            REGISTER.register("maggot_farm", () -> com.riverfishing.platform.PlatformHelper.createBlockEntityType(com.riverfishing.block.MaggotFarmBlockEntity::new, ModBlocks.MAGGOT_FARM.get()));
 
     public static final RegistrySupplier<BlockEntityType<TrophyStandBlockEntity>> TROPHY_STAND =
-            REGISTER.register("trophy_stand", () -> BlockEntityType.Builder.of(
-                    TrophyStandBlockEntity::new, ModBlocks.TROPHY_STAND.get()
-            ).build(null));
+            REGISTER.register("trophy_stand", () -> com.riverfishing.platform.PlatformHelper.createBlockEntityType(TrophyStandBlockEntity::new, ModBlocks.TROPHY_STAND.get()));
 
     public static final RegistrySupplier<BlockEntityType<AquariumBlockEntity>> AQUARIUM =
-            REGISTER.register("aquarium", () -> BlockEntityType.Builder.of(
-                    AquariumBlockEntity::new, ModBlocks.AQUARIUM.get()
-            ).build(null));
+            REGISTER.register("aquarium", () -> com.riverfishing.platform.PlatformHelper.createBlockEntityType(AquariumBlockEntity::new, ModBlocks.AQUARIUM.get()));
 
     private ModBlockEntities() {}
 }

@@ -1,0 +1,14 @@
+{
+  "wants": {
+    "id": "riverfishing:gudgeon",
+    "components": {
+      "riverfishing:prime": 140
+    }
+  },
+  "gives": {
+    "id": "minecraft:emerald"
+  },
+  "max_uses": 12,
+  "xp": 1,
+  "reputation_discount": 0.05
+}

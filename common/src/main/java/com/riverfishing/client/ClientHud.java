@@ -1,18 +1,18 @@
 package com.riverfishing.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.entity.player.Player;
 
 /**
  * The on-screen HUD overlays (§immersion): the float-timing cue (#5) and the cast-power bar
  * (§cast-minigame). Driven by Architectury's {@code ClientGuiEvent.RENDER_HUD}, which hands us a
- * {@link GuiGraphics} and the frame partial-tick on both loaders.
+ * {@link GuiGraphicsExtractor} and the frame partial-tick on both loaders.
  */
 public final class ClientHud {
     private ClientHud() {}
 
-    public static void render(GuiGraphics graphics, net.minecraft.client.DeltaTracker deltaTracker) {
+    public static void render(GuiGraphicsExtractor graphics, net.minecraft.client.DeltaTracker deltaTracker) {
         float partialTick = deltaTracker.getGameTimeDeltaPartialTick(false);
         Minecraft mc = Minecraft.getInstance();
         if (FloatTimingClient.isActive()) {
@@ -24,7 +24,7 @@ public final class ClientHud {
     }
 
     /** Cast power bar (§cast-minigame): shown while charging a cast (holding RMB with no line out). */
-    private static void renderCastPower(GuiGraphics g, Minecraft mc) {
+    private static void renderCastPower(GuiGraphicsExtractor g, Minecraft mc) {
         Player player = mc.player;
         if (player == null || !player.isUsingItem()) return;
         if (!(player.getUseItem().getItem() instanceof com.riverfishing.item.RodItem rodItem)) return;

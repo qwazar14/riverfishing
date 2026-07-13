@@ -1,0 +1,12 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 10
+  },
+  "gives": {
+    "id": "riverfishing:line_braid_030"
+  },
+  "max_uses": 12,
+  "xp": 22,
+  "reputation_discount": 0.05
+}

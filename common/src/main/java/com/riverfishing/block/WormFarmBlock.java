@@ -76,17 +76,17 @@ public class WormFarmBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
                                                                   BlockEntityType<T> type) {
-        if (level.isClientSide || type != ModBlockEntities.WORM_FARM.get()) return null;
+        if (level.isClientSide() || type != ModBlockEntities.WORM_FARM.get()) return null;
         return (lvl, pos, st, be) -> ((WormFarmBlockEntity) be).serverTick(lvl, st);
     }
 
     @Override
-    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         ItemStack held = player.getItemInHand(hand);
         boolean compostable = ComposterBlock.COMPOSTABLES.containsKey(held.getItem());
         if (compostable && state.getValue(LEVEL) < 4) {
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
                 if (!player.getAbilities().instabuild) held.shrink(1);
                 level.setBlock(pos, state.setValue(LEVEL, state.getValue(LEVEL) + 1), 3);
                 level.playSound(null, pos, SoundEvents.COMPOSTER_FILL_SUCCESS, SoundSource.BLOCKS, 0.8f, 1.0f);
@@ -95,12 +95,12 @@ public class WormFarmBlock extends BaseEntityBlock {
                             6, 0.3, 0.1, 0.3, 0.0);
                 }
             }
-            return net.minecraft.world.ItemInteractionResult.sidedSuccess(level.isClientSide);
+            return net.minecraft.world.InteractionResult.SUCCESS;
         }
-        if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
+        if (level.isClientSide()) return net.minecraft.world.InteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof WormFarmBlockEntity be) {
             be.collect(player);
         }
-        return net.minecraft.world.ItemInteractionResult.CONSUME;
+        return net.minecraft.world.InteractionResult.CONSUME;
     }
 }

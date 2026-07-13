@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -44,15 +44,15 @@ public class RigItem extends Item implements RodComponentItem {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (player.isSecondaryUseActive()) {
-            if (!level.isClientSide && player instanceof ServerPlayer sp) {
+            if (!level.isClientSide() && player instanceof ServerPlayer sp) {
                 openRig(sp, hand);
             }
-            return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+            return InteractionResult.SUCCESS;
         }
-        return InteractionResultHolder.pass(stack);
+        return InteractionResult.PASS;
     }
 
     private void openRig(ServerPlayer player, InteractionHand hand) {
@@ -79,8 +79,8 @@ public class RigItem extends Item implements RodComponentItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.riverfishing.rig_mass",
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("tooltip.riverfishing.rig_mass",
                 String.format("%.0f", type.massGrams())).withStyle(s -> s.withColor(0xA0A0A0)));
 
         // What's loaded inside the rig (#2).
@@ -89,18 +89,18 @@ public class RigItem extends Item implements RodComponentItem {
         for (ItemStack content : contents) {
             if (content.isEmpty()) continue;
             if (!any) {
-                tooltip.add(Component.translatable("tooltip.riverfishing.rig_contents").withStyle(ChatFormatting.GRAY));
+                tooltip.accept(Component.translatable("tooltip.riverfishing.rig_contents").withStyle(ChatFormatting.GRAY));
                 any = true;
             }
             MutableComponent line = Component.literal(" • ").append(content.getHoverName());
             if (content.getCount() > 1) {
                 line.append(Component.literal(" ×" + content.getCount()));
             }
-            tooltip.add(line.withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.accept(line.withStyle(ChatFormatting.DARK_GRAY));
         }
         if (!any) {
-            tooltip.add(Component.translatable("tooltip.riverfishing.rig_empty").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.accept(Component.translatable("tooltip.riverfishing.rig_empty").withStyle(ChatFormatting.DARK_GRAY));
         }
-        tooltip.add(Component.translatable("tooltip.riverfishing.rig_open").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.accept(Component.translatable("tooltip.riverfishing.rig_open").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

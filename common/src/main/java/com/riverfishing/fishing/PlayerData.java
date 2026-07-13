@@ -23,36 +23,44 @@ import java.util.UUID;
  * after mutating it so the store is saved.
  */
 public final class PlayerData extends SavedData {
-    private static final String NAME = "riverfishing_players";
+    public static final String NAME = "riverfishing_players";
+
+    // §26.1: SavedData.Factory is gone — a codec-backed SavedDataType drives load/save now.
+    private static final net.minecraft.world.level.saveddata.SavedDataType<PlayerData> TYPE =
+            new net.minecraft.world.level.saveddata.SavedDataType<>(
+                    net.minecraft.resources.Identifier.fromNamespaceAndPath("riverfishing", "players"),
+                    PlayerData::new,
+                    net.minecraft.nbt.CompoundTag.CODEC.xmap(t -> PlayerData.load(t, null), d -> d.save(new CompoundTag(), null)),
+                    null);
 
     private final Map<UUID, CompoundTag> players = new HashMap<>();
 
     /** The per-player root NBT (the drop-in for {@code player.getPersistentData()}). Empty tag off-server. */
     public static CompoundTag root(Player player) {
-        if (!(player instanceof ServerPlayer sp) || sp.getServer() == null) {
+        if (!(player instanceof ServerPlayer sp) || sp.level().getServer() == null) {
             return new CompoundTag();
         }
-        return store(sp.getServer()).players.computeIfAbsent(sp.getUUID(), u -> new CompoundTag());
+        return store(sp.level().getServer()).players.computeIfAbsent(sp.getUUID(), u -> new CompoundTag());
     }
 
     /** Flag the store dirty after a write to a player's root. */
     public static void markDirty(Player player) {
-        if (player instanceof ServerPlayer sp && sp.getServer() != null) {
-            store(sp.getServer()).setDirty();
+        if (player instanceof ServerPlayer sp && sp.level().getServer() != null) {
+            store(sp.level().getServer()).setDirty();
         }
     }
 
     private static PlayerData store(MinecraftServer server) {
         ServerLevel overworld = server.overworld();
-        return overworld.getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(PlayerData::new, PlayerData::load, (net.minecraft.util.datafix.DataFixTypes) null), NAME);
+        return overworld.getDataStorage().computeIfAbsent(TYPE);
     }
 
-    @Override
+    // §26.1: SavedData has no save() anymore — kept as the body behind the TYPE codec above.
     public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag list = new ListTag();
         players.forEach((uuid, data) -> {
             CompoundTag e = new CompoundTag();
-            e.putUUID("UUID", uuid);
+            e.store("UUID", net.minecraft.core.UUIDUtil.CODEC, uuid);
             e.put("Data", data);
             list.add(e);
         });
@@ -62,10 +70,10 @@ public final class PlayerData extends SavedData {
 
     public static PlayerData load(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         PlayerData d = new PlayerData();
-        ListTag list = tag.getList("Players", Tag.TAG_COMPOUND);
+        ListTag list = tag.getListOrEmpty("Players");
         for (int i = 0; i < list.size(); i++) {
-            CompoundTag e = list.getCompound(i);
-            d.players.put(e.getUUID("UUID"), e.getCompound("Data"));
+            CompoundTag e = list.getCompoundOrEmpty(i);
+            e.read("UUID", net.minecraft.core.UUIDUtil.CODEC).ifPresent(u -> d.players.put(u, e.getCompoundOrEmpty("Data")));
         }
         return d;
     }

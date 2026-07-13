@@ -17,6 +17,15 @@ import java.util.Map;
  */
 public class FeedZoneData extends SavedData {
     public static final String NAME = "riverfishing_feed_zones";
+
+    // §26.1: SavedData.Factory is gone — a codec-backed SavedDataType drives load/save now; the CompoundTag
+    // round-trip below reuses the existing save()/load() bodies unchanged.
+    private static final net.minecraft.world.level.saveddata.SavedDataType<FeedZoneData> TYPE =
+            new net.minecraft.world.level.saveddata.SavedDataType<>(
+                    net.minecraft.resources.Identifier.fromNamespaceAndPath("riverfishing", NAME.replace("riverfishing_", "")),
+                    FeedZoneData::new,
+                    net.minecraft.nbt.CompoundTag.CODEC.xmap(t -> FeedZoneData.load(t, null), d -> d.save(new CompoundTag(), null)),
+                    null);
     private static final long HALFLIFE_TICKS = 1800L;   // ~90 s: the spot fades over its lifetime
     private static final long MAX_LIFETIME_TICKS = 3600L; // hard stop: groundbait works ~3 minutes
     private static final double FEED_AMOUNT = 0.6;
@@ -24,11 +33,12 @@ public class FeedZoneData extends SavedData {
 
     /** §groundbait-particles: each groundbait leaves its own coloured cloud on the water. */
     public static DustParticleOptions particleFor(String category) {
-        org.joml.Vector3f c = switch (category == null ? "" : category) {
-            case "grain" -> new org.joml.Vector3f(0.92f, 0.80f, 0.32f);   // golden grain
-            case "pellet" -> new org.joml.Vector3f(0.55f, 0.40f, 0.24f);  // brown pellets
-            case "cake" -> new org.joml.Vector3f(0.66f, 0.58f, 0.30f);    // olive oil-cake
-            default -> new org.joml.Vector3f(0.88f, 0.86f, 0.72f);        // pale powder cloud
+        // §26.1: DustParticleOptions takes a packed 0xRRGGBB int now, not a Vector3f.
+        int c = switch (category == null ? "" : category) {
+            case "grain" -> 0xEBCC52;   // golden grain
+            case "pellet" -> 0x8C663D;  // brown pellets
+            case "cake" -> 0xA8944C;    // olive oil-cake
+            default -> 0xE0DBB8;        // pale powder cloud
         };
         return new DustParticleOptions(c, 1.0f);
     }
@@ -36,7 +46,7 @@ public class FeedZoneData extends SavedData {
     private final Map<Long, Zone> zones = new HashMap<>();
 
     public static FeedZoneData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(FeedZoneData::new, FeedZoneData::load, (net.minecraft.util.datafix.DataFixTypes) null), NAME);
+        return level.getDataStorage().computeIfAbsent(TYPE);
     }
 
     private static long key(int x, int z) {
@@ -90,7 +100,7 @@ public class FeedZoneData extends SavedData {
 
     // ---- persistence ----
 
-    @Override
+    // §26.1: SavedData has no save() anymore — kept as the body behind the TYPE codec above.
     public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag list = new ListTag();
         for (Zone z : zones.values()) {
@@ -109,11 +119,11 @@ public class FeedZoneData extends SavedData {
 
     public static FeedZoneData load(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         FeedZoneData data = new FeedZoneData();
-        ListTag list = tag.getList("zones", Tag.TAG_COMPOUND);
+        ListTag list = tag.getListOrEmpty("zones");
         for (int i = 0; i < list.size(); i++) {
-            CompoundTag t = list.getCompound(i);
-            Zone z = new Zone(t.getInt("x"), t.getInt("y"), t.getInt("z"), t.getLong("fed"),
-                    t.getDouble("potency"), t.getString("category"));
+            CompoundTag t = list.getCompoundOrEmpty(i);
+            Zone z = new Zone(t.getIntOr("x", 0), t.getIntOr("y", 0), t.getIntOr("z", 0), t.getLongOr("fed", 0L),
+                    t.getDoubleOr("potency", 0d), t.getStringOr("category", ""));
             data.zones.put(key(z.x, z.z), z);
         }
         return data;

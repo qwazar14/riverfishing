@@ -41,15 +41,14 @@ public final class RigData {
         NonNullList<ItemStack> list = NonNullList.withSize(slotCount(rigType(rig)), ItemStack.EMPTY);
         CompoundTag tag = StackNbt.get(rig);
         if (tag.contains(ROOT)) {
-            ListTag items = tag.getCompound(ROOT).getList(ITEMS, Tag.TAG_COMPOUND);
-            var provider = RegistryHelper.provider();
+            ListTag items = tag.getCompoundOrEmpty(ROOT).getListOrEmpty(ITEMS);
             for (int i = 0; i < items.size(); i++) {
-                CompoundTag c = items.getCompound(i);
-                int slot = c.getByte(SLOT) & 255;
+                CompoundTag c = items.getCompoundOrEmpty(i);
+                int slot = c.getByteOr(SLOT, (byte) 0) & 255;
                 if (slot < list.size()) {
                     // §data-components (1.21): the item lives in its own "Item" sub-tag — the 1.21 ItemStack
                     // codec is strict and won't parse a tag that also carries our "Slot" byte.
-                    list.set(slot, ItemStack.parseOptional(provider, c.getCompound("Item")));
+                    list.set(slot, RegistryHelper.loadStack(c.getCompoundOrEmpty("Item")));
                 }
             }
         }
@@ -57,14 +56,13 @@ public final class RigData {
     }
 
     public static void save(ItemStack rig, NonNullList<ItemStack> contents) {
-        var provider = RegistryHelper.provider();
         ListTag items = new ListTag();
         for (int i = 0; i < contents.size(); i++) {
             ItemStack stack = contents.get(i);
             if (!stack.isEmpty()) {
                 CompoundTag c = new CompoundTag();
                 c.putByte(SLOT, (byte) i);
-                c.put("Item", stack.save(provider, new CompoundTag()));
+                c.put("Item", RegistryHelper.saveStack(stack));
                 items.add(c);
             }
         }

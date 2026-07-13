@@ -37,11 +37,11 @@ public class ReelItem extends Item implements RodComponentItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.riverfishing.reel_size", size).withStyle(s -> s.withColor(0xA0A0A0)));
-        tooltip.add(Component.translatable("tooltip.riverfishing.reel_drag", String.format("%.1f", maxDragKg())).withStyle(s -> s.withColor(0xA0A0A0)));
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("tooltip.riverfishing.reel_size", size).withStyle(s -> s.withColor(0xA0A0A0)));
+        tooltip.accept(Component.translatable("tooltip.riverfishing.reel_drag", String.format("%.1f", maxDragKg())).withStyle(s -> s.withColor(0xA0A0A0)));
         // §tackle-compat: the working line-diameter window this spool takes.
-        tooltip.add(Component.translatable("tooltip.riverfishing.reel_line",
+        tooltip.accept(Component.translatable("tooltip.riverfishing.reel_line",
                 String.format("%.2f", com.riverfishing.component.TackleCompat.minLineDiameter(size)),
                 String.format("%.2f", com.riverfishing.component.TackleCompat.maxLineDiameter(size)))
                 .withStyle(s -> s.withColor(0x88C8E6)));

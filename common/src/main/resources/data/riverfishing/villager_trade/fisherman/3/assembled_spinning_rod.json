@@ -1,0 +1,18 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 16
+  },
+  "gives": {
+    "id": "riverfishing:spinning_rod"
+  },
+  "given_item_modifiers": [
+    {
+      "function": "minecraft:set_custom_data",
+      "tag": "{RodComponents:{Reel:{id:\"riverfishing:reel_2000\",count:1},Line:{id:\"riverfishing:line_braid_016\",count:1},Rig:{id:\"riverfishing:rig_predator\",count:1,components:{\"minecraft:custom_data\":{RigContents:{Items:[{Slot:0b,Item:{id:\"riverfishing:leader\",count:1}},{Slot:1b,Item:{id:\"riverfishing:spinner\",count:1}}]}}}}}}"
+    }
+  ],
+  "max_uses": 8,
+  "xp": 14,
+  "reputation_discount": 0.05
+}

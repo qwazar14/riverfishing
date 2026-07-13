@@ -15,11 +15,11 @@ public final class QuestData {
     private QuestData() {}
 
     public static boolean isRewarded(Player player, String questId) {
-        return PlayerData.root(player).getCompound(TAG).getBoolean(questId);
+        return PlayerData.root(player).getCompoundOrEmpty(TAG).getBooleanOr(questId, false);
     }
 
     public static void markRewarded(Player player, String questId) {
-        CompoundTag root = PlayerData.root(player).getCompound(TAG);
+        CompoundTag root = PlayerData.root(player).getCompoundOrEmpty(TAG);
         root.putBoolean(questId, true);
         PlayerData.root(player).put(TAG, root);
         PlayerData.markDirty(player);

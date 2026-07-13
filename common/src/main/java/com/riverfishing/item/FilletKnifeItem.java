@@ -6,7 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -29,14 +29,14 @@ public class FilletKnifeItem extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack knife = player.getItemInHand(hand);
         InteractionHand other = (hand == InteractionHand.MAIN_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack target = player.getItemInHand(other);
         if (!(target.getItem() instanceof FishItem)) {
-            return InteractionResultHolder.pass(knife);
+            return InteractionResult.PASS;
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             // Filleting a koi is possible — but it's an ornamental collectible, so shame the angler
             // in chat by name (§koi). The knife still does its job.
             boolean koi = FishItem.isKoi(target);
@@ -60,11 +60,11 @@ public class FilletKnifeItem extends Item {
                 }
             }
         }
-        return InteractionResultHolder.sidedSuccess(knife, level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.riverfishing.knife_use").withStyle(ChatFormatting.DARK_GRAY));
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("tooltip.riverfishing.knife_use").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

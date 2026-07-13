@@ -2,7 +2,7 @@ package com.riverfishing.client;
 
 import com.riverfishing.menu.RigMenu;
 import com.riverfishing.rig.SlotRole;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -11,33 +11,32 @@ import net.minecraft.world.inventory.Slot;
 /** Polished, primitive-drawn screen for {@link RigMenu}: colour-coded, labelled role slots. */
 public class RigScreen extends AbstractContainerScreen<RigMenu> {
     public RigScreen(RigMenu menu, Inventory inv, Component title) {
-        super(menu, inv, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
+        // §26.1: imageWidth/Height are final now — pass through the sized super ctor.
+        super(menu, inv, title, 176, 166);
         this.inventoryLabelY = this.imageHeight - 94;
         this.titleLabelX = 10;
         this.titleLabelY = 8;   // inside the header band, under the wood frame (§gui-cyrillic)
         this.inventoryLabelX = 10;
     }
 
+    // §26.1: the framework calls extractBackground/extractTooltip itself — no render() override needed.
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(graphics, mouseX, mouseY, partialTick);
-        super.render(graphics, mouseX, mouseY, partialTick);
-        this.renderTooltip(graphics, mouseX, mouseY);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
 
         // Full role name on hover over an empty role slot.
         if (this.hoveredSlot != null && !this.hoveredSlot.hasItem()) {
             int menuIndex = this.menu.slots.indexOf(this.hoveredSlot);
             SlotRole role = this.menu.roleAt(menuIndex);
             if (role != null) {
-                graphics.renderTooltip(this.font, Component.translatable(role.langKey()), mouseX, mouseY);
+                graphics.setTooltipForNextFrame(this.font, Component.translatable(role.langKey()), mouseX, mouseY);
             }
         }
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
         int x = this.leftPos;
         int y = this.topPos;
         GuiStyle.panel(graphics, x, y, imageWidth, imageHeight);
@@ -59,17 +58,17 @@ public class RigScreen extends AbstractContainerScreen<RigMenu> {
     }
 
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(this.font, this.title,
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        graphics.text(this.font, this.title,
                 this.titleLabelX, this.titleLabelY, GuiStyle.TEXT, false);
         // Long Cyrillic hints wrap inside the panel instead of spilling past its edge (§gui-cyrillic).
         Component hint = Component.translatable("menu.riverfishing.rig_hint");
         int hy = 50;
         for (net.minecraft.util.FormattedCharSequence seq : this.font.split(hint, this.imageWidth - 20)) {
-            graphics.drawString(this.font, seq, 10, hy, GuiStyle.TEXT_HINT, false);
+            graphics.text(this.font, seq, 10, hy, GuiStyle.TEXT_HINT, false);
             hy += 10;
         }
-        graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, GuiStyle.TEXT, false);
+        graphics.text(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, GuiStyle.TEXT, false);
     }
 
     private static int accentColor(SlotRole role) {
