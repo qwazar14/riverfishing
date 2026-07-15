@@ -5,5 +5,5 @@
     "b": { "item": "minecraft:bamboo" },
     "i": { "item": "minecraft:iron_ingot" }
   },
-  "result": { "id": "riverfishing:ultralight_rod" }
+  "result": { "item": "riverfishing:ultralight_rod" }
 }

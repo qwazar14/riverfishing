@@ -6,5 +6,5 @@
     "b": { "item": "minecraft:bamboo" },
     "i": { "item": "minecraft:iron_ingot" }
   },
-  "result": { "id": "riverfishing:pole_rod" }
+  "result": { "item": "riverfishing:pole_rod" }
 }

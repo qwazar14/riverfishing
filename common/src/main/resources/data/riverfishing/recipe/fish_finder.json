@@ -6,5 +6,5 @@
     "r": { "item": "minecraft:redstone" },
     "q": { "item": "minecraft:quartz" }
   },
-  "result": { "id": "riverfishing:fish_finder" }
+  "result": { "item": "riverfishing:fish_finder" }
 }

@@ -9,5 +9,5 @@
     "I": { "item": "minecraft:iron_ingot" },
     "S": { "item": "minecraft:stick" }
   },
-  "result": { "id": "riverfishing:ice_auger" }
+  "result": { "item": "riverfishing:ice_auger" }
 }

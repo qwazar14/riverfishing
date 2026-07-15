@@ -1,7 +1,7 @@
 {
   "type": "minecraft:smoking",
   "ingredient": { "item": "riverfishing:raw_fillet" },
-  "result": {"id": "riverfishing:cooked_fillet"},
+  "result": "riverfishing:cooked_fillet",
   "experience": 0.2,
   "cookingtime": 100
 }

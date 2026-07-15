@@ -5,5 +5,5 @@
     "n": { "item": "minecraft:iron_nugget" },
     "s": { "item": "minecraft:string" }
   },
-  "result": { "id": "riverfishing:rig_flat_feeder" }
+  "result": { "item": "riverfishing:rig_flat_feeder" }
 }

@@ -2,5 +2,5 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [ "SSS", "SLS", "SSS" ],
   "key": { "S": { "item": "minecraft:string" }, "L": { "item": "riverfishing:line_fluoro_014" } },
-  "result": { "id": "riverfishing:line_fluoro_016" }
+  "result": { "item": "riverfishing:line_fluoro_016" }
 }

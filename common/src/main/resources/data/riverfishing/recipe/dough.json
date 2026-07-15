@@ -4,5 +4,5 @@
     { "item": "minecraft:wheat" },
     { "item": "minecraft:water_bucket" }
   ],
-  "result": { "id": "riverfishing:dough", "count": 1 }
+  "result": { "item": "riverfishing:dough", "count": 1 }
 }

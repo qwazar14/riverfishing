@@ -5,5 +5,5 @@
     { "item": "minecraft:iron_nugget" },
     { "item": "minecraft:iron_nugget" }
   ],
-  "result": { "id": "riverfishing:rig_ground" }
+  "result": { "item": "riverfishing:rig_ground" }
 }

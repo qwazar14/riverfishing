@@ -9,5 +9,5 @@
     "P": { "tag": "minecraft:planks" },
     "D": { "item": "minecraft:dirt" }
   },
-  "result": { "id": "riverfishing:worm_farm" }
+  "result": { "item": "riverfishing:worm_farm" }
 }

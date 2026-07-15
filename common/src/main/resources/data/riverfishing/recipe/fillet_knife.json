@@ -8,5 +8,5 @@
     "I": { "item": "minecraft:iron_ingot" },
     "S": { "item": "minecraft:stick" }
   },
-  "result": { "id": "riverfishing:fillet_knife" }
+  "result": { "item": "riverfishing:fillet_knife" }
 }

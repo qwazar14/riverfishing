@@ -4,5 +4,5 @@
     { "item": "minecraft:string" },
     { "item": "minecraft:prismarine_shard" }
   ],
-  "result": { "id": "riverfishing:leader_fluoro", "count": 1 }
+  "result": { "item": "riverfishing:leader_fluoro", "count": 1 }
 }

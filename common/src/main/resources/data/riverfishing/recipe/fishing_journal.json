@@ -5,5 +5,5 @@
     { "item": "riverfishing:hook_12" },
     { "item": "minecraft:leather" }
   ],
-  "result": { "id": "riverfishing:fishing_journal", "count": 1 }
+  "result": { "item": "riverfishing:fishing_journal", "count": 1 }
 }

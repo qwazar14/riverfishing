@@ -8,5 +8,5 @@
     { "item": "minecraft:redstone" },
     { "item": "minecraft:iron_nugget" }
   ],
-  "result": { "id": "riverfishing:reel_4000", "count": 1 }
+  "result": { "item": "riverfishing:reel_4000", "count": 1 }
 }

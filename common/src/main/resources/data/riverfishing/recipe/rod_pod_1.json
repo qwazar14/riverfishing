@@ -6,5 +6,5 @@
     " s "
   ],
   "key": { "s": { "item": "minecraft:stick" } },
-  "result": { "id": "riverfishing:rod_pod_1" }
+  "result": { "item": "riverfishing:rod_pod_1" }
 }
