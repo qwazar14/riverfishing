@@ -108,8 +108,8 @@ public class MaggotFarmBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
         tag.putInt("Flesh", flesh);
         tag.putInt("Maggots", maggots);
         tag.putInt("Progress", progress);
@@ -117,8 +117,8 @@ public class MaggotFarmBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    public void load(CompoundTag tag) {
+        super.load(tag);
         flesh = Math.min(MAX_FLESH, tag.getInt("Flesh"));
         maggots = tag.getInt("Maggots");
         progress = tag.getInt("Progress");

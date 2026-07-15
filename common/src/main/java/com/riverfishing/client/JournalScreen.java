@@ -160,7 +160,7 @@ public class JournalScreen extends Screen {
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(g, mouseX, mouseY, partialTick);
+        this.renderBackground(g);
         boolean scaled = uiScale < 0.999f;
         if (scaled) {
             g.pose().pushPose();
@@ -201,9 +201,6 @@ public class JournalScreen extends Screen {
      * reads as a washed-out, "размытый" page. The panel is opaque, so a plain (unblurred) backdrop is
      * cleaner and crisper. No-op keeps the world sharp behind the journal.
      */
-    @Override
-    protected void renderBlurredBackground(float partialTick) {
-    }
 
     // ---- tabs ----
 
@@ -745,15 +742,15 @@ public class JournalScreen extends Screen {
                     new ItemStack(net.minecraft.world.item.Items.SUNFLOWER).getHoverName().getString(),
                     new ItemStack(net.minecraft.world.item.Items.PISTON).getHoverName().getString());
         }
-        for (net.minecraft.world.item.crafting.RecipeHolder<?> holder : mc.level.getRecipeManager().getRecipes()) {
+        for (net.minecraft.world.item.crafting.Recipe<?> holder : mc.level.getRecipeManager().getRecipes()) {
             ItemStack res;
             try {
-                res = holder.value().getResultItem(mc.level.registryAccess());
+                res = holder.getResultItem(mc.level.registryAccess());
             } catch (Throwable ignored) {
                 continue;
             }
             if (res == null || res.isEmpty() || res.getItem() != stack.getItem()) continue;
-            NonNullList<Ingredient> ings = holder.value().getIngredients();
+            NonNullList<Ingredient> ings = holder.getIngredients();
             if (ings.isEmpty()) continue;
             LinkedHashSet<String> names = new LinkedHashSet<>();
             for (Ingredient ing : ings) {
@@ -858,13 +855,13 @@ public class JournalScreen extends Screen {
     // ---- input ----
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         boolean scrollView = (tab != TAB_FISH && catDetail < 0) || (tab == TAB_FISH && detail != null);
         if (scrollView) {
-            scroll = Mth.clamp(scroll - (int) (scrollY * 18), 0, Math.max(0, lastCatH - (H - 44)));
+            scroll = Mth.clamp(scroll - (int) (delta * 18), 0, Math.max(0, lastCatH - (H - 44)));
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return super.mouseScrolled(mouseX, mouseY, delta);
     }
 
     @Override

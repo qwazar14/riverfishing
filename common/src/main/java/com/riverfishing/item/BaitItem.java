@@ -34,19 +34,18 @@ public class BaitItem extends Item {
     public boolean artificial() { return artificial; }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.level.Level level, List<Component> tooltip, TooltipFlag flag) {
         String key = tooltipKey != null ? tooltipKey
                 : (artificial ? "tooltip.riverfishing.bait_artificial" : "tooltip.riverfishing.bait_natural");
         tooltip.add(Component.translatable(key).withStyle(s -> s.withColor(0x80A080)));
 
         // §lure-color: a painted lure names its colour class and the water it fishes best (§8).
         if (artificial) {
-            net.minecraft.world.item.component.DyedItemColor dc =
-                    stack.get(net.minecraft.core.component.DataComponents.DYED_COLOR);
-            if (dc != null) {
-                com.riverfishing.engine.LureColor lc = com.riverfishing.engine.LureColor.fromRgb(dc.rgb());
+            int rgb = DyeUtil.color(stack);
+            if (rgb >= 0) {
+                com.riverfishing.engine.LureColor lc = com.riverfishing.engine.LureColor.fromRgb(rgb);
                 tooltip.add(Component.translatable("tooltip.riverfishing.lure_color_" + lc.name().toLowerCase())
-                        .withStyle(s -> s.withColor(dc.rgb())));
+                        .withStyle(s -> s.withColor(rgb)));
             }
         }
     }

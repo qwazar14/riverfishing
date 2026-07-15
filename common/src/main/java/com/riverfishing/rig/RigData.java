@@ -49,7 +49,7 @@ public final class RigData {
                 if (slot < list.size()) {
                     // §data-components (1.21): the item lives in its own "Item" sub-tag — the 1.21 ItemStack
                     // codec is strict and won't parse a tag that also carries our "Slot" byte.
-                    list.set(slot, ItemStack.parseOptional(provider, c.getCompound("Item")));
+                    list.set(slot, ItemStack.of(c.getCompound("Item")));
                 }
             }
         }
@@ -64,7 +64,7 @@ public final class RigData {
             if (!stack.isEmpty()) {
                 CompoundTag c = new CompoundTag();
                 c.putByte(SLOT, (byte) i);
-                c.put("Item", stack.save(provider, new CompoundTag()));
+                c.put("Item", stack.save(new CompoundTag()));
                 items.add(c);
             }
         }
@@ -103,9 +103,8 @@ public final class RigData {
         forEachFilled(rig, (role, stack) -> {
             if (found[0] < 0 && (role == SlotRole.LURE || role == SlotRole.BAIT)
                     && stack.getItem() instanceof BaitItem b && b.artificial()) {
-                net.minecraft.world.item.component.DyedItemColor dc =
-                        stack.get(net.minecraft.core.component.DataComponents.DYED_COLOR);
-                if (dc != null) found[0] = dc.rgb();
+                int rgb = com.riverfishing.item.DyeUtil.color(stack);
+                if (rgb >= 0) found[0] = rgb;
             }
         });
         return found[0];

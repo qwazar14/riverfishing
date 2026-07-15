@@ -12,8 +12,7 @@ import net.minecraft.world.entity.player.Player;
 public final class ClientHud {
     private ClientHud() {}
 
-    public static void render(GuiGraphics graphics, net.minecraft.client.DeltaTracker deltaTracker) {
-        float partialTick = deltaTracker.getGameTimeDeltaPartialTick(false);
+    public static void render(GuiGraphics graphics, float partialTick) {
         Minecraft mc = Minecraft.getInstance();
         if (FloatTimingClient.isActive()) {
             FloatTimingClient.render(graphics,
@@ -32,7 +31,7 @@ public final class ClientHud {
         // charging. Once a line is out, holding is a RETRIEVE, not a charge, so hide it (next line).
         if (ClientLineState.active()) return;
 
-        int used = player.getUseItem().getUseDuration(player) - player.getUseItemRemainingTicks();
+        int used = player.getUseItem().getUseDuration() - player.getUseItemRemainingTicks();
         float power = com.riverfishing.item.RodItem.castPower(used);
 
         // §cast-bar-cut: mirror the server's rod-test lower bound — an under-loaded blank can't throw

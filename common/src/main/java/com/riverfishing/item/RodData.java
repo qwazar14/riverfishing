@@ -33,7 +33,7 @@ public final class RodData {
         CompoundTag root = tag.getCompound(ROOT);
         String k = key(slot);
         if (!root.contains(k)) return ItemStack.EMPTY;
-        return ItemStack.parseOptional(com.riverfishing.util.RegistryHelper.provider(), root.getCompound(k));
+        return ItemStack.of(root.getCompound(k));
     }
 
     public static void set(ItemStack rod, ComponentSlot slot, ItemStack component) {
@@ -43,7 +43,7 @@ public final class RodData {
             if (component.isEmpty()) {
                 root.remove(k);
             } else {
-                root.put(k, component.save(com.riverfishing.util.RegistryHelper.provider(), new CompoundTag()));
+                root.put(k, component.save(new CompoundTag()));
             }
             tag.put(ROOT, root);
         });

@@ -33,12 +33,7 @@ public class TrophyStandBlock extends BaseEntityBlock {
             Block.box(3, 3, 3, 13, 10, 13),   // body
             Block.box(2, 10, 2, 14, 12, 14)); // cap
 
-    public static final com.mojang.serialization.MapCodec<TrophyStandBlock> CODEC = simpleCodec(TrophyStandBlock::new);
 
-    @Override
-    protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
-        return CODEC;
-    }
 
     public TrophyStandBlock(Properties properties) {
         super(properties);
@@ -75,24 +70,24 @@ public class TrophyStandBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
-        if (!(level.getBlockEntity(pos) instanceof TrophyStandBlockEntity be)) return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        if (level.isClientSide) return InteractionResult.SUCCESS;
+        if (!(level.getBlockEntity(pos) instanceof TrophyStandBlockEntity be)) return InteractionResult.PASS;
 
         ItemStack held = player.getItemInHand(hand);
         if (be.getFish().isEmpty() && held.getItem() instanceof FishItem) {
             be.setFish(held.copyWithCount(1));
             held.shrink(1);
-            return net.minecraft.world.ItemInteractionResult.CONSUME;
+            return InteractionResult.CONSUME;
         }
         if (!be.getFish().isEmpty() && held.isEmpty()) {
             ItemStack fish = be.getFish();
             be.setFish(ItemStack.EMPTY);
             if (!player.getInventory().add(fish)) player.drop(fish, false);
-            return net.minecraft.world.ItemInteractionResult.CONSUME;
+            return InteractionResult.CONSUME;
         }
-        return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.PASS;
     }
 
     @Override

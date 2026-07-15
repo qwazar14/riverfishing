@@ -37,12 +37,7 @@ public class BaitTrapBlock extends BaseEntityBlock implements SimpleWaterloggedB
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     private static final VoxelShape SHAPE = Block.box(1, 0, 1, 15, 13, 15);
 
-    public static final com.mojang.serialization.MapCodec<BaitTrapBlock> CODEC = simpleCodec(BaitTrapBlock::new);
 
-    @Override
-    protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
-        return CODEC;
-    }
 
     public BaitTrapBlock(Properties properties) {
         super(properties);
@@ -100,12 +95,12 @@ public class BaitTrapBlock extends BaseEntityBlock implements SimpleWaterloggedB
     }
 
     @Override
-    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
+        if (level.isClientSide) return InteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof BaitTrapBlockEntity be) {
             be.collect(player);
         }
-        return net.minecraft.world.ItemInteractionResult.CONSUME;
+        return InteractionResult.CONSUME;
     }
 }

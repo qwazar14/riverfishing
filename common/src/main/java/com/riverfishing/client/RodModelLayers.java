@@ -36,7 +36,7 @@ public final class RodModelLayers {
 
     /** The mirrored (hand) counterpart of a rod layer model (§rod-mirror). */
     public static ResourceLocation mirror(ResourceLocation normal) {
-        return ResourceLocation.fromNamespaceAndPath(normal.getNamespace(), normal.getPath().replace("item/rod/", "item/rod_m/"));
+        return new ResourceLocation(normal.getNamespace(), normal.getPath().replace("item/rod/", "item/rod_m/"));
     }
 
     public static ResourceLocation blank(String rodKey) {

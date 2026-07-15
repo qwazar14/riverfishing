@@ -47,7 +47,7 @@ public class FilletKnifeItem extends Item {
             if (!player.getInventory().add(fillets)) {
                 player.drop(fillets, false);
             }
-            knife.hurtAndBreak(1, player, hand == net.minecraft.world.InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
+            knife.hurtAndBreak(1, player, e -> e.broadcastBreakEvent(hand == net.minecraft.world.InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND));
             level.playSound(null, player.blockPosition(), SoundEvents.PLAYER_ATTACK_SWEEP,
                     SoundSource.PLAYERS, 0.6f, 1.3f);
             if (koi && level.getServer() != null) {
@@ -64,7 +64,7 @@ public class FilletKnifeItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.level.Level level, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.riverfishing.knife_use").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

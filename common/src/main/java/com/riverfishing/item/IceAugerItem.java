@@ -68,7 +68,7 @@ public class IceAugerItem extends Item {
             level.playSound(null, pos, SoundEvents.GLASS_BREAK, SoundSource.BLOCKS, 0.8f, 0.7f);
             level.playSound(null, pos, SoundEvents.GENERIC_SPLASH, SoundSource.BLOCKS, 0.5f, 1.2f);
             if (player != null) {
-                ctx.getItemInHand().hurtAndBreak(1, player, ctx.getHand() == net.minecraft.world.InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
+                ctx.getItemInHand().hurtAndBreak(1, player, e -> e.broadcastBreakEvent(ctx.getHand() == net.minecraft.world.InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND));
                 player.getCooldowns().addCooldown(this, 15);
                 player.displayClientMessage(Component.translatable("message.riverfishing.auger_hole")
                         .withStyle(ChatFormatting.AQUA), true);
@@ -78,7 +78,7 @@ public class IceAugerItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.level.Level level, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.riverfishing.ice_auger").withStyle(s -> s.withColor(0x80A0C0)));
     }
 }

@@ -30,7 +30,7 @@ public class LeaderItem extends Item {
     public double stealth() { return stealth; }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.level.Level level, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.riverfishing.leader_protection", Math.round(protection * 100))
                 .withStyle(s -> s.withColor(0x8090C0)));
         tooltip.add(Component.translatable("tooltip.riverfishing.leader_stealth", Math.round(stealth * 100))

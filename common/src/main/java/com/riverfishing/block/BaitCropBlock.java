@@ -1,8 +1,6 @@
 package com.riverfishing.block;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.riverfishing.RiverFishing;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.ItemLike;
@@ -19,9 +17,6 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
  * our datapack) — rides the vanilla {@link CropBlock} behaviour unchanged.
  */
 public class BaitCropBlock extends CropBlock {
-    public static final MapCodec<BaitCropBlock> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
-            Codec.STRING.fieldOf("seed").forGetter(b -> b.seedPath),
-            propertiesCodec()).apply(i, BaitCropBlock::new));
 
     public static final int MAX_AGE = 3;
     public static final IntegerProperty AGE = BlockStateProperties.AGE_3;
@@ -34,10 +29,6 @@ public class BaitCropBlock extends CropBlock {
         this.seedPath = seedPath;
     }
 
-    @Override
-    public MapCodec<BaitCropBlock> codec() {
-        return CODEC;
-    }
 
     @Override
     protected ItemLike getBaseSeedId() {

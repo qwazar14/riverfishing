@@ -161,7 +161,7 @@ public final class ModVillagers {
         if (i == null || i == Items.AIR) return;
         ItemStack result = new ItemStack(i, count);
         t.get(level).add((trader, random) ->
-                new MerchantOffer(new net.minecraft.world.item.trading.ItemCost(Items.EMERALD, emeraldCost), result.copy(), 12, xp, 0.05f));
+                new MerchantOffer(new ItemStack(Items.EMERALD, emeraldCost), result.copy(), 12, xp, 0.05f));
     }
 
     /** Villager sells a LAZILY built NBT stack (assembled rig/rod, §assembled-trades). */
@@ -170,7 +170,7 @@ public final class ModVillagers {
         t.get(level).add((trader, random) -> {
             ItemStack out = result.get();
             if (out.isEmpty()) return null;
-            return new MerchantOffer(new net.minecraft.world.item.trading.ItemCost(Items.EMERALD, emeraldCost), out, 8, xp, 0.05f);
+            return new MerchantOffer(new ItemStack(Items.EMERALD, emeraldCost), out, 8, xp, 0.05f);
         });
     }
 
@@ -185,16 +185,15 @@ public final class ModVillagers {
         t.get(level).add((trader, random) -> {
             Item i = item(path);
             if (!(i instanceof FishItem)) return null;
-            // §prime-fish (1.21): gate the buy-cost on the registered PRIME component, whose value is the
-            // species' min accepted weight (≥70% of max, set via FishItem.gradePrime at catch). Expecting the
-            // exact threshold both restricts the trade to prime specimens AND makes the cost slot show the
-            // "accepts from N" legend — the client rebuilds the display stack from this predicate.
+            // §prime-fish (1.20.1): the buy-cost is an ItemStack carrying the Grade/MinW NBT that
+            // FishItem.gradePrime writes at the catch; vanilla's subset tag-matching restricts the trade to
+            // prime specimens of this species AND the cost stack's tooltip shows the "accepts from N" legend.
             FishProfile profile = FishProfileManager.get().byId(RiverFishing.id(path));
             if (profile == null) return null;
             int threshold = FishItem.primeThresholdG(profile.weightMax);
-            net.minecraft.world.item.trading.ItemCost cost =
-                    new net.minecraft.world.item.trading.ItemCost(i)
-                            .withComponents(b -> b.expect(ModComponents.PRIME.get(), threshold));
+            ItemStack cost = new ItemStack(i);
+            cost.getOrCreateTag().putString(FishItem.TAG_GRADE, FishItem.GRADE_PRIME);
+            cost.getOrCreateTag().putInt(FishItem.TAG_MIN_WEIGHT, threshold);
             return new MerchantOffer(cost, new ItemStack(Items.EMERALD, emeralds), 12, xp, 0.05f);
         });
     }

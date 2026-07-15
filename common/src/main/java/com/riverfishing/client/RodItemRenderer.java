@@ -113,10 +113,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // Wind-up only while actively charging a cast (holding, no line out yet) — not during a retrieve.
         if (mc.player.isUsingItem() && mc.player.getUseItem().getItem() instanceof RodItem
                 && !ClientLineState.active()) {
-            int used = mc.player.getUseItem().getUseDuration(mc.player) - mc.player.getUseItemRemainingTicks();
+            int used = mc.player.getUseItem().getUseDuration() - mc.player.getUseItemRemainingTicks();
             chargePower = RodItem.castPower(used);
         }
-        float swing = mc.player.getAttackAnim(mc.getTimer().getGameTimeDeltaPartialTick(false));
+        float swing = mc.player.getAttackAnim(mc.getFrameTime());
         float pitch = RodHandTransform.castPitch(chargePower, swing);
         if (pitch != 0f) {
             pose.mulPose(com.mojang.math.Axis.XP.rotationDegrees(pitch));

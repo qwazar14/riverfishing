@@ -1,13 +1,13 @@
-package com.riverfishing.platform.neoforge;
+package com.riverfishing.platform.forge;
 
-import net.neoforged.fml.ModList;
+import net.minecraftforge.fml.ModList;
 
-/** NeoForge implementation of {@link com.riverfishing.platform.PlatformHelper} (§multiloader, 1.21.1). */
+/** Forge implementation of {@link com.riverfishing.platform.PlatformHelper} (§multiloader). */
 public final class PlatformHelperImpl {
     private PlatformHelperImpl() {}
 
     public static String platformName() {
-        return "NeoForge";
+        return "Forge";
     }
 
     public static boolean isModLoaded(String modId) {

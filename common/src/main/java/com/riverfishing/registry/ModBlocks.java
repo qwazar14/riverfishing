@@ -63,19 +63,19 @@ public final class ModBlocks {
     // Copies vanilla ICE properties wholesale so the physics match exactly (slip, melt, break-to-water).
     public static final RegistrySupplier<Block> ICE_HOLE = registerSimple("ice_hole",
             () -> new com.riverfishing.block.IceHoleBlock(
-                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.ICE)));
+                    BlockBehaviour.Properties.copy(net.minecraft.world.level.block.Blocks.ICE)));
 
     // §bait-crops: farmland crops for the plant baits (corn / pea / barley→pearl barley). No BlockItem —
     // their ITEM is the seed (an ItemNameBlockItem in ModItems), exactly like vanilla wheat.
     public static final RegistrySupplier<Block> CORN_CROP = BLOCKS.register("corn_crop",
             () -> new com.riverfishing.block.BaitCropBlock("corn_seeds",
-                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)));
+                    BlockBehaviour.Properties.copy(net.minecraft.world.level.block.Blocks.WHEAT)));
     public static final RegistrySupplier<Block> PEA_CROP = BLOCKS.register("pea_crop",
             () -> new com.riverfishing.block.BaitCropBlock("pea_seeds",
-                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)));
+                    BlockBehaviour.Properties.copy(net.minecraft.world.level.block.Blocks.WHEAT)));
     public static final RegistrySupplier<Block> BARLEY_CROP = BLOCKS.register("barley_crop",
             () -> new com.riverfishing.block.BaitCropBlock("barley_seeds",
-                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)));
+                    BlockBehaviour.Properties.copy(net.minecraft.world.level.block.Blocks.WHEAT)));
 
     private ModBlocks() {}
 

@@ -44,11 +44,11 @@ public final class PlayerData extends SavedData {
 
     private static PlayerData store(MinecraftServer server) {
         ServerLevel overworld = server.overworld();
-        return overworld.getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(PlayerData::new, PlayerData::load, (net.minecraft.util.datafix.DataFixTypes) null), NAME);
+        return overworld.getDataStorage().computeIfAbsent(PlayerData::load, PlayerData::new, NAME);
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag list = new ListTag();
         players.forEach((uuid, data) -> {
             CompoundTag e = new CompoundTag();
@@ -60,7 +60,7 @@ public final class PlayerData extends SavedData {
         return tag;
     }
 
-    public static PlayerData load(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+    public static PlayerData load(CompoundTag tag) {
         PlayerData d = new PlayerData();
         ListTag list = tag.getList("Players", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {

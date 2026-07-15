@@ -130,7 +130,7 @@ public class RodAssemblyScreen extends AbstractContainerScreen<RodAssemblyMenu> 
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(graphics, mouseX, mouseY, partialTick);
+        this.renderBackground(graphics);
         // The depth slider only exists on FLOAT-class rods while a float is actually rigged
         // (§fishing-depth) — never on spinning or long-cast bottom rods.
         if (depthSlider != null) {

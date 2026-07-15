@@ -12,8 +12,7 @@ import net.minecraft.resources.ResourceLocation;
  * assembly window rather than as external chat/actionbar text.
  */
 public class RodWarningPacket implements ModNetwork.RfPacket {
-    public static final net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<RodWarningPacket> TYPE = new net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<>(RiverFishing.id("rod_warning"));
-    public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, RodWarningPacket> STREAM_CODEC = net.minecraft.network.codec.StreamCodec.of((buf, pkt) -> pkt.write(buf), RodWarningPacket::decode);
+    public static final ResourceLocation TYPE = RiverFishing.id("rod_warning");
 
     private final Component message;
 
@@ -22,21 +21,17 @@ public class RodWarningPacket implements ModNetwork.RfPacket {
     }
 
     @Override
-    public net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<? extends net.minecraft.network.protocol.common.custom.CustomPacketPayload> type() {
+    public ResourceLocation type() {
         return TYPE;
     }
 
     @Override
     public void write(FriendlyByteBuf buf) {
-        // §data-components (1.21): Components need registry access on the wire → ComponentSerialization
-        // over the RegistryFriendlyByteBuf the StreamCodec actually hands us.
-        net.minecraft.network.chat.ComponentSerialization.STREAM_CODEC.encode(
-                (net.minecraft.network.RegistryFriendlyByteBuf) buf, message);
+        buf.writeComponent(message);
     }
 
     public static RodWarningPacket decode(FriendlyByteBuf buf) {
-        return new RodWarningPacket(net.minecraft.network.chat.ComponentSerialization.STREAM_CODEC.decode(
-                (net.minecraft.network.RegistryFriendlyByteBuf) buf));
+        return new RodWarningPacket(buf.readComponent());
     }
 
     public void handleClient() {

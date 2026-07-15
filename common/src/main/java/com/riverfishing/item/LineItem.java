@@ -32,7 +32,7 @@ public class LineItem extends Item implements RodComponentItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.level.Level level, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.riverfishing.line_spec",
                 Component.translatable("linetype.riverfishing." + type.jsonKey()),
                 String.format("%.2f", diameterMm)).withStyle(s -> s.withColor(0xA0A0A0)));

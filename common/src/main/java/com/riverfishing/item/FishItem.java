@@ -120,10 +120,6 @@ public class FishItem extends Item {
             tag.putString(TAG_GRADE, GRADE_PRIME);
             tag.putInt(TAG_MIN_WEIGHT, thresholdG);
         });
-        // §data-components (1.21): also set the registered PRIME component the villager buy-trade's ItemCost
-        // gates on — its value is the species' min accepted weight, which is the same for every prime specimen
-        // of the species, so it both matches the trade's expected value and drives the "accepts from N" legend.
-        stack.set(com.riverfishing.registry.ModComponents.PRIME.get(), thresholdG);
     }
 
     public static boolean isPrime(ItemStack stack) {
@@ -214,14 +210,12 @@ public class FishItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.level.Level level, List<Component> tooltip, TooltipFlag flag) {
         CompoundTag tag = StackNbt.get(stack);
         if (getWeightG(stack) <= 0) {
             // The fisherman's buy-trade cost has no weight — show the "accepts from N" legend (§prime-fish).
-            // 1.21: the cost's display stack is rebuilt on the client from the ItemCost's component predicate,
-            // so the threshold arrives via the PRIME component; fall back to the legacy custom_data key.
-            Integer primeMin = stack.get(com.riverfishing.registry.ModComponents.PRIME.get());
-            int min = primeMin != null ? primeMin : (tag.contains(TAG_MIN_WEIGHT) ? tag.getInt(TAG_MIN_WEIGHT) : -1);
+            // 1.20.1: the prime threshold lives in the fish's own NBT (written by gradePrime and the trade cost).
+            int min = tag.contains(TAG_MIN_WEIGHT) ? tag.getInt(TAG_MIN_WEIGHT) : -1;
             if (min >= 0) {
                 tooltip.add(Component.translatable("tooltip.riverfishing.trade_min_weight", weightText(min))
                         .withStyle(ChatFormatting.YELLOW));

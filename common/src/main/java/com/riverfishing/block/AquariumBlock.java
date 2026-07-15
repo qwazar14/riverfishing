@@ -37,12 +37,7 @@ public class AquariumBlock extends BaseEntityBlock {
     /** false = wooden base (bottom), true = glass tank (top). */
     public static final BooleanProperty UPPER = BooleanProperty.create("upper");
 
-    public static final com.mojang.serialization.MapCodec<AquariumBlock> CODEC = simpleCodec(AquariumBlock::new);
 
-    @Override
-    protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
-        return CODEC;
-    }
 
     public AquariumBlock(Properties properties) {
         super(properties);
@@ -108,7 +103,7 @@ public class AquariumBlock extends BaseEntityBlock {
     }
 
     @Override
-    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+    public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         // Break the OTHER three cells without drops so only the struck cell drops the aquarium once.
         if (!level.isClientSide && !player.isCreative()) {
             BlockPos master = masterPos(pos, state);
@@ -121,7 +116,7 @@ public class AquariumBlock extends BaseEntityBlock {
                 }
             }
         }
-        return super.playerWillDestroy(level, pos, state, player);
+        super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override
@@ -143,11 +138,11 @@ public class AquariumBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
+        if (level.isClientSide) return InteractionResult.SUCCESS;
         BlockPos master = masterPos(pos, state);
-        if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return InteractionResult.PASS;
 
         ItemStack held = player.getItemInHand(hand);
         // Add a fish (up to 3) when holding one and there's room.
@@ -156,7 +151,7 @@ public class AquariumBlock extends BaseEntityBlock {
                 held.shrink(1);
                 level.playSound(null, master, net.minecraft.sounds.SoundEvents.BUCKET_EMPTY_FISH,
                         net.minecraft.sounds.SoundSource.BLOCKS, 0.7f, 1.1f);
-                return net.minecraft.world.ItemInteractionResult.CONSUME;
+                return InteractionResult.CONSUME;
             }
         }
         // Empty hand takes the last fish back out.
@@ -165,9 +160,9 @@ public class AquariumBlock extends BaseEntityBlock {
             if (!fish.isEmpty() && !player.getInventory().add(fish)) player.drop(fish, false);
             level.playSound(null, master, net.minecraft.sounds.SoundEvents.BUCKET_FILL_FISH,
                     net.minecraft.sounds.SoundSource.BLOCKS, 0.7f, 1.0f);
-            return net.minecraft.world.ItemInteractionResult.CONSUME;
+            return InteractionResult.CONSUME;
         }
-        return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.PASS;
     }
 
     @Override

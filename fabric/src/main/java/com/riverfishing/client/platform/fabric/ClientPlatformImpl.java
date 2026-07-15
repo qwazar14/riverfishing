@@ -28,9 +28,8 @@ public final class ClientPlatformImpl {
     public static void registerItemColors() {
         net.minecraft.client.color.item.ItemColor tint = (stack, tintIndex) -> {
             if (tintIndex != 0) return -1;
-            net.minecraft.world.item.component.DyedItemColor dc =
-                    stack.get(net.minecraft.core.component.DataComponents.DYED_COLOR);
-            return dc != null ? (0xFF000000 | dc.rgb()) : -1;
+            int rgb = com.riverfishing.item.DyeUtil.color(stack);
+            return rgb >= 0 ? (0xFF000000 | rgb) : -1;
         };
         for (RegistrySupplier<Item> r : ModItems.ALL) {
             if (r.get() instanceof com.riverfishing.item.BaitItem b && b.artificial()) {
@@ -69,7 +68,7 @@ public final class ClientPlatformImpl {
 
     public static void registerLevelRenderer() {
         WorldRenderEvents.AFTER_TRANSLUCENT.register(context ->
-                LineRenderer.render(context.matrixStack(), context.camera().getPosition(), context.tickCounter().getGameTimeDeltaPartialTick(false)));
+                LineRenderer.render(context.matrixStack(), context.camera().getPosition(), context.tickDelta()));
     }
 
     /** Vanilla/Fabric ignores the model's "render_type", so wire the non-solid layers up explicitly. */

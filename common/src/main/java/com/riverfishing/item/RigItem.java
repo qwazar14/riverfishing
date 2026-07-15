@@ -79,7 +79,7 @@ public class RigItem extends Item implements RodComponentItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.level.Level level, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.riverfishing.rig_mass",
                 String.format("%.0f", type.massGrams())).withStyle(s -> s.withColor(0xA0A0A0)));
 

@@ -16,8 +16,7 @@ import net.minecraft.sounds.SoundSource;
  * {@link AnglerSkills#tryUnlock} (a free point + below max rank), so the click can never cheat.
  */
 public class SkillUnlockPacket implements ModNetwork.RfPacket {
-    public static final net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<SkillUnlockPacket> TYPE = new net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<>(RiverFishing.id("skill_unlock"));
-    public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, SkillUnlockPacket> STREAM_CODEC = net.minecraft.network.codec.StreamCodec.of((buf, pkt) -> pkt.write(buf), SkillUnlockPacket::decode);
+    public static final ResourceLocation TYPE = RiverFishing.id("skill_unlock");
 
     private final String perkId;
 
@@ -26,7 +25,7 @@ public class SkillUnlockPacket implements ModNetwork.RfPacket {
     }
 
     @Override
-    public net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<? extends net.minecraft.network.protocol.common.custom.CustomPacketPayload> type() {
+    public ResourceLocation type() {
         return TYPE;
     }
 

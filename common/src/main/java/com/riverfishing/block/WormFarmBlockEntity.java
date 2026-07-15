@@ -83,16 +83,16 @@ public class WormFarmBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
         tag.putInt("Worms", worms);
         tag.putInt("Progress", progress);
         tag.putInt("NextAt", nextAt);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    public void load(CompoundTag tag) {
+        super.load(tag);
         worms = tag.contains("Worms") ? tag.getInt("Worms") : tag.getInt("Stored");
         progress = tag.getInt("Progress");
         nextAt = tag.contains("NextAt") ? tag.getInt("NextAt") : -1;
