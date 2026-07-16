@@ -25,6 +25,13 @@ public final class ModNetwork {
         void write(FriendlyByteBuf buf);
     }
 
+    /**
+     * Server-safe registration — call from common init on BOTH sides. Only C2S receivers here: on 1.20.1
+     * (arch 9.2) {@code registerS2CReceiver} is {@code @OnlyIn(CLIENT)} and Forge's RuntimeDistCleaner
+     * strips it on a dedicated server, so registering S2C RECEIVERS in common init crashes there. The S2C
+     * handlers live client-side in {@link #registerClientReceivers()} (sending S2C from the server needs
+     * no receiver registration).
+     */
     public static void register() {
         // Client -> server (handled on the server thread).
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, QuestClaimPacket.TYPE, (buf, ctx) -> {
@@ -35,8 +42,10 @@ public final class ModNetwork {
             SkillUnlockPacket p = SkillUnlockPacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));
         });
+    }
 
-        // Server -> client (handled on the client via EnvExecutor inside each packet).
+    /** CLIENT-ONLY: the server → client receivers. Called from the client bootstrap (ClientInit). */
+    public static void registerClientReceivers() {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, FloatTimingPacket.TYPE, (buf, ctx) -> {
             FloatTimingPacket p = FloatTimingPacket.decode(buf);
             ctx.queue(p::handleClient);

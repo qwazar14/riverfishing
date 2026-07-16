@@ -31,6 +31,10 @@ public final class ClientInit {
 
     /** Event listeners only — safe during Forge mod construction (nothing calls {@code .get()}). */
     public static void registerEvents() {
+        // §1.20.1: the S2C packet RECEIVERS must register client-side only — on a dedicated server the
+        // arch @OnlyIn(CLIENT) registerS2CReceiver is stripped and crashes common init (see ModNetwork).
+        com.riverfishing.network.ModNetwork.registerClientReceivers();
+
         // Float-timing + cast-power HUD (Forge RenderGuiEvent.Post → Architectury RENDER_HUD).
         ClientGuiEvent.RENDER_HUD.register(ClientHud::render);
 
