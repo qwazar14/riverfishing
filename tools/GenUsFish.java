@@ -19,6 +19,10 @@ public final class GenUsFish {
         gen(out, "largemouth_bass", 0x3E5F35, 0x7FA05C, 0xD8D2A8, 26, 12, false, "bass");
         gen(out, "rainbow_trout", 0x5A6E4E, 0xB9BFAE, 0xE8E4D2, 26, 10, false, "trout");
         gen(out, "channel_catfish", 0x475766, 0x76858F, 0xD9D4C4, 27, 11, true, "catfish");
+        // §ru-fish (0.4.0): толстолобик / чехонь / синец
+        gen(out, "silver_carp", 0x5E6E6E, 0xA8B2B0, 0xE2E4DC, 27, 13, false, "silver");
+        gen(out, "sabrefish", 0x4E5A66, 0xC7CCD2, 0xEFF0EA, 29, 7, false, "sabre");
+        gen(out, "blue_bream", 0x46586A, 0x9FAAB4, 0xDFE2DE, 22, 12, false, "sinets");
         System.out.println("done");
     }
 
@@ -89,6 +93,24 @@ public final class GenUsFish {
                     if (in(sx, sy)) put(sx, sy, 0x2E3428);
                 }
             }
+            case "silver" -> { // толстолобик: a massive pale head plate (a third of the body) + gill curve
+                for (int y = cy - by; y <= cy + by; y++)
+                    for (int x = cx - ax; x < cx - ax + 12; x++)
+                        if (in(x, y) && px[y * W + x] != 0) put(x, y, shade(flank, -4));
+                for (int i = 0; i < 2 * by - 6; i++) put(cx - ax + 12, cy - by + 3 + i, shade(back, -18));
+            }
+            case "sabre" -> { // чехонь: straight dark back edge, bright silver flank, LOW lateral line
+                for (int x = cx - ax + 2; x <= cx + ax - 3; x++) {
+                    put(x, cy - by + 1, shade(back, -20));
+                    put(x, cy + 2, 0x8A929C);
+                }
+                put(cx - ax + 1, cy - by + 2, 0x2A3038); // upturned mouth
+                put(cx - ax + 2, cy - by + 1, 0x2A3038);
+            }
+            case "sinets" -> { // синец: bluish sheen band over the back + darkened fins
+                for (int x = cx - ax + 3; x <= cx + ax - 4; x++) put(x, cy - by + 3, 0x5A7086);
+                for (int i = 0; i < 5; i++) put(cx - ax + 1 + i, cy - 1 + i / 2, shade(flank, -10));
+            }
             case "catfish" -> {
                 for (int i = 0; i < 7; i++) {                          // barbels (whiskers)
                     put(cx - ax + 2 - i / 2, cy + 4 + i, 0x2A3038);
@@ -100,9 +122,11 @@ public final class GenUsFish {
                         if (in(x, y) && px[y * W + x] != 0) put(x, y, shade(back, -6));
             }
         }
-        // Eye.
-        blob(cx - ax + 9, cy - by / 2, 2, 0xF0EFE6);
-        put(cx - ax + 9, cy - by / 2, 0x14181C);
+        // Eye ("silver": the filter-feeder's eye sits famously LOW on the huge head).
+        int eyeX = kind.equals("silver") ? cx - ax + 6 : cx - ax + 9;
+        int eyeY = kind.equals("silver") ? cy + 3 : cy - by / 2;
+        blob(eyeX, eyeY, 2, 0xF0EFE6);
+        put(eyeX, eyeY, 0x14181C);
         outline();
         BufferedImage img = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
         img.setRGB(0, 0, W, H, px, 0, W);
