@@ -1,5 +1,0 @@
-{
-  "type": "minecraft:crafting_shapeless",
-  "ingredients": [ "minecraft:iron_ingot", "minecraft:iron_nugget", "#riverfishing:hooks" ],
-  "result": { "item": "riverfishing:crankbait" }
-}

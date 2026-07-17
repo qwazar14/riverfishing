@@ -7,7 +7,6 @@ import com.riverfishing.item.HookItem;
 import com.riverfishing.item.LeaderItem;
 import com.riverfishing.item.RigItem;
 import com.riverfishing.item.StackNbt;
-import com.riverfishing.util.RegistryHelper;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -42,7 +41,6 @@ public final class RigData {
         CompoundTag tag = StackNbt.get(rig);
         if (tag.contains(ROOT)) {
             ListTag items = tag.getCompound(ROOT).getList(ITEMS, Tag.TAG_COMPOUND);
-            var provider = RegistryHelper.provider();
             for (int i = 0; i < items.size(); i++) {
                 CompoundTag c = items.getCompound(i);
                 int slot = c.getByte(SLOT) & 255;
@@ -57,7 +55,6 @@ public final class RigData {
     }
 
     public static void save(ItemStack rig, NonNullList<ItemStack> contents) {
-        var provider = RegistryHelper.provider();
         ListTag items = new ListTag();
         for (int i = 0; i < contents.size(); i++) {
             ItemStack stack = contents.get(i);

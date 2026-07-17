@@ -1,5 +1,0 @@
-{
-  "type": "minecraft:crafting_shapeless",
-  "ingredients": [ "minecraft:iron_nugget", "minecraft:bamboo", "#riverfishing:hooks" ],
-  "result": { "item": "riverfishing:popper" }
-}
