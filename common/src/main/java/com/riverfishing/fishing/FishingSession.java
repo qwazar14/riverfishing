@@ -76,9 +76,15 @@ public class FishingSession {
     // ---- fight state ----
     public boolean fighting;
     public ServerBossEvent bossBar;
-    public double tension;        // 0..1; reaching breakTension snaps the line
+    public double tension;        // 0..1; over breakTension the line is in overstress (§tackle-stress)
     public double landProgress;   // 0..1; reaching 1 lands the fish
     public double breakTension;   // how much tension the tackle tolerates for THIS fish
+    // §tackle-stress (0.4.0): crossing the limit no longer snaps instantly — a per-tick break chance
+    // grows with the overshoot and with how long the line has been held over it.
+    public double requiredKg;     // the fish's pull in kg (drives the break-load message)
+    public double overStress;     // accumulated time-over-the-limit (0..2), decays when eased off
+    public int overStressTicks;   // total ticks over the limit this fight (drives extra line wear)
+    public boolean overstressWarned; // one "ease off!" warning per overstress episode
     public int runsLeft;
     public int runTicksLeft;      // >0 while the fish is making a run (don't reel!)
     public long nextRunAt;

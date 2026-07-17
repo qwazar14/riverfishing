@@ -883,6 +883,7 @@ public final class FishingManager {
         session.breakTension = Mth.clamp(
                 baseTolerance / RiverFishingConfig.breakSensitivity() * session.overloadPenalty
                         * AnglerSkills.lineToleranceMult(sp), 0.1, 1.0);
+        session.requiredKg = requiredKg; // §tackle-stress: for the break-load message
 
         // A leaderless line is bitten through; a fluorocarbon leader only partly protects (#4).
         if (profile.requiresLeader
@@ -912,6 +913,9 @@ public final class FishingManager {
 
         session.fighting = true;
         session.tension = 0.0;
+        session.overStress = 0.0;               // §tackle-stress: fresh stress budget per fight
+        session.overStressTicks = 0;
+        session.overstressWarned = false;
         // §retrieve-visual: a spinning fish that grabbed the lure MID-RETRIEVE is already partway in —
         // start the fight from where the lure was, so the line doesn't snap back out to the full cast.
         // A fish hooked near the bank is landed sooner (realistic); one that hit far out fights fully.
@@ -1146,10 +1150,8 @@ public final class FishingManager {
 
         level.playSound(null, sp.blockPosition(), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.25f, 1.6f);
 
-        if (session.tension >= session.breakTension) {
-            breakLine(sp, level, session, false);
-            return;
-        }
+        // §tackle-stress (0.4.0): crossing the limit no longer snaps instantly — the per-tick roll in
+        // tickFight decides whether the line survives the overstress. Keep cranking and it won't.
         if (session.landProgress >= 1.0) {
             landFish(sp, level, session);
         }
@@ -1233,6 +1235,12 @@ public final class FishingManager {
             actionbar(sp, Component.translatable("message.riverfishing.final_surge").withStyle(ChatFormatting.RED));
         }
 
+        // §tackle-stress (0.4.0): the probabilistic break — rolled once per tick, after every tension
+        // mutation of this tick (decay, head-shakes, the player's reel pulses in between).
+        if (overstressTick(sp, level, session, random)) {
+            return;
+        }
+
         if (now - session.fightStartTick > session.fightTimeout) {
             endSession(sp, session);
             actionbar(sp, Component.translatable("message.riverfishing.missed").withStyle(ChatFormatting.GRAY));
@@ -1262,7 +1270,8 @@ public final class FishingManager {
                     SoundSource.PLAYERS, 0.8f, 1.0f);
         }
         session.bossBar.setProgress((float) Mth.clamp(session.landProgress, 0.0, 1.0));
-        session.bossBar.setColor(inRun ? BossEvent.BossBarColor.RED
+        session.bossBar.setColor(session.tension >= session.breakTension ? BossEvent.BossBarColor.RED
+                : inRun ? BossEvent.BossBarColor.RED
                 : session.tension > session.breakTension * 0.66 ? BossEvent.BossBarColor.YELLOW
                 : BossEvent.BossBarColor.GREEN);
 
@@ -1451,6 +1460,44 @@ public final class FishingManager {
      * is (§balance): a strong line vs a light fish nearly always just throws the hook (5%), while a
      * weak line vs a heavy fish loses the rig at the 30% hard cap. Leader bite-offs always lose it.
      */
+    /**
+     * §tackle-stress (0.4.0): while tension sits over the tackle limit, the line doesn't snap outright —
+     * every tick rolls a break chance that grows with the overshoot AND with how long it's been held
+     * there ({@code overStress} builds up; easing off lets it recover). Brief spikes are survivable —
+     * the "she shouldn't have come out, but she did" stories; cranking through a run is not. Surviving
+     * the abuse still frays the line (§3.8). Difficulty presets scale the whole curve (§14).
+     */
+    private static boolean overstressTick(ServerPlayer sp, ServerLevel level, FishingSession session,
+                                          RandomSource random) {
+        if (session.tension < session.breakTension) {
+            session.overStress = Math.max(0.0, session.overStress - 0.02);
+            if (session.tension < session.breakTension * 0.9) {
+                session.overstressWarned = false; // hysteresis: re-arm the warning for the next episode
+            }
+            return false;
+        }
+        double overshoot = (session.tension - session.breakTension) / Math.max(0.05, session.breakTension);
+        session.overStress = Math.min(2.0, session.overStress + 0.015 + 0.02 * overshoot);
+        session.overStressTicks++;
+        if (!session.overstressWarned) {
+            session.overstressWarned = true;
+            actionbar(sp, Component.translatable("message.riverfishing.tackle_limit").withStyle(ChatFormatting.RED));
+            level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.ROD_CREAK.get(),
+                    SoundSource.PLAYERS, 1.0f, 0.8f);
+        }
+        // Surviving over the limit still costs the line — it frays a wear point every ~15 such ticks.
+        if (session.overStressTicks % 15 == 0) {
+            addLineWear(sp.getItemInHand(session.hand), 1);
+        }
+        double chance = Math.min(0.5,
+                (0.008 + 0.055 * overshoot + 0.028 * session.overStress) * RiverFishingConfig.breakSensitivity());
+        if (random.nextDouble() < chance) {
+            breakLine(sp, level, session, false);
+            return true;
+        }
+        return false;
+    }
+
     private static void breakLine(ServerPlayer sp, ServerLevel level, FishingSession session, boolean leader) {
         // A break stresses and abrades the line (§3.8).
         addLineWear(sp.getItemInHand(session.hand), (int) Math.round(5 * lineWearScaled()));
@@ -1470,9 +1517,16 @@ public final class FishingManager {
                     SoundSource.PLAYERS, 0.9f, 1.0f);
             level.playSound(null, session.target, com.riverfishing.registry.ModSounds.LINE_BREAK.get(),
                     SoundSource.PLAYERS, 0.6f, 1.0f);
-            sp.sendSystemMessage(Component.translatable(
-                    leader ? "message.riverfishing.leader_bite_off" : "message.riverfishing.line_break")
-                    .withStyle(ChatFormatting.RED));
+            if (!leader && session.requiredKg > 0 && session.tension > 0) {
+                // §tackle-stress: name the load that killed the line — the post-mortem teaches tackle choice.
+                sp.sendSystemMessage(Component.translatable("message.riverfishing.line_break_load",
+                        String.format("%.1f", Math.max(0.5, session.tension * session.requiredKg)))
+                        .withStyle(ChatFormatting.RED));
+            } else {
+                sp.sendSystemMessage(Component.translatable(
+                        leader ? "message.riverfishing.leader_bite_off" : "message.riverfishing.line_break")
+                        .withStyle(ChatFormatting.RED));
+            }
         } else {
             level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.6f, 0.7f);
             sp.sendSystemMessage(Component.translatable("message.riverfishing.shake_off")
