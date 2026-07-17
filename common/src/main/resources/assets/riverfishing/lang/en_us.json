@@ -244,6 +244,7 @@
     "message.riverfishing.line_break":  "Snap! Fish and rig lost",
     "message.riverfishing.line_break_load":  "Snapped under ~%s kg! Fish and rig lost",
     "message.riverfishing.tackle_limit":  "Tackle at its limit — ease off!",
+    "message.riverfishing.update_available":  "River Fishing %s is out (you have %s) — what you missed:",
     "tooltip.riverfishing.livebait_weight":  "Baitfish: %s — culls the small takers",
     "message.riverfishing.topwater_blowup":  "Surface blowup — set the hook!",
     "message.riverfishing.leader_bite_off":  "Bitten through the line — use a leader!",
