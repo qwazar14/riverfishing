@@ -2,13 +2,22 @@ architectury {
     common rootProject.enabled_platforms.split(",")
 }
 
+repositories {
+    // JEI (§pack-integration) — soft compileOnly dep, blamejared maven.
+    maven { url "https://maven.blamejared.com/" }
+}
+
 dependencies {
     // We depend on Fabric Loader here to use the Fabric @Environment annotations and get the mixin
-    // dependencies. Do NOT use other Fabric APIs directly from common — go through the platform layer.
+    // dependencies. Do NOT use other Fabric APIs directly from common â go through the platform layer.
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modApi "dev.architectury:architectury:${rootProject.architectury_api_version}"
 
-    // §multiloader: javax.annotation.Nullable came transitively from Forge in the single-project build;
+    // Â§multiloader: javax.annotation.Nullable came transitively from Forge in the single-project build;
     // the multiloader common classpath has no JSR-305, so pull it in (compile-time annotations only).
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+
+    // JEI common API (�pack-integration): annotation-scanned @JeiPlugin lives in common; without
+    // JEI at runtime the class never loads, so this stays a soft dependency.
+    modCompileOnly "mezz.jei:jei-1.21.1-common-api:${rootProject.jei_version}"
 }
