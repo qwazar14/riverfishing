@@ -594,6 +594,53 @@ public final class FishingManager {
         session.retrieving = true;
         session.retrieveTicks++;
 
+        // §topwater (0.4.0): a popper is fished on the SURFACE with a pop-pause cadence, not a straight
+        // crank. Detected once per cast from the rig's lure slot; everything below rides the same
+        // hold-to-retrieve input — a "pop" is simply resuming the retrieve after a short pause.
+        if (session.retrieveTicks == 1) {
+            ItemStack tw = sp.getItemInHand(session.hand);
+            if (tw.getItem() instanceof RodItem) {
+                ItemStack rg = RodData.get(tw, ComponentSlot.RIG);
+                session.topwater = rg.getItem() instanceof RigItem && RigData.baitIds(rg).contains("popper");
+            }
+            session.popRhythm = 1.0;
+            session.lastRetrieveTick = now;
+        }
+        if (session.topwater) {
+            long gap = now - session.lastRetrieveTick;
+            session.lastRetrieveTick = now;
+            double tprog = session.retrieveMax > 0
+                    ? Mth.clamp((double) session.retrieveTicks / session.retrieveMax, 0.0, 1.0) : 0.0;
+            double lx = Mth.lerp(tprog, session.target.getX() + 0.5, sp.getX());
+            double lz = Mth.lerp(tprog, session.target.getZ() + 0.5, sp.getZ());
+            double ly = session.target.getY() + 1.0;
+            if (gap >= 6 && gap <= 30) {
+                // A proper pop after a pause: the popper spits and bloops — this is what calls the fish up.
+                session.popRhythm = Math.min(1.5, session.popRhythm + 0.15);
+                level.playSound(null, BlockPos.containing(lx, ly, lz), SoundEvents.FISHING_BOBBER_SPLASH,
+                        SoundSource.PLAYERS, 0.5f, 1.7f);
+                level.sendParticles(ParticleTypes.SPLASH, lx, ly, lz, 6, 0.2, 0.02, 0.2, 0.12);
+            } else if (gap <= 1) {
+                session.popRhythm = Math.max(0.6, session.popRhythm - 0.01); // dragged under — wrong lure work
+            } else if (gap > 60) {
+                session.popRhythm = Math.max(0.8, session.popRhythm - 0.10); // sat dead too long
+            }
+            if (session.retrieveTicks % 3 == 0) { // the surface wake trailing the lure
+                level.sendParticles(ParticleTypes.FISHING, lx, ly, lz, 2, 0.12, 0.0, 0.12, 0.02);
+            }
+            // Good cadence CALLS the fish — it advances the bite clock; bad cadence stalls it.
+            if (session.biteAtTick > 0 && session.retrieveTicks % 20 == 0) {
+                session.biteAtTick -= (long) ((session.popRhythm - 1.0) * 20.0);
+            }
+            // Telegraph: a boil right behind the lure moments before the take.
+            if (!session.blowupTelegraphed && session.biteAtTick > 0 && now >= session.biteAtTick - 15) {
+                session.blowupTelegraphed = true;
+                level.sendParticles(ParticleTypes.BUBBLE, lx - 0.4, ly - 0.1, lz, 14, 0.25, 0.05, 0.25, 0.02);
+                level.playSound(null, BlockPos.containing(lx, ly, lz), SoundEvents.FISH_SWIM,
+                        SoundSource.PLAYERS, 0.8f, 0.8f);
+            }
+        }
+
         // §retrieve-visual: the lure actually COMES IN as you wind — pull the client's line end toward
         // the bank in step with how much line you've reeled (was only moving once a fish was on).
         if (session.retrieveTicks % 2 == 0 && session.retrieveMax > 0) {
@@ -629,11 +676,29 @@ public final class FishingManager {
             session.bitten = true;
             // §strike-qte (2.4): the take fires a hook-set runner — stop it in the zone (release the retrieve,
             // or click) to set the hook. Deliberately EASY (imitating a подсечка, not a reaction test): slow
-            // marker, wide zone, ~3 s window so there's no rush.
-            session.biteWindowEnd = now + 60;
+            // marker, wide zone, ~3 s window so there's no rush. §topwater: the blowup is the exception —
+            // a shorter, reactive window sold by the surface explosion.
+            session.biteWindowEnd = now + (session.topwater ? 35 : 60);
+            if (session.topwater) {
+                double tprog = session.retrieveMax > 0
+                        ? Mth.clamp((double) session.retrieveTicks / session.retrieveMax, 0.0, 1.0) : 0.0;
+                double lx = Mth.lerp(tprog, session.target.getX() + 0.5, sp.getX());
+                double lz = Mth.lerp(tprog, session.target.getZ() + 0.5, sp.getZ());
+                double ly = session.target.getY() + 1.0;
+                // §topwater blowup: the strike EXPLODES on the surface — the money shot.
+                level.sendParticles(ParticleTypes.SPLASH, lx, ly + 0.1, lz, 36, 0.45, 0.25, 0.45, 0.45);
+                level.sendParticles(ParticleTypes.BUBBLE_POP, lx, ly, lz, 16, 0.3, 0.1, 0.3, 0.1);
+                level.playSound(null, BlockPos.containing(lx, ly, lz), SoundEvents.FISHING_BOBBER_SPLASH,
+                        SoundSource.PLAYERS, 1.0f, 0.6f);
+                level.playSound(null, BlockPos.containing(lx, ly, lz), SoundEvents.DOLPHIN_JUMP,
+                        SoundSource.PLAYERS, 0.7f, 0.9f);
+                actionbar(sp, Component.translatable("message.riverfishing.topwater_blowup")
+                        .withStyle(ChatFormatting.RED));
+            } else {
+                actionbar(sp, Component.translatable("message.riverfishing.strike").withStyle(ChatFormatting.AQUA));
+            }
             playBite(level, session.target);
             startActiveStrikeTiming(sp, session, now);
-            actionbar(sp, Component.translatable("message.riverfishing.strike").withStyle(ChatFormatting.AQUA));
         } else if (session.retrieveTicks >= session.retrieveMax) {
             endSession(sp, session);
             sp.stopUsingItem();
