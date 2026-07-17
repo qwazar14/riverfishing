@@ -23,6 +23,11 @@ public class FishingSession {
     public boolean retrieving;
     public int retrieveTicks;
     public int retrieveMax;
+    // ---- §topwater (0.4.0): popper surface retrieve ----
+    public boolean topwater;          // popper on the rig: surface lure with a pop-pause cadence
+    public long lastRetrieveTick;     // game-time of the previous retrieve tick (detects pauses = pops)
+    public double popRhythm = 1.0;    // 0.6..1.5 — good cadence advances the bite clock, bad stalls it
+    public boolean blowupTelegraphed; // the pre-take boil has fired
     /** This retrieve's snag fate, decided at cast: 0 none, 1 recoverable (tug free), 2 dead (lose rig). */
     public int snagOutcome;
     /** Retrieve tick the snag strikes at (second half of the retrieve, as the lure nears the bank). */
