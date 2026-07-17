@@ -21,9 +21,9 @@ dependencies {
 
     // JEI common API (§pack-integration): annotation-scanned @JeiPlugin lives in common; without
     // JEI at runtime the class never loads, so this stays a soft dependency.
-    modCompileOnly "mezz.jei:jei-1.21.1-common-api:${rootProject.jei_version}"
+    modCompileOnly "mezz.jei:jei-1.20.1-common-api:${rootProject.jei_version}"
 
     // Jade API (pack-integration): same soft-dep pattern as JEI; the fabric flavour compiles fine for
     // common (snownee.jade.api is loader-neutral) and ships nothing.
-    modCompileOnly "maven.modrinth:jade:15.10.5+fabric"
+    modCompileOnly "maven.modrinth:jade:11.13.1+fabric"
 }

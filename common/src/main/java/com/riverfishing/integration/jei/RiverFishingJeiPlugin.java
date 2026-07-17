@@ -14,7 +14,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 
 import java.util.ArrayList;
@@ -23,7 +22,8 @@ import java.util.List;
 /**
  * JEI entry point (§pack-integration, 0.4.0). Lives in COMMON: JEI discovers {@code @JeiPlugin} by
  * annotation scan on both loaders, and the API is compileOnly, so without JEI installed this class is
- * simply never loaded — the mod stays soft-dependent.
+ * simply never loaded — the mod stays soft-dependent. (1.20.1 dialect: JEI 15, no RecipeHolder,
+ * ShapelessRecipe carries its own id.)
  *
  * <p>The mod's three special crafts are {@code CustomRecipe}s, invisible to JEI's automatic crafting
  * scan — register display-only shapeless stand-ins so players can look them up: the oil-cake press
@@ -41,7 +41,7 @@ public class RiverFishingJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        List<RecipeHolder<CraftingRecipe>> recipes = new ArrayList<>();
+        List<CraftingRecipe> recipes = new ArrayList<>();
 
         // Oil cake: sunflower pressed by a piston (the piston survives the craft).
         Item cake = item("groundbait_cake");
@@ -70,10 +70,9 @@ public class RiverFishingJeiPlugin implements IModPlugin {
         return BuiltInRegistries.ITEM.get(RiverFishing.id(path));
     }
 
-    private static RecipeHolder<CraftingRecipe> display(String id, ItemStack result, Ingredient... ings) {
+    private static CraftingRecipe display(String id, ItemStack result, Ingredient... ings) {
         NonNullList<Ingredient> list = NonNullList.create();
         for (Ingredient i : ings) list.add(i);
-        return new RecipeHolder<>(RiverFishing.id(id),
-                new ShapelessRecipe("riverfishing.jei", CraftingBookCategory.MISC, result, list));
+        return new ShapelessRecipe(RiverFishing.id(id), "riverfishing.jei", CraftingBookCategory.MISC, result, list);
     }
 }

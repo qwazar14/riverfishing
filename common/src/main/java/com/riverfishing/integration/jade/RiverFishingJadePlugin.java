@@ -39,11 +39,11 @@ public class RiverFishingJadePlugin implements IWailaPlugin {
 
     @Override
     public void register(IWailaCommonRegistration registration) {
-        registration.registerBlockDataProvider(Provider.INSTANCE, WormFarmBlock.class);
-        registration.registerBlockDataProvider(Provider.INSTANCE, MaggotFarmBlock.class);
-        registration.registerBlockDataProvider(Provider.INSTANCE, BaitTrapBlock.class);
-        registration.registerBlockDataProvider(Provider.INSTANCE, RodPodBlock.class);
-        registration.registerBlockDataProvider(Provider.INSTANCE, AquariumBlock.class);
+        registration.registerBlockDataProvider(Provider.INSTANCE, WormFarmBlockEntity.class);
+        registration.registerBlockDataProvider(Provider.INSTANCE, MaggotFarmBlockEntity.class);
+        registration.registerBlockDataProvider(Provider.INSTANCE, BaitTrapBlockEntity.class);
+        registration.registerBlockDataProvider(Provider.INSTANCE, RodPodBlockEntity.class);
+        registration.registerBlockDataProvider(Provider.INSTANCE, AquariumBlockEntity.class);
     }
 
     @Override
