@@ -55,7 +55,9 @@ public final class ModItems {
             // §carp-update: the wild sazan + the mirror strain, plus the koi collectibles.
             "wild_carp", "mirror_carp", "grass_carp",
             "carp_koi_kohaku", "carp_koi_tancho_sanke", "carp_koi_showa_sanke",
-            "carp_koi_asagi", "carp_koi_bekko"
+            "carp_koi_asagi", "carp_koi_bekko",
+            // §america-pack (0.4.0): bluegill/bass/rainbow/channel cat — the community-requested US four.
+            "bluegill", "largemouth_bass", "rainbow_trout", "channel_catfish"
     };
     public static final Map<ResourceLocation, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
     // ---- Baits referenced by event drops ----

@@ -1,0 +1,135 @@
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.Random;
+
+/**
+ * §america-pack (0.4.0): generates the four US-species item sprites (64x64, side view facing left)
+ * in the same hand-pixelled style as the rest of textures/item/fish/. Deterministic — rerun to
+ * regenerate identical PNGs. Usage: java tools/GenUsFish.java <outDir>
+ */
+public final class GenUsFish {
+    static int W = 64, H = 64;
+    static int[] px;
+
+    public static void main(String[] args) throws Exception {
+        File out = new File(args.length > 0 ? args[0] : "common/src/main/resources/assets/riverfishing/textures/item/fish");
+        out.mkdirs();
+        gen(out, "bluegill", 0x4A6E46, 0x8FA86A, 0xD9C08A, 20, 15, false, "bluegill");
+        gen(out, "largemouth_bass", 0x3E5F35, 0x7FA05C, 0xD8D2A8, 26, 12, false, "bass");
+        gen(out, "rainbow_trout", 0x5A6E4E, 0xB9BFAE, 0xE8E4D2, 26, 10, false, "trout");
+        gen(out, "channel_catfish", 0x475766, 0x76858F, 0xD9D4C4, 27, 11, true, "catfish");
+        System.out.println("done");
+    }
+
+    static void gen(File dir, String name, int back, int flank, int belly, int ax, int by,
+                    boolean forkedTail, String kind) throws Exception {
+        px = new int[W * H];
+        int cx = 28, cy = 34;
+        Random rng = new Random(name.hashCode());
+
+        // Tail (behind the body, drawn first so the body overlaps its root).
+        int tailBase = cx + ax - 3, tipX = Math.min(W - 3, cx + ax + 9);
+        for (int x = tailBase; x <= tipX; x++) {
+            double t = (double) (x - tailBase) / (tipX - tailBase);
+            int half = (int) Math.round(2 + t * 9);
+            for (int y = cy - half; y <= cy + half; y++) {
+                if (forkedTail && Math.abs(y - cy) < half * 0.35 && t > 0.45) continue; // the fork notch
+                put(x, y, shade(back, -10));
+            }
+        }
+        // Body: ellipse, vertical colour bands (back -> flank -> belly) + top shading.
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                double dx = (x - cx) / (double) ax, dy = (y - cy) / (double) by;
+                double d = dx * dx + dy * dy;
+                if (d <= 1.0) {
+                    double v = (y - (cy - by)) / (2.0 * by); // 0 top .. 1 bottom
+                    int c = v < 0.35 ? back : v < 0.7 ? flank : belly;
+                    if (v < 0.18) c = shade(c, -18);          // dark dorsal ridge
+                    if (d > 0.86) c = shade(c, -14);          // soft edge rolloff
+                    put(x, y, c);
+                }
+            }
+        }
+        // Dorsal fin.
+        for (int x = cx - ax / 2; x <= cx + ax / 2; x++) {
+            int h = (int) (4 + 3 * Math.sin((x - (cx - ax / 2)) / (double) ax * Math.PI));
+            for (int y = cy - by - h; y < cy - by + 1; y++) put(x, y, shade(back, -22));
+        }
+        // Pectoral + anal fins.
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j <= i; j++) put(cx - ax / 3 + j, cy + 2 + i, shade(flank, -25));
+            for (int j = 0; j <= i / 2; j++) put(cx + ax / 3 + j, cy + by - 2 + i / 2, shade(back, -20));
+        }
+        switch (kind) {
+            case "bluegill" -> {
+                for (int bar = 0; bar < 6; bar++) {                    // vertical flank bars
+                    int bx = cx - ax + 6 + bar * 6;
+                    for (int y = cy - by + 4; y <= cy + by - 6; y++)
+                        if (in(bx, y)) { put(bx, y, shade(back, -20)); put(bx + 1, y, shade(back, -14)); }
+                }
+                blob(cx - ax + 7, cy - 2, 2, 0x1A2A1E);               // the dark "ear" flap
+                blob(cx - ax / 2, cy + by - 5, 4, 0xC46A2A);          // orange breast
+            }
+            case "bass" -> {
+                for (int x = cx - ax + 3; x <= cx + ax - 4; x++) {     // ragged lateral stripe
+                    int yy = cy + ((x * 7) % 3 == 0 ? 1 : 0);
+                    put(x, yy, 0x24331F); put(x, yy + 1, 0x2E4227);
+                    if (x % 5 == 0) put(x, yy + 2, 0x2E4227);
+                }
+                for (int i = 0; i < 8; i++) put(cx - ax + 2 + i, cy + 3 + i / 3, 0x22301C); // big jaw
+            }
+            case "trout" -> {
+                for (int x = cx - ax + 3; x <= cx + ax - 3; x++) {     // the pink band
+                    put(x, cy, 0xD98A8A); put(x, cy + 1, 0xC97A80);
+                }
+                for (int i = 0; i < 46; i++) {                         // speckles over back+flank
+                    int sx = cx - ax + 3 + rng.nextInt(2 * ax - 6), sy = cy - by + 2 + rng.nextInt(by + 4);
+                    if (in(sx, sy)) put(sx, sy, 0x2E3428);
+                }
+            }
+            case "catfish" -> {
+                for (int i = 0; i < 7; i++) {                          // barbels (whiskers)
+                    put(cx - ax + 2 - i / 2, cy + 4 + i, 0x2A3038);
+                    put(cx - ax + 5 - i / 3, cy + 5 + i, 0x333A44);
+                    put(cx - ax + 8, cy + 6 + i / 2, 0x2A3038);
+                }
+                for (int y = cy - by; y <= cy + by; y++)               // flat blunt head front
+                    for (int x = cx - ax; x < cx - ax + 4; x++)
+                        if (in(x, y) && px[y * W + x] != 0) put(x, y, shade(back, -6));
+            }
+        }
+        // Eye.
+        blob(cx - ax + 9, cy - by / 2, 2, 0xF0EFE6);
+        put(cx - ax + 9, cy - by / 2, 0x14181C);
+        outline();
+        BufferedImage img = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
+        img.setRGB(0, 0, W, H, px, 0, W);
+        ImageIO.write(img, "png", new File(dir, name + ".png"));
+        System.out.println("  " + name + ".png");
+    }
+
+    static boolean in(int x, int y) { return x >= 0 && y >= 0 && x < W && y < H; }
+    static void put(int x, int y, int rgb) { if (in(x, y)) px[y * W + x] = 0xFF000000 | rgb; }
+    static void blob(int cx, int cy, int r, int rgb) {
+        for (int y = cy - r; y <= cy + r; y++) for (int x = cx - r; x <= cx + r; x++)
+            if ((x - cx) * (x - cx) + (y - cy) * (y - cy) <= r * r) put(x, y, rgb);
+    }
+    static int shade(int rgb, int d) {
+        int r = Math.min(255, Math.max(0, ((rgb >> 16) & 255) + d));
+        int g = Math.min(255, Math.max(0, ((rgb >> 8) & 255) + d));
+        int b = Math.min(255, Math.max(0, (rgb & 255) + d));
+        return (r << 16) | (g << 8) | b;
+    }
+    static void outline() { // darken every filled pixel that borders a transparent one
+        int[] copy = px.clone();
+        for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) {
+            if (copy[y * W + x] == 0) continue;
+            boolean edge = x == 0 || y == 0 || x == W - 1 || y == H - 1
+                    || copy[y * W + x - 1] == 0 || copy[y * W + x + 1] == 0
+                    || copy[(y - 1) * W + x] == 0 || copy[(y + 1) * W + x] == 0;
+            if (edge) px[y * W + x] = 0xFF000000 | shade(copy[y * W + x] & 0xFFFFFF, -70);
+        }
+    }
+}

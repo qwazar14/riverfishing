@@ -85,6 +85,7 @@ public final class ModVillagers {
         buyPrime(t, 1, "bleak", 1, 1);
         buyPrime(t, 1, "gudgeon", 1, 1);
         buyPrime(t, 1, "roach", 1, 1);
+        buyPrime(t, 1, "bluegill", 1, 1);
 
         // Level 2 — Apprentice: float-fishing kit, including READY-MADE tackle (§assembled-trades).
         sell(t, 2, "maggot", 1, 10, 2);
@@ -132,6 +133,8 @@ public final class ModVillagers {
         buyPrime(t, 4, "grass_carp", 9, 14);   // §grass-carp: a hard-fighting prize, pays well
         buyPrime(t, 4, "zander", 6, 10);
         buyPrime(t, 4, "trout", 6, 12);
+        buyPrime(t, 4, "largemouth_bass", 7, 12);
+        buyPrime(t, 4, "rainbow_trout", 7, 12);
         buyPrime(t, 4, "grayling", 7, 12);
         buyPrime(t, 4, "burbot", 5, 10);
 
@@ -144,6 +147,7 @@ public final class ModVillagers {
         sell(t, 5, "bottom_rod", 16, 1, 28);
         buyPrime(t, 5, "catfish", 12, 25);
         buyPrime(t, 5, "eel", 8, 15);
+        buyPrime(t, 5, "channel_catfish", 10, 20);
         buyPrime(t, 5, "sterlet", 16, 30);
         buyPrime(t, 5, "wild_carp", 14, 28);
 
