@@ -56,7 +56,7 @@ public final class UpdateChecker {
             JsonObject root = JsonParser.parseString(resp.body()).getAsJsonObject();
 
             String current = strip(dev.architectury.platform.Platform.getMod("riverfishing").getVersion());
-            String mc = net.minecraft.SharedConstants.getCurrentVersion().getName();
+            String mc = dev.architectury.platform.Platform.getMinecraftVersion();
             JsonObject latest = root.getAsJsonObject("latest");
             if (latest == null || !latest.has(mc)) return;        // this MC line has no feed entry yet
             String remote = latest.get(mc).getAsString();
@@ -66,7 +66,7 @@ public final class UpdateChecker {
             Minecraft mcClient = Minecraft.getInstance();
             mcClient.execute(() -> {
                 if (mcClient.player == null) return;
-                for (Component line : lines) mcClient.player.displayClientMessage(line, false);
+                for (Component line : lines) mcClient.player.sendSystemMessage(line);
             });
         } catch (Exception ignored) {
             // Offline, rate-limited, malformed feed — an update hint is never worth a log worry.
@@ -75,11 +75,11 @@ public final class UpdateChecker {
 
     /** Header (clickable → releases page) + up to three bullets per missed version, newest first. */
     private static List<Component> digest(JsonObject root, String current, String remote) {
-        boolean ru = Minecraft.getInstance().options.languageCode.startsWith("ru");
+        boolean ru = Minecraft.getInstance().getLanguageManager().getSelected().startsWith("ru");
         List<Component> out = new ArrayList<>();
         out.add(Component.translatable("message.riverfishing.update_available", remote, current)
                 .withStyle(s -> s.withColor(ChatFormatting.GOLD)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, RELEASES))));
+                        .withClickEvent(new ClickEvent.OpenUrl(java.net.URI.create(RELEASES)))));
         JsonArray changelog = root.getAsJsonArray("changelog");
         if (changelog == null) return out;
         int shown = 0;

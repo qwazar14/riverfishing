@@ -1,7 +1,7 @@
 {
   "parent": "riverfishing:riverfishing/koi",
   "display": {
-    "icon": { "item": "riverfishing:carp_koi_showa_sanke" },
+    "icon": { "id": "riverfishing:carp_koi_showa_sanke" },
     "title": { "translate": "advancement.riverfishing.koi_master.title" },
     "description": { "translate": "advancement.riverfishing.koi_master.description" },
     "frame": "challenge",

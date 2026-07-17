@@ -56,9 +56,9 @@ public final class ModItems {
             "wild_carp", "mirror_carp", "grass_carp",
             "carp_koi_kohaku", "carp_koi_tancho_sanke", "carp_koi_showa_sanke",
             "carp_koi_asagi", "carp_koi_bekko",
-            // Â§america-pack (0.4.0): bluegill/bass/rainbow/channel cat â the community-requested US four.
+            // america-pack (0.4.0): bluegill/bass/rainbow/channel cat - the community-requested US four.
             "bluegill", "largemouth_bass", "rainbow_trout", "channel_catfish",
-            // §ru-fish (0.4.0): ÑÐ¾Ð»ÑÑÐ¾Ð»Ð¾Ð±Ð¸Ðº / ÑÐµÑÐ¾Ð½Ñ / ÑÐ¸Ð½ÐµÑ — the RU trio.
+            // ru-fish (0.4.0): tolstolobik / chekhon / sinets - the RU trio.
             "silver_carp", "sabrefish", "blue_bream"
     };
     public static final Map<Identifier, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
@@ -201,20 +201,13 @@ public final class ModItems {
         BELL_ALARM = reg("bell_alarm", () -> new AlarmItem(AlarmType.BELL, props("bell_alarm")));
         DIGITAL_ALARM = reg("digital_alarm", () -> new AlarmItem(AlarmType.DIGITAL, props("digital_alarm")));
 
-<<<<<<< HEAD
         // ----- Processing: knife + fillets (§11) -----
         FILLET_KNIFE = reg("fillet_knife", () -> new FilletKnifeItem(props("fillet_knife").durability(128)));
         RAW_FILLET = reg("raw_fillet", () -> new Item(props("raw_fillet").food(
-=======
-        // ----- Processing: knife + fillets (Â§11) -----
-        FILLET_KNIFE = reg("fillet_knife", () -> new FilletKnifeItem(new Item.Properties().durability(128)));
-        RAW_FILLET = reg("raw_fillet", () -> new Item(props().food(
->>>>>>> de4c44c (feat(§ru-fish): толстолобик, чехонь, синец — the RU trio)
                 new FoodProperties.Builder().nutrition(2).saturationModifier(0.2f).build())));
         COOKED_FILLET = reg("cooked_fillet", () -> new Item(props("cooked_fillet").food(
                 new FoodProperties.Builder().nutrition(5).saturationModifier(0.6f).build())));
 
-<<<<<<< HEAD
         // ----- Maintenance: whetstone (§3.8) -----
         WHETSTONE = reg("whetstone", () -> new WhetstoneItem(props("whetstone").durability(128)));
 
@@ -227,20 +220,6 @@ public final class ModItems {
         // ----- Water analysis (§QoL): player fish finder + admin probe -----
         reg("fish_finder", () -> new com.riverfishing.item.WaterProbeItem(false, props("fish_finder").stacksTo(1)));
         reg("hydro_probe", () -> new com.riverfishing.item.WaterProbeItem(true, props("hydro_probe").stacksTo(1)));
-=======
-        // ----- Maintenance: whetstone (Â§3.8) -----
-        WHETSTONE = reg("whetstone", () -> new WhetstoneItem(new Item.Properties().durability(128)));
-
-        // ----- Ice fishing (Â§ice-fishing): the auger drills a hole through an ice sheet -----
-        reg("ice_auger", () -> new com.riverfishing.item.IceAugerItem(new Item.Properties().durability(64)));
-
-        // ----- Records: fishing journal (Â§15) -----
-        reg("fishing_journal", () -> new JournalItem(props().stacksTo(1)));
-
-        // ----- Water analysis (Â§QoL): player fish finder + admin probe -----
-        reg("fish_finder", () -> new com.riverfishing.item.WaterProbeItem(false, props().stacksTo(1)));
-        reg("hydro_probe", () -> new com.riverfishing.item.WaterProbeItem(true, props().stacksTo(1)));
->>>>>>> de4c44c (feat(§ru-fish): толстолобик, чехонь, синец — the RU trio)
 
         // ----- Caught fish: a distinct item + texture per species (Module 8) -----
         for (String sp : FISH_SPECIES) {

@@ -1,17 +1,18 @@
 {
-  "values": [
-    "riverfishing:fisherman/3/spinner",
-    "riverfishing:fisherman/3/spoon",
-    "riverfishing:fisherman/3/silicone",
-    "riverfishing:fisherman/3/line_braid_016",
-    "riverfishing:fisherman/3/line_fluoro_020",
-    "riverfishing:fisherman/3/leader_fluoro",
-    "riverfishing:fisherman/3/fish_finder",
-    "riverfishing:fisherman/3/buy_bream",
-    "riverfishing:fisherman/3/buy_ide",
-    "riverfishing:fisherman/3/buy_chub",
-    "riverfishing:fisherman/3/buy_tench",
-    "riverfishing:fisherman/3/buy_pike",
-    "riverfishing:fisherman/3/assembled_spinning_rod"
-  ]
+   "values" : [
+      "riverfishing:fisherman/3/spinner",
+      "riverfishing:fisherman/3/spoon",
+      "riverfishing:fisherman/3/silicone",
+      "riverfishing:fisherman/3/line_braid_016",
+      "riverfishing:fisherman/3/line_fluoro_020",
+      "riverfishing:fisherman/3/leader_fluoro",
+      "riverfishing:fisherman/3/fish_finder",
+      "riverfishing:fisherman/3/buy_bream",
+      "riverfishing:fisherman/3/buy_ide",
+      "riverfishing:fisherman/3/buy_chub",
+      "riverfishing:fisherman/3/buy_tench",
+      "riverfishing:fisherman/3/buy_pike",
+      "riverfishing:fisherman/3/assembled_spinning_rod",
+      "riverfishing:fisherman/3/buy_blue_bream"
+   ]
 }

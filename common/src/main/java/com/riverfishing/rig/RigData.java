@@ -115,7 +115,7 @@ public final class RigData {
         forEachFilled(rig, (role, stack) -> {
             if (found[0] == 0 && role == SlotRole.BAIT && stack.getItem() instanceof BaitItem b
                     && "livebait".equals(b.baitId())) {
-                found[0] = StackNbt.get(stack).getInt(com.riverfishing.item.FishItem.TAG_BAIT_WEIGHT);
+                found[0] = StackNbt.get(stack).getIntOr(com.riverfishing.item.FishItem.TAG_BAIT_WEIGHT, 0);
             }
         });
         return found[0];

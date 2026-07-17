@@ -41,9 +41,9 @@ public class BaitItem extends Item {
 
         // §livebait-2 (0.4.0): a weighed live baitfish names its weight — it drives the predator's size.
         if ("livebait".equals(baitId)) {
-            int bw = StackNbt.get(stack).getInt(FishItem.TAG_BAIT_WEIGHT);
+            int bw = StackNbt.get(stack).getIntOr(FishItem.TAG_BAIT_WEIGHT, 0);
             if (bw > 0) {
-                tooltip.add(Component.translatable("tooltip.riverfishing.livebait_weight", FishItem.weightText(bw))
+                tooltip.accept(Component.translatable("tooltip.riverfishing.livebait_weight", FishItem.weightText(bw))
                         .withStyle(s -> s.withColor(0x88C8E6)));
             }
         }

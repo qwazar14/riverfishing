@@ -1,0 +1,15 @@
+{
+  "wants": {
+    "id": "riverfishing:largemouth_bass",
+    "components": {
+      "riverfishing:prime": 5600
+    }
+  },
+  "gives": {
+    "id": "minecraft:emerald",
+    "count": 7
+  },
+  "max_uses": 12,
+  "xp": 12,
+  "reputation_discount": 0.05
+}
