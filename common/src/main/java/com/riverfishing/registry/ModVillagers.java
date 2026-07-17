@@ -100,6 +100,7 @@ public final class ModVillagers {
         buyPrime(t, 2, "perch", 2, 2);
         buyPrime(t, 2, "ruffe", 1, 2);
         buyPrime(t, 2, "rudd", 2, 2);
+        buyPrime(t, 2, "sabrefish", 2, 2);
 
         // Level 3 — Journeyman: lures (also craftable now, §lure-recipes) + a ready spinning setup.
         sell(t, 3, "spinner", 3, 1, 8);
@@ -114,6 +115,7 @@ public final class ModVillagers {
         buyPrime(t, 3, "ide", 3, 5);
         buyPrime(t, 3, "chub", 3, 5);
         buyPrime(t, 3, "tench", 4, 5);
+        buyPrime(t, 3, "blue_bream", 2, 3);
         buyPrime(t, 3, "pike", 5, 8);
 
         // Level 4 — Expert: serious predator/carp gear + winter tackle + a ready feeder setup.
@@ -149,6 +151,7 @@ public final class ModVillagers {
         buyPrime(t, 5, "eel", 8, 15);
         buyPrime(t, 5, "channel_catfish", 10, 20);
         buyPrime(t, 5, "sterlet", 16, 30);
+        buyPrime(t, 5, "silver_carp", 14, 26);
         buyPrime(t, 5, "wild_carp", 14, 28);
 
         com.riverfishing.platform.VillagerTradeRegistry.register(FISHERMAN, t);
