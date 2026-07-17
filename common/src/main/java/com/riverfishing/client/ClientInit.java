@@ -41,6 +41,9 @@ public final class ClientInit {
         // Never carry a fishing line into another world (Forge ClientPlayerNetworkEvent.LoggingOut).
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> ClientLineState.clear());
 
+        // update-check (0.4.0): one quiet version digest per game launch, on first world join.
+        ClientPlayerEvent.CLIENT_PLAYER_JOIN.register(player -> UpdateChecker.onJoin());
+
         // /rfrod live pose debugger (Forge RegisterClientCommandsEvent → Architectury client command).
         ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> RodDebugCommand.register(dispatcher));
 
