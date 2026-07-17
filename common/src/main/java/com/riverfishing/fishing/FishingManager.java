@@ -859,7 +859,15 @@ public final class FishingManager {
             }
         }
 
-        rollFish(random, profile, session, AnglerSkills.trophyChanceBonus(sp));
+        // §livebait-2 (0.4.0): a weighed live baitfish on the rig culls the small takers. Read the rig
+        // from the session's own rod stack (pods fish with the rod OFF-hand, so not getItemInHand).
+        int livebaitW = 0;
+        ItemStack rigSource = !session.rodStackRef.isEmpty() ? session.rodStackRef : sp.getItemInHand(session.hand);
+        if (rigSource.getItem() instanceof RodItem) {
+            ItemStack rigS = RodData.get(rigSource, ComponentSlot.RIG);
+            if (rigS.getItem() instanceof RigItem) livebaitW = RigData.livebaitWeightG(rigS);
+        }
+        rollFish(random, profile, session, AnglerSkills.trophyChanceBonus(sp), livebaitW);
 
         ItemStack rod = sp.getItemInHand(session.hand);
         // A blunt hook can slip on the strike (§3.8) — empty set, fish gone, hook dulls a touch more.
@@ -1629,7 +1637,8 @@ public final class FishingManager {
 
     // ---- fish generation ----
 
-    private static void rollFish(RandomSource random, FishProfile p, FishingSession session, double trophyBonus) {
+    private static void rollFish(RandomSource random, FishProfile p, FishingSession session, double trophyBonus,
+                                 int livebaitWeightG) {
         double biased = Math.pow(random.nextDouble(), 2.4); // big fish are rare (§2.1)
 
         // Trophy roll (configurable): a specimen from the top of the species' size range. It fights
@@ -1638,6 +1647,17 @@ public final class FishingManager {
         if (random.nextDouble() < RiverFishingConfig.trophyChance() + trophyBonus) {
             session.trophy = true;
             biased = 0.85 + 0.15 * random.nextDouble();
+        }
+
+        // §livebait-2 (0.4.0): a predator that commits to a live baitfish is one that can swallow it —
+        // roughly 6× the bait's weight and up. A weighed livebait FLOORS the size roll there (capped at
+        // 60% of the species' range so the roll stays a roll). Only for species that actually take
+        // livebait; everything else ignores it.
+        if (livebaitWeightG > 0 && p.baitScore("livebait") >= 0.5 && p.weightMax > p.weightMin) {
+            double minW = Mth.clamp(livebaitWeightG * 6.0, p.weightMin,
+                    p.weightMin + (p.weightMax - p.weightMin) * 0.6);
+            double floor = (minW - p.weightMin) / (p.weightMax - p.weightMin);
+            biased = floor + (1.0 - floor) * biased;
         }
 
         double weight = p.weightMin + (p.weightMax - p.weightMin) * biased;

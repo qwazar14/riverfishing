@@ -39,6 +39,15 @@ public class BaitItem extends Item {
                 : (artificial ? "tooltip.riverfishing.bait_artificial" : "tooltip.riverfishing.bait_natural");
         tooltip.accept(Component.translatable(key).withStyle(s -> s.withColor(0x80A080)));
 
+        // §livebait-2 (0.4.0): a weighed live baitfish names its weight — it drives the predator's size.
+        if ("livebait".equals(baitId)) {
+            int bw = StackNbt.get(stack).getInt(FishItem.TAG_BAIT_WEIGHT);
+            if (bw > 0) {
+                tooltip.add(Component.translatable("tooltip.riverfishing.livebait_weight", FishItem.weightText(bw))
+                        .withStyle(s -> s.withColor(0x88C8E6)));
+            }
+        }
+
         // §lure-color: a painted lure names its colour class and the water it fishes best (§8).
         if (artificial) {
             net.minecraft.world.item.component.DyedItemColor dc =
