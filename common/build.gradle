@@ -5,6 +5,8 @@ architectury {
 repositories {
     // JEI (§pack-integration) — soft compileOnly dep, blamejared maven.
     maven { url "https://maven.blamejared.com/" }
+    // Jade (pack-integration) - soft compileOnly dep, Modrinth maven.
+    maven { url "https://api.modrinth.com/maven" }
 }
 
 dependencies {
@@ -20,4 +22,8 @@ dependencies {
     // JEI common API (�pack-integration): annotation-scanned @JeiPlugin lives in common; without
     // JEI at runtime the class never loads, so this stays a soft dependency.
     modCompileOnly "mezz.jei:jei-1.21.1-common-api:${rootProject.jei_version}"
+
+    // Jade API (pack-integration): same soft-dep pattern as JEI; the fabric flavour compiles fine for
+    // common (snownee.jade.api is loader-neutral) and ships nothing.
+    modCompileOnly "maven.modrinth:jade:15.10.5+fabric"
 }

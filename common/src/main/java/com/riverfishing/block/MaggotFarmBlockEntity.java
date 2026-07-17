@@ -32,6 +32,10 @@ public class MaggotFarmBlockEntity extends BlockEntity {
     private int progress;
     private int nextAt = -1;
 
+    /* jade (0.4.0): counters for the look-at tooltip. */
+    public int maggotCount() { return maggots; }
+    public int fleshCount() { return flesh; }
+
     public MaggotFarmBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.MAGGOT_FARM.get(), pos, state);
     }

@@ -28,6 +28,9 @@ public class BaitTrapBlockEntity extends BlockEntity {
     private int progress;
     private int nextAt = -1;
 
+    /* jade (0.4.0): gathered livebait count for the look-at tooltip. */
+    public int storedCount() { return stored; }
+
     public BaitTrapBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.BAIT_TRAP.get(), pos, state);
     }

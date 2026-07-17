@@ -14,7 +14,8 @@
   "environment": "*",
   "entrypoints": {
     "main": ["com.riverfishing.fabric.RiverFishingFabric"],
-    "client": ["com.riverfishing.fabric.RiverFishingFabricClient"]
+    "client": ["com.riverfishing.fabric.RiverFishingFabricClient"],
+    "jade": ["com.riverfishing.integration.jade.RiverFishingJadePlugin"]
   },
   "mixins": ["riverfishing.mixins.json", "riverfishing-fabric.mixins.json"],
   "depends": {

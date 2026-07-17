@@ -30,6 +30,9 @@ public class WormFarmBlockEntity extends BlockEntity {
     private int progress;
     private int nextAt = -1;
 
+    /* jade (0.4.0): worm count for the look-at tooltip. */
+    public int wormCount() { return worms; }
+
     public WormFarmBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.WORM_FARM.get(), pos, state);
     }
