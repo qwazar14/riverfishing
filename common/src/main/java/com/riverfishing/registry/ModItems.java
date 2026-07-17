@@ -36,7 +36,7 @@ public final class ModItems {
     public static final DeferredRegister<Item> REGISTER =
             DeferredRegister.create(RiverFishing.MODID, Registries.ITEM);
 
-    /** Bind all queued items to the active platform's registry (§multiloader) — called from init. */
+    /** Bind all queued items to the active platform's registry (Â§multiloader) â called from init. */
     public static void init() {
         REGISTER.register();
     }
@@ -46,18 +46,20 @@ public final class ModItems {
 
     // ---- Rods ----
     public static final List<RegistrySupplier<Item>> RODS = new ArrayList<>();
-    // ---- Caught fish: one item + texture per species (Module 8; §ecology adds habitat-bound species) ----
+    // ---- Caught fish: one item + texture per species (Module 8; Â§ecology adds habitat-bound species) ----
     public static final String[] FISH_SPECIES = {
             "bream", "crucian_carp", "roach", "rudd", "white_bream",
             "carp", "catfish", "perch", "pike", "zander",
             "gudgeon", "ruffe", "bleak", "ide", "chub", "asp",
             "tench", "burbot", "eel", "grayling", "trout", "sterlet",
-            // §carp-update: the wild sazan + the mirror strain, plus the koi collectibles.
+            // Â§carp-update: the wild sazan + the mirror strain, plus the koi collectibles.
             "wild_carp", "mirror_carp", "grass_carp",
             "carp_koi_kohaku", "carp_koi_tancho_sanke", "carp_koi_showa_sanke",
             "carp_koi_asagi", "carp_koi_bekko",
-            // §america-pack (0.4.0): bluegill/bass/rainbow/channel cat — the community-requested US four.
-            "bluegill", "largemouth_bass", "rainbow_trout", "channel_catfish"
+            // Â§america-pack (0.4.0): bluegill/bass/rainbow/channel cat â the community-requested US four.
+            "bluegill", "largemouth_bass", "rainbow_trout", "channel_catfish",
+            // §ru-fish (0.4.0): ÑÐ¾Ð»ÑÑÐ¾Ð»Ð¾Ð±Ð¸Ðº / ÑÐµÑÐ¾Ð½Ñ / ÑÐ¸Ð½ÐµÑ — the RU trio.
+            "silver_carp", "sabrefish", "blue_bream"
     };
     public static final Map<Identifier, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
     // ---- Baits referenced by event drops ----
@@ -71,11 +73,11 @@ public final class ModItems {
     // ---- Bite alarms (Module 3) ----
     public static final RegistrySupplier<Item> BELL_ALARM;
     public static final RegistrySupplier<Item> DIGITAL_ALARM;
-    // ---- Processing (§11) ----
+    // ---- Processing (Â§11) ----
     public static final RegistrySupplier<Item> FILLET_KNIFE;
     public static final RegistrySupplier<Item> RAW_FILLET;
     public static final RegistrySupplier<Item> COOKED_FILLET;
-    // ---- Maintenance (§3.8) ----
+    // ---- Maintenance (Â§3.8) ----
     public static final RegistrySupplier<Item> WHETSTONE;
 
     private ModItems() {}
@@ -102,7 +104,7 @@ public final class ModItems {
         return net.minecraft.world.item.Items.IRON_INGOT; // pole / ultralight / spinning / winter
     }
 
-    /** Rod blank durability by tier (§rod-durability). Plain if-chain: no synthetic switch classes. */
+    /** Rod blank durability by tier (Â§rod-durability). Plain if-chain: no synthetic switch classes. */
     private static int rodDurability(RodType type) {
         String key = type.jsonKey();
         if ("stick".equals(key)) return 32;
@@ -118,7 +120,7 @@ public final class ModItems {
 
     static {
         // ----- Rods (each RodType is its own item; components live in NBT). Blanks wear out and are
-        // anvil-repaired with the priciest ingredient of their recipe (§rod-durability). -----
+        // anvil-repaired with the priciest ingredient of their recipe (Â§rod-durability). -----
         for (RodType type : RodType.values()) {
             RegistrySupplier<Item> rod = reg(type.jsonKey() + "_rod",
                     () -> new RodItem(type, props(type.jsonKey() + "_rod").durability(rodDurability(type))
@@ -132,10 +134,10 @@ public final class ModItems {
             reg("reel_" + size, () -> new ReelItem(s, props("reel_" + s)));
         }
 
-        // ----- Lines (§line-update): mono = all-rounder, braid = thin & strong, fluoro = clear/finesse.
-        // Thick fluoro (0.40/0.50) dropped — impractical in reality; thin mono/fluoro + heavy braid added. -----
+        // ----- Lines (Â§line-update): mono = all-rounder, braid = thin & strong, fluoro = clear/finesse.
+        // Thick fluoro (0.40/0.50) dropped â impractical in reality; thin mono/fluoro + heavy braid added. -----
         registerLines(LineType.MONO, new double[]{0.10, 0.14, 0.18, 0.25, 0.30, 0.40});
-        // Braid tops out at 0.30 — the catfish line (§strain-recompute: 0.30 braid ≈ 27 kg, enough to
+        // Braid tops out at 0.30 â the catfish line (Â§strain-recompute: 0.30 braid â 27 kg, enough to
         // duel the 40 kg monster catfish with a 7000 reel's drag on top).
         registerLines(LineType.BRAID, new double[]{0.16, 0.20, 0.25, 0.30});
         registerLines(LineType.FLUORO, new double[]{0.14, 0.16, 0.20, 0.25, 0.30});
@@ -169,7 +171,7 @@ public final class ModItems {
         registerBait("boilie", false);
         registerBait("livebait", false);
         CHICKEN_LIVER = registerBait("chicken_liver", false);
-        // Mormyshka / "Ice Jig" (§ice-fishing): a tiny weighted winter JIG — artificial for gate purposes, but
+        // Mormyshka / "Ice Jig" (Â§ice-fishing): a tiny weighted winter JIG â artificial for gate purposes, but
         // SlotRole.BAIT admits it (fished tipped with a grub in the ice rig). Its tooltip is the ice-rod
         // descriptor, not the generic "artificial lure (predators only)" line.
         registerBait("mormyshka", true, "tooltip.riverfishing.bait_ice_jig");
@@ -183,8 +185,8 @@ public final class ModItems {
         registerBait("spoon", true);
         registerBait("wobbler", true);
         registerBait("silicone", true);
-        // §more-lures (§8): topwater popper, mid-running crankbait, deep soft-jig, long-cast castmaster.
-        // All artificial → dyeable/tintable + condition-colour like the others. (Placeholder textures for now.)
+        // Â§more-lures (Â§8): topwater popper, mid-running crankbait, deep soft-jig, long-cast castmaster.
+        // All artificial â dyeable/tintable + condition-colour like the others. (Placeholder textures for now.)
         registerBait("popper", true);
         registerBait("crankbait", true);
         registerBait("jig", true);
@@ -199,13 +201,20 @@ public final class ModItems {
         BELL_ALARM = reg("bell_alarm", () -> new AlarmItem(AlarmType.BELL, props("bell_alarm")));
         DIGITAL_ALARM = reg("digital_alarm", () -> new AlarmItem(AlarmType.DIGITAL, props("digital_alarm")));
 
+<<<<<<< HEAD
         // ----- Processing: knife + fillets (§11) -----
         FILLET_KNIFE = reg("fillet_knife", () -> new FilletKnifeItem(props("fillet_knife").durability(128)));
         RAW_FILLET = reg("raw_fillet", () -> new Item(props("raw_fillet").food(
+=======
+        // ----- Processing: knife + fillets (Â§11) -----
+        FILLET_KNIFE = reg("fillet_knife", () -> new FilletKnifeItem(new Item.Properties().durability(128)));
+        RAW_FILLET = reg("raw_fillet", () -> new Item(props().food(
+>>>>>>> de4c44c (feat(§ru-fish): толстолобик, чехонь, синец — the RU trio)
                 new FoodProperties.Builder().nutrition(2).saturationModifier(0.2f).build())));
         COOKED_FILLET = reg("cooked_fillet", () -> new Item(props("cooked_fillet").food(
                 new FoodProperties.Builder().nutrition(5).saturationModifier(0.6f).build())));
 
+<<<<<<< HEAD
         // ----- Maintenance: whetstone (§3.8) -----
         WHETSTONE = reg("whetstone", () -> new WhetstoneItem(props("whetstone").durability(128)));
 
@@ -218,6 +227,20 @@ public final class ModItems {
         // ----- Water analysis (§QoL): player fish finder + admin probe -----
         reg("fish_finder", () -> new com.riverfishing.item.WaterProbeItem(false, props("fish_finder").stacksTo(1)));
         reg("hydro_probe", () -> new com.riverfishing.item.WaterProbeItem(true, props("hydro_probe").stacksTo(1)));
+=======
+        // ----- Maintenance: whetstone (Â§3.8) -----
+        WHETSTONE = reg("whetstone", () -> new WhetstoneItem(new Item.Properties().durability(128)));
+
+        // ----- Ice fishing (Â§ice-fishing): the auger drills a hole through an ice sheet -----
+        reg("ice_auger", () -> new com.riverfishing.item.IceAugerItem(new Item.Properties().durability(64)));
+
+        // ----- Records: fishing journal (Â§15) -----
+        reg("fishing_journal", () -> new JournalItem(props().stacksTo(1)));
+
+        // ----- Water analysis (Â§QoL): player fish finder + admin probe -----
+        reg("fish_finder", () -> new com.riverfishing.item.WaterProbeItem(false, props().stacksTo(1)));
+        reg("hydro_probe", () -> new com.riverfishing.item.WaterProbeItem(true, props().stacksTo(1)));
+>>>>>>> de4c44c (feat(§ru-fish): толстолобик, чехонь, синец — the RU trio)
 
         // ----- Caught fish: a distinct item + texture per species (Module 8) -----
         for (String sp : FISH_SPECIES) {
@@ -235,7 +258,7 @@ public final class ModItems {
     /**
      * The alarm item for a type, or null (Module 3; also called from the pod RENDERER every frame).
      * Plain if-chain on purpose: an enum switch compiles to a synthetic ModItems$1 class, and a stale
-     * incremental build once shipped a jar without it — crashing the render thread (see crash
+     * incremental build once shipped a jar without it â crashing the render thread (see crash
      * 2026-07-03). An if-chain cannot lose its class.
      */
     public static Item alarmItem(AlarmType type) {
