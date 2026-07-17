@@ -111,6 +111,18 @@ public final class RigData {
         return found[0];
     }
 
+    /** livebait-2: weight of a live baitfish loaded in a BAIT slot, or 0 (drives predator size, 0.4.0). */
+    public static int livebaitWeightG(ItemStack rig) {
+        int[] found = { 0 };
+        forEachFilled(rig, (role, stack) -> {
+            if (found[0] == 0 && role == SlotRole.BAIT && stack.getItem() instanceof BaitItem b
+                    && "livebait".equals(b.baitId())) {
+                found[0] = StackNbt.get(stack).getInt(com.riverfishing.item.FishItem.TAG_BAIT_WEIGHT);
+            }
+        });
+        return found[0];
+    }
+
     /** Groundbait category loaded in the feeder/flat/grusha cage, or null. */
     public static String groundbaitCategory(ItemStack rig) {
         String[] found = new String[1];

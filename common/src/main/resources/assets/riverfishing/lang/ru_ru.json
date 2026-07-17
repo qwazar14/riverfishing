@@ -236,6 +236,7 @@
     "message.riverfishing.line_break":  "Обрыв! Рыба и оснастка потеряны",
     "message.riverfishing.line_break_load":  "Обрыв под нагрузкой ~%s кг! Рыба и оснастка потеряны",
     "message.riverfishing.tackle_limit":  "Снасть на пределе — ослабь натяжение!",
+    "tooltip.riverfishing.livebait_weight":  "Живец: %s — отсекает мелочь",
     "message.riverfishing.leader_bite_off":  "Перекусила леску — нужен поводок!",
     "message.riverfishing.fighting":  "Вываживание — не упусти!",
     "message.riverfishing.strike":  "Удар! Подсекай!",

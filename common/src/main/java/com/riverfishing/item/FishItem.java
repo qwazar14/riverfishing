@@ -28,6 +28,8 @@ public class FishItem extends Item {
     public static final String TAG_GRADE = "Grade";
     public static final String GRADE_PRIME = "prime";
     public static final String TAG_MIN_WEIGHT = "MinW";
+    // §livebait-2 (0.4.0): weight carried by a live baitfish (on the LIVEBAIT item, not the fish).
+    public static final String TAG_BAIT_WEIGHT = "BaitW";
 
     private final ResourceLocation species;
 
@@ -40,6 +42,37 @@ public class FishItem extends Item {
     // (the item's physics keep working the whole time).
     public static final String TAG_RELEASE_AT = "ReleaseAt";
     public static final int RELEASE_TICKS = 40;
+
+    /**
+     * §livebait-2 (0.4.0): bait up a hook by hand — a small caught fish in the MAIN hand + a hook in the
+     * OFF hand + sneak-use → one live bait carrying the fish's weight (the hands-on version of the
+     * §livebait crafting recipe, for the fantasy of hooking the baitfish you just pulled out).
+     */
+    @Override
+    public net.minecraft.world.InteractionResultHolder<ItemStack> use(Level level,
+            net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand) {
+        ItemStack fish = player.getItemInHand(hand);
+        ItemStack off = player.getItemInHand(net.minecraft.world.InteractionHand.OFF_HAND);
+        int w = getWeightG(fish);
+        if (player.isCrouching() && hand == net.minecraft.world.InteractionHand.MAIN_HAND
+                && off.getItem() instanceof HookItem && w > 0 && w <= LivebaitRecipe.MAX_WEIGHT_G) {
+            if (!level.isClientSide) {
+                var livebait = net.minecraft.core.registries.BuiltInRegistries.ITEM
+                        .get(com.riverfishing.RiverFishing.id("livebait"));
+                ItemStack bait = new ItemStack(livebait);
+                int fw = w;
+                StackNbt.mutate(bait, t -> t.putInt(TAG_BAIT_WEIGHT, fw));
+                fish.shrink(1);
+                off.shrink(1);
+                if (!player.getInventory().add(bait)) player.drop(bait, false);
+                level.playSound(null, player.blockPosition(),
+                        net.minecraft.sounds.SoundEvents.FISHING_BOBBER_RETRIEVE,
+                        net.minecraft.sounds.SoundSource.PLAYERS, 0.7f, 1.4f);
+            }
+            return net.minecraft.world.InteractionResultHolder.sidedSuccess(fish, level.isClientSide);
+        }
+        return super.use(level, player, hand);
+    }
 
     public ResourceLocation species() {
         return species;

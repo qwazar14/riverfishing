@@ -11,11 +11,11 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 /**
- * Live bait from any small catch (§livebait): a single fish weighing up to 100 g placed in the
+ * Live bait from any small catch (Â§livebait): a single fish weighing up to 100 g placed in the
  * crafting grid becomes one live bait. Weight lives in the fish's custom data, so this is a custom recipe.
  */
 public class LivebaitRecipe extends CustomRecipe {
-    public static final int MAX_WEIGHT_G = 100;
+    public static final int MAX_WEIGHT_G = 150;
 
     public LivebaitRecipe(CraftingBookCategory category) {
         super(category);
@@ -38,7 +38,18 @@ public class LivebaitRecipe extends CustomRecipe {
     @Override
     public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
         var livebait = BuiltInRegistries.ITEM.get(RiverFishing.id("livebait"));
-        return livebait == null ? ItemStack.EMPTY : new ItemStack(livebait);
+        if (livebait == null) return ItemStack.EMPTY;
+        ItemStack out = new ItemStack(livebait);
+        // livebait-2 (0.4.0): the bait keeps the fish's weight — bigger baitfish select bigger predators.
+        for (int i = 0; i < input.size(); i++) {
+            ItemStack s = input.getItem(i);
+            if (s.getItem() instanceof FishItem) {
+                int w = FishItem.getWeightG(s);
+                if (w > 0) StackNbt.mutate(out, t -> t.putInt(FishItem.TAG_BAIT_WEIGHT, w));
+                break;
+            }
+        }
+        return out;
     }
 
     @Override
