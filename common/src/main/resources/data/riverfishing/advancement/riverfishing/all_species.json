@@ -1,7 +1,7 @@
 {
   "parent": "riverfishing:riverfishing/root",
   "display": {
-    "icon": { "item": "riverfishing:carp" },
+    "icon": { "id": "riverfishing:carp" },
     "title": { "translate": "advancement.riverfishing.all_species.title" },
     "description": { "translate": "advancement.riverfishing.all_species.description" },
     "frame": "challenge",

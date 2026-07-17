@@ -1,7 +1,7 @@
 {
   "parent": "riverfishing:riverfishing/predator",
   "display": {
-    "icon": { "item": "riverfishing:pike" },
+    "icon": { "id": "riverfishing:pike" },
     "title": { "translate": "advancement.riverfishing.pike_on_wood.title" },
     "description": { "translate": "advancement.riverfishing.pike_on_wood.description" },
     "frame": "challenge",

@@ -1,7 +1,7 @@
 {
   "parent": "riverfishing:riverfishing/root",
   "display": {
-    "icon": { "item": "riverfishing:burbot" },
+    "icon": { "id": "riverfishing:burbot" },
     "title": { "translate": "advancement.riverfishing.night_king.title" },
     "description": { "translate": "advancement.riverfishing.night_king.description" },
     "frame": "goal",

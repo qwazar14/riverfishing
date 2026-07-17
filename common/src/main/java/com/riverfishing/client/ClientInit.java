@@ -10,7 +10,7 @@ import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.menu.MenuRegistry;
 
 /**
- * The single common client bootstrap (§multiloader) — the Forge {@code FMLClientSetupEvent} /
+ * The single common client bootstrap (Â§multiloader) â the Forge {@code FMLClientSetupEvent} /
  * {@code @Mod.EventBusSubscriber} client classes collapse into this, called once from each loader's
  * client entry point ({@code RiverFishingForge} on the client dist / {@code RiverFishingFabricClient}).
  *
@@ -23,15 +23,19 @@ import dev.architectury.registry.menu.MenuRegistry;
 public final class ClientInit {
     private ClientInit() {}
 
-    /** Fabric client entry: everything at once — registry objects are already bound by init time. */
+    /** Fabric client entry: everything at once â registry objects are already bound by init time. */
     public static void init() {
         registerEvents();
         registerRenderers();
     }
 
-    /** Event listeners only — safe during Forge mod construction (nothing calls {@code .get()}). */
+    /** Event listeners only â safe during Forge mod construction (nothing calls {@code .get()}). */
     public static void registerEvents() {
-        // Float-timing + cast-power HUD (Forge RenderGuiEvent.Post → Architectury RENDER_HUD).
+        // §s2c-split + update hooks: S2C packet receivers are CLIENT-only (dedicated servers crash on
+        // the dist-stripped receiver path — see ModNetwork).
+        com.riverfishing.network.ModNetwork.registerClientReceivers();
+
+        // Float-timing + cast-power HUD (Forge RenderGuiEvent.Post â Architectury RENDER_HUD).
         ClientGuiEvent.RENDER_HUD.register(ClientHud::render);
 
         // Never carry a fishing line into another world (Forge ClientPlayerNetworkEvent.LoggingOut).
@@ -40,32 +44,32 @@ public final class ClientInit {
         // update-check (0.4.0): one quiet version digest per game launch, on first world join.
         ClientPlayerEvent.CLIENT_PLAYER_JOIN.register(player -> UpdateChecker.onJoin());
 
-        // /rfrod live pose debugger (Forge RegisterClientCommandsEvent → Architectury client command).
+        // /rfrod live pose debugger (Forge RegisterClientCommandsEvent â Architectury client command).
         ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> RodDebugCommand.register(dispatcher));
 
-        // Platform-only event hooks (in-world line render + extra-model bake) — no registry objects.
+        // Platform-only event hooks (in-world line render + extra-model bake) â no registry objects.
         ClientPlatform.registerExtraModels();
         ClientPlatform.registerLevelRenderer();
     }
 
-    /** Registry-object-dependent registration — deferred to FMLClientSetupEvent on Forge. */
+    /** Registry-object-dependent registration â deferred to FMLClientSetupEvent on Forge. */
     public static void registerRenderers() {
-        // Assembly / rig screens — per platform: Fabric via Architectury registerScreenFactory, NeoForge via
-        // the native RegisterMenuScreensEvent (Architectury's deferred path misses the event there). §multiloader
+        // Assembly / rig screens â per platform: Fabric via Architectury registerScreenFactory, NeoForge via
+        // the native RegisterMenuScreensEvent (Architectury's deferred path misses the event there). Â§multiloader
         ClientPlatform.registerScreens();
 
-        // Block-entity renderers (Forge EntityRenderersEvent → Architectury BlockEntityRendererRegistry).
+        // Block-entity renderers (Forge EntityRenderersEvent â Architectury BlockEntityRendererRegistry).
         BlockEntityRendererRegistry.register(ModBlockEntities.TROPHY_STAND.get(), TrophyStandRenderer::new);
         BlockEntityRendererRegistry.register(ModBlockEntities.ROD_POD.get(), RodPodRenderer::new);
         BlockEntityRendererRegistry.register(ModBlockEntities.AQUARIUM.get(), AquariumRenderer::new);
 
-        // Item BEWLR — Fabric iterates the rod/fish items here (needs them bound); Forge is a mixin no-op.
+        // Item BEWLR â Fabric iterates the rod/fish items here (needs them bound); Forge is a mixin no-op.
         ClientPlatform.registerItemRenderers();
 
-        // §lure-color: tint provider for painted lures (needs the items bound, so it lives here).
+        // Â§lure-color: tint provider for painted lures (needs the items bound, so it lives here).
         ClientPlatform.registerItemColors();
 
-        // Non-solid block render layers (aquarium glass, ice hole, bait trap) — Fabric only; Forge reads
+        // Non-solid block render layers (aquarium glass, ice hole, bait trap) â Fabric only; Forge reads
         // "render_type" from the model. Needs the blocks bound, so it lives here with the renderers.
         ClientPlatform.registerRenderTypes();
     }

@@ -1,7 +1,7 @@
 {
   "parent": "riverfishing:riverfishing/night_king",
   "display": {
-    "icon": { "item": "riverfishing:winter_rod" },
+    "icon": { "id": "riverfishing:winter_rod" },
     "title": { "translate": "advancement.riverfishing.ice_burbot.title" },
     "description": { "translate": "advancement.riverfishing.ice_burbot.description" },
     "frame": "goal",

@@ -23,6 +23,13 @@ public final class ModNetwork {
         void write(FriendlyByteBuf buf);
     }
 
+    /**
+     * §s2c-split (0.4.0): registering an S2C RECEIVER in common init crashes a DEDICATED server — the
+     * client half of arch's network adaptor is dist-stripped (AbstractMethodError on fabric 13, same
+     * family as the 1.20.1 NoSuchMethodError). Receivers moved to {@link #registerClientReceivers()}
+     * (client bootstrap); the dedicated server still must know each S2C payload TYPE to be able to
+     * SEND it, which is exactly what registerS2CPayloadType is for.
+     */
     public static void register() {
         // Client -> server (handled on the server thread).
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, QuestClaimPacket.TYPE, QuestClaimPacket.STREAM_CODEC,
@@ -30,7 +37,16 @@ public final class ModNetwork {
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, SkillUnlockPacket.TYPE, SkillUnlockPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
 
-        // Server -> client (handled on the client via EnvExecutor inside each packet).
+        if (dev.architectury.platform.Platform.getEnvironment() == dev.architectury.utils.Env.SERVER) {
+            NetworkManager.registerS2CPayloadType(FloatTimingPacket.TYPE, FloatTimingPacket.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(JournalOpenPacket.TYPE, JournalOpenPacket.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(LineSyncPacket.TYPE, LineSyncPacket.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(RodWarningPacket.TYPE, RodWarningPacket.STREAM_CODEC);
+        }
+    }
+
+    /** CLIENT-ONLY: the server → client receivers. Called from the client bootstrap (ClientInit). */
+    public static void registerClientReceivers() {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, FloatTimingPacket.TYPE, FloatTimingPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, JournalOpenPacket.TYPE, JournalOpenPacket.STREAM_CODEC,
