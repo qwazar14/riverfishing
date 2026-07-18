@@ -116,17 +116,17 @@ public final class ModItems {
         }
 
         // ----- Reels -----
-        for (int size : new int[]{1000, 2000, 3000, 4000, 5000, 6000, 7000}) {
+        for (int size : new int[]{1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 10000, 12000, 14000}) {
             final int s = size;
             reg("reel_" + size, () -> new ReelItem(s, props()));
         }
 
         // ----- Lines (Â§line-update): mono = all-rounder, braid = thin & strong, fluoro = clear/finesse.
         // Thick fluoro (0.40/0.50) dropped â impractical in reality; thin mono/fluoro + heavy braid added. -----
-        registerLines(LineType.MONO, new double[]{0.10, 0.14, 0.18, 0.25, 0.30, 0.40});
+        registerLines(LineType.MONO, new double[]{0.10, 0.14, 0.18, 0.25, 0.30, 0.40, 0.50});
         // Braid tops out at 0.30 â the catfish line (Â§strain-recompute: 0.30 braid â 27 kg, enough to
         // duel the 40 kg monster catfish with a 7000 reel's drag on top).
-        registerLines(LineType.BRAID, new double[]{0.16, 0.20, 0.25, 0.30});
+        registerLines(LineType.BRAID, new double[]{0.16, 0.20, 0.25, 0.30, 0.40});
         registerLines(LineType.FLUORO, new double[]{0.14, 0.16, 0.20, 0.25, 0.30});
 
         // ----- Rigs -----
@@ -141,7 +141,7 @@ public final class ModItems {
         FLOAT = reg("float", () -> new Item(props()));
 
         // ----- Hooks (angling sizes; bigger number = smaller hook) -----
-        for (int size : new int[]{16, 14, 12, 10, 8, 6, 4}) {
+        for (int size : new int[]{16, 14, 12, 10, 8, 6, 4, 2, 1}) {
             final int s = size;
             reg("hook_" + size, () -> new HookItem(s, props()));
         }

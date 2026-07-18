@@ -147,6 +147,18 @@ public final class ModVillagers {
         sell(t, 5, "line_braid_030", 10, 1, 22); // the catfish braid (§strain-recompute)
         sell(t, 5, "carp_rod", 18, 1, 30);
         sell(t, 5, "bottom_rod", 16, 1, 28);
+        // sea-tackle (0.5.0): the saltwater counter — master-tier gate to the ocean.
+        sell(t, 5, "surf_rod", 20, 1, 30);
+        sell(t, 5, "sea_spin_rod", 17, 1, 28);
+        sell(t, 5, "boat_rod", 19, 1, 30);
+        sell(t, 5, "reel_8000", 18, 1, 28);
+        sell(t, 5, "reel_10000", 22, 1, 30);
+        sell(t, 5, "reel_12000", 26, 1, 32);
+        sell(t, 5, "reel_14000", 30, 1, 34);
+        sell(t, 5, "line_mono_050", 8, 1, 20);
+        sell(t, 5, "line_braid_040", 14, 1, 24);
+        sell(t, 5, "hook_2", 3, 3, 10);
+        sell(t, 5, "hook_1", 4, 3, 12);
         buyPrime(t, 5, "catfish", 12, 25);
         buyPrime(t, 5, "eel", 8, 15);
         buyPrime(t, 5, "channel_catfish", 10, 20);
