@@ -33,6 +33,11 @@ public final class GenUsFish {
         gen(out, "saithe", 0x3A4248, 0x6E787E, 0xC8CDD0, 26, 11, true, "dark");
         gen(out, "conger", 0x4E5A66, 0x76848E, 0xC9CFCE, 29, 6, false, "conger");
         gen(out, "ray", 0x8A7452, 0xA08A62, 0xD9CDB2, 26, 14, false, "ray");
+        // §ocean (0.5.0): the pelagic four — trolling targets.
+        gen(out, "mahi", 0x2E7E5E, 0x9EB94E, 0xEFE8C2, 26, 11, true, "mahi");
+        gen(out, "wahoo", 0x2E4A6E, 0xAEBAC2, 0xE8EBE8, 29, 7, true, "wahoo");
+        gen(out, "yellowfin_tuna", 0x24384E, 0x8FA0AC, 0xE6E9E6, 26, 10, true, "tuna");
+        gen(out, "barracuda", 0x5E6E76, 0xC2C9CE, 0xF0F1EC, 30, 6, true, "cuda");
         System.out.println("done");
     }
 
@@ -166,6 +171,33 @@ public final class GenUsFish {
                     if (in(sx, sy) && px[sy * W + sx] != 0) put(sx, sy, shade(flank, -14));
                 }
                 for (int i = 0; i <= 12; i++) put(cx + ax - 2 + i / 2, cy - i / 3, 0x6E5E42);
+            }
+            case "mahi" -> { // махи: the steep blunt forehead + golden flank wash
+                for (int y = cy - by; y <= cy - 2; y++)
+                    for (int x = cx - ax; x <= cx - ax + 6; x++)
+                        if (in(x, y) && px[y * W + x] != 0) put(x, y, shade(back, -8));
+                for (int i = 0; i < 22; i++) {
+                    int sx = cx - ax + 8 + rng.nextInt(2 * ax - 12), sy = cy - 2 + rng.nextInt(by);
+                    if (in(sx, sy) && px[sy * W + sx] != 0) put(sx, sy, 0xC9B94E);
+                }
+            }
+            case "wahoo" -> { // ваху: full-height tiger bars down the flank
+                for (int x = cx - ax + 5; x <= cx + ax - 5; x += 4)
+                    for (int y = cy - by + 1; y <= cy + by - 2; y++) put(x, y, shade(back, -10));
+            }
+            case "tuna" -> { // тунец: torpedo — yellow finlet row along the rear back and belly
+                for (int i = 0; i < 6; i++) {
+                    int x = cx + ax / 3 + i * 2;
+                    put(x, cy - by - 1, 0xE8C21E);
+                    put(x, cy + by, 0xE8C21E);
+                }
+            }
+            case "cuda" -> { // барракуда: pike-like jaw + scattered dark blotches
+                for (int i = 0; i < 8; i++) put(cx - ax + 1 + i, cy + 1 + (i % 2), 0x2E3A42);
+                for (int i = 0; i < 14; i++) {
+                    int sx = cx - 2 + rng.nextInt(ax), sy = cy - by + 2 + rng.nextInt(2 * by - 3);
+                    if (in(sx, sy) && px[sy * W + sx] != 0) put(sx, sy, shade(back, -14));
+                }
             }
             case "catfish" -> {
                 for (int i = 0; i < 7; i++) {                          // barbels (whiskers)

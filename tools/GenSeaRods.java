@@ -17,6 +17,7 @@ public final class GenSeaRods {
         gen(base, rod, rodM, "surf", 0xC8CDD2, 0x2E3A46, 3, 5);      // long pale surf blank, dark blue grip
         gen(base, rod, rodM, "sea_spin", 0x7C93A6, 0x1E2830, 2, 4);  // blue-gray coastal spinner
         gen(base, rod, rodM, "boat", 0x4E5A62, 0x5A3A22, 4, 3);      // short thick slate boat rod, cork grip
+        gen(base, rod, rodM, "trolling", 0x2E3238, 0x6E2A22, 4, 4);  // heavy dark trolling stick, red grip
         System.out.println("done");
     }
 

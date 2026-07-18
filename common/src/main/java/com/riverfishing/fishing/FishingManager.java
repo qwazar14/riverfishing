@@ -89,6 +89,7 @@ public final class FishingManager {
     private FishingManager() {}
 
     public static void clear(UUID uuid) {
+        TROLL_GOOD.remove(uuid);
         FishingSession session = SESSIONS.remove(uuid);
         if (session != null && session.bossBar != null) {
             session.bossBar.removeAllPlayers();
@@ -172,6 +173,55 @@ public final class FishingManager {
         }
         // No session: the cast now happens on RELEASE with a charged power bar (§cast-minigame).
         return false;
+    }
+
+    // ---- §trolling v1 (0.5.0): boat-agnostic — the MOVING BOAT does the casting and the retrieving ----
+
+    /** Consecutive good-speed ticks per player (the anti-jitter ramp before the auto-cast). */
+    private static final Map<UUID, Integer> TROLL_GOOD = new HashMap<>();
+
+    /**
+     * Called every server player tick. Trolling needs: an assembled TROLLING/SEA_SPIN rod in the main
+     * hand, a boat vehicle, and horizontal speed inside the working window (~3-9 m/s). Hold that for
+     * three seconds and the line goes out by itself (a normal cast along the look vector — over open
+     * sea that's always water); the boat's movement then works the lure (auto retrieve ticks), so
+     * bites, strike QTE and the fight all ride the existing ACTIVE flow untouched. Any watercraft that
+     * moves the player works — vanilla boats today, modded ships tomorrow.
+     */
+    public static void trollingTick(ServerPlayer sp) {
+        ItemStack trollRod = sp.getMainHandItem();
+        boolean capable = trollRod.getItem() instanceof RodItem ri
+                && (ri.rodType() == RodType.TROLLING || ri.rodType() == RodType.SEA_SPIN)
+                && RodData.isAssembled(trollRod);
+        if (!capable || !(sp.getVehicle() instanceof net.minecraft.world.entity.vehicle.Boat boat)) {
+            TROLL_GOOD.remove(sp.getUUID());
+            return;
+        }
+        var v = boat.getDeltaMovement();
+        double speed = Math.sqrt(v.x * v.x + v.z * v.z);
+        boolean inWindow = speed >= 0.15 && speed <= 0.50;
+        ServerLevel level = sp.serverLevel();
+
+        FishingSession session = SESSIONS.get(sp.getUUID());
+        if (session != null) {
+            if (session.fighting || session.bitten) return; // the take is handled by the normal flow
+            if (session.rodClass == RodClass.ACTIVE && inWindow && sp.tickCount % 2 == 0) {
+                retrieveTick(sp); // the boat works the lure at half retrieve speed — a long trailing pass
+            }
+            return;
+        }
+        if (!inWindow) {
+            TROLL_GOOD.remove(sp.getUUID());
+            return;
+        }
+        int good = TROLL_GOOD.merge(sp.getUUID(), 1, Integer::sum);
+        if (good >= 60) {
+            TROLL_GOOD.remove(sp.getUUID());
+            if (startCast(sp, level, InteractionHand.MAIN_HAND, level.getGameTime(), 0.55)) {
+                actionbar(sp, Component.translatable("message.riverfishing.trolling_start")
+                        .withStyle(ChatFormatting.AQUA));
+            }
+        }
     }
 
     public static boolean hasSession(ServerPlayer sp) {

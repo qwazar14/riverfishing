@@ -14,6 +14,7 @@
     "riverfishing:rainbow_trout", "riverfishing:channel_catfish",
     "riverfishing:silver_carp", "riverfishing:sabrefish", "riverfishing:blue_bream",
     "riverfishing:mackerel", "riverfishing:herring", "riverfishing:garfish", "riverfishing:seabass",
-    "riverfishing:flounder", "riverfishing:cod", "riverfishing:saithe", "riverfishing:conger", "riverfishing:ray"
+    "riverfishing:flounder", "riverfishing:cod", "riverfishing:saithe", "riverfishing:conger", "riverfishing:ray",
+    "riverfishing:mahi", "riverfishing:wahoo", "riverfishing:yellowfin_tuna", "riverfishing:barracuda"
   ]
 }

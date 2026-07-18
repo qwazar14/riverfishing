@@ -155,6 +155,7 @@ public final class ModVillagers {
         sell(t, 5, "surf_rod", 20, 1, 30);
         sell(t, 5, "sea_spin_rod", 17, 1, 28);
         sell(t, 5, "boat_rod", 19, 1, 30);
+        sell(t, 5, "trolling_rod", 24, 1, 34);
         sell(t, 5, "reel_8000", 18, 1, 28);
         sell(t, 5, "reel_10000", 22, 1, 30);
         sell(t, 5, "reel_12000", 26, 1, 32);
@@ -173,6 +174,10 @@ public final class ModVillagers {
         buyPrime(t, 5, "saithe", 7, 14);
         buyPrime(t, 5, "conger", 13, 24);
         buyPrime(t, 5, "ray", 12, 22);
+        buyPrime(t, 5, "mahi", 10, 20);
+        buyPrime(t, 5, "wahoo", 14, 26);
+        buyPrime(t, 5, "yellowfin_tuna", 20, 34);
+        buyPrime(t, 5, "barracuda", 8, 16);
         buyPrime(t, 5, "wild_carp", 14, 28);
 
         com.riverfishing.platform.VillagerTradeRegistry.register(FISHERMAN, t);

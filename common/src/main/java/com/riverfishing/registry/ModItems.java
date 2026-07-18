@@ -62,7 +62,9 @@ public final class ModItems {
             "silver_carp", "sabrefish", "blue_bream",
             // ocean (0.5.0): the coastal + shelf wave.
             "mackerel", "herring", "garfish", "seabass", "flounder",
-            "cod", "saithe", "conger", "ray"
+            "cod", "saithe", "conger", "ray",
+            // ocean (0.5.0): the pelagic four.
+            "mahi", "wahoo", "yellowfin_tuna", "barracuda"
     };
     public static final Map<ResourceLocation, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
     // ---- Baits referenced by event drops ----
