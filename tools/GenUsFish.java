@@ -38,6 +38,11 @@ public final class GenUsFish {
         gen(out, "wahoo", 0x2E4A6E, 0xAEBAC2, 0xE8EBE8, 29, 7, true, "wahoo");
         gen(out, "yellowfin_tuna", 0x24384E, 0x8FA0AC, 0xE6E9E6, 26, 10, true, "tuna");
         gen(out, "barracuda", 0x5E6E76, 0xC2C9CE, 0xF0F1EC, 30, 6, true, "cuda");
+        // §ocean (0.5.0): the billfish/shark trophies.
+        gen(out, "blue_marlin", 0x24466E, 0x7E96AC, 0xE2E6E8, 28, 9, true, "bill");
+        gen(out, "sailfish", 0x2E4E72, 0x8AA0B2, 0xE6E9E8, 28, 8, true, "sail");
+        gen(out, "swordfish", 0x3A4652, 0x8A96A0, 0xE2E5E5, 28, 9, true, "sword");
+        gen(out, "mako", 0x3E5266, 0x9AAAB6, 0xEDEFEC, 28, 9, false, "shark");
         System.out.println("done");
     }
 
@@ -198,6 +203,23 @@ public final class GenUsFish {
                     int sx = cx - 2 + rng.nextInt(ax), sy = cy - by + 2 + rng.nextInt(2 * by - 3);
                     if (in(sx, sy) && px[sy * W + sx] != 0) put(sx, sy, shade(back, -14));
                 }
+            }
+            case "bill", "sail", "sword" -> { // billfish: the BILL out front (+ the sail's tall fin)
+                int len = kind.equals("sword") ? 11 : 8;
+                for (int i = 1; i <= len; i++) { put(cx - ax - i, cy - 1, 0x2A3644); put(cx - ax - i, cy, 0x3A4A5C); }
+                if (kind.equals("sail")) {
+                    for (int x = cx - ax / 2; x <= cx + ax / 3; x++) {
+                        int h = 7 + (int) (3 * Math.sin((x - (cx - ax / 2)) / (double) ax * Math.PI));
+                        for (int y = cy - by - h; y < cy - by; y++) put(x, y, shade(back, -6));
+                    }
+                }
+            }
+            case "shark" -> { // мако: the triangular dorsal + gill slits + underslung jaw
+                for (int i = 0; i < 6; i++)
+                    for (int j = 0; j <= i; j++) put(cx - 2 + j, cy - by - 6 + i, shade(back, -8));
+                for (int g = 0; g < 4; g++)
+                    for (int y = cy - 3; y <= cy + 2; y++) put(cx - ax + 10 + g * 2, y, shade(back, -18));
+                for (int i = 0; i < 6; i++) put(cx - ax + 2 + i, cy + 3, 0x2E3A46);
             }
             case "catfish" -> {
                 for (int i = 0; i < 7; i++) {                          // barbels (whiskers)

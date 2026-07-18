@@ -87,6 +87,7 @@
     "temperate": 1.0,
     "swamp": 1.1
   },
+  "legendary": { "weight_g": 14000, "chance": 0.006 },
   "base": 0.9,
   "min_angler_level": 4
 }

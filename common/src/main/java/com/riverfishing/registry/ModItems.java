@@ -64,7 +64,9 @@ public final class ModItems {
             "mackerel", "herring", "garfish", "seabass", "flounder",
             "cod", "saithe", "conger", "ray",
             // ocean (0.5.0): the pelagic four.
-            "mahi", "wahoo", "yellowfin_tuna", "barracuda"
+            "mahi", "wahoo", "yellowfin_tuna", "barracuda",
+            // ocean (0.5.0): the billfish/shark trophies.
+            "blue_marlin", "sailfish", "swordfish", "mako"
     };
     public static final Map<ResourceLocation, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
     // ---- Baits referenced by event drops ----

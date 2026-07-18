@@ -178,6 +178,10 @@ public final class ModVillagers {
         buyPrime(t, 5, "wahoo", 14, 26);
         buyPrime(t, 5, "yellowfin_tuna", 20, 34);
         buyPrime(t, 5, "barracuda", 8, 16);
+        buyPrime(t, 5, "blue_marlin", 28, 40);
+        buyPrime(t, 5, "sailfish", 18, 30);
+        buyPrime(t, 5, "swordfish", 24, 36);
+        buyPrime(t, 5, "mako", 22, 34);
         buyPrime(t, 5, "wild_carp", 14, 28);
 
         com.riverfishing.platform.VillagerTradeRegistry.register(FISHERMAN, t);

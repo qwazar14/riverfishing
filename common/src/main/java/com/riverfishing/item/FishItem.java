@@ -30,6 +30,8 @@ public class FishItem extends Item {
     public static final String TAG_MIN_WEIGHT = "MinW";
     // §livebait-2 (0.4.0): weight carried by a live baitfish (on the LIVEBAIT item, not the fish).
     public static final String TAG_BAIT_WEIGHT = "BaitW";
+    // legendary (0.5.0): this specimen is the server one-of-a-kind named fish.
+    public static final String TAG_LEGEND = "Legend";
 
     private final ResourceLocation species;
 
@@ -249,6 +251,14 @@ public class FishItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         CompoundTag tag = StackNbt.get(stack);
+        // legendary (0.5.0): the one-of-a-kind server fish announces itself in gold.
+        if (tag.getBoolean(TAG_LEGEND)) {
+            ResourceLocation lsp = getSpecies(stack);
+            if (lsp != null) {
+                tooltip.add(Component.translatable("legendary.riverfishing." + lsp.getPath())
+                        .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+            }
+        }
         if (getWeightG(stack) <= 0) {
             // The fisherman's buy-trade cost has no weight — show the "accepts from N" legend (§prime-fish).
             // 1.21: the cost's display stack is rebuilt on the client from the ItemCost's component predicate,

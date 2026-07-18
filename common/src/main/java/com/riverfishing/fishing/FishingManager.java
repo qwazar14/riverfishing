@@ -1498,7 +1498,30 @@ public final class FishingManager {
         }
         RandomSource random = level.getRandom();
         boolean legal = !session.foulHooked;
-        giveFish(sp, session.species, session.weightG, session.lengthCm, legal, session.trophy);
+
+        // §legendary (0.5.0): the one-of-a-kind named specimen — ONE per species per SERVER, and the
+        // catch is a server event. Rolled at the landing so the whole fight already happened.
+        boolean legendary = false;
+        FishProfile legProfile = FishProfileManager.get().byId(session.species);
+        if (legal && legProfile != null && legProfile.legendaryWeightG > 0
+                && !LegendaryData.get(level).isCaught(session.species)
+                && random.nextDouble() < legProfile.legendaryChance) {
+            legendary = true;
+            session.weightG = (int) (legProfile.legendaryWeightG * (0.97 + random.nextDouble() * 0.06));
+            session.lengthCm = (int) legProfile.lengthMax;
+            session.trophy = true;
+            LegendaryData.get(level).markCaught(session.species);
+            level.getServer().getPlayerList().broadcastSystemMessage(
+                    Component.translatable("message.riverfishing.legendary_caught",
+                            sp.getDisplayName(),
+                            Component.translatable("legendary.riverfishing." + session.species.getPath()),
+                            FishItem.weightText(session.weightG))
+                            .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+            level.playSound(null, sp.blockPosition(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
+                    SoundSource.PLAYERS, 1.0f, 1.0f);
+        }
+
+        giveFish(sp, session.species, session.weightG, session.lengthCm, legal, session.trophy, legendary);
         // §population: a landed fish leaves the water for real — depletion lands on THIS species only.
         FishingPressureData.get(level).addCatch(new ChunkPos(session.target).toLong(),
                 session.species.getPath(), level.getGameTime());
@@ -1602,7 +1625,15 @@ public final class FishingManager {
 
     private static void giveFish(ServerPlayer sp, ResourceLocation species, int weightG, int lengthCm,
                                  boolean legal, boolean trophy) {
+        giveFish(sp, species, weightG, lengthCm, legal, trophy, false);
+    }
+
+    private static void giveFish(ServerPlayer sp, ResourceLocation species, int weightG, int lengthCm,
+                                 boolean legal, boolean trophy, boolean legendary) {
         ItemStack fish = FishItem.create(ModItems.fishItem(species), species, weightG, lengthCm, legal, trophy);
+        if (legendary) {
+            com.riverfishing.item.StackNbt.mutate(fish, t -> t.putBoolean(FishItem.TAG_LEGEND, true));
+        }
         // §prime-fish: a legal top-of-range specimen gets the prime grade — the fisherman buys these.
         FishProfile profile = FishProfileManager.get().byId(species);
         if (legal && profile != null) {

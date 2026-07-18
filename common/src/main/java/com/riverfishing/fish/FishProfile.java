@@ -56,6 +56,10 @@ public final class FishProfile {
     // …and only in these biome groups (group -> factor; empty = anywhere; no match = 0).
     public final Map<String, Double> biomes;
 
+    // §legendary (0.5.0): the species hides ONE named specimen per server (0 = none).
+    public final int legendaryWeightG;
+    public final double legendaryChance;
+
     // Base attractiveness / relative density (§1.4)
     public final double base;
 
@@ -94,6 +98,8 @@ public final class FishProfile {
         this.depthPref = b.depthPref;
         this.distMin = b.distMin;
         this.distMax = b.distMax;
+        this.legendaryWeightG = b.legendaryWeightG;
+        this.legendaryChance = b.legendaryChance;
         this.base = b.base;
         this.minAnglerLevel = b.minAnglerLevel;
         this.depthMin = b.depthMin;
@@ -178,6 +184,13 @@ public final class FishProfile {
         b.base = GsonHelper.getAsDouble(json, "base", 1.0);
         b.minAnglerLevel = GsonHelper.getAsInt(json, "min_angler_level", 0);
 
+        // §legendary (0.5.0): optional one-per-server named specimen.
+        if (json.has("legendary")) {
+            JsonObject leg = GsonHelper.getAsJsonObject(json, "legendary");
+            b.legendaryWeightG = GsonHelper.getAsInt(leg, "weight_g", 0);
+            b.legendaryChance = GsonHelper.getAsDouble(leg, "chance", 0.005);
+        }
+
         // Habitat gates (§ecology): depth/size of the water body + biome groups.
         JsonObject hab = GsonHelper.getAsJsonObject(json, "habitat", new JsonObject());
         b.depthMin = GsonHelper.getAsInt(hab, "depth_min", 0);
@@ -229,6 +242,8 @@ public final class FishProfile {
         double distMin, distMax;
         double base = 1.0;
         int minAnglerLevel = 0;
+        int legendaryWeightG = 0;
+        double legendaryChance = 0.005;
         int depthMin = 0, depthMax = 999;
         double widthMin = 0, widthMax = 99999;
         Map<String, Double> biomes = new HashMap<>();
