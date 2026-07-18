@@ -232,7 +232,10 @@ public final class ModVillagers {
             net.minecraft.world.item.trading.ItemCost cost =
                     new net.minecraft.world.item.trading.ItemCost(i)
                             .withComponents(b -> b.expect(ModComponents.PRIME.get(), threshold));
-            return new MerchantOffer(cost, new ItemStack(Items.EMERALD, emeralds), 12, xp, 0.05f);
+            // market (0.5.0): the pay is DYNAMIC - glut cuts it to x0.5, the daily order pays x2.5.
+            int pay = trader.level() instanceof net.minecraft.server.level.ServerLevel sl
+                    ? com.riverfishing.fishing.MarketData.get(sl).price(sl, path, emeralds) : emeralds;
+            return new MerchantOffer(cost, new ItemStack(Items.EMERALD, pay), 12, xp, 0.05f);
         });
     }
 

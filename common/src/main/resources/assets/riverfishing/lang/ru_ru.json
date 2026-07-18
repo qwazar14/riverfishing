@@ -307,6 +307,7 @@
     "message.riverfishing.fish_jumps":  "Свеча! Ослабь — не мотай!",
     "message.riverfishing.jump_thrown":  "Выбросила крючок на свече...",
     "message.riverfishing.trolling_start":  "Троллинг: леска пошла за лодкой",
+    "message.riverfishing.daily_order":  "Заказ дня у рыбака: %s — платит ×2.5!",
     "message.riverfishing.update_available":  "River Fishing %s вышла (у вас %s) — что нового за это время:",
     "jade.riverfishing.worms":  "Червей: %s",
     "jade.riverfishing.maggots":  "Опарышей: %s (тухлятины: %s)",

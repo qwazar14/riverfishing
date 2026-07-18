@@ -1640,6 +1640,8 @@ public final class FishingManager {
             int threshold = FishItem.primeThresholdG(profile.weightMax);
             if (weightG >= threshold) {
                 FishItem.gradePrime(fish, threshold);
+                // market (0.5.0): every prime landing saturates that species a little.
+                MarketData.get(sp.serverLevel()).addSupply(species.getPath());
             }
         }
         // §fish-scale: the icon now scales purely from LENGTH (FishItem.getIconScale), no NBT needed.

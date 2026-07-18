@@ -307,6 +307,7 @@
     "message.riverfishing.fish_jumps":  "It jumps — give slack, do not reel!",
     "message.riverfishing.jump_thrown":  "Thrown the hook on the jump...",
     "message.riverfishing.trolling_start":  "Trolling: line is out behind the boat",
+    "message.riverfishing.daily_order":  "Fisherman's order of the day: %s — pays ×2.5!",
     "message.riverfishing.update_available":  "River Fishing %s is out (you have %s) — what you missed:",
     "jade.riverfishing.worms":  "Worms: %s",
     "jade.riverfishing.maggots":  "Maggots: %s (flesh: %s)",
