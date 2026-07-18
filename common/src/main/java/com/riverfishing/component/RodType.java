@@ -16,7 +16,12 @@ public enum RodType {
     SPINNING  ("spinning",  17,   true,     2000,   4000,   3,      35,     true),
     FEEDER    ("feeder",    21,   true,     3000,   5000,   20,     90,     true),
     BOTTOM    ("bottom",    23,   true,     5000,   7000,   40,     160,    true),
-    CARP      ("carp",      25,   true,     5000,   7000,   60,     220,    true);
+    CARP      ("carp",      25,   true,     5000,   7000,   60,     220,    true),
+    // §sea-tackle (0.5.0): the saltwater tier. The freshwater ladder tops out at 7 kg of drag and a
+    // 220 g cast — ocean fish are an order of magnitude heavier, so sea gear is a GATE, not flavour.
+    SURF      ("surf",      28,   true,     6000,   8000,   80,     250,    true),
+    SEA_SPIN  ("sea_spin",  19,   true,     5000,   9000,   20,     120,    true),
+    BOAT      ("boat",      16,   true,     8000,   12000,  100,    400,    false);
 
     private final String jsonKey;
     private final double baseDistance;
@@ -56,8 +61,8 @@ public enum RodType {
     /** Which fishing flow this rod uses (Module 1). */
     public RodClass rodClass() {
         return switch (this) {
-            case SPINNING, ULTRALIGHT -> RodClass.ACTIVE;
-            case FEEDER, BOTTOM, CARP -> RodClass.BOTTOM;
+            case SPINNING, ULTRALIGHT, SEA_SPIN -> RodClass.ACTIVE;
+            case FEEDER, BOTTOM, CARP, SURF, BOAT -> RodClass.BOTTOM;
             case STICK, BAMBOO, POLE, WINTER -> RodClass.FLOAT;
         };
     }
@@ -79,8 +84,8 @@ public enum RodType {
             case BAMBOO -> RigType.FLOAT_LIGHT;          // float + one hook + bait
             case POLE -> RigType.FLOAT;                  // float + two hooks (дуплет)
             case WINTER -> RigType.WINTER;               // a single mormyshka
-            case ULTRALIGHT, SPINNING -> RigType.PREDATOR; // leader + lure
-            case FEEDER, BOTTOM, CARP -> null;           // still use swappable bottom rigs
+            case ULTRALIGHT, SPINNING, SEA_SPIN -> RigType.PREDATOR; // leader + lure
+            case FEEDER, BOTTOM, CARP, SURF, BOAT -> null; // still use swappable bottom rigs
         };
     }
 
