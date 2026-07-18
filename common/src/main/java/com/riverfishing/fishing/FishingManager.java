@@ -1429,6 +1429,31 @@ public final class FishingManager {
                 : session.tension > session.breakTension * 0.66 ? BossEvent.BossBarColor.YELLOW
                 : BossEvent.BossBarColor.GREEN);
 
+        // §co-op (0.5.0): spectators — anyone within 12 blocks sees the fight on the boss bar too.
+        if (now % 20 == 0 && session.bossBar != null) {
+            for (ServerPlayer other : level.players()) {
+                if (other != sp && other.distanceToSqr(sp) <= 144.0) {
+                    session.bossBar.addPlayer(other);
+                }
+            }
+        }
+        // §co-op (0.5.0): the landing net — a crouching friend with an EMPTY main hand right beside the
+        // angler scoops the tired fish out (fish at 85%+, not during a run). Small XP thank-you.
+        if (!inRun && session.landProgress >= 0.85) {
+            for (ServerPlayer helper : level.players()) {
+                if (helper != sp && helper.isCrouching() && helper.getMainHandItem().isEmpty()
+                        && helper.distanceToSqr(sp) <= 12.25) {
+                    JournalData.addXp(helper, 5);
+                    helper.sendSystemMessage(Component.translatable("message.riverfishing.netted_for",
+                            sp.getDisplayName()).withStyle(ChatFormatting.GREEN));
+                    sp.sendSystemMessage(Component.translatable("message.riverfishing.netted_by",
+                            helper.getDisplayName()).withStyle(ChatFormatting.GREEN));
+                    landFish(sp, level, session);
+                    return;
+                }
+            }
+        }
+
         // Keep every client's view of the line in step with the fight so it visibly reels in (§immersion).
         if (now % 5 == 0) {
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
