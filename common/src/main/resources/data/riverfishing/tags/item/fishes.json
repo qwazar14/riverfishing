@@ -12,6 +12,8 @@
     "riverfishing:carp_koi_showa_sanke", "riverfishing:carp_koi_asagi", "riverfishing:carp_koi_bekko",
     "riverfishing:bluegill", "riverfishing:largemouth_bass",
     "riverfishing:rainbow_trout", "riverfishing:channel_catfish",
-    "riverfishing:silver_carp", "riverfishing:sabrefish", "riverfishing:blue_bream"
+    "riverfishing:silver_carp", "riverfishing:sabrefish", "riverfishing:blue_bream",
+    "riverfishing:mackerel", "riverfishing:herring", "riverfishing:garfish", "riverfishing:seabass",
+    "riverfishing:flounder", "riverfishing:cod", "riverfishing:saithe", "riverfishing:conger", "riverfishing:ray"
   ]
 }

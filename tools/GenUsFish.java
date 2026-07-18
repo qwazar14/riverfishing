@@ -23,6 +23,16 @@ public final class GenUsFish {
         gen(out, "silver_carp", 0x5E6E6E, 0xA8B2B0, 0xE2E4DC, 27, 13, false, "silver");
         gen(out, "sabrefish", 0x4E5A66, 0xC7CCD2, 0xEFF0EA, 29, 7, false, "sabre");
         gen(out, "blue_bream", 0x46586A, 0x9FAAB4, 0xDFE2DE, 22, 12, false, "sinets");
+        // §ocean (0.5.0): the coastal + shelf wave.
+        gen(out, "mackerel", 0x2E6E6A, 0xB9C4C6, 0xEDEFE9, 26, 8, true, "mackerel");
+        gen(out, "herring", 0x3E5468, 0xC6CDD3, 0xF0F1EC, 22, 7, true, "plain");
+        gen(out, "garfish", 0x3E7E5E, 0xBCC8C4, 0xEDEFE9, 30, 4, false, "needle");
+        gen(out, "seabass", 0x5E6A72, 0xB8BFC4, 0xE9EBE6, 24, 11, true, "spiky");
+        gen(out, "flounder", 0x6E5A42, 0x8A7452, 0x8A7452, 24, 15, false, "flat");
+        gen(out, "cod", 0x6E6248, 0xA89A74, 0xE2DECC, 26, 12, false, "cod");
+        gen(out, "saithe", 0x3A4248, 0x6E787E, 0xC8CDD0, 26, 11, true, "dark");
+        gen(out, "conger", 0x4E5A66, 0x76848E, 0xC9CFCE, 29, 6, false, "conger");
+        gen(out, "ray", 0x8A7452, 0xA08A62, 0xD9CDB2, 26, 14, false, "ray");
         System.out.println("done");
     }
 
@@ -111,6 +121,52 @@ public final class GenUsFish {
                 for (int x = cx - ax + 3; x <= cx + ax - 4; x++) put(x, cy - by + 3, 0x5A7086);
                 for (int i = 0; i < 5; i++) put(cx - ax + 1 + i, cy - 1 + i / 2, shade(flank, -10));
             }
+            case "mackerel" -> { // wavy tiger bars over the back third
+                for (int x = cx - ax + 4; x <= cx + ax - 4; x += 3) {
+                    int wob = (x % 6 == 0) ? 1 : 0;
+                    for (int y = cy - by + 1; y <= cy - 1; y++) put(x + wob, y, shade(back, -16));
+                }
+            }
+            case "plain" -> { // plain bright silver schooler: just a darker straight back line
+                for (int x = cx - ax + 2; x <= cx + ax - 3; x++) put(x, cy - by + 1, shade(back, -12));
+            }
+            case "needle" -> { // сарган: needle beak extending past the head
+                for (int i = 1; i <= 7; i++) { put(cx - ax - i, cy, 0x33463E); put(cx - ax - i, cy + 1, 0x415A50); }
+                for (int x = cx - ax + 2; x <= cx + ax - 3; x++) put(x, cy - by + 1, shade(back, -14));
+            }
+            case "spiky" -> { // лаврак: tall spiny dorsal rays
+                for (int s = 0; s < 6; s++) {
+                    int x = cx - ax / 2 + s * 3;
+                    for (int y = cy - by - 5; y < cy - by; y++) put(x, y, shade(back, -24));
+                }
+            }
+            case "flat" -> { // камбала: uniform sandy disc, speckles, tiny tail already drawn
+                for (int i = 0; i < 40; i++) {
+                    int sx = cx - ax + 3 + rng.nextInt(2 * ax - 6), sy = cy - by + 2 + rng.nextInt(2 * by - 4);
+                    if (in(sx, sy) && px[sy * W + sx] != 0) put(sx, sy, (i % 3 == 0) ? 0x4E3E2A : 0x9A855E);
+                }
+            }
+            case "cod" -> { // треска: speckled back, pale lateral line, chin barbel
+                for (int i = 0; i < 34; i++) {
+                    int sx = cx - ax + 4 + rng.nextInt(2 * ax - 8), sy = cy - by + 2 + rng.nextInt(by);
+                    if (in(sx, sy)) put(sx, sy, shade(back, -22));
+                }
+                for (int x = cx - ax + 3; x <= cx + ax - 3; x++) put(x, cy, 0xD9D4BE);
+                for (int i = 0; i < 4; i++) put(cx - ax + 4, cy + by - 3 + i, 0x3E362A);
+            }
+            case "dark" -> { // сайда: dark cod cousin — straight pale lateral line only
+                for (int x = cx - ax + 3; x <= cx + ax - 3; x++) put(x, cy, 0xB9BFC2);
+            }
+            case "conger" -> { // морской угорь: dorsal ridge running the whole back
+                for (int x = cx - ax + 4; x <= cx + ax + 6 && x < W - 2; x++) put(x, cy - by, shade(back, -18));
+            }
+            case "ray" -> { // скат: flat disc — wing shading + long thin tail whip
+                for (int i = 0; i < 26; i++) {
+                    int sx = cx - ax + 4 + rng.nextInt(2 * ax - 8), sy = cy - by + 3 + rng.nextInt(2 * by - 6);
+                    if (in(sx, sy) && px[sy * W + sx] != 0) put(sx, sy, shade(flank, -14));
+                }
+                for (int i = 0; i <= 12; i++) put(cx + ax - 2 + i / 2, cy - i / 3, 0x6E5E42);
+            }
             case "catfish" -> {
                 for (int i = 0; i < 7; i++) {                          // barbels (whiskers)
                     put(cx - ax + 2 - i / 2, cy + 4 + i, 0x2A3038);
@@ -122,9 +178,10 @@ public final class GenUsFish {
                         if (in(x, y) && px[y * W + x] != 0) put(x, y, shade(back, -6));
             }
         }
-        // Eye ("silver": the filter-feeder's eye sits famously LOW on the huge head).
-        int eyeX = kind.equals("silver") ? cx - ax + 6 : cx - ax + 9;
-        int eyeY = kind.equals("silver") ? cy + 3 : cy - by / 2;
+        // Eye ("silver" sits famously LOW; the flatfish/ray eyes sit ON TOP of the disc).
+        boolean topEye = kind.equals("flat") || kind.equals("ray");
+        int eyeX = kind.equals("silver") ? cx - ax + 6 : topEye ? cx - ax + 8 : cx - ax + 9;
+        int eyeY = kind.equals("silver") ? cy + 3 : topEye ? cy - by + 4 : cy - by / 2;
         blob(eyeX, eyeY, 2, 0xF0EFE6);
         put(eyeX, eyeY, 0x14181C);
         outline();

@@ -2036,6 +2036,7 @@ public final class FishingManager {
         groups.add(temp < 0.3f ? "cold" : (temp > 0.95f ? "warm" : "temperate"));
         if (biome.is(net.minecraft.tags.BiomeTags.IS_RIVER)) groups.add("river_biome");
         if (biome.is(net.minecraft.tags.BiomeTags.IS_OCEAN) || biome.is(net.minecraft.tags.BiomeTags.IS_DEEP_OCEAN)) groups.add("ocean_biome");
+        if (biome.is(net.minecraft.tags.BiomeTags.IS_DEEP_OCEAN)) groups.add("deep"); // ocean-zones (0.5.0)
         if (biome.is(net.minecraft.tags.BiomeTags.IS_BEACH)) groups.add("beach");
         if (biome.is(net.minecraft.tags.BiomeTags.IS_JUNGLE)) groups.add("jungle");
         if (biome.is(net.minecraft.tags.BiomeTags.IS_FOREST)) groups.add("forest");

@@ -1,0 +1,24 @@
+{
+  "display": "Сайда",
+  "water_bodies": { "sea": 1.1, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
+  "weight_g": { "min": 1000, "max": 15000, "mean": 3000, "spread": 0.7 },
+  "length_cm": { "min": 40, "max": 110 },
+  "fight": { "strength": 0.75, "stamina": 0.8, "runs": 3, "pattern": "aggressive", "aggression": 0.8 },
+  "ideal": {
+    "rod": ["boat", "sea_spin"],
+    "reel_size": 10000, "reel_tolerance": 2000,
+    "line": { "type": "braid", "diameter_mm": 0.25, "tolerance_mm": 0.06 },
+    "rig": ["predator"], "groundbait": [],
+    "bait": { "jig": 1.0, "silicone": 0.8, "fish_strip": 0.7, "castmaster": 0.7 },
+    "hook": { "ideal": 4, "tolerance": 2 }
+  },
+  "season": { "spring": 1.1, "summer": 1.0, "autumn": 1.1, "winter": 0.9 },
+  "time":   { "dawn": 1.2, "day": 1.0, "dusk": 1.1, "night": 0.6 },
+  "weather":{ "clear": 1.0, "rain": 1.0, "thunder": 0.9 },
+  "depth_pref": "mid",
+  "distance_pref": { "min": 12, "max": 40 },
+  "habitat": { "depth_min": 4, "width_min": 14 },
+  "biomes": { "deep": 1.1, "ocean_biome": 0.9, "cold": 1.2, "temperate": 0.9 },
+  "base": 0.7,
+  "min_angler_level": 5
+}

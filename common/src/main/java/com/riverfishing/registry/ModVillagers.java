@@ -139,6 +139,10 @@ public final class ModVillagers {
         buyPrime(t, 4, "rainbow_trout", 7, 12);
         buyPrime(t, 4, "grayling", 7, 12);
         buyPrime(t, 4, "burbot", 5, 10);
+        buyPrime(t, 4, "mackerel", 3, 6);
+        buyPrime(t, 4, "herring", 2, 4);
+        buyPrime(t, 4, "garfish", 3, 6);
+        buyPrime(t, 4, "flounder", 4, 8);
 
         // Level 5 — Master: the trade-only prestige gear (§progression).
         sell(t, 5, "digital_alarm", 10, 1, 25);
@@ -164,6 +168,11 @@ public final class ModVillagers {
         buyPrime(t, 5, "channel_catfish", 10, 20);
         buyPrime(t, 5, "sterlet", 16, 30);
         buyPrime(t, 5, "silver_carp", 14, 26);
+        buyPrime(t, 5, "seabass", 7, 14);
+        buyPrime(t, 5, "cod", 9, 18);
+        buyPrime(t, 5, "saithe", 7, 14);
+        buyPrime(t, 5, "conger", 13, 24);
+        buyPrime(t, 5, "ray", 12, 22);
         buyPrime(t, 5, "wild_carp", 14, 28);
 
         com.riverfishing.platform.VillagerTradeRegistry.register(FISHERMAN, t);
