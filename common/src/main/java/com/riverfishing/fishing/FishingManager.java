@@ -980,7 +980,9 @@ public final class FishingManager {
         session.fightTimeout = (long) Mth.clamp(
                 700 + weightKg * 80
                         + ("burst".equals(profile.fightPattern) ? 300
-                        : "relentless".equals(profile.fightPattern) ? 500 : 0), 700, 2400);
+                        : "relentless".equals(profile.fightPattern) ? 500
+                        : "sounding".equals(profile.fightPattern) ? 700      // §big-game: dives eat time
+                        : "greyhounding".equals(profile.fightPattern) ? 400 : 0), 700, 3000);
 
         session.fighting = true;
         session.tension = 0.0;
@@ -1221,6 +1223,16 @@ public final class FishingManager {
 
         level.playSound(null, sp.blockPosition(), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.25f, 1.6f);
 
+        // §big-game greyhounding (0.5.0): cranking against a jumping fish rips the hook straight out —
+        // the answer to the breach is SLACK, not the reel.
+        if (level.getGameTime() < session.jumpWindowEnd
+                && level.getRandom().nextDouble() < 0.35) {
+            level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.7f, 0.5f);
+            endSession(sp, session);
+            actionbar(sp, Component.translatable("message.riverfishing.jump_thrown").withStyle(ChatFormatting.YELLOW));
+            return;
+        }
+
         // §tackle-stress (0.4.0): crossing the limit no longer snaps instantly — the per-tick roll in
         // tickFight decides whether the line survives the overstress. Keep cranking and it won't.
         if (session.landProgress >= 1.0) {
@@ -1293,6 +1305,27 @@ public final class FishingManager {
                     session.target.getZ() + 0.5, 8, 0.2, 0.1, 0.2, 0.25);
         }
 
+        // §big-game (0.5.0): the two ocean patterns get their signature events.
+        if ("sounding".equals(session.fightPattern) && session.runTicksLeft > 0) {
+            // The dive TAKES LINE — progress drains while it sounds; pump it back between dives.
+            session.landProgress = Math.max(0.0, session.landProgress - 0.0035);
+            if (session.runTicksLeft % 25 == 0) {
+                level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.DRAG_LONG.get(),
+                        SoundSource.PLAYERS, 0.7f, 0.8f);
+                actionbar(sp, Component.translatable("message.riverfishing.sounding").withStyle(ChatFormatting.AQUA));
+            }
+        }
+        if ("greyhounding".equals(session.fightPattern) && session.runTicksLeft == 0
+                && now >= session.jumpWindowEnd && session.landProgress > 0.05
+                && random.nextDouble() < 0.012) {
+            // The jump: a full-body breach — SLACK OFF for the window or the hook rips out (reelPulse).
+            session.jumpWindowEnd = now + 15;
+            level.playSound(null, session.target, SoundEvents.DOLPHIN_JUMP, SoundSource.PLAYERS, 1.0f, 0.8f);
+            level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.2,
+                    session.target.getZ() + 0.5, 40, 0.5, 0.5, 0.5, 0.4);
+            actionbar(sp, Component.translatable("message.riverfishing.fish_jumps").withStyle(ChatFormatting.RED));
+        }
+
         // The classic last dash at the bank: one guaranteed surge just before landing — ease off or snap.
         if (!session.finalSurgeDone && session.landProgress >= 0.85) {
             session.finalSurgeDone = true;
@@ -1362,6 +1395,8 @@ public final class FishingManager {
             case "aggressive" -> runs += 2;
             case "relentless" -> runs += 3; // §grass-carp: the amur just keeps charging
             case "burst" -> runs = Math.max(2, runs);
+            case "sounding" -> runs += 3;      // §big-game: tuna dives, again and again
+            case "greyhounding" -> runs += 2;  // §big-game: billfish jump series
             default -> { /* steady / active_then_passive use the profile value */ }
         }
         if (weightKg > 2.0) runs += 1; // a big specimen has an extra run in it
@@ -1375,6 +1410,8 @@ public final class FishingManager {
             case "aggressive" -> 0.95;
             case "burst" -> 0.70;
             case "active_then_passive" -> progress < 0.5 ? 0.90 : 0.25; // bream: fights early, tires late
+            case "sounding" -> 0.92;      // §big-game: it WILL dive again
+            case "greyhounding" -> 0.85;
             default -> 0.60;
         };
     }
@@ -1385,6 +1422,8 @@ public final class FishingManager {
             case "aggressive" -> 22 + r.nextInt(18);
             case "burst" -> 50 + r.nextInt(40);
             case "active_then_passive" -> progress < 0.5 ? 30 + r.nextInt(20) : 14 + r.nextInt(10);
+            case "sounding" -> 60 + r.nextInt(50);     // §big-game: the long vertical dive
+            case "greyhounding" -> 18 + r.nextInt(14); // short bursts between jumps
             default -> 25 + r.nextInt(20);
         };
     }
@@ -1395,6 +1434,8 @@ public final class FishingManager {
             case "aggressive" -> 25 + r.nextInt(30);
             case "burst" -> 80 + r.nextInt(80);
             case "active_then_passive" -> progress < 0.5 ? 30 + r.nextInt(30) : 90 + r.nextInt(60);
+            case "sounding" -> 70 + r.nextInt(60);     // §big-game: the pump-back window between dives
+            case "greyhounding" -> 35 + r.nextInt(30);
             default -> 50 + r.nextInt(50);
         };
     }
