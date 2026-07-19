@@ -910,8 +910,9 @@ public final class FishingManager {
         return s;
     }
 
-    /** §live-conditions: refresh the dynamic half of the cast snapshot and rescale the remaining wait. */
-    private static void reEvaluate(ServerLevel level, FishingSession session, long now) {
+    /** §live-conditions: refresh the dynamic half of the cast snapshot and rescale the remaining wait.
+     *  Public: the rod pod re-evaluates its docked lines through here too. */
+    public static void reEvaluate(ServerLevel level, FishingSession session, long now) {
         BiteContext ctx = session.ctx;
         ctx.season = ctx.iceHole ? com.riverfishing.engine.Season.WINTER : SeasonProvider.getSeason(level);
         ctx.time = TimeOfDay.fromDayTime(level.getDayTime());
