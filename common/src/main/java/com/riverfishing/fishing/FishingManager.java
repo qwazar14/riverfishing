@@ -90,6 +90,7 @@ public final class FishingManager {
 
     public static void clear(UUID uuid) {
         TROLL_GOOD.remove(uuid);
+        TROLL_LAST.remove(uuid);
         FishingSession session = SESSIONS.remove(uuid);
         if (session != null && session.bossBar != null) {
             session.bossBar.removeAllPlayers();
@@ -179,6 +180,9 @@ public final class FishingManager {
 
     /** Consecutive good-speed ticks per player (the anti-jitter ramp before the auto-cast). */
     private static final Map<UUID, Integer> TROLL_GOOD = new HashMap<>();
+    /** §trolling-speed: last {x, z} of the vehicle — boats are CLIENT-driven, so the server-side
+     *  getDeltaMovement() is ~zero for a paddled boat; real speed = position delta per tick. */
+    private static final Map<UUID, double[]> TROLL_LAST = new HashMap<>();
 
     /**
      * Called every server player tick. Trolling needs: an assembled TROLLING/SEA_SPIN rod in the main
@@ -195,11 +199,16 @@ public final class FishingManager {
                 && RodData.isAssembled(trollRod);
         if (!capable || !(sp.getVehicle() instanceof net.minecraft.world.entity.vehicle.Boat boat)) {
             TROLL_GOOD.remove(sp.getUUID());
+            TROLL_LAST.remove(sp.getUUID());
             return;
         }
-        var v = boat.getDeltaMovement();
-        double speed = Math.sqrt(v.x * v.x + v.z * v.z);
-        boolean inWindow = speed >= 0.15 && speed <= 0.50;
+        // §trolling-speed: measure from the boat's actual position change — a player-paddled boat is
+        // client-authoritative and its server-side delta movement stays ~0 (why trolling never armed).
+        double[] last = TROLL_LAST.put(sp.getUUID(), new double[]{boat.getX(), boat.getZ()});
+        double dx = last == null ? 0 : boat.getX() - last[0];
+        double dz = last == null ? 0 : boat.getZ() - last[1];
+        double speed = Math.sqrt(dx * dx + dz * dz);
+        boolean inWindow = speed >= 0.12 && speed <= 0.60;
         ServerLevel level = sp.serverLevel();
 
         FishingSession session = SESSIONS.get(sp.getUUID());
@@ -226,15 +235,6 @@ public final class FishingManager {
 
     public static boolean hasSession(ServerPlayer sp) {
         return SESSIONS.containsKey(sp.getUUID());
-    }
-
-    /** Reels the line in (ends the session) if one is out — used when opening the assembly GUI (§session-guard). */
-    public static void reelInIfAny(ServerPlayer sp) {
-        FishingSession session = SESSIONS.get(sp.getUUID());
-        if (session != null) {
-            endSession(sp, session);
-            actionbar(sp, Component.translatable("message.riverfishing.reeled_in"));
-        }
     }
 
     /** Entry point for the power-bar cast (§cast-minigame): called when the player releases the charge. */

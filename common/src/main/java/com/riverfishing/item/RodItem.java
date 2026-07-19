@@ -46,10 +46,15 @@ public class RodItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack rod = player.getItemInHand(hand);
-        if (player.isSecondaryUseActive()) {
-            // Open the rod-assembly GUI — reeling in any line first (§session-guard).
+        // §drag-vs-gui (0.5.0): with a line OUT, crouching is the drag (§drag) and shift+click is fight
+        // input — it must NOT reel in + pop the assembly GUI mid-vyvazhivanie. The GUI now needs a free
+        // line: reel in first. Both sides use their own session knowledge so the hand animation agrees.
+        boolean lineOut = !level.isClientSide
+                ? player instanceof ServerPlayer sp && FishingManager.hasSession(sp)
+                : dev.architectury.utils.EnvExecutor.getEnvSpecific(
+                        () -> () -> com.riverfishing.client.ClientLineState.active(), () -> () -> false);
+        if (player.isSecondaryUseActive() && !lineOut) {
             if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
-                FishingManager.reelInIfAny(serverPlayer);
                 openAssembly(serverPlayer, hand);
             }
             return InteractionResultHolder.sidedSuccess(rod, level.isClientSide);

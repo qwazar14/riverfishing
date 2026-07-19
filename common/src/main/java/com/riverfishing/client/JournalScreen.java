@@ -45,12 +45,14 @@ import java.util.stream.Collectors;
  */
 public class JournalScreen extends Screen {
     private static final String[] SPECIES = ModItems.FISH_SPECIES;
-    private static final int COLS = 2;
     private static final int ROW_H = 16;
     private static final int GRID_TOP = 54;
-    private static final int ROWS = (SPECIES.length + COLS - 1) / COLS;
     private static final int H = 363;      // §journal-size: +15% headroom so text never clips
     private static final int MAX_W = 391;  // §journal-size: +15% wider for the same reason
+    // §fish-grid-fit (0.5.0): rows are capped by the panel height and the COLUMN COUNT grows with the
+    // species list (54 species → 3 columns) — the grid can never run past the journal's border again.
+    private static final int ROWS = (H - GRID_TOP - 12) / ROW_H;
+    private static final int COLS = (SPECIES.length + ROWS - 1) / ROWS;
     // Panel width adapts to the screen (GUI scale) so it never clips off-screen; columns + illustration follow.
     private int W = MAX_W;
     private int COL_W = (MAX_W - 20) / COLS;
@@ -145,7 +147,9 @@ public class JournalScreen extends Screen {
     }
 
     private static boolean isInternalRig(RigType t) {
-        return t == RigType.PRIMITIVE || t == RigType.FLOAT_LIGHT || t == RigType.FLOAT || t == RigType.PREDATOR;
+        // WINTER included (0.5.0): it lives INSIDE the winter rod (native rig) — never separate gear.
+        return t == RigType.PRIMITIVE || t == RigType.FLOAT_LIGHT || t == RigType.FLOAT || t == RigType.PREDATOR
+                || t == RigType.WINTER;
     }
 
     public static void open(CompoundTag data) {
@@ -623,6 +627,27 @@ public class JournalScreen extends Screen {
         g.drawString(this.font, Component.translatable(kindKey(e.kind())), left + 10, top + 44,
                 GuiStyle.TEXT_HINT, false);
 
+        // §guide-page (0.5.0): a guide is a TEXT page — no giant icon, no "how to craft" of whatever
+        // item happens to illustrate it. Just the how-to, scrollable, with breathing room per line.
+        if (e.kind() == Kind.GUIDE) {
+            int contentTop = top + 58, contentBottom = top + H - 20;
+            scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - (contentBottom - contentTop)));
+            scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
+            int dy = contentTop - scroll;
+            String bk = "guide.riverfishing." + e.id() + ".text";
+            for (net.minecraft.util.FormattedCharSequence seq
+                    : this.font.split(Component.translatable(bk), W - 24)) {
+                g.drawString(this.font, seq, left + 10, dy, GuiStyle.TEXT, false);
+                dy += 12;
+            }
+            lastCatH = (dy + scroll) - contentTop;
+            g.disableScissor();
+            renderScrollbar(g, contentTop, contentBottom);
+            g.drawString(this.font, Component.translatable("guide.riverfishing.back"),
+                    left + 10, top + H - 14, GuiStyle.GHOST, false);
+            return;
+        }
+
         float s = 5f;
         g.pose().pushPose();
         g.pose().translate(left + W / 2f - 8 * s, top + 60, 0);
@@ -630,11 +655,9 @@ public class JournalScreen extends Screen {
         g.renderItem(e.stack(), 0, 0);
         g.pose().popPose();
 
-        // §bait-desc / §guide: the wrapped text under the big icon — bait flavour or a full how-to.
-        if (isBait(e.kind()) || e.kind() == Kind.GUIDE) {
-            String bk = e.kind() == Kind.GUIDE
-                    ? "guide.riverfishing." + e.id() + ".text"
-                    : "baitdesc.riverfishing." + e.id();
+        // §bait-desc: the wrapped flavour text under the big icon.
+        if (isBait(e.kind())) {
+            String bk = "baitdesc.riverfishing." + e.id();
             if (I18n.exists(bk)) {
                 int dy = top + 104;
                 for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.translatable(bk), W - 20)) {
