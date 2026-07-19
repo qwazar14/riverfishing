@@ -1,7 +1,7 @@
 {
   "display": "Карась",
   "water_bodies": { "pond": 1.2, "swamp": 1.1, "lake": 1.0, "river": 0.5, "puddle": 0.3, "sea": 0.0 },
-  "weight_g": { "min": 50, "max": 1500, "mean": 250, "spread": 0.6 },
+  "weight_g": { "min": 50, "max": 1500, "mean": 250 },
   "length_cm": { "min": 10, "max": 38 },
   "fight": { "strength": 0.3, "stamina": 0.4, "runs": 1 },
   "ideal": {

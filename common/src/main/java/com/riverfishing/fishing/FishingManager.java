@@ -369,7 +369,7 @@ public final class FishingManager {
         // §rod-test: an under-loaded blank presents the bait clumsily — a SILENT ~20% fewer bites
         // (longer wait). Never announced (the player only sees the shortened cast).
         double underloadWait = underloaded ? 1.25 : 1.0;
-        long delay = (long) Math.min(2400, outcome.ticksToBite / Math.max(0.1, depletion)
+        long delay = (long) (outcome.ticksToBite / Math.max(0.1, depletion)
                 * AnglerSkills.biteSpeedMult(sp) * underloadWait);
         if (depletion < 0.4) {
             actionbar(sp, Component.translatable("message.riverfishing.depleted").withStyle(ChatFormatting.GRAY));
@@ -394,6 +394,11 @@ public final class FishingManager {
         // wait at a fresh spot), on top of the bite-engine bonus for feeding the right groundbait.
         if (ctx.inFeedZone && ctx.feedFreshness > 0) {
             delay = (long) Math.max(20, delay * (1.0 - 0.40 * Mth.clamp(ctx.feedFreshness, 0.0, 1.0)));
+        }
+        // §honest-tail: a barely-matching setup no longer silently capped at two minutes — the wait is
+        // real now, and the player is TOLD the water is dour so they change something instead of camping.
+        if (delay > 2400) {
+            actionbar(sp, Component.translatable("message.riverfishing.sluggish").withStyle(ChatFormatting.GRAY));
         }
 
         // ACTIVE rods only "bite" while being retrieved, so their clock starts on the first retrieve tick.
@@ -439,6 +444,9 @@ public final class FishingManager {
             default -> 0xFFE8E4D0;      // warm mono white
         };
         session.rodStackRef = rod;
+        // §live-conditions: keep the snapshot + current speed so the waiting line can re-read the world.
+        session.ctx = ctx;
+        session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
         SESSIONS.put(sp.getUUID(), session);
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, waterPos, 0f, session.lineColor,
                 rodClass == RodClass.FLOAT));
@@ -542,6 +550,8 @@ public final class FishingManager {
             default -> 0xFFE8E4D0;
         };
         session.rodStackRef = rod;
+        session.ctx = ctx;
+        session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
         SESSIONS.put(sp.getUUID(), session);
         pressure.addCast(chunkKey, now);
         // §ice-fishing: no float on the line under the ice — the line just drops into the hole (bobber=false).
@@ -844,6 +854,13 @@ public final class FishingManager {
 
         // FLOAT / BOTTOM: wait for the bite, then a window to strike.
         if (!session.bitten) {
+            // §live-conditions (0.5.0): every 15 s the waiting line re-reads the world — dusk, a weather
+            // change, a starting frenzy or freshly thrown groundbait rescale the REMAINING wait, and the
+            // biter is re-picked from the new weights. The cast snapshot no longer decides everything,
+            // so sitting out a long bottom wait responds to the world exactly like a fresh cast would.
+            if (session.ctx != null && session.biteAtTick > now && now % 300 == 0) {
+                reEvaluate(level, session, now);
+            }
             if (now >= session.biteAtTick) {
                 session.bitten = true;
                 session.biteWindowEnd = now + biteWindow(session.rodClass);
@@ -879,6 +896,63 @@ public final class FishingManager {
         } else if (now > session.biteWindowEnd) {
             endSession(sp, session);
             actionbar(sp, Component.translatable("message.riverfishing.missed").withStyle(ChatFormatting.GRAY));
+        }
+    }
+
+    /** §live-conditions: bite speed at this spot right now — swarm-capped W × frenzy × fresh feed. */
+    private static double currentBiteSpeed(ServerLevel level, BiteContext ctx, double totalWeight) {
+        if (totalWeight <= 1e-6) return 0.0;
+        double s = BiteEngine.effectiveWeight(totalWeight);
+        if (isFrenzy(level)) s *= Math.max(1.0, RiverFishingConfig.frenzySpeed());
+        if (ctx.inFeedZone && ctx.feedFreshness > 0) {
+            s /= Math.max(0.2, 1.0 - 0.40 * Mth.clamp(ctx.feedFreshness, 0.0, 1.0));
+        }
+        return s;
+    }
+
+    /** §live-conditions: refresh the dynamic half of the cast snapshot and rescale the remaining wait. */
+    private static void reEvaluate(ServerLevel level, FishingSession session, long now) {
+        BiteContext ctx = session.ctx;
+        ctx.season = ctx.iceHole ? com.riverfishing.engine.Season.WINTER : SeasonProvider.getSeason(level);
+        ctx.time = TimeOfDay.fromDayTime(level.getDayTime());
+        ctx.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
+        ctx.pressureFactor = com.riverfishing.engine.BarometricPressure.biteFactor(level);
+        FishingPressureData popData = FishingPressureData.get(level);
+        long popChunk = new ChunkPos(session.target).toLong();
+        double popRegen = spawnRegen(level);
+        ctx.speciesFactor = id -> popData.speciesAttractiveness(popChunk, id.getPath(), now, popRegen);
+        // Groundbait thrown AFTER the cast registers now. ponytail: freshness only ratchets up mid-cast;
+        // the decay of an old zone is re-read on the next cast, not here.
+        FeedZoneData.Query feed = FeedZoneData.get(level).query(session.target, now);
+        if (feed.inZone() && feed.freshness() > ctx.feedFreshness) {
+            ctx.inFeedZone = true;
+            ctx.feedFreshness = feed.freshness();
+            ctx.feedCategory = feed.category();
+        }
+
+        RandomSource random = level.getRandom();
+        BiteEngine.Outcome outcome = BiteEngine.evaluate(FishProfileManager.get().all(), ctx, random);
+        double sNew = currentBiteSpeed(level, ctx, outcome.totalWeight);
+        if (sNew <= 0.0) {
+            // The water went dead (night/season gated everything out) — the line just sits; a later
+            // re-eval revives it when conditions come back.
+            session.biteSpeed = 0.0;
+            session.biteAtTick = now + 999_999;
+            return;
+        }
+        if (session.biteSpeed <= 0.0) {
+            // Dead water came back to life — restart the clock with a fresh sample at the new rate.
+            session.biteAtTick = now + Math.max(100L,
+                    (long) (-(BiteEngine.T_MIN_TICKS / sNew) * Math.log(1.0 - random.nextDouble())));
+        } else {
+            long remaining = Math.max(10L, session.biteAtTick - now);
+            session.biteAtTick = now + Math.max(10L, (long) (remaining * session.biteSpeed / sNew));
+        }
+        session.biteSpeed = sNew;
+        // Re-pick the biter from the fresh weights — but a koi decided at cast stays sticky (re-rolling
+        // its chance every 15 s would compound a per-cast rarity into a near-guarantee over a long wait).
+        if (!session.species.getPath().startsWith("carp_koi")) {
+            session.species = outcome.pickSpecies(random);
         }
     }
 
@@ -926,7 +1000,8 @@ public final class FishingManager {
         if (RiverFishingConfig.consumeBait() && rodForBait.getItem() instanceof RodItem
                 && random.nextDouble() >= AnglerSkills.baitSkipChance(sp)) {
             ItemStack rigForBait = RodData.get(rodForBait, ComponentSlot.RIG);
-            if (rigForBait.getItem() instanceof RigItem && RigData.consumeBait(rigForBait)) {
+            // §bait-attribution: the bait the FISH prefers is the one eaten — not just the first slot.
+            if (rigForBait.getItem() instanceof RigItem && RigData.consumeBait(rigForBait, profile::baitScore)) {
                 RodData.set(rodForBait, ComponentSlot.RIG, rigForBait);
             }
         }
@@ -980,7 +1055,9 @@ public final class FishingManager {
             ItemStack rigS = RodData.get(rigSource, ComponentSlot.RIG);
             if (rigS.getItem() instanceof RigItem) livebaitW = RigData.livebaitWeightG(rigS);
         }
-        rollFish(random, profile, session, AnglerSkills.trophyChanceBonus(sp), livebaitW);
+        // §match-size: how well the whole kit suits the species shapes the specimen it dares to take.
+        double match = session.ctx != null ? BiteEngine.matchScore(profile, session.ctx) : 0.85;
+        rollFish(random, profile, session, AnglerSkills.trophyChanceBonus(sp), livebaitW, match);
 
         ItemStack rod = sp.getItemInHand(session.hand);
         // A blunt hook can slip on the strike (§3.8) — empty set, fish gone, hook dulls a touch more.
@@ -1860,13 +1937,25 @@ public final class FishingManager {
     // ---- fish generation ----
 
     private static void rollFish(RandomSource random, FishProfile p, FishingSession session, double trophyBonus,
-                                 int livebaitWeightG) {
-        double biased = Math.pow(random.nextDouble(), 2.4); // big fish are rare (§2.1)
+                                 int livebaitWeightG, double match) {
+        // §weight-curve (0.5.0): the profile's weight_g.mean is the MEDIAN catch — the power curve is
+        // solved per species so half the catches land under it (0.5^k = (mean-min)/(max-min)). Profiles
+        // without an explicit mean keep the classic big-fish-are-rare 2.4 curve.
+        double k = 2.4;
+        if (p.weightMeanSet && p.weightMean > p.weightMin && p.weightMean < p.weightMax) {
+            double f = (p.weightMean - p.weightMin) / (p.weightMax - p.weightMin);
+            k = Mth.clamp(Math.log(f) / Math.log(0.5), 0.5, 8.0); // median(u^k) = 0.5^k = f
+
+        }
+        // §match-size: a crude setup catches the smaller end — the big wary specimens ignore it.
+        k += Math.max(0.0, 0.85 - match) * 2.0;
+        double biased = Math.pow(random.nextDouble(), k);
 
         // Trophy roll (configurable): a specimen from the top of the species' size range. It fights
         // accordingly (weight drives the fight), shimmers as an item and gives triple XP.
-        // §skills ANGLERS_LUCK adds a flat bonus (+1%/rank) to the trophy chance.
-        if (random.nextDouble() < RiverFishingConfig.trophyChance() + trophyBonus) {
+        // §skills ANGLERS_LUCK adds a flat bonus (+1%/rank); §match-size scales the base chance down
+        // on a poorly matched kit — a trophy demands the whole setup near-ideal, like the bite did.
+        if (random.nextDouble() < RiverFishingConfig.trophyChance() * Mth.clamp(match / 0.85, 0.2, 1.0) + trophyBonus) {
             session.trophy = true;
             biased = 0.85 + 0.15 * random.nextDouble();
         }

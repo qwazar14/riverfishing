@@ -1,7 +1,7 @@
 {
   "display": "Барракуда",
   "water_bodies": { "sea": 1.1, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 2000, "max": 20000, "mean": 6000, "spread": 0.7 },
+  "weight_g": { "min": 2000, "max": 20000, "mean": 6000 },
   "length_cm": { "min": 60, "max": 180 },
   "fight": { "strength": 0.85, "stamina": 0.7, "runs": 3, "pattern": "burst", "aggression": 0.95 },
   "ideal": {

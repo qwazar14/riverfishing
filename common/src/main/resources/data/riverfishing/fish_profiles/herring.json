@@ -1,7 +1,7 @@
 {
   "display": "Сельдь",
   "water_bodies": { "sea": 1.3, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 100, "max": 600, "mean": 250, "spread": 0.6 },
+  "weight_g": { "min": 100, "max": 600, "mean": 250 },
   "length_cm": { "min": 15, "max": 40 },
   "fight": { "strength": 0.25, "stamina": 0.3, "runs": 1, "pattern": "steady", "aggression": 0.4 },
   "ideal": {

@@ -1,7 +1,7 @@
 {
   "display": "Синец",
   "water_bodies": { "river": 1.1, "lake": 1.0, "pond": 0.3, "swamp": 0.2, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 150, "max": 1500, "mean": 350, "spread": 0.6 },
+  "weight_g": { "min": 150, "max": 1500, "mean": 350 },
   "length_cm": { "min": 15, "max": 45 },
   "fight": { "strength": 0.3, "stamina": 0.4, "runs": 1, "pattern": "steady", "aggression": 0.4 },
   "ideal": {

@@ -1,7 +1,7 @@
 {
   "display": "Густера",
   "water_bodies": { "river": 1.0, "lake": 1.0, "pond": 0.6, "swamp": 0.3, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 100, "max": 1200, "mean": 300, "spread": 0.6 },
+  "weight_g": { "min": 100, "max": 1200, "mean": 300 },
   "length_cm": { "min": 12, "max": 35 },
   "fight": { "strength": 0.35, "stamina": 0.45, "runs": 1 },
   "ideal": {

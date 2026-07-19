@@ -1,7 +1,7 @@
 {
   "display": "Голубой марлин",
   "water_bodies": { "sea": 1.0, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 50000, "max": 400000, "mean": 110000, "spread": 0.7 },
+  "weight_g": { "min": 50000, "max": 400000, "mean": 110000 },
   "length_cm": { "min": 200, "max": 450 },
   "fight": { "strength": 1.0, "stamina": 1.0, "runs": 5, "pattern": "greyhounding", "aggression": 0.95 },
   "ideal": {

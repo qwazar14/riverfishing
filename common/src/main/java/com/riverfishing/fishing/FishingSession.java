@@ -11,13 +11,18 @@ import net.minecraft.world.InteractionHand;
 public class FishingSession {
     public final InteractionHand hand;
     public final BlockPos target;
-    public final ResourceLocation species;
+    /** §live-conditions: re-picked from the fresh weights while the line waits (a koi stays sticky). */
+    public ResourceLocation species;
     public final RodClass rodClass;
 
     /** Engine's sampled time-to-bite, in ticks. */
     public final long biteDelay;
     /** Absolute tick the bite fires; -1 until the clock starts (set lazily for ACTIVE on first retrieve). */
     public long biteAtTick;
+    /** §live-conditions (0.5.0): the cast's context snapshot — its dynamic half is refreshed every ~15 s. */
+    public com.riverfishing.engine.BiteContext ctx;
+    /** Bite speed at the last (re-)evaluation: swarm-capped W × frenzy × feed. Rescales the wait on change. */
+    public double biteSpeed;
 
     // ---- ACTIVE (spinning) retrieve state ----
     public boolean retrieving;

@@ -1,7 +1,7 @@
 {
   "display": "Морской угорь",
   "water_bodies": { "sea": 1.1, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 3000, "max": 60000, "mean": 9000, "spread": 0.7 },
+  "weight_g": { "min": 3000, "max": 60000, "mean": 9000 },
   "length_cm": { "min": 80, "max": 250 },
   "fight": { "strength": 0.9, "stamina": 0.95, "runs": 3, "pattern": "relentless", "aggression": 0.75 },
   "ideal": {

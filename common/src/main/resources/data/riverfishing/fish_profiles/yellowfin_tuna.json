@@ -1,7 +1,7 @@
 {
   "display": "Желтопёрый тунец",
   "water_bodies": { "sea": 1.0, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 10000, "max": 150000, "mean": 30000, "spread": 0.7 },
+  "weight_g": { "min": 10000, "max": 150000, "mean": 30000 },
   "length_cm": { "min": 90, "max": 220 },
   "fight": { "strength": 1.0, "stamina": 1.0, "runs": 4, "pattern": "sounding", "aggression": 0.85 },
   "ideal": {

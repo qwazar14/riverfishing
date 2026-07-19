@@ -1,7 +1,7 @@
 {
   "display": "Акула-мако",
   "water_bodies": { "sea": 1.0, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 20000, "max": 200000, "mean": 60000, "spread": 0.7 },
+  "weight_g": { "min": 20000, "max": 200000, "mean": 60000 },
   "length_cm": { "min": 150, "max": 380 },
   "fight": { "strength": 1.0, "stamina": 0.9, "runs": 5, "pattern": "greyhounding", "aggression": 1.0 },
   "ideal": {

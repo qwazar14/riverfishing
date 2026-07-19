@@ -1,7 +1,7 @@
 {
   "display": "Треска",
   "water_bodies": { "sea": 1.2, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 2000, "max": 40000, "mean": 6000, "spread": 0.7 },
+  "weight_g": { "min": 2000, "max": 40000, "mean": 6000 },
   "length_cm": { "min": 50, "max": 150 },
   "fight": { "strength": 0.8, "stamina": 0.75, "runs": 2, "pattern": "active_then_passive", "aggression": 0.6 },
   "ideal": {

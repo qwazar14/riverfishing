@@ -1,7 +1,7 @@
 {
   "display": "Сарган",
   "water_bodies": { "sea": 1.1, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 300, "max": 1500, "mean": 600, "spread": 0.6 },
+  "weight_g": { "min": 300, "max": 1500, "mean": 600 },
   "length_cm": { "min": 40, "max": 95 },
   "fight": { "strength": 0.45, "stamina": 0.5, "runs": 2, "pattern": "aggressive", "aggression": 0.85 },
   "ideal": {

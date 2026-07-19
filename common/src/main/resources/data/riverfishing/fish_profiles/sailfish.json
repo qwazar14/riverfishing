@@ -1,7 +1,7 @@
 {
   "display": "Парусник",
   "water_bodies": { "sea": 1.0, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 20000, "max": 80000, "mean": 35000, "spread": 0.7 },
+  "weight_g": { "min": 20000, "max": 80000, "mean": 35000 },
   "length_cm": { "min": 150, "max": 320 },
   "fight": { "strength": 0.9, "stamina": 0.85, "runs": 5, "pattern": "greyhounding", "aggression": 1.0 },
   "ideal": {

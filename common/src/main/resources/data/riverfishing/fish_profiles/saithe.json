@@ -1,7 +1,7 @@
 {
   "display": "Сайда",
   "water_bodies": { "sea": 1.1, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 1000, "max": 15000, "mean": 3000, "spread": 0.7 },
+  "weight_g": { "min": 1000, "max": 15000, "mean": 3000 },
   "length_cm": { "min": 40, "max": 110 },
   "fight": { "strength": 0.75, "stamina": 0.8, "runs": 3, "pattern": "aggressive", "aggression": 0.8 },
   "ideal": {

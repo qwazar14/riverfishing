@@ -1,7 +1,7 @@
 {
   "display": "Ваху",
   "water_bodies": { "sea": 1.0, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 5000, "max": 40000, "mean": 12000, "spread": 0.7 },
+  "weight_g": { "min": 5000, "max": 40000, "mean": 12000 },
   "length_cm": { "min": 80, "max": 210 },
   "fight": { "strength": 0.9, "stamina": 0.8, "runs": 4, "pattern": "burst", "aggression": 0.95 },
   "ideal": {

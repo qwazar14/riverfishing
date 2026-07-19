@@ -19,7 +19,6 @@ public final class BiteEngine {
     private static final double GRADIENT_K = 0.25;        // §1.1
     private static final double BAIT_HARD_FILTER = 0.15;  // §1.5
     private static final double HOOK_GATE = 0.34;         // below this, the hook is the wrong size band (#6)
-    private static final long MAX_WAIT_TICKS = 2400;      // 2 min ceiling (§bite-pacing): waits stay humane
     private static final double SWARM_KNEE = 1.5;         // §swarm-cap: W_total below this is untouched
     private static final double SWARM_DAMP = 0.3;         // …above it, only 30% of the excess counts toward speed
     // §deep-conditions: amplify the season / time-of-day / biome swings the profiles already describe, so
@@ -243,6 +242,16 @@ public final class BiteEngine {
 
     // ---- Scheduling ----
 
+    /**
+     * §swarm-cap (§anti-macro): a big shoal of small fish stacks a huge W_total and would floor the wait,
+     * turning a swim into a bite-per-few-seconds conveyor. Compress attractiveness above a knee: normal
+     * single/few-target fishing is untouched, a swarm's effective total grows only a fraction. Public so
+     * live re-evaluation (§live-conditions) can rescale a waiting line's clock with the same curve.
+     */
+    public static double effectiveWeight(double total) {
+        return total <= SWARM_KNEE ? total : SWARM_KNEE + (total - SWARM_KNEE) * SWARM_DAMP;
+    }
+
     public static Outcome evaluate(Collection<FishProfile> profiles, BiteContext c, RandomSource random) {
         Map<ResourceLocation, Double> weights = new LinkedHashMap<>();
         double total = 0.0;
@@ -256,15 +265,12 @@ public final class BiteEngine {
         if (total <= 1e-6) {
             return new Outcome(weights, 0.0, -1L);
         }
-        // §swarm-cap (§anti-macro): a big shoal of small fish stacks a huge W_total and floors the wait at
-        // the rod-class minimum, turning a swim into a bite-per-few-seconds conveyor. Compress attractiveness
-        // above a knee: normal single/few-target fishing (W_total below the knee) is untouched, but a swarm's
-        // effective total grows only a fraction, so the pacing stays lively without becoming farmable.
-        double eff = total <= SWARM_KNEE ? total : SWARM_KNEE + (total - SWARM_KNEE) * SWARM_DAMP;
-        double t = T_MIN_TICKS / eff;
+        double t = T_MIN_TICKS / effectiveWeight(total);
         double u = random.nextDouble();
         long ticks = (long) (-t * Math.log(1.0 - u));
-        ticks = Math.max(40L, Math.min(MAX_WAIT_TICKS, ticks));
+        // §honest-tail (0.5.0): no upper clamp any more — a barely-viable setup now really IS a long
+        // wait (the caller warns the player) instead of silently gifting a fish every two minutes.
+        ticks = Math.max(40L, ticks);
         return new Outcome(weights, total, ticks);
     }
 

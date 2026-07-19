@@ -22,7 +22,9 @@ public final class FishProfile {
 
     // Presence / size
     public final Map<String, Double> waterBodies;
-    public final double weightMin, weightMax, weightMean, weightSpread;
+    public final double weightMin, weightMax, weightMean;
+    /** §weight-curve: true when the profile explicitly sets weight_g.mean — it then becomes the roll's median. */
+    public final boolean weightMeanSet;
     public final double lengthMin, lengthMax;
 
     // Fight (used by the vyvazhivanie mini-game)
@@ -72,7 +74,7 @@ public final class FishProfile {
         this.weightMin = b.weightMin;
         this.weightMax = b.weightMax;
         this.weightMean = b.weightMean;
-        this.weightSpread = b.weightSpread;
+        this.weightMeanSet = b.weightMeanSet;
         this.lengthMin = b.lengthMin;
         this.lengthMax = b.lengthMax;
         this.fightStrength = b.fightStrength;
@@ -143,7 +145,7 @@ public final class FishProfile {
         b.weightMin = GsonHelper.getAsDouble(w, "min", 50);
         b.weightMax = GsonHelper.getAsDouble(w, "max", 1000);
         b.weightMean = GsonHelper.getAsDouble(w, "mean", (b.weightMin + b.weightMax) / 2.0);
-        b.weightSpread = GsonHelper.getAsDouble(w, "spread", 0.6);
+        b.weightMeanSet = w.has("mean");
 
         JsonObject len = GsonHelper.getAsJsonObject(json, "length_cm", new JsonObject());
         b.lengthMin = GsonHelper.getAsDouble(len, "min", 8);
@@ -220,7 +222,8 @@ public final class FishProfile {
     private static final class Builder {
         final ResourceLocation id;
         Map<String, Double> waterBodies = new HashMap<>();
-        double weightMin, weightMax, weightMean, weightSpread;
+        double weightMin, weightMax, weightMean;
+        boolean weightMeanSet;
         double lengthMin, lengthMax;
         double fightStrength, fightStamina;
         int fightRuns;
