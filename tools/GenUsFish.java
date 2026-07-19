@@ -52,39 +52,90 @@ public final class GenUsFish {
         int cx = 28, cy = 34;
         Random rng = new Random(name.hashCode());
 
-        // Tail (behind the body, drawn first so the body overlaps its root).
-        int tailBase = cx + ax - 3, tipX = Math.min(W - 3, cx + ax + 9);
+        // ---- Hand-pixelled base pass (matches the drawn originals): fan tail with rays, six-tone
+        // dithered body shading, scale texture, gill plate arc, mouth line, rayed fins. ----
+
+        // Tail: a FAN — narrow peduncle widening into a rayed trailing edge (concave notch when forked).
+        int tailBase = cx + ax - 3, tipX = Math.min(W - 3, cx + ax + 10);
         for (int x = tailBase; x <= tipX; x++) {
             double t = (double) (x - tailBase) / (tipX - tailBase);
-            int half = (int) Math.round(2 + t * 9);
+            int half = (int) Math.round(2 + t * (forkedTail ? 10 : 8));
             for (int y = cy - half; y <= cy + half; y++) {
-                if (forkedTail && Math.abs(y - cy) < half * 0.35 && t > 0.45) continue; // the fork notch
-                put(x, y, shade(back, -10));
+                if (forkedTail && t > 0.40 && Math.abs(y - cy) < half * 0.42) continue; // fork notch
+                boolean ray = Math.floorMod(y - cy + (int) (t * 3), 3) == 0;            // ray striping
+                put(x, y, ray ? shade(back, -24) : shade(back, -4));
             }
         }
-        // Body: ellipse, vertical colour bands (back -> flank -> belly) + top shading.
-        for (int y = 0; y < H; y++) {
-            for (int x = 0; x < W; x++) {
-                double dx = (x - cx) / (double) ax, dy = (y - cy) / (double) by;
-                double d = dx * dx + dy * dy;
-                if (d <= 1.0) {
-                    double v = (y - (cy - by)) / (2.0 * by); // 0 top .. 1 bottom
-                    int c = v < 0.35 ? back : v < 0.7 ? flank : belly;
-                    if (v < 0.18) c = shade(c, -18);          // dark dorsal ridge
-                    if (d > 0.86) c = shade(c, -14);          // soft edge rolloff
-                    put(x, y, c);
+        // Body: a FISH profile, not an ellipse — column heights run snout → crest → narrow peduncle,
+        // six tones back->belly with band edges dithered on the pixel checkerboard.
+        for (int x = cx - ax; x <= cx + ax; x++) {
+            double t = (x - (cx - ax)) / (2.0 * ax);          // 0 = snout .. 1 = peduncle
+            double prof = t < 0.35
+                    ? 0.42 + 0.58 * Math.sin(t / 0.35 * Math.PI / 2)
+                    : 0.28 + 0.72 * Math.cos((t - 0.35) / 0.65 * Math.PI / 2);
+            if (kind.equals("flat") || kind.equals("ray")) {
+                prof = 0.30 + 0.70 * Math.sin(Math.min(1.0, t * 1.08) * Math.PI); // flatfish DISC
+            }
+            int half = Math.max(1, (int) Math.round(by * prof));
+            int yc = cy + (int) Math.round(by * 0.08 * Math.sin(t * Math.PI)); // slight belly sag
+            for (int y = yc - half; y <= yc + half; y++) {
+                double v = (y - (yc - half)) / (2.0 * half); // 0 top .. 1 bottom of THIS column
+                double vv = v + (((x + y) & 1) == 0 ? 0.035 : -0.035);
+                int c = vv < 0.14 ? shade(back, -26)
+                        : vv < 0.32 ? back
+                        : vv < 0.50 ? shade(flank, -12)
+                        : vv < 0.66 ? flank
+                        : vv < 0.82 ? shade(flank, 14)
+                        : belly;
+                if (y == yc - half || y == yc + half) c = shade(c, -14); // contour rolloff
+                put(x, y, c);
+            }
+        }
+        // Scale texture: an offset dot grid over the mid-flank (reads as scales at a glance).
+        for (int y = cy - by + 3; y <= cy + by - 3; y++) {
+            double v = (y - (cy - by)) / (2.0 * by);
+            if (v < 0.26 || v > 0.86) continue;
+            for (int x = cx - ax + 6; x <= cx + ax - 4; x++) {
+                if (px[y * W + x] == 0) continue;
+                if (Math.floorMod(x + ((y & 2) == 0 ? 0 : 2), 4) == 0 && (y & 1) == 0) {
+                    put(x, y, shade(px[y * W + x] & 0xFFFFFF, -9));
                 }
             }
         }
-        // Dorsal fin.
+        // Gill plate: a curved arc behind the head + a slightly lifted cheek in front of it.
+        int gx = cx - ax + 9;
+        for (int y = cy - by + 3; y <= cy + by - 3; y++) {
+            double t = (y - cy) / (double) by;
+            int xx = gx + (int) Math.round(2.2 * t * t * by / 6.0);
+            if (in(xx, y) && px[y * W + xx] != 0) {
+                put(xx, y, shade(back, -22));
+                if (in(xx - 1, y) && px[y * W + xx - 1] != 0) put(xx - 1, y, shade(px[y * W + xx - 1] & 0xFFFFFF, 8));
+            }
+        }
+        // Mouth: a short dark line at the snout.
+        for (int i = 0; i < 4; i++) put(cx - ax + 1 + i, cy + 1 + i / 3, shade(back, -34));
+        // Dorsal fin: sine crest with visible RAYS (alternating column tones).
         for (int x = cx - ax / 2; x <= cx + ax / 2; x++) {
             int h = (int) (4 + 3 * Math.sin((x - (cx - ax / 2)) / (double) ax * Math.PI));
-            for (int y = cy - by - h; y < cy - by + 1; y++) put(x, y, shade(back, -22));
+            boolean ray = ((x - cx) & 1) == 0;
+            for (int y = cy - by - h; y < cy - by + 1; y++) put(x, y, shade(back, ray ? -28 : -12));
         }
-        // Pectoral + anal fins.
+        // Pelvic + anal fins below (rayed), pectoral behind the gill.
         for (int i = 0; i < 6; i++) {
-            for (int j = 0; j <= i; j++) put(cx - ax / 3 + j, cy + 2 + i, shade(flank, -25));
-            for (int j = 0; j <= i / 2; j++) put(cx + ax / 3 + j, cy + by - 2 + i / 2, shade(back, -20));
+            for (int j = 0; j <= i; j++)
+                put(cx - ax / 3 + j, cy + by - 4 + i, shade(flank, ((j + i) & 1) == 0 ? -30 : -16));
+            for (int j = 0; j <= i / 2; j++)
+                put(cx + ax / 3 + j, cy + by - 2 + i / 2, shade(back, ((j + i) & 1) == 0 ? -26 : -12));
+        }
+        for (int i = 0; i < 5; i++)
+            put(gx + 3 + i / 2, cy - 1 + i, shade(back, (i & 1) == 0 ? -24 : -10)); // pectoral
+        // Hand jitter: light per-pixel noise so the tone bands read organic, like brushed pixels.
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                if (px[y * W + x] != 0 && rng.nextInt(3) == 0) {
+                    put(x, y, shade(px[y * W + x] & 0xFFFFFF, rng.nextInt(11) - 5));
+                }
+            }
         }
         switch (kind) {
             case "bluegill" -> {
@@ -232,12 +283,15 @@ public final class GenUsFish {
                         if (in(x, y) && px[y * W + x] != 0) put(x, y, shade(back, -6));
             }
         }
-        // Eye ("silver" sits famously LOW; the flatfish/ray eyes sit ON TOP of the disc).
+        // Eye like the drawn originals: warm ring, black pupil, one white glint pixel.
+        // ("silver" sits famously LOW; the flatfish/ray eyes sit ON TOP of the disc.)
         boolean topEye = kind.equals("flat") || kind.equals("ray");
-        int eyeX = kind.equals("silver") ? cx - ax + 6 : topEye ? cx - ax + 8 : cx - ax + 9;
-        int eyeY = kind.equals("silver") ? cy + 3 : topEye ? cy - by + 4 : cy - by / 2;
-        blob(eyeX, eyeY, 2, 0xF0EFE6);
+        int eyeX = kind.equals("silver") ? cx - ax + 6 : topEye ? cx - ax + 8 : cx - ax + 8;
+        int eyeY = kind.equals("silver") ? cy + 3 : topEye ? cy - by + 4 : cy - by / 2 - 1;
+        blob(eyeX, eyeY, 2, 0xE3CE8E);
         put(eyeX, eyeY, 0x14181C);
+        put(eyeX + 1, eyeY, 0x14181C);
+        put(eyeX, eyeY - 1, 0xF7F4E8);
         outline();
         BufferedImage img = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
         img.setRGB(0, 0, W, H, px, 0, W);
@@ -264,7 +318,7 @@ public final class GenUsFish {
             boolean edge = x == 0 || y == 0 || x == W - 1 || y == H - 1
                     || copy[y * W + x - 1] == 0 || copy[y * W + x + 1] == 0
                     || copy[(y - 1) * W + x] == 0 || copy[(y + 1) * W + x] == 0;
-            if (edge) px[y * W + x] = 0xFF000000 | shade(copy[y * W + x] & 0xFFFFFF, -70);
+            if (edge) px[y * W + x] = 0xFF000000 | shade(copy[y * W + x] & 0xFFFFFF, -95);
         }
     }
 }
