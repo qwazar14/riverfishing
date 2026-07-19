@@ -1317,6 +1317,16 @@ public final class FishingManager {
         session.tension = Math.max(0.0, session.tension - session.relaxTick);
         session.landProgress = Math.max(0.0, session.landProgress - 0.0008);
 
+        // §drag (0.5.0): crouching OPENS the drag — the reel free-spools. Tension bleeds off fast and a
+        // running fish TAKES line, but it cannot snap you: the answer to a jump or a dive you can't hold.
+        // Stand up = working drag; holding the reel = winching. Three drag positions, zero new inputs.
+        if (sp.isCrouching()) {
+            session.tension = Math.max(0.0, session.tension - session.relaxTick * 3.0);
+            if (session.runTicksLeft > 0) {
+                session.landProgress = Math.max(0.0, session.landProgress - 0.004);
+            }
+        }
+
         double progress = session.landProgress;
         if (session.runTicksLeft > 0) {
             session.runTicksLeft--;
@@ -1689,6 +1699,10 @@ public final class FishingManager {
      */
     private static boolean overstressTick(ServerPlayer sp, ServerLevel level, FishingSession session,
                                           RandomSource random) {
+        if (sp.isCrouching()) { // §drag: an OPEN drag cannot snap the line — it pays out instead
+            session.overStress = Math.max(0.0, session.overStress - 0.05);
+            return false;
+        }
         if (session.tension < session.breakTension) {
             session.overStress = Math.max(0.0, session.overStress - 0.02);
             if (session.tension < session.breakTension * 0.9) {

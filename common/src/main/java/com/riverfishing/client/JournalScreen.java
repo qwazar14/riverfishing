@@ -62,12 +62,23 @@ public class JournalScreen extends Screen {
     private static final int TAB_GEAR = 2;
     private static final int TAB_QUEST = 3;
     private static final int TAB_SKILL = 4;
+    private static final int TAB_GUIDE = 5;
     private static final String[] TAB_KEYS = {
             "journal.riverfishing.tab_fish", "journal.riverfishing.tab_bait",
             "journal.riverfishing.tab_gear", "journal.riverfishing.tab_quest",
-            "journal.riverfishing.tab_skill"};
+            "journal.riverfishing.tab_skill", "journal.riverfishing.tab_guide"};
 
-    private enum Kind { NATURAL, LURE, GROUNDBAIT, ROD, REEL, LINE, RIG }
+    private enum Kind { NATURAL, LURE, GROUNDBAIT, ROD, REEL, LINE, RIG, GUIDE }
+
+    private final List<Cat> guideCat = new ArrayList<>();
+
+    /** §guide (0.5.0): a how-to entry — an icon carrying the guide title, text from guide.riverfishing.<id>. */
+    private void addGuide(String id, ItemStack icon) {
+        icon.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
+                Component.translatable("guide.riverfishing." + id + ".title")
+                        .withStyle(s -> s.withItalic(false)));
+        guideCat.add(new Cat(icon, Kind.GUIDE, id));
+    }
 
     private record Cat(ItemStack stack, Kind kind, String id) {}
 
@@ -113,7 +124,24 @@ public class JournalScreen extends Screen {
                 .thenComparing(e -> e.stack().getHoverName().getString());
         baitCat.sort(byKindThenName);
         gearCat.sort(byKindThenName);
-        catRects = new int[Math.max(baitCat.size(), gearCat.size())][2];
+
+        // §guide (0.5.0): the how-to shelf — mechanics that deserve a page, newest first.
+        addGuide("drag", modStack("reel_7000"));
+        addGuide("stress", modStack("line_mono_030"));
+        addGuide("livebait", modStack("livebait"));
+        addGuide("topwater", modStack("popper"));
+        addGuide("trolling", modStack("trolling_rod"));
+        addGuide("biggame", modStack("yellowfin_tuna"));
+        addGuide("legendary", modStack("blue_marlin"));
+        addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
+        addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
+
+        catRects = new int[Math.max(guideCat.size(), Math.max(baitCat.size(), gearCat.size()))][2];
+    }
+
+    private static ItemStack modStack(String path) {
+        return new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM
+                .get(com.riverfishing.RiverFishing.id(path)));
     }
 
     private static boolean isInternalRig(RigType t) {
@@ -181,7 +209,7 @@ public class JournalScreen extends Screen {
         } else if (tab == TAB_SKILL) {
             renderSkills(g, mouseX, mouseY);
         } else {
-            List<Cat> list = tab == TAB_BAIT ? baitCat : gearCat;
+            List<Cat> list = tab == TAB_BAIT ? baitCat : tab == TAB_GUIDE ? guideCat : gearCat;
             if (catDetail >= 0 && catDetail < list.size()) {
                 renderCatDetail(g, list.get(catDetail));
             } else {
@@ -602,9 +630,11 @@ public class JournalScreen extends Screen {
         g.renderItem(e.stack(), 0, 0);
         g.pose().popPose();
 
-        // §bait-desc: an optional flavour line for a bait/lure (e.g. the ice jig), shown under the big icon.
-        if (isBait(e.kind())) {
-            String bk = "baitdesc.riverfishing." + e.id();
+        // §bait-desc / §guide: the wrapped text under the big icon — bait flavour or a full how-to.
+        if (isBait(e.kind()) || e.kind() == Kind.GUIDE) {
+            String bk = e.kind() == Kind.GUIDE
+                    ? "guide.riverfishing." + e.id() + ".text"
+                    : "baitdesc.riverfishing." + e.id();
             if (I18n.exists(bk)) {
                 int dy = top + 104;
                 for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.translatable(bk), W - 20)) {
@@ -775,6 +805,7 @@ public class JournalScreen extends Screen {
             case REEL -> "journal.riverfishing.sec_reel";
             case LINE -> "journal.riverfishing.sec_line";
             case RIG -> "journal.riverfishing.sec_rig";
+            case GUIDE -> "journal.riverfishing.kind_guide";
         };
     }
 
@@ -783,6 +814,7 @@ public class JournalScreen extends Screen {
             case NATURAL -> "journal.riverfishing.bait_natural";
             case LURE -> "journal.riverfishing.bait_artificial";
             case GROUNDBAIT -> "journal.riverfishing.bait_groundbait";
+            case GUIDE -> "journal.riverfishing.kind_guide";
             default -> sectionKey(k); // gear: use the section name as the category label
         };
     }
@@ -921,9 +953,9 @@ public class JournalScreen extends Screen {
                         return true;
                     }
                 }
-            } else if (tab == TAB_BAIT || tab == TAB_GEAR) {
+            } else if (tab == TAB_BAIT || tab == TAB_GEAR || tab == TAB_GUIDE) {
                 if (catDetail >= 0) { catDetail = -1; scroll = 0; return true; }
-                List<Cat> list = tab == TAB_BAIT ? baitCat : gearCat;
+                List<Cat> list = tab == TAB_BAIT ? baitCat : tab == TAB_GUIDE ? guideCat : gearCat;
                 int contentTop = top + 38, contentBottom = top + H - 6;
                 for (int i = 0; i < list.size(); i++) {
                     int x = catRects[i][0], y = catRects[i][1];
