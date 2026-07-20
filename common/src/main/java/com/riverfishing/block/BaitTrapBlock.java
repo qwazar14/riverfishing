@@ -104,7 +104,12 @@ public class BaitTrapBlock extends BaseEntityBlock implements SimpleWaterloggedB
                                  InteractionHand hand, BlockHitResult hit) {
         if (level.isClientSide) return net.minecraft.world.ItemInteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof BaitTrapBlockEntity be) {
-            be.collect(player);
+            // §trap-feed: pour groundbait in and the fish come quicker; anything else collects.
+            if (stack.getItem() instanceof com.riverfishing.item.GroundbaitItem) {
+                be.addFeed(player, stack);
+            } else {
+                be.collect(player);
+            }
         }
         return net.minecraft.world.ItemInteractionResult.CONSUME;
     }

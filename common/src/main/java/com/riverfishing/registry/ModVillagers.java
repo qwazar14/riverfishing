@@ -166,6 +166,9 @@ public final class ModVillagers {
         sell(t, 5, "line_mono_060", 10, 1, 22);
         sell(t, 5, "line_braid_050", 16, 1, 26);
         sell(t, 5, "line_fluoro_040", 12, 1, 24);
+        sell(t, 5, "line_mono_070", 12, 1, 24);
+        sell(t, 5, "line_mono_080", 14, 1, 26);
+        sell(t, 5, "line_braid_060", 18, 1, 28);
         sell(t, 5, "hook_2", 3, 3, 10);
         sell(t, 5, "hook_1", 4, 3, 12);
         buyPrime(t, 5, "catfish", 12, 25);

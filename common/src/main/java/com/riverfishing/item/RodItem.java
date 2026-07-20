@@ -188,6 +188,11 @@ public class RodItem extends Item {
                     (int) rodType.castWeightMin(), (int) rodType.castWeightMax())
                     .withStyle(ChatFormatting.GRAY));
         }
+        // §ice-only: the winter rod fishes ONLY through a drilled ice hole — say so up front.
+        if (rodType == com.riverfishing.component.RodType.WINTER) {
+            tooltip.add(Component.translatable("tooltip.riverfishing.winter_hole")
+                    .withStyle(ChatFormatting.AQUA));
+        }
         // §reel-hint: a reel-less blank tells you which reel sizes spool onto it.
         if (rodType.takesReel() && RodData.get(stack, ComponentSlot.REEL).isEmpty()) {
             tooltip.add(Component.translatable("tooltip.riverfishing.rod_reel_sizes",

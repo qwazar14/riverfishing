@@ -125,7 +125,11 @@ public class JournalScreen extends Screen {
         Comparator<Cat> byKindThenName = Comparator.comparingInt((Cat e) -> e.kind().ordinal())
                 .thenComparing(e -> e.stack().getHoverName().getString());
         baitCat.sort(byKindThenName);
-        gearCat.sort(byKindThenName);
+        // §gear-sort: reels by SIZE, lines by type+diameter, rods by tier — alphabetical put 10000
+        // between 1000 and 2000.
+        gearCat.sort(Comparator.comparingInt((Cat e) -> e.kind().ordinal())
+                .thenComparingDouble(JournalScreen::gearSortKey)
+                .thenComparing(e -> e.stack().getHoverName().getString()));
 
         // §guide (0.5.0): the how-to shelf — mechanics that deserve a page, newest first.
         addGuide("drag", modStack("reel_7000"));
@@ -146,6 +150,21 @@ public class JournalScreen extends Screen {
     private static ItemStack modStack(String path) {
         return new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM
                 .get(com.riverfishing.RiverFishing.id(path)));
+    }
+
+    /** §fit-name: truncate to width with a visible ellipsis — a silently cut name looked missing. */
+    private String fitName(String full, int width) {
+        String cut = this.font.plainSubstrByWidth(full, width);
+        return cut.length() >= full.length() ? full : this.font.plainSubstrByWidth(full, width - 6) + "…";
+    }
+
+    /** §gear-sort: numeric ordering inside a gear kind (reel size, line type+diameter, rod tier). */
+    private static double gearSortKey(Cat e) {
+        Item it = e.stack().getItem();
+        if (it instanceof ReelItem r) return r.size();
+        if (it instanceof LineItem l) return l.lineType().ordinal() * 10 + l.diameterMm();
+        if (it instanceof RodItem rod) return rod.rodType().ordinal();
+        return 0;
     }
 
     private static boolean isInternalRig(RigType t) {
@@ -304,8 +323,7 @@ public class JournalScreen extends Screen {
             boolean hovered = mouseX >= x && mouseX < x + COL_W - 8 && mouseY >= y && mouseY < y + ROW_H - 1;
             if (disc) {
                 drawFishIcon(g, sp, x, y);
-                String name = this.font.plainSubstrByWidth(
-                        Component.translatable("fish.riverfishing." + sp).getString(), COL_W - 24);
+                String name = fitName(Component.translatable("fish.riverfishing." + sp).getString(), COL_W - 24);
                 g.drawString(this.font, name, x + 20, y + 4, hovered ? 0xFFB8860B : GuiStyle.TEXT, false);
                 if (hovered) {
                     CompoundTag fish = data.getCompound(key(sp));
@@ -601,7 +619,7 @@ public class JournalScreen extends Screen {
             catRects[i][0] = x;
             catRects[i][1] = y;
             g.renderItem(e.stack(), x, y);
-            String name = this.font.plainSubstrByWidth(e.stack().getHoverName().getString(), COL_W - 24);
+            String name = fitName(e.stack().getHoverName().getString(), COL_W - 24);
             boolean hov = mouseX >= x && mouseX < x + COL_W - 8 && mouseY >= y && mouseY < y + ROW_H - 1
                     && mouseY >= contentTop && mouseY < contentBottom;
             g.drawString(this.font, name, x + 20, y + 4, hov ? 0xFFB8860B : GuiStyle.TEXT, false);

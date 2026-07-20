@@ -191,6 +191,12 @@ public final class BiteEngine {
         double w = p.base * Math.pow(Math.max(0.0, m), sizeExp) * e * g * pop * c.pressureFactor
                 * (1.0 + c.skillBiteBonus);
 
+        // §bait-first (0.5.1): the bait is THE selector — bite speed scales directly with how much
+        // this species rates what's on the hook. The right bait singles a species out of the swim;
+        // a bait it barely tolerates slows it to a crawl (use that to keep the trash off), and a
+        // favourite (score > 1) earns a small extra pull. Peaceful commons no longer swarm anything.
+        w *= 0.30 + 0.70 * Math.min(1.3, sBait);
+
         // §line-visibility: a thick, opaque line spooks fish and slows the bite — but a SMALL wary fish
         // fears a visible line far more than a big fish does. Fluoro (low visibility) and thin diameters
         // stay near-invisible; thick braid on a roach swim is a real handicap. Reference: 0.20 mm mono = 1.

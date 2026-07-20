@@ -22,6 +22,16 @@ public class GenSeaGear {
         recolorReel(donor, dir, "reel_12000", 0xC8971E);  // gold big-game
         recolorReel(donor, dir, "reel_14000", 0xB03030);  // crimson bluewater flagship
 
+        // ---- rod-layer reels (the assembled-rod compositor, §rod-layers): same recolor per dir ----
+        for (String sub : new String[]{"rod", "rod_m"}) {
+            File d = new File(dir, sub);
+            BufferedImage layerDonor = ImageIO.read(new File(d, "reel_7000.png"));
+            recolorReel(layerDonor, d, "reel_8000", 0x2E8E8E);
+            recolorReel(layerDonor, d, "reel_10000", 0x9AA4AC);
+            recolorReel(layerDonor, d, "reel_12000", 0xC8971E);
+            recolorReel(layerDonor, d, "reel_14000", 0xB03030);
+        }
+
         // ---- sea rods: chunky diagonal blanks, freshwater-icon style ----
         rod(dir, "surf_rod", 0x8A6A42, 0xD8C8A0, 0x2E6E8E, 1);   // sand blank, blue wraps, extra long
         rod(dir, "sea_spin_rod", 0x6A4A2E, 0x8EA4B4, 0x1E4E6E, 0); // steel-blue blank

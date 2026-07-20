@@ -44,28 +44,33 @@ public class FishingPressureData extends SavedData {
 
     /**
      * Register a LANDED fish (§population): real removal — pressure lands on THAT SPECIES only, so
-     * fishing out the bream leaves the perch biting as before.
+     * fishing out the bream leaves the perch biting as before. §stock-drain (0.5.1): while the spot
+     * runs a stocked SURPLUS above ~125%, each kept fish thins the school 25% faster — a packed pond
+     * is easy fishing, but it doesn't stay packed.
      */
     public void addCatch(long chunkKey, String species, long gameTime) {
-        add(chunkKey, species, gameTime, CATCH_PRESSURE);
+        double current = currentPressure(chunkKey, species, gameTime, 1.0);
+        add(chunkKey, species, gameTime, CATCH_PRESSURE * (current < -0.25 ? 1.25 : 1.0));
     }
 
-    // §stocking: one released fish restores ~2 catches' worth of the species' local stock, and keeps
-    // going into SURPLUS — a freshly stocked water bites BETTER than neutral (up to ×1.5 for the
-    // species at 8+ releases). The surplus decays on the same clock as depletion (fish disperse),
-    // while the species' PRESENCE in the water (§community / StockedData) stays forever.
+    // §stocking 2.0: releases contribute in MEAN-WEIGHT units (a trophy counts ~3 fish, a tiddler
+    // ~nothing — sport catch-and-release of PRIME fish is what keeps a water rich). The surplus
+    // decays on the depletion half-life (fish disperse); the species' PRESENCE (§community /
+    // StockedData) stays forever. NATIVE species pack much deeper than transplants: 250% vs 150%.
     private static final double STOCK_RESTORE = 0.18;
-    private static final double STOCK_FLOOR = -0.5;
+    private static final double STOCK_FLOOR_NATIVE = -1.5;
+    private static final double STOCK_FLOOR_STOCKED = -0.5;
 
-    /** Register RELEASED fish (a whole thrown stack counts each one): stock surplus for the species. */
-    public void addStock(long chunkKey, String species, long gameTime, int count) {
+    /** Register released fish: {@code units} = Σ(weight/mean) over the stack, pre-clamped by caller. */
+    public void addStock(long chunkKey, String species, long gameTime, double units, boolean nativeHere) {
+        double floor = nativeHere ? STOCK_FLOOR_NATIVE : STOCK_FLOOR_STOCKED;
         double current = currentPressure(chunkKey, species, gameTime, 1.0);
         chunks.computeIfAbsent(chunkKey, k -> new HashMap<>())
-                .put(species, new Entry(Math.max(STOCK_FLOOR, current - STOCK_RESTORE * Math.max(1, count)), gameTime));
+                .put(species, new Entry(Math.max(floor, current - STOCK_RESTORE * Math.max(0.01, units)), gameTime));
         setDirty();
     }
 
-    /** §stocking: current local stock of a species as a percent (100 = neutral, 150 = fully stocked). */
+    /** §stocking: current local stock of a species as a percent (100 = neutral, 250 = packed native). */
     public int stockPercent(long chunkKey, String species, long gameTime) {
         return (int) Math.round(speciesAttractiveness(chunkKey, species, gameTime, 1.0) * 100);
     }
@@ -92,10 +97,11 @@ public class FishingPressureData extends SavedData {
         return Math.max(FLOOR, Math.min(1.0, 1.0 - current));
     }
 
-    /** §population: this species here — {@link #FLOOR} fished out … 1.0 plenty … 1.5 freshly stocked. */
+    /** §population: this species here — {@link #FLOOR} fished out … 1.0 plenty … up to 2.5 packed.
+     *  The write-side floors bound the range: transplants top out at 1.5, natives at 2.5. */
     public double speciesAttractiveness(long chunkKey, String species, long gameTime, double regenScale) {
         double current = currentPressure(chunkKey, species, gameTime, regenScale);
-        return Math.max(FLOOR, Math.min(1.0 - STOCK_FLOOR, 1.0 - current));
+        return Math.max(FLOOR, Math.min(1.0 - STOCK_FLOOR_NATIVE, 1.0 - current));
     }
 
     private double currentPressure(long chunkKey, String key, long gameTime, double regenScale) {

@@ -133,10 +133,10 @@ public final class ModItems {
 
         // ----- Lines (ÃÂ§line-update): mono = all-rounder, braid = thin & strong, fluoro = clear/finesse.
         // Thick fluoro (0.40/0.50) dropped Ã¢ÂÂ impractical in reality; thin mono/fluoro + heavy braid added. -----
-        registerLines(LineType.MONO, new double[]{0.10, 0.14, 0.18, 0.25, 0.30, 0.40, 0.50, 0.60});
+        registerLines(LineType.MONO, new double[]{0.10, 0.14, 0.18, 0.25, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80});
         // Braid tops out at 0.30 Ã¢ÂÂ the catfish line (ÃÂ§strain-recompute: 0.30 braid Ã¢ÂÂ 27 kg, enough to
         // duel the 40 kg monster catfish with a 7000 reel's drag on top).
-        registerLines(LineType.BRAID, new double[]{0.16, 0.20, 0.25, 0.30, 0.40, 0.50});
+        registerLines(LineType.BRAID, new double[]{0.16, 0.20, 0.25, 0.30, 0.40, 0.50, 0.60});
         registerLines(LineType.FLUORO, new double[]{0.14, 0.16, 0.20, 0.25, 0.30, 0.40});
 
         // ----- Rigs -----

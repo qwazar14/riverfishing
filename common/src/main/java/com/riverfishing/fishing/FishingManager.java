@@ -80,7 +80,7 @@ public final class FishingManager {
     private static final double MAX_SESSION_DISTANCE = 40.0;
     private static final double ROD_BREAK_RATIO = 2.5; // rig mass > rodMax * this -> the blank snaps (#5)
     private static final double FOUL_CHANCE = 0.01;     // §9: 1% per spinning retrieve to foul-hook (× config)
-    private static final double TACKLE_BREAK_CHANCE = 0.008; // §10: 0.8% per hook-up, the line parts, rig lost
+    private static final double TACKLE_BREAK_CHANCE = 0.003; // §10: 0.3% per hook-up, the line parts, rig lost
     // §snag: per fishing action, 3% a dead (глухой) snag that loses the rig, 7% a recoverable one you
     // tug free. Scaled by the difficulty config's snagChance().
     private static final double SNAG_DEAD_CHANCE = 0.03;
@@ -1041,6 +1041,7 @@ public final class FishingManager {
                     SoundSource.PLAYERS, 0.9f, 1.0f);
             sp.displayClientMessage(Component.translatable("message.riverfishing.line_break")
                     .withStyle(ChatFormatting.RED), false);
+            com.riverfishing.quest.AnglerAdvancements.grant(sp, "snapped"); // §joke: the 0.3% gut-punch
             endSession(sp, session);
             return;
         }
@@ -2158,6 +2159,86 @@ public final class FishingManager {
         };
     }
 
+    /**
+     * §stocking 2.0: a fish RELEASED into water. Presence, surplus and settling all flow from here:
+     * — a species already in the water (native or settled) banks a stock SURPLUS, scaled by the
+     *   specimen's weight against the species mean (a trophy counts ~3 fish, a tiddler ~nothing —
+     *   sport catch-and-release of PRIME fish is what feeds a water, not bucketfuls of fry);
+     * — a species NOT living here rolls to SETTLE: chance = 0.18 × fit² × size (nonlinear in habitat
+     *   fit — perfect water settles a prime fish at ~30-40%, a barely-livable one in the low single
+     *   digits; water it cannot inhabit at all never settles);
+     * — natives pack to 250% stock, transplants to 150% (§population floors).
+     */
+    public static void releaseFish(ServerLevel level, BlockPos pos, ResourceLocation species,
+                                   int weightG, int count,
+                                   @org.jetbrains.annotations.Nullable ServerPlayer thrower) {
+        FishProfile p = FishProfileManager.get().byId(species);
+        if (p == null) return;
+        WaterBody body = WaterBodyCache.forLevel(level).get(level, pos);
+        if (body.type() == WaterType.NONE) return;
+        long region = StockedData.region(pos);
+        long chunk = new ChunkPos(pos).toLong();
+        long now = level.getGameTime();
+
+        // Habitat fit — the same environment gates and factors the bite engine lives by, WITHOUT the
+        // community (settling is exactly the act of joining a community the species isn't in yet).
+        BiteContext env = environmentAt(level, pos, body);
+        env.communityFactor = null;
+        double fit = BiteEngine.environmentScore(p, env);
+
+        double absent = body.width() < 8 ? 0.60 : body.width() < 16 ? 0.45 : body.width() < 32 ? 0.30 : 0.20;
+        boolean nativeHere = p.base >= 0.95 || hashUnit(level.getSeed(), region, species.getPath()) >= absent;
+        StockedData stocked = StockedData.get(level);
+        boolean present = nativeHere || stocked.isStocked(region, species.getPath());
+
+        double wf = Mth.clamp(weightG / Math.max(1.0, p.weightMean), 0.05, 3.0);
+        boolean settledNow = false;
+        double chance = 0.0;
+        if (!present && fit > 0) {
+            chance = 0.18 * Math.pow(Math.min(1.2, fit), 2.0) * Math.min(2.0, wf);
+            for (int i = 0; i < Math.max(1, count) && !settledNow; i++) {
+                if (level.getRandom().nextDouble() < chance) settledNow = true;
+            }
+            if (settledNow) stocked.markStocked(region, species.getPath());
+        }
+        FishingPressureData pressure = FishingPressureData.get(level);
+        if (present || settledNow) {
+            pressure.addStock(chunk, species.getPath(), now, wf * Math.max(1, count), nativeHere);
+        }
+
+        if (thrower == null) return;
+        net.minecraft.network.chat.Component name = fishName(species);
+        if (settledNow) {
+            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_settled", name)
+                    .withStyle(ChatFormatting.GREEN), true);
+        } else if (!present && fit > 0) {
+            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_failed",
+                    name, (int) Math.round(chance * 100)).withStyle(ChatFormatting.GRAY), true);
+        } else if (!present) {
+            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_hostile", name)
+                    .withStyle(ChatFormatting.RED), true);
+        } else {
+            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked",
+                    name, pressure.stockPercent(chunk, species.getPath(), now))
+                    .withStyle(ChatFormatting.AQUA), true);
+        }
+    }
+
+    /** Environment-only context at a spot (no tackle): habitat + season/time/weather + community. */
+    public static BiteContext environmentAt(ServerLevel level, BlockPos pos, WaterBody body) {
+        BiteContext env = new BiteContext();
+        env.water = body.type();
+        env.waterWidth = body.width();
+        env.waterDepth = measureDepth(level, pos);
+        env.biomeGroups = biomeGroups(level, pos, body);
+        env.season = SeasonProvider.getSeason(level);
+        env.time = TimeOfDay.fromDayTime(level.getDayTime());
+        env.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
+        env.anglerLevel = Integer.MAX_VALUE;
+        env.communityFactor = communityFactor(level, pos, body);
+        return env;
+    }
+
     /** §community: a stable [0,1) roll from (world seed, water region, species) — splitmix-style. */
     private static double hashUnit(long seed, long region, String species) {
         long h = seed ^ region * 0x9E3779B97F4A7C15L ^ (long) species.hashCode() * 0xC2B2AE3D27D4EB4FL;
@@ -2289,14 +2370,17 @@ public final class FishingManager {
                     BarometricPressure.hPa(level), BarometricPressure.trend(level),
                     BarometricPressure.biteFactor(level)))
                     .withStyle(ChatFormatting.GRAY), false);
+            FishingPressureData probeStock = FishingPressureData.get(level);
+            long probeChunk = new ChunkPos(waterPos).toLong();
             for (var e : here) {
                 FishProfile p = e.getKey();
                 String bait = topBait(p);
+                int pct = probeStock.stockPercent(probeChunk, p.id.getPath(), level.getGameTime());
                 sp.displayClientMessage(Component.literal(String.format("E=%.2f  ", e.getValue()))
                         .withStyle(ChatFormatting.AQUA)
                         .append(fishName(p.id))
-                        .append(Component.literal(String.format("  lvl>=%d  bait: %s", p.minAnglerLevel, bait))
-                                .withStyle(ChatFormatting.DARK_GRAY)), false);
+                        .append(Component.literal(String.format("  lvl>=%d  stock=%d%%  bait: %s",
+                                p.minAnglerLevel, pct, bait)).withStyle(ChatFormatting.DARK_GRAY)), false);
             }
             // Diagnosis (§QoL): group the GATED species by the first gate that blocks them here.
             java.util.Map<String, java.util.List<String>> blocked = new java.util.LinkedHashMap<>();
@@ -2341,6 +2425,21 @@ public final class FishingManager {
         if (sig != null) {
             sp.displayClientMessage(Component.translatable("finder.riverfishing.signature", sig)
                     .withStyle(ChatFormatting.GOLD), false);
+        }
+        // §stocking: live per-species stock — a fished-out swim and a freshly stocked one both show.
+        FishingPressureData stockData = FishingPressureData.get(level);
+        long stockChunk = new ChunkPos(waterPos).toLong();
+        net.minecraft.network.chat.MutableComponent stockLine = null;
+        for (var e : here) {
+            int pct = stockData.stockPercent(stockChunk, e.getKey().id.getPath(), level.getGameTime());
+            if (Math.abs(pct - 100) < 10) continue;
+            if (stockLine == null) stockLine = Component.empty();
+            else stockLine.append(Component.literal(", "));
+            stockLine.append(fishName(e.getKey().id)).append(Component.literal(" " + pct + "%"));
+        }
+        if (stockLine != null) {
+            sp.displayClientMessage(Component.translatable("finder.riverfishing.stock", stockLine)
+                    .withStyle(ChatFormatting.AQUA), false);
         }
         sp.displayClientMessage(pressureLine(level), false);
         level.playSound(null, sp.blockPosition(), SoundEvents.NOTE_BLOCK_BIT.value(), SoundSource.PLAYERS, 0.6f, 1.5f);
