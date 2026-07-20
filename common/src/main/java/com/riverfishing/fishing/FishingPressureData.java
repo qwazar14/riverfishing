@@ -50,6 +50,21 @@ public class FishingPressureData extends SavedData {
         add(chunkKey, species, gameTime, CATCH_PRESSURE);
     }
 
+    // §stocking: one released fish restores ~2 catches' worth of the species' local stock, and keeps
+    // going into SURPLUS — a freshly stocked water bites BETTER than neutral (up to ×1.5 for the
+    // species at 8+ releases). The surplus decays on the same clock as depletion (fish disperse),
+    // while the species' PRESENCE in the water (§community / StockedData) stays forever.
+    private static final double STOCK_RESTORE = 0.18;
+    private static final double STOCK_FLOOR = -0.5;
+
+    /** Register a RELEASED fish: negative pressure = local stock surplus for that species. */
+    public void addStock(long chunkKey, String species, long gameTime) {
+        double current = currentPressure(chunkKey, species, gameTime, 1.0);
+        chunks.computeIfAbsent(chunkKey, k -> new HashMap<>())
+                .put(species, new Entry(Math.max(STOCK_FLOOR, current - STOCK_RESTORE), gameTime));
+        setDirty();
+    }
+
     private void add(long chunkKey, String key, long gameTime, double base) {
         double current = currentPressure(chunkKey, key, gameTime, 1.0);
         double amount = base * com.riverfishing.config.RiverFishingConfig.depletionMultiplier();
@@ -72,10 +87,10 @@ public class FishingPressureData extends SavedData {
         return Math.max(FLOOR, Math.min(1.0, 1.0 - current));
     }
 
-    /** §population: how depleted THIS species is here (1.0 plenty … {@link #FLOOR} fished out). */
+    /** §population: this species here — {@link #FLOOR} fished out … 1.0 plenty … 1.5 freshly stocked. */
     public double speciesAttractiveness(long chunkKey, String species, long gameTime, double regenScale) {
         double current = currentPressure(chunkKey, species, gameTime, regenScale);
-        return Math.max(FLOOR, Math.min(1.0, 1.0 - current));
+        return Math.max(FLOOR, Math.min(1.0 - STOCK_FLOOR, 1.0 - current));
     }
 
     private double currentPressure(long chunkKey, String key, long gameTime, double regenScale) {

@@ -96,12 +96,17 @@ public class FishItem extends Item {
                 entity.setItem(stack); // sync the countdown to clients so they shrink the render
             } else if (now >= tag.getLong(TAG_RELEASE_AT)) {
                 if (level instanceof net.minecraft.server.level.ServerLevel sl) {
-                    // §stocking (0.5.0): the released fish JOINS this water's community for good.
+                    // §stocking (0.5.0): the released fish JOINS this water's community for good, and
+                    // each release also builds the species' LOCAL STOCK — repeated stocking makes the
+                    // spot bite better than neutral (up to ×1.5), which catches then spend back down.
                     ResourceLocation released = getSpecies(stack);
                     if (released != null) {
                         com.riverfishing.fishing.StockedData.get(sl).markStocked(
                                 com.riverfishing.fishing.StockedData.region(entity.blockPosition()),
                                 released.getPath());
+                        com.riverfishing.fishing.FishingPressureData.get(sl).addStock(
+                                new net.minecraft.world.level.ChunkPos(entity.blockPosition()).toLong(),
+                                released.getPath(), sl.getGameTime());
                     }
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE,
                             entity.getX(), entity.getY() + 0.1, entity.getZ(), 14, 0.25, 0.1, 0.25, 0.02);
