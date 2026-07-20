@@ -42,6 +42,19 @@ public final class GenFishSwap {
         make("sailfish", "pike", ramp(0x121E2E, 0x1E3A5A, 0x2E4E72, 0x6A88A0, 0xA6B6C2, 0xE6E9E8), 0);
         make("swordfish", "pike", ramp(0x141A20, 0x28323C, 0x3A4652, 0x6E7A86, 0xA6AEB6, 0xE2E5E4), 0);
         make("mako", "zander", ramp(0x141C26, 0x2A3A4E, 0x3E5266, 0x7A8A9A, 0xB2BEC8, 0xEEEFEC), 0);
+        // north-wave (0.5.0): the taiga / salmon / giants twelve.
+        make("rotan", "crucian_carp", ramp(0x1A1C10, 0x343A22, 0x4E5432, 0x6E7448, 0x8E9060, 0xB2AC80), 0);
+        make("nase", "chub", ramp(0x181E1C, 0x2E3C38, 0x4E5E58, 0x86948E, 0xBEC6C0, 0xEAECE4), 0);
+        make("vimba", "white_bream", ramp(0x181C24, 0x323E4E, 0x4E5E70, 0x8494A4, 0xBCC5CE, 0xEBEDEA), 0);
+        make("smelt", "bleak", ramp(0x161E1A, 0x2C4038, 0x486456, 0x88A494, 0xC2D2C6, 0xF0F4EC), 0);
+        make("whitefish", "asp", ramp(0x161A1E, 0x303A44, 0x505E6A, 0x8C99A4, 0xC6CDD2, 0xF4F4EE), 0);
+        make("char", "trout", ramp(0x1A1E1A, 0x363E36, 0x525E52, 0x808878, 0xAEB0A0, 0xD8D4C4), 0);
+        make("lenok", "trout", ramp(0x1E1E12, 0x40402A, 0x5E6040, 0x8C8A5C, 0xB8B282, 0xE0D8AC), 0);
+        make("taimen", "pike", ramp(0x1C1C16, 0x38382C, 0x545444, 0x807E66, 0xAAA68A, 0xD4CFB4), 0);
+        make("salmon", "asp", ramp(0x161A1C, 0x323C42, 0x566068, 0x909AA2, 0xC8CDD0, 0xF2F2EC), 0);
+        make("pink_salmon", "white_bream", ramp(0x171B20, 0x333E48, 0x525F6C, 0x8B98A2, 0xC2C9CE, 0xF0F1EC), 0);
+        make("sturgeon", "sterlet", ramp(0x14120E, 0x2C281E, 0x46402F, 0x6A6248, 0x928866, 0xBCB08C), 0);
+        make("halibut", "crucian_carp", ramp(0x1A140C, 0x362A18, 0x524026, 0x6E5836, 0x8E744A, 0xB49A6A), 0);
         System.out.println("done");
     }
 
@@ -113,6 +126,21 @@ public final class GenFishSwap {
             case "swordfish" -> bill(x0, cyM, 11, 0x22303C);
             case "mako" -> { for (int g = 0; g < 4; g++) // gill slits
                     for (int y = cyM - 3; y <= cyM + 1; y++) tint(x0 + 12 + g * 2, y, -45); }
+            case "rotan" -> speckles(rng, 45, x0 + 4, y0 + 2, x1 - 4, y1 - 2, -50);           // dark blotches
+            case "nase" -> { for (int x = x0 + 5; x <= x1 - 6; x++) tint(x, cyM, -55); }       // dark lateral line
+            case "smelt" -> { for (int x = x0 + 5; x <= x1 - 6; x++) tint(x, cyM, 50); }       // cucumber-silver stripe
+            case "char" -> { // the spawning char: orange belly band + pale flank spots
+                for (int x = x0 + 4; x <= x1 - 4; x++) for (int y = y1 - 2; y <= y1; y++) blend(x, y, 0xC85A2A, 0.5);
+                speckles(rng, 26, x0 + 5, cyM - 3, x1 - 6, y1 - 3, 55);
+            }
+            case "lenok" -> speckles(rng, 50, x0 + 5, y0 + 2, x1 - 5, cyM + 3, -45);           // dense dark speckles
+            case "taimen" -> { // the trademark red tail + sparse dark crosses
+                for (int x = x1 - 5; x <= x1; x++) for (int y = y0; y <= y1; y++) blend(x, y, 0xB04030, 0.55);
+                speckles(rng, 28, x0 + 6, y0 + 2, x1 - 8, cyM + 3, -40);
+            }
+            case "salmon" -> speckles(rng, 20, x0 + 6, y0 + 2, x1 - 8, cyM + 1, -45);          // sparse X-spots
+            case "pink_salmon" -> speckles(rng, 30, x0 + (x1 - x0) / 2, y0 + 2, x1, y1 - 2, -45); // spotted rear+tail
+            case "halibut" -> speckles(rng, 60, x0 + 4, y0 + 3, x1 - 5, y1 - 3, -40);          // mottled topside
             default -> { }
         }
     }
@@ -129,6 +157,14 @@ public final class GenFishSwap {
     static void tint(int x, int y, int d) {
         if (x >= 0 && y >= 0 && x < W && y < H && px[y * W + x] != 0)
             px[y * W + x] = 0xFF000000 | shade(px[y * W + x] & 0xFFFFFF, d);
+    }
+
+    static void blend(int x, int y, int rgb, double f) { // blend an existing pixel toward a colour
+        if (x < 0 || y < 0 || x >= W || y >= H || px[y * W + x] == 0) return;
+        int c = px[y * W + x] & 0xFFFFFF;
+        int r = mix((c >> 16) & 255, (rgb >> 16) & 255, f), g = mix((c >> 8) & 255, (rgb >> 8) & 255, f),
+            b = mix(c & 255, rgb & 255, f);
+        px[y * W + x] = 0xFF000000 | (r << 16) | (g << 8) | b;
     }
 
     static void pink(int x, int y) { // blend the pixel 45% toward rose — the rainbow band

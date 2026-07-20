@@ -183,6 +183,19 @@ public final class ModVillagers {
         buyPrime(t, 5, "swordfish", 24, 36);
         buyPrime(t, 5, "mako", 22, 34);
         buyPrime(t, 5, "wild_carp", 14, 28);
+        // north-wave (0.5.0)
+        buyPrime(t, 1, "rotan", 1, 2);
+        buyPrime(t, 1, "smelt", 1, 3);
+        buyPrime(t, 2, "nase", 2, 4);
+        buyPrime(t, 2, "vimba", 3, 5);
+        buyPrime(t, 3, "pink_salmon", 4, 8);
+        buyPrime(t, 3, "whitefish", 4, 8);
+        buyPrime(t, 4, "char", 6, 12);
+        buyPrime(t, 4, "lenok", 6, 12);
+        buyPrime(t, 4, "salmon", 10, 18);
+        buyPrime(t, 5, "taimen", 24, 36);
+        buyPrime(t, 5, "sturgeon", 26, 38);
+        buyPrime(t, 5, "halibut", 22, 34);
 
         com.riverfishing.platform.VillagerTradeRegistry.register(FISHERMAN, t);
     }

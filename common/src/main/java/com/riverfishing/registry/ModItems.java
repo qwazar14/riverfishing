@@ -66,7 +66,10 @@ public final class ModItems {
             // ocean (0.5.0): the pelagic four.
             "mahi", "wahoo", "yellowfin_tuna", "barracuda",
             // ocean (0.5.0): the billfish/shark trophies.
-            "blue_marlin", "sailfish", "swordfish", "mako"
+            "blue_marlin", "sailfish", "swordfish", "mako",
+            // north-wave (0.5.0): taiga rivers, the salmon run and the two bottom giants.
+            "rotan", "nase", "vimba", "smelt", "whitefish", "char",
+            "lenok", "taimen", "salmon", "pink_salmon", "sturgeon", "halibut"
     };
     public static final Map<ResourceLocation, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
     // ---- Baits referenced by event drops ----

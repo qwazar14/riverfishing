@@ -1,7 +1,7 @@
 {
-  "parent": "riverfishing:riverfishing/root",
+  "parent": "riverfishing:riverfishing/species_50",
   "display": {
-    "icon": { "id": "riverfishing:carp" },
+    "icon": { "id": "riverfishing:taimen" },
     "title": { "translate": "advancement.riverfishing.all_species.title" },
     "description": { "translate": "advancement.riverfishing.all_species.description" },
     "frame": "challenge",
@@ -9,30 +9,6 @@
     "announce_to_chat": true
   },
   "criteria": {
-    "bream": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:bream"] } ] } },
-    "crucian_carp": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:crucian_carp"] } ] } },
-    "roach": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:roach"] } ] } },
-    "rudd": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:rudd"] } ] } },
-    "white_bream": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:white_bream"] } ] } },
-    "carp": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:carp"] } ] } },
-    "catfish": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:catfish"] } ] } },
-    "perch": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:perch"] } ] } },
-    "pike": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:pike"] } ] } },
-    "zander": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:zander"] } ] } },
-    "gudgeon": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:gudgeon"] } ] } },
-    "ruffe": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:ruffe"] } ] } },
-    "bleak": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:bleak"] } ] } },
-    "ide": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:ide"] } ] } },
-    "chub": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:chub"] } ] } },
-    "asp": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:asp"] } ] } },
-    "tench": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:tench"] } ] } },
-    "burbot": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:burbot"] } ] } },
-    "eel": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:eel"] } ] } },
-    "grayling": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:grayling"] } ] } },
-    "trout": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:trout"] } ] } },
-    "sterlet": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:sterlet"] } ] } },
-    "wild_carp": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:wild_carp"] } ] } },
-    "mirror_carp": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:mirror_carp"] } ] } },
-    "grass_carp": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ { "items": ["riverfishing:grass_carp"] } ] } }
+    "code": { "trigger": "minecraft:impossible" }
   }
 }

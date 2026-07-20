@@ -1,0 +1,14 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": { "id": "riverfishing:blue_marlin" },
+    "title": { "translate": "advancement.riverfishing.legendary_catch.title" },
+    "description": { "translate": "advancement.riverfishing.legendary_catch.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": { "trigger": "minecraft:impossible" }
+  }
+}

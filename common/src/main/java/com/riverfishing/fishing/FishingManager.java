@@ -1692,6 +1692,7 @@ public final class FishingManager {
             session.lengthCm = (int) legProfile.lengthMax;
             session.trophy = true;
             LegendaryData.get(level).markCaught(session.species);
+            com.riverfishing.quest.AnglerAdvancements.grant(sp, "legendary_catch");
             level.getServer().getPlayerList().broadcastSystemMessage(
                     Component.translatable("message.riverfishing.legendary_caught",
                             sp.getDisplayName(),
@@ -1712,6 +1713,15 @@ public final class FishingManager {
             JournalData.record(sp, session.species, session.weightG); // records (§15)
             if (session.trophy) JournalData.addTrophy(sp);
             if (session.iceFishing) JournalData.addIceCatch(sp); // §winter-quests
+            // §species-advancements (0.5.0): tiered + "all species" are CODE-counted — the old JSON
+            // hand-listed 25 criteria and drifted from the real roster with every content wave.
+            if (newSpecies) {
+                int n = JournalData.speciesCount(sp);
+                if (n >= 10) com.riverfishing.quest.AnglerAdvancements.grant(sp, "species_10");
+                if (n >= 25) com.riverfishing.quest.AnglerAdvancements.grant(sp, "species_25");
+                if (n >= 50) com.riverfishing.quest.AnglerAdvancements.grant(sp, "species_50");
+                if (n >= JournalData.speciesTotal()) com.riverfishing.quest.AnglerAdvancements.grant(sp, "all_species");
+            }
             awardAnglerXp(sp, level, session.weightG, session.lengthCm, newSpecies, personalBest, session.trophy);
             com.riverfishing.quest.Quests.onProgress(sp, level); // angler quests (§quests)
             checkCatchAdvancements(sp, level, session); // §challenges (code-driven)
