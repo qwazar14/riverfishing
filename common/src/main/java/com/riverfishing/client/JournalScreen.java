@@ -129,6 +129,7 @@ public class JournalScreen extends Screen {
 
         // §guide (0.5.0): the how-to shelf — mechanics that deserve a page, newest first.
         addGuide("drag", modStack("reel_7000"));
+        addGuide("lurework", modStack("wobbler"));
         addGuide("stress", modStack("line_mono_030"));
         addGuide("livebait", modStack("livebait"));
         addGuide("topwater", modStack("popper"));

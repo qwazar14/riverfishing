@@ -10,7 +10,8 @@ import net.minecraft.world.InteractionHand;
 /** One active line in the water for a player. Lives only on the server. */
 public class FishingSession {
     public final InteractionHand hand;
-    public final BlockPos target;
+    /** §trolling: mutable — a trolled lure TRAILS the boat (the target follows ~14 blocks astern). */
+    public BlockPos target;
     /** §live-conditions: re-picked from the fresh weights while the line waits (a koi stays sticky). */
     public ResourceLocation species;
     public final RodClass rodClass;
@@ -28,6 +29,12 @@ public class FishingSession {
     public boolean retrieving;
     public int retrieveTicks;
     public int retrieveMax;
+    /** §click-retrieve (0.5.1): game-time of the previous crank CLICK — the lure-game cadence clock. */
+    public long lastClickTick;
+    /** §lure-game: wobbler/crankbait swim-action — only works at a steady crank rhythm. */
+    public boolean lureStrict;
+    /** §trolling: the boat trails the lure — line never depletes, the take self-strikes. */
+    public boolean trolling;
     // ---- Â§topwater (0.4.0): popper surface retrieve ----
     public boolean topwater;          // popper on the rig: surface lure with a pop-pause cadence
     public long lastRetrieveTick;     // game-time of the previous retrieve tick (detects pauses = pops)

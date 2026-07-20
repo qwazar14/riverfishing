@@ -164,7 +164,7 @@ public final class FishingManager {
             } else if (session.iceFishing && session.rodClass != RodClass.ACTIVE) {
                 iceJig(sp, level, session, now);               // §ice-jig: work the mormyshka (attract), don't reel in
             } else if (session.rodClass == RodClass.ACTIVE) {
-                // retrieve is driven by holding right-click (onUseTick); nothing to do on the press
+                clickRetrieve(sp, level, session, now); // §click-retrieve: the click IS the lure action
                 return true;
             } else {
                 endSession(sp, session);                       // reel in / recast
@@ -214,8 +214,18 @@ public final class FishingManager {
         FishingSession session = SESSIONS.get(sp.getUUID());
         if (session != null) {
             if (session.fighting || session.bitten) return; // the take is handled by the normal flow
-            if (session.rodClass == RodClass.ACTIVE && inWindow && sp.tickCount % 2 == 0) {
-                retrieveTick(sp); // the boat works the lure at half retrieve speed — a long trailing pass
+            if (session.trolling && inWindow) {
+                // §trolling: the lure TRAILS ~14 blocks astern — the target follows the boat, so the
+                // session-guard's distance check never silently drops a travelling line, and the drawn
+                // line visibly drags behind the stern.
+                double n = Math.sqrt(dx * dx + dz * dz);
+                if (n > 1e-3 && sp.tickCount % 10 == 0) {
+                    session.target = BlockPos.containing(boat.getX() - dx / n * 14.0,
+                            boat.getY(), boat.getZ() - dz / n * 14.0);
+                }
+                if (sp.tickCount % 2 == 0) {
+                    retrieveTick(sp); // the moving boat works the lure
+                }
             }
             return;
         }
@@ -227,6 +237,8 @@ public final class FishingManager {
         if (good >= 60) {
             TROLL_GOOD.remove(sp.getUUID());
             if (startCast(sp, level, InteractionHand.MAIN_HAND, level.getGameTime(), 0.55)) {
+                FishingSession s = SESSIONS.get(sp.getUUID());
+                if (s != null) s.trolling = true; // §trolling: trailing line — see retrieveTick
                 actionbar(sp, Component.translatable("message.riverfishing.trolling_start")
                         .withStyle(ChatFormatting.AQUA));
             }
@@ -639,7 +651,28 @@ public final class FishingManager {
         return null;
     }
 
-    /** Called every tick the player holds right-click on a spinning rod (Module 1 retrieve). */
+    /**
+     * §click-retrieve (0.5.1): one crank of the reel — each RIGHT-CLICK advances the lure a few ticks
+     * and its GAP from the previous click is the lure action (#игры-с-приманкой). A wobbler/crankbait
+     * wants a steady rhythm (its swim-action dies otherwise), spinner/spoon/jig forgive almost any
+     * cadence, and the popper keeps its own pop-pause rules inside retrieveTick. Holding the button
+     * auto-repeats ~every 4 ticks — that still winds line in, but the cadence is too fast to attract.
+     */
+    private static void clickRetrieve(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
+        long gap = session.retrieveTicks == 0 ? 12 : now - session.lastClickTick;
+        session.lastClickTick = now;
+        if (!session.topwater && session.biteAtTick > now) {
+            boolean good = session.lureStrict ? (gap >= 8 && gap <= 18) : (gap >= 5 && gap <= 30);
+            // A well-worked lure CALLS the fish — good cadence pulls the take closer, sloppy barely.
+            session.biteAtTick = Math.max(now + 5, session.biteAtTick - (good ? 10 : 2));
+        }
+        for (int i = 0; i < 4; i++) {
+            if (SESSIONS.get(sp.getUUID()) != session || session.bitten || session.fighting) return;
+            retrieveTick(sp);
+        }
+    }
+
+    /** Advances the retrieve one tick: clicks feed it 4 at a time, trolling drives it directly. */
     public static void retrieveTick(ServerPlayer sp) {
         FishingSession session = SESSIONS.get(sp.getUUID());
         if (session == null || session.rodClass != RodClass.ACTIVE || session.bitten || session.fighting) return;
@@ -649,6 +682,23 @@ public final class FishingManager {
         if (session.biteAtTick < 0) {
             session.biteAtTick = now + session.biteDelay; // start the clock on first retrieve
         }
+
+        // §trolling (0.5.1): the boat TRAILS the lure — the line never comes in and never "empties",
+        // there's no snag/foul over open water, and the take SELF-STRIKES: the boat's own momentum
+        // sets the hook (which is exactly how real trolling works — no подсечка). Just fight it.
+        if (session.trolling) {
+            if (now >= session.biteAtTick) {
+                session.bitten = true;
+                level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 1.0f, 0.9f);
+                level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5,
+                        session.target.getY() + 1.0, session.target.getZ() + 0.5, 20, 0.4, 0.2, 0.4, 0.3);
+                actionbar(sp, Component.translatable("message.riverfishing.trolling_fish_on")
+                        .withStyle(ChatFormatting.RED));
+                hookUp(sp, level, session, now);
+            }
+            return;
+        }
+
         session.retrieving = true;
         session.retrieveTicks++;
 
@@ -659,7 +709,11 @@ public final class FishingManager {
             ItemStack tw = sp.getItemInHand(session.hand);
             if (tw.getItem() instanceof RodItem) {
                 ItemStack rg = RodData.get(tw, ComponentSlot.RIG);
-                session.topwater = rg.getItem() instanceof RigItem && RigData.baitIds(rg).contains("popper");
+                java.util.List<String> lures = rg.getItem() instanceof RigItem
+                        ? RigData.baitIds(rg) : java.util.List.of();
+                session.topwater = lures.contains("popper");
+                // §lure-game: a wobbler/crankbait swims only at a steady crank — strict cadence window.
+                session.lureStrict = lures.contains("wobbler") || lures.contains("crankbait");
             }
             session.popRhythm = 1.0;
             session.lastRetrieveTick = now;
@@ -788,16 +842,13 @@ public final class FishingManager {
         if (session == null || session.rodClass != RodClass.ACTIVE) return;
         if (session.fighting) return;
         if (session.bitten) {
-            // §strike-qte (2.4): letting go of the retrieve DURING the take is a valid hook-set — check the
-            // runner now. (Clicking again works too, via handleRodUse.) If it's not up yet, do nothing and
-            // leave the bite window open (tick() times it out if the player never reacts).
+            // §strike-qte (2.4): letting go DURING the take is a valid hook-set — check the runner now.
             if (session.floatPeriod > 0 && sp.serverLevel().getGameTime() <= session.biteWindowEnd) {
                 activeStrike(sp, sp.serverLevel(), session, sp.serverLevel().getGameTime());
             }
-            return;
         }
-        endSession(sp, session);
-        actionbar(sp, Component.translatable("message.riverfishing.retrieve_empty").withStyle(ChatFormatting.GRAY));
+        // §click-retrieve (0.5.1): releasing the button is NOT "wind in" any more — line only comes
+        // in by cranking (clicks). Ending the session here would kill a fresh cast on a stray release.
     }
 
     // ---- per-tick progress (FLOAT / BOTTOM waiting, and the fight for all classes) ----
@@ -844,6 +895,14 @@ public final class FishingManager {
         }
 
         if (session.rodClass == RodClass.ACTIVE) {
+            // §click-retrieve: a lure left DEAD in the water doesn't get struck — an idle line pushes
+            // the take out until it's worked again. The popper's pause is part of its game (longer
+            // grace), and a trolled lure is always working (the boat moves it).
+            if (!session.trolling && !session.bitten && session.retrieveTicks > 0 && session.biteAtTick > 0
+                    && now - session.lastClickTick > (session.topwater ? 80 : 30)
+                    && now >= session.biteAtTick - 5) {
+                session.biteAtTick = now + 25;
+            }
             // Bites only fire during retrieve (handled in retrieveTick); here we only time out the strike.
             if (session.bitten && now > session.biteWindowEnd) {
                 endSession(sp, session);
@@ -1342,6 +1401,15 @@ public final class FishingManager {
     // ---- fight ----
 
     private static void reelPulse(ServerPlayer sp, ServerLevel level, FishingSession session) {
+        // §drag (0.5.1): an OPEN drag free-spools — cranking gains NOTHING and adds no tension; the
+        // handle just spins against the slipping spool. This is what makes the drag honest: crouched
+        // you cannot snap, but you cannot gain either (closes the crouch+spam-click guaranteed-fish
+        // exploit). Stand up to wind — and take the tension that comes with it.
+        if (sp.isCrouching()) {
+            level.playSound(null, sp.blockPosition(), SoundEvents.ITEM_FRAME_ROTATE_ITEM,
+                    SoundSource.PLAYERS, 0.3f, 0.9f);
+            return;
+        }
         boolean inRun = session.runTicksLeft > 0;
         // Reeling in a run spikes tension and barely gains line — you should ease off during runs.
         session.tension += inRun ? session.runTensionPulse : session.calmTensionPulse;

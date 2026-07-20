@@ -68,11 +68,13 @@ public class RodItem extends Item {
             sessionAction = dev.architectury.utils.EnvExecutor.getEnvSpecific(
                     () -> () -> com.riverfishing.client.ClientLineState.active(), () -> () -> false);
         }
-        // Spinning/ultralight (§spin-charge, 2.3): with a LIVE session the hold drives the retrieve/fight
-        // (onUseTick); with NO session the hold CHARGES the cast (power bar) and RELEASING throws to that
-        // distance — the distance mini-game is back, while hold-to-retrieve still works (it just starts on
-        // the next hold, after the lure lands). The cast itself fires in releaseUsing().
+        // §click-retrieve (0.5.1): with a LIVE session every CLICK is a crank/twitch — the lure game
+        // (handled in handleRodUse; gaps between clicks ARE the lure action). No item-use hold during
+        // a session; the hold only CHARGES the cast (power bar), which fires in releaseUsing().
         if (rodType.activeRetrieve()) {
+            if (sessionAction) {
+                return InteractionResultHolder.sidedSuccess(rod, level.isClientSide);
+            }
             player.startUsingItem(hand);
             return InteractionResultHolder.consume(rod);
         }
@@ -126,13 +128,6 @@ public class RodItem extends Item {
     @Override
     public UseAnim getUseAnimation(ItemStack stack) {
         return UseAnim.NONE;
-    }
-
-    @Override
-    public void onUseTick(Level level, LivingEntity entity, ItemStack stack, int remainingUseDuration) {
-        if (!level.isClientSide && entity instanceof ServerPlayer sp) {
-            FishingManager.retrieveTick(sp);
-        }
     }
 
     @Override
