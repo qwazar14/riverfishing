@@ -207,24 +207,18 @@ public class FishItem extends Item {
         return StackNbt.get(stack).getInt(TAG_LENGTH);
     }
 
-    /** Species drawn FOLDED in half on their icon, so they use half the length→scale rule (§fish-scale). */
-    private static final java.util.Set<String> FOLDED_ICON =
-            java.util.Set.of("catfish", "pike", "burbot", "eel", "sterlet");
-
     /**
-     * Icon scale for this catch (§fish-scale): the fish's real LENGTH — 50 cm renders at 1 block, 100 cm at
-     * 2, 25 cm at ½. Length now tracks weight by the allometric L ∝ W^(1/3) law (see FishingManager#rollFish),
-     * so this length-based scale already reflects how heavy the fish is — a big/heavy fish is long, a small
-     * one short. Long species drawn FOLDED in half divide by 100 (their art is already half-length). Floor
-     * 0.45 keeps the smallest fish readable; ceiling 2.0 stops a giant swallowing the inventory.
+     * Icon scale for this catch (§fish-scale): the fish's real LENGTH — 50 cm renders at 1 block, 100 cm
+     * at 2, a 380 cm mako at 7.6. Length tracks weight by the allometric L ∝ W^(1/3) law (see
+     * FishingManager#rollFish), so this already reflects how heavy the fish is. All icons are drawn
+     * FULL-LENGTH now (the old folded-in-half species art is gone with the 256×256 repaint), so one
+     * rule fits everyone. Floor 0.45 keeps the smallest fish readable; the true giants are capped
+     * PER DISPLAY CONTEXT in FishItemRenderer — huge in hand and on the ground, sane in a slot.
      */
     public static float getIconScale(ItemStack stack) {
         int len = getLengthCm(stack);
         if (len <= 0) return 1.0f; // creative-tab / JEI entry with no individual data
-        ResourceLocation sp = getSpecies(stack);
-        boolean folded = sp != null && FOLDED_ICON.contains(sp.getPath());
-        float scale = len / (folded ? 100.0f : 50.0f);
-        return Math.max(0.45f, Math.min(2.0f, scale));
+        return Math.max(0.45f, Math.min(8.0f, len / 50.0f));
     }
 
     public static boolean isLegal(ItemStack stack) {
