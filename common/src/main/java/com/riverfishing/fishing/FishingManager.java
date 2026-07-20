@@ -2134,6 +2134,39 @@ public final class FishingManager {
 
     // ---- context assembly ----
 
+    /**
+     * §community (0.5.0): every ~128-block patch of water holds its own deterministic species set,
+     * derived from the WORLD SEED — this lake is a tench lake forever, and the taimen river must be
+     * FOUND. Small water is species-poor (60% of eligible species absent), big water rich (20%);
+     * ubiquitous commons (profile base >= 0.95) live everywhere so no water is ever dead; ~8% of a
+     * water's species come out as its SIGNATURE fish (×1.8 bites); and a fish RELEASED into the
+     * water (§stocking) joins the set for good — that's how a server stocks its ponds.
+     */
+    private static java.util.function.ToDoubleFunction<ResourceLocation> communityFactor(
+            ServerLevel level, BlockPos waterPos, WaterBody body) {
+        long region = StockedData.region(waterPos);
+        double absent = body.width() < 8 ? 0.60 : body.width() < 16 ? 0.45 : body.width() < 32 ? 0.30 : 0.20;
+        long worldSeed = level.getSeed();
+        StockedData stocked = StockedData.get(level);
+        return id -> {
+            FishProfile pr = FishProfileManager.get().byId(id);
+            if (pr == null || pr.base >= 0.95) return 1.0;
+            if (stocked.isStocked(region, id.getPath())) return 1.0;
+            double r = hashUnit(worldSeed, region, id.getPath());
+            if (r < absent) return 0.0;
+            return r > 0.92 ? 1.8 : 1.0;
+        };
+    }
+
+    /** §community: a stable [0,1) roll from (world seed, water region, species) — splitmix-style. */
+    private static double hashUnit(long seed, long region, String species) {
+        long h = seed ^ region * 0x9E3779B97F4A7C15L ^ (long) species.hashCode() * 0xC2B2AE3D27D4EB4FL;
+        h ^= h >>> 33;
+        h *= 0xFF51AFD7ED558CCDL;
+        h ^= h >>> 33;
+        return (h >>> 11) / (double) (1L << 53);
+    }
+
     private static BiteContext buildContext(ServerPlayer sp, ServerLevel level, ItemStack rod,
                                             InteractionHand hand, WaterBody body, BlockPos waterPos,
                                             double castDistance, long now) {
@@ -2183,6 +2216,7 @@ public final class FishingManager {
         long popChunk = new ChunkPos(waterPos).toLong();
         double popRegen = spawnRegen(level);
         ctx.speciesFactor = id -> popData.speciesAttractiveness(popChunk, id.getPath(), now, popRegen);
+        ctx.communityFactor = communityFactor(level, waterPos, body);
         ctx.season = SeasonProvider.getSeason(level);
         ctx.time = TimeOfDay.fromDayTime(level.getDayTime());
         ctx.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
@@ -2231,6 +2265,9 @@ public final class FishingManager {
         env.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
         env.biomeTemperature = level.getBiome(waterPos).value().getBaseTemperature();
         env.anglerLevel = Integer.MAX_VALUE; // environment view ignores the holder's level
+        // §community: the finder shows THIS water's actual population — absentees drop out of the
+        // list entirely, and the water's signature species are named separately below.
+        env.communityFactor = communityFactor(level, waterPos, body);
 
         java.util.List<java.util.Map.Entry<FishProfile, Double>> here = new java.util.ArrayList<>();
         for (FishProfile p : FishProfileManager.get().all()) {
@@ -2292,6 +2329,19 @@ public final class FishingManager {
         sp.displayClientMessage(Component.translatable("finder.riverfishing.header")
                 .withStyle(ChatFormatting.AQUA), false);
         sp.displayClientMessage(list.withStyle(ChatFormatting.WHITE), false);
+        // §community: name the water's signature species — the "this is a tench lake" line.
+        net.minecraft.network.chat.MutableComponent sig = null;
+        for (var e : here) {
+            if (env.communityFactor.applyAsDouble(e.getKey().id) > 1.0) {
+                if (sig == null) sig = Component.empty();
+                else sig.append(Component.literal(", "));
+                sig.append(fishName(e.getKey().id));
+            }
+        }
+        if (sig != null) {
+            sp.displayClientMessage(Component.translatable("finder.riverfishing.signature", sig)
+                    .withStyle(ChatFormatting.GOLD), false);
+        }
         sp.displayClientMessage(pressureLine(level), false);
         level.playSound(null, sp.blockPosition(), SoundEvents.NOTE_BLOCK_BIT.value(), SoundSource.PLAYERS, 0.6f, 1.5f);
     }

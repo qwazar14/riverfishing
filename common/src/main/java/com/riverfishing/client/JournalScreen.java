@@ -136,6 +136,7 @@ public class JournalScreen extends Screen {
         addGuide("trolling", modStack("trolling_rod"));
         addGuide("biggame", modStack("yellowfin_tuna"));
         addGuide("legendary", modStack("blue_marlin"));
+        addGuide("community", modStack("fish_finder"));
         addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
         addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
 

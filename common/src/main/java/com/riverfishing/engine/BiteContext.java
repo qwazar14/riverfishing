@@ -65,4 +65,7 @@ public class BiteContext {
 
     /** §population: per-species depletion at this spot (1.0 plenty … 0.1 fished out), or null = neutral. */
     public java.util.function.ToDoubleFunction<net.minecraft.resources.ResourceLocation> speciesFactor;
+
+    /** §community: this water's deterministic species set — 0 = not present here, 1.8 = signature. */
+    public java.util.function.ToDoubleFunction<net.minecraft.resources.ResourceLocation> communityFactor;
 }

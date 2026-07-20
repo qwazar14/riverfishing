@@ -115,6 +115,11 @@ public final class BiteEngine {
         double fBiome = biomeGroupFactor(p, c);
         if (fBiome <= 0) return 0.0; // wrong climate/terrain — not this fish's range
 
+        // §community (0.5.0): THIS water's own species set — the seed decides which species a given
+        // lake/river patch actually holds (0 = simply not here, 1.8 = the water's signature fish).
+        double fCommunity = c.communityFactor != null ? c.communityFactor.applyAsDouble(p.id) : 1.0;
+        if (fCommunity <= 0) return 0.0;
+
         // §deep-conditions: season, time and biome are amplified so the daily/yearly rhythm and the
         // regional identity of each fish are strongly felt (see the *_POW constants).
         double fSeason = Math.pow(p.seasonFactor(c.season), SEASON_POW);
@@ -122,7 +127,7 @@ public final class BiteEngine {
         double fWeather = p.weatherFactor(c.weather);
         double fDist = distanceFactor(p, c);
 
-        return fWater * fSeason * fTime * fWeather * Math.pow(fBiome, BIOME_POW) * fDist;
+        return fWater * fSeason * fTime * fWeather * Math.pow(fBiome, BIOME_POW) * fDist * fCommunity;
     }
 
     /**
