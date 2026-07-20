@@ -20,7 +20,6 @@
   "distance_pref": { "min": 15, "max": 40 },
   "habitat": { "depth_min": 2, "width_min": 12 },
   "biomes": { "temperate": 1.0, "warm": 1.2 },
-  "legendary": { "weight_g": 14500, "chance": 0.006 },
   "base": 0.8,
   "min_angler_level": 3
 }

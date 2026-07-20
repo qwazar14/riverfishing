@@ -21,5 +21,6 @@
   "habitat": { "depth_min": 2, "width_min": 14 },
   "biomes": { "temperate": 1.0, "warm": 1.15 },
   "base": 0.5,
-  "min_angler_level": 4
+  "min_angler_level": 4,
+  "legendary": { "weight_g": 17500, "chance": 0.006 }
 }
