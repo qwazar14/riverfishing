@@ -162,6 +162,10 @@ public final class ModVillagers {
         sell(t, 5, "reel_14000", 30, 1, 34);
         sell(t, 5, "line_mono_050", 8, 1, 20);
         sell(t, 5, "line_braid_040", 14, 1, 24);
+        // §sea-lines-2: the heavy tier for the 8000-14000 reels.
+        sell(t, 5, "line_mono_060", 10, 1, 22);
+        sell(t, 5, "line_braid_050", 16, 1, 26);
+        sell(t, 5, "line_fluoro_040", 12, 1, 24);
         sell(t, 5, "hook_2", 3, 3, 10);
         sell(t, 5, "hook_1", 4, 3, 12);
         buyPrime(t, 5, "catfish", 12, 25);
