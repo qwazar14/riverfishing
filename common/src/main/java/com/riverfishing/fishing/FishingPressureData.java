@@ -57,12 +57,17 @@ public class FishingPressureData extends SavedData {
     private static final double STOCK_RESTORE = 0.18;
     private static final double STOCK_FLOOR = -0.5;
 
-    /** Register a RELEASED fish: negative pressure = local stock surplus for that species. */
-    public void addStock(long chunkKey, String species, long gameTime) {
+    /** Register RELEASED fish (a whole thrown stack counts each one): stock surplus for the species. */
+    public void addStock(long chunkKey, String species, long gameTime, int count) {
         double current = currentPressure(chunkKey, species, gameTime, 1.0);
         chunks.computeIfAbsent(chunkKey, k -> new HashMap<>())
-                .put(species, new Entry(Math.max(STOCK_FLOOR, current - STOCK_RESTORE), gameTime));
+                .put(species, new Entry(Math.max(STOCK_FLOOR, current - STOCK_RESTORE * Math.max(1, count)), gameTime));
         setDirty();
+    }
+
+    /** §stocking: current local stock of a species as a percent (100 = neutral, 150 = fully stocked). */
+    public int stockPercent(long chunkKey, String species, long gameTime) {
+        return (int) Math.round(speciesAttractiveness(chunkKey, species, gameTime, 1.0) * 100);
     }
 
     private void add(long chunkKey, String key, long gameTime, double base) {

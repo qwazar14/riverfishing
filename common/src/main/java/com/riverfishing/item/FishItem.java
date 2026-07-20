@@ -101,12 +101,21 @@ public class FishItem extends Item {
                     // spot bite better than neutral (up to ×1.5), which catches then spend back down.
                     ResourceLocation released = getSpecies(stack);
                     if (released != null) {
+                        long chunk = new net.minecraft.world.level.ChunkPos(entity.blockPosition()).toLong();
+                        var pressure = com.riverfishing.fishing.FishingPressureData.get(sl);
                         com.riverfishing.fishing.StockedData.get(sl).markStocked(
                                 com.riverfishing.fishing.StockedData.region(entity.blockPosition()),
                                 released.getPath());
-                        com.riverfishing.fishing.FishingPressureData.get(sl).addStock(
-                                new net.minecraft.world.level.ChunkPos(entity.blockPosition()).toLong(),
-                                released.getPath(), sl.getGameTime());
+                        pressure.addStock(chunk, released.getPath(), sl.getGameTime(), stack.getCount());
+                        // The angler SEES the stocking land: species + the spot's stock level.
+                        if (entity.getOwner() instanceof net.minecraft.server.level.ServerPlayer thrower) {
+                            thrower.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                                    "message.riverfishing.stocked",
+                                    net.minecraft.network.chat.Component.translatable(
+                                            "fish." + released.getNamespace() + "." + released.getPath()),
+                                    pressure.stockPercent(chunk, released.getPath(), sl.getGameTime()))
+                                    .withStyle(net.minecraft.ChatFormatting.AQUA), true);
+                        }
                     }
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE,
                             entity.getX(), entity.getY() + 0.1, entity.getZ(), 14, 0.25, 0.1, 0.25, 0.02);
