@@ -188,6 +188,11 @@ public class RodItem extends Item {
                     (int) rodType.castWeightMin(), (int) rodType.castWeightMax())
                     .withStyle(ChatFormatting.GRAY));
         }
+        // §reel-hint: a reel-less blank tells you which reel sizes spool onto it.
+        if (rodType.takesReel() && RodData.get(stack, ComponentSlot.REEL).isEmpty()) {
+            tooltip.add(Component.translatable("tooltip.riverfishing.rod_reel_sizes",
+                    rodType.minReel(), rodType.maxReel()).withStyle(ChatFormatting.DARK_AQUA));
+        }
         appendComponentLine(stack, ComponentSlot.REEL, tooltip);
         appendComponentLine(stack, ComponentSlot.LINE, tooltip);
         appendComponentLine(stack, ComponentSlot.RIG, tooltip);

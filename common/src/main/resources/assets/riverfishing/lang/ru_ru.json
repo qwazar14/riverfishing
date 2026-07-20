@@ -278,6 +278,7 @@
     "message.riverfishing.no_bites_here":  "Здесь сейчас не клюёт",
     "message.riverfishing.sluggish":  "Рыба сторонится такой снасти — ждать можно очень долго",
     "message.riverfishing.trolling_fish_on":  "Села! Ход лодки сам засёк рыбу — вываживай!",
+    "tooltip.riverfishing.rod_reel_sizes":  "Подходит катушка: %s–%s",
     "message.riverfishing.depleted":  "Здесь рыба выбита — смени место",
     "message.riverfishing.cast_out":  "Заброс выполнен. Ждите поклёвку…",
     "message.riverfishing.ice_fishing":  "Подлёдная ловля — играй мормышкой (ПКМ)",

@@ -278,6 +278,7 @@
     "message.riverfishing.no_bites_here":  "Nothing is biting here right now",
     "message.riverfishing.sluggish":  "The fish are wary of this setup — it could be a very long wait",
     "message.riverfishing.trolling_fish_on":  "Fish on! The boat's pull set the hook — fight it!",
+    "tooltip.riverfishing.rod_reel_sizes":  "Takes reel: %s–%s",
     "message.riverfishing.depleted":  "This spot is fished out — move on",
     "message.riverfishing.cast_out":  "Cast out. Wait for a bite…",
     "message.riverfishing.ice_fishing":  "Ice fishing - jig the mormyshka (right-click)",
