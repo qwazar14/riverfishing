@@ -81,6 +81,19 @@ public class FishingPressureData extends SavedData {
         return Math.max(0.0, -currentPressure(chunkKey, species, gameTime, 1.0));
     }
 
+    /** §residency: the temp population around a spot — banked per CHUNK, but fish don't respect
+     *  chunk borders, so presence reads the 3×3 neighbourhood's maximum. */
+    public double surplusAround(int chunkX, int chunkZ, String species, long gameTime) {
+        double best = 0.0;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                best = Math.max(best, surplus(
+                        net.minecraft.world.level.ChunkPos.asLong(chunkX + dx, chunkZ + dz), species, gameTime));
+            }
+        }
+        return best;
+    }
+
     private void add(long chunkKey, String key, long gameTime, double base) {
         double current = currentPressure(chunkKey, key, gameTime, 1.0);
         double amount = base * com.riverfishing.config.RiverFishingConfig.depletionMultiplier();

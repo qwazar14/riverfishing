@@ -105,6 +105,16 @@ public final class BiteEngine {
     // ---- Environmental suitability E (§1.2) ----
 
     public static double environmentScore(FishProfile p, BiteContext c) {
+        double natural = naturalScore(p, c);
+        // §stocked-survival (0.5.1): a STOCKED species lives on even in water that fails its natural
+        // gates — at a quarter of full activity, scaled by how much of it is actually there. This is
+        // what makes "нестандартное" зарыбление real: the settled shark in the river is catchable,
+        // just never comfortable.
+        double presence = c.stockedPresence != null ? c.stockedPresence.applyAsDouble(p.id) : 0.0;
+        return presence > 0 ? Math.max(natural, 0.25 * presence) : natural;
+    }
+
+    private static double naturalScore(FishProfile p, BiteContext c) {
         double fWater = p.waterFactor(c.water);
         if (fWater <= 0) return 0.0; // the fish does not live in this water body
 

@@ -2150,7 +2150,7 @@ public final class FishingManager {
         long worldSeed = level.getSeed();
         StockedData stocked = StockedData.get(level);
         FishingPressureData pd = FishingPressureData.get(level);
-        long chunk = new ChunkPos(waterPos).toLong();
+        int cx = waterPos.getX() >> 4, cz = waterPos.getZ() >> 4;
         return id -> {
             FishProfile pr = FishProfileManager.get().byId(id);
             if (pr == null || pr.base >= 0.95) return 1.0;
@@ -2158,9 +2158,9 @@ public final class FishingManager {
             double r = hashUnit(worldSeed, region, id.getPath());
             if (r >= absent) return r > 0.92 ? 1.8 : 1.0;
             // §residency: an UNSETTLED transplant bites in proportion to its 0..100% temporary
-            // population — a couple of released fish nibble faintly, a full load bites like a
-            // resident, and it all disperses as the surplus decays away.
-            return Math.min(1.0, pd.surplus(chunk, id.getPath(), level.getGameTime()));
+            // population (3×3-chunk reach — fish don't respect chunk borders), dispersing as the
+            // surplus decays away.
+            return Math.min(1.0, pd.surplusAround(cx, cz, id.getPath(), level.getGameTime()));
         };
     }
 
@@ -2198,9 +2198,9 @@ public final class FishingManager {
         env.weather = Weather.CLEAR;
         double fit = BiteEngine.environmentScore(p, env);
 
-        // §residency-guard: EVERYTHING flows from fit. The community hash alone can roll "native"
-        // for a shark in a river (it never looks at habitat) — but water the species cannot live in
-        // makes it neither native, nor present, nor bankable. Only the red message.
+        // §residency-guard: the community hash alone can roll "native" for a shark in a river (it
+        // never looks at habitat) — native/present status flows from fit. But §settle-anything:
+        // hostile water only CUTS the settle chance to its floor, it no longer forbids the attempt.
         boolean hostile = fit <= 0;
         boolean nativeHere = !hostile && nativeHere(level, pos, body, species);
         StockedData stocked = StockedData.get(level);
@@ -2217,16 +2217,19 @@ public final class FishingManager {
         // (communityFactor reads the surplus). Settling is a separate roll for PERMANENCE on top.
         boolean settledNow = false;
         double chance = 0.0;
-        if (!present && !hostile) {
-            // Settling keeps the RAW size ratio (it's about the specimen being adult, not tonnage).
-            chance = 0.18 * Math.pow(Math.min(1.2, fit), 2.0) * Mth.clamp(sizeRatio, 0.1, 2.0);
+        if (!present) {
+            // §settle-anything (0.5.1): NONLINEAR in fit with a tiny floor — perfect water settles a
+            // prime fish at ~20-40%, mediocre water in the low percents, and even water that fails
+            // every parameter keeps a sliver (~0.5%): the chance is CUT, never zeroed. Size keeps the
+            // RAW ratio (settling is about the specimen being adult, not tonnage).
+            chance = 0.18 * (0.03 + Math.pow(Math.min(1.2, fit), 2.0)) * Mth.clamp(sizeRatio, 0.1, 2.0);
             for (int i = 0; i < Math.max(1, count) && !settledNow; i++) {
                 if (level.getRandom().nextDouble() < chance) settledNow = true;
             }
             if (settledNow) stocked.markStocked(region, species.getPath());
         }
         FishingPressureData pressure = FishingPressureData.get(level);
-        if (!hostile) {
+        if (!hostile || settledNow) {
             // §residency: how deep the bank goes depends on the species' standing HERE —
             // native 250%, settled transplant 150%, an unsettled one builds a 0..100% temp population.
             double floor = nativeHere ? FishingPressureData.FLOOR_NATIVE
@@ -2241,8 +2244,8 @@ public final class FishingManager {
             thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_settled", name)
                     .withStyle(ChatFormatting.GREEN), true);
         } else if (hostile) {
-            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_hostile", name)
-                    .withStyle(ChatFormatting.RED), true);
+            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_hostile",
+                    name, String.format("%.1f", chance * 100)).withStyle(ChatFormatting.RED), true);
         } else if (!present) {
             // §residency: a transplant has NO 100% baseline — its temp population grows from zero.
             int temp = (int) Math.round(pressure.surplus(chunk, species.getPath(), now) * 100);
@@ -2270,6 +2273,17 @@ public final class FishingManager {
                 || StockedData.get(level).isStocked(StockedData.region(pos), id.getPath());
     }
 
+    /** §residency: stocked presence at a spot — 1.0 settled, 0..1 temp transplant (3×3 chunks), 0 none. */
+    public static java.util.function.ToDoubleFunction<ResourceLocation> stockedPresence(
+            ServerLevel level, BlockPos waterPos) {
+        StockedData stocked = StockedData.get(level);
+        FishingPressureData pd = FishingPressureData.get(level);
+        long region = StockedData.region(waterPos);
+        int cx = waterPos.getX() >> 4, cz = waterPos.getZ() >> 4;
+        return id -> stocked.isStocked(region, id.getPath()) ? 1.0
+                : Math.min(1.0, pd.surplusAround(cx, cz, id.getPath(), level.getGameTime()));
+    }
+
     /** Environment-only context at a spot (no tackle): habitat + season/time/weather + community. */
     public static BiteContext environmentAt(ServerLevel level, BlockPos pos, WaterBody body) {
         BiteContext env = new BiteContext();
@@ -2282,6 +2296,7 @@ public final class FishingManager {
         env.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
         env.anglerLevel = Integer.MAX_VALUE;
         env.communityFactor = communityFactor(level, pos, body);
+        env.stockedPresence = stockedPresence(level, pos);
         return env;
     }
 
@@ -2344,6 +2359,7 @@ public final class FishingManager {
         double popRegen = spawnRegen(level);
         ctx.speciesFactor = id -> popData.speciesAttractiveness(popChunk, id.getPath(), now, popRegen);
         ctx.communityFactor = communityFactor(level, waterPos, body);
+        ctx.stockedPresence = stockedPresence(level, waterPos);
         ctx.season = SeasonProvider.getSeason(level);
         ctx.time = TimeOfDay.fromDayTime(level.getDayTime());
         ctx.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
@@ -2424,7 +2440,8 @@ public final class FishingManager {
                 boolean resident = residentHere(level, waterPos, body, p.id);
                 int pct = resident
                         ? probeStock.stockPercent(probeChunk, p.id.getPath(), level.getGameTime())
-                        : (int) Math.round(probeStock.surplus(probeChunk, p.id.getPath(), level.getGameTime()) * 100);
+                        : (int) Math.round(probeStock.surplusAround(waterPos.getX() >> 4, waterPos.getZ() >> 4,
+                                p.id.getPath(), level.getGameTime()) * 100);
                 sp.displayClientMessage(Component.literal(String.format("E=%.2f  ", e.getValue()))
                         .withStyle(ChatFormatting.AQUA)
                         .append(fishName(p.id))
@@ -2485,7 +2502,8 @@ public final class FishingManager {
             boolean resident = residentHere(level, waterPos, body, e.getKey().id);
             int pct = resident
                     ? stockData.stockPercent(stockChunk, e.getKey().id.getPath(), level.getGameTime())
-                    : (int) Math.round(stockData.surplus(stockChunk, e.getKey().id.getPath(), level.getGameTime()) * 100);
+                    : (int) Math.round(stockData.surplusAround(waterPos.getX() >> 4, waterPos.getZ() >> 4,
+                            e.getKey().id.getPath(), level.getGameTime()) * 100);
             if (resident && Math.abs(pct - 100) < 10) continue;
             if (stockLine == null) stockLine = Component.empty();
             else stockLine.append(Component.literal(", "));
