@@ -17,8 +17,9 @@ ASSETS = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "common"
 MODELS = os.path.join(ASSETS, "models", "item")
 ITEMS = os.path.join(ASSETS, "items")
 
-RODS = ["stick", "bamboo", "pole", "ultralight", "spinning", "feeder", "bottom", "carp", "winter"]
-REELS = [1000, 2000, 3000, 4000, 5000, 6000, 7000]
+RODS = ["stick", "bamboo", "pole", "ultralight", "spinning", "feeder", "bottom", "carp", "winter",
+        "boat", "sea_spin", "surf", "trolling"]  # +sea quartet (0.5.0)
+REELS = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 10000, 12000, 14000]
 LINE_TYPES = ["mono", "braid", "fluoro"]
 RIG_SPRITES = ["rig_primitive", "rig_float", "rig_grusha", "rig_feeder", "rig_flat_feeder",
                "rig_ground", "rig_predator", "rig_carp", "rig_catfish"]
@@ -30,11 +31,15 @@ HAND_CONTEXTS = ["thirdperson_righthand", "thirdperson_lefthand",
 # §rod-debug: the ACTUAL hand poses live in CODE (RodHandTransform, applied by the two in-hand
 # mixins) so /rfrod can tune them live — the JSON hand displays only carry the per-layer depth lift.
 
-FISH = ["asp", "bleak", "bream", "burbot", "carp", "carp_koi_asagi", "carp_koi_bekko",
-        "carp_koi_kohaku", "carp_koi_showa_sanke", "carp_koi_tancho_sanke", "catfish", "chub",
-        "crucian_carp", "eel", "grass_carp", "grayling", "gudgeon", "ide", "mirror_carp", "perch",
-        "pike", "roach", "rudd", "ruffe", "sterlet", "tench", "trout", "white_bream", "wild_carp",
-        "zander"]
+FISH = ["asp", "barracuda", "bleak", "blue_bream", "blue_marlin", "bluegill", "bream", "burbot",
+        "carp", "carp_koi_asagi", "carp_koi_bekko", "carp_koi_kohaku", "carp_koi_showa_sanke",
+        "carp_koi_tancho_sanke", "catfish", "channel_catfish", "char", "chub", "cod", "conger",
+        "crucian_carp", "eel", "flounder", "garfish", "grass_carp", "grayling", "gudgeon",
+        "halibut", "herring", "ide", "largemouth_bass", "lenok", "mackerel", "mahi", "mako",
+        "mirror_carp", "nase", "perch", "pike", "pink_salmon", "rainbow_trout", "ray", "roach",
+        "rotan", "rudd", "ruffe", "sabrefish", "sailfish", "saithe", "salmon", "seabass",
+        "silver_carp", "smelt", "sterlet", "sturgeon", "swordfish", "taimen", "tench", "trout",
+        "vimba", "wahoo", "white_bream", "whitefish", "wild_carp", "yellowfin_tuna", "zander"]  # ALL registered species (0.5.0: 66)
 BUCKETS = [0.45, 0.6, 0.75, 0.9, 1.05, 1.25, 1.55, 2.0]
 
 
