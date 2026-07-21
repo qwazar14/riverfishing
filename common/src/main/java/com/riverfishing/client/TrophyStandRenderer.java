@@ -42,8 +42,9 @@ public class TrophyStandRenderer implements BlockEntityRenderer<TrophyStandBlock
 
             pose.pushPose();
             pose.translate(px, py, pz);
-            // Tangent heading: the sprite faces its swim direction around the ring.
-            pose.mulPose(Axis.YP.rotationDegrees(-(float) Math.toDegrees(a)));
+            // Tangent heading: -(a+90°) aligns the sprite's long axis with the swim direction —
+            // без минус-90 рыба стояла РАДИАЛЬНО (хвост к центру, нос в стекло).
+            pose.mulPose(Axis.YP.rotationDegrees(-(float) Math.toDegrees(a) - 90f));
             pose.scale(0.5f, 0.5f, 0.5f);
             itemRenderer.renderStatic(fish, ItemDisplayContext.FIXED, light, overlay, pose, buffers, be.getLevel(), i);
             pose.popPose();

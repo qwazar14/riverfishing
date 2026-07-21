@@ -2174,6 +2174,10 @@ public final class FishingManager {
                                    @org.jetbrains.annotations.Nullable ServerPlayer thrower) {
         FishProfile p = FishProfileManager.get().byId(species);
         if (p == null) return;
+        // A floating item sits in the AIR block above the surface — resolve to the actual water.
+        if (!level.getFluidState(pos).is(net.minecraft.tags.FluidTags.WATER)) {
+            if (level.getFluidState(pos.below()).is(net.minecraft.tags.FluidTags.WATER)) pos = pos.below();
+        }
         WaterBody body = WaterBodyCache.forLevel(level).get(level, pos);
         if (body.type() == WaterType.NONE) return;
         long region = StockedData.region(pos);
@@ -2191,11 +2195,16 @@ public final class FishingManager {
         StockedData stocked = StockedData.get(level);
         boolean present = nativeHere || stocked.isStocked(region, species.getPath());
 
-        double wf = Mth.clamp(weightG / Math.max(1.0, p.weightMean), 0.05, 3.0);
+        // §stock-units (0.5.1): SUPERLINEAR in size — 0.5·(w/mean)^1.5. A mean fish is half a unit
+        // (a native pond needs ~17 of them for the full 250%), a double-mean trophy ~1.4 units
+        // (~6 trophies), fry a rounding error. Packing a water stays real work.
+        double sizeRatio = weightG / Math.max(1.0, p.weightMean);
+        double units = 0.5 * Math.pow(Mth.clamp(sizeRatio, 0.0, 3.0), 1.5);
         boolean settledNow = false;
         double chance = 0.0;
         if (!present && fit > 0) {
-            chance = 0.18 * Math.pow(Math.min(1.2, fit), 2.0) * Math.min(2.0, wf);
+            // Settling keeps the RAW size ratio (it's about the specimen being adult, not tonnage).
+            chance = 0.18 * Math.pow(Math.min(1.2, fit), 2.0) * Mth.clamp(sizeRatio, 0.1, 2.0);
             for (int i = 0; i < Math.max(1, count) && !settledNow; i++) {
                 if (level.getRandom().nextDouble() < chance) settledNow = true;
             }
@@ -2203,7 +2212,7 @@ public final class FishingManager {
         }
         FishingPressureData pressure = FishingPressureData.get(level);
         if (present || settledNow) {
-            pressure.addStock(chunk, species.getPath(), now, wf * Math.max(1, count), nativeHere);
+            pressure.addStock(chunk, species.getPath(), now, units * Math.max(1, count), nativeHere);
         }
 
         if (thrower == null) return;
