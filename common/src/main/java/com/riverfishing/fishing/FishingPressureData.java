@@ -58,21 +58,27 @@ public class FishingPressureData extends SavedData {
     // decays on the depletion half-life (fish disperse); the species' PRESENCE (§community /
     // StockedData) stays forever. NATIVE species pack much deeper than transplants: 250% vs 150%.
     private static final double STOCK_RESTORE = 0.18;
-    private static final double STOCK_FLOOR_NATIVE = -1.5;
-    private static final double STOCK_FLOOR_STOCKED = -0.5;
+    /** §residency (0.5.1): how deep the surplus can go by the species' standing in THIS water. */
+    public static final double FLOOR_NATIVE = -1.5;     // родной вид: нагуливается до 250%
+    public static final double FLOOR_SETTLED = -0.5;    // прописавшийся переселенец: до 150%
+    public static final double FLOOR_TRANSPLANT = -1.0; // неприжившийся: ВРЕМЕННАЯ популяция 0..100%
 
-    /** Register released fish: {@code units} = Σ(weight/mean) over the stack, pre-clamped by caller. */
-    public void addStock(long chunkKey, String species, long gameTime, double units, boolean nativeHere) {
-        double floor = nativeHere ? STOCK_FLOOR_NATIVE : STOCK_FLOOR_STOCKED;
+    /** Register released fish: {@code units} = Σ over the stack, {@code floor} = the residency cap. */
+    public void addStock(long chunkKey, String species, long gameTime, double units, double floor) {
         double current = currentPressure(chunkKey, species, gameTime, 1.0);
         chunks.computeIfAbsent(chunkKey, k -> new HashMap<>())
                 .put(species, new Entry(Math.max(floor, current - STOCK_RESTORE * Math.max(0.01, units)), gameTime));
         setDirty();
     }
 
-    /** §stocking: current local stock of a species as a percent (100 = neutral, 250 = packed native). */
+    /** §stocking: a RESIDENT species' stock percent (100 = neutral, up to 250 packed native). */
     public int stockPercent(long chunkKey, String species, long gameTime) {
         return (int) Math.round(speciesAttractiveness(chunkKey, species, gameTime, 1.0) * 100);
+    }
+
+    /** §residency: an UNSETTLED transplant's temporary population, 0..1 (it has NO 100% baseline). */
+    public double surplus(long chunkKey, String species, long gameTime) {
+        return Math.max(0.0, -currentPressure(chunkKey, species, gameTime, 1.0));
     }
 
     private void add(long chunkKey, String key, long gameTime, double base) {
@@ -98,10 +104,10 @@ public class FishingPressureData extends SavedData {
     }
 
     /** §population: this species here — {@link #FLOOR} fished out … 1.0 plenty … up to 2.5 packed.
-     *  The write-side floors bound the range: transplants top out at 1.5, natives at 2.5. */
+     *  The write-side floors bound the range: settled 1.5, natives 2.5. */
     public double speciesAttractiveness(long chunkKey, String species, long gameTime, double regenScale) {
         double current = currentPressure(chunkKey, species, gameTime, regenScale);
-        return Math.max(FLOOR, Math.min(1.0 - STOCK_FLOOR_NATIVE, 1.0 - current));
+        return Math.max(FLOOR, Math.min(1.0 - FLOOR_NATIVE, 1.0 - current));
     }
 
     private double currentPressure(long chunkKey, String key, long gameTime, double regenScale) {

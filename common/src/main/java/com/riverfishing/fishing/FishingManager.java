@@ -2157,9 +2157,10 @@ public final class FishingManager {
             if (stocked.isStocked(region, id.getPath())) return 1.0;
             double r = hashUnit(worldSeed, region, id.getPath());
             if (r >= absent) return r > 0.92 ? 1.8 : 1.0;
-            // §stock-vs-settle: an UNSETTLED transplant is still swimming here while its released
-            // stock surplus lasts — temporarily catchable, gone when the surplus decays away.
-            return pd.speciesAttractiveness(chunk, id.getPath(), level.getGameTime(), 1.0) > 1.05 ? 1.0 : 0.0;
+            // §residency: an UNSETTLED transplant bites in proportion to its 0..100% temporary
+            // population — a couple of released fish nibble faintly, a full load bites like a
+            // resident, and it all disperses as the surplus decays away.
+            return Math.min(1.0, pd.surplus(chunk, id.getPath(), level.getGameTime()));
         };
     }
 
@@ -2194,8 +2195,7 @@ public final class FishingManager {
         env.communityFactor = null;
         double fit = BiteEngine.environmentScore(p, env);
 
-        double absent = body.width() < 8 ? 0.60 : body.width() < 16 ? 0.45 : body.width() < 32 ? 0.30 : 0.20;
-        boolean nativeHere = p.base >= 0.95 || hashUnit(level.getSeed(), region, species.getPath()) >= absent;
+        boolean nativeHere = nativeHere(level, pos, body, species);
         StockedData stocked = StockedData.get(level);
         boolean present = nativeHere || stocked.isStocked(region, species.getPath());
 
@@ -2223,12 +2223,16 @@ public final class FishingManager {
         }
         FishingPressureData pressure = FishingPressureData.get(level);
         if (!hostile) {
-            pressure.addStock(chunk, species.getPath(), now, units * Math.max(1, count), nativeHere);
+            // §residency: how deep the bank goes depends on the species' standing HERE —
+            // native 250%, settled transplant 150%, an unsettled one builds a 0..100% temp population.
+            double floor = nativeHere ? FishingPressureData.FLOOR_NATIVE
+                    : (present || settledNow) ? FishingPressureData.FLOOR_SETTLED
+                    : FishingPressureData.FLOOR_TRANSPLANT;
+            pressure.addStock(chunk, species.getPath(), now, units * Math.max(1, count), floor);
         }
 
         if (thrower == null) return;
         net.minecraft.network.chat.Component name = fishName(species);
-        int pct = pressure.stockPercent(chunk, species.getPath(), now);
         if (settledNow) {
             thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_settled", name)
                     .withStyle(ChatFormatting.GREEN), true);
@@ -2236,12 +2240,30 @@ public final class FishingManager {
             thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_hostile", name)
                     .withStyle(ChatFormatting.RED), true);
         } else if (!present) {
+            // §residency: a transplant has NO 100% baseline — its temp population grows from zero.
+            int temp = (int) Math.round(pressure.surplus(chunk, species.getPath(), now) * 100);
             thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_failed",
-                    name, (int) Math.round(chance * 100), pct).withStyle(ChatFormatting.GRAY), true);
+                    name, (int) Math.round(chance * 100), temp).withStyle(ChatFormatting.GRAY), true);
         } else {
-            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked", name, pct)
+            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked",
+                    name, pressure.stockPercent(chunk, species.getPath(), now))
                     .withStyle(ChatFormatting.AQUA), true);
         }
+    }
+
+    /** §residency: does the seed's community (or the commons rule) place this species here natively? */
+    public static boolean nativeHere(ServerLevel level, BlockPos pos, WaterBody body, ResourceLocation id) {
+        FishProfile pr = FishProfileManager.get().byId(id);
+        if (pr == null) return false;
+        if (pr.base >= 0.95) return true;
+        double absent = body.width() < 8 ? 0.60 : body.width() < 16 ? 0.45 : body.width() < 32 ? 0.30 : 0.20;
+        return hashUnit(level.getSeed(), StockedData.region(pos), id.getPath()) >= absent;
+    }
+
+    /** §residency: native OR permanently settled — anything but a temporary transplant. */
+    public static boolean residentHere(ServerLevel level, BlockPos pos, WaterBody body, ResourceLocation id) {
+        return nativeHere(level, pos, body, id)
+                || StockedData.get(level).isStocked(StockedData.region(pos), id.getPath());
     }
 
     /** Environment-only context at a spot (no tackle): habitat + season/time/weather + community. */
@@ -2395,12 +2417,16 @@ public final class FishingManager {
             for (var e : here) {
                 FishProfile p = e.getKey();
                 String bait = topBait(p);
-                int pct = probeStock.stockPercent(probeChunk, p.id.getPath(), level.getGameTime());
+                boolean resident = residentHere(level, waterPos, body, p.id);
+                int pct = resident
+                        ? probeStock.stockPercent(probeChunk, p.id.getPath(), level.getGameTime())
+                        : (int) Math.round(probeStock.surplus(probeChunk, p.id.getPath(), level.getGameTime()) * 100);
                 sp.displayClientMessage(Component.literal(String.format("E=%.2f  ", e.getValue()))
                         .withStyle(ChatFormatting.AQUA)
                         .append(fishName(p.id))
-                        .append(Component.literal(String.format("  lvl>=%d  stock=%d%%  bait: %s",
-                                p.minAnglerLevel, pct, bait)).withStyle(ChatFormatting.DARK_GRAY)), false);
+                        .append(Component.literal(String.format("  lvl>=%d  %s=%d%%  bait: %s",
+                                p.minAnglerLevel, resident ? "stock" : "TEMP", pct, bait))
+                                .withStyle(resident ? ChatFormatting.DARK_GRAY : ChatFormatting.GOLD)), false);
             }
             // Diagnosis (§QoL): group the GATED species by the first gate that blocks them here.
             java.util.Map<String, java.util.List<String>> blocked = new java.util.LinkedHashMap<>();
@@ -2446,16 +2472,21 @@ public final class FishingManager {
             sp.displayClientMessage(Component.translatable("finder.riverfishing.signature", sig)
                     .withStyle(ChatFormatting.GOLD), false);
         }
-        // §stocking: live per-species stock — a fished-out swim and a freshly stocked one both show.
+        // §stocking / §residency: live per-species stock. Residents show their 10..250% around the
+        // 100% baseline; an unsettled transplant shows its 0..100% TEMP population with a marker.
         FishingPressureData stockData = FishingPressureData.get(level);
         long stockChunk = new ChunkPos(waterPos).toLong();
         net.minecraft.network.chat.MutableComponent stockLine = null;
         for (var e : here) {
-            int pct = stockData.stockPercent(stockChunk, e.getKey().id.getPath(), level.getGameTime());
-            if (Math.abs(pct - 100) < 10) continue;
+            boolean resident = residentHere(level, waterPos, body, e.getKey().id);
+            int pct = resident
+                    ? stockData.stockPercent(stockChunk, e.getKey().id.getPath(), level.getGameTime())
+                    : (int) Math.round(stockData.surplus(stockChunk, e.getKey().id.getPath(), level.getGameTime()) * 100);
+            if (resident && Math.abs(pct - 100) < 10) continue;
             if (stockLine == null) stockLine = Component.empty();
             else stockLine.append(Component.literal(", "));
             stockLine.append(fishName(e.getKey().id)).append(Component.literal(" " + pct + "%"));
+            if (!resident) stockLine.append(Component.translatable("finder.riverfishing.temp"));
         }
         if (stockLine != null) {
             sp.displayClientMessage(Component.translatable("finder.riverfishing.stock", stockLine)
