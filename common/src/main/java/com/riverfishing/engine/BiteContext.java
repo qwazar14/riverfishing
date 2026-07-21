@@ -65,4 +65,11 @@ public class BiteContext {
 
     /** §population: per-species depletion at this spot (1.0 plenty … 0.1 fished out), or null = neutral. */
     public java.util.function.ToDoubleFunction<net.minecraft.resources.Identifier> speciesFactor;
+
+    /** §community: this water's deterministic species set — 0 = not present here, 1.8 = signature. */
+    public java.util.function.ToDoubleFunction<net.minecraft.resources.Identifier> communityFactor;
+
+    /** §residency: stocked presence — 1.0 settled, 0..1 temp transplant, 0 none. Floors the env score
+     *  so a settled species survives (weakly) even in water that doesn't suit it. */
+    public java.util.function.ToDoubleFunction<net.minecraft.resources.Identifier> stockedPresence;
 }

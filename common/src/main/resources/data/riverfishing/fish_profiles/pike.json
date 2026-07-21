@@ -11,8 +11,7 @@
   "weight_g": {
     "min": 500,
     "max": 10000,
-    "mean": 2000,
-    "spread": 0.7
+    "mean": 2000
   },
   "length_cm": {
     "min": 35,
@@ -87,6 +86,7 @@
     "temperate": 1.0,
     "swamp": 1.1
   },
+  "legendary": { "weight_g": 14000, "chance": 0.006 },
   "base": 0.9,
   "min_angler_level": 4
 }

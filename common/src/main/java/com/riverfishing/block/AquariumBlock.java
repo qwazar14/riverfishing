@@ -141,7 +141,7 @@ public class AquariumBlock extends BaseEntityBlock {
     @Override
     protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide()) return net.minecraft.world.InteractionResult.SUCCESS;
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
         BlockPos master = masterPos(pos, state);
         if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
 

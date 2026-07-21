@@ -53,10 +53,54 @@ public class FishingPressureData extends SavedData {
 
     /**
      * Register a LANDED fish (§population): real removal — pressure lands on THAT SPECIES only, so
-     * fishing out the bream leaves the perch biting as before.
+     * fishing out the bream leaves the perch biting as before. §stock-drain (0.5.1): while the spot
+     * runs a stocked SURPLUS above ~125%, each kept fish thins the school 25% faster — a packed pond
+     * is easy fishing, but it doesn't stay packed.
      */
     public void addCatch(long chunkKey, String species, long gameTime) {
-        add(chunkKey, species, gameTime, CATCH_PRESSURE);
+        double current = currentPressure(chunkKey, species, gameTime, 1.0);
+        add(chunkKey, species, gameTime, CATCH_PRESSURE * (current < -0.25 ? 1.25 : 1.0));
+    }
+
+    // §stocking 2.0: releases contribute in MEAN-WEIGHT units (a trophy counts ~3 fish, a tiddler
+    // ~nothing — sport catch-and-release of PRIME fish is what keeps a water rich). The surplus
+    // decays on the depletion half-life (fish disperse); the species' PRESENCE (§community /
+    // StockedData) stays forever. NATIVE species pack much deeper than transplants: 250% vs 150%.
+    private static final double STOCK_RESTORE = 0.18;
+    /** §residency (0.5.1): how deep the surplus can go by the species' standing in THIS water. */
+    public static final double FLOOR_NATIVE = -1.5;     // родной вид: нагуливается до 250%
+    public static final double FLOOR_SETTLED = -0.5;    // прописавшийся переселенец: до 150%
+    public static final double FLOOR_TRANSPLANT = -1.0; // неприжившийся: ВРЕМЕННАЯ популяция 0..100%
+
+    /** Register released fish: {@code units} = Σ over the stack, {@code floor} = the residency cap. */
+    public void addStock(long chunkKey, String species, long gameTime, double units, double floor) {
+        double current = currentPressure(chunkKey, species, gameTime, 1.0);
+        chunks.computeIfAbsent(chunkKey, k -> new HashMap<>())
+                .put(species, new Entry(Math.max(floor, current - STOCK_RESTORE * Math.max(0.01, units)), gameTime));
+        setDirty();
+    }
+
+    /** §stocking: a RESIDENT species' stock percent (100 = neutral, up to 250 packed native). */
+    public int stockPercent(long chunkKey, String species, long gameTime) {
+        return (int) Math.round(speciesAttractiveness(chunkKey, species, gameTime, 1.0) * 100);
+    }
+
+    /** §residency: an UNSETTLED transplant's temporary population, 0..1 (it has NO 100% baseline). */
+    public double surplus(long chunkKey, String species, long gameTime) {
+        return Math.max(0.0, -currentPressure(chunkKey, species, gameTime, 1.0));
+    }
+
+    /** §residency: the temp population around a spot — banked per CHUNK, but fish don't respect
+     *  chunk borders, so presence reads the 3×3 neighbourhood's maximum. */
+    public double surplusAround(int chunkX, int chunkZ, String species, long gameTime) {
+        double best = 0.0;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                best = Math.max(best, surplus(
+                        net.minecraft.world.level.ChunkPos.pack(chunkX + dx, chunkZ + dz), species, gameTime));
+            }
+        }
+        return best;
     }
 
     private void add(long chunkKey, String key, long gameTime, double base) {
@@ -81,10 +125,11 @@ public class FishingPressureData extends SavedData {
         return Math.max(FLOOR, Math.min(1.0, 1.0 - current));
     }
 
-    /** §population: how depleted THIS species is here (1.0 plenty … {@link #FLOOR} fished out). */
+    /** §population: this species here — {@link #FLOOR} fished out … 1.0 plenty … up to 2.5 packed.
+     *  The write-side floors bound the range: settled 1.5, natives 2.5. */
     public double speciesAttractiveness(long chunkKey, String species, long gameTime, double regenScale) {
         double current = currentPressure(chunkKey, species, gameTime, regenScale);
-        return Math.max(FLOOR, Math.min(1.0, 1.0 - current));
+        return Math.max(FLOOR, Math.min(1.0 - FLOOR_NATIVE, 1.0 - current));
     }
 
     private double currentPressure(long chunkKey, String key, long gameTime, double regenScale) {

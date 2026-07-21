@@ -68,6 +68,16 @@ public class RodPodBlockEntity extends BlockEntity {
             AlarmType alarm = alarmAt(i);
 
             if (!line.bitten) {
+                // §live-conditions: a podded line re-reads the world too — the detached session still
+                // carries the cast's context snapshot. ponytail: the ctx isn't NBT-persisted, so after
+                // a chunk reload the line degrades to the old fixed-snapshot wait.
+                if (line.session != null && line.session.ctx != null
+                        && line.biteAtTick > now && now % 300 == 0) {
+                    line.session.biteAtTick = line.biteAtTick;
+                    FishingManager.reEvaluate(serverLevel, line.session, now);
+                    line.biteAtTick = line.session.biteAtTick;
+                    line.species = line.session.species;
+                }
                 // §catch-the-moment: in the last ~10 s the fish nibbles the bait — subtle stirs that
                 // ramp up toward the real take (no state change, purely a cue).
                 long toBite = line.biteAtTick - now;
@@ -423,9 +433,12 @@ public class RodPodBlockEntity extends BlockEntity {
         boolean hasLeader;
         RigType rigType;
         boolean active = true;
+        /** §live-conditions: the detached session (carries the cast's BiteContext). Not persisted. */
+        FishingSession session;
 
         static PodLine fromSession(FishingSession s) {
             PodLine line = new PodLine();
+            line.session = s;
             line.target = s.target;
             line.species = s.species;
             line.biteAtTick = s.biteAtTick;

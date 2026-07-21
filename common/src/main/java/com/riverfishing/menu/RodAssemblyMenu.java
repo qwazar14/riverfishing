@@ -294,9 +294,21 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
             }
             if (!moved) {
                 com.riverfishing.rig.SlotRole[] roles = rigRoles();
+                // §one-hook (0.5.1): a shift-clicked HOOK stack loads ONE hook into the first FREE
+                // hook slot per click — a rig fishes one hook per slot, and dumping the whole stack
+                // in swallowed it. Baits still move as stacks (consumables — you want the pile in).
+                boolean single = stack.getItem() instanceof com.riverfishing.item.HookItem;
                 for (int i = 0; i < roles.length; i++) {
-                    if (roles[i].accepts(stack)
-                            && moveItemStackTo(stack, compCount + i, compCount + i + 1, false)) {
+                    if (!roles[i].accepts(stack)) continue;
+                    if (single) {
+                        if (slots.get(compCount + i).hasItem()) continue;
+                        ItemStack one = stack.copyWithCount(1);
+                        if (moveItemStackTo(one, compCount + i, compCount + i + 1, false) && one.isEmpty()) {
+                            stack.shrink(1);
+                            moved = true;
+                            break;
+                        }
+                    } else if (moveItemStackTo(stack, compCount + i, compCount + i + 1, false)) {
                         moved = true;
                         break;
                     }

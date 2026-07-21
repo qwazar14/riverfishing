@@ -47,6 +47,7 @@ public final class ModEvents {
         TickEvent.PLAYER_POST.register(player -> {
             if (player instanceof ServerPlayer sp) {
                 FishingManager.tick(sp);
+                FishingManager.trollingTick(sp); // trolling v1 (0.5.0): boat-agnostic towing loop
                 if (sp.tickCount % 10 == 0) {
                     var level = sp.level();
                     com.riverfishing.fishing.FeedZoneData.get(level)
