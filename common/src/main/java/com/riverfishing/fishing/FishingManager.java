@@ -2149,13 +2149,17 @@ public final class FishingManager {
         double absent = body.width() < 8 ? 0.60 : body.width() < 16 ? 0.45 : body.width() < 32 ? 0.30 : 0.20;
         long worldSeed = level.getSeed();
         StockedData stocked = StockedData.get(level);
+        FishingPressureData pd = FishingPressureData.get(level);
+        long chunk = new ChunkPos(waterPos).toLong();
         return id -> {
             FishProfile pr = FishProfileManager.get().byId(id);
             if (pr == null || pr.base >= 0.95) return 1.0;
             if (stocked.isStocked(region, id.getPath())) return 1.0;
             double r = hashUnit(worldSeed, region, id.getPath());
-            if (r < absent) return 0.0;
-            return r > 0.92 ? 1.8 : 1.0;
+            if (r >= absent) return r > 0.92 ? 1.8 : 1.0;
+            // §stock-vs-settle: an UNSETTLED transplant is still swimming here while its released
+            // stock surplus lasts — temporarily catchable, gone when the surplus decays away.
+            return pd.speciesAttractiveness(chunk, id.getPath(), level.getGameTime(), 1.0) > 1.05 ? 1.0 : 0.0;
         };
     }
 
@@ -2200,9 +2204,16 @@ public final class FishingManager {
         // (~6 trophies), fry a rounding error. Packing a water stays real work.
         double sizeRatio = weightG / Math.max(1.0, p.weightMean);
         double units = 0.5 * Math.pow(Mth.clamp(sizeRatio, 0.0, 3.0), 1.5);
+        // §stock-vs-settle (0.5.1): the two systems no longer fight over the same fish. Water the
+        // species CANNOT live in (fit 0) kills the release outright; everywhere else EVERY release
+        // banks its weight units — the fish physically swims here now, and while the surplus lasts
+        // the species is TEMPORARILY catchable (communityFactor reads the surplus). Settling is a
+        // separate roll for PERMANENCE on top; fail it and the transplants simply disperse as the
+        // surplus decays. A trophy spent on a settle attempt is never wasted again.
+        boolean hostile = !present && fit <= 0;
         boolean settledNow = false;
         double chance = 0.0;
-        if (!present && fit > 0) {
+        if (!present && !hostile) {
             // Settling keeps the RAW size ratio (it's about the specimen being adult, not tonnage).
             chance = 0.18 * Math.pow(Math.min(1.2, fit), 2.0) * Mth.clamp(sizeRatio, 0.1, 2.0);
             for (int i = 0; i < Math.max(1, count) && !settledNow; i++) {
@@ -2211,24 +2222,24 @@ public final class FishingManager {
             if (settledNow) stocked.markStocked(region, species.getPath());
         }
         FishingPressureData pressure = FishingPressureData.get(level);
-        if (present || settledNow) {
+        if (!hostile) {
             pressure.addStock(chunk, species.getPath(), now, units * Math.max(1, count), nativeHere);
         }
 
         if (thrower == null) return;
         net.minecraft.network.chat.Component name = fishName(species);
+        int pct = pressure.stockPercent(chunk, species.getPath(), now);
         if (settledNow) {
             thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_settled", name)
                     .withStyle(ChatFormatting.GREEN), true);
-        } else if (!present && fit > 0) {
-            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_failed",
-                    name, (int) Math.round(chance * 100)).withStyle(ChatFormatting.GRAY), true);
-        } else if (!present) {
+        } else if (hostile) {
             thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_hostile", name)
                     .withStyle(ChatFormatting.RED), true);
+        } else if (!present) {
+            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_failed",
+                    name, (int) Math.round(chance * 100), pct).withStyle(ChatFormatting.GRAY), true);
         } else {
-            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked",
-                    name, pressure.stockPercent(chunk, species.getPath(), now))
+            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked", name, pct)
                     .withStyle(ChatFormatting.AQUA), true);
         }
     }
