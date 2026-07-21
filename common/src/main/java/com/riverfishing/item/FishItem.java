@@ -146,6 +146,12 @@ public class FishItem extends Item {
             tag.putBoolean(TAG_LEGAL, legal);
             if (trophy) tag.putBoolean(TAG_TROPHY, true);
         });
+        // §26.1 §fish-scale: the icon scale rides custom_model_data float[0] — the client item
+        // definition range_dispatches on it into the scale-bucket models (BEWLR is gone).
+        stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
+                new net.minecraft.world.item.component.CustomModelData(
+                        java.util.List.of(getIconScale(stack)),
+                        java.util.List.of(), java.util.List.of(), java.util.List.of()));
         return stack;
     }
 
