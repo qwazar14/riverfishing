@@ -28,6 +28,8 @@ public final class RiverFishingConfig {
     public static double frenzySpeed = 3.0;
     public static boolean consumeBait = true;
     public static boolean consumeGroundbait = true;
+    // update-check (0.4.0): the on-join version digest; modpacks can switch it off.
+    public static boolean updateCheck = true;
     public static double bycatchJunk = 0.045;
     public static double bycatchTreasure = 0.013;
 

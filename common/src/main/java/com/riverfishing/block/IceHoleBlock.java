@@ -77,6 +77,6 @@ public class IceHoleBlock extends IceBlock {
                 FishingManager.startIceFishing(sp, pos, hand);
             }
         }
-        return net.minecraft.world.InteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 }

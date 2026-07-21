@@ -26,9 +26,14 @@ public class ReelItem extends Item implements RodComponentItem {
         return 1.0 + (size - 1000) / 6000.0 * 0.9;
     }
 
-    /** Maximum drag in kg (§3.2): a weak drag against a strong fish snaps the line. */
+    /**
+     * Maximum drag in kg (§3.2): a weak drag against a strong fish snaps the line.
+     * §sea-tackle (0.5.0): the freshwater ladder stays linear (1000→1 kg … 7000→7 kg); the saltwater
+     * sizes climb steeper (+2.5 kg per 1000 above 7000, 14000→24.5 kg) — ocean drags are a different
+     * machine, and without one the pelagics simply cannot be stopped.
+     */
     public double maxDragKg() {
-        return size / 1000.0;
+        return size <= 7000 ? size / 1000.0 : 7.0 + (size - 7000) / 1000.0 * 2.5;
     }
 
     @Override

@@ -109,6 +109,18 @@ public final class RigData {
         return found[0];
     }
 
+    /** livebait-2: weight of a live baitfish loaded in a BAIT slot, or 0 (drives predator size, 0.4.0). */
+    public static int livebaitWeightG(ItemStack rig) {
+        int[] found = { 0 };
+        forEachFilled(rig, (role, stack) -> {
+            if (found[0] == 0 && role == SlotRole.BAIT && stack.getItem() instanceof BaitItem b
+                    && "livebait".equals(b.baitId())) {
+                found[0] = StackNbt.get(stack).getIntOr(com.riverfishing.item.FishItem.TAG_BAIT_WEIGHT, 0);
+            }
+        });
+        return found[0];
+    }
+
     /** Groundbait category loaded in the feeder/flat/grusha cage, or null. */
     public static String groundbaitCategory(ItemStack rig) {
         String[] found = new String[1];
@@ -152,19 +164,34 @@ public final class RigData {
      * the BAIT slot, not something a fish can eat. Returns true when something was eaten.
      */
     public static boolean consumeBait(ItemStack rig) {
+        return consumeBait(rig, null);
+    }
+
+    /**
+     * §bait-attribution: with a preference (the biting species' own bait scores) the bait the fish
+     * actually TOOK is the one consumed — not just the first filled slot.
+     */
+    public static boolean consumeBait(ItemStack rig, java.util.function.ToDoubleFunction<String> preference) {
         SlotRole[] roles = RigLayout.rolesFor(rigType(rig));
         NonNullList<ItemStack> inv = load(rig);
+        int bestSlot = -1;
+        double bestScore = -Double.MAX_VALUE;
         for (int i = 0; i < roles.length && i < inv.size(); i++) {
             ItemStack s = inv.get(i);
             if (roles[i] == SlotRole.BAIT && !s.isEmpty()
                     && s.getItem() instanceof BaitItem b && !b.artificial()
                     && !"mormyshka".equals(b.baitId())) {
-                s.shrink(1);
-                save(rig, inv);
-                return true;
+                double score = preference != null ? preference.applyAsDouble(b.baitId()) : 0.0;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestSlot = i;
+                }
             }
         }
-        return false;
+        if (bestSlot < 0) return false;
+        inv.get(bestSlot).shrink(1);
+        save(rig, inv);
+        return true;
     }
 
     /** True when a float is actually loaded in the rig's FLOAT slot (§fishing-depth). */

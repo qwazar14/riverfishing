@@ -1,7 +1,7 @@
 {
   "parent": "riverfishing:riverfishing/root",
   "display": {
-    "icon": { "item": "riverfishing:wobbler" },
+    "icon": { "id": "riverfishing:wobbler" },
     "title": { "translate": "advancement.riverfishing.predator.title" },
     "description": { "translate": "advancement.riverfishing.predator.description" },
     "show_toast": true,

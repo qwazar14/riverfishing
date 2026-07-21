@@ -95,9 +95,9 @@ public class WormFarmBlock extends BaseEntityBlock {
                             6, 0.3, 0.1, 0.3, 0.0);
                 }
             }
-            return net.minecraft.world.InteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
-        if (level.isClientSide()) return net.minecraft.world.InteractionResult.SUCCESS;
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof WormFarmBlockEntity be) {
             be.collect(player);
         }

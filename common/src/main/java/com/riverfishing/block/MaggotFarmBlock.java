@@ -79,7 +79,7 @@ public class MaggotFarmBlock extends BaseEntityBlock {
     protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         ItemStack held = player.getItemInHand(hand);
-        if (level.isClientSide()) return net.minecraft.world.InteractionResult.SUCCESS;
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof MaggotFarmBlockEntity be) {
             if (held.is(Items.ROTTEN_FLESH)) {
                 be.depositOne(player, held);

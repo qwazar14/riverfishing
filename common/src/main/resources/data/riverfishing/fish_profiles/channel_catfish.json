@@ -1,0 +1,25 @@
+{
+  "display": "Канальный сомик",
+  "water_bodies": { "river": 1.2, "lake": 1.0, "pond": 0.6, "swamp": 0.5, "sea": 0.0, "puddle": 0.0 },
+  "weight_g": { "min": 800, "max": 18000, "mean": 3500 },
+  "length_cm": { "min": 35, "max": 110 },
+  "fight": { "strength": 0.85, "stamina": 0.9, "runs": 3, "pattern": "steady", "aggression": 0.7 },
+  "ideal": {
+    "rod": ["bottom", "feeder", "carp"],
+    "reel_size": 5000, "reel_tolerance": 1000,
+    "line": { "type": "mono", "diameter_mm": 0.35, "tolerance_mm": 0.08 },
+    "rig": ["catfish", "grusha"],
+    "groundbait": ["pellet"],
+    "bait": { "livebait": 1.1, "chicken_liver": 1.0, "worm": 0.8, "maggot": 0.6, "boilie": 0.5 },
+    "hook": { "ideal": 2, "tolerance": 2 }
+  },
+  "season": { "spring": 0.9, "summer": 1.3, "autumn": 1.0, "winter": 0.2 },
+  "time":   { "dawn": 1.0, "day": 0.5, "dusk": 1.2, "night": 1.5 },
+  "weather":{ "clear": 0.9, "rain": 1.1, "thunder": 1.2 },
+  "depth_pref": "bottom",
+  "distance_pref": { "min": 10, "max": 40 },
+  "habitat": { "depth_min": 2, "width_min": 8 },
+  "biomes": { "warm": 1.3, "temperate": 0.9 },
+  "base": 0.55,
+  "min_angler_level": 5
+}

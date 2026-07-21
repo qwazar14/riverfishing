@@ -1,14 +1,16 @@
 {
-  "values": [
-    "riverfishing:fisherman/5/digital_alarm",
-    "riverfishing:fisherman/5/leader_titanium",
-    "riverfishing:fisherman/5/reel_7000",
-    "riverfishing:fisherman/5/line_braid_030",
-    "riverfishing:fisherman/5/carp_rod",
-    "riverfishing:fisherman/5/bottom_rod",
-    "riverfishing:fisherman/5/buy_catfish",
-    "riverfishing:fisherman/5/buy_eel",
-    "riverfishing:fisherman/5/buy_sterlet",
-    "riverfishing:fisherman/5/buy_wild_carp"
-  ]
+   "values" : [
+      "riverfishing:fisherman/5/digital_alarm",
+      "riverfishing:fisherman/5/leader_titanium",
+      "riverfishing:fisherman/5/reel_7000",
+      "riverfishing:fisherman/5/line_braid_030",
+      "riverfishing:fisherman/5/carp_rod",
+      "riverfishing:fisherman/5/bottom_rod",
+      "riverfishing:fisherman/5/buy_catfish",
+      "riverfishing:fisherman/5/buy_eel",
+      "riverfishing:fisherman/5/buy_sterlet",
+      "riverfishing:fisherman/5/buy_wild_carp",
+      "riverfishing:fisherman/5/buy_channel_catfish",
+      "riverfishing:fisherman/5/buy_silver_carp"
+   ]
 }

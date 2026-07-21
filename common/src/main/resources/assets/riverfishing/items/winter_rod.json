@@ -65,6 +65,34 @@
                     "type": "minecraft:model",
                     "model": "riverfishing:item/rod_layer/reel_7000"
                   }
+                },
+                {
+                  "when": "reel_8000",
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/reel_8000"
+                  }
+                },
+                {
+                  "when": "reel_10000",
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/reel_10000"
+                  }
+                },
+                {
+                  "when": "reel_12000",
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/reel_12000"
+                  }
+                },
+                {
+                  "when": "reel_14000",
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/reel_14000"
+                  }
                 }
               ],
               "fallback": {
@@ -140,6 +168,34 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_7000"
                     }
+                  },
+                  {
+                    "when": "reel_8000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_8000"
+                    }
+                  },
+                  {
+                    "when": "reel_10000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_10000"
+                    }
+                  },
+                  {
+                    "when": "reel_12000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_12000"
+                    }
+                  },
+                  {
+                    "when": "reel_14000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_14000"
+                    }
                   }
                 ],
                 "fallback": {
@@ -207,6 +263,34 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_7000"
+                    }
+                  },
+                  {
+                    "when": "reel_8000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_8000"
+                    }
+                  },
+                  {
+                    "when": "reel_10000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_10000"
+                    }
+                  },
+                  {
+                    "when": "reel_12000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_12000"
+                    }
+                  },
+                  {
+                    "when": "reel_14000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_14000"
                     }
                   }
                 ],
@@ -388,6 +472,34 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_7000"
                     }
+                  },
+                  {
+                    "when": "reel_8000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_8000"
+                    }
+                  },
+                  {
+                    "when": "reel_10000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_10000"
+                    }
+                  },
+                  {
+                    "when": "reel_12000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_12000"
+                    }
+                  },
+                  {
+                    "when": "reel_14000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_14000"
+                    }
                   }
                 ],
                 "fallback": {
@@ -455,6 +567,34 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_7000"
+                    }
+                  },
+                  {
+                    "when": "reel_8000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_8000"
+                    }
+                  },
+                  {
+                    "when": "reel_10000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_10000"
+                    }
+                  },
+                  {
+                    "when": "reel_12000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_12000"
+                    }
+                  },
+                  {
+                    "when": "reel_14000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_14000"
                     }
                   }
                 ],
@@ -636,6 +776,34 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_7000"
                     }
+                  },
+                  {
+                    "when": "reel_8000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_8000"
+                    }
+                  },
+                  {
+                    "when": "reel_10000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_10000"
+                    }
+                  },
+                  {
+                    "when": "reel_12000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_12000"
+                    }
+                  },
+                  {
+                    "when": "reel_14000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_14000"
+                    }
                   }
                 ],
                 "fallback": {
@@ -703,6 +871,34 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_7000"
+                    }
+                  },
+                  {
+                    "when": "reel_8000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_8000"
+                    }
+                  },
+                  {
+                    "when": "reel_10000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_10000"
+                    }
+                  },
+                  {
+                    "when": "reel_12000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_12000"
+                    }
+                  },
+                  {
+                    "when": "reel_14000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_14000"
                     }
                   }
                 ],
@@ -884,6 +1080,34 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_7000"
                     }
+                  },
+                  {
+                    "when": "reel_8000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_8000"
+                    }
+                  },
+                  {
+                    "when": "reel_10000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_10000"
+                    }
+                  },
+                  {
+                    "when": "reel_12000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_12000"
+                    }
+                  },
+                  {
+                    "when": "reel_14000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_14000"
+                    }
                   }
                 ],
                 "fallback": {
@@ -951,6 +1175,34 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_7000"
+                    }
+                  },
+                  {
+                    "when": "reel_8000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_8000"
+                    }
+                  },
+                  {
+                    "when": "reel_10000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_10000"
+                    }
+                  },
+                  {
+                    "when": "reel_12000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_12000"
+                    }
+                  },
+                  {
+                    "when": "reel_14000",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_14000"
                     }
                   }
                 ],
@@ -1126,6 +1378,34 @@
               "model": {
                 "type": "minecraft:model",
                 "model": "riverfishing:item/rod_layer/reel_7000"
+              }
+            },
+            {
+              "when": "reel_8000",
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/reel_8000"
+              }
+            },
+            {
+              "when": "reel_10000",
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/reel_10000"
+              }
+            },
+            {
+              "when": "reel_12000",
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/reel_12000"
+              }
+            },
+            {
+              "when": "reel_14000",
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/reel_14000"
               }
             }
           ],

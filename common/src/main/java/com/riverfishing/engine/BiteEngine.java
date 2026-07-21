@@ -19,7 +19,6 @@ public final class BiteEngine {
     private static final double GRADIENT_K = 0.25;        // §1.1
     private static final double BAIT_HARD_FILTER = 0.15;  // §1.5
     private static final double HOOK_GATE = 0.34;         // below this, the hook is the wrong size band (#6)
-    private static final long MAX_WAIT_TICKS = 2400;      // 2 min ceiling (§bite-pacing): waits stay humane
     private static final double SWARM_KNEE = 1.5;         // §swarm-cap: W_total below this is untouched
     private static final double SWARM_DAMP = 0.3;         // …above it, only 30% of the excess counts toward speed
     // §deep-conditions: amplify the season / time-of-day / biome swings the profiles already describe, so
@@ -106,6 +105,16 @@ public final class BiteEngine {
     // ---- Environmental suitability E (§1.2) ----
 
     public static double environmentScore(FishProfile p, BiteContext c) {
+        double natural = naturalScore(p, c);
+        // §stocked-survival (0.5.1): a STOCKED species lives on even in water that fails its natural
+        // gates — at a quarter of full activity, scaled by how much of it is actually there. This is
+        // what makes "нестандартное" зарыбление real: the settled shark in the river is catchable,
+        // just never comfortable.
+        double presence = c.stockedPresence != null ? c.stockedPresence.applyAsDouble(p.id) : 0.0;
+        return presence > 0 ? Math.max(natural, 0.25 * presence) : natural;
+    }
+
+    private static double naturalScore(FishProfile p, BiteContext c) {
         double fWater = p.waterFactor(c.water);
         if (fWater <= 0) return 0.0; // the fish does not live in this water body
 
@@ -116,6 +125,11 @@ public final class BiteEngine {
         double fBiome = biomeGroupFactor(p, c);
         if (fBiome <= 0) return 0.0; // wrong climate/terrain — not this fish's range
 
+        // §community (0.5.0): THIS water's own species set — the seed decides which species a given
+        // lake/river patch actually holds (0 = simply not here, 1.8 = the water's signature fish).
+        double fCommunity = c.communityFactor != null ? c.communityFactor.applyAsDouble(p.id) : 1.0;
+        if (fCommunity <= 0) return 0.0;
+
         // §deep-conditions: season, time and biome are amplified so the daily/yearly rhythm and the
         // regional identity of each fish are strongly felt (see the *_POW constants).
         double fSeason = Math.pow(p.seasonFactor(c.season), SEASON_POW);
@@ -123,7 +137,7 @@ public final class BiteEngine {
         double fWeather = p.weatherFactor(c.weather);
         double fDist = distanceFactor(p, c);
 
-        return fWater * fSeason * fTime * fWeather * Math.pow(fBiome, BIOME_POW) * fDist;
+        return fWater * fSeason * fTime * fWeather * Math.pow(fBiome, BIOME_POW) * fDist * fCommunity;
     }
 
     /**
@@ -187,6 +201,12 @@ public final class BiteEngine {
         double w = p.base * Math.pow(Math.max(0.0, m), sizeExp) * e * g * pop * c.pressureFactor
                 * (1.0 + c.skillBiteBonus);
 
+        // §bait-first (0.5.1): the bait is THE selector — bite speed scales directly with how much
+        // this species rates what's on the hook. The right bait singles a species out of the swim;
+        // a bait it barely tolerates slows it to a crawl (use that to keep the trash off), and a
+        // favourite (score > 1) earns a small extra pull. Peaceful commons no longer swarm anything.
+        w *= 0.30 + 0.70 * Math.min(1.3, sBait);
+
         // §line-visibility: a thick, opaque line spooks fish and slows the bite — but a SMALL wary fish
         // fears a visible line far more than a big fish does. Fluoro (low visibility) and thin diameters
         // stay near-invisible; thick braid on a roach swim is a real handicap. Reference: 0.20 mm mono = 1.
@@ -243,6 +263,16 @@ public final class BiteEngine {
 
     // ---- Scheduling ----
 
+    /**
+     * §swarm-cap (§anti-macro): a big shoal of small fish stacks a huge W_total and would floor the wait,
+     * turning a swim into a bite-per-few-seconds conveyor. Compress attractiveness above a knee: normal
+     * single/few-target fishing is untouched, a swarm's effective total grows only a fraction. Public so
+     * live re-evaluation (§live-conditions) can rescale a waiting line's clock with the same curve.
+     */
+    public static double effectiveWeight(double total) {
+        return total <= SWARM_KNEE ? total : SWARM_KNEE + (total - SWARM_KNEE) * SWARM_DAMP;
+    }
+
     public static Outcome evaluate(Collection<FishProfile> profiles, BiteContext c, RandomSource random) {
         Map<Identifier, Double> weights = new LinkedHashMap<>();
         double total = 0.0;
@@ -256,15 +286,12 @@ public final class BiteEngine {
         if (total <= 1e-6) {
             return new Outcome(weights, 0.0, -1L);
         }
-        // §swarm-cap (§anti-macro): a big shoal of small fish stacks a huge W_total and floors the wait at
-        // the rod-class minimum, turning a swim into a bite-per-few-seconds conveyor. Compress attractiveness
-        // above a knee: normal single/few-target fishing (W_total below the knee) is untouched, but a swarm's
-        // effective total grows only a fraction, so the pacing stays lively without becoming farmable.
-        double eff = total <= SWARM_KNEE ? total : SWARM_KNEE + (total - SWARM_KNEE) * SWARM_DAMP;
-        double t = T_MIN_TICKS / eff;
+        double t = T_MIN_TICKS / effectiveWeight(total);
         double u = random.nextDouble();
         long ticks = (long) (-t * Math.log(1.0 - u));
-        ticks = Math.max(40L, Math.min(MAX_WAIT_TICKS, ticks));
+        // §honest-tail (0.5.0): no upper clamp any more — a barely-viable setup now really IS a long
+        // wait (the caller warns the player) instead of silently gifting a fish every two minutes.
+        ticks = Math.max(40L, ticks);
         return new Outcome(weights, total, ticks);
     }
 

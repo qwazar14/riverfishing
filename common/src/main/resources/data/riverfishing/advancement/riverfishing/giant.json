@@ -1,7 +1,7 @@
 {
   "parent": "riverfishing:riverfishing/predator",
   "display": {
-    "icon": { "item": "riverfishing:catfish" },
+    "icon": { "id": "riverfishing:catfish" },
     "title": { "translate": "advancement.riverfishing.giant.title" },
     "description": { "translate": "advancement.riverfishing.giant.description" },
     "frame": "goal",

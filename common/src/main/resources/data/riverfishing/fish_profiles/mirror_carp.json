@@ -1,7 +1,7 @@
 {
   "display": "Зеркальный карп",
   "water_bodies": { "lake": 1.2, "pond": 1.2, "river": 0.5, "swamp": 0.4, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 1000, "max": 14000, "mean": 3200, "spread": 0.7 },
+  "weight_g": { "min": 1000, "max": 14000, "mean": 3200 },
   "length_cm": { "min": 33, "max": 95 },
   "fight": { "strength": 0.8, "stamina": 0.8, "runs": 3, "pattern": "burst", "aggression": 0.75 },
   "ideal": {

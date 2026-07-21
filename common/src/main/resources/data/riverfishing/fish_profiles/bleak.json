@@ -1,7 +1,7 @@
 {
   "display": "Уклейка",
   "water_bodies": { "river": 1.1, "lake": 1.0, "pond": 0.5, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 10, "max": 100, "mean": 30, "spread": 0.4 },
+  "weight_g": { "min": 10, "max": 100, "mean": 30 },
   "length_cm": { "min": 6, "max": 18 },
   "fight": { "strength": 0.05, "stamina": 0.15, "runs": 1 },
   "ideal": {

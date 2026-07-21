@@ -1,7 +1,7 @@
 {
   "parent": "riverfishing:riverfishing/root",
   "display": {
-    "icon": { "item": "riverfishing:pike" },
+    "icon": { "id": "riverfishing:pike" },
     "title": { "translate": "advancement.riverfishing.trophy.title" },
     "description": { "translate": "advancement.riverfishing.trophy.description" },
     "frame": "goal",

@@ -1,6 +1,6 @@
 modLoader="javafml"
 loaderVersion="[4,)"
-license="MIT"
+license="All Rights Reserved (source-available, see LICENSE.txt)"
 issueTrackerURL="https://github.com/qwazar14/riverfishing/issues"
 
 # §multiloader (1.21.1): NeoForge loads mixin configs from this file. The common koi-release mixin

@@ -2,8 +2,8 @@
   "parent": "minecraft:item/generated",
   "gui_light": "front",
   "textures": {
-    "layer0": "riverfishing:item/fish/crucian_carp",
-    "particle": "riverfishing:item/fish/crucian_carp"
+    "particle": "riverfishing:item/fish/crucian_carp",
+    "layer0": "riverfishing:item/fish/crucian_carp"
   },
   "display": {
     "gui": {
@@ -35,9 +35,9 @@
         0
       ],
       "scale": [
-        0.5,
-        0.5,
-        0.5
+        1,
+        1,
+        1
       ]
     },
     "fixed": {

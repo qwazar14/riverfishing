@@ -31,11 +31,18 @@ public final class ClientInit {
 
     /** Event listeners only — safe during Forge mod construction (nothing calls {@code .get()}). */
     public static void registerEvents() {
+        // s2c-split (0.4.0): S2C packet receivers are CLIENT-only - dedicated servers crash on the
+        // dist-stripped receiver path (see ModNetwork).
+        com.riverfishing.network.ModNetwork.registerClientReceivers();
+
         // Float-timing + cast-power HUD (Forge RenderGuiEvent.Post → Architectury RENDER_HUD).
         ClientGuiEvent.RENDER_HUD.register(ClientHud::render);
 
         // Never carry a fishing line into another world (Forge ClientPlayerNetworkEvent.LoggingOut).
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> ClientLineState.clear());
+
+        // update-check (0.4.0): one quiet version digest per game launch, on first world join.
+        ClientPlayerEvent.CLIENT_PLAYER_JOIN.register(player -> UpdateChecker.onJoin());
 
         // /rfrod live pose debugger (Forge RegisterClientCommandsEvent → Architectury client command).
         ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> RodDebugCommand.register(dispatcher));

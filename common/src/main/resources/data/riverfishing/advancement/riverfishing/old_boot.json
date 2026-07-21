@@ -1,7 +1,7 @@
 {
   "parent": "riverfishing:riverfishing/root",
   "display": {
-    "icon": { "item": "minecraft:leather_boots" },
+    "icon": { "id": "minecraft:leather_boots" },
     "title": { "translate": "advancement.riverfishing.old_boot.title" },
     "description": { "translate": "advancement.riverfishing.old_boot.description" },
     "frame": "task",

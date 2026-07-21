@@ -11,7 +11,7 @@
     "homepage": "https://github.com/qwazar14/riverfishing",
     "sources": "https://github.com/qwazar14/riverfishing"
   },
-  "license": "MIT",
+  "license": "All Rights Reserved (source-available, see LICENSE.txt)",
   "icon": "assets/riverfishing/icon.png",
   "environment": "*",
   "entrypoints": {

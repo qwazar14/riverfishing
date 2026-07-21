@@ -94,6 +94,14 @@ public final class Quests {
         };
     }
 
+    /** Any one of the listed species has been caught (§billfish: "поймай любого биллфиша"). */
+    private static Goal anyOf(String... sps) {
+        return j -> {
+            for (String sp : sps) if (j.getCompoundOrEmpty(rec(sp)).getIntOr("count", 0) > 0) return true;
+            return false;
+        };
+    }
+
     private static Goal koi() {
         return j -> {
             for (String sp : ModItems.FISH_SPECIES) {
@@ -113,7 +121,7 @@ public final class Quests {
 
     // ---- stage completion (§stage-reward) ----
 
-    public static final int STAGES = 6;
+    public static final int STAGES = 8;
     /** Reach this fraction of a stage's tasks to UNLOCK the next stage; 100% earns the stage reward. */
     private static final double STAGE_UNLOCK_FRACTION = 0.70;
 
@@ -223,7 +231,29 @@ public final class Quests {
             new Quest("q_ice_ruffe", 6, species("ruffe", 1), item("maggot", 12), 30),
             new Quest("q_ice_ten", 6, ice(10), item("winter_rod", 1), 80),
             new Quest("q_ice_thirty", 6, ice(30), emeralds(24), 160),
-            new Quest("q_stage6_done", 6, stageComplete(6), emeralds(50), 200)
+            new Quest("q_stage6_done", 6, stageComplete(6), emeralds(50), 200),
+            // Stage 7 — the north wave (§north): taiga rivers, the salmon run, the taimen.
+            // Rewards hand out the exact lure the NEXT quest's fish wants — the stage teaches itself.
+            new Quest("q_rotan", 7, species("rotan", 1), item("spinner", 1), 20),
+            new Quest("q_nase", 7, species("nase", 1), item("maggot", 12), 30),
+            new Quest("q_vimba", 7, species("vimba", 1), item("groundbait_grain", 4), 40),
+            new Quest("q_whitefish", 7, species("whitefish", 1), item("bloodworm", 12), 50),
+            new Quest("q_char", 7, species("char", 1), item("castmaster", 1), 60),
+            new Quest("q_lenok", 7, species("lenok", 1), item("wobbler", 1), 70),
+            new Quest("q_salmon", 7, species("salmon", 1), item("spoon", 2), 90),
+            new Quest("q_taimen", 7, weight("taimen", 15000), emeralds(30), 160),
+            new Quest("q_stage7_done", 7, stageComplete(7), item("surf_rod", 1), 180),
+            // Stage 8 — the sea and big game (§ocean): coast → shelf → the pelagic monsters.
+            new Quest("q_seabass", 8, species("seabass", 1), item("castmaster", 1), 50),
+            new Quest("q_herring", 8, species("herring", 5), item("fish_strip", 8), 50),
+            new Quest("q_cod", 8, species("cod", 1), emeralds(8), 60),
+            new Quest("q_species40", 8, distinct(40), item("trolling_rod", 1), 120),
+            new Quest("q_mahi", 8, species("mahi", 1), emeralds(10), 90),
+            new Quest("q_tuna_big", 8, weight("yellowfin_tuna", 60000), emeralds(24), 150),
+            new Quest("q_halibut", 8, species("halibut", 1), item("line_braid_060", 1), 150),
+            new Quest("q_billfish", 8, anyOf("blue_marlin", "sailfish", "swordfish"), emeralds(40), 200),
+            new Quest("q_species60", 8, distinct(60), item("reel_14000", 1), 250),
+            new Quest("q_stage8_done", 8, stageComplete(8), emeralds(64), 300)
     );
 
     /**

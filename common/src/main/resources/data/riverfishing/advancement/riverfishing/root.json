@@ -1,6 +1,6 @@
 {
   "display": {
-    "icon": { "item": "riverfishing:fishing_journal" },
+    "icon": { "id": "riverfishing:fishing_journal" },
     "title": { "translate": "advancement.riverfishing.root.title" },
     "description": { "translate": "advancement.riverfishing.root.description" },
     "background": "minecraft:textures/block/spruce_planks.png",
@@ -10,7 +10,7 @@
   "criteria": {
     "any_fish": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": { "items": [ { "tag": "riverfishing:fishes" } ] }
+      "conditions": { "items": [ { "items": "#riverfishing:fishes" } ] }
     }
   }
 }

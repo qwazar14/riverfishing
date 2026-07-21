@@ -1,0 +1,49 @@
+{
+  "_comment": "River Fishing update feed (§update-check). Served raw from the mc-1.21.1 branch; the in-game checker compares 'latest' for the running MC version and prints up to 3 bullets per missed release. Bump 'latest' ONLY when a release is actually published.",
+  "latest": {
+    "1.20.1": "0.5.0",
+    "1.21.1": "0.5.0",
+    "26.1.2": "0.5.0"
+  },
+  "changelog": [
+    {
+      "version": "0.5.0",
+      "ru": [
+        "Морская рыбалка: океан, троллинг, big-game бои и 36 новых видов (всего 66)",
+        "Легендарные именные рыбы — одна на мир — и живой рынок цен",
+        "Зарыбление 2.0: выпускай рыбу, приживляй виды, строй своё хозяйство"
+      ],
+      "en": [
+        "Sea fishing: the ocean, trolling, big-game fights and 36 new species (66 total)",
+        "Legendary one-per-world named fish and a dynamic fish market",
+        "Stocking 2.0: release fish, settle new species, run your own fishery"
+      ]
+    },
+    {
+      "version": "0.3.0",
+      "ru": [
+        "Карповая линейка и коллекция кои, аквариум и трофеи",
+        "Зимняя рыбалка, навыки рыболова, зарыбление водоёмов",
+        "Злаки-наживки с грядками и покраска приманок"
+      ],
+      "en": [
+        "Carp line-up and the koi collection, aquarium and trophies",
+        "Ice fishing, angler skill perks, pond stocking",
+        "Growable bait crops and lure dyeing"
+      ]
+    },
+    {
+      "version": "0.2.0",
+      "ru": [
+        "Мультилоадер: Fabric и Forge/NeoForge из одного кода",
+        "Род-поды, сигнализаторы поклёвки, журнал и квесты",
+        "Рыбак-торговец со скупкой прайм-рыбы"
+      ],
+      "en": [
+        "Multiloader: Fabric and Forge/NeoForge from one codebase",
+        "Rod pods, bite alarms, journal and quests",
+        "Fisherman villager buying prime-grade fish"
+      ]
+    }
+  ]
+}

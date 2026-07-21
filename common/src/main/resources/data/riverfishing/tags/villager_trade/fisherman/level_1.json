@@ -1,16 +1,17 @@
 {
-  "values": [
-    "riverfishing:fisherman/1/worm",
-    "riverfishing:fisherman/1/bloodworm",
-    "riverfishing:fisherman/1/float",
-    "riverfishing:fisherman/1/groundbait_powder",
-    "riverfishing:fisherman/1/corn_seeds",
-    "riverfishing:fisherman/1/pea_seeds",
-    "riverfishing:fisherman/1/barley_seeds",
-    "riverfishing:fisherman/1/line_mono_014",
-    "riverfishing:fisherman/1/worm_farm",
-    "riverfishing:fisherman/1/buy_bleak",
-    "riverfishing:fisherman/1/buy_gudgeon",
-    "riverfishing:fisherman/1/buy_roach"
-  ]
+   "values" : [
+      "riverfishing:fisherman/1/worm",
+      "riverfishing:fisherman/1/bloodworm",
+      "riverfishing:fisherman/1/float",
+      "riverfishing:fisherman/1/groundbait_powder",
+      "riverfishing:fisherman/1/corn_seeds",
+      "riverfishing:fisherman/1/pea_seeds",
+      "riverfishing:fisherman/1/barley_seeds",
+      "riverfishing:fisherman/1/line_mono_014",
+      "riverfishing:fisherman/1/worm_farm",
+      "riverfishing:fisherman/1/buy_bleak",
+      "riverfishing:fisherman/1/buy_gudgeon",
+      "riverfishing:fisherman/1/buy_roach",
+      "riverfishing:fisherman/1/buy_bluegill"
+   ]
 }

@@ -4,6 +4,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -28,6 +29,10 @@ public class FishItem extends Item {
     public static final String TAG_GRADE = "Grade";
     public static final String GRADE_PRIME = "prime";
     public static final String TAG_MIN_WEIGHT = "MinW";
+    // §livebait-2 (0.4.0): weight carried by a live baitfish (on the LIVEBAIT item, not the fish).
+    public static final String TAG_BAIT_WEIGHT = "BaitW";
+    // legendary (0.5.0): this specimen is the server one-of-a-kind named fish.
+    public static final String TAG_LEGEND = "Legend";
 
     private final Identifier species;
 
@@ -40,6 +45,37 @@ public class FishItem extends Item {
     // (the item's physics keep working the whole time).
     public static final String TAG_RELEASE_AT = "ReleaseAt";
     public static final int RELEASE_TICKS = 40;
+
+    /**
+     * §livebait-2 (0.4.0): bait up a hook by hand — a small caught fish in the MAIN hand + a hook in the
+     * OFF hand + sneak-use → one live bait carrying the fish's weight (the hands-on version of the
+     * §livebait crafting recipe, for the fantasy of hooking the baitfish you just pulled out).
+     */
+    @Override
+    public net.minecraft.world.InteractionResult use(Level level,
+            net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand) {
+        ItemStack fish = player.getItemInHand(hand);
+        ItemStack off = player.getItemInHand(net.minecraft.world.InteractionHand.OFF_HAND);
+        int w = getWeightG(fish);
+        if (player.isCrouching() && hand == net.minecraft.world.InteractionHand.MAIN_HAND
+                && off.getItem() instanceof HookItem && w > 0 && w <= LivebaitRecipe.MAX_WEIGHT_G) {
+            if (!level.isClientSide()) {
+                var livebait = net.minecraft.core.registries.BuiltInRegistries.ITEM
+                        .getValue(com.riverfishing.RiverFishing.id("livebait"));
+                ItemStack bait = new ItemStack(livebait);
+                int fw = w;
+                StackNbt.mutate(bait, t -> t.putInt(TAG_BAIT_WEIGHT, fw));
+                fish.shrink(1);
+                off.shrink(1);
+                if (!player.getInventory().add(bait)) player.drop(bait, false);
+                level.playSound(null, player.blockPosition(),
+                        net.minecraft.sounds.SoundEvents.FISHING_BOBBER_RETRIEVE,
+                        net.minecraft.sounds.SoundSource.PLAYERS, 0.7f, 1.4f);
+            }
+            return InteractionResult.SUCCESS;
+        }
+        return super.use(level, player, hand);
+    }
 
     public Identifier species() {
         return species;
@@ -61,6 +97,14 @@ public class FishItem extends Item {
                 entity.setItem(stack); // sync the countdown to clients so they shrink the render
             } else if (now >= tag.getLongOr(TAG_RELEASE_AT, 0L)) {
                 if (level instanceof net.minecraft.server.level.ServerLevel sl) {
+                    // §stocking 2.0: presence, settling and the weight-scaled surplus all live in
+                    // FishingManager.releaseFish — see there for the whole model.
+                    Identifier released = getSpecies(stack);
+                    if (released != null) {
+                        com.riverfishing.fishing.FishingManager.releaseFish(sl, entity.blockPosition(),
+                                released, getWeightG(stack), stack.getCount(),
+                                entity.getOwner() instanceof net.minecraft.server.level.ServerPlayer t ? t : null);
+                    }
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE,
                             entity.getX(), entity.getY() + 0.1, entity.getZ(), 14, 0.25, 0.1, 0.25, 0.02);
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.SPLASH,
@@ -133,7 +177,7 @@ public class FishItem extends Item {
     }
 
     public static boolean isPrime(ItemStack stack) {
-        return GRADE_PRIME.equals(StackNbt.get(stack).getStringOr(TAG_GRADE, ""));
+        return GRADE_PRIME.equals(StackNbt.get(stack).getString(TAG_GRADE));
     }
 
     /** Weight as a localized component (§i18n) — "1.50 kg" / "1,50 кг" / "320 g" per the client's lang. */
@@ -166,29 +210,23 @@ public class FishItem extends Item {
         return StackNbt.get(stack).getIntOr(TAG_LENGTH, 0);
     }
 
-    /** Species drawn FOLDED in half on their icon, so they use half the length→scale rule (§fish-scale). */
-    private static final java.util.Set<String> FOLDED_ICON =
-            java.util.Set.of("catfish", "pike", "burbot", "eel", "sterlet");
-
     /**
-     * Icon scale for this catch (§fish-scale): the fish's real LENGTH — 50 cm renders at 1 block, 100 cm at
-     * 2, 25 cm at ½. Length now tracks weight by the allometric L ∝ W^(1/3) law (see FishingManager#rollFish),
-     * so this length-based scale already reflects how heavy the fish is — a big/heavy fish is long, a small
-     * one short. Long species drawn FOLDED in half divide by 100 (their art is already half-length). Floor
-     * 0.45 keeps the smallest fish readable; ceiling 2.0 stops a giant swallowing the inventory.
+     * Icon scale for this catch (§fish-scale): the fish's real LENGTH — 50 cm renders at 1 block, 100 cm
+     * at 2, a 380 cm mako at 7.6. Length tracks weight by the allometric L ∝ W^(1/3) law (see
+     * FishingManager#rollFish), so this already reflects how heavy the fish is. All icons are drawn
+     * FULL-LENGTH now (the old folded-in-half species art is gone with the 256×256 repaint), so one
+     * rule fits everyone. Floor 0.45 keeps the smallest fish readable; the true giants are capped
+     * PER DISPLAY CONTEXT in FishItemRenderer — huge in hand and on the ground, sane in a slot.
      */
     public static float getIconScale(ItemStack stack) {
         int len = getLengthCm(stack);
         if (len <= 0) return 1.0f; // creative-tab / JEI entry with no individual data
-        Identifier sp = getSpecies(stack);
-        boolean folded = sp != null && FOLDED_ICON.contains(sp.getPath());
-        float scale = len / (folded ? 100.0f : 50.0f);
-        return Math.max(0.45f, Math.min(2.0f, scale));
+        return Math.max(0.45f, Math.min(8.0f, len / 50.0f));
     }
 
     public static boolean isLegal(ItemStack stack) {
         CompoundTag tag = StackNbt.get(stack);
-        return !tag.contains(TAG_LEGAL) || tag.getBooleanOr(TAG_LEGAL, false);
+        return tag.getBooleanOr(TAG_LEGAL, true);
     }
 
     private static String displayKey(Identifier species) {
@@ -222,12 +260,20 @@ public class FishItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
         CompoundTag tag = StackNbt.get(stack);
+        // legendary (0.5.0): the one-of-a-kind server fish announces itself in gold.
+        if (tag.getBooleanOr(TAG_LEGEND, false)) {
+            Identifier lsp = getSpecies(stack);
+            if (lsp != null) {
+                tooltip.accept(Component.translatable("legendary.riverfishing." + lsp.getPath())
+                        .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+            }
+        }
         if (getWeightG(stack) <= 0) {
             // The fisherman's buy-trade cost has no weight — show the "accepts from N" legend (§prime-fish).
             // 1.21: the cost's display stack is rebuilt on the client from the ItemCost's component predicate,
             // so the threshold arrives via the PRIME component; fall back to the legacy custom_data key.
             Integer primeMin = stack.get(com.riverfishing.registry.ModComponents.PRIME.get());
-            int min = primeMin != null ? primeMin : (tag.contains(TAG_MIN_WEIGHT) ? tag.getIntOr(TAG_MIN_WEIGHT, 0) : -1);
+            int min = primeMin != null ? primeMin : (tag.getIntOr(TAG_MIN_WEIGHT, -1));
             if (min >= 0) {
                 tooltip.accept(Component.translatable("tooltip.riverfishing.trade_min_weight", weightText(min))
                         .withStyle(ChatFormatting.YELLOW));

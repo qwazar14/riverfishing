@@ -101,13 +101,13 @@ public class RodPodBlock extends BaseEntityBlock {
     protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         if (level.isClientSide()) {
-            return net.minecraft.world.InteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
         if (level.getBlockEntity(pos) instanceof RodPodBlockEntity be) {
             InteractionResult r = be.onUse(player, hand);
             if (r == InteractionResult.PASS) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
             if (r == InteractionResult.FAIL) return net.minecraft.world.InteractionResult.FAIL;
-            return net.minecraft.world.InteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
         return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
     }

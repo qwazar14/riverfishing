@@ -30,8 +30,7 @@ public class TrophyStandBlock extends BaseEntityBlock {
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     private static final VoxelShape SHAPE = Shapes.or(
             Block.box(1, 0, 1, 15, 3, 15),    // base
-            Block.box(3, 3, 3, 13, 10, 13),   // body
-            Block.box(2, 10, 2, 14, 12, 14)); // cap
+            Block.box(2, 3, 2, 14, 14, 14));  // §mini-aquarium: the glass tank
 
     public static final com.mojang.serialization.MapCodec<TrophyStandBlock> CODEC = simpleCodec(TrophyStandBlock::new);
 
@@ -77,23 +76,33 @@ public class TrophyStandBlock extends BaseEntityBlock {
     @Override
     protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide()) return net.minecraft.world.InteractionResult.SUCCESS;
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (!(level.getBlockEntity(pos) instanceof TrophyStandBlockEntity be)) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
 
         ItemStack held = player.getItemInHand(hand);
-        if (be.getFish().isEmpty() && held.getItem() instanceof FishItem) {
-            be.setFish(held.copyWithCount(1));
+        // §mini-aquarium: up to 5 small fish (≤150 g each); empty hand takes the last one back out.
+        if (held.getItem() instanceof FishItem) {
+            if (FishItem.getWeightG(held) > TrophyStandBlockEntity.MAX_WEIGHT_G) {
+                player.sendOverlayMessage(net.minecraft.network.chat.Component.translatable(
+                        "message.riverfishing.aquarium_too_big").withStyle(net.minecraft.ChatFormatting.YELLOW));
+                return net.minecraft.world.InteractionResult.CONSUME;
+            }
+            if (!be.addFish(held)) {
+                player.sendOverlayMessage(net.minecraft.network.chat.Component.translatable(
+                        "message.riverfishing.aquarium_full").withStyle(net.minecraft.ChatFormatting.YELLOW));
+                return net.minecraft.world.InteractionResult.CONSUME;
+            }
             held.shrink(1);
             return net.minecraft.world.InteractionResult.CONSUME;
         }
-        if (!be.getFish().isEmpty() && held.isEmpty()) {
-            ItemStack fish = be.getFish();
-            be.setFish(ItemStack.EMPTY);
+        if (held.isEmpty()) {
+            ItemStack fish = be.removeLast();
+            if (fish.isEmpty()) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
             if (!player.getInventory().add(fish)) player.drop(fish, false);
             return net.minecraft.world.InteractionResult.CONSUME;
         }
         return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
-    // §26.1: onRemove is gone — the mounted fish pops from TrophyStandBlockEntity#preRemoveSideEffects.
+    // §26.1: onRemove is gone — the fish pop from TrophyStandBlockEntity#preRemoveSideEffects.
 }

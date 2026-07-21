@@ -80,7 +80,7 @@ public final class FishingManager {
     private static final double MAX_SESSION_DISTANCE = 40.0;
     private static final double ROD_BREAK_RATIO = 2.5; // rig mass > rodMax * this -> the blank snaps (#5)
     private static final double FOUL_CHANCE = 0.01;     // §9: 1% per spinning retrieve to foul-hook (× config)
-    private static final double TACKLE_BREAK_CHANCE = 0.008; // §10: 0.8% per hook-up, the line parts, rig lost
+    private static final double TACKLE_BREAK_CHANCE = 0.003; // §10: 0.3% per hook-up, the line parts, rig lost
     // §snag: per fishing action, 3% a dead (глухой) snag that loses the rig, 7% a recoverable one you
     // tug free. Scaled by the difficulty config's snagChance().
     private static final double SNAG_DEAD_CHANCE = 0.03;
@@ -89,6 +89,8 @@ public final class FishingManager {
     private FishingManager() {}
 
     public static void clear(UUID uuid) {
+        TROLL_GOOD.remove(uuid);
+        TROLL_LAST.remove(uuid);
         FishingSession session = SESSIONS.remove(uuid);
         if (session != null && session.bossBar != null) {
             session.bossBar.removeAllPlayers();
@@ -162,7 +164,7 @@ public final class FishingManager {
             } else if (session.iceFishing && session.rodClass != RodClass.ACTIVE) {
                 iceJig(sp, level, session, now);               // §ice-jig: work the mormyshka (attract), don't reel in
             } else if (session.rodClass == RodClass.ACTIVE) {
-                // retrieve is driven by holding right-click (onUseTick); nothing to do on the press
+                clickRetrieve(sp, level, session, now); // §click-retrieve: the click IS the lure action
                 return true;
             } else {
                 endSession(sp, session);                       // reel in / recast
@@ -174,17 +176,77 @@ public final class FishingManager {
         return false;
     }
 
-    public static boolean hasSession(ServerPlayer sp) {
-        return SESSIONS.containsKey(sp.getUUID());
-    }
+    // ---- §trolling v1 (0.5.0): boat-agnostic — the MOVING BOAT does the casting and the retrieving ----
 
-    /** Reels the line in (ends the session) if one is out — used when opening the assembly GUI (§session-guard). */
-    public static void reelInIfAny(ServerPlayer sp) {
+    /** Consecutive good-speed ticks per player (the anti-jitter ramp before the auto-cast). */
+    private static final Map<UUID, Integer> TROLL_GOOD = new HashMap<>();
+    /** §trolling-speed: last {x, z} of the vehicle — boats are CLIENT-driven, so the server-side
+     *  getDeltaMovement() is ~zero for a paddled boat; real speed = position delta per tick. */
+    private static final Map<UUID, double[]> TROLL_LAST = new HashMap<>();
+
+    /**
+     * Called every server player tick. Trolling needs: an assembled TROLLING/SEA_SPIN rod in the main
+     * hand, a boat vehicle, and horizontal speed inside the working window (~3-9 m/s). Hold that for
+     * three seconds and the line goes out by itself (a normal cast along the look vector — over open
+     * sea that's always water); the boat's movement then works the lure (auto retrieve ticks), so
+     * bites, strike QTE and the fight all ride the existing ACTIVE flow untouched. Any watercraft that
+     * moves the player works — vanilla boats today, modded ships tomorrow.
+     */
+    public static void trollingTick(ServerPlayer sp) {
+        ItemStack trollRod = sp.getMainHandItem();
+        boolean capable = trollRod.getItem() instanceof RodItem ri
+                && (ri.rodType() == RodType.TROLLING || ri.rodType() == RodType.SEA_SPIN)
+                && RodData.isAssembled(trollRod);
+        if (!capable || !(sp.getVehicle() instanceof net.minecraft.world.entity.vehicle.boat.AbstractBoat boat)) {
+            TROLL_GOOD.remove(sp.getUUID());
+            TROLL_LAST.remove(sp.getUUID());
+            return;
+        }
+        // §trolling-speed: measure from the boat's actual position change — a player-paddled boat is
+        // client-authoritative and its server-side delta movement stays ~0 (why trolling never armed).
+        double[] last = TROLL_LAST.put(sp.getUUID(), new double[]{boat.getX(), boat.getZ()});
+        double dx = last == null ? 0 : boat.getX() - last[0];
+        double dz = last == null ? 0 : boat.getZ() - last[1];
+        double speed = Math.sqrt(dx * dx + dz * dz);
+        boolean inWindow = speed >= 0.12 && speed <= 0.60;
+        ServerLevel level = sp.level();
+
         FishingSession session = SESSIONS.get(sp.getUUID());
         if (session != null) {
-            endSession(sp, session);
-            actionbar(sp, Component.translatable("message.riverfishing.reeled_in"));
+            if (session.fighting || session.bitten) return; // the take is handled by the normal flow
+            if (session.trolling && inWindow) {
+                // §trolling: the lure TRAILS ~14 blocks astern — the target follows the boat, so the
+                // session-guard's distance check never silently drops a travelling line, and the drawn
+                // line visibly drags behind the stern.
+                double n = Math.sqrt(dx * dx + dz * dz);
+                if (n > 1e-3 && sp.tickCount % 10 == 0) {
+                    session.target = BlockPos.containing(boat.getX() - dx / n * 14.0,
+                            boat.getY(), boat.getZ() - dz / n * 14.0);
+                }
+                if (sp.tickCount % 2 == 0) {
+                    retrieveTick(sp); // the moving boat works the lure
+                }
+            }
+            return;
         }
+        if (!inWindow) {
+            TROLL_GOOD.remove(sp.getUUID());
+            return;
+        }
+        int good = TROLL_GOOD.merge(sp.getUUID(), 1, Integer::sum);
+        if (good >= 60) {
+            TROLL_GOOD.remove(sp.getUUID());
+            if (startCast(sp, level, InteractionHand.MAIN_HAND, level.getGameTime(), 0.55)) {
+                FishingSession s = SESSIONS.get(sp.getUUID());
+                if (s != null) s.trolling = true; // §trolling: trailing line — see retrieveTick
+                actionbar(sp, Component.translatable("message.riverfishing.trolling_start")
+                        .withStyle(ChatFormatting.AQUA));
+            }
+        }
+    }
+
+    public static boolean hasSession(ServerPlayer sp) {
+        return SESSIONS.containsKey(sp.getUUID());
     }
 
     /** Entry point for the power-bar cast (§cast-minigame): called when the player releases the charge. */
@@ -319,7 +381,7 @@ public final class FishingManager {
         // §rod-test: an under-loaded blank presents the bait clumsily — a SILENT ~20% fewer bites
         // (longer wait). Never announced (the player only sees the shortened cast).
         double underloadWait = underloaded ? 1.25 : 1.0;
-        long delay = (long) Math.min(2400, outcome.ticksToBite / Math.max(0.1, depletion)
+        long delay = (long) (outcome.ticksToBite / Math.max(0.1, depletion)
                 * AnglerSkills.biteSpeedMult(sp) * underloadWait);
         if (depletion < 0.4) {
             actionbar(sp, Component.translatable("message.riverfishing.depleted").withStyle(ChatFormatting.GRAY));
@@ -344,6 +406,11 @@ public final class FishingManager {
         // wait at a fresh spot), on top of the bite-engine bonus for feeding the right groundbait.
         if (ctx.inFeedZone && ctx.feedFreshness > 0) {
             delay = (long) Math.max(20, delay * (1.0 - 0.40 * Mth.clamp(ctx.feedFreshness, 0.0, 1.0)));
+        }
+        // §honest-tail: a barely-matching setup no longer silently capped at two minutes — the wait is
+        // real now, and the player is TOLD the water is dour so they change something instead of camping.
+        if (delay > 2400) {
+            actionbar(sp, Component.translatable("message.riverfishing.sluggish").withStyle(ChatFormatting.GRAY));
         }
 
         // ACTIVE rods only "bite" while being retrieved, so their clock starts on the first retrieve tick.
@@ -390,6 +457,9 @@ public final class FishingManager {
         };
         session.rodStackRef = rod;
         com.riverfishing.item.RodData.setLineOut(rod, true); // §rod-layers: hide in-hand tackle overlays
+        // §live-conditions: keep the snapshot + current speed so the waiting line can re-read the world.
+        session.ctx = ctx;
+        session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
         SESSIONS.put(sp.getUUID(), session);
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, waterPos, 0f, session.lineColor,
                 rodClass == RodClass.FLOAT));
@@ -494,6 +564,8 @@ public final class FishingManager {
         };
         session.rodStackRef = rod;
         com.riverfishing.item.RodData.setLineOut(rod, true); // §rod-layers: hide in-hand tackle overlays
+        session.ctx = ctx;
+        session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
         SESSIONS.put(sp.getUUID(), session);
         pressure.addCast(chunkKey, now);
         // §ice-fishing: no float on the line under the ice — the line just drops into the hole (bobber=false).
@@ -581,7 +653,28 @@ public final class FishingManager {
         return null;
     }
 
-    /** Called every tick the player holds right-click on a spinning rod (Module 1 retrieve). */
+    /**
+     * §click-retrieve (0.5.1): one crank of the reel — each RIGHT-CLICK advances the lure a few ticks
+     * and its GAP from the previous click is the lure action (#игры-с-приманкой). A wobbler/crankbait
+     * wants a steady rhythm (its swim-action dies otherwise), spinner/spoon/jig forgive almost any
+     * cadence, and the popper keeps its own pop-pause rules inside retrieveTick. Holding the button
+     * auto-repeats ~every 4 ticks — that still winds line in, but the cadence is too fast to attract.
+     */
+    private static void clickRetrieve(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
+        long gap = session.retrieveTicks == 0 ? 12 : now - session.lastClickTick;
+        session.lastClickTick = now;
+        if (!session.topwater && session.biteAtTick > now) {
+            boolean good = session.lureStrict ? (gap >= 8 && gap <= 18) : (gap >= 5 && gap <= 30);
+            // A well-worked lure CALLS the fish — good cadence pulls the take closer, sloppy barely.
+            session.biteAtTick = Math.max(now + 5, session.biteAtTick - (good ? 10 : 2));
+        }
+        for (int i = 0; i < 4; i++) {
+            if (SESSIONS.get(sp.getUUID()) != session || session.bitten || session.fighting) return;
+            retrieveTick(sp);
+        }
+    }
+
+    /** Advances the retrieve one tick: clicks feed it 4 at a time, trolling drives it directly. */
     public static void retrieveTick(ServerPlayer sp) {
         FishingSession session = SESSIONS.get(sp.getUUID());
         if (session == null || session.rodClass != RodClass.ACTIVE || session.bitten || session.fighting) return;
@@ -591,8 +684,76 @@ public final class FishingManager {
         if (session.biteAtTick < 0) {
             session.biteAtTick = now + session.biteDelay; // start the clock on first retrieve
         }
+
+        // §trolling (0.5.1): the boat TRAILS the lure — the line never comes in and never "empties",
+        // there's no snag/foul over open water, and the take SELF-STRIKES: the boat's own momentum
+        // sets the hook (which is exactly how real trolling works — no подсечка). Just fight it.
+        if (session.trolling) {
+            if (now >= session.biteAtTick) {
+                session.bitten = true;
+                level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 1.0f, 0.9f);
+                level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5,
+                        session.target.getY() + 1.0, session.target.getZ() + 0.5, 20, 0.4, 0.2, 0.4, 0.3);
+                actionbar(sp, Component.translatable("message.riverfishing.trolling_fish_on")
+                        .withStyle(ChatFormatting.RED));
+                hookUp(sp, level, session, now);
+            }
+            return;
+        }
+
         session.retrieving = true;
         session.retrieveTicks++;
+
+        // §topwater (0.4.0): a popper is fished on the SURFACE with a pop-pause cadence, not a straight
+        // crank. Detected once per cast from the rig's lure slot; everything below rides the same
+        // hold-to-retrieve input — a "pop" is simply resuming the retrieve after a short pause.
+        if (session.retrieveTicks == 1) {
+            ItemStack tw = sp.getItemInHand(session.hand);
+            if (tw.getItem() instanceof RodItem) {
+                ItemStack rg = RodData.get(tw, ComponentSlot.RIG);
+                java.util.List<String> lures = rg.getItem() instanceof RigItem
+                        ? RigData.baitIds(rg) : java.util.List.of();
+                session.topwater = lures.contains("popper");
+                // §lure-game: a wobbler/crankbait swims only at a steady crank — strict cadence window.
+                session.lureStrict = lures.contains("wobbler") || lures.contains("crankbait");
+            }
+            session.popRhythm = 1.0;
+            session.lastRetrieveTick = now;
+        }
+        if (session.topwater) {
+            long gap = now - session.lastRetrieveTick;
+            session.lastRetrieveTick = now;
+            double tprog = session.retrieveMax > 0
+                    ? Mth.clamp((double) session.retrieveTicks / session.retrieveMax, 0.0, 1.0) : 0.0;
+            double lx = Mth.lerp(tprog, session.target.getX() + 0.5, sp.getX());
+            double lz = Mth.lerp(tprog, session.target.getZ() + 0.5, sp.getZ());
+            double ly = session.target.getY() + 1.0;
+            if (gap >= 6 && gap <= 30) {
+                // A proper pop after a pause: the popper spits and bloops — this is what calls the fish up.
+                session.popRhythm = Math.min(1.5, session.popRhythm + 0.15);
+                level.playSound(null, BlockPos.containing(lx, ly, lz), SoundEvents.FISHING_BOBBER_SPLASH,
+                        SoundSource.PLAYERS, 0.5f, 1.7f);
+                level.sendParticles(ParticleTypes.SPLASH, lx, ly, lz, 6, 0.2, 0.02, 0.2, 0.12);
+            } else if (gap <= 1) {
+                session.popRhythm = Math.max(0.6, session.popRhythm - 0.01); // dragged under — wrong lure work
+            } else if (gap > 60) {
+                session.popRhythm = Math.max(0.8, session.popRhythm - 0.10); // sat dead too long
+            }
+            if (session.retrieveTicks % 3 == 0) { // the surface wake trailing the lure
+                level.sendParticles(ParticleTypes.FISHING, lx, ly, lz, 2, 0.12, 0.0, 0.12, 0.02);
+            }
+            // Good cadence CALLS the fish — it advances the bite clock; bad cadence stalls it.
+            if (session.biteAtTick > 0 && session.retrieveTicks % 20 == 0) {
+                session.biteAtTick -= (long) ((session.popRhythm - 1.0) * 20.0);
+            }
+            // Telegraph: a boil right behind the lure moments before the take.
+            if (!session.blowupTelegraphed && session.biteAtTick > 0 && now >= session.biteAtTick - 15) {
+                session.blowupTelegraphed = true;
+                level.sendParticles(ParticleTypes.BUBBLE, lx - 0.4, ly - 0.1, lz, 14, 0.25, 0.05, 0.25, 0.02);
+                level.playSound(null, BlockPos.containing(lx, ly, lz), SoundEvents.FISH_SWIM,
+                        SoundSource.PLAYERS, 0.8f, 0.8f);
+            }
+        }
 
         // §retrieve-visual: the lure actually COMES IN as you wind — pull the client's line end toward
         // the bank in step with how much line you've reeled (was only moving once a fish was on).
@@ -629,11 +790,29 @@ public final class FishingManager {
             session.bitten = true;
             // §strike-qte (2.4): the take fires a hook-set runner — stop it in the zone (release the retrieve,
             // or click) to set the hook. Deliberately EASY (imitating a подсечка, not a reaction test): slow
-            // marker, wide zone, ~3 s window so there's no rush.
-            session.biteWindowEnd = now + 60;
+            // marker, wide zone, ~3 s window so there's no rush. §topwater: the blowup is the exception —
+            // a shorter, reactive window sold by the surface explosion.
+            session.biteWindowEnd = now + (session.topwater ? 35 : 60);
+            if (session.topwater) {
+                double tprog = session.retrieveMax > 0
+                        ? Mth.clamp((double) session.retrieveTicks / session.retrieveMax, 0.0, 1.0) : 0.0;
+                double lx = Mth.lerp(tprog, session.target.getX() + 0.5, sp.getX());
+                double lz = Mth.lerp(tprog, session.target.getZ() + 0.5, sp.getZ());
+                double ly = session.target.getY() + 1.0;
+                // §topwater blowup: the strike EXPLODES on the surface — the money shot.
+                level.sendParticles(ParticleTypes.SPLASH, lx, ly + 0.1, lz, 36, 0.45, 0.25, 0.45, 0.45);
+                level.sendParticles(ParticleTypes.BUBBLE_POP, lx, ly, lz, 16, 0.3, 0.1, 0.3, 0.1);
+                level.playSound(null, BlockPos.containing(lx, ly, lz), SoundEvents.FISHING_BOBBER_SPLASH,
+                        SoundSource.PLAYERS, 1.0f, 0.6f);
+                level.playSound(null, BlockPos.containing(lx, ly, lz), SoundEvents.DOLPHIN_JUMP,
+                        SoundSource.PLAYERS, 0.7f, 0.9f);
+                actionbar(sp, Component.translatable("message.riverfishing.topwater_blowup")
+                        .withStyle(ChatFormatting.RED));
+            } else {
+                actionbar(sp, Component.translatable("message.riverfishing.strike").withStyle(ChatFormatting.AQUA));
+            }
             playBite(level, session.target);
             startActiveStrikeTiming(sp, session, now);
-            actionbar(sp, Component.translatable("message.riverfishing.strike").withStyle(ChatFormatting.AQUA));
         } else if (session.retrieveTicks >= session.retrieveMax) {
             endSession(sp, session);
             sp.stopUsingItem();
@@ -665,16 +844,13 @@ public final class FishingManager {
         if (session == null || session.rodClass != RodClass.ACTIVE) return;
         if (session.fighting) return;
         if (session.bitten) {
-            // §strike-qte (2.4): letting go of the retrieve DURING the take is a valid hook-set — check the
-            // runner now. (Clicking again works too, via handleRodUse.) If it's not up yet, do nothing and
-            // leave the bite window open (tick() times it out if the player never reacts).
+            // §strike-qte (2.4): letting go DURING the take is a valid hook-set — check the runner now.
             if (session.floatPeriod > 0 && sp.level().getGameTime() <= session.biteWindowEnd) {
                 activeStrike(sp, sp.level(), session, sp.level().getGameTime());
             }
-            return;
         }
-        endSession(sp, session);
-        actionbar(sp, Component.translatable("message.riverfishing.retrieve_empty").withStyle(ChatFormatting.GRAY));
+        // §click-retrieve (0.5.1): releasing the button is NOT "wind in" any more — line only comes
+        // in by cranking (clicks). Ending the session here would kill a fresh cast on a stray release.
     }
 
     // ---- per-tick progress (FLOAT / BOTTOM waiting, and the fight for all classes) ----
@@ -721,6 +897,14 @@ public final class FishingManager {
         }
 
         if (session.rodClass == RodClass.ACTIVE) {
+            // §click-retrieve: a lure left DEAD in the water doesn't get struck — an idle line pushes
+            // the take out until it's worked again. The popper's pause is part of its game (longer
+            // grace), and a trolled lure is always working (the boat moves it).
+            if (!session.trolling && !session.bitten && session.retrieveTicks > 0 && session.biteAtTick > 0
+                    && now - session.lastClickTick > (session.topwater ? 80 : 30)
+                    && now >= session.biteAtTick - 5) {
+                session.biteAtTick = now + 25;
+            }
             // Bites only fire during retrieve (handled in retrieveTick); here we only time out the strike.
             if (session.bitten && now > session.biteWindowEnd) {
                 endSession(sp, session);
@@ -731,6 +915,13 @@ public final class FishingManager {
 
         // FLOAT / BOTTOM: wait for the bite, then a window to strike.
         if (!session.bitten) {
+            // §live-conditions (0.5.0): every 15 s the waiting line re-reads the world — dusk, a weather
+            // change, a starting frenzy or freshly thrown groundbait rescale the REMAINING wait, and the
+            // biter is re-picked from the new weights. The cast snapshot no longer decides everything,
+            // so sitting out a long bottom wait responds to the world exactly like a fresh cast would.
+            if (session.ctx != null && session.biteAtTick > now && now % 300 == 0) {
+                reEvaluate(level, session, now);
+            }
             if (now >= session.biteAtTick) {
                 session.bitten = true;
                 session.biteWindowEnd = now + biteWindow(session.rodClass);
@@ -769,6 +960,64 @@ public final class FishingManager {
         }
     }
 
+    /** §live-conditions: bite speed at this spot right now — swarm-capped W × frenzy × fresh feed. */
+    private static double currentBiteSpeed(ServerLevel level, BiteContext ctx, double totalWeight) {
+        if (totalWeight <= 1e-6) return 0.0;
+        double s = BiteEngine.effectiveWeight(totalWeight);
+        if (isFrenzy(level)) s *= Math.max(1.0, RiverFishingConfig.frenzySpeed());
+        if (ctx.inFeedZone && ctx.feedFreshness > 0) {
+            s /= Math.max(0.2, 1.0 - 0.40 * Mth.clamp(ctx.feedFreshness, 0.0, 1.0));
+        }
+        return s;
+    }
+
+    /** §live-conditions: refresh the dynamic half of the cast snapshot and rescale the remaining wait.
+     *  Public: the rod pod re-evaluates its docked lines through here too. */
+    public static void reEvaluate(ServerLevel level, FishingSession session, long now) {
+        BiteContext ctx = session.ctx;
+        ctx.season = ctx.iceHole ? com.riverfishing.engine.Season.WINTER : SeasonProvider.getSeason(level);
+        ctx.time = TimeOfDay.fromDayTime(level.getOverworldClockTime());
+        ctx.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
+        ctx.pressureFactor = com.riverfishing.engine.BarometricPressure.biteFactor(level);
+        FishingPressureData popData = FishingPressureData.get(level);
+        long popChunk = ChunkPos.pack(session.target);
+        double popRegen = spawnRegen(level);
+        ctx.speciesFactor = id -> popData.speciesAttractiveness(popChunk, id.getPath(), now, popRegen);
+        // Groundbait thrown AFTER the cast registers now. ponytail: freshness only ratchets up mid-cast;
+        // the decay of an old zone is re-read on the next cast, not here.
+        FeedZoneData.Query feed = FeedZoneData.get(level).query(session.target, now);
+        if (feed.inZone() && feed.freshness() > ctx.feedFreshness) {
+            ctx.inFeedZone = true;
+            ctx.feedFreshness = feed.freshness();
+            ctx.feedCategory = feed.category();
+        }
+
+        RandomSource random = level.getRandom();
+        BiteEngine.Outcome outcome = BiteEngine.evaluate(FishProfileManager.get().all(), ctx, random);
+        double sNew = currentBiteSpeed(level, ctx, outcome.totalWeight);
+        if (sNew <= 0.0) {
+            // The water went dead (night/season gated everything out) — the line just sits; a later
+            // re-eval revives it when conditions come back.
+            session.biteSpeed = 0.0;
+            session.biteAtTick = now + 999_999;
+            return;
+        }
+        if (session.biteSpeed <= 0.0) {
+            // Dead water came back to life — restart the clock with a fresh sample at the new rate.
+            session.biteAtTick = now + Math.max(100L,
+                    (long) (-(BiteEngine.T_MIN_TICKS / sNew) * Math.log(1.0 - random.nextDouble())));
+        } else {
+            long remaining = Math.max(10L, session.biteAtTick - now);
+            session.biteAtTick = now + Math.max(10L, (long) (remaining * session.biteSpeed / sNew));
+        }
+        session.biteSpeed = sNew;
+        // Re-pick the biter from the fresh weights — but a koi decided at cast stays sticky (re-rolling
+        // its chance every 15 s would compound a per-cast rarity into a near-guarantee over a long wait).
+        if (!session.species.getPath().startsWith("carp_koi")) {
+            session.species = outcome.pickSpecies(random);
+        }
+    }
+
     // ---- hook-up: start the fight ----
 
     private static void hookUp(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
@@ -794,6 +1043,7 @@ public final class FishingManager {
                     SoundSource.PLAYERS, 0.9f, 1.0f);
             sp.sendSystemMessage(Component.translatable("message.riverfishing.line_break")
                     .withStyle(ChatFormatting.RED));
+            com.riverfishing.quest.AnglerAdvancements.grant(sp, "snapped"); // §joke: the 0.3% gut-punch
             endSession(sp, session);
             return;
         }
@@ -813,7 +1063,8 @@ public final class FishingManager {
         if (RiverFishingConfig.consumeBait() && rodForBait.getItem() instanceof RodItem
                 && random.nextDouble() >= AnglerSkills.baitSkipChance(sp)) {
             ItemStack rigForBait = RodData.get(rodForBait, ComponentSlot.RIG);
-            if (rigForBait.getItem() instanceof RigItem && RigData.consumeBait(rigForBait)) {
+            // §bait-attribution: the bait the FISH prefers is the one eaten — not just the first slot.
+            if (rigForBait.getItem() instanceof RigItem && RigData.consumeBait(rigForBait, profile::baitScore)) {
                 RodData.set(rodForBait, ComponentSlot.RIG, rigForBait);
             }
         }
@@ -859,7 +1110,17 @@ public final class FishingManager {
             }
         }
 
-        rollFish(random, profile, session, AnglerSkills.trophyChanceBonus(sp));
+        // §livebait-2 (0.4.0): a weighed live baitfish on the rig culls the small takers. Read the rig
+        // from the session's own rod stack (pods fish with the rod OFF-hand, so not getItemInHand).
+        int livebaitW = 0;
+        ItemStack rigSource = !session.rodStackRef.isEmpty() ? session.rodStackRef : sp.getItemInHand(session.hand);
+        if (rigSource.getItem() instanceof RodItem) {
+            ItemStack rigS = RodData.get(rigSource, ComponentSlot.RIG);
+            if (rigS.getItem() instanceof RigItem) livebaitW = RigData.livebaitWeightG(rigS);
+        }
+        // §match-size: how well the whole kit suits the species shapes the specimen it dares to take.
+        double match = session.ctx != null ? BiteEngine.matchScore(profile, session.ctx) : 0.85;
+        rollFish(random, profile, session, AnglerSkills.trophyChanceBonus(sp), livebaitW, match);
 
         ItemStack rod = sp.getItemInHand(session.hand);
         // A blunt hook can slip on the strike (§3.8) — empty set, fish gone, hook dulls a touch more.
@@ -883,6 +1144,7 @@ public final class FishingManager {
         session.breakTension = Mth.clamp(
                 baseTolerance / RiverFishingConfig.breakSensitivity() * session.overloadPenalty
                         * AnglerSkills.lineToleranceMult(sp), 0.1, 1.0);
+        session.requiredKg = requiredKg; // §tackle-stress: for the break-load message
 
         // A leaderless line is bitten through; a fluorocarbon leader only partly protects (#4).
         if (profile.requiresLeader
@@ -908,10 +1170,15 @@ public final class FishingManager {
         session.fightTimeout = (long) Mth.clamp(
                 700 + weightKg * 80
                         + ("burst".equals(profile.fightPattern) ? 300
-                        : "relentless".equals(profile.fightPattern) ? 500 : 0), 700, 2400);
+                        : "relentless".equals(profile.fightPattern) ? 500
+                        : "sounding".equals(profile.fightPattern) ? 700      // §big-game: dives eat time
+                        : "greyhounding".equals(profile.fightPattern) ? 400 : 0), 700, 3000);
 
         session.fighting = true;
         session.tension = 0.0;
+        session.overStress = 0.0;               // §tackle-stress: fresh stress budget per fight
+        session.overStressTicks = 0;
+        session.overstressWarned = false;
         // §retrieve-visual: a spinning fish that grabbed the lure MID-RETRIEVE is already partway in —
         // start the fight from where the lure was, so the line doesn't snap back out to the full cast.
         // A fish hooked near the bank is landed sooner (realistic); one that hit far out fights fully.
@@ -1137,6 +1404,15 @@ public final class FishingManager {
     // ---- fight ----
 
     private static void reelPulse(ServerPlayer sp, ServerLevel level, FishingSession session) {
+        // §drag (0.5.1): an OPEN drag free-spools — cranking gains NOTHING and adds no tension; the
+        // handle just spins against the slipping spool. This is what makes the drag honest: crouched
+        // you cannot snap, but you cannot gain either (closes the crouch+spam-click guaranteed-fish
+        // exploit). Stand up to wind — and take the tension that comes with it.
+        if (sp.isCrouching()) {
+            level.playSound(null, sp.blockPosition(), SoundEvents.ITEM_FRAME_ROTATE_ITEM,
+                    SoundSource.PLAYERS, 0.3f, 0.9f);
+            return;
+        }
         boolean inRun = session.runTicksLeft > 0;
         // Reeling in a run spikes tension and barely gains line — you should ease off during runs.
         session.tension += inRun ? session.runTensionPulse : session.calmTensionPulse;
@@ -1146,10 +1422,18 @@ public final class FishingManager {
 
         level.playSound(null, sp.blockPosition(), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.25f, 1.6f);
 
-        if (session.tension >= session.breakTension) {
-            breakLine(sp, level, session, false);
+        // §big-game greyhounding (0.5.0): cranking against a jumping fish rips the hook straight out —
+        // the answer to the breach is SLACK, not the reel.
+        if (level.getGameTime() < session.jumpWindowEnd
+                && level.getRandom().nextDouble() < 0.35) {
+            level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.7f, 0.5f);
+            endSession(sp, session);
+            actionbar(sp, Component.translatable("message.riverfishing.jump_thrown").withStyle(ChatFormatting.YELLOW));
             return;
         }
+
+        // §tackle-stress (0.4.0): crossing the limit no longer snaps instantly — the per-tick roll in
+        // tickFight decides whether the line survives the overstress. Keep cranking and it won't.
         if (session.landProgress >= 1.0) {
             landFish(sp, level, session);
         }
@@ -1181,6 +1465,16 @@ public final class FishingManager {
         }
         session.tension = Math.max(0.0, session.tension - session.relaxTick);
         session.landProgress = Math.max(0.0, session.landProgress - 0.0008);
+
+        // §drag (0.5.0): crouching OPENS the drag — the reel free-spools. Tension bleeds off fast and a
+        // running fish TAKES line, but it cannot snap you: the answer to a jump or a dive you can't hold.
+        // Stand up = working drag; holding the reel = winching. Three drag positions, zero new inputs.
+        if (sp.isCrouching()) {
+            session.tension = Math.max(0.0, session.tension - session.relaxTick * 3.0);
+            if (session.runTicksLeft > 0) {
+                session.landProgress = Math.max(0.0, session.landProgress - 0.004);
+            }
+        }
 
         double progress = session.landProgress;
         if (session.runTicksLeft > 0) {
@@ -1220,6 +1514,27 @@ public final class FishingManager {
                     session.target.getZ() + 0.5, 8, 0.2, 0.1, 0.2, 0.25);
         }
 
+        // §big-game (0.5.0): the two ocean patterns get their signature events.
+        if ("sounding".equals(session.fightPattern) && session.runTicksLeft > 0) {
+            // The dive TAKES LINE — progress drains while it sounds; pump it back between dives.
+            session.landProgress = Math.max(0.0, session.landProgress - 0.0035);
+            if (session.runTicksLeft % 25 == 0) {
+                level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.DRAG_LONG.get(),
+                        SoundSource.PLAYERS, 0.7f, 0.8f);
+                actionbar(sp, Component.translatable("message.riverfishing.sounding").withStyle(ChatFormatting.AQUA));
+            }
+        }
+        if ("greyhounding".equals(session.fightPattern) && session.runTicksLeft == 0
+                && now >= session.jumpWindowEnd && session.landProgress > 0.05
+                && random.nextDouble() < 0.012) {
+            // The jump: a full-body breach — SLACK OFF for the window or the hook rips out (reelPulse).
+            session.jumpWindowEnd = now + 15;
+            level.playSound(null, session.target, SoundEvents.DOLPHIN_JUMP, SoundSource.PLAYERS, 1.0f, 0.8f);
+            level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.2,
+                    session.target.getZ() + 0.5, 40, 0.5, 0.5, 0.5, 0.4);
+            actionbar(sp, Component.translatable("message.riverfishing.fish_jumps").withStyle(ChatFormatting.RED));
+        }
+
         // The classic last dash at the bank: one guaranteed surge just before landing — ease off or snap.
         if (!session.finalSurgeDone && session.landProgress >= 0.85) {
             session.finalSurgeDone = true;
@@ -1231,6 +1546,12 @@ public final class FishingManager {
             level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
                     session.target.getZ() + 0.5, 20, 0.3, 0.15, 0.3, 0.3);
             actionbar(sp, Component.translatable("message.riverfishing.final_surge").withStyle(ChatFormatting.RED));
+        }
+
+        // §tackle-stress (0.4.0): the probabilistic break — rolled once per tick, after every tension
+        // mutation of this tick (decay, head-shakes, the player's reel pulses in between).
+        if (overstressTick(sp, level, session, random)) {
+            return;
         }
 
         if (now - session.fightStartTick > session.fightTimeout) {
@@ -1262,9 +1583,35 @@ public final class FishingManager {
                     SoundSource.PLAYERS, 0.8f, 1.0f);
         }
         session.bossBar.setProgress((float) Mth.clamp(session.landProgress, 0.0, 1.0));
-        session.bossBar.setColor(inRun ? BossEvent.BossBarColor.RED
+        session.bossBar.setColor(session.tension >= session.breakTension ? BossEvent.BossBarColor.RED
+                : inRun ? BossEvent.BossBarColor.RED
                 : session.tension > session.breakTension * 0.66 ? BossEvent.BossBarColor.YELLOW
                 : BossEvent.BossBarColor.GREEN);
+
+        // §co-op (0.5.0): spectators — anyone within 12 blocks sees the fight on the boss bar too.
+        if (now % 20 == 0 && session.bossBar != null) {
+            for (ServerPlayer other : level.players()) {
+                if (other != sp && other.distanceToSqr(sp) <= 144.0) {
+                    session.bossBar.addPlayer(other);
+                }
+            }
+        }
+        // §co-op (0.5.0): the landing net — a crouching friend with an EMPTY main hand right beside the
+        // angler scoops the tired fish out (fish at 85%+, not during a run). Small XP thank-you.
+        if (!inRun && session.landProgress >= 0.85) {
+            for (ServerPlayer helper : level.players()) {
+                if (helper != sp && helper.isCrouching() && helper.getMainHandItem().isEmpty()
+                        && helper.distanceToSqr(sp) <= 12.25) {
+                    JournalData.addXp(helper, 5);
+                    helper.sendSystemMessage(Component.translatable("message.riverfishing.netted_for",
+                            sp.getDisplayName()).withStyle(ChatFormatting.GREEN));
+                    sp.sendSystemMessage(Component.translatable("message.riverfishing.netted_by",
+                            helper.getDisplayName()).withStyle(ChatFormatting.GREEN));
+                    landFish(sp, level, session);
+                    return;
+                }
+            }
+        }
 
         // Keep every client's view of the line in step with the fight so it visibly reels in (§immersion).
         if (now % 5 == 0) {
@@ -1282,6 +1629,8 @@ public final class FishingManager {
             case "aggressive" -> runs += 2;
             case "relentless" -> runs += 3; // §grass-carp: the amur just keeps charging
             case "burst" -> runs = Math.max(2, runs);
+            case "sounding" -> runs += 3;      // §big-game: tuna dives, again and again
+            case "greyhounding" -> runs += 2;  // §big-game: billfish jump series
             default -> { /* steady / active_then_passive use the profile value */ }
         }
         if (weightKg > 2.0) runs += 1; // a big specimen has an extra run in it
@@ -1295,6 +1644,8 @@ public final class FishingManager {
             case "aggressive" -> 0.95;
             case "burst" -> 0.70;
             case "active_then_passive" -> progress < 0.5 ? 0.90 : 0.25; // bream: fights early, tires late
+            case "sounding" -> 0.92;      // §big-game: it WILL dive again
+            case "greyhounding" -> 0.85;
             default -> 0.60;
         };
     }
@@ -1305,6 +1656,8 @@ public final class FishingManager {
             case "aggressive" -> 22 + r.nextInt(18);
             case "burst" -> 50 + r.nextInt(40);
             case "active_then_passive" -> progress < 0.5 ? 30 + r.nextInt(20) : 14 + r.nextInt(10);
+            case "sounding" -> 60 + r.nextInt(50);     // §big-game: the long vertical dive
+            case "greyhounding" -> 18 + r.nextInt(14); // short bursts between jumps
             default -> 25 + r.nextInt(20);
         };
     }
@@ -1315,6 +1668,8 @@ public final class FishingManager {
             case "aggressive" -> 25 + r.nextInt(30);
             case "burst" -> 80 + r.nextInt(80);
             case "active_then_passive" -> progress < 0.5 ? 30 + r.nextInt(30) : 90 + r.nextInt(60);
+            case "sounding" -> 70 + r.nextInt(60);     // §big-game: the pump-back window between dives
+            case "greyhounding" -> 35 + r.nextInt(30);
             default -> 50 + r.nextInt(50);
         };
     }
@@ -1327,7 +1682,31 @@ public final class FishingManager {
         }
         RandomSource random = level.getRandom();
         boolean legal = !session.foulHooked;
-        giveFish(sp, session.species, session.weightG, session.lengthCm, legal, session.trophy);
+
+        // §legendary (0.5.0): the one-of-a-kind named specimen — ONE per species per SERVER, and the
+        // catch is a server event. Rolled at the landing so the whole fight already happened.
+        boolean legendary = false;
+        FishProfile legProfile = FishProfileManager.get().byId(session.species);
+        if (legal && legProfile != null && legProfile.legendaryWeightG > 0
+                && !LegendaryData.get(level).isCaught(session.species)
+                && random.nextDouble() < legProfile.legendaryChance) {
+            legendary = true;
+            session.weightG = (int) (legProfile.legendaryWeightG * (0.97 + random.nextDouble() * 0.06));
+            session.lengthCm = (int) legProfile.lengthMax;
+            session.trophy = true;
+            LegendaryData.get(level).markCaught(session.species);
+            com.riverfishing.quest.AnglerAdvancements.grant(sp, "legendary_catch");
+            level.getServer().getPlayerList().broadcastSystemMessage(
+                    Component.translatable("message.riverfishing.legendary_caught",
+                            sp.getDisplayName(),
+                            Component.translatable("legendary.riverfishing." + session.species.getPath()),
+                            FishItem.weightText(session.weightG))
+                            .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+            level.playSound(null, sp.blockPosition(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
+                    SoundSource.PLAYERS, 1.0f, 1.0f);
+        }
+
+        giveFish(sp, session.species, session.weightG, session.lengthCm, legal, session.trophy, legendary);
         // §population: a landed fish leaves the water for real — depletion lands on THIS species only.
         FishingPressureData.get(level).addCatch(ChunkPos.pack(session.target),
                 session.species.getPath(), level.getGameTime());
@@ -1337,6 +1716,15 @@ public final class FishingManager {
             JournalData.record(sp, session.species, session.weightG); // records (§15)
             if (session.trophy) JournalData.addTrophy(sp);
             if (session.iceFishing) JournalData.addIceCatch(sp); // §winter-quests
+            // §species-advancements (0.5.0): tiered + "all species" are CODE-counted — the old JSON
+            // hand-listed 25 criteria and drifted from the real roster with every content wave.
+            if (newSpecies) {
+                int n = JournalData.speciesCount(sp);
+                if (n >= 10) com.riverfishing.quest.AnglerAdvancements.grant(sp, "species_10");
+                if (n >= 25) com.riverfishing.quest.AnglerAdvancements.grant(sp, "species_25");
+                if (n >= 50) com.riverfishing.quest.AnglerAdvancements.grant(sp, "species_50");
+                if (n >= JournalData.speciesTotal()) com.riverfishing.quest.AnglerAdvancements.grant(sp, "all_species");
+            }
             awardAnglerXp(sp, level, session.weightG, session.lengthCm, newSpecies, personalBest, session.trophy);
             com.riverfishing.quest.Quests.onProgress(sp, level); // angler quests (§quests)
             checkCatchAdvancements(sp, level, session); // §challenges (code-driven)
@@ -1431,13 +1819,23 @@ public final class FishingManager {
 
     private static void giveFish(ServerPlayer sp, Identifier species, int weightG, int lengthCm,
                                  boolean legal, boolean trophy) {
+        giveFish(sp, species, weightG, lengthCm, legal, trophy, false);
+    }
+
+    private static void giveFish(ServerPlayer sp, Identifier species, int weightG, int lengthCm,
+                                 boolean legal, boolean trophy, boolean legendary) {
         ItemStack fish = FishItem.create(ModItems.fishItem(species), species, weightG, lengthCm, legal, trophy);
+        if (legendary) {
+            com.riverfishing.item.StackNbt.mutate(fish, t -> t.putBoolean(FishItem.TAG_LEGEND, true));
+        }
         // §prime-fish: a legal top-of-range specimen gets the prime grade — the fisherman buys these.
         FishProfile profile = FishProfileManager.get().byId(species);
         if (legal && profile != null) {
             int threshold = FishItem.primeThresholdG(profile.weightMax);
             if (weightG >= threshold) {
                 FishItem.gradePrime(fish, threshold);
+                // market (0.5.0): every prime landing saturates that species a little.
+                MarketData.get(sp.level()).addSupply(species.getPath());
             }
         }
         // §fish-scale: the icon now scales purely from LENGTH (FishItem.getIconScale), no NBT needed.
@@ -1451,6 +1849,48 @@ public final class FishingManager {
      * is (§balance): a strong line vs a light fish nearly always just throws the hook (5%), while a
      * weak line vs a heavy fish loses the rig at the 30% hard cap. Leader bite-offs always lose it.
      */
+    /**
+     * §tackle-stress (0.4.0): while tension sits over the tackle limit, the line doesn't snap outright —
+     * every tick rolls a break chance that grows with the overshoot AND with how long it's been held
+     * there ({@code overStress} builds up; easing off lets it recover). Brief spikes are survivable —
+     * the "she shouldn't have come out, but she did" stories; cranking through a run is not. Surviving
+     * the abuse still frays the line (§3.8). Difficulty presets scale the whole curve (§14).
+     */
+    private static boolean overstressTick(ServerPlayer sp, ServerLevel level, FishingSession session,
+                                          RandomSource random) {
+        if (sp.isCrouching()) { // §drag: an OPEN drag cannot snap the line — it pays out instead
+            session.overStress = Math.max(0.0, session.overStress - 0.05);
+            return false;
+        }
+        if (session.tension < session.breakTension) {
+            session.overStress = Math.max(0.0, session.overStress - 0.02);
+            if (session.tension < session.breakTension * 0.9) {
+                session.overstressWarned = false; // hysteresis: re-arm the warning for the next episode
+            }
+            return false;
+        }
+        double overshoot = (session.tension - session.breakTension) / Math.max(0.05, session.breakTension);
+        session.overStress = Math.min(2.0, session.overStress + 0.015 + 0.02 * overshoot);
+        session.overStressTicks++;
+        if (!session.overstressWarned) {
+            session.overstressWarned = true;
+            actionbar(sp, Component.translatable("message.riverfishing.tackle_limit").withStyle(ChatFormatting.RED));
+            level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.ROD_CREAK.get(),
+                    SoundSource.PLAYERS, 1.0f, 0.8f);
+        }
+        // Surviving over the limit still costs the line — it frays a wear point every ~15 such ticks.
+        if (session.overStressTicks % 15 == 0) {
+            addLineWear(sp.getItemInHand(session.hand), 1);
+        }
+        double chance = Math.min(0.5,
+                (0.008 + 0.055 * overshoot + 0.028 * session.overStress) * RiverFishingConfig.breakSensitivity());
+        if (random.nextDouble() < chance) {
+            breakLine(sp, level, session, false);
+            return true;
+        }
+        return false;
+    }
+
     private static void breakLine(ServerPlayer sp, ServerLevel level, FishingSession session, boolean leader) {
         // A break stresses and abrades the line (§3.8).
         addLineWear(sp.getItemInHand(session.hand), (int) Math.round(5 * lineWearScaled()));
@@ -1470,9 +1910,16 @@ public final class FishingManager {
                     SoundSource.PLAYERS, 0.9f, 1.0f);
             level.playSound(null, session.target, com.riverfishing.registry.ModSounds.LINE_BREAK.get(),
                     SoundSource.PLAYERS, 0.6f, 1.0f);
-            sp.sendSystemMessage(Component.translatable(
-                    leader ? "message.riverfishing.leader_bite_off" : "message.riverfishing.line_break")
-                    .withStyle(ChatFormatting.RED));
+            if (!leader && session.requiredKg > 0 && session.tension > 0) {
+                // §tackle-stress: name the load that killed the line — the post-mortem teaches tackle choice.
+                sp.sendSystemMessage(Component.translatable("message.riverfishing.line_break_load",
+                        String.format("%.1f", Math.max(0.5, session.tension * session.requiredKg)))
+                        .withStyle(ChatFormatting.RED));
+            } else {
+                sp.sendSystemMessage(Component.translatable(
+                        leader ? "message.riverfishing.leader_bite_off" : "message.riverfishing.line_break")
+                        .withStyle(ChatFormatting.RED));
+            }
         } else {
             level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.6f, 0.7f);
             sp.sendSystemMessage(Component.translatable("message.riverfishing.shake_off")
@@ -1575,15 +2022,39 @@ public final class FishingManager {
 
     // ---- fish generation ----
 
-    private static void rollFish(RandomSource random, FishProfile p, FishingSession session, double trophyBonus) {
-        double biased = Math.pow(random.nextDouble(), 2.4); // big fish are rare (§2.1)
+    private static void rollFish(RandomSource random, FishProfile p, FishingSession session, double trophyBonus,
+                                 int livebaitWeightG, double match) {
+        // §weight-curve (0.5.0): the profile's weight_g.mean is the MEDIAN catch — the power curve is
+        // solved per species so half the catches land under it (0.5^k = (mean-min)/(max-min)). Profiles
+        // without an explicit mean keep the classic big-fish-are-rare 2.4 curve.
+        double k = 2.4;
+        if (p.weightMeanSet && p.weightMean > p.weightMin && p.weightMean < p.weightMax) {
+            double f = (p.weightMean - p.weightMin) / (p.weightMax - p.weightMin);
+            k = Mth.clamp(Math.log(f) / Math.log(0.5), 0.5, 8.0); // median(u^k) = 0.5^k = f
+
+        }
+        // §match-size: a crude setup catches the smaller end — the big wary specimens ignore it.
+        k += Math.max(0.0, 0.85 - match) * 2.0;
+        double biased = Math.pow(random.nextDouble(), k);
 
         // Trophy roll (configurable): a specimen from the top of the species' size range. It fights
         // accordingly (weight drives the fight), shimmers as an item and gives triple XP.
-        // §skills ANGLERS_LUCK adds a flat bonus (+1%/rank) to the trophy chance.
-        if (random.nextDouble() < RiverFishingConfig.trophyChance() + trophyBonus) {
+        // §skills ANGLERS_LUCK adds a flat bonus (+1%/rank); §match-size scales the base chance down
+        // on a poorly matched kit — a trophy demands the whole setup near-ideal, like the bite did.
+        if (random.nextDouble() < RiverFishingConfig.trophyChance() * Mth.clamp(match / 0.85, 0.2, 1.0) + trophyBonus) {
             session.trophy = true;
             biased = 0.85 + 0.15 * random.nextDouble();
+        }
+
+        // §livebait-2 (0.4.0): a predator that commits to a live baitfish is one that can swallow it —
+        // roughly 6× the bait's weight and up. A weighed livebait FLOORS the size roll there (capped at
+        // 60% of the species' range so the roll stays a roll). Only for species that actually take
+        // livebait; everything else ignores it.
+        if (livebaitWeightG > 0 && p.baitScore("livebait") >= 0.5 && p.weightMax > p.weightMin) {
+            double minW = Mth.clamp(livebaitWeightG * 6.0, p.weightMin,
+                    p.weightMin + (p.weightMax - p.weightMin) * 0.6);
+            double floor = (minW - p.weightMin) / (p.weightMax - p.weightMin);
+            biased = floor + (1.0 - floor) * biased;
         }
 
         double weight = p.weightMin + (p.weightMax - p.weightMin) * biased;
@@ -1670,6 +2141,181 @@ public final class FishingManager {
 
     // ---- context assembly ----
 
+    /**
+     * §community (0.5.0): every ~128-block patch of water holds its own deterministic species set,
+     * derived from the WORLD SEED — this lake is a tench lake forever, and the taimen river must be
+     * FOUND. Small water is species-poor (60% of eligible species absent), big water rich (20%);
+     * ubiquitous commons (profile base >= 0.95) live everywhere so no water is ever dead; ~8% of a
+     * water's species come out as its SIGNATURE fish (×1.8 bites); and a fish RELEASED into the
+     * water (§stocking) joins the set for good — that's how a server stocks its ponds.
+     */
+    private static java.util.function.ToDoubleFunction<Identifier> communityFactor(
+            ServerLevel level, BlockPos waterPos, WaterBody body) {
+        long region = StockedData.region(waterPos);
+        double absent = body.width() < 8 ? 0.60 : body.width() < 16 ? 0.45 : body.width() < 32 ? 0.30 : 0.20;
+        long worldSeed = level.getSeed();
+        StockedData stocked = StockedData.get(level);
+        FishingPressureData pd = FishingPressureData.get(level);
+        int cx = waterPos.getX() >> 4, cz = waterPos.getZ() >> 4;
+        return id -> {
+            FishProfile pr = FishProfileManager.get().byId(id);
+            if (pr == null || pr.base >= 0.95) return 1.0;
+            if (stocked.isStocked(region, id.getPath())) return 1.0;
+            double r = hashUnit(worldSeed, region, id.getPath());
+            if (r >= absent) return r > 0.92 ? 1.8 : 1.0;
+            // §residency: an UNSETTLED transplant bites in proportion to its 0..100% temporary
+            // population (3×3-chunk reach — fish don't respect chunk borders), dispersing as the
+            // surplus decays away.
+            return Math.min(1.0, pd.surplusAround(cx, cz, id.getPath(), level.getGameTime()));
+        };
+    }
+
+    /**
+     * §stocking 2.0: a fish RELEASED into water. Presence, surplus and settling all flow from here:
+     * — a species already in the water (native or settled) banks a stock SURPLUS, scaled by the
+     *   specimen's weight against the species mean (a trophy counts ~3 fish, a tiddler ~nothing —
+     *   sport catch-and-release of PRIME fish is what feeds a water, not bucketfuls of fry);
+     * — a species NOT living here rolls to SETTLE: chance = 0.18 × fit² × size (nonlinear in habitat
+     *   fit — perfect water settles a prime fish at ~30-40%, a barely-livable one in the low single
+     *   digits; water it cannot inhabit at all never settles);
+     * — natives pack to 250% stock, transplants to 150% (§population floors).
+     */
+    public static void releaseFish(ServerLevel level, BlockPos pos, Identifier species,
+                                   int weightG, int count,
+                                   @org.jetbrains.annotations.Nullable ServerPlayer thrower) {
+        FishProfile p = FishProfileManager.get().byId(species);
+        if (p == null) return;
+        // A floating item sits in the AIR block above the surface — resolve to the actual water.
+        if (!level.getFluidState(pos).is(net.minecraft.tags.FluidTags.WATER)) {
+            if (level.getFluidState(pos.below()).is(net.minecraft.tags.FluidTags.WATER)) pos = pos.below();
+        }
+        WaterBody body = WaterBodyCache.forLevel(level).get(level, pos);
+        if (body.type() == WaterType.NONE) return;
+        long region = StockedData.region(pos);
+        long chunk = ChunkPos.pack(pos);
+        long now = level.getGameTime();
+
+        // Habitat fit — the same environment gates and factors the bite engine lives by, WITHOUT the
+        // community (settling is exactly the act of joining a community the species isn't in yet) and
+        // with the time/weather noise flattened: viability is about the WATER, not the hour of day.
+        BiteContext env = environmentAt(level, pos, body);
+        env.communityFactor = null;
+        env.time = TimeOfDay.DAY;
+        env.weather = Weather.CLEAR;
+        double fit = BiteEngine.environmentScore(p, env);
+
+        // §residency-guard: the community hash alone can roll "native" for a shark in a river (it
+        // never looks at habitat) — native/present status flows from fit. But §settle-anything:
+        // hostile water only CUTS the settle chance to its floor, it no longer forbids the attempt.
+        boolean hostile = fit <= 0;
+        boolean nativeHere = !hostile && nativeHere(level, pos, body, species);
+        StockedData stocked = StockedData.get(level);
+        boolean present = !hostile && (nativeHere || stocked.isStocked(region, species.getPath()));
+
+        // §stock-units (0.5.1): SUPERLINEAR in size — 0.5·(w/mean)^1.5. A mean fish is half a unit
+        // (a native pond needs ~17 of them for the full 250%), a double-mean trophy ~1.4 units
+        // (~6 trophies), fry a rounding error. Packing a water stays real work.
+        double sizeRatio = weightG / Math.max(1.0, p.weightMean);
+        double units = 0.5 * Math.pow(Mth.clamp(sizeRatio, 0.0, 3.0), 1.5);
+        // §stock-vs-settle (0.5.1): the two systems no longer fight over the same fish. Hostile water
+        // kills the release outright; everywhere else EVERY release banks its weight units — the fish
+        // physically swims here now, and while the surplus lasts the species is TEMPORARILY catchable
+        // (communityFactor reads the surplus). Settling is a separate roll for PERMANENCE on top.
+        boolean settledNow = false;
+        double chance = 0.0;
+        if (!present) {
+            // §settle-anything (0.5.1): NONLINEAR in fit with a tiny floor — perfect water settles a
+            // prime fish at ~20-40%, mediocre water in the low percents, and even water that fails
+            // every parameter keeps a sliver (~0.5%): the chance is CUT, never zeroed. Size keeps the
+            // RAW ratio (settling is about the specimen being adult, not tonnage).
+            chance = 0.18 * (0.03 + Math.pow(Math.min(1.2, fit), 2.0)) * Mth.clamp(sizeRatio, 0.1, 2.0);
+            for (int i = 0; i < Math.max(1, count) && !settledNow; i++) {
+                if (level.getRandom().nextDouble() < chance) settledNow = true;
+            }
+            if (settledNow) stocked.markStocked(region, species.getPath());
+        }
+        FishingPressureData pressure = FishingPressureData.get(level);
+        if (!hostile || settledNow) {
+            // §residency: how deep the bank goes depends on the species' standing HERE —
+            // native 250%, settled transplant 150%, an unsettled one builds a 0..100% temp population.
+            double floor = nativeHere ? FishingPressureData.FLOOR_NATIVE
+                    : (present || settledNow) ? FishingPressureData.FLOOR_SETTLED
+                    : FishingPressureData.FLOOR_TRANSPLANT;
+            pressure.addStock(chunk, species.getPath(), now, units * Math.max(1, count), floor);
+        }
+
+        if (thrower == null) return;
+        net.minecraft.network.chat.Component name = fishName(species);
+        if (settledNow) {
+            thrower.sendOverlayMessage(Component.translatable("message.riverfishing.stocked_settled", name)
+                    .withStyle(ChatFormatting.GREEN));
+        } else if (hostile) {
+            thrower.sendOverlayMessage(Component.translatable("message.riverfishing.stocked_hostile",
+                    name, String.format("%.1f", chance * 100)).withStyle(ChatFormatting.RED));
+        } else if (!present) {
+            // §residency: a transplant has NO 100% baseline — its temp population grows from zero.
+            int temp = (int) Math.round(pressure.surplus(chunk, species.getPath(), now) * 100);
+            thrower.sendOverlayMessage(Component.translatable("message.riverfishing.stocked_failed",
+                    name, (int) Math.round(chance * 100), temp).withStyle(ChatFormatting.GRAY));
+        } else {
+            thrower.sendOverlayMessage(Component.translatable("message.riverfishing.stocked",
+                    name, pressure.stockPercent(chunk, species.getPath(), now))
+                    .withStyle(ChatFormatting.AQUA));
+        }
+    }
+
+    /** §residency: does the seed's community (or the commons rule) place this species here natively? */
+    public static boolean nativeHere(ServerLevel level, BlockPos pos, WaterBody body, Identifier id) {
+        FishProfile pr = FishProfileManager.get().byId(id);
+        if (pr == null) return false;
+        if (pr.base >= 0.95) return true;
+        double absent = body.width() < 8 ? 0.60 : body.width() < 16 ? 0.45 : body.width() < 32 ? 0.30 : 0.20;
+        return hashUnit(level.getSeed(), StockedData.region(pos), id.getPath()) >= absent;
+    }
+
+    /** §residency: native OR permanently settled — anything but a temporary transplant. */
+    public static boolean residentHere(ServerLevel level, BlockPos pos, WaterBody body, Identifier id) {
+        return nativeHere(level, pos, body, id)
+                || StockedData.get(level).isStocked(StockedData.region(pos), id.getPath());
+    }
+
+    /** §residency: stocked presence at a spot — 1.0 settled, 0..1 temp transplant (3×3 chunks), 0 none. */
+    public static java.util.function.ToDoubleFunction<Identifier> stockedPresence(
+            ServerLevel level, BlockPos waterPos) {
+        StockedData stocked = StockedData.get(level);
+        FishingPressureData pd = FishingPressureData.get(level);
+        long region = StockedData.region(waterPos);
+        int cx = waterPos.getX() >> 4, cz = waterPos.getZ() >> 4;
+        return id -> stocked.isStocked(region, id.getPath()) ? 1.0
+                : Math.min(1.0, pd.surplusAround(cx, cz, id.getPath(), level.getGameTime()));
+    }
+
+    /** Environment-only context at a spot (no tackle): habitat + season/time/weather + community. */
+    public static BiteContext environmentAt(ServerLevel level, BlockPos pos, WaterBody body) {
+        BiteContext env = new BiteContext();
+        env.water = body.type();
+        env.waterWidth = body.width();
+        env.waterDepth = measureDepth(level, pos);
+        env.biomeGroups = biomeGroups(level, pos, body);
+        env.season = SeasonProvider.getSeason(level);
+        env.time = TimeOfDay.fromDayTime(level.getOverworldClockTime());
+        env.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
+        env.biomeTemperature = level.getBiome(pos).value().getBaseTemperature();
+        env.anglerLevel = Integer.MAX_VALUE;
+        env.communityFactor = communityFactor(level, pos, body);
+        env.stockedPresence = stockedPresence(level, pos);
+        return env;
+    }
+
+    /** §community: a stable [0,1) roll from (world seed, water region, species) — splitmix-style. */
+    private static double hashUnit(long seed, long region, String species) {
+        long h = seed ^ region * 0x9E3779B97F4A7C15L ^ (long) species.hashCode() * 0xC2B2AE3D27D4EB4FL;
+        h ^= h >>> 33;
+        h *= 0xFF51AFD7ED558CCDL;
+        h ^= h >>> 33;
+        return (h >>> 11) / (double) (1L << 53);
+    }
+
     private static BiteContext buildContext(ServerPlayer sp, ServerLevel level, ItemStack rod,
                                             InteractionHand hand, WaterBody body, BlockPos waterPos,
                                             double castDistance, long now) {
@@ -1719,6 +2365,8 @@ public final class FishingManager {
         long popChunk = ChunkPos.pack(waterPos);
         double popRegen = spawnRegen(level);
         ctx.speciesFactor = id -> popData.speciesAttractiveness(popChunk, id.getPath(), now, popRegen);
+        ctx.communityFactor = communityFactor(level, waterPos, body);
+        ctx.stockedPresence = stockedPresence(level, waterPos);
         ctx.season = SeasonProvider.getSeason(level);
         ctx.time = TimeOfDay.fromDayTime(level.getOverworldClockTime());
         ctx.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
@@ -1757,16 +2405,10 @@ public final class FishingManager {
             actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
             return;
         }
-        BiteContext env = new BiteContext();
-        env.water = body.type();
-        env.waterWidth = body.width();
-        env.waterDepth = measureDepth(level, waterPos);
-        env.biomeGroups = biomeGroups(level, waterPos, body);
-        env.season = SeasonProvider.getSeason(level);
-        env.time = TimeOfDay.fromDayTime(level.getOverworldClockTime());
-        env.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
-        env.biomeTemperature = level.getBiome(waterPos).value().getBaseTemperature();
-        env.anglerLevel = Integer.MAX_VALUE; // environment view ignores the holder's level
+        // §dedupe (0.5.1): the finder/tablet view the water through the SAME context builder the bite
+        // engine uses (community + stocked presence included) — hand-built copies kept drifting: the
+        // settled-shark presence floor was missing here, so stocked species stayed invisible.
+        BiteContext env = environmentAt(level, waterPos, body);
 
         java.util.List<java.util.Map.Entry<FishProfile, Double>> here = new java.util.ArrayList<>();
         for (FishProfile p : FishProfileManager.get().all()) {
@@ -1788,14 +2430,22 @@ public final class FishingManager {
                     BarometricPressure.hPa(level), BarometricPressure.trend(level),
                     BarometricPressure.biteFactor(level)))
                     .withStyle(ChatFormatting.GRAY));
+            FishingPressureData probeStock = FishingPressureData.get(level);
+            long probeChunk = ChunkPos.pack(waterPos);
             for (var e : here) {
                 FishProfile p = e.getKey();
                 String bait = topBait(p);
+                boolean resident = residentHere(level, waterPos, body, p.id);
+                int pct = resident
+                        ? probeStock.stockPercent(probeChunk, p.id.getPath(), level.getGameTime())
+                        : (int) Math.round(probeStock.surplusAround(waterPos.getX() >> 4, waterPos.getZ() >> 4,
+                                p.id.getPath(), level.getGameTime()) * 100);
                 sp.sendSystemMessage(Component.literal(String.format("E=%.2f  ", e.getValue()))
                         .withStyle(ChatFormatting.AQUA)
                         .append(fishName(p.id))
-                        .append(Component.literal(String.format("  lvl>=%d  bait: %s", p.minAnglerLevel, bait))
-                                .withStyle(ChatFormatting.DARK_GRAY)));
+                        .append(Component.literal(String.format("  lvl>=%d  %s=%d%%  bait: %s",
+                                p.minAnglerLevel, resident ? "stock" : "TEMP", pct, bait))
+                                .withStyle(resident ? ChatFormatting.DARK_GRAY : ChatFormatting.GOLD)));
             }
             // Diagnosis (§QoL): group the GATED species by the first gate that blocks them here.
             java.util.Map<String, java.util.List<String>> blocked = new java.util.LinkedHashMap<>();
@@ -1828,6 +2478,40 @@ public final class FishingManager {
         sp.sendSystemMessage(Component.translatable("finder.riverfishing.header")
                 .withStyle(ChatFormatting.AQUA));
         sp.sendSystemMessage(list.withStyle(ChatFormatting.WHITE));
+        // §community: name the water's signature species — the "this is a tench lake" line.
+        net.minecraft.network.chat.MutableComponent sig = null;
+        for (var e : here) {
+            if (env.communityFactor.applyAsDouble(e.getKey().id) > 1.0) {
+                if (sig == null) sig = Component.empty();
+                else sig.append(Component.literal(", "));
+                sig.append(fishName(e.getKey().id));
+            }
+        }
+        if (sig != null) {
+            sp.sendSystemMessage(Component.translatable("finder.riverfishing.signature", sig)
+                    .withStyle(ChatFormatting.GOLD));
+        }
+        // §stocking / §residency: live per-species stock. Residents show their 10..250% around the
+        // 100% baseline; an unsettled transplant shows its 0..100% TEMP population with a marker.
+        FishingPressureData stockData = FishingPressureData.get(level);
+        long stockChunk = ChunkPos.pack(waterPos);
+        net.minecraft.network.chat.MutableComponent stockLine = null;
+        for (var e : here) {
+            boolean resident = residentHere(level, waterPos, body, e.getKey().id);
+            int pct = resident
+                    ? stockData.stockPercent(stockChunk, e.getKey().id.getPath(), level.getGameTime())
+                    : (int) Math.round(stockData.surplusAround(waterPos.getX() >> 4, waterPos.getZ() >> 4,
+                            e.getKey().id.getPath(), level.getGameTime()) * 100);
+            if (resident && Math.abs(pct - 100) < 10) continue;
+            if (stockLine == null) stockLine = Component.empty();
+            else stockLine.append(Component.literal(", "));
+            stockLine.append(fishName(e.getKey().id)).append(Component.literal(" " + pct + "%"));
+            if (!resident) stockLine.append(Component.translatable("finder.riverfishing.temp"));
+        }
+        if (stockLine != null) {
+            sp.sendSystemMessage(Component.translatable("finder.riverfishing.stock", stockLine)
+                    .withStyle(ChatFormatting.AQUA));
+        }
         sp.sendSystemMessage(pressureLine(level));
         level.playSound(null, sp.blockPosition(), SoundEvents.NOTE_BLOCK_BIT.value(), SoundSource.PLAYERS, 0.6f, 1.5f);
     }
@@ -1903,6 +2587,7 @@ public final class FishingManager {
         groups.add(temp < 0.3f ? "cold" : (temp > 0.95f ? "warm" : "temperate"));
         if (biome.is(net.minecraft.tags.BiomeTags.IS_RIVER)) groups.add("river_biome");
         if (biome.is(net.minecraft.tags.BiomeTags.IS_OCEAN) || biome.is(net.minecraft.tags.BiomeTags.IS_DEEP_OCEAN)) groups.add("ocean_biome");
+        if (biome.is(net.minecraft.tags.BiomeTags.IS_DEEP_OCEAN)) groups.add("deep"); // ocean-zones (0.5.0)
         if (biome.is(net.minecraft.tags.BiomeTags.IS_BEACH)) groups.add("beach");
         if (biome.is(net.minecraft.tags.BiomeTags.IS_JUNGLE)) groups.add("jungle");
         if (biome.is(net.minecraft.tags.BiomeTags.IS_FOREST)) groups.add("forest");
