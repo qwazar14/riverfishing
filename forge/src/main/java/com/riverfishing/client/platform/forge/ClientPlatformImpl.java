@@ -18,6 +18,32 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 public final class ClientPlatformImpl {
     private ClientPlatformImpl() {}
 
+    public static void registerScreens() {
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.ROD_ASSEMBLY.get(), com.riverfishing.client.RodAssemblyScreen::new);
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.RIG.get(), com.riverfishing.client.RigScreen::new);
+    }
+
+    /**
+     * §lure-color: dyed artificial lures tint layer 0 from their display.color NBT. Called from
+     * FMLClientSetupEvent.enqueueWork — RegisterColorHandlersEvent has already fired by then, so
+     * register straight on the live ItemColors instead of listening for it.
+     */
+    public static void registerItemColors() {
+        net.minecraft.client.color.item.ItemColor tint = (stack, tintIndex) -> {
+            if (tintIndex != 0) return -1;
+            int rgb = com.riverfishing.item.DyeUtil.color(stack);
+            return rgb >= 0 ? (0xFF000000 | rgb) : -1;
+        };
+        for (dev.architectury.registry.registries.RegistrySupplier<net.minecraft.world.item.Item> r
+                : com.riverfishing.registry.ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.BaitItem b && b.artificial()) {
+                Minecraft.getInstance().getItemColors().register(tint, r.get());
+            }
+        }
+    }
+
     /**
      * The rod/fish BEWLR is attached through {@code Item#initializeClient}, which is patched onto our
      * common items by {@code RodItemForgeMixin} / {@code FishItemForgeMixin}. Nothing to register here.
