@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(LevelRenderer.class)
 public class LevelRendererMixin {
+    //? if <26.2 {
     @Inject(method = "lambda$addMainPass$0",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;renderTranslucentFeatures()V",
@@ -30,4 +31,7 @@ public class LevelRendererMixin {
         LineRenderer.render(new PoseStack(), mc.gameRenderer.getMainCamera().position(),
                 mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
     }
+    //?}
+    // On 26.2 the class is an empty no-op: the cast line goes through the loader-neutral common
+    // LevelRendererSubmitMixin (submit-based) instead.
 }

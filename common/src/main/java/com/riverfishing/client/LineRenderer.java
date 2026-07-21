@@ -3,7 +3,9 @@ package com.riverfishing.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
+//? if <26.2 {
 import net.minecraft.client.renderer.MultiBufferSource;
+//?}
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -22,20 +24,40 @@ import org.joml.Matrix4f;
 public final class LineRenderer {
     private LineRenderer() {}
 
+    //? if <26.2 {
+    // 26.1: immediate mode — pull the shared buffer source and flush the lines batch ourselves.
     public static void render(PoseStack pose, Vec3 cam, float pt) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null || ClientLineState.lines().isEmpty()) return;
-
-        float frameSeconds = mc.getDeltaTracker().getGameTimeDeltaTicks() / 20f;
-        long now = mc.level.getGameTime();
-
         pose.pushPose();
         pose.translate(-cam.x, -cam.y, -cam.z);
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
         VertexConsumer vc = buffers.getBuffer(net.minecraft.client.renderer.rendertype.RenderTypes.lines());
-        Matrix4f m = pose.last().pose();
-        Matrix3f nrm = pose.last().normal();
+        boolean drew = drawAll(mc, vc, pose.last().pose(), pose.last().normal(), pt);
+        if (drew) {
+            buffers.endBatch(net.minecraft.client.renderer.rendertype.RenderTypes.lines());
+        }
+        pose.popPose();
+    }
+    //?} else {
+    /*// 26.2: MultiBufferSource is gone — geometry rides the frame's SubmitNodeCollector, exactly
+    // like the BlockEntity renderers (see RodPodRenderer.submitCustomGeometry).
+    public static void submit(PoseStack pose, Vec3 cam, float pt,
+                              net.minecraft.client.renderer.SubmitNodeCollector collector) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null || mc.player == null || ClientLineState.lines().isEmpty()) return;
+        pose.pushPose();
+        pose.translate(-cam.x, -cam.y, -cam.z);
+        collector.submitCustomGeometry(pose, net.minecraft.client.renderer.rendertype.RenderTypes.lines(),
+                (posePose, vc) -> drawAll(mc, vc, posePose.pose(), posePose.normal(), pt));
+        pose.popPose();
+    }
+    *///?}
 
+    /** The shared per-frame loop: expire stale lines, smooth, draw. Returns true when anything drew. */
+    private static boolean drawAll(Minecraft mc, VertexConsumer vc, Matrix4f m, Matrix3f nrm, float pt) {
+        float frameSeconds = mc.getDeltaTracker().getGameTimeDeltaTicks() / 20f;
+        long now = mc.level.getGameTime();
         var it = ClientLineState.lines().entrySet().iterator();
         boolean drew = false;
         while (it.hasNext()) {
@@ -51,11 +73,7 @@ public final class LineRenderer {
             renderLine(mc, vc, m, nrm, player, state, pt);
             drew = true;
         }
-
-        if (drew) {
-            buffers.endBatch(net.minecraft.client.renderer.rendertype.RenderTypes.lines());
-        }
-        pose.popPose();
+        return drew;
     }
 
     private static void renderLine(Minecraft mc, VertexConsumer vc, Matrix4f m, Matrix3f nrm,
@@ -129,7 +147,11 @@ public final class LineRenderer {
             double fov = mc.options.fov().get();
             double fovScale = 960.0 / fov;
             // §26.1: getNearPlane now takes the fov in degrees instead of reading it itself.
+            //? if <26.2 {
             Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane((float) fov)
+            //?} else {
+            /*Vec3 v = mc.gameRenderer.mainCamera().getNearPlane((float) fov)
+            *///?}
                     .getPointOnPlane(arm * 0.525f, -0.1f)
                     .scale(fovScale)
                     .yRot(swing * 0.5f)

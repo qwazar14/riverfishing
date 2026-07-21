@@ -11,6 +11,7 @@
   },
   "client": [
     "ItemInHandRendererMixin",
-    "ItemInHandLayerMixin"
+    "ItemInHandLayerMixin",
+    "LevelRendererSubmitMixin"
   ]
 }

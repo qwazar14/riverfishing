@@ -176,13 +176,21 @@ public class JournalScreen extends Screen {
         JournalScreen next = new JournalScreen(data);
         // A refresh (server re-sends the journal after a skill unlock / quest claim) reuses this same
         // entry point — carry the reader's place over so they don't get thrown back to the FISH tab.
+        //? if <26.2 {
         if (Minecraft.getInstance().screen instanceof JournalScreen prev) {
+        //?} else {
+        /*if (Minecraft.getInstance().gui.screen() instanceof JournalScreen prev) {
+        *///?}
             next.tab = prev.tab;
             next.scroll = prev.scroll;
             next.detail = prev.detail;
             next.catDetail = prev.catDetail;
         }
+        //? if <26.2 {
         Minecraft.getInstance().setScreen(next);
+        //?} else {
+        /*Minecraft.getInstance().setScreenAndShow(next);
+        *///?}
     }
 
     @Override
@@ -389,7 +397,7 @@ public class JournalScreen extends Screen {
 
     private static String descText(String sp) {
         String k = "fishdesc.riverfishing." + sp;
-        return I18n.exists(k) ? I18n.get(k) : "";
+        return net.minecraft.locale.Language.getInstance().has(k) ? I18n.get(k) : "";
     }
 
     // ---- QUESTS tab ----
@@ -676,7 +684,7 @@ public class JournalScreen extends Screen {
         // §bait-desc: an optional flavour line for a bait/lure (e.g. the ice jig), shown under the big icon.
         if (isBait(e.kind())) {
             String bk = "baitdesc.riverfishing." + e.id();
-            if (I18n.exists(bk)) {
+            if (net.minecraft.locale.Language.getInstance().has(bk)) {
                 int dy = top + 104;
                 for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.translatable(bk), W - 20)) {
                     g.text(this.font, seq, left + 10, dy, GuiStyle.TEXT_HINT, false);
