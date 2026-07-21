@@ -456,6 +456,7 @@ public final class FishingManager {
             default -> 0xFFE8E4D0;      // warm mono white
         };
         session.rodStackRef = rod;
+        com.riverfishing.item.RodData.setLineOut(rod, true); // §rod-layers: hide in-hand tackle overlays
         // §live-conditions: keep the snapshot + current speed so the waiting line can re-read the world.
         session.ctx = ctx;
         session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
@@ -562,6 +563,7 @@ public final class FishingManager {
             default -> 0xFFE8E4D0;
         };
         session.rodStackRef = rod;
+        com.riverfishing.item.RodData.setLineOut(rod, true); // §rod-layers: hide in-hand tackle overlays
         session.ctx = ctx;
         session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
         SESSIONS.put(sp.getUUID(), session);
@@ -1935,6 +1937,10 @@ public final class FishingManager {
             clearFloatTiming(sp); // hide the strike-timing HUD (float or lure §strike-qte)
         }
         SESSIONS.remove(sp.getUUID());
+        // §rod-layers: the line is back in — show the in-hand tackle overlays again.
+        if (!session.rodStackRef.isEmpty()) {
+            com.riverfishing.item.RodData.setLineOut(session.rodStackRef, false);
+        }
         // Clear the line for everyone who can see this angler (§line-multiplayer).
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), false, null, 0f, 0, false));
     }
