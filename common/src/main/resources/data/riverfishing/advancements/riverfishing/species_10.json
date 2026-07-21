@@ -1,0 +1,14 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": { "item": "riverfishing:bleak" },
+    "title": { "translate": "advancement.riverfishing.species_10.title" },
+    "description": { "translate": "advancement.riverfishing.species_10.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false
+  },
+  "criteria": {
+    "code": { "trigger": "minecraft:impossible" }
+  }
+}

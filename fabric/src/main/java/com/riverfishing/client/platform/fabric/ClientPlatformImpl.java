@@ -76,6 +76,8 @@ public final class ClientPlatformImpl {
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.AQUARIUM.get(), RenderType.translucent());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.ICE_HOLE.get(), RenderType.translucent());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.BAIT_TRAP.get(), RenderType.cutout());
+        // §mini-aquarium: the glass tank needs cutout (NeoForge reads render_type from the model JSON).
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.TROPHY_STAND.get(), RenderType.cutout());
         // §bait-crops: crop cross-models need cutout (NeoForge reads it from the model JSON).
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.CORN_CROP.get(), RenderType.cutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.PEA_CROP.get(), RenderType.cutout());

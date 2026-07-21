@@ -6,6 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -99,7 +100,13 @@ public class BaitTrapBlock extends BaseEntityBlock implements SimpleWaterloggedB
                                  InteractionHand hand, BlockHitResult hit) {
         if (level.isClientSide) return InteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof BaitTrapBlockEntity be) {
-            be.collect(player);
+            // §trap-feed: pour groundbait in and the fish come quicker; anything else collects.
+            ItemStack held = player.getItemInHand(hand);
+            if (held.getItem() instanceof com.riverfishing.item.GroundbaitItem) {
+                be.addFeed(player, held);
+            } else {
+                be.collect(player);
+            }
         }
         return InteractionResult.CONSUME;
     }

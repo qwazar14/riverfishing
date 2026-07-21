@@ -1,0 +1,14 @@
+{
+  "parent": "riverfishing:riverfishing/species_25",
+  "display": {
+    "icon": { "item": "riverfishing:zander" },
+    "title": { "translate": "advancement.riverfishing.species_50.title" },
+    "description": { "translate": "advancement.riverfishing.species_50.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": { "trigger": "minecraft:impossible" }
+  }
+}

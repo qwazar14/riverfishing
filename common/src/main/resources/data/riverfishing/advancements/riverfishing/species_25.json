@@ -1,0 +1,14 @@
+{
+  "parent": "riverfishing:riverfishing/species_10",
+  "display": {
+    "icon": { "item": "riverfishing:perch" },
+    "title": { "translate": "advancement.riverfishing.species_25.title" },
+    "description": { "translate": "advancement.riverfishing.species_25.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": { "trigger": "minecraft:impossible" }
+  }
+}

@@ -30,6 +30,8 @@ public class FishItem extends Item {
     public static final String TAG_MIN_WEIGHT = "MinW";
     // §livebait-2 (0.4.0): weight carried by a live baitfish (on the LIVEBAIT item, not the fish).
     public static final String TAG_BAIT_WEIGHT = "BaitW";
+    // legendary (0.5.0): this specimen is the server one-of-a-kind named fish.
+    public static final String TAG_LEGEND = "Legend";
 
     private final ResourceLocation species;
 
@@ -94,6 +96,14 @@ public class FishItem extends Item {
                 entity.setItem(stack); // sync the countdown to clients so they shrink the render
             } else if (now >= tag.getLong(TAG_RELEASE_AT)) {
                 if (level instanceof net.minecraft.server.level.ServerLevel sl) {
+                    // §stocking 2.0: presence, settling and the weight-scaled surplus all live in
+                    // FishingManager.releaseFish — see there for the whole model.
+                    ResourceLocation released = getSpecies(stack);
+                    if (released != null) {
+                        com.riverfishing.fishing.FishingManager.releaseFish(sl, entity.blockPosition(),
+                                released, getWeightG(stack), stack.getCount(),
+                                entity.getOwner() instanceof net.minecraft.server.level.ServerPlayer t ? t : null);
+                    }
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE,
                             entity.getX(), entity.getY() + 0.1, entity.getZ(), 14, 0.25, 0.1, 0.25, 0.02);
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.SPLASH,
@@ -153,6 +163,7 @@ public class FishItem extends Item {
             tag.putString(TAG_GRADE, GRADE_PRIME);
             tag.putInt(TAG_MIN_WEIGHT, thresholdG);
         });
+        // 1.20.1: the Grade/MinW NBT alone gates the buy-trade (vanilla subset tag-matching).
     }
 
     public static boolean isPrime(ItemStack stack) {
@@ -189,24 +200,18 @@ public class FishItem extends Item {
         return StackNbt.get(stack).getInt(TAG_LENGTH);
     }
 
-    /** Species drawn FOLDED in half on their icon, so they use half the length→scale rule (§fish-scale). */
-    private static final java.util.Set<String> FOLDED_ICON =
-            java.util.Set.of("catfish", "pike", "burbot", "eel", "sterlet");
-
     /**
-     * Icon scale for this catch (§fish-scale): the fish's real LENGTH — 50 cm renders at 1 block, 100 cm at
-     * 2, 25 cm at ½. Length now tracks weight by the allometric L ∝ W^(1/3) law (see FishingManager#rollFish),
-     * so this length-based scale already reflects how heavy the fish is — a big/heavy fish is long, a small
-     * one short. Long species drawn FOLDED in half divide by 100 (their art is already half-length). Floor
-     * 0.45 keeps the smallest fish readable; ceiling 2.0 stops a giant swallowing the inventory.
+     * Icon scale for this catch (§fish-scale): the fish's real LENGTH — 50 cm renders at 1 block, 100 cm
+     * at 2, a 380 cm mako at 7.6. Length tracks weight by the allometric L ∝ W^(1/3) law (see
+     * FishingManager#rollFish), so this already reflects how heavy the fish is. All icons are drawn
+     * FULL-LENGTH now (the old folded-in-half species art is gone with the 256×256 repaint), so one
+     * rule fits everyone. Floor 0.45 keeps the smallest fish readable; the true giants are capped
+     * PER DISPLAY CONTEXT in FishItemRenderer — huge in hand and on the ground, sane in a slot.
      */
     public static float getIconScale(ItemStack stack) {
         int len = getLengthCm(stack);
         if (len <= 0) return 1.0f; // creative-tab / JEI entry with no individual data
-        ResourceLocation sp = getSpecies(stack);
-        boolean folded = sp != null && FOLDED_ICON.contains(sp.getPath());
-        float scale = len / (folded ? 100.0f : 50.0f);
-        return Math.max(0.45f, Math.min(2.0f, scale));
+        return Math.max(0.45f, Math.min(8.0f, len / 50.0f));
     }
 
     public static boolean isLegal(ItemStack stack) {
@@ -243,8 +248,16 @@ public class FishItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.level.Level level, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, @Nullable net.minecraft.world.level.Level level, List<Component> tooltip, TooltipFlag flag) {
         CompoundTag tag = StackNbt.get(stack);
+        // legendary (0.5.0): the one-of-a-kind server fish announces itself in gold.
+        if (tag.getBoolean(TAG_LEGEND)) {
+            ResourceLocation lsp = getSpecies(stack);
+            if (lsp != null) {
+                tooltip.add(Component.translatable("legendary.riverfishing." + lsp.getPath())
+                        .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+            }
+        }
         if (getWeightG(stack) <= 0) {
             // The fisherman's buy-trade cost has no weight — show the "accepts from N" legend (§prime-fish).
             // 1.20.1: the prime threshold lives in the fish's own NBT (written by gradePrime and the trade cost).

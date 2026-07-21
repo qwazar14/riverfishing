@@ -46,10 +46,15 @@ public class RodItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack rod = player.getItemInHand(hand);
-        if (player.isSecondaryUseActive()) {
-            // Open the rod-assembly GUI — reeling in any line first (§session-guard).
+        // §drag-vs-gui (0.5.0): with a line OUT, crouching is the drag (§drag) and shift+click is fight
+        // input — it must NOT reel in + pop the assembly GUI mid-vyvazhivanie. The GUI now needs a free
+        // line: reel in first. Both sides use their own session knowledge so the hand animation agrees.
+        boolean lineOut = !level.isClientSide
+                ? player instanceof ServerPlayer sp && FishingManager.hasSession(sp)
+                : dev.architectury.utils.EnvExecutor.getEnvSpecific(
+                        () -> () -> com.riverfishing.client.ClientLineState.active(), () -> () -> false);
+        if (player.isSecondaryUseActive() && !lineOut) {
             if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
-                FishingManager.reelInIfAny(serverPlayer);
                 openAssembly(serverPlayer, hand);
             }
             return InteractionResultHolder.sidedSuccess(rod, level.isClientSide);
@@ -63,11 +68,13 @@ public class RodItem extends Item {
             sessionAction = dev.architectury.utils.EnvExecutor.getEnvSpecific(
                     () -> () -> com.riverfishing.client.ClientLineState.active(), () -> () -> false);
         }
-        // Spinning/ultralight (§spin-charge, 2.3): with a LIVE session the hold drives the retrieve/fight
-        // (onUseTick); with NO session the hold CHARGES the cast (power bar) and RELEASING throws to that
-        // distance — the distance mini-game is back, while hold-to-retrieve still works (it just starts on
-        // the next hold, after the lure lands). The cast itself fires in releaseUsing().
+        // §click-retrieve (0.5.1): with a LIVE session every CLICK is a crank/twitch — the lure game
+        // (handled in handleRodUse; gaps between clicks ARE the lure action). No item-use hold during
+        // a session; the hold only CHARGES the cast (power bar), which fires in releaseUsing().
         if (rodType.activeRetrieve()) {
+            if (sessionAction) {
+                return InteractionResultHolder.sidedSuccess(rod, level.isClientSide);
+            }
             player.startUsingItem(hand);
             return InteractionResultHolder.consume(rod);
         }
@@ -121,13 +128,6 @@ public class RodItem extends Item {
     @Override
     public UseAnim getUseAnimation(ItemStack stack) {
         return UseAnim.NONE;
-    }
-
-    @Override
-    public void onUseTick(Level level, LivingEntity entity, ItemStack stack, int remainingUseDuration) {
-        if (!level.isClientSide && entity instanceof ServerPlayer sp) {
-            FishingManager.retrieveTick(sp);
-        }
     }
 
     @Override
@@ -187,6 +187,16 @@ public class RodItem extends Item {
             tooltip.add(Component.translatable("tooltip.riverfishing.rod_test",
                     (int) rodType.castWeightMin(), (int) rodType.castWeightMax())
                     .withStyle(ChatFormatting.GRAY));
+        }
+        // §ice-only: the winter rod fishes ONLY through a drilled ice hole — say so up front.
+        if (rodType == com.riverfishing.component.RodType.WINTER) {
+            tooltip.add(Component.translatable("tooltip.riverfishing.winter_hole")
+                    .withStyle(ChatFormatting.AQUA));
+        }
+        // §reel-hint: a reel-less blank tells you which reel sizes spool onto it.
+        if (rodType.takesReel() && RodData.get(stack, ComponentSlot.REEL).isEmpty()) {
+            tooltip.add(Component.translatable("tooltip.riverfishing.rod_reel_sizes",
+                    rodType.minReel(), rodType.maxReel()).withStyle(ChatFormatting.DARK_AQUA));
         }
         appendComponentLine(stack, ComponentSlot.REEL, tooltip);
         appendComponentLine(stack, ComponentSlot.LINE, tooltip);

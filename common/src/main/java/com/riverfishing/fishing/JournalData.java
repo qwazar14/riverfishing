@@ -54,6 +54,29 @@ public final class JournalData {
         return get(player).getCompound(species.toString()).getInt("count") == 0;
     }
 
+    /**
+     * §species-advancements: discovered species count, KOI EXCLUDED (they are a hidden collectible
+     * with their own challenge). Counted against the live built-in list, so the tiered "N species"
+     * advancements can never drift from the real species roster again.
+     */
+    public static int speciesCount(Player player) {
+        CompoundTag root = get(player);
+        int n = 0;
+        for (String id : com.riverfishing.registry.ModItems.FISH_SPECIES) {
+            if (!id.startsWith("carp_koi") && root.getCompound("riverfishing:" + id).getInt("count") > 0) n++;
+        }
+        return n;
+    }
+
+    /** Non-koi species total — the "all species" bar. */
+    public static int speciesTotal() {
+        int n = 0;
+        for (String id : com.riverfishing.registry.ModItems.FISH_SPECIES) {
+            if (!id.startsWith("carp_koi")) n++;
+        }
+        return n;
+    }
+
     /** True if {@code weightG} beats the player's stored best (call BEFORE {@link #record}). */
     public static boolean isPersonalBest(Player player, ResourceLocation species, int weightG) {
         return weightG > get(player).getCompound(species.toString()).getInt("best");

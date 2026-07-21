@@ -1,0 +1,24 @@
+{
+  "display": "Голец",
+  "water_bodies": { "lake": 1.1, "river": 1.0, "pond": 0.1, "swamp": 0.0, "sea": 0.2, "puddle": 0.0 },
+  "weight_g": { "min": 300, "max": 6000, "mean": 1200 },
+  "length_cm": { "min": 25, "max": 85 },
+  "fight": { "strength": 0.7, "stamina": 0.7, "runs": 3, "pattern": "aggressive", "aggression": 0.8 },
+  "ideal": {
+    "rod": ["ultralight", "spinning"],
+    "reel_size": 2500, "reel_tolerance": 1000,
+    "line": { "type": "fluoro", "diameter_mm": 0.2, "tolerance_mm": 0.05 },
+    "rig": ["predator"], "groundbait": [],
+    "bait": { "spinner": 1.0, "spoon": 0.9, "castmaster": 0.9, "wobbler": 0.7, "worm": 0.6 },
+    "hook": { "ideal": 8, "tolerance": 2 }
+  },
+  "season": { "spring": 1.1, "summer": 0.8, "autumn": 1.2, "winter": 1.1 },
+  "time":   { "dawn": 1.3, "day": 1.0, "dusk": 1.2, "night": 0.3 },
+  "weather":{ "clear": 1.0, "rain": 1.1, "thunder": 0.9 },
+  "depth_pref": "mid",
+  "distance_pref": { "min": 5, "max": 28 },
+  "habitat": { "depth_min": 2, "depth_max": 10, "width_min": 5 },
+  "biomes": { "cold": 1.4, "mountain": 1.2, "taiga": 1.0 },
+  "base": 0.65,
+  "min_angler_level": 5
+}

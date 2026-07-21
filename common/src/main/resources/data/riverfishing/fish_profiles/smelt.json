@@ -1,0 +1,24 @@
+{
+  "display": "Корюшка",
+  "water_bodies": { "sea": 1.2, "river": 0.3, "lake": 0.2, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
+  "weight_g": { "min": 20, "max": 250, "mean": 60 },
+  "length_cm": { "min": 10, "max": 30 },
+  "fight": { "strength": 0.15, "stamina": 0.2, "runs": 1, "pattern": "burst", "aggression": 0.6 },
+  "ideal": {
+    "rod": ["winter", "pole", "ultralight"],
+    "reel_size": 0, "reel_tolerance": 1500,
+    "line": { "type": "mono", "diameter_mm": 0.12, "tolerance_mm": 0.05 },
+    "rig": ["winter", "float"], "groundbait": [],
+    "bait": { "bloodworm": 1.0, "mormyshka": 0.9, "fish_strip": 0.8, "worm": 0.7 },
+    "hook": { "ideal": 16, "tolerance": 4 }
+  },
+  "season": { "spring": 1.1, "summer": 0.4, "autumn": 0.9, "winter": 1.5 },
+  "time":   { "dawn": 1.2, "day": 1.1, "dusk": 1.0, "night": 0.6 },
+  "weather":{ "clear": 1.1, "rain": 0.9, "thunder": 0.8 },
+  "depth_pref": "mid",
+  "distance_pref": { "min": 3, "max": 20 },
+  "habitat": { "depth_min": 1, "depth_max": 8, "width_min": 6 },
+  "biomes": { "cold": 1.3, "ocean_biome": 1.0 },
+  "base": 1.3,
+  "min_angler_level": 1
+}

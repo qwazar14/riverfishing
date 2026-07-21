@@ -11,8 +11,7 @@
   "weight_g": {
     "min": 300,
     "max": 4000,
-    "mean": 900,
-    "spread": 0.6
+    "mean": 900
   },
   "length_cm": {
     "min": 40,

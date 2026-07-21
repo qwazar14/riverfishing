@@ -30,8 +30,7 @@ public class TrophyStandBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     private static final VoxelShape SHAPE = Shapes.or(
             Block.box(1, 0, 1, 15, 3, 15),    // base
-            Block.box(3, 3, 3, 13, 10, 13),   // body
-            Block.box(2, 10, 2, 14, 12, 14)); // cap
+            Block.box(2, 3, 2, 14, 14, 14));  // §mini-aquarium: the glass tank
 
 
 
@@ -76,14 +75,24 @@ public class TrophyStandBlock extends BaseEntityBlock {
         if (!(level.getBlockEntity(pos) instanceof TrophyStandBlockEntity be)) return InteractionResult.PASS;
 
         ItemStack held = player.getItemInHand(hand);
-        if (be.getFish().isEmpty() && held.getItem() instanceof FishItem) {
-            be.setFish(held.copyWithCount(1));
+        // §mini-aquarium: up to 5 small fish (≤150 g each); empty hand takes the last one back out.
+        if (held.getItem() instanceof FishItem) {
+            if (FishItem.getWeightG(held) > TrophyStandBlockEntity.MAX_WEIGHT_G) {
+                player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                        "message.riverfishing.aquarium_too_big").withStyle(net.minecraft.ChatFormatting.YELLOW), true);
+                return InteractionResult.CONSUME;
+            }
+            if (!be.addFish(held)) {
+                player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                        "message.riverfishing.aquarium_full").withStyle(net.minecraft.ChatFormatting.YELLOW), true);
+                return InteractionResult.CONSUME;
+            }
             held.shrink(1);
             return InteractionResult.CONSUME;
         }
-        if (!be.getFish().isEmpty() && held.isEmpty()) {
-            ItemStack fish = be.getFish();
-            be.setFish(ItemStack.EMPTY);
+        if (held.isEmpty()) {
+            ItemStack fish = be.removeLast();
+            if (fish.isEmpty()) return InteractionResult.PASS;
             if (!player.getInventory().add(fish)) player.drop(fish, false);
             return InteractionResult.CONSUME;
         }
@@ -93,8 +102,8 @@ public class TrophyStandBlock extends BaseEntityBlock {
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
         if (!state.is(newState.getBlock())) {
-            if (level.getBlockEntity(pos) instanceof TrophyStandBlockEntity be && !be.getFish().isEmpty()) {
-                popResource(level, pos, be.getFish());
+            if (level.getBlockEntity(pos) instanceof TrophyStandBlockEntity be) {
+                for (ItemStack fish : be.getFishes()) popResource(level, pos, fish);
             }
             super.onRemove(state, level, pos, newState, moved);
         }

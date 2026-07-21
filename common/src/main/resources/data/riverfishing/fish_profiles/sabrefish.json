@@ -1,7 +1,7 @@
 {
   "display": "Чехонь",
   "water_bodies": { "river": 1.3, "lake": 0.8, "pond": 0.1, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 150, "max": 2000, "mean": 400, "spread": 0.6 },
+  "weight_g": { "min": 150, "max": 2000, "mean": 400 },
   "length_cm": { "min": 20, "max": 60 },
   "fight": { "strength": 0.45, "stamina": 0.5, "runs": 2, "pattern": "aggressive", "aggression": 0.75 },
   "ideal": {

@@ -139,6 +139,10 @@ public final class ModVillagers {
         buyPrime(t, 4, "rainbow_trout", 7, 12);
         buyPrime(t, 4, "grayling", 7, 12);
         buyPrime(t, 4, "burbot", 5, 10);
+        buyPrime(t, 4, "mackerel", 3, 6);
+        buyPrime(t, 4, "herring", 2, 4);
+        buyPrime(t, 4, "garfish", 3, 6);
+        buyPrime(t, 4, "flounder", 4, 8);
 
         // Level 5 — Master: the trade-only prestige gear (§progression).
         sell(t, 5, "digital_alarm", 10, 1, 25);
@@ -147,12 +151,58 @@ public final class ModVillagers {
         sell(t, 5, "line_braid_030", 10, 1, 22); // the catfish braid (§strain-recompute)
         sell(t, 5, "carp_rod", 18, 1, 30);
         sell(t, 5, "bottom_rod", 16, 1, 28);
+        // sea-tackle (0.5.0): the saltwater counter — master-tier gate to the ocean.
+        sell(t, 5, "surf_rod", 20, 1, 30);
+        sell(t, 5, "sea_spin_rod", 17, 1, 28);
+        sell(t, 5, "boat_rod", 19, 1, 30);
+        sell(t, 5, "trolling_rod", 24, 1, 34);
+        sell(t, 5, "reel_8000", 18, 1, 28);
+        sell(t, 5, "reel_10000", 22, 1, 30);
+        sell(t, 5, "reel_12000", 26, 1, 32);
+        sell(t, 5, "reel_14000", 30, 1, 34);
+        sell(t, 5, "line_mono_050", 8, 1, 20);
+        sell(t, 5, "line_braid_040", 14, 1, 24);
+        // §sea-lines-2: the heavy tier for the 8000-14000 reels.
+        sell(t, 5, "line_mono_060", 10, 1, 22);
+        sell(t, 5, "line_braid_050", 16, 1, 26);
+        sell(t, 5, "line_fluoro_040", 12, 1, 24);
+        sell(t, 5, "line_mono_070", 12, 1, 24);
+        sell(t, 5, "line_mono_080", 14, 1, 26);
+        sell(t, 5, "line_braid_060", 18, 1, 28);
+        sell(t, 5, "hook_2", 3, 3, 10);
+        sell(t, 5, "hook_1", 4, 3, 12);
         buyPrime(t, 5, "catfish", 12, 25);
         buyPrime(t, 5, "eel", 8, 15);
         buyPrime(t, 5, "channel_catfish", 10, 20);
         buyPrime(t, 5, "sterlet", 16, 30);
         buyPrime(t, 5, "silver_carp", 14, 26);
+        buyPrime(t, 5, "seabass", 7, 14);
+        buyPrime(t, 5, "cod", 9, 18);
+        buyPrime(t, 5, "saithe", 7, 14);
+        buyPrime(t, 5, "conger", 13, 24);
+        buyPrime(t, 5, "ray", 12, 22);
+        buyPrime(t, 5, "mahi", 10, 20);
+        buyPrime(t, 5, "wahoo", 14, 26);
+        buyPrime(t, 5, "yellowfin_tuna", 20, 34);
+        buyPrime(t, 5, "barracuda", 8, 16);
+        buyPrime(t, 5, "blue_marlin", 28, 40);
+        buyPrime(t, 5, "sailfish", 18, 30);
+        buyPrime(t, 5, "swordfish", 24, 36);
+        buyPrime(t, 5, "mako", 22, 34);
         buyPrime(t, 5, "wild_carp", 14, 28);
+        // north-wave (0.5.0)
+        buyPrime(t, 1, "rotan", 1, 2);
+        buyPrime(t, 1, "smelt", 1, 3);
+        buyPrime(t, 2, "nase", 2, 4);
+        buyPrime(t, 2, "vimba", 3, 5);
+        buyPrime(t, 3, "pink_salmon", 4, 8);
+        buyPrime(t, 3, "whitefish", 4, 8);
+        buyPrime(t, 4, "char", 6, 12);
+        buyPrime(t, 4, "lenok", 6, 12);
+        buyPrime(t, 4, "salmon", 10, 18);
+        buyPrime(t, 5, "taimen", 24, 36);
+        buyPrime(t, 5, "sturgeon", 26, 38);
+        buyPrime(t, 5, "halibut", 22, 34);
 
         com.riverfishing.platform.VillagerTradeRegistry.register(FISHERMAN, t);
     }
@@ -192,16 +242,22 @@ public final class ModVillagers {
         t.get(level).add((trader, random) -> {
             Item i = item(path);
             if (!(i instanceof FishItem)) return null;
-            // §prime-fish (1.20.1): the buy-cost is an ItemStack carrying the Grade/MinW NBT that
-            // FishItem.gradePrime writes at the catch; vanilla's subset tag-matching restricts the trade to
-            // prime specimens of this species AND the cost stack's tooltip shows the "accepts from N" legend.
+            // §prime-fish (1.21): gate the buy-cost on the registered PRIME component, whose value is the
+            // species' min accepted weight (≥70% of max, set via FishItem.gradePrime at catch). Expecting the
+            // exact threshold both restricts the trade to prime specimens AND makes the cost slot show the
+            // "accepts from N" legend — the client rebuilds the display stack from this predicate.
             FishProfile profile = FishProfileManager.get().byId(RiverFishing.id(path));
             if (profile == null) return null;
             int threshold = FishItem.primeThresholdG(profile.weightMax);
+            // §prime-fish (1.20.1): the buy-cost carries the Grade/MinW NBT gradePrime writes at the
+            // catch; vanilla's subset tag-matching does the gating and shows the "accepts from N" legend.
             ItemStack cost = new ItemStack(i);
             cost.getOrCreateTag().putString(FishItem.TAG_GRADE, FishItem.GRADE_PRIME);
             cost.getOrCreateTag().putInt(FishItem.TAG_MIN_WEIGHT, threshold);
-            return new MerchantOffer(cost, new ItemStack(Items.EMERALD, emeralds), 12, xp, 0.05f);
+            // market (0.5.0): the pay is DYNAMIC - glut cuts it to x0.5, the daily order pays x2.5.
+            int pay = trader.level() instanceof net.minecraft.server.level.ServerLevel sl
+                    ? com.riverfishing.fishing.MarketData.get(sl).price(sl, path, emeralds) : emeralds;
+            return new MerchantOffer(cost, new ItemStack(Items.EMERALD, pay), 12, xp, 0.05f);
         });
     }
 
