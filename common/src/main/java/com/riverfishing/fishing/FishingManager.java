@@ -2294,6 +2294,7 @@ public final class FishingManager {
         env.season = SeasonProvider.getSeason(level);
         env.time = TimeOfDay.fromDayTime(level.getDayTime());
         env.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
+        env.biomeTemperature = level.getBiome(pos).value().getBaseTemperature();
         env.anglerLevel = Integer.MAX_VALUE;
         env.communityFactor = communityFactor(level, pos, body);
         env.stockedPresence = stockedPresence(level, pos);
@@ -2398,19 +2399,10 @@ public final class FishingManager {
             actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
             return;
         }
-        BiteContext env = new BiteContext();
-        env.water = body.type();
-        env.waterWidth = body.width();
-        env.waterDepth = measureDepth(level, waterPos);
-        env.biomeGroups = biomeGroups(level, waterPos, body);
-        env.season = SeasonProvider.getSeason(level);
-        env.time = TimeOfDay.fromDayTime(level.getDayTime());
-        env.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
-        env.biomeTemperature = level.getBiome(waterPos).value().getBaseTemperature();
-        env.anglerLevel = Integer.MAX_VALUE; // environment view ignores the holder's level
-        // §community: the finder shows THIS water's actual population — absentees drop out of the
-        // list entirely, and the water's signature species are named separately below.
-        env.communityFactor = communityFactor(level, waterPos, body);
+        // §dedupe (0.5.1): the finder/tablet view the water through the SAME context builder the bite
+        // engine uses (community + stocked presence included) — hand-built copies kept drifting: the
+        // settled-shark presence floor was missing here, so stocked species stayed invisible.
+        BiteContext env = environmentAt(level, waterPos, body);
 
         java.util.List<java.util.Map.Entry<FishProfile, Double>> here = new java.util.ArrayList<>();
         for (FishProfile p : FishProfileManager.get().all()) {
