@@ -2190,27 +2190,31 @@ public final class FishingManager {
         long now = level.getGameTime();
 
         // Habitat fit — the same environment gates and factors the bite engine lives by, WITHOUT the
-        // community (settling is exactly the act of joining a community the species isn't in yet).
+        // community (settling is exactly the act of joining a community the species isn't in yet) and
+        // with the time/weather noise flattened: viability is about the WATER, not the hour of day.
         BiteContext env = environmentAt(level, pos, body);
         env.communityFactor = null;
+        env.time = TimeOfDay.DAY;
+        env.weather = Weather.CLEAR;
         double fit = BiteEngine.environmentScore(p, env);
 
-        boolean nativeHere = nativeHere(level, pos, body, species);
+        // §residency-guard: EVERYTHING flows from fit. The community hash alone can roll "native"
+        // for a shark in a river (it never looks at habitat) — but water the species cannot live in
+        // makes it neither native, nor present, nor bankable. Only the red message.
+        boolean hostile = fit <= 0;
+        boolean nativeHere = !hostile && nativeHere(level, pos, body, species);
         StockedData stocked = StockedData.get(level);
-        boolean present = nativeHere || stocked.isStocked(region, species.getPath());
+        boolean present = !hostile && (nativeHere || stocked.isStocked(region, species.getPath()));
 
         // §stock-units (0.5.1): SUPERLINEAR in size — 0.5·(w/mean)^1.5. A mean fish is half a unit
         // (a native pond needs ~17 of them for the full 250%), a double-mean trophy ~1.4 units
         // (~6 trophies), fry a rounding error. Packing a water stays real work.
         double sizeRatio = weightG / Math.max(1.0, p.weightMean);
         double units = 0.5 * Math.pow(Mth.clamp(sizeRatio, 0.0, 3.0), 1.5);
-        // §stock-vs-settle (0.5.1): the two systems no longer fight over the same fish. Water the
-        // species CANNOT live in (fit 0) kills the release outright; everywhere else EVERY release
-        // banks its weight units — the fish physically swims here now, and while the surplus lasts
-        // the species is TEMPORARILY catchable (communityFactor reads the surplus). Settling is a
-        // separate roll for PERMANENCE on top; fail it and the transplants simply disperse as the
-        // surplus decays. A trophy spent on a settle attempt is never wasted again.
-        boolean hostile = !present && fit <= 0;
+        // §stock-vs-settle (0.5.1): the two systems no longer fight over the same fish. Hostile water
+        // kills the release outright; everywhere else EVERY release banks its weight units — the fish
+        // physically swims here now, and while the surplus lasts the species is TEMPORARILY catchable
+        // (communityFactor reads the surplus). Settling is a separate roll for PERMANENCE on top.
         boolean settledNow = false;
         double chance = 0.0;
         if (!present && !hostile) {
