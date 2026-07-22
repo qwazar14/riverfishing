@@ -71,7 +71,8 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // 26.x builds carry the bend in the stack instead and show it to everyone).
         int bend = 0;
         if (mir && mc.player != null
-                && (stack == mc.player.getMainHandItem() || stack == mc.player.getOffhandItem())) {
+                && (ctx.firstPerson()
+                    || stack == mc.player.getMainHandItem() || stack == mc.player.getOffhandItem())) {
             ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
             if (l != null) {
                 float t = l.smoothTension;

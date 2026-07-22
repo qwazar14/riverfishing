@@ -192,6 +192,12 @@ public final class FishingManager {
      * bites, strike QTE and the fight all ride the existing ACTIVE flow untouched. Any watercraft that
      * moves the player works — vanilla boats today, modded ships tomorrow.
      */
+    /** §rod-bend: fight stress 0..1 — tension relative to THIS line's breaking point (0 outside a fight). */
+    private static float fightStress(FishingSession session) {
+        if (!session.fighting) return 0f;
+        return (float) Mth.clamp(session.tension / Math.max(0.05, session.breakTension), 0.0, 1.0);
+    }
+
     public static void trollingTick(ServerPlayer sp) {
         ItemStack trollRod = sp.getMainHandItem();
         boolean capable = trollRod.getItem() instanceof RodItem ri
@@ -894,7 +900,15 @@ public final class FishingManager {
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     visProgress, session.lineColor, session.rodClass == RodClass.FLOAT,
                     session.bitten && !session.fighting && now <= session.biteWindowEnd,
-                    session.fighting ? (float) Mth.clamp(session.tension, 0.0, 1.0) : 0f));
+                    fightStress(session)));
+        }
+
+        // §rod-bend: the in-hand bend needs FRESH stress, not the 2-second line refresh above — a light
+        // extra sync every 5 fight ticks keeps the rod breathing with the pulls.
+        if (session.fighting && now % 5 == 0 && now % 40 != 0) {
+            ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
+                    (float) Mth.clamp(session.landProgress, 0.0, 1.0), session.lineColor,
+                    session.rodClass == RodClass.FLOAT, false, fightStress(session)));
         }
 
         if (session.fighting) {
