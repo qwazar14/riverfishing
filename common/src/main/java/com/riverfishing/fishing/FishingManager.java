@@ -1175,6 +1175,15 @@ public final class FishingManager {
 
         session.runTensionPulse = 0.18 * sens * (0.7 + 0.6 * weightStress);
         session.calmTensionPulse = 0.07 * sens;
+        // §small-fry (0.5.1): the weightStress floor (0.2) let a 50 g perch load the rod like a
+        // kilo fish — sub-kilo fish now damp their pulses toward "barely felt" without touching
+        // the balance above ~1.2 kg.
+        double smallDamp = Math.min(1.0, 0.25 + weightKg / 1.5);
+        session.runTensionPulse *= smallDamp;
+        session.calmTensionPulse *= smallDamp;
+        // §fish-fatigue (0.5.1): full burn-out after ~(4 + 2.5·kg) seconds of RUNNING — a perch gases
+        // out in seconds, a carp holds for half a minute, big game outlasts the drag instead.
+        session.fatigueRunTick = 1.0 / (20.0 * (4.0 + 2.5 * weightKg));
         session.landPulse = 0.05 / (0.7 + 0.6 * weightStress) * (0.9 + session.reelSize / 14000.0);
         session.relaxTick = 0.010 + dragRelief * 0.02;                 // big reel gives line faster
         session.fightPattern = profile.fightPattern;
@@ -1427,9 +1436,12 @@ public final class FishingManager {
         }
         boolean inRun = session.runTicksLeft > 0;
         // Reeling in a run spikes tension and barely gains line — you should ease off during runs.
-        session.tension += inRun ? session.runTensionPulse : session.calmTensionPulse;
+        // §fish-fatigue: a tired fish pulls softer and comes in faster.
+        double tired = 1.0 - 0.55 * session.fatigue;
+        session.tension += (inRun ? session.runTensionPulse : session.calmTensionPulse) * tired;
         session.landProgress = Mth.clamp(
-                session.landProgress + session.landPulse * (inRun ? 0.2 : 1.0), 0.0, 1.0);
+                session.landProgress + session.landPulse * (inRun ? 0.2 : 1.0)
+                        * (1.0 + 0.6 * session.fatigue), 0.0, 1.0);
         session.tension = Math.max(0.0, session.tension);
 
         level.playSound(null, sp.blockPosition(), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.25f, 1.6f);
@@ -1483,8 +1495,13 @@ public final class FishingManager {
         // run against a standing drag climbs toward the break point on its own; crouch (open drag) and
         // the fish takes line instead of loading the rod. This is what makes the drag a real decision.
         if (session.runTicksLeft > 0 && !sp.isCrouching()) {
-            session.tension += session.runTensionPulse * 0.12;
+            session.tension += session.runTensionPulse * 0.12 * (1.0 - 0.55 * session.fatigue);
         }
+
+        // §fish-fatigue: the fight itself wears the fish down — fast while it RUNS, slowly between.
+        session.fatigue = Math.min(1.0,
+                session.fatigue + (session.runTicksLeft > 0 ? session.fatigueRunTick
+                                                            : session.fatigueRunTick * 0.2));
 
         // §drag (0.5.0): crouching OPENS the drag — the reel free-spools. Tension bleeds off fast and a
         // running fish TAKES line, but it cannot snap you: the answer to a jump or a dive you can't hold.
@@ -1661,6 +1678,11 @@ public final class FishingManager {
 
     /** Probability a run starts when the timer is up, by pattern and how far into the fight we are. */
     private static double runChance(FishingSession s, double progress) {
+        // §fish-fatigue: a gassed-out fish stops running — the tell that it's ready for the net.
+        return (1.0 - 0.65 * s.fatigue) * rawRunChance(s, progress);
+    }
+
+    private static double rawRunChance(FishingSession s, double progress) {
         return switch (s.fightPattern) {
             case "relentless" -> 0.97; // §grass-carp: fights just as hard at the net as at the strike
             case "aggressive" -> 0.95;
@@ -1673,6 +1695,11 @@ public final class FishingManager {
     }
 
     private static int runDuration(FishingSession s, double progress, RandomSource r) {
+        // §fish-fatigue: tired runs are short runs.
+        return Math.max(6, (int) (rawRunDuration(s, progress, r) * (1.0 - 0.5 * s.fatigue)));
+    }
+
+    private static int rawRunDuration(FishingSession s, double progress, RandomSource r) {
         return switch (s.fightPattern) {
             case "relentless" -> 40 + r.nextInt(35); // §grass-carp: long torpedo runs toward open water
             case "aggressive" -> 22 + r.nextInt(18);

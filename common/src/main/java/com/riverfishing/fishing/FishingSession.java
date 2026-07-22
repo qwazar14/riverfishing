@@ -72,6 +72,10 @@ public class FishingSession {
     public String fightPattern = "steady";
     public double fightAggression = 0.5;
     public double runTensionPulse;
+    /** §fish-fatigue (0.5.1): 0..1 — the fish burns out over the fight; runs weaken, landing speeds up. */
+    public double fatigue;
+    /** Fatigue gained per RUN tick (weight-scaled at setup); calm ticks add 20% of it. */
+    public double fatigueRunTick;
     public double calmTensionPulse;
     public double landPulse;
     public double relaxTick;
