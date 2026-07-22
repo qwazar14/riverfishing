@@ -903,14 +903,6 @@ public final class FishingManager {
                     fightStress(session)));
         }
 
-        // §rod-bend: the in-hand bend needs FRESH stress, not the 2-second line refresh above — a light
-        // extra sync every 5 fight ticks keeps the rod breathing with the pulls.
-        if (session.fighting && now % 5 == 0 && now % 40 != 0) {
-            ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
-                    (float) Mth.clamp(session.landProgress, 0.0, 1.0), session.lineColor,
-                    session.rodClass == RodClass.FLOAT, false, fightStress(session)));
-        }
-
         if (session.fighting) {
             tickFight(sp, level, session, now);
             return;
@@ -1643,10 +1635,11 @@ public final class FishingManager {
         }
 
         // Keep every client's view of the line in step with the fight so it visibly reels in (§immersion).
+        // §rod-bend: this same sync carries the live fight stress — the in-hand bend breathes off it.
         if (now % 5 == 0) {
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     (float) Mth.clamp(session.landProgress, 0.0, 1.0), session.lineColor,
-                    session.rodClass == RodClass.FLOAT));
+                    session.rodClass == RodClass.FLOAT, false, fightStress(session)));
         }
     }
 
