@@ -1486,6 +1486,14 @@ public final class FishingManager {
         session.tension = Math.max(0.0, session.tension - session.relaxTick);
         session.landProgress = Math.max(0.0, session.landProgress - 0.0008);
 
+        // §run-load (0.5.1): a RUNNING fish loads the tackle BY ITSELF — before this, tension only rose
+        // on cranks, so riding out a run with a closed drag was free (and the rod never bent). Now a hot
+        // run against a standing drag climbs toward the break point on its own; crouch (open drag) and
+        // the fish takes line instead of loading the rod. This is what makes the drag a real decision.
+        if (session.runTicksLeft > 0 && !sp.isCrouching()) {
+            session.tension += session.runTensionPulse * 0.12;
+        }
+
         // §drag (0.5.0): crouching OPENS the drag — the reel free-spools. Tension bleeds off fast and a
         // running fish TAKES line, but it cannot snap you: the answer to a jump or a dive you can't hold.
         // Stand up = working drag; holding the reel = winching. Three drag positions, zero new inputs.
