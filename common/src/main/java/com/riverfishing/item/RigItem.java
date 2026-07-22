@@ -95,10 +95,12 @@ public class RigItem extends Item implements RodComponentItem {
 
     @Override
     public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.riverfishing.rig_mass",
-                String.format("%.0f", type.massGrams())).withStyle(s -> s.withColor(0xA0A0A0)));
-
-        // §tackle-station (0.6.0): a bench-tied rig carries its chosen weight and its maker's name.
+        // §tackle-station (0.6.0): a bench-tied rig shows its CHOSEN weight instead of the old fixed
+        // type mass — one weight line, not two.
+        if (!StackNbt.get(stack).contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)) {
+            tooltip.add(Component.translatable("tooltip.riverfishing.rig_mass",
+                    String.format("%.0f", type.massGrams())).withStyle(s -> s.withColor(0xA0A0A0)));
+        }
         appendTackleStationLines(stack, tooltip);
 
         // What's loaded inside the rig (#2).

@@ -21,9 +21,24 @@ import javax.annotation.Nullable;
  * iron and string, and it ties the rig or lure. Crafting-table-style: no BlockEntity, the menu owns
  * the ephemeral slots and hands everything back on close.
  */
-public class TackleStationBlock extends Block {
+public class TackleStationBlock extends Block implements net.minecraft.world.level.block.EntityBlock {
     public TackleStationBlock(Properties properties) {
         super(properties);
+    }
+
+    @Nullable
+    @Override
+    public net.minecraft.world.level.block.entity.BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new TackleStationBlockEntity(pos, state);
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
+        if (!state.is(newState.getBlock())
+                && level.getBlockEntity(pos) instanceof TackleStationBlockEntity be) {
+            net.minecraft.world.Containers.dropContents(level, pos, be.items());
+        }
+        super.onRemove(state, level, pos, newState, moved);
     }
 
     @Override

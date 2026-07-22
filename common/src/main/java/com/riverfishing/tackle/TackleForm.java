@@ -11,18 +11,15 @@ import net.minecraft.world.item.Item;
  * v1 is a hardcoded list — the numbers are being playtested; JSON-ify once they settle.
  */
 public enum TackleForm {
-    // ---- peaceful tab (rigs; the consumed hook goes INTO the rig's hook slot) ----
-    PRIMITIVE("rig_primitive", false, true, false, new int[]{5, 10}),
-    FLOAT_LIGHT("rig_float_light", false, true, false, new int[]{2, 5}),
-    FLOAT("rig_float", false, true, false, new int[]{5, 10, 15}),
+    // ---- peaceful tab: the SWAPPABLE bottom-rod rigs only (float/predator/winter rigs live inside
+    // their rods — see JournalScreen.isInternalRig — and are never tied separately) ----
     GRUSHA("rig_grusha", false, true, false, new int[]{30, 50, 80}),
     FEEDER("rig_feeder", false, true, false, new int[]{40, 60, 80}),
     FLAT_FEEDER("rig_flat_feeder", false, true, false, new int[]{40, 60, 80}),
     GROUND("rig_ground", false, true, false, new int[]{30, 60, 100}),
     CARP("rig_carp", false, true, false, new int[]{60, 90, 120}),
     CATFISH("rig_catfish", false, true, false, new int[]{80, 150, 250}),
-    // ---- predator tab (the livebait rig + the artificial lures; lures take the optional dye) ----
-    RIG_PREDATOR("rig_predator", true, true, false, new int[]{20, 40, 60}),
+    // ---- predator tab: the artificial lures (all take the optional dye) ----
     SPINNER("spinner", true, false, true, new int[]{3, 7, 14}),
     SPOON("spoon", true, false, true, new int[]{10, 20, 35}),
     WOBBLER("wobbler", true, false, true, new int[]{6, 12, 20}),

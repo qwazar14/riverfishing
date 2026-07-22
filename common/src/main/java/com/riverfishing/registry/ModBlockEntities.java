@@ -18,6 +18,13 @@ public final class ModBlockEntities {
         REGISTER.register();
     }
 
+    // §tackle-station (0.6.0): keeps the bench's material slots while the block stands.
+    public static final RegistrySupplier<BlockEntityType<com.riverfishing.block.TackleStationBlockEntity>> TACKLE_STATION =
+            REGISTER.register("tackle_station", () -> BlockEntityType.Builder.of(
+                    com.riverfishing.block.TackleStationBlockEntity::new,
+                    ModBlocks.TACKLE_STATION.get()
+            ).build(null));
+
     public static final RegistrySupplier<BlockEntityType<RodPodBlockEntity>> ROD_POD =
             REGISTER.register("rod_pod", () -> BlockEntityType.Builder.of(
                     RodPodBlockEntity::new,

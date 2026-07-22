@@ -25,6 +25,7 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         this.imageWidth = 200;
         this.imageHeight = 230;
         this.inventoryLabelY = -1000; // labels drawn by hand
+        this.titleLabelY = -1000;     // the tab row owns the top — no title text over it
     }
 
     private List<TackleForm> tabForms() {
@@ -78,10 +79,20 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         for (int[] w : wells) {
             g.fill(x + w[0] - 1, y + w[1] - 1, x + w[0] + 17, y + w[1] + 17, 0xFF2a241c);
         }
-        String[] labels = {"screen.riverfishing.tackle_station.hook", "screen.riverfishing.tackle_station.iron",
-                "screen.riverfishing.tackle_station.string", "screen.riverfishing.tackle_station.dye"};
-        for (int i = 0; i < labels.length; i++) {
-            g.drawString(font, I18n.get(labels[i]), x + wells[i][0] - 1, y + 108, 0xFF9a8d78, false);
+        // Ghost icons instead of overlapping text labels: an empty material slot shows a translucent
+        // example of what it takes.
+        ItemStack[] ghosts = {
+                new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM
+                        .get(com.riverfishing.RiverFishing.id("hook_10"))),
+                new ItemStack(net.minecraft.world.item.Items.IRON_INGOT),
+                new ItemStack(net.minecraft.world.item.Items.STRING),
+                new ItemStack(net.minecraft.world.item.Items.RED_DYE)};
+        for (int i = 0; i < ghosts.length; i++) {
+            if (menu.getSlot(i).getItem().isEmpty()) {
+                g.renderFakeItem(ghosts[i], x + wells[i][0], y + wells[i][1]);
+                g.fill(net.minecraft.client.renderer.RenderType.guiGhostRecipeOverlay(),
+                        x + wells[i][0], y + wells[i][1], x + wells[i][0] + 16, y + wells[i][1] + 16, 0x8857493a);
+            }
         }
         // Player inventory wells.
         for (int row = 0; row < 3; row++) {

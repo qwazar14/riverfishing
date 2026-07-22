@@ -37,7 +37,7 @@ public class TackleStationMenu extends AbstractContainerMenu {
 
     private final Player player;
     private final BlockPos pos;
-    private final SimpleContainer materials = new SimpleContainer(4);
+    private final SimpleContainer materials;
     private final SimpleContainer result = new SimpleContainer(1);
     private final DataSlot formIndex = DataSlot.standalone();
     private final DataSlot weightIndex = DataSlot.standalone();
@@ -46,6 +46,11 @@ public class TackleStationMenu extends AbstractContainerMenu {
         super(ModMenus.TACKLE_STATION.get(), id);
         this.player = inv.player;
         this.pos = pos;
+        // §tackle-station: the SERVER binds the bench's own persistent slots (walk up, re-tie); the
+        // client mirrors through menu slot sync, so a dummy container there is fine.
+        this.materials = inv.player.level().getBlockEntity(pos)
+                instanceof com.riverfishing.block.TackleStationBlockEntity be
+                ? be.items() : new SimpleContainer(4);
         materials.addListener(c -> updateResult());
 
         addSlot(new Slot(materials, SLOT_HOOK, 14, 118) {
@@ -186,11 +191,8 @@ public class TackleStationMenu extends AbstractContainerMenu {
         return before;
     }
 
-    @Override
-    public void removed(Player p) {
-        super.removed(p);
-        clearContainer(p, materials);
-    }
+    // NOTE: no clearContainer on close — the materials LIVE in the block entity now and drop when
+    // the block breaks (§tackle-station persistence).
 
     @Override
     public boolean stillValid(Player p) {
