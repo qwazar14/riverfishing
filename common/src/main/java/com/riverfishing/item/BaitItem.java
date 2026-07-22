@@ -38,6 +38,8 @@ public class BaitItem extends Item {
         String key = tooltipKey != null ? tooltipKey
                 : (artificial ? "tooltip.riverfishing.bait_artificial" : "tooltip.riverfishing.bait_natural");
         tooltip.add(Component.translatable(key).withStyle(s -> s.withColor(0x80A080)));
+        // §tackle-station (0.6.0): a bench-tied lure carries its chosen weight and its maker's name.
+        com.riverfishing.item.RigItem.appendTackleStationLines(stack, tooltip);
 
         // §livebait-2 (0.4.0): a weighed live baitfish names its weight — it drives the predator's size.
         if ("livebait".equals(baitId)) {

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "minecraft:crafting_table" },
+    { "item": "minecraft:iron_ingot" },
+    { "item": "minecraft:iron_ingot" },
+    { "item": "minecraft:string" },
+    { "item": "minecraft:string" }
+  ],
+  "result": { "id": "riverfishing:tackle_station", "count": 1 }
+}

@@ -755,5 +755,18 @@
     "advancement.riverfishing.old_boot.title":  "Улов десятилетия",
     "advancement.riverfishing.old_boot.description":  "Выловите старый сапог",
     "advancement.riverfishing.koi_fillet.title":  "Бессердечный повар",
-    "advancement.riverfishing.koi_fillet.description":  "Пустите карпа кои на филе. Зачем?.."
+    "advancement.riverfishing.koi_fillet.description":  "Пустите карпа кои на филе. Зачем?..",
+  "block.riverfishing.tackle_station": "Снастевой станок",
+  "screen.riverfishing.tackle_station.tab_peaceful": "Мирная",
+  "screen.riverfishing.tackle_station.tab_predator": "Хищная",
+  "screen.riverfishing.tackle_station.weight": "Вес: %s г",
+  "screen.riverfishing.tackle_station.cast_hint": "заброс ~%s бл.",
+  "screen.riverfishing.tackle_station.cost": "Цена: %s железа, %s нити",
+  "screen.riverfishing.tackle_station.dye_hint": "краска — по желанию",
+  "screen.riverfishing.tackle_station.hook": "Крючок",
+  "screen.riverfishing.tackle_station.iron": "Железо",
+  "screen.riverfishing.tackle_station.string": "Нить",
+  "screen.riverfishing.tackle_station.dye": "Краска",
+  "tooltip.riverfishing.tackle_weight": "Вес снасти: %s г",
+  "tooltip.riverfishing.tied_by": "Связал: %s"
 }

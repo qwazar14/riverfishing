@@ -31,6 +31,11 @@ public final class ModBlocks {
     public static final RegistrySupplier<Block> ROD_POD_1 = registerPod("rod_pod_1", 1);
     public static final RegistrySupplier<Block> ROD_POD_3 = registerPod("rod_pod_3", 3);
 
+    // §tackle-station (0.6.0): the universal tackle bench — form + weight + hook/iron/string.
+    public static final RegistrySupplier<Block> TACKLE_STATION = registerSimple("tackle_station",
+            () -> new com.riverfishing.block.TackleStationBlock(
+                    BlockBehaviour.Properties.of().strength(1.5f).sound(SoundType.WOOD)));
+
     // Bait trap (§livebait): stands in water and slowly gathers live bait.
     public static final RegistrySupplier<Block> BAIT_TRAP = registerSimple("bait_trap",
             () -> new com.riverfishing.block.BaitTrapBlock(

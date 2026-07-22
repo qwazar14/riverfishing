@@ -78,10 +78,28 @@ public class RigItem extends Item implements RodComponentItem {
         dev.architectury.registry.menu.MenuRegistry.openExtendedMenu(player, provider);
     }
 
+    /** §tackle-station: shared weight + tied-by tooltip lines (also used by BaitItem). */
+    public static void appendTackleStationLines(ItemStack stack, List<Component> tooltip) {
+        var tag = StackNbt.get(stack);
+        if (tag.contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)) {
+            tooltip.add(Component.translatable("tooltip.riverfishing.tackle_weight",
+                    tag.getInt(com.riverfishing.tackle.TackleForm.TAG_WEIGHT))
+                    .withStyle(s -> s.withColor(0xFFD97A)));
+        }
+        if (tag.contains(com.riverfishing.tackle.TackleForm.TAG_TIED_BY)) {
+            tooltip.add(Component.translatable("tooltip.riverfishing.tied_by",
+                    tag.getString(com.riverfishing.tackle.TackleForm.TAG_TIED_BY))
+                    .withStyle(s -> s.withColor(0x8FB08A).withItalic(true)));
+        }
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.riverfishing.rig_mass",
                 String.format("%.0f", type.massGrams())).withStyle(s -> s.withColor(0xA0A0A0)));
+
+        // §tackle-station (0.6.0): a bench-tied rig carries its chosen weight and its maker's name.
+        appendTackleStationLines(stack, tooltip);
 
         // What's loaded inside the rig (#2).
         NonNullList<ItemStack> contents = RigData.load(stack);

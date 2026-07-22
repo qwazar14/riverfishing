@@ -755,5 +755,18 @@
     "advancement.riverfishing.old_boot.title":  "Catch of the Decade",
     "advancement.riverfishing.old_boot.description":  "Fish up an old boot",
     "advancement.riverfishing.koi_fillet.title":  "Heartless Cook",
-    "advancement.riverfishing.koi_fillet.description":  "Fillet a koi carp. But why?.."
+    "advancement.riverfishing.koi_fillet.description":  "Fillet a koi carp. But why?..",
+  "block.riverfishing.tackle_station": "Tackle Station",
+  "screen.riverfishing.tackle_station.tab_peaceful": "Peaceful",
+  "screen.riverfishing.tackle_station.tab_predator": "Predator",
+  "screen.riverfishing.tackle_station.weight": "Weight: %s g",
+  "screen.riverfishing.tackle_station.cast_hint": "cast ~%s blocks",
+  "screen.riverfishing.tackle_station.cost": "Cost: %s iron, %s string",
+  "screen.riverfishing.tackle_station.dye_hint": "dye optional",
+  "screen.riverfishing.tackle_station.hook": "Hook",
+  "screen.riverfishing.tackle_station.iron": "Iron",
+  "screen.riverfishing.tackle_station.string": "String",
+  "screen.riverfishing.tackle_station.dye": "Dye",
+  "tooltip.riverfishing.tackle_weight": "Tackle weight: %s g",
+  "tooltip.riverfishing.tied_by": "Tied by %s"
 }
