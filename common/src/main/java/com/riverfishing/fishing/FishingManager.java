@@ -2123,6 +2123,17 @@ public final class FishingManager {
             biased = floor + (1.0 - floor) * biased;
         }
 
+        // §lure-size (round 6): the same physics for ARTIFICIAL lures — a fish that commits to a
+        // 200 g jig is one that can swallow it. The individual roll floors at ~8x the lure's mass
+        // (capped at 60% of the range so the roll stays a roll). Kills the 709 g zander on a pilker.
+        double lureW = session.ctx != null ? session.ctx.lureWeightG : 0;
+        if (lureW > 0 && p.weightMax > p.weightMin) {
+            double minW = Mth.clamp(lureW * 8.0, p.weightMin,
+                    p.weightMin + (p.weightMax - p.weightMin) * 0.6);
+            double floor = (minW - p.weightMin) / (p.weightMax - p.weightMin);
+            biased = floor + (1.0 - floor) * biased;
+        }
+
         double weight = p.weightMin + (p.weightMax - p.weightMin) * biased;
         session.weightG = (int) Math.round(weight);
 

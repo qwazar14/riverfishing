@@ -244,9 +244,11 @@ public final class BiteEngine {
         // just bite far less — and since the TOTAL weight drives the wait, a big lure also means
         // slower, rarer, bigger takes. Untied (no TackleWeightG) lures skip the filter entirely.
         if (c.lureWeightG > 0) {
-            double opt = c.lureWeightG * 0.15;
+            // §round-6: SUBLINEAR optimum (0.5·√g) — a 200 g pilker hunts ~7 kg fish, not a mythical
+            // 30 kg; and the off-size floor drops to 0.05 so a big lure truly silences the tiddlers.
+            double opt = 0.5 * Math.sqrt(c.lureWeightG);
             double ratio = Math.max(0.05, meanKg / Math.max(0.1, opt));
-            w *= Math.max(0.15, 2.0 / (ratio + 1.0 / ratio));
+            w *= Math.max(0.05, 2.0 / (ratio + 1.0 / ratio));
         }
 
         // §lure-color (§8): a painted lure whose colour suits the light/water pulls more takes; the wrong
