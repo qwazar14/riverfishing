@@ -29,6 +29,7 @@ public class BiteContext {
     public double leaderProtection; // bite-through resistance of the fitted leader (0..1)
     public double leaderStealth;    // invisibility of the fitted leader (0..1)
     public double castWeightG;      // rig mass
+    public double lureWeightG;      // §lure-size (0.6.0): the tied lure's bench weight, 0 = none/untied
 
     // ---- Angler (progression gate) ----
     public int anglerLevel;         // the caster's journal level; species can require a minimum

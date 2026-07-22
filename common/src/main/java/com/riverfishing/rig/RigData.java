@@ -85,6 +85,11 @@ public final class RigData {
         double w = tag.contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)
                 ? tag.getInt(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)
                 : rigType(rig).massGrams();
+        return w + lureTackleWeightG(rig);
+    }
+
+    /** §lure-size: the tied lure's bench weight sitting in a LURE/BAIT slot, or 0. */
+    public static double lureTackleWeightG(ItemStack rig) {
         double[] lure = {0};
         forEachFilled(rig, (role, stack) -> {
             if (lure[0] == 0 && (role == SlotRole.LURE || role == SlotRole.BAIT)) {
@@ -94,7 +99,7 @@ public final class RigData {
                 }
             }
         });
-        return w + lure[0];
+        return lure[0];
     }
 
     /** Hook sizes loaded in the rig; the engine picks the best fit per fish. */

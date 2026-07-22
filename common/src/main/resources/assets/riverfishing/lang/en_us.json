@@ -773,5 +773,11 @@
   "screen.riverfishing.tackle_station.leader": "leader %s cm",
   "screen.riverfishing.tackle_station.balance_nose": "nose",
   "screen.riverfishing.tackle_station.balance_center": "center",
-  "screen.riverfishing.tackle_station.balance_tail": "tail"
+  "screen.riverfishing.tackle_station.balance_tail": "tail",
+  "screen.riverfishing.tackle_station.hook_link_label": "hook link:",
+  "screen.riverfishing.tackle_station.balance_label": "balance:",
+  "screen.riverfishing.tackle_station.cm": "cm",
+  "tooltip.riverfishing.hook_link": "Hook link: %s cm",
+  "tooltip.riverfishing.balance": "Balance: %s",
+  "tooltip.riverfishing.blade": "Blade size: %s"
 }

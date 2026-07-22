@@ -300,12 +300,16 @@ public final class FishingManager {
         ItemStack rigCheck = RodData.get(rod, ComponentSlot.RIG);
         // §test-tolerance (0.6.0): a hidden ±15% slack on the printed window — real blanks forgive a
         // little; the weight is the bench-chosen grams now, not the fixed type mass.
-        if (rigCheck.getItem() instanceof RigItem
-                && type.castWeightMin() > 0
-                && com.riverfishing.rig.RigData.effectiveWeightG(rigCheck) < type.castWeightMin() * 0.85) {
-            maxRange *= 0.55;
-            underloaded = true;
-            actionbar(sp, Component.translatable("message.riverfishing.rod_underloaded").withStyle(ChatFormatting.YELLOW));
+        if (rigCheck.getItem() instanceof RigItem && type.castWeightMax() > 0) {
+            double wG = com.riverfishing.rig.RigData.effectiveWeightG(rigCheck);
+            // §cast-weight (0.6.0): within the window the MASS drives the flight — the same sqrt curve
+            // as the station's hint. A light rig on a big blank simply doesn't load it; near the top of
+            // the test it flies full range. (This replaces the old flat 0.55 underload cut.)
+            maxRange *= Mth.clamp(Math.sqrt(wG / (0.8 * type.castWeightMax())), 0.40, 1.0);
+            if (type.castWeightMin() > 0 && wG < type.castWeightMin() * 0.85) {
+                underloaded = true;
+                actionbar(sp, Component.translatable("message.riverfishing.rod_underloaded").withStyle(ChatFormatting.YELLOW));
+            }
         }
         double throwDist = 2.0 + power * (maxRange - 2.0);
         net.minecraft.world.phys.Vec3 look = sp.getLookAngle();
@@ -2388,6 +2392,7 @@ public final class FishingManager {
             ctx.rig = rg.rigType();
             // §tackle-station (0.6.0): bench-chosen grams (rig + tied lure) over the fixed type mass.
             ctx.castWeightG = RigData.effectiveWeightG(rigStack);
+            ctx.lureWeightG = RigData.lureTackleWeightG(rigStack); // §lure-size: size gates the take
             ctx.hookSizes = RigData.hookSizes(rigStack);
             ctx.baits = RigData.baitIds(rigStack);
             int lureRgb = RigData.lureColorRgb(rigStack);

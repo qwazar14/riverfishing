@@ -86,6 +86,25 @@ public class RigItem extends Item implements RodComponentItem {
                     tag.getInt(com.riverfishing.tackle.TackleForm.TAG_WEIGHT))
                     .withStyle(s -> s.withColor(0xFFD97A)));
         }
+        // §tackle-adv: the fine-tuning rides the tooltip so the tackle explains itself.
+        if (tag.contains(com.riverfishing.tackle.TackleForm.TAG_LEADER_CM)) {
+            tooltip.add(Component.translatable("tooltip.riverfishing.hook_link",
+                    tag.getInt(com.riverfishing.tackle.TackleForm.TAG_LEADER_CM))
+                    .withStyle(s -> s.withColor(0xA0A0C8)));
+        }
+        if (tag.contains(com.riverfishing.tackle.TackleForm.TAG_BALANCE)) {
+            String pos = switch (tag.getInt(com.riverfishing.tackle.TackleForm.TAG_BALANCE)) {
+                case 0 -> "nose"; case 2 -> "tail"; default -> "center";
+            };
+            tooltip.add(Component.translatable("tooltip.riverfishing.balance",
+                    Component.translatable("screen.riverfishing.tackle_station.balance_" + pos))
+                    .withStyle(s -> s.withColor(0xA0A0C8)));
+        }
+        if (tag.contains(com.riverfishing.tackle.TackleForm.TAG_BLADE)) {
+            tooltip.add(Component.translatable("tooltip.riverfishing.blade",
+                    tag.getInt(com.riverfishing.tackle.TackleForm.TAG_BLADE))
+                    .withStyle(s -> s.withColor(0xA0A0C8)));
+        }
         if (tag.contains(com.riverfishing.tackle.TackleForm.TAG_TIED_BY)) {
             tooltip.add(Component.translatable("tooltip.riverfishing.tied_by",
                     tag.getString(com.riverfishing.tackle.TackleForm.TAG_TIED_BY))

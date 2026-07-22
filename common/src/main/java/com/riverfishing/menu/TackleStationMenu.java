@@ -56,19 +56,19 @@ public class TackleStationMenu extends AbstractContainerMenu {
                 ? be.items() : new SimpleContainer(4);
         materials.addListener(c -> updateResult());
 
-        addSlot(new Slot(materials, SLOT_HOOK, 14, 118) {
+        addSlot(new Slot(materials, SLOT_HOOK, 14, 138) {
             @Override public boolean mayPlace(ItemStack s) { return s.getItem() instanceof HookItem; }
         });
-        addSlot(new Slot(materials, SLOT_IRON, 38, 118) {
+        addSlot(new Slot(materials, SLOT_IRON, 38, 138) {
             @Override public boolean mayPlace(ItemStack s) { return s.is(Items.IRON_INGOT); }
         });
-        addSlot(new Slot(materials, SLOT_STRING, 62, 118) {
+        addSlot(new Slot(materials, SLOT_STRING, 62, 138) {
             @Override public boolean mayPlace(ItemStack s) { return s.is(Items.STRING); }
         });
-        addSlot(new Slot(materials, SLOT_DYE, 86, 118) {
+        addSlot(new Slot(materials, SLOT_DYE, 86, 138) {
             @Override public boolean mayPlace(ItemStack s) { return s.getItem() instanceof DyeItem; }
         });
-        addSlot(new Slot(result, 0, 148, 118) {
+        addSlot(new Slot(result, 0, 152, 138) {
             @Override public boolean mayPlace(ItemStack s) { return false; }
             @Override public boolean mayPickup(Player p) { return !getItem().isEmpty(); }
             @Override public void onTake(Player p, ItemStack taken) {
@@ -81,11 +81,11 @@ public class TackleStationMenu extends AbstractContainerMenu {
         // Player inventory + hotbar.
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(inv, col + row * 9 + 9, 20 + col * 18, 148 + row * 18));
+                addSlot(new Slot(inv, col + row * 9 + 9, 20 + col * 18, 168 + row * 18));
             }
         }
         for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(inv, col, 20 + col * 18, 206));
+            addSlot(new Slot(inv, col, 20 + col * 18, 228));
         }
 
         addDataSlot(formIndex);
@@ -163,7 +163,8 @@ public class TackleStationMenu extends AbstractContainerMenu {
             tag.putInt(TackleForm.TAG_WEIGHT, grams);
             tag.putString(TackleForm.TAG_TIED_BY, player.getGameProfile().getName());
             // §tackle-adv: the knobs ride along; effects arrive with the bite-engine wiring.
-            tag.putInt(TackleForm.TAG_LEADER_CM, leader);
+            // Hook link (formerly "leader") is a RIG concept — the distance hook-to-anchor point.
+            if (f.rig) tag.putInt(TackleForm.TAG_LEADER_CM, leader);
             if (!f.rig) tag.putInt(TackleForm.TAG_BALANCE, balance);
             if (f == TackleForm.SPINNER || f == TackleForm.SPOON) {
                 tag.putInt(TackleForm.TAG_BLADE, Math.min(5, 1 + grams / 15)); // blade follows the mass

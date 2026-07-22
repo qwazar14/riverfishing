@@ -773,5 +773,11 @@
   "screen.riverfishing.tackle_station.leader": "поводок %s см",
   "screen.riverfishing.tackle_station.balance_nose": "нос",
   "screen.riverfishing.tackle_station.balance_center": "центр",
-  "screen.riverfishing.tackle_station.balance_tail": "хвост"
+  "screen.riverfishing.tackle_station.balance_tail": "хвост",
+  "screen.riverfishing.tackle_station.hook_link_label": "отступ крючка:",
+  "screen.riverfishing.tackle_station.balance_label": "огрузка:",
+  "screen.riverfishing.tackle_station.cm": "см",
+  "tooltip.riverfishing.hook_link": "Отступ крючка: %s см",
+  "tooltip.riverfishing.balance": "Огрузка: %s",
+  "tooltip.riverfishing.blade": "Лепесток: №%s"
 }

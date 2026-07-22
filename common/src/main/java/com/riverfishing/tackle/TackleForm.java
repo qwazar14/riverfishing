@@ -53,14 +53,15 @@ public enum TackleForm {
         return BuiltInRegistries.ITEM.get(RiverFishing.id(id));
     }
 
-    /** 1 iron ingot per started 40 g — the weight IS the price. */
+    /** The weight IS the price: 1 ingot per started 30 g, feeders pay +1 for the cage frame. */
     public int ironFor(int grams) {
-        return Math.max(1, (int) Math.ceil(grams / 40.0));
+        int base = Math.max(1, (int) Math.round(grams / 30.0));
+        return base + (this == FEEDER || this == FLAT_FEEDER ? 1 : 0);
     }
 
-    /** Rigs take 2 string (rig + leader wrap), lures 1. */
+    /** Lures 1 string; rigs 2 (rig + leader wrap); grusha 3 — one per hook link. */
     public int stringNeeded() {
-        return rig ? 2 : 1;
+        return this == GRUSHA ? 3 : rig ? 2 : 1;
     }
 
     /** Hooks consumed = the rig's own HOOK slots (grusha carries three), lures take one. */
