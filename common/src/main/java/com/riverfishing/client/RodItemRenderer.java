@@ -48,9 +48,11 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
     /** §rod-bend-tip: per-bucket line-anchor offset {dx, dy} in near-plane units — /rfrod tip tunes it. */
     public static final float[][] TIP_BEND_OFFSET = new float[BEND_BUCKETS + 1][2];
     static {
+        // Hand-tuned in game with /rfrod bend N + /rfrod tip N dx dy (2026-07-22 playtest).
+        float[][] tuned = {{0.043f, -0.060f}, {0.045f, -0.100f}, {0.047f, -0.130f},
+                           {0.045f, -0.200f}, {0.060f, -0.250f}, {0.060f, -0.300f}};
         for (int b = 1; b <= BEND_BUCKETS; b++) {
-            TIP_BEND_OFFSET[b][0] = -0.012f * b; // tip pulls back toward the angler…
-            TIP_BEND_OFFSET[b][1] = -0.035f * b; // …and droops as the blank loads
+            TIP_BEND_OFFSET[b] = tuned[b - 1];
         }
     }
 
