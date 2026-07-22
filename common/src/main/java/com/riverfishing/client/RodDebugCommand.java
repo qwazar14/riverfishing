@@ -46,13 +46,37 @@ public final class RodDebugCommand {
                             return 1;
                         })
                         .then(ClientCommandRegistrationEvent.argument("bucket",
-                                com.mojang.brigadier.arguments.IntegerArgumentType.integer(-1, 3))
+                                com.mojang.brigadier.arguments.IntegerArgumentType.integer(-1, 6))
                                 .executes(c -> {
                                     RodItemRenderer.FORCE_BEND =
                                             com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "bucket");
                                     say(c, "§ebend force = " + RodItemRenderer.FORCE_BEND);
                                     return 1;
                                 })))
+                // §rod-bend-tip: tune the line-anchor offset per bend bucket. Force the bucket with
+                // /rfrod bend N first, then nudge dx/dy until the line sits on the bent tip.
+                .then(ClientCommandRegistrationEvent.literal("tip")
+                        .executes(c -> {
+                            StringBuilder sb = new StringBuilder("§etip offsets:");
+                            for (int b = 1; b <= RodItemRenderer.BEND_BUCKETS; b++) {
+                                sb.append(String.format(" %d:(%.3f,%.3f)", b,
+                                        RodItemRenderer.TIP_BEND_OFFSET[b][0], RodItemRenderer.TIP_BEND_OFFSET[b][1]));
+                            }
+                            say(c, sb.toString());
+                            return 1;
+                        })
+                        .then(ClientCommandRegistrationEvent.argument("bucket",
+                                com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 6))
+                                .then(ClientCommandRegistrationEvent.argument("dx", FloatArgumentType.floatArg(-1f, 1f))
+                                        .then(ClientCommandRegistrationEvent.argument("dy", FloatArgumentType.floatArg(-1f, 1f))
+                                                .executes(c -> {
+                                                    int b = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "bucket");
+                                                    RodItemRenderer.TIP_BEND_OFFSET[b][0] = FloatArgumentType.getFloat(c, "dx");
+                                                    RodItemRenderer.TIP_BEND_OFFSET[b][1] = FloatArgumentType.getFloat(c, "dy");
+                                                    say(c, String.format("§etip[%d] = (%.3f, %.3f)", b,
+                                                            RodItemRenderer.TIP_BEND_OFFSET[b][0], RodItemRenderer.TIP_BEND_OFFSET[b][1]));
+                                                    return 1;
+                                                })))))
                 .then(ClientCommandRegistrationEvent.literal("set")
                         .then(ClientCommandRegistrationEvent.argument("ctx", StringArgumentType.word())
                                 .then(ClientCommandRegistrationEvent.argument("field", StringArgumentType.word())

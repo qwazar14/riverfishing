@@ -82,7 +82,7 @@ public final class RodModelLayers {
         List<ResourceLocation> normal = new ArrayList<>();
         for (String k : ROD_KEYS) {
             normal.add(blank(k));
-            for (int b = 1; b <= 3; b++) normal.add(blank(k, b)); // §rod-bend buckets
+            for (int b = 1; b <= 6; b++) normal.add(blank(k, b)); // §rod-bend buckets
         }
         normal.add(reelGeneric());
         for (int s : REEL_SIZES) normal.add(reel(s));

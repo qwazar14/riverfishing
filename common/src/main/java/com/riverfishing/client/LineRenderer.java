@@ -127,8 +127,13 @@ public final class LineRenderer {
 
         if (player == mc.player && mc.options.getCameraType().isFirstPerson()) {
             double fovScale = 960.0 / mc.options.fov().get();
+            // §rod-bend-tip: the bent blank's tip sits lower/closer than the straight sprite's — shift
+            // the line anchor with the current bend bucket so the line stays ON the tip (/rfrod tip tunes).
+            int bend = RodItemRenderer.liveBend();
+            float tipDx = RodItemRenderer.TIP_BEND_OFFSET[bend][0];
+            float tipDy = RodItemRenderer.TIP_BEND_OFFSET[bend][1];
             Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane()
-                    .getPointOnPlane(arm * 0.525f, -0.1f)
+                    .getPointOnPlane(arm * (0.525f + tipDx), -0.1f + tipDy)
                     .scale(fovScale)
                     .yRot(swing * 0.5f)
                     .xRot(-swing * 0.7f);

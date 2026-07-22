@@ -13,7 +13,7 @@ import java.nio.file.Path;
  * <p>Run: {@code java tools/GenRodBend.java}
  */
 public final class GenRodBend {
-    private static final double[] AMP = {2.5, 4.5, 7.5}; // px at 32px, bend1..3
+    private static final double[] AMP = {1.2, 2.2, 3.4, 4.7, 6.1, 7.6}; // px at 32px, bend1..6
 
     public static void main(String[] args) throws Exception {
         Path assets = Path.of("common/src/main/resources/assets/riverfishing");
@@ -27,7 +27,7 @@ public final class GenRodBend {
                 String base = name.substring(0, name.length() - 4);
                 BufferedImage src = ImageIO.read(f);
                 int w = src.getWidth(), h = src.getHeight();
-                for (int b = 1; b <= 3; b++) {
+                for (int b = 1; b <= AMP.length; b++) {
                     double amp = AMP[b - 1] * (w / 32.0);
                     BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
                     for (int x = 0; x < w; x++) {
