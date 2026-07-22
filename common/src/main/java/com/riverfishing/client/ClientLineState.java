@@ -23,11 +23,14 @@ public final class ClientLineState {
         public int color = 0xFFE8E4D0;
         public boolean bobber;         // float rigs show a bobber at the line end
         public boolean biting;         // bite in progress: bobber plunges / line twitches
+        public float tension;          // §rod-bend: authoritative fight tension 0..1
+        public float smoothTension;    // eased for the in-hand bend
         public long lastUpdate;        // client game time of the last packet (staleness check)
 
         /** Eases the rendered progress toward the server value; call once per frame. */
         public void tickSmoothing(float frameSeconds) {
             smoothProgress = Mth.lerp(Math.min(1f, frameSeconds * 6f), smoothProgress, progress);
+            smoothTension = Mth.lerp(Math.min(1f, frameSeconds * 8f), smoothTension, tension);
         }
     }
 
@@ -54,6 +57,7 @@ public final class ClientLineState {
         line.color = p.color;
         line.bobber = p.bobber;
         line.biting = p.biting;
+        line.tension = p.tension;
         line.lastUpdate = Minecraft.getInstance().level != null
                 ? Minecraft.getInstance().level.getGameTime() : 0;
     }

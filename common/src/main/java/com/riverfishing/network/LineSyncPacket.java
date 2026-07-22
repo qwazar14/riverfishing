@@ -23,14 +23,21 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
     public final int color;
     public final boolean bobber;
     public final boolean biting;
+    /** §rod-bend: live line tension 0..1 — drives the in-hand rod bend on the client. */
+    public final float tension;
 
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
                           boolean bobber) {
-        this(playerId, active, target, progress, color, bobber, false);
+        this(playerId, active, target, progress, color, bobber, false, 0f);
     }
 
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
                           boolean bobber, boolean biting) {
+        this(playerId, active, target, progress, color, bobber, biting, 0f);
+    }
+
+    public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
+                          boolean bobber, boolean biting, float tension) {
         this.playerId = playerId;
         this.active = active;
         this.target = target == null ? BlockPos.ZERO : target;
@@ -38,6 +45,7 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
         this.color = color;
         this.bobber = bobber;
         this.biting = biting;
+        this.tension = tension;
     }
 
     @Override
@@ -54,11 +62,12 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
         buf.writeInt(color);
         buf.writeBoolean(bobber);
         buf.writeBoolean(biting);
+        buf.writeFloat(tension);
     }
 
     public static LineSyncPacket decode(FriendlyByteBuf buf) {
         return new LineSyncPacket(buf.readVarInt(), buf.readBoolean(), buf.readBlockPos(),
-                buf.readFloat(), buf.readInt(), buf.readBoolean(), buf.readBoolean());
+                buf.readFloat(), buf.readInt(), buf.readBoolean(), buf.readBoolean(), buf.readFloat());
     }
 
     public void handleClient() {

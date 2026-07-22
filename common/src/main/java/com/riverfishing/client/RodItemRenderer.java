@@ -66,9 +66,22 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // model's hand display is identity, so this IS the whole in-hand transform. No-op elsewhere.
         RodHandTransform.apply(pose, ctx);
 
+        // §rod-bend: the blank bends under live fight tension — only edge-on (in hands, where the drag
+        // is being worked) and only for the LOCAL player's own held rod (others render straight; the
+        // 26.x builds carry the bend in the stack instead and show it to everyone).
+        int bend = 0;
+        if (mir && mc.player != null
+                && (stack == mc.player.getMainHandItem() || stack == mc.player.getOffhandItem())) {
+            ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
+            if (l != null) {
+                float t = l.smoothTension;
+                bend = t > 0.75f ? 3 : t > 0.45f ? 2 : t > 0.18f ? 1 : 0;
+            }
+        }
+
         int layer = 0;
-        // 1) The bare rod — always.
-        layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.blank(rodKey)),
+        // 1) The bare rod — always (bent blank falls back to the straight one if the sprite is absent).
+        layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.blank(rodKey, bend), RodModelLayers.blank(rodKey)),
                 stack, ctx, pose, buffers, light, overlay, layer);
 
         // 2) The reel — only if one is fitted (reel-less poles have none). Always part of the rod.

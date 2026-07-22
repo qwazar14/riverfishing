@@ -204,10 +204,15 @@ public final class FishingManager {
         }
         // §trolling-speed: measure from the boat's actual position change — a player-paddled boat is
         // client-authoritative and its server-side delta movement stays ~0 (why trolling never armed).
-        double[] last = TROLL_LAST.put(sp.getUUID(), new double[]{boat.getX(), boat.getZ()});
+        // §troll-smooth (0.5.1): the boat is client-authoritative, so its server position advances in
+        // PACKET-SIZED jumps — raw per-tick deltas jitter between 0 and 2x the real speed. An EMA over
+        // the deltas reads the true cruise speed through the jitter.
+        double[] last = TROLL_LAST.get(sp.getUUID());
         double dx = last == null ? 0 : boat.getX() - last[0];
         double dz = last == null ? 0 : boat.getZ() - last[1];
-        double speed = Math.sqrt(dx * dx + dz * dz);
+        double inst = Math.sqrt(dx * dx + dz * dz);
+        double speed = last == null ? inst : last[2] * 0.8 + inst * 0.2;
+        TROLL_LAST.put(sp.getUUID(), new double[]{boat.getX(), boat.getZ(), speed});
         boolean inWindow = speed >= 0.12 && speed <= 0.60;
         ServerLevel level = sp.serverLevel();
 
@@ -230,7 +235,9 @@ public final class FishingManager {
             return;
         }
         if (!inWindow) {
-            TROLL_GOOD.remove(sp.getUUID());
+            // §troll-smooth: a rough patch DECAYS the arm counter instead of zeroing it — a turn or a
+            // wave no longer restarts the whole 3-second arming from scratch.
+            TROLL_GOOD.computeIfPresent(sp.getUUID(), (k, v) -> v > 3 ? v - 3 : null);
             return;
         }
         int good = TROLL_GOOD.merge(sp.getUUID(), 1, Integer::sum);
@@ -886,7 +893,8 @@ public final class FishingManager {
             }
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     visProgress, session.lineColor, session.rodClass == RodClass.FLOAT,
-                    session.bitten && !session.fighting && now <= session.biteWindowEnd));
+                    session.bitten && !session.fighting && now <= session.biteWindowEnd,
+                    session.fighting ? (float) Mth.clamp(session.tension, 0.0, 1.0) : 0f));
         }
 
         if (session.fighting) {
@@ -1469,9 +1477,10 @@ public final class FishingManager {
         // Stand up = working drag; holding the reel = winching. Three drag positions, zero new inputs.
         if (sp.isCrouching()) {
             session.tension = Math.max(0.0, session.tension - session.relaxTick * 3.0);
-            if (session.runTicksLeft > 0) {
-                session.landProgress = Math.max(0.0, session.landProgress - 0.004);
-            }
+            // §drag-cost (0.5.1): an open drag ALWAYS pays out line — even a resting fish swims off with
+            // it. Camping shift between runs is no longer free tension immunity; runs drain extra.
+            session.landProgress = Math.max(0.0, session.landProgress
+                    - (session.runTicksLeft > 0 ? 0.004 : 0.0025));
         }
 
         double progress = session.landProgress;

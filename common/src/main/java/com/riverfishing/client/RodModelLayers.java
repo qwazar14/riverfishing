@@ -45,6 +45,11 @@ public final class RodModelLayers {
         return loc("blank_" + rodKey);
     }
 
+    /** §rod-bend: the blank bent into bucket {@code bend} (1..3); 0 = straight. */
+    public static ResourceLocation blank(String rodKey, int bend) {
+        return bend <= 0 ? blank(rodKey) : loc("blank_" + rodKey + "_bend" + bend);
+    }
+
     public static ResourceLocation reel(int size) {
         return loc("reel_" + size);
     }
@@ -75,7 +80,10 @@ public final class RodModelLayers {
      */
     public static List<ResourceLocation> candidates() {
         List<ResourceLocation> normal = new ArrayList<>();
-        for (String k : ROD_KEYS) normal.add(blank(k));
+        for (String k : ROD_KEYS) {
+            normal.add(blank(k));
+            for (int b = 1; b <= 3; b++) normal.add(blank(k, b)); // §rod-bend buckets
+        }
         normal.add(reelGeneric());
         for (int s : REEL_SIZES) normal.add(reel(s));
         normal.add(lineGeneric());
