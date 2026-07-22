@@ -298,9 +298,11 @@ public final class FishingManager {
         // draws the same cut on the power bar (§cast-bar-cut). The bite penalty below is SILENT.
         boolean underloaded = false;
         ItemStack rigCheck = RodData.get(rod, ComponentSlot.RIG);
-        if (rigCheck.getItem() instanceof RigItem ri
+        // §test-tolerance (0.6.0): a hidden ±15% slack on the printed window — real blanks forgive a
+        // little; the weight is the bench-chosen grams now, not the fixed type mass.
+        if (rigCheck.getItem() instanceof RigItem
                 && type.castWeightMin() > 0
-                && ri.rigType().massGrams() < type.castWeightMin()) {
+                && com.riverfishing.rig.RigData.effectiveWeightG(rigCheck) < type.castWeightMin() * 0.85) {
             maxRange *= 0.55;
             underloaded = true;
             actionbar(sp, Component.translatable("message.riverfishing.rod_underloaded").withStyle(ChatFormatting.YELLOW));
@@ -349,7 +351,8 @@ public final class FishingManager {
         // over-weight rig (a catfish rig on an ultralight) snaps the blank on the cast; a moderately
         // heavy one strains it (lower break tolerance in the fight).
         double overloadPenalty = 1.0;
-        double rodMax = ctx.rod.castWeightMax();
+        // §test-tolerance (0.6.0): the same hidden +15% slack on the top of the window.
+        double rodMax = ctx.rod.castWeightMax() * 1.15;
         if (rodMax > 0 && ctx.castWeightG > rodMax * ROD_BREAK_RATIO) {
             // §rod-overload: a wildly over-weight rig no longer SNAPS the blank outright — it cracks it,
             // costing a THIRD of its durability (+1), so it survives a few abuses before finally breaking.
@@ -2383,7 +2386,8 @@ public final class FishingManager {
         ItemStack rigStack = RodData.get(rod, ComponentSlot.RIG);
         if (rigStack.getItem() instanceof RigItem rg) {
             ctx.rig = rg.rigType();
-            ctx.castWeightG = rg.rigType().massGrams();
+            // §tackle-station (0.6.0): bench-chosen grams (rig + tied lure) over the fixed type mass.
+            ctx.castWeightG = RigData.effectiveWeightG(rigStack);
             ctx.hookSizes = RigData.hookSizes(rigStack);
             ctx.baits = RigData.baitIds(rigStack);
             int lureRgb = RigData.lureColorRgb(rigStack);

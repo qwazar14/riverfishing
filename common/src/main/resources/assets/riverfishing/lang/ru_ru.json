@@ -768,5 +768,10 @@
   "screen.riverfishing.tackle_station.string": "Нить",
   "screen.riverfishing.tackle_station.dye": "Краска",
   "tooltip.riverfishing.tackle_weight": "Вес снасти: %s г",
-  "tooltip.riverfishing.tied_by": "Связал: %s"
+  "tooltip.riverfishing.tied_by": "Связал: %s",
+  "screen.riverfishing.tackle_station.advanced": "продвинутый",
+  "screen.riverfishing.tackle_station.leader": "поводок %s см",
+  "screen.riverfishing.tackle_station.balance_nose": "нос",
+  "screen.riverfishing.tackle_station.balance_center": "центр",
+  "screen.riverfishing.tackle_station.balance_tail": "хвост"
 }

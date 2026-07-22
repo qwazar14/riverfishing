@@ -19,6 +19,8 @@ import java.util.List;
 public class TackleStationScreen extends AbstractContainerScreen<TackleStationMenu> {
     private static final int GRID_X = 14, GRID_Y = 30, CELL = 22;
     private boolean predatorTab;
+    /** §tackle-adv: the fine-tuning drawer — leader length slider + lure balance selector. */
+    private boolean advanced;
 
     public TackleStationScreen(TackleStationMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
@@ -72,6 +74,30 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         if (sel.dyeable) {
             g.drawString(font, I18n.get("screen.riverfishing.tackle_station.dye_hint"),
                     rx, y + GRID_Y + 58, 0xFF8FB08A, false);
+        }
+
+        // §tackle-adv toggle + drawer.
+        g.drawString(font, (advanced ? "▼ " : "► ") + I18n.get("screen.riverfishing.tackle_station.advanced"),
+                x + GRID_X, y + 100, 0xFFB8AE9A, false);
+        if (advanced) {
+            // Leader-length slider (5..100 cm): track + handle + value.
+            int tx = x + GRID_X + 60, tw = 80, ty = y + 99;
+            g.fill(tx, ty + 3, tx + tw, ty + 6, 0xFF2a241c);
+            int hx = tx + (int) ((menu.leaderCm() - 5) / 95.0 * tw);
+            g.fill(hx - 1, ty, hx + 2, ty + 9, 0xFFFFD97A);
+            g.drawString(font, I18n.get("screen.riverfishing.tackle_station.leader", menu.leaderCm()),
+                    tx + tw + 6, ty, 0xFFEDE4D0, false);
+            // Balance selector — lures only.
+            if (!menu.form().rig) {
+                String[] keys = {"balance_nose", "balance_center", "balance_tail"};
+                for (int i = 0; i < 3; i++) {
+                    int bx = x + GRID_X + 60 + i * 34;
+                    boolean on = menu.balancePos() == i;
+                    g.fill(bx, y + 110, bx + 32, y + 121, on ? 0xFF6e5a3a : 0xFF2a241c);
+                    g.drawCenteredString(font, I18n.get("screen.riverfishing.tackle_station." + keys[i]),
+                            bx + 16, y + 112, on ? 0xFFFFE6B0 : 0xFF9a8d78);
+                }
+            }
         }
 
         // Slot wells (menu slot coords are menu-local).
@@ -129,6 +155,29 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
                 return true;
             }
         }
+        // §tackle-adv: toggle + slider + balance clicks.
+        if (my >= y + 98 && my < y + 110 && mx >= x + GRID_X && mx < x + GRID_X + 56) {
+            advanced = !advanced;
+            return true;
+        }
+        if (advanced) {
+            int tx = x + GRID_X + 60, tw = 80;
+            if (my >= y + 96 && my < y + 110 && mx >= tx - 2 && mx < tx + tw + 3) {
+                int cm = (int) Math.round(5 + (mx - tx) / (double) tw * 95);
+                clickButton(200 + Math.max(5, Math.min(100, cm)));
+                return true;
+            }
+            if (!menu.form().rig && my >= y + 110 && my < y + 121) {
+                for (int i = 0; i < 3; i++) {
+                    int bx = x + GRID_X + 60 + i * 34;
+                    if (mx >= bx && mx < bx + 32) {
+                        clickButton(400 + i);
+                        return true;
+                    }
+                }
+            }
+        }
+
         // Weight stepper: click left half = previous, right half = next.
         int rx = x + GRID_X + 3 * CELL + 10;
         if (my >= y + GRID_Y + 14 && my < y + GRID_Y + 28 && mx >= rx && mx < rx + 90) {

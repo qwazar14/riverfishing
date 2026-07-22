@@ -41,6 +41,9 @@ public class TackleStationMenu extends AbstractContainerMenu {
     private final SimpleContainer result = new SimpleContainer(1);
     private final DataSlot formIndex = DataSlot.standalone();
     private final DataSlot weightIndex = DataSlot.standalone();
+    // §tackle-adv: the fine-tuning knobs; defaults = a sane middle nobody has to touch.
+    private final DataSlot leaderCm = DataSlot.standalone();
+    private final DataSlot balancePos = DataSlot.standalone();
 
     public TackleStationMenu(int id, Inventory inv, BlockPos pos) {
         super(ModMenus.TACKLE_STATION.get(), id);
@@ -87,6 +90,10 @@ public class TackleStationMenu extends AbstractContainerMenu {
 
         addDataSlot(formIndex);
         addDataSlot(weightIndex);
+        addDataSlot(leaderCm);
+        addDataSlot(balancePos);
+        leaderCm.set(40);
+        balancePos.set(1);
         updateResult();
     }
 
@@ -103,7 +110,10 @@ public class TackleStationMenu extends AbstractContainerMenu {
         return f.weights[Math.floorMod(weightIndex.get(), f.weights.length)];
     }
 
-    /** 0..17 = select form; 100+i = select weight step of the current form. */
+    public int leaderCm() { return Math.max(5, leaderCm.get()); }
+    public int balancePos() { return Math.floorMod(balancePos.get(), 3); }
+
+    /** 0..N = form; 100+i = weight step; 200+cm = leader length (§tackle-adv); 400+i = balance. */
     @Override
     public boolean clickMenuButton(Player p, int id) {
         if (id >= 0 && id < TackleForm.values().length) {
@@ -117,12 +127,23 @@ public class TackleStationMenu extends AbstractContainerMenu {
             updateResult();
             return true;
         }
+        if (id >= 200 && id <= 300) {
+            leaderCm.set(Math.max(5, Math.min(100, id - 200)));
+            updateResult();
+            return true;
+        }
+        if (id >= 400 && id <= 402) {
+            balancePos.set(id - 400);
+            updateResult();
+            return true;
+        }
         return false;
     }
 
     private boolean materialsPresent() {
         TackleForm f = form();
         return materials.getItem(SLOT_HOOK).getItem() instanceof HookItem
+                && materials.getItem(SLOT_HOOK).getCount() >= f.hooksNeeded()
                 && materials.getItem(SLOT_IRON).getCount() >= f.ironFor(weightGrams())
                 && materials.getItem(SLOT_STRING).getCount() >= f.stringNeeded();
     }
@@ -136,31 +157,40 @@ public class TackleStationMenu extends AbstractContainerMenu {
         TackleForm f = form();
         int grams = weightGrams();
         ItemStack out = new ItemStack(f.item());
+        int leader = leaderCm();
+        int balance = balancePos();
         StackNbt.mutate(out, tag -> {
             tag.putInt(TackleForm.TAG_WEIGHT, grams);
             tag.putString(TackleForm.TAG_TIED_BY, player.getGameProfile().getName());
+            // §tackle-adv: the knobs ride along; effects arrive with the bite-engine wiring.
+            tag.putInt(TackleForm.TAG_LEADER_CM, leader);
+            if (!f.rig) tag.putInt(TackleForm.TAG_BALANCE, balance);
+            if (f == TackleForm.SPINNER || f == TackleForm.SPOON) {
+                tag.putInt(TackleForm.TAG_BLADE, Math.min(5, 1 + grams / 15)); // blade follows the mass
+            }
         });
         if (f.rig) {
-            // The consumed hook goes straight INTO the rig's hook slot — the rig comes ready to bait.
+            // The consumed hooks go straight INTO the rig's hook slots — the rig comes ready to bait.
             SlotRole[] roles = RigLayout.rolesFor(RigData.rigType(out));
             NonNullList<ItemStack> contents = RigData.load(out);
-            for (int i = 0; i < roles.length; i++) {
+            int placed = 0;
+            for (int i = 0; i < roles.length && placed < f.hooksNeeded(); i++) {
                 if (roles[i] == SlotRole.HOOK) {
                     contents.set(i, materials.getItem(SLOT_HOOK).copyWithCount(1));
-                    break;
+                    placed++;
                 }
             }
             RigData.save(out, contents);
         }
         if (f.dyeable && materials.getItem(SLOT_DYE).getItem() instanceof DyeItem dye) {
-            DyedItemColor.applyDyes(out, List.of(dye));
+            out = DyedItemColor.applyDyes(out, List.of(dye)); // applyDyes RETURNS the dyed copy
         }
         return out;
     }
 
     private void consumeMaterials() {
         TackleForm f = form();
-        materials.getItem(SLOT_HOOK).shrink(1);
+        materials.getItem(SLOT_HOOK).shrink(f.hooksNeeded());
         materials.getItem(SLOT_IRON).shrink(f.ironFor(weightGrams()));
         materials.getItem(SLOT_STRING).shrink(f.stringNeeded());
         if (f.dyeable && !materials.getItem(SLOT_DYE).isEmpty()) {

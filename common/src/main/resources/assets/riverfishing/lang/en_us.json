@@ -768,5 +768,10 @@
   "screen.riverfishing.tackle_station.string": "String",
   "screen.riverfishing.tackle_station.dye": "Dye",
   "tooltip.riverfishing.tackle_weight": "Tackle weight: %s g",
-  "tooltip.riverfishing.tied_by": "Tied by %s"
+  "tooltip.riverfishing.tied_by": "Tied by %s",
+  "screen.riverfishing.tackle_station.advanced": "advanced",
+  "screen.riverfishing.tackle_station.leader": "leader %s cm",
+  "screen.riverfishing.tackle_station.balance_nose": "nose",
+  "screen.riverfishing.tackle_station.balance_center": "center",
+  "screen.riverfishing.tackle_station.balance_tail": "tail"
 }
