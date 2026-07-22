@@ -32,8 +32,19 @@ public final class RodDebugCommand {
                     say(c, "§ereset to defaults");
                     return show(c);
                 }))
-                // §rod-bend debug: force a bend bucket on the held rod (-1 = back to live tension).
+                // §rod-bend debug: force a bend bucket on the held rod (-1 = back to live tension);
+                // no argument = print the live client-side bend state (run it mid-fight).
                 .then(ClientCommandRegistrationEvent.literal("bend")
+                        .executes(c -> {
+                            var mc = net.minecraft.client.Minecraft.getInstance();
+                            var l = mc.player == null ? null
+                                    : ClientLineState.lines().get(mc.player.getId());
+                            say(c, l == null
+                                    ? "§cno line entry for local player"
+                                    : String.format("§etension=%.3f smooth=%.3f force=%d",
+                                            l.tension, l.smoothTension, RodItemRenderer.FORCE_BEND));
+                            return 1;
+                        })
                         .then(ClientCommandRegistrationEvent.argument("bucket",
                                 com.mojang.brigadier.arguments.IntegerArgumentType.integer(-1, 3))
                                 .executes(c -> {
