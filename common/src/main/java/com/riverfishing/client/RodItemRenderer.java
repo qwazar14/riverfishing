@@ -41,6 +41,9 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         super(dispatcher, models);
     }
 
+    /** §rod-bend debug: /rfrod bend N forces a bucket (-1 = live tension). */
+    public static int FORCE_BEND = -1;
+
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext ctx, PoseStack pose,
                              MultiBufferSource buffers, int light, int overlay) {
@@ -69,14 +72,17 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // §rod-bend: the blank bends under live fight tension — only edge-on (in hands, where the drag
         // is being worked) and only for the LOCAL player's own held rod (others render straight; the
         // 26.x builds carry the bend in the stack instead and show it to everyone).
-        int bend = 0;
-        if (mir && mc.player != null
-                && (ctx.firstPerson()
-                    || stack == mc.player.getMainHandItem() || stack == mc.player.getOffhandItem())) {
-            ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
-            if (l != null) {
-                float t = l.smoothTension;
-                bend = t > 0.75f ? 3 : t > 0.45f ? 2 : t > 0.18f ? 1 : 0;
+        int bend = FORCE_BEND;
+        if (bend < 0) {
+            bend = 0;
+            if (mir && mc.player != null
+                    && (ctx.firstPerson()
+                        || stack == mc.player.getMainHandItem() || stack == mc.player.getOffhandItem())) {
+                ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
+                if (l != null) {
+                    float t = l.smoothTension;
+                    bend = t > 0.75f ? 3 : t > 0.45f ? 2 : t > 0.18f ? 1 : 0;
+                }
             }
         }
 

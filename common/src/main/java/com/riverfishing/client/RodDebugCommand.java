@@ -32,6 +32,16 @@ public final class RodDebugCommand {
                     say(c, "§ereset to defaults");
                     return show(c);
                 }))
+                // §rod-bend debug: force a bend bucket on the held rod (-1 = back to live tension).
+                .then(ClientCommandRegistrationEvent.literal("bend")
+                        .then(ClientCommandRegistrationEvent.argument("bucket",
+                                com.mojang.brigadier.arguments.IntegerArgumentType.integer(-1, 3))
+                                .executes(c -> {
+                                    RodItemRenderer.FORCE_BEND =
+                                            com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "bucket");
+                                    say(c, "§ebend force = " + RodItemRenderer.FORCE_BEND);
+                                    return 1;
+                                })))
                 .then(ClientCommandRegistrationEvent.literal("set")
                         .then(ClientCommandRegistrationEvent.argument("ctx", StringArgumentType.word())
                                 .then(ClientCommandRegistrationEvent.argument("field", StringArgumentType.word())
