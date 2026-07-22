@@ -92,7 +92,7 @@ public class TackleStationMenu extends AbstractContainerMenu {
         addDataSlot(weightIndex);
         addDataSlot(leaderCm);
         addDataSlot(balancePos);
-        leaderCm.set(40);
+        leaderCm.set(form().rig ? form().defaultLinkCm : 40);
         balancePos.set(1);
         updateResult();
     }
@@ -119,6 +119,9 @@ public class TackleStationMenu extends AbstractContainerMenu {
         if (id >= 0 && id < TackleForm.values().length) {
             formIndex.set(id);
             weightIndex.set(0);
+            // §tackle-adv: each rig style resets to ITS OWN sensible hook-link default.
+            TackleForm f = TackleForm.values()[id];
+            if (f.rig) leaderCm.set(f.defaultLinkCm);
             updateResult();
             return true;
         }

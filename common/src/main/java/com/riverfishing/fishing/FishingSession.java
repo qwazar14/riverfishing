@@ -76,6 +76,8 @@ public class FishingSession {
     public double fatigue;
     /** Fatigue gained per RUN tick (weight-scaled at setup); calm ticks add 20% of it. */
     public double fatigueRunTick;
+    /** §bossbar-2: last shown state (0 calm / 1 run / 2 tired) so the name only re-sends on change. */
+    public int barState = -1;
     public double calmTensionPulse;
     public double landPulse;
     public double relaxTick;

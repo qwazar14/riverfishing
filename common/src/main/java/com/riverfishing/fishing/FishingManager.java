@@ -302,11 +302,15 @@ public final class FishingManager {
         // little; the weight is the bench-chosen grams now, not the fixed type mass.
         if (rigCheck.getItem() instanceof RigItem && type.castWeightMax() > 0) {
             double wG = com.riverfishing.rig.RigData.effectiveWeightG(rigCheck);
-            // §cast-weight (0.6.0): within the window the MASS drives the flight — the same sqrt curve
-            // as the station's hint. A light rig on a big blank simply doesn't load it; near the top of
-            // the test it flies full range. (This replaces the old flat 0.55 underload cut.)
-            maxRange *= Mth.clamp(Math.sqrt(wG / (0.8 * type.castWeightMax())), 0.40, 1.0);
-            if (type.castWeightMin() > 0 && wG < type.castWeightMin() * 0.85) {
+            // §cast-weight (round 5): IN-WINDOW tackle always flies well — 85% at the window's bottom
+            // rising to 100% at the top (a 160 g wobbler on a 150-600 trolling rod is fine). Only
+            // BELOW the window does the flight collapse on a sqrt curve.
+            double minW = type.castWeightMin(), maxW = type.castWeightMax();
+            double f = wG >= minW
+                    ? 0.85 + 0.15 * Mth.clamp((wG - minW) / Math.max(1.0, maxW - minW), 0.0, 1.0)
+                    : 0.85 * Math.sqrt(Math.max(0.10, wG / Math.max(1.0, minW)));
+            maxRange *= Mth.clamp(f, 0.30, 1.0);
+            if (minW > 0 && wG < minW * 0.85) {
                 underloaded = true;
                 actionbar(sp, Component.translatable("message.riverfishing.rod_underloaded").withStyle(ChatFormatting.YELLOW));
             }
@@ -1291,7 +1295,7 @@ public final class FishingManager {
 
         // §fight-mystery: NO species name during the fight — you learn what it was when you land it.
         session.bossBar = new ServerBossEvent(
-                Component.translatable("message.riverfishing.fighting"),
+                Component.translatable("message.riverfishing.bar_fight", sp.getDisplayName()),
                 BossEvent.BossBarColor.GREEN, BossEvent.BossBarOverlay.PROGRESS);
         session.bossBar.setProgress(0.0f);
         session.bossBar.addPlayer(sp);
@@ -1343,7 +1347,7 @@ public final class FishingManager {
         session.fightTimeout = 600;
         session.fightPattern = "steady";
         session.bossBar = new ServerBossEvent(
-                Component.translatable("message.riverfishing.fighting"),
+                Component.translatable("message.riverfishing.bar_fight", sp.getDisplayName()),
                 BossEvent.BossBarColor.GREEN, BossEvent.BossBarOverlay.PROGRESS);
         session.bossBar.setProgress(0.0f);
         session.bossBar.addPlayer(sp);
@@ -1628,6 +1632,15 @@ public final class FishingManager {
                     SoundSource.PLAYERS, 0.8f, 1.0f);
         }
         session.bossBar.setProgress((float) Mth.clamp(session.landProgress, 0.0, 1.0));
+        // §bossbar-2: the bar tells WHOSE fight it is and what the fish is doing — no more guessing
+        // between two friends' bars. Name re-sends only when the state flips.
+        int barState = session.runTicksLeft > 0 ? 1 : session.fatigue > 0.7 ? 2 : 0;
+        if (barState != session.barState) {
+            session.barState = barState;
+            String key = barState == 1 ? "message.riverfishing.bar_run"
+                    : barState == 2 ? "message.riverfishing.bar_tired" : "message.riverfishing.bar_fight";
+            session.bossBar.setName(Component.translatable(key, sp.getDisplayName()));
+        }
         session.bossBar.setColor(session.tension >= session.breakTension ? BossEvent.BossBarColor.RED
                 : inRun ? BossEvent.BossBarColor.RED
                 : session.tension > session.breakTension * 0.66 ? BossEvent.BossBarColor.YELLOW
@@ -1663,7 +1676,8 @@ public final class FishingManager {
         if (now % 5 == 0) {
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     (float) Mth.clamp(session.landProgress, 0.0, 1.0), session.lineColor,
-                    session.rodClass == RodClass.FLOAT, false, fightStress(session)));
+                    session.rodClass == RodClass.FLOAT, false, fightStress(session),
+                    true, session.runTicksLeft > 0)); // §pump-reel: run state drives the HUD cue
         }
     }
 

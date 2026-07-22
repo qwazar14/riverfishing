@@ -21,6 +21,33 @@ public final class ClientHud {
                     partialTick);
         }
         renderCastPower(graphics, mc);
+        renderPumpReel(graphics, mc);
+    }
+
+    /**
+     * §pump-reel (0.6.0): the fight coach — a compact cue under the crosshair replacing pure
+     * intuition. Fish RUNNING → ease off (open the drag / stop cranking); calm → crank. Near the
+     * break point the cue turns into a drag alarm.
+     */
+    private static void renderPumpReel(GuiGraphics g, Minecraft mc) {
+        if (mc.player == null || mc.options.hideGui) return;
+        ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
+        if (l == null || !l.fighting) return;
+        String key;
+        int color;
+        if (l.smoothTension > 0.85f) {
+            key = "hud.riverfishing.drag_now"; color = 0xFFFF5040;
+        } else if (l.running) {
+            key = "hud.riverfishing.ease"; color = 0xFFFFC850;
+        } else {
+            key = "hud.riverfishing.reel"; color = 0xFF7CE07C;
+        }
+        var font = mc.font;
+        String text = net.minecraft.client.resources.language.I18n.get(key);
+        int cx = g.guiWidth() / 2, y = g.guiHeight() / 2 + 22;
+        int w = font.width(text);
+        g.fill(cx - w / 2 - 4, y - 3, cx + w / 2 + 4, y + 11, 0x66000000);
+        g.drawCenteredString(font, text, cx, y, color);
     }
 
     /** Cast power bar (§cast-minigame): shown while charging a cast (holding RMB with no line out). */

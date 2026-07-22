@@ -25,6 +25,8 @@ public final class ClientLineState {
         public boolean biting;         // bite in progress: bobber plunges / line twitches
         public float tension;          // §rod-bend: authoritative fight tension 0..1
         public float smoothTension;    // eased for the in-hand bend
+        public boolean fighting;       // §pump-reel: the fight is on
+        public boolean running;        // §pump-reel: the fish is taking line RIGHT NOW
         public long lastUpdate;        // client game time of the last packet (staleness check)
 
         /** Eases the rendered progress toward the server value; call once per frame. */
@@ -58,6 +60,8 @@ public final class ClientLineState {
         line.bobber = p.bobber;
         line.biting = p.biting;
         line.tension = p.tension;
+        line.fighting = p.fighting;
+        line.running = p.running;
         line.lastUpdate = Minecraft.getInstance().level != null
                 ? Minecraft.getInstance().level.getGameTime() : 0;
     }

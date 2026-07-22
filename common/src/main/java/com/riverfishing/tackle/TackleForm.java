@@ -13,23 +13,23 @@ import net.minecraft.world.item.Item;
 public enum TackleForm {
     // ---- peaceful tab: the SWAPPABLE bottom-rod rigs only (float/predator/winter rigs live inside
     // their rods — see JournalScreen.isInternalRig — and are never tied separately) ----
-    GRUSHA("rig_grusha", false, true, false, new int[]{30, 50, 80}),
-    FEEDER("rig_feeder", false, true, false, new int[]{40, 60, 80}),
-    FLAT_FEEDER("rig_flat_feeder", false, true, false, new int[]{40, 60, 80}),
-    GROUND("rig_ground", false, true, false, new int[]{30, 60, 100}),
-    CARP("rig_carp", false, true, false, new int[]{60, 90, 120, 160}),
-    CATFISH("rig_catfish", false, true, false, new int[]{80, 150, 250}),
+    GRUSHA("rig_grusha", false, true, false, new int[]{30, 50, 80}, 15),
+    FEEDER("rig_feeder", false, true, false, new int[]{40, 60, 80}, 60),
+    FLAT_FEEDER("rig_flat_feeder", false, true, false, new int[]{40, 60, 80}, 10),
+    GROUND("rig_ground", false, true, false, new int[]{30, 60, 100}, 40),
+    CARP("rig_carp", false, true, false, new int[]{60, 90, 120, 160}, 20),
+    CATFISH("rig_catfish", false, true, false, new int[]{80, 150, 250}, 50),
     // ---- predator tab: the artificial lures (all take the optional dye). The heavy steps are the
     // SEA sizes — sea-spin (20–120 g), boat (100–400 g) and trolling (150–600 g) rods finally have
     // tackle that lands inside their test windows. ----
-    SPINNER("spinner", true, false, true, new int[]{3, 7, 14}),
-    SPOON("spoon", true, false, true, new int[]{10, 20, 35, 60, 180}),
-    WOBBLER("wobbler", true, false, true, new int[]{6, 12, 20, 40, 160}),
-    SILICONE("silicone", true, false, true, new int[]{5, 10, 20, 40}),
-    POPPER("popper", true, false, true, new int[]{7, 12, 30}),
-    CRANKBAIT("crankbait", true, false, true, new int[]{8, 14, 22, 40}),
-    JIG("jig", true, false, true, new int[]{10, 20, 40, 80, 200}),
-    CASTMASTER("castmaster", true, false, true, new int[]{14, 28, 45, 80, 160});
+    SPINNER("spinner", true, false, true, new int[]{3, 7, 14}, 0),
+    SPOON("spoon", true, false, true, new int[]{10, 20, 35, 60, 180}, 0),
+    WOBBLER("wobbler", true, false, true, new int[]{6, 12, 20, 40, 160}, 0),
+    SILICONE("silicone", true, false, true, new int[]{5, 10, 20, 40}, 0),
+    POPPER("popper", true, false, true, new int[]{7, 12, 30}, 0),
+    CRANKBAIT("crankbait", true, false, true, new int[]{8, 14, 22, 40}, 0),
+    JIG("jig", true, false, true, new int[]{10, 20, 40, 80, 200}, 0),
+    CASTMASTER("castmaster", true, false, true, new int[]{14, 28, 45, 80, 160}, 0);
 
     /** NBT keys on the tied tackle. */
     public static final String TAG_WEIGHT = "TackleWeightG";
@@ -40,13 +40,16 @@ public enum TackleForm {
     public final boolean rig;
     public final boolean dyeable;
     public final int[] weights;
+    /** §tackle-adv: each rig style has its own sensible hook-link default (flat = short, feeder = long). */
+    public final int defaultLinkCm;
 
-    TackleForm(String id, boolean predatorTab, boolean rig, boolean dyeable, int[] weights) {
+    TackleForm(String id, boolean predatorTab, boolean rig, boolean dyeable, int[] weights, int defaultLinkCm) {
         this.id = id;
         this.predatorTab = predatorTab;
         this.rig = rig;
         this.dyeable = dyeable;
         this.weights = weights;
+        this.defaultLinkCm = defaultLinkCm;
     }
 
     public Item item() {

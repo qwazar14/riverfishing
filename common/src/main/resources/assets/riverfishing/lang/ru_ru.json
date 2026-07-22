@@ -755,8 +755,8 @@
     "advancement.riverfishing.old_boot.title":  "Улов десятилетия",
     "advancement.riverfishing.old_boot.description":  "Выловите старый сапог",
     "advancement.riverfishing.koi_fillet.title":  "Бессердечный повар",
-    "advancement.riverfishing.koi_fillet.description":  "Пустите карпа кои на филе. Зачем?..",
-  "block.riverfishing.tackle_station": "Снастевой станок",
+    "advancement.riverfishing.koi_fillet.description":  "Пустите карпа кои на филе. Зачем?.."
+,
   "screen.riverfishing.tackle_station.tab_peaceful": "Мирная",
   "screen.riverfishing.tackle_station.tab_predator": "Хищная",
   "screen.riverfishing.tackle_station.weight": "Вес: %s г",
@@ -779,5 +779,13 @@
   "screen.riverfishing.tackle_station.cm": "см",
   "tooltip.riverfishing.hook_link": "Отступ крючка: %s см",
   "tooltip.riverfishing.balance": "Огрузка: %s",
-  "tooltip.riverfishing.blade": "Лепесток: №%s"
+  "tooltip.riverfishing.blade": "Лепесток: №%s",
+  "hud.riverfishing.ease": "⇩ отпусти!",
+  "hud.riverfishing.reel": "⇪ мотай",
+  "hud.riverfishing.drag_now": "⚠ фрикцион!",
+  "message.riverfishing.bar_fight": "🎣 %s",
+  "message.riverfishing.bar_run": "🎣 %s — рывок!",
+  "message.riverfishing.bar_tired": "🎣 %s — выдыхается",
+  "guide.riverfishing.tacklebench.title": "Снастевой станок",
+  "guide.riverfishing.tacklebench.text": "Рыболовный прилавок вяжет снасти.\n• Выбери ФОРМУ (мирные оснастки / хищные приманки), затем ВЕС — тяжелее летит дальше и стоит больше железа (слиток на 30 г), но должен подходить под тест удилища.\n• Материалы: крючки (груша берёт 3), железо, нить; краска — по желанию у приманок.\n• Тонкая настройка: отступ крючка (оснастки) и огрузка (приманки) записываются в снасть.\n• Оснастки выходят с уже вставленными крючками; каждая снасть подписана автором."
 }

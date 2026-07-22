@@ -141,6 +141,7 @@ public class JournalScreen extends Screen {
         addGuide("biggame", modStack("yellowfin_tuna"));
         addGuide("legendary", modStack("blue_marlin"));
         addGuide("community", modStack("fish_finder"));
+        addGuide("tacklebench", modStack("fishing_stall"));
         addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
         addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
 

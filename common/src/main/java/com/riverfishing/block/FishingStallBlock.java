@@ -17,12 +17,12 @@ import net.minecraft.world.phys.BlockHitResult;
 import javax.annotation.Nullable;
 
 /**
- * §tackle-station (0.6.0): the universal tackle bench — pick a form, set the weight, feed it a hook,
- * iron and string, and it ties the rig or lure. Crafting-table-style: no BlockEntity, the menu owns
- * the ephemeral slots and hands everything back on close.
+ * §tackle-station (0.6.0, round 5): the fisherman's stall IS the tackle bench — one block gives the
+ * villager profession (POI) AND ties tackle for players. Materials persist in its BlockEntity and
+ * drop on break.
  */
-public class TackleStationBlock extends Block implements net.minecraft.world.level.block.EntityBlock {
-    public TackleStationBlock(Properties properties) {
+public class FishingStallBlock extends Block implements net.minecraft.world.level.block.EntityBlock {
+    public FishingStallBlock(Properties properties) {
         super(properties);
     }
 
@@ -49,7 +49,7 @@ public class TackleStationBlock extends Block implements net.minecraft.world.lev
                     new dev.architectury.registry.menu.ExtendedMenuProvider() {
                         @Override
                         public Component getDisplayName() {
-                            return Component.translatable("block.riverfishing.tackle_station");
+                            return Component.translatable("block.riverfishing.fishing_stall");
                         }
 
                         @Nullable

@@ -755,8 +755,8 @@
     "advancement.riverfishing.old_boot.title":  "Catch of the Decade",
     "advancement.riverfishing.old_boot.description":  "Fish up an old boot",
     "advancement.riverfishing.koi_fillet.title":  "Heartless Cook",
-    "advancement.riverfishing.koi_fillet.description":  "Fillet a koi carp. But why?..",
-  "block.riverfishing.tackle_station": "Tackle Station",
+    "advancement.riverfishing.koi_fillet.description":  "Fillet a koi carp. But why?.."
+,
   "screen.riverfishing.tackle_station.tab_peaceful": "Peaceful",
   "screen.riverfishing.tackle_station.tab_predator": "Predator",
   "screen.riverfishing.tackle_station.weight": "Weight: %s g",
@@ -779,5 +779,13 @@
   "screen.riverfishing.tackle_station.cm": "cm",
   "tooltip.riverfishing.hook_link": "Hook link: %s cm",
   "tooltip.riverfishing.balance": "Balance: %s",
-  "tooltip.riverfishing.blade": "Blade size: %s"
+  "tooltip.riverfishing.blade": "Blade size: %s",
+  "hud.riverfishing.ease": "⇩ ease off!",
+  "hud.riverfishing.reel": "⇪ reel",
+  "hud.riverfishing.drag_now": "⚠ open the drag!",
+  "message.riverfishing.bar_fight": "🎣 %s",
+  "message.riverfishing.bar_run": "🎣 %s — running!",
+  "message.riverfishing.bar_tired": "🎣 %s — tiring",
+  "guide.riverfishing.tacklebench.title": "Tackle bench",
+  "guide.riverfishing.tacklebench.text": "The fisherman's stall ties custom tackle.\n• Pick a FORM (peaceful rigs / predator lures), then the WEIGHT — heavier flies farther and costs more iron (1 ingot per 30 g), but must fit the rod's test window.\n• Materials: hooks (grusha takes 3), iron, string; dye is optional on lures.\n• Advanced: the hook link (rigs) and the balance (lures) are written onto the tackle.\n• Rigs come with the hooks pre-slotted; every piece carries its maker's name."
 }

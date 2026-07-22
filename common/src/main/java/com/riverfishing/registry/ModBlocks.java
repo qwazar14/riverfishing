@@ -31,11 +31,6 @@ public final class ModBlocks {
     public static final RegistrySupplier<Block> ROD_POD_1 = registerPod("rod_pod_1", 1);
     public static final RegistrySupplier<Block> ROD_POD_3 = registerPod("rod_pod_3", 3);
 
-    // §tackle-station (0.6.0): the universal tackle bench — form + weight + hook/iron/string.
-    public static final RegistrySupplier<Block> TACKLE_STATION = registerSimple("tackle_station",
-            () -> new com.riverfishing.block.TackleStationBlock(
-                    BlockBehaviour.Properties.of().strength(1.5f).sound(SoundType.WOOD)));
-
     // Bait trap (§livebait): stands in water and slowly gathers live bait.
     public static final RegistrySupplier<Block> BAIT_TRAP = registerSimple("bait_trap",
             () -> new com.riverfishing.block.BaitTrapBlock(
@@ -52,8 +47,10 @@ public final class ModBlocks {
                     BlockBehaviour.Properties.of().strength(0.6f).sound(SoundType.WOOD).noOcclusion()));
 
     // Fisherman's workstation / POI job-site block (§8). noOcclusion: the model is a stall, not a cube.
+    // §tackle-station (round 5): the stall is the tackle bench too — profession POI + tying UI.
     public static final RegistrySupplier<Block> FISHING_STALL = registerSimple("fishing_stall",
-            () -> new Block(BlockBehaviour.Properties.of().strength(2.0f).sound(SoundType.WOOD).noOcclusion()));
+            () -> new com.riverfishing.block.FishingStallBlock(
+                    BlockBehaviour.Properties.of().strength(2.0f).sound(SoundType.WOOD).noOcclusion()));
 
     // Trophy stand (§15.5) — mounts a caught fish.
     public static final RegistrySupplier<Block> TROPHY_STAND = registerSimple("trophy_stand",
