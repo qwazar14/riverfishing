@@ -1,7 +1,7 @@
 {
   "display": "Подуст",
   "water_bodies": { "river": 1.3, "lake": 0.1, "pond": 0.0, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 100, "max": 1500, "mean": 400 },
+  "weight_g": { "min": 100, "max": 1000, "mean": 400 },
   "length_cm": { "min": 15, "max": 45 },
   "fight": { "strength": 0.45, "stamina": 0.55, "runs": 2, "pattern": "steady", "aggression": 0.4 },
   "ideal": {

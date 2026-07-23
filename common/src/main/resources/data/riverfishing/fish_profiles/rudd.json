@@ -1,8 +1,8 @@
 {
   "display": "Краснопёрка",
   "water_bodies": { "lake": 1.1, "swamp": 1.0, "pond": 0.9, "river": 0.6, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 50, "max": 400, "mean": 110 },
-  "length_cm": { "min": 10, "max": 28 },
+  "weight_g": { "min": 50, "max": 1000, "mean": 110 },
+  "length_cm": { "min": 10, "max": 40 },
   "fight": { "strength": 0.2, "stamina": 0.3, "runs": 1 },
   "ideal": {
     "rod": ["pole"],

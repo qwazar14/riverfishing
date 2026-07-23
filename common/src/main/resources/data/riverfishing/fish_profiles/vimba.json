@@ -1,7 +1,7 @@
 {
   "display": "Рыбец",
   "water_bodies": { "river": 1.2, "lake": 0.3, "pond": 0.0, "swamp": 0.0, "sea": 0.2, "puddle": 0.0 },
-  "weight_g": { "min": 200, "max": 3000, "mean": 700 },
+  "weight_g": { "min": 200, "max": 1500, "mean": 700 },
   "length_cm": { "min": 20, "max": 50 },
   "fight": { "strength": 0.5, "stamina": 0.6, "runs": 2, "pattern": "active_then_passive", "aggression": 0.5 },
   "ideal": {
