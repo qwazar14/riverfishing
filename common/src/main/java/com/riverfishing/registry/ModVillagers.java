@@ -11,10 +11,7 @@ import com.riverfishing.item.RodData;
 import com.riverfishing.rig.RigData;
 import com.riverfishing.rig.RigLayout;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.VillagerProfession;
@@ -35,6 +32,13 @@ import java.util.function.Supplier;
 /**
  * Fisherman villager (§8): a custom profession with its own POI job-site block ("Fishing Stall") and
  * five trade tiers. Trades are added on the forge bus via {@link VillagerTradesEvent}.
+ *
+ * <p><b>§trade-pool</b> — vanilla draws exactly TWO offers per villager level out of that level's
+ * listing pool, so pool SIZE is the real currency here: every listing added dilutes every other one.
+ * 0.5.0 shipped 47 listings on level 5 (22 of them fish buys), which made a maxed fisherman ~half
+ * fish-buyer and dropped any one specific rod to a ~4% chance. Variants of the same thing are now
+ * folded into ONE rotating listing via {@link #oneOf} — the trick vanilla itself uses for enchanted
+ * books — so a pool entry means "a reel appears", not "the 12000 appears".
  */
 public final class ModVillagers {
     public static final DeferredRegister<PoiType> POI_TYPES =
@@ -62,6 +66,10 @@ public final class ModVillagers {
     /** Prime-grade threshold (§prime-fish): the buyer only takes the top of the species' size range. */
     public static final double PRIME_FRACTION = 0.7;
 
+    /** How many rotating fish-buy listings each tier gets (§trade-pool). Two, so a fisherman reliably
+     *  buys SOMETHING without the pool turning back into a fish market. */
+    private static final int FISH_LISTINGS_PER_TIER = 2;
+
     private ModVillagers() {}
 
     /** Build the fisherman's five trade tiers, then register them through the platform seam (§multiloader). */
@@ -70,6 +78,12 @@ public final class ModVillagers {
         for (int lvl = 1; lvl <= 5; lvl++) {
             t.put(lvl, new ArrayList<>());
         }
+        // Fish buys are collected here and folded into FISH_LISTINGS_PER_TIER rotating listings at the
+        // end — registering one listing per species is what drowned the gear (§trade-pool).
+        Int2ObjectMap<List<VillagerTrades.ItemListing>> fish = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>();
+        for (int lvl = 1; lvl <= 5; lvl++) {
+            fish.put(lvl, new ArrayList<>());
+        }
 
         // Level 1 — Novice: starter consumables + buys the beginner fish.
         sell(t, 1, "worm", 1, 12, 1);
@@ -77,136 +91,139 @@ public final class ModVillagers {
         sell(t, 1, "float", 1, 2, 2);
         sell(t, 1, "groundbait_powder", 1, 6, 2);
         // §bait-crops: seeds for the plant baits — the "buy from traders" leg of the seed economy.
-        sell(t, 1, "corn_seeds", 1, 3, 1);
-        sell(t, 1, "pea_seeds", 1, 3, 1);
-        sell(t, 1, "barley_seeds", 1, 3, 1);
+        oneOf(t, 1, sellOf("corn_seeds", 1, 3, 1), sellOf("pea_seeds", 1, 3, 1), sellOf("barley_seeds", 1, 3, 1));
         sell(t, 1, "line_mono_014", 2, 1, 3);       // thin starter line
         sell(t, 1, "worm_farm", 4, 1, 4);           // §bait-farm: breed your own worms early
-        buyPrime(t, 1, "bleak", 1, 1);
-        buyPrime(t, 1, "gudgeon", 1, 1);
-        buyPrime(t, 1, "roach", 1, 1);
-        buyPrime(t, 1, "bluegill", 1, 1);
-        buyPrime(t, 1, "round_goby", 1, 1);        // §river-four
-        buyPrime(t, 1, "common_dace", 1, 1);
 
         // Level 2 — Apprentice: float-fishing kit, including READY-MADE tackle (§assembled-trades).
         sell(t, 2, "maggot", 1, 10, 2);
-        sell(t, 2, "reel_2000", 4, 1, 5);
-        sell(t, 2, "reel_3000", 6, 1, 6);
+        oneOf(t, 2, sellOf("reel_2000", 4, 1, 5), sellOf("reel_3000", 6, 1, 6));
         sell(t, 2, "line_mono_018", 2, 1, 4);
         sell(t, 2, "groundbait_grain", 1, 6, 3);
         sell(t, 2, "bait_trap", 3, 1, 4);           // the trap slowly farms livebait (§livebait)
         sellStack(t, 2, 4, ModVillagers::assembledFloatRig, 6);
         sellStack(t, 2, 9, ModVillagers::assembledBambooRod, 8);
-        buyPrime(t, 2, "crucian_carp", 2, 2);
-        buyPrime(t, 2, "perch", 2, 2);
-        buyPrime(t, 2, "ruffe", 1, 2);
-        buyPrime(t, 2, "rudd", 2, 2);
-        buyPrime(t, 2, "sabrefish", 2, 2);
-        buyPrime(t, 2, "white_eye_bream", 2, 3);   // §river-four
 
         // Level 3 — Journeyman: lures (also craftable now, §lure-recipes) + a ready spinning setup.
-        sell(t, 3, "spinner", 3, 1, 8);
-        sell(t, 3, "spoon", 4, 1, 8);
-        sell(t, 3, "silicone", 2, 2, 6);
-        sell(t, 3, "line_braid_016", 5, 1, 10);
-        sell(t, 3, "line_fluoro_020", 5, 1, 10);
+        oneOf(t, 3, sellOf("spinner", 3, 1, 8), sellOf("spoon", 4, 1, 8), sellOf("silicone", 2, 2, 6));
+        oneOf(t, 3, sellOf("line_braid_016", 5, 1, 10), sellOf("line_fluoro_020", 5, 1, 10));
         sell(t, 3, "leader_fluoro", 3, 2, 6);
         sell(t, 3, "fish_finder", 14, 1, 12);        // §QoL: read the swim before you cast
         sellStack(t, 3, 16, ModVillagers::assembledSpinningRod, 14);
-        buyPrime(t, 3, "bream", 3, 4);
-        buyPrime(t, 3, "ide", 3, 5);
-        buyPrime(t, 3, "chub", 3, 5);
-        buyPrime(t, 3, "tench", 4, 5);
-        buyPrime(t, 3, "blue_bream", 2, 3);
-        buyPrime(t, 3, "pike", 5, 8);
-        buyPrime(t, 3, "volga_zander", 4, 6);      // §river-four: a lighter, cheaper zander
 
         // Level 4 — Expert: serious predator/carp gear + winter tackle + a ready feeder setup.
         sell(t, 4, "wobbler", 7, 1, 15);
         sell(t, 4, "livebait", 2, 3, 8);
         sell(t, 4, "boilie", 3, 8, 10);
-        sell(t, 4, "reel_5000", 10, 1, 15);
-        sell(t, 4, "reel_6000", 13, 1, 16);
+        oneOf(t, 4, sellOf("reel_5000", 10, 1, 15), sellOf("reel_6000", 13, 1, 16));
         sell(t, 4, "line_fluoro_030", 6, 1, 12);
         sell(t, 4, "ice_auger", 9, 1, 14);           // §ice-fishing: drill your first hole
-        sell(t, 4, "winter_rod", 8, 1, 12);
         sell(t, 4, "mormyshka", 3, 2, 8);
         sell(t, 4, "maggot_farm", 5, 1, 8);          // §bait-farm
         sell(t, 4, "groundbait_cake", 4, 3, 6);      // жмых (sunflower+piston)
         sellStack(t, 4, 18, ModVillagers::assembledFeederRod, 18);
-        buyPrime(t, 4, "carp", 6, 12);
-        buyPrime(t, 4, "grass_carp", 9, 14);   // §grass-carp: a hard-fighting prize, pays well
-        buyPrime(t, 4, "zander", 6, 10);
-        buyPrime(t, 4, "trout", 6, 12);
-        buyPrime(t, 4, "largemouth_bass", 7, 12);
-        buyPrime(t, 4, "rainbow_trout", 7, 12);
-        buyPrime(t, 4, "grayling", 7, 12);
-        buyPrime(t, 4, "burbot", 5, 10);
-        buyPrime(t, 4, "mackerel", 3, 6);
-        buyPrime(t, 4, "herring", 2, 4);
-        buyPrime(t, 4, "garfish", 3, 6);
-        buyPrime(t, 4, "flounder", 4, 8);
+        sellStack(t, 4, 14, ModVillagers::assembledWinterRod, 14);
 
         // Level 5 — Master: the trade-only prestige gear (§progression).
         sell(t, 5, "digital_alarm", 10, 1, 25);
         sell(t, 5, "leader_titanium", 8, 1, 20);
-        sell(t, 5, "reel_7000", 16, 1, 26);
-        sell(t, 5, "line_braid_030", 10, 1, 22); // the catfish braid (§strain-recompute)
-        sell(t, 5, "carp_rod", 18, 1, 30);
-        sell(t, 5, "bottom_rod", 16, 1, 28);
-        // sea-tackle (0.5.0): the saltwater counter — master-tier gate to the ocean.
-        sell(t, 5, "surf_rod", 20, 1, 30);
-        sell(t, 5, "sea_spin_rod", 17, 1, 28);
-        sell(t, 5, "boat_rod", 19, 1, 30);
-        sell(t, 5, "trolling_rod", 24, 1, 34);
-        sell(t, 5, "reel_8000", 18, 1, 28);
-        sell(t, 5, "reel_10000", 22, 1, 30);
-        sell(t, 5, "reel_12000", 26, 1, 32);
-        sell(t, 5, "reel_14000", 30, 1, 34);
-        sell(t, 5, "line_mono_050", 8, 1, 20);
-        sell(t, 5, "line_braid_040", 14, 1, 24);
-        // §sea-lines-2: the heavy tier for the 8000-14000 reels.
-        sell(t, 5, "line_mono_060", 10, 1, 22);
-        sell(t, 5, "line_braid_050", 16, 1, 26);
-        sell(t, 5, "line_fluoro_040", 12, 1, 24);
-        sell(t, 5, "line_mono_070", 12, 1, 24);
-        sell(t, 5, "line_mono_080", 14, 1, 26);
-        sell(t, 5, "line_braid_060", 18, 1, 28);
-        sell(t, 5, "hook_2", 3, 3, 10);
-        sell(t, 5, "hook_1", 4, 3, 12);
-        buyPrime(t, 5, "catfish", 12, 25);
-        buyPrime(t, 5, "eel", 8, 15);
-        buyPrime(t, 5, "channel_catfish", 10, 20);
-        buyPrime(t, 5, "sterlet", 16, 30);
-        buyPrime(t, 5, "silver_carp", 14, 26);
-        buyPrime(t, 5, "seabass", 7, 14);
-        buyPrime(t, 5, "cod", 9, 18);
-        buyPrime(t, 5, "saithe", 7, 14);
-        buyPrime(t, 5, "conger", 13, 24);
-        buyPrime(t, 5, "ray", 12, 22);
-        buyPrime(t, 5, "mahi", 10, 20);
-        buyPrime(t, 5, "wahoo", 14, 26);
-        buyPrime(t, 5, "yellowfin_tuna", 20, 34);
-        buyPrime(t, 5, "barracuda", 8, 16);
-        buyPrime(t, 5, "blue_marlin", 28, 40);
-        buyPrime(t, 5, "sailfish", 18, 30);
-        buyPrime(t, 5, "swordfish", 24, 36);
-        buyPrime(t, 5, "mako", 22, 34);
-        buyPrime(t, 5, "wild_carp", 14, 28);
-        // north-wave (0.5.0)
-        buyPrime(t, 1, "rotan", 1, 2);
-        buyPrime(t, 1, "smelt", 1, 3);
-        buyPrime(t, 2, "nase", 2, 4);
-        buyPrime(t, 2, "vimba", 3, 5);
-        buyPrime(t, 3, "pink_salmon", 4, 8);
-        buyPrime(t, 3, "whitefish", 4, 8);
-        buyPrime(t, 4, "char", 6, 12);
-        buyPrime(t, 4, "lenok", 6, 12);
-        buyPrime(t, 4, "salmon", 10, 18);
-        buyPrime(t, 5, "taimen", 24, 36);
-        buyPrime(t, 5, "sturgeon", 26, 38);
-        buyPrime(t, 5, "halibut", 22, 34);
+        oneOf(t, 5, sellOf("reel_7000", 16, 1, 26), sellOf("reel_8000", 18, 1, 28),
+                sellOf("reel_10000", 22, 1, 30), sellOf("reel_12000", 26, 1, 32),
+                sellOf("reel_14000", 30, 1, 34));
+        // §sea-lines-2: the heavy tier for the 8000-14000 reels — one mono slot, one braid/fluoro slot.
+        oneOf(t, 5, sellOf("line_mono_050", 8, 1, 20), sellOf("line_mono_060", 10, 1, 22),
+                sellOf("line_mono_070", 12, 1, 24), sellOf("line_mono_080", 14, 1, 26));
+        oneOf(t, 5, sellOf("line_braid_030", 10, 1, 22), sellOf("line_braid_040", 14, 1, 24),
+                sellOf("line_braid_050", 16, 1, 26), sellOf("line_braid_060", 18, 1, 28),
+                sellOf("line_fluoro_040", 12, 1, 24));
+        oneOf(t, 5, sellOf("hook_2", 3, 3, 10), sellOf("hook_1", 4, 3, 12));
+        sellStack(t, 5, 30, ModVillagers::assembledCarpRod, 30);
+        sellStack(t, 5, 28, ModVillagers::assembledBottomRod, 28);
+        // sea-tackle (0.5.0): the saltwater counter — master-tier gate to the ocean, one pool slot.
+        oneOf(t, 5, sellStackOf(30, ModVillagers::assembledSeaSpinRod, 28),
+                sellStackOf(34, ModVillagers::assembledSurfRod, 30),
+                sellStackOf(34, ModVillagers::assembledBoatRod, 30),
+                sellStackOf(40, ModVillagers::assembledTrollingRod, 34));
+
+        // ---- fish buys. Prices unchanged; only the POOL shape changed (§trade-pool). ----
+        buyPrime(fish, 1, "bleak", 1, 1);
+        buyPrime(fish, 1, "gudgeon", 1, 1);
+        buyPrime(fish, 1, "roach", 1, 1);
+        buyPrime(fish, 1, "bluegill", 1, 1);
+        buyPrime(fish, 1, "round_goby", 1, 1);        // §river-four
+        buyPrime(fish, 1, "common_dace", 1, 1);
+        buyPrime(fish, 1, "rotan", 1, 2);
+        buyPrime(fish, 1, "smelt", 1, 3);
+
+        buyPrime(fish, 2, "crucian_carp", 2, 2);
+        buyPrime(fish, 2, "perch", 2, 2);
+        buyPrime(fish, 2, "ruffe", 1, 2);
+        buyPrime(fish, 2, "rudd", 2, 2);
+        buyPrime(fish, 2, "sabrefish", 2, 2);
+        buyPrime(fish, 2, "white_eye_bream", 2, 3);   // §river-four
+        buyPrime(fish, 2, "nase", 2, 4);
+        buyPrime(fish, 2, "vimba", 3, 5);
+
+        buyPrime(fish, 3, "bream", 3, 4);
+        buyPrime(fish, 3, "ide", 3, 5);
+        buyPrime(fish, 3, "chub", 3, 5);
+        buyPrime(fish, 3, "tench", 4, 5);
+        buyPrime(fish, 3, "blue_bream", 2, 3);
+        buyPrime(fish, 3, "pike", 5, 8);
+        buyPrime(fish, 3, "volga_zander", 4, 6);      // §river-four: a lighter, cheaper zander
+        buyPrime(fish, 3, "pink_salmon", 4, 8);
+        buyPrime(fish, 3, "whitefish", 4, 8);
+
+        buyPrime(fish, 4, "carp", 6, 12);
+        buyPrime(fish, 4, "grass_carp", 9, 14);   // §grass-carp: a hard-fighting prize, pays well
+        buyPrime(fish, 4, "zander", 6, 10);
+        buyPrime(fish, 4, "trout", 6, 12);
+        buyPrime(fish, 4, "largemouth_bass", 7, 12);
+        buyPrime(fish, 4, "rainbow_trout", 7, 12);
+        buyPrime(fish, 4, "grayling", 7, 12);
+        buyPrime(fish, 4, "burbot", 5, 10);
+        buyPrime(fish, 4, "mackerel", 3, 6);
+        buyPrime(fish, 4, "herring", 2, 4);
+        buyPrime(fish, 4, "garfish", 3, 6);
+        buyPrime(fish, 4, "flounder", 4, 8);
+        buyPrime(fish, 4, "char", 6, 12);
+        buyPrime(fish, 4, "lenok", 6, 12);
+        buyPrime(fish, 4, "salmon", 10, 18);
+
+        buyPrime(fish, 5, "catfish", 12, 25);
+        buyPrime(fish, 5, "eel", 8, 15);
+        buyPrime(fish, 5, "channel_catfish", 10, 20);
+        buyPrime(fish, 5, "sterlet", 16, 30);
+        buyPrime(fish, 5, "silver_carp", 14, 26);
+        buyPrime(fish, 5, "seabass", 7, 14);
+        buyPrime(fish, 5, "cod", 9, 18);
+        buyPrime(fish, 5, "saithe", 7, 14);
+        buyPrime(fish, 5, "conger", 13, 24);
+        buyPrime(fish, 5, "ray", 12, 22);
+        buyPrime(fish, 5, "mahi", 10, 20);
+        buyPrime(fish, 5, "wahoo", 14, 26);
+        buyPrime(fish, 5, "yellowfin_tuna", 20, 34);
+        buyPrime(fish, 5, "barracuda", 8, 16);
+        buyPrime(fish, 5, "blue_marlin", 28, 40);
+        buyPrime(fish, 5, "sailfish", 18, 30);
+        buyPrime(fish, 5, "swordfish", 24, 36);
+        buyPrime(fish, 5, "mako", 22, 34);
+        buyPrime(fish, 5, "wild_carp", 14, 28);
+        buyPrime(fish, 5, "taimen", 24, 36);
+        buyPrime(fish, 5, "sturgeon", 26, 38);
+        buyPrime(fish, 5, "halibut", 22, 34);
+
+        // Slice each tier's species into FISH_LISTINGS_PER_TIER disjoint groups, one rotating listing
+        // each: the fisherman ends up buying two DIFFERENT species per tier, never a duplicate offer.
+        for (int lvl = 1; lvl <= 5; lvl++) {
+            List<VillagerTrades.ItemListing> all = fish.get(lvl);
+            int groups = Math.min(FISH_LISTINGS_PER_TIER, all.size());
+            for (int g = 0; g < groups; g++) {
+                int from = g * all.size() / groups;
+                int to = (g + 1) * all.size() / groups;
+                oneOf(t, lvl, all.subList(from, to));
+            }
+        }
 
         com.riverfishing.platform.VillagerTradeRegistry.register(FISHERMAN, t);
     }
@@ -215,24 +232,61 @@ public final class ModVillagers {
         return net.minecraft.core.registries.BuiltInRegistries.ITEM.get(RiverFishing.id(path));
     }
 
+    /**
+     * ONE pool entry that rolls among {@code variants} when the villager generates its trades
+     * (§trade-pool) — vanilla does exactly this for enchanted books. A variant may decline (return
+     * null) if its item never registered, so the roll walks the list rather than wasting the slot.
+     */
+    private static void oneOf(Int2ObjectMap<List<VillagerTrades.ItemListing>> t, int level,
+                             List<VillagerTrades.ItemListing> variants) {
+        List<VillagerTrades.ItemListing> pool = new ArrayList<>();
+        for (VillagerTrades.ItemListing l : variants) {
+            if (l != null) pool.add(l);
+        }
+        if (pool.isEmpty()) return;
+        t.get(level).add((trader, random) -> {
+            int start = random.nextInt(pool.size());
+            for (int i = 0; i < pool.size(); i++) {
+                MerchantOffer offer = pool.get((start + i) % pool.size()).getOffer(trader, random);
+                if (offer != null) return offer;
+            }
+            return null;
+        });
+    }
+
+    private static void oneOf(Int2ObjectMap<List<VillagerTrades.ItemListing>> t, int level,
+                             VillagerTrades.ItemListing... variants) {
+        oneOf(t, level, List.of(variants));
+    }
+
     /** Villager sells {@code count}× item for {@code emeraldCost} emeralds (§multiloader: a plain listing). */
     private static void sell(Int2ObjectMap<List<VillagerTrades.ItemListing>> t, int level, String path,
                              int emeraldCost, int count, int xp) {
+        VillagerTrades.ItemListing l = sellOf(path, emeraldCost, count, xp);
+        if (l != null) t.get(level).add(l);
+    }
+
+    /** The listing {@link #sell} would add, for folding into a rotating {@link #oneOf} entry. */
+    private static VillagerTrades.ItemListing sellOf(String path, int emeraldCost, int count, int xp) {
         Item i = item(path);
-        if (i == null || i == Items.AIR) return;
+        if (i == null || i == Items.AIR) return null;
         ItemStack result = new ItemStack(i, count);
-        t.get(level).add((trader, random) ->
-                new MerchantOffer(new net.minecraft.world.item.trading.ItemCost(Items.EMERALD, emeraldCost), result.copy(), 12, xp, 0.05f));
+        return (trader, random) -> new MerchantOffer(
+                new net.minecraft.world.item.trading.ItemCost(Items.EMERALD, emeraldCost), result.copy(), 12, xp, 0.05f);
     }
 
     /** Villager sells a LAZILY built NBT stack (assembled rig/rod, §assembled-trades). */
     private static void sellStack(Int2ObjectMap<List<VillagerTrades.ItemListing>> t, int level,
                                   int emeraldCost, Supplier<ItemStack> result, int xp) {
-        t.get(level).add((trader, random) -> {
+        t.get(level).add(sellStackOf(emeraldCost, result, xp));
+    }
+
+    private static VillagerTrades.ItemListing sellStackOf(int emeraldCost, Supplier<ItemStack> result, int xp) {
+        return (trader, random) -> {
             ItemStack out = result.get();
             if (out.isEmpty()) return null;
             return new MerchantOffer(new net.minecraft.world.item.trading.ItemCost(Items.EMERALD, emeraldCost), out, 8, xp, 0.05f);
-        });
+        };
     }
 
     /**
@@ -264,46 +318,39 @@ public final class ModVillagers {
     }
 
     // ---- assembled tackle builders (§assembled-trades). No custom "(в сборе)" name — they read as
-    // the plain gear, and the socketed parts already show in the tooltip.
+    // the plain gear, and the socketed parts already show in the tooltip. Consumables (bait, groundbait)
+    // are left empty on purpose: the angler picks those. §assembled-only — the fisherman sells NO bare
+    // blanks, so every rod that leaves the stall can be cast on the spot.
+
+    /** Fills a rig's slots in layout order; trailing slots stay empty. Any missing item voids the rig. */
+    private static ItemStack rig(RigType type, String... contents) {
+        Item rigItem = item("rig_" + type.jsonKey());
+        if (rigItem == null || rigItem == Items.AIR) return ItemStack.EMPTY;
+        ItemStack stack = new ItemStack(rigItem);
+        NonNullList<ItemStack> c = NonNullList.withSize(RigLayout.rolesFor(type).length, ItemStack.EMPTY);
+        for (int i = 0; i < contents.length && i < c.size(); i++) {
+            if (contents[i] == null) continue;
+            Item part = item(contents[i]);
+            if (part == null || part == Items.AIR) return ItemStack.EMPTY;
+            c.set(i, new ItemStack(part));
+        }
+        RigData.save(stack, c);
+        return stack;
+    }
 
     /** Bamboo's built-in light float rig, loaded with a float and a №10 hook — cast-ready for the beginner. */
     private static ItemStack assembledFloatRig() {
-        Item rigItem = item("rig_float_light");
-        Item hook = item("hook_10");
-        Item floatItem = item("float");
-        if (rigItem == null || hook == null || floatItem == null) return ItemStack.EMPTY;
-        ItemStack rig = new ItemStack(rigItem);
-        NonNullList<ItemStack> c = NonNullList.withSize(RigLayout.rolesFor(RigType.FLOAT_LIGHT).length, ItemStack.EMPTY);
-        c.set(0, new ItemStack(floatItem)); // FLOAT
-        c.set(1, new ItemStack(hook));      // HOOK
-        RigData.save(rig, c);
-        return rig;
+        return rig(RigType.FLOAT_LIGHT, "float", "hook_10");        // FLOAT, HOOK, (bait)
     }
 
     /** Predator rig with a steel leader and a spinner in the lure slot. */
     private static ItemStack assembledPredatorRig() {
-        Item rigItem = item("rig_predator");
-        Item leader = item("leader");
-        Item lure = item("spinner");
-        if (rigItem == null || leader == null || lure == null) return ItemStack.EMPTY;
-        ItemStack rig = new ItemStack(rigItem);
-        NonNullList<ItemStack> c = NonNullList.withSize(RigLayout.rolesFor(RigType.PREDATOR).length, ItemStack.EMPTY);
-        c.set(0, new ItemStack(leader));    // LEADER
-        c.set(1, new ItemStack(lure));      // LURE
-        RigData.save(rig, c);
-        return rig;
+        return rig(RigType.PREDATOR, "leader", "spinner");          // LEADER, LURE
     }
 
     /** Feeder rig with a №8 hook — groundbait/bait are up to the angler. */
     private static ItemStack assembledFeederRig() {
-        Item rigItem = item("rig_feeder");
-        Item hook = item("hook_8");
-        if (rigItem == null || hook == null) return ItemStack.EMPTY;
-        ItemStack rig = new ItemStack(rigItem);
-        NonNullList<ItemStack> c = NonNullList.withSize(RigLayout.rolesFor(RigType.FEEDER).length, ItemStack.EMPTY);
-        c.set(0, new ItemStack(hook));      // HOOK
-        RigData.save(rig, c);
-        return rig;
+        return rig(RigType.FEEDER, "hook_8");                       // HOOK, (bait), (groundbait)
     }
 
     private static ItemStack assembledRod(String rodId, String reelId, String lineId, ItemStack rig) {
@@ -331,5 +378,40 @@ public final class ModVillagers {
 
     private static ItemStack assembledFeederRod() {
         return assembledRod("feeder_rod", "reel_5000", "line_mono_025", assembledFeederRig());
+    }
+
+    /** Reel-less ice rod: the mormyshka IS the tackle, so it ships fitted or the rod is useless. */
+    private static ItemStack assembledWinterRod() {
+        return assembledRod("winter_rod", null, "line_mono_014", rig(RigType.WINTER, "mormyshka"));
+    }
+
+    private static ItemStack assembledCarpRod() {
+        return assembledRod("carp_rod", "reel_6000", "line_braid_030", rig(RigType.CARP, "hook_4"));
+    }
+
+    private static ItemStack assembledBottomRod() {
+        return assembledRod("bottom_rod", "reel_7000", "line_braid_030",
+                rig(RigType.CATFISH, "leader", "hook_2"));           // LEADER, HOOK, (bait)
+    }
+
+    // Saltwater: reel size must sit inside the blank's band and the line inside the reel's spool limit
+    // (§tackle-compat, maxLineDiameter = 0.15 + size/1000 * 0.05) — otherwise the stall would sell gear
+    // the assembly GUI itself refuses to socket.
+    private static ItemStack assembledSeaSpinRod() {
+        return assembledRod("sea_spin_rod", "reel_8000", "line_braid_040", assembledPredatorRig());
+    }
+
+    private static ItemStack assembledSurfRod() {
+        return assembledRod("surf_rod", "reel_8000", "line_mono_050", rig(RigType.GROUND, "hook_2"));
+    }
+
+    private static ItemStack assembledBoatRod() {
+        return assembledRod("boat_rod", "reel_10000", "line_braid_050",
+                rig(RigType.CATFISH, "leader", "hook_1"));
+    }
+
+    private static ItemStack assembledTrollingRod() {
+        return assembledRod("trolling_rod", "reel_12000", "line_braid_060",
+                rig(RigType.PREDATOR, "leader_titanium", "wobbler"));
     }
 }
