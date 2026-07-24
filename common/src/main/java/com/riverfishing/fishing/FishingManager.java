@@ -272,7 +272,7 @@ public final class FishingManager {
     private static boolean startCast(ServerPlayer sp, ServerLevel level, InteractionHand hand, long now, double power) {
         ItemStack rod = sp.getItemInHand(hand);
         if (!RodData.isAssembled(rod)) {
-            actionbar(sp, Component.translatable("message.riverfishing.not_assembled").withStyle(ChatFormatting.RED));
+            actionbar(sp, Component.translatable(RodData.missingKey(rod)).withStyle(ChatFormatting.RED));
             return false;
         }
 
@@ -538,7 +538,7 @@ public final class FishingManager {
         long now = level.getGameTime();
         ItemStack rod = sp.getItemInHand(hand);
         if (!RodData.isAssembled(rod)) {
-            actionbar(sp, Component.translatable("message.riverfishing.not_assembled").withStyle(ChatFormatting.RED));
+            actionbar(sp, Component.translatable(RodData.missingKey(rod)).withStyle(ChatFormatting.RED));
             return false;
         }
         if (SESSIONS.containsKey(sp.getUUID())) return false; // one line at a time
