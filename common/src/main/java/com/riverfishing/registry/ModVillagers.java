@@ -86,6 +86,8 @@ public final class ModVillagers {
         buyPrime(t, 1, "gudgeon", 1, 1);
         buyPrime(t, 1, "roach", 1, 1);
         buyPrime(t, 1, "bluegill", 1, 1);
+        buyPrime(t, 1, "round_goby", 1, 1);        // §river-four
+        buyPrime(t, 1, "common_dace", 1, 1);
 
         // Level 2 — Apprentice: float-fishing kit, including READY-MADE tackle (§assembled-trades).
         sell(t, 2, "maggot", 1, 10, 2);
@@ -101,6 +103,7 @@ public final class ModVillagers {
         buyPrime(t, 2, "ruffe", 1, 2);
         buyPrime(t, 2, "rudd", 2, 2);
         buyPrime(t, 2, "sabrefish", 2, 2);
+        buyPrime(t, 2, "white_eye_bream", 2, 3);   // §river-four
 
         // Level 3 — Journeyman: lures (also craftable now, §lure-recipes) + a ready spinning setup.
         sell(t, 3, "spinner", 3, 1, 8);
@@ -117,6 +120,7 @@ public final class ModVillagers {
         buyPrime(t, 3, "tench", 4, 5);
         buyPrime(t, 3, "blue_bream", 2, 3);
         buyPrime(t, 3, "pike", 5, 8);
+        buyPrime(t, 3, "volga_zander", 4, 6);      // §river-four: a lighter, cheaper zander
 
         // Level 4 — Expert: serious predator/carp gear + winter tackle + a ready feeder setup.
         sell(t, 4, "wobbler", 7, 1, 15);

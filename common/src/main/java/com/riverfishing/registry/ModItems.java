@@ -69,7 +69,10 @@ public final class ModItems {
             "blue_marlin", "sailfish", "swordfish", "mako",
             // north-wave (0.5.0): taiga rivers, the salmon run and the two bottom giants.
             "rotan", "nase", "vimba", "smelt", "whitefish", "char",
-            "lenok", "taimen", "salmon", "pink_salmon", "sturgeon", "halibut"
+            "lenok", "taimen", "salmon", "pink_salmon", "sturgeon", "halibut",
+            // §river-four (0.6.0): the community-requested RU river wave — dace, Volga zander,
+            // white-eye bream and the round goby.
+            "common_dace", "volga_zander", "white_eye_bream", "round_goby"
     };
     public static final Map<ResourceLocation, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
     // ---- Baits referenced by event drops ----
