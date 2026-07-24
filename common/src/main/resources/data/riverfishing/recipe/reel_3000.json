@@ -1,11 +1,24 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:iron_ingot" },
-    { "item": "minecraft:iron_ingot" },
-    { "item": "minecraft:iron_ingot" },
-    { "item": "minecraft:redstone" },
-    { "item": "minecraft:redstone" }
+    {
+      "item": "minecraft:iron_ingot"
+    },
+    {
+      "item": "minecraft:iron_ingot"
+    },
+    {
+      "item": "minecraft:iron_ingot"
+    },
+    {
+      "item": "minecraft:copper_ingot"
+    },
+    {
+      "item": "minecraft:redstone"
+    }
   ],
-  "result": { "id": "riverfishing:reel_3000", "count": 1 }
+  "result": {
+    "id": "riverfishing:reel_3000",
+    "count": 1
+  }
 }

@@ -1,13 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "  b",
-    "sb ",
-    "i  "
+    "  c",
+    "si ",
+    "id "
   ],
   "key": {
-    "b": {
-      "item": "minecraft:bamboo"
+    "c": {
+      "item": "minecraft:prismarine_crystals"
+    },
+    "d": {
+      "item": "minecraft:diamond"
     },
     "i": {
       "item": "minecraft:iron_ingot"
@@ -17,6 +20,6 @@
     }
   },
   "result": {
-    "id": "riverfishing:ultralight_rod"
+    "id": "riverfishing:boat_rod"
   }
 }

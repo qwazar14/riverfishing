@@ -105,8 +105,13 @@ public class RodItem extends Item {
         if ("stick".equals(key)) return repair.is(net.minecraft.world.item.Items.STICK);
         if ("bamboo".equals(key)) return repair.is(net.minecraft.world.item.Items.BAMBOO);
         if ("feeder".equals(key) || "bottom".equals(key)) return repair.is(net.minecraft.world.item.Items.GOLD_INGOT);
-        if ("carp".equals(key)) return repair.is(net.minecraft.world.item.Items.DIAMOND);
-        return repair.is(net.minecraft.world.item.Items.IRON_INGOT); // pole / ultralight / spinning
+        // §tackle-craft: the carp blank and the whole saltwater tier are diamond-built. Their prismarine /
+        // nautilus tips are the TIER marker in the recipe, not repair stock you can farm.
+        if ("carp".equals(key) || "sea_spin".equals(key) || "surf".equals(key)
+                || "boat".equals(key) || "trolling".equals(key)) {
+            return repair.is(net.minecraft.world.item.Items.DIAMOND);
+        }
+        return repair.is(net.minecraft.world.item.Items.IRON_INGOT); // pole / ultralight / spinning / winter
     }
 
     /**

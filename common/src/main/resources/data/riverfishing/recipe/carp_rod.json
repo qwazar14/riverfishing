@@ -1,10 +1,25 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [ "  d", "ni ", "ii " ],
+  "pattern": [
+    "  d",
+    "si ",
+    "ig "
+  ],
   "key": {
-    "d": { "item": "minecraft:diamond" },
-    "n": { "item": "minecraft:iron_nugget" },
-    "i": { "item": "minecraft:iron_ingot" }
+    "d": {
+      "item": "minecraft:diamond"
+    },
+    "g": {
+      "item": "minecraft:gold_ingot"
+    },
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "s": {
+      "item": "minecraft:string"
+    }
   },
-  "result": { "id": "riverfishing:carp_rod" }
+  "result": {
+    "id": "riverfishing:carp_rod"
+  }
 }
