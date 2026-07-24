@@ -162,17 +162,7 @@ public class TackleStationMenu extends AbstractContainerMenu {
         ItemStack out = new ItemStack(f.item());
         int leader = leaderCm();
         int balance = balancePos();
-        StackNbt.mutate(out, tag -> {
-            tag.putInt(TackleForm.TAG_WEIGHT, grams);
-            tag.putString(TackleForm.TAG_TIED_BY, player.getGameProfile().getName());
-            // §tackle-adv: the knobs ride along; effects arrive with the bite-engine wiring.
-            // Hook link (formerly "leader") is a RIG concept — the distance hook-to-anchor point.
-            if (f.rig) tag.putInt(TackleForm.TAG_LEADER_CM, leader);
-            if (!f.rig) tag.putInt(TackleForm.TAG_BALANCE, balance);
-            if (f == TackleForm.SPINNER || f == TackleForm.SPOON) {
-                tag.putInt(TackleForm.TAG_BLADE, Math.min(5, 1 + grams / 15)); // blade follows the mass
-            }
-        });
+        TackleForm.stamp(out, f, grams, player.getGameProfile().getName(), leader, balance);
         if (f.rig) {
             // The consumed hooks go straight INTO the rig's hook slots — the rig comes ready to bait.
             SlotRole[] roles = RigLayout.rolesFor(RigData.rigType(out));

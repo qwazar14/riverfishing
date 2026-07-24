@@ -11,15 +11,20 @@ import com.riverfishing.item.RodData;
 import com.riverfishing.rig.RigData;
 import com.riverfishing.rig.RigLayout;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import com.riverfishing.tackle.TackleForm;
 import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.item.trading.MerchantOffers;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.Registries;
@@ -70,6 +75,20 @@ public final class ModVillagers {
      *  buys SOMETHING without the pool turning back into a fish market. */
     private static final int FISH_LISTINGS_PER_TIER = 2;
 
+    /** Vanilla's own per-level offer count — a private constant in {@code Villager}, mirrored here. */
+    private static final int VANILLA_TRADES_PER_LEVEL = 2;
+
+    /** §trade-pool: a fishing shop needs counter space for bait, line, a rod AND a fish buy, so our
+     *  fisherman gets one more offer per level than vanilla hands out. Raised by the mixin. */
+    public static final int TRADES_PER_LEVEL = 3;
+
+    /** The pool the mixin draws the extra offer from — the same lists given to the platform registry. */
+    private static Int2ObjectMap<List<VillagerTrades.ItemListing>> pool;
+
+    /** §starter-fish: the ubiquitous smalls a level-1 fisherman ALWAYS buys. These four live in every
+     *  water (see the community guide), so the guarantee is reachable wherever the player spawned. */
+    private static final List<VillagerTrades.ItemListing> STARTER_FISH = new ArrayList<>();
+
     private ModVillagers() {}
 
     /** Build the fisherman's five trade tiers, then register them through the platform seam (§multiloader). */
@@ -94,6 +113,9 @@ public final class ModVillagers {
         oneOf(t, 1, sellOf("corn_seeds", 1, 3, 1), sellOf("pea_seeds", 1, 3, 1), sellOf("barley_seeds", 1, 3, 1));
         sell(t, 1, "line_mono_014", 2, 1, 3);       // thin starter line
         sell(t, 1, "worm_farm", 4, 1, 4);           // §bait-farm: breed your own worms early
+        // §vanilla-stock: every reeled rod recipe now wants string for the guide wraps (§tackle-craft),
+        // and string is a miserable early grind — the village shop is the honest way out.
+        sell(t, 1, "minecraft:string", 1, 4, 1);
 
         // Level 2 — Apprentice: float-fishing kit, including READY-MADE tackle (§assembled-trades).
         sell(t, 2, "maggot", 1, 10, 2);
@@ -101,18 +123,22 @@ public final class ModVillagers {
         sell(t, 2, "line_mono_018", 2, 1, 4);
         sell(t, 2, "groundbait_grain", 1, 6, 3);
         sell(t, 2, "bait_trap", 3, 1, 4);           // the trap slowly farms livebait (§livebait)
+        sell(t, 2, "minecraft:oak_boat", 4, 1, 5);  // §vanilla-stock: trolling needs a boat under you
         sellStack(t, 2, 4, ModVillagers::assembledFloatRig, 6);
         sellStack(t, 2, 9, ModVillagers::assembledBambooRod, 8);
 
         // Level 3 — Journeyman: lures (also craftable now, §lure-recipes) + a ready spinning setup.
-        oneOf(t, 3, sellOf("spinner", 3, 1, 8), sellOf("spoon", 4, 1, 8), sellOf("silicone", 2, 2, 6));
+        // §tackle-craft: shop lures ship bench-stamped, so their grams count toward the cast.
+        oneOf(t, 3, sellTackleOf(TackleForm.SPINNER, 3, 1, 8), sellTackleOf(TackleForm.SPOON, 4, 1, 8),
+                sellTackleOf(TackleForm.SILICONE, 2, 2, 6));
         oneOf(t, 3, sellOf("line_braid_016", 5, 1, 10), sellOf("line_fluoro_020", 5, 1, 10));
         sell(t, 3, "leader_fluoro", 3, 2, 6);
         sell(t, 3, "fish_finder", 14, 1, 12);        // §QoL: read the swim before you cast
         sellStack(t, 3, 16, ModVillagers::assembledSpinningRod, 14);
 
         // Level 4 — Expert: serious predator/carp gear + winter tackle + a ready feeder setup.
-        sell(t, 4, "wobbler", 7, 1, 15);
+        oneOf(t, 4, sellTackleOf(TackleForm.WOBBLER, 7, 1, 15), sellTackleOf(TackleForm.CRANKBAIT, 7, 1, 15),
+                sellTackleOf(TackleForm.POPPER, 6, 1, 14));
         sell(t, 4, "livebait", 2, 3, 8);
         sell(t, 4, "boilie", 3, 8, 10);
         oneOf(t, 4, sellOf("reel_5000", 10, 1, 15), sellOf("reel_6000", 13, 1, 16));
@@ -121,12 +147,18 @@ public final class ModVillagers {
         sell(t, 4, "mormyshka", 3, 2, 8);
         sell(t, 4, "maggot_farm", 5, 1, 8);          // §bait-farm
         sell(t, 4, "groundbait_cake", 4, 3, 6);      // жмых (sunflower+piston)
+        // §vanilla-stock + §tackle-craft: the saltwater reels are gated on ocean drops. Selling the
+        // INPUTS keeps the gate (you still pay for it) without making it hinge on guardian RNG.
+        sell(t, 4, "minecraft:prismarine_shard", 5, 4, 10);
         sellStack(t, 4, 18, ModVillagers::assembledFeederRod, 18);
         sellStack(t, 4, 14, ModVillagers::assembledWinterRod, 14);
 
         // Level 5 — Master: the trade-only prestige gear (§progression).
         sell(t, 5, "digital_alarm", 10, 1, 25);
         sell(t, 5, "leader_titanium", 8, 1, 20);
+        // §vanilla-stock + §tackle-craft: the 14000 reel and the trolling rod each want a nautilus
+        // shell, which is the single worst piece of RNG in the ladder. Master tier sells it.
+        sell(t, 5, "minecraft:nautilus_shell", 10, 1, 22);
         oneOf(t, 5, sellOf("reel_7000", 16, 1, 26), sellOf("reel_8000", 18, 1, 28),
                 sellOf("reel_10000", 22, 1, 30), sellOf("reel_12000", 26, 1, 32),
                 sellOf("reel_14000", 30, 1, 34));
@@ -225,11 +257,89 @@ public final class ModVillagers {
             }
         }
 
+        // §starter-fish: the level-1 guarantee draws from the four smalls that live in EVERY water.
+        STARTER_FISH.clear();
+        for (String common : new String[]{"bleak", "roach", "gudgeon", "rotan"}) {
+            STARTER_FISH.add(buyPrimeOf(common, 1, 1));
+        }
+
+        pool = t;
         com.riverfishing.platform.VillagerTradeRegistry.register(FISHERMAN, t);
     }
 
+    /**
+     * §trade-pool: called from {@link com.riverfishing.mixin.VillagerTradePoolMixin} the moment vanilla
+     * has filled a freshly unlocked level with its {@link #VANILLA_TRADES_PER_LEVEL} offers. Adds the
+     * extra counter space, then makes sure level 1 can always buy a common fish — that first emerald is
+     * the whole point of the profession and must not depend on a dice roll.
+     */
+    public static void topUpOffers(Villager villager) {
+        if (pool == null || villager.level().isClientSide) return;
+        if (villager.getVillagerData().getProfession() != FISHERMAN.get()) return;
+        int level = villager.getVillagerData().getLevel();
+        List<VillagerTrades.ItemListing> listings = pool.get(level);
+        if (listings == null || listings.isEmpty()) return;
+
+        MerchantOffers offers = villager.getOffers();
+        RandomSource random = villager.getRandom();
+
+        int want = TRADES_PER_LEVEL - VANILLA_TRADES_PER_LEVEL;
+        // Walk the pool from a random start instead of shuffling a copy: same fairness, no allocation,
+        // and it naturally stops once the pool is exhausted of things we don't already offer.
+        int start = random.nextInt(listings.size());
+        for (int i = 0; i < listings.size() && want > 0; i++) {
+            MerchantOffer offer = listings.get((start + i) % listings.size()).getOffer(villager, random);
+            if (offer == null || duplicates(offers, offer)) continue;
+            offers.add(offer);
+            want--;
+        }
+
+        if (level == 1 && !buysFish(offers)) {
+            MerchantOffer fish = starterFishOffer(villager, random);
+            // Swap rather than append, so a level-1 stall always shows exactly TRADES_PER_LEVEL offers.
+            if (fish != null) {
+                for (int i = offers.size() - 1; i >= 0; i--) {
+                    if (!(offers.get(i).getCostA().getItem() instanceof FishItem)) {
+                        offers.set(i, fish);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /** Same thing already on the counter? Compare both sides — a buy and a sell can share an item. */
+    private static boolean duplicates(MerchantOffers offers, MerchantOffer candidate) {
+        for (MerchantOffer o : offers) {
+            if (o.getCostA().getItem() == candidate.getCostA().getItem()
+                    && o.getResult().getItem() == candidate.getResult().getItem()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean buysFish(MerchantOffers offers) {
+        for (MerchantOffer o : offers) {
+            if (o.getCostA().getItem() instanceof FishItem) return true;
+        }
+        return false;
+    }
+
+    private static MerchantOffer starterFishOffer(Villager villager, RandomSource random) {
+        if (STARTER_FISH.isEmpty()) return null;
+        int start = random.nextInt(STARTER_FISH.size());
+        for (int i = 0; i < STARTER_FISH.size(); i++) {
+            MerchantOffer offer = STARTER_FISH.get((start + i) % STARTER_FISH.size()).getOffer(villager, random);
+            if (offer != null) return offer;
+        }
+        return null;
+    }
+
+    /** A bare mod path ("worm") or a full id ("minecraft:string") — the stall carries vanilla stock too. */
     private static Item item(String path) {
-        return net.minecraft.core.registries.BuiltInRegistries.ITEM.get(RiverFishing.id(path));
+        ResourceLocation id = path.indexOf(':') >= 0 ? ResourceLocation.tryParse(path) : RiverFishing.id(path);
+        return id == null ? Items.AIR : net.minecraft.core.registries.BuiltInRegistries.ITEM.get(id);
     }
 
     /**
@@ -239,15 +349,15 @@ public final class ModVillagers {
      */
     private static void oneOf(Int2ObjectMap<List<VillagerTrades.ItemListing>> t, int level,
                              List<VillagerTrades.ItemListing> variants) {
-        List<VillagerTrades.ItemListing> pool = new ArrayList<>();
+        List<VillagerTrades.ItemListing> group = new ArrayList<>();
         for (VillagerTrades.ItemListing l : variants) {
-            if (l != null) pool.add(l);
+            if (l != null) group.add(l);
         }
-        if (pool.isEmpty()) return;
+        if (group.isEmpty()) return;
         t.get(level).add((trader, random) -> {
-            int start = random.nextInt(pool.size());
-            for (int i = 0; i < pool.size(); i++) {
-                MerchantOffer offer = pool.get((start + i) % pool.size()).getOffer(trader, random);
+            int start = random.nextInt(group.size());
+            for (int i = 0; i < group.size(); i++) {
+                MerchantOffer offer = group.get((start + i) % group.size()).getOffer(trader, random);
                 if (offer != null) return offer;
             }
             return null;
@@ -256,7 +366,9 @@ public final class ModVillagers {
 
     private static void oneOf(Int2ObjectMap<List<VillagerTrades.ItemListing>> t, int level,
                              VillagerTrades.ItemListing... variants) {
-        oneOf(t, level, List.of(variants));
+        // Arrays.asList, NOT List.of — sellOf() returns null for an unregistered item and List.of
+        // would throw at mod-init, turning a typo'd item id into a startup crash.
+        oneOf(t, level, java.util.Arrays.asList(variants));
     }
 
     /** Villager sells {@code count}× item for {@code emeraldCost} emeralds (§multiloader: a plain listing). */
@@ -297,7 +409,11 @@ public final class ModVillagers {
      */
     private static void buyPrime(Int2ObjectMap<List<VillagerTrades.ItemListing>> t, int level,
                                  String path, int emeralds, int xp) {
-        t.get(level).add((trader, random) -> {
+        t.get(level).add(buyPrimeOf(path, emeralds, xp));
+    }
+
+    private static VillagerTrades.ItemListing buyPrimeOf(String path, int emeralds, int xp) {
+        return (trader, random) -> {
             Item i = item(path);
             if (!(i instanceof FishItem)) return null;
             // §prime-fish (1.21): gate the buy-cost on the registered PRIME component, whose value is the
@@ -314,7 +430,7 @@ public final class ModVillagers {
             int pay = trader.level() instanceof net.minecraft.server.level.ServerLevel sl
                     ? com.riverfishing.fishing.MarketData.get(sl).price(sl, path, emeralds) : emeralds;
             return new MerchantOffer(cost, new ItemStack(Items.EMERALD, pay), 12, xp, 0.05f);
-        });
+        };
     }
 
     // ---- assembled tackle builders (§assembled-trades). No custom "(в сборе)" name — they read as
@@ -324,7 +440,8 @@ public final class ModVillagers {
 
     /** Fills a rig's slots in layout order; trailing slots stay empty. Any missing item voids the rig. */
     private static ItemStack rig(RigType type, String... contents) {
-        Item rigItem = item("rig_" + type.jsonKey());
+        String rigId = "rig_" + type.jsonKey();
+        Item rigItem = item(rigId);
         if (rigItem == null || rigItem == Items.AIR) return ItemStack.EMPTY;
         ItemStack stack = new ItemStack(rigItem);
         NonNullList<ItemStack> c = NonNullList.withSize(RigLayout.rolesFor(type).length, ItemStack.EMPTY);
@@ -332,10 +449,37 @@ public final class ModVillagers {
             if (contents[i] == null) continue;
             Item part = item(contents[i]);
             if (part == null || part == Items.AIR) return ItemStack.EMPTY;
-            c.set(i, new ItemStack(part));
+            c.set(i, benchGrade(new ItemStack(part), contents[i]));
         }
         RigData.save(stack, c);
+        return benchGrade(stack, rigId);
+    }
+
+    /**
+     * §tackle-craft: shop tackle IS bench tackle. Anything the Tackle Station can tie gets the same
+     * {@code TackleWeightG} stamp the station would write — without it a bought spinner reads as 0 g to
+     * {@code RigData.lureTackleWeightG} and casts like nothing, while a station-tied one of the same
+     * name has real mass. The maker's mark is left off on purpose: it is a raw, untranslated string
+     * baked into the stack forever, and "no line" beats "an English line on a Russian client".
+     * Built-in rod rigs (float/predator/winter) aren't bench forms, so they keep their type mass.
+     */
+    private static ItemStack benchGrade(ItemStack stack, String id) {
+        TackleForm form = TackleForm.byItemId(id);
+        if (form != null) {
+            TackleForm.stamp(stack, form, form.stockWeight(), null, form.defaultLinkCm, 1);
+        }
         return stack;
+    }
+
+    /** Sells a bench-grade lure/rig at its stock weight (§tackle-craft). */
+    private static VillagerTrades.ItemListing sellTackleOf(TackleForm form, int emeraldCost, int count, int xp) {
+        Item i = form.item();
+        if (i == null || i == Items.AIR) return null;
+        return (trader, random) -> {
+            ItemStack out = benchGrade(new ItemStack(i, count), form.id);
+            return new MerchantOffer(
+                    new net.minecraft.world.item.trading.ItemCost(Items.EMERALD, emeraldCost), out, 12, xp, 0.05f);
+        };
     }
 
     /** Bamboo's built-in light float rig, loaded with a float and a №10 hook — cast-ready for the beginner. */

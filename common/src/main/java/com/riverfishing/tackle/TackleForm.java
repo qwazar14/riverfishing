@@ -81,4 +81,39 @@ public enum TackleForm {
     public static int castHintBlocks(int grams) {
         return (int) Math.round(4.0 * Math.sqrt(grams));
     }
+
+    /**
+     * Write the bench-tied identity onto a fresh tackle stack. The ONE place this happens: the Tackle
+     * Station and the village fisherman's stock both go through here, so shop tackle is never invisible
+     * to §cast-weight (an unstamped lure contributes 0 g — see {@code RigData.lureTackleWeightG}).
+     *
+     * @param tiedBy maker's mark shown in the tooltip, or null to leave the tackle anonymous
+     */
+    public static void stamp(net.minecraft.world.item.ItemStack out, TackleForm form, int grams,
+                             String tiedBy, int leaderCm, int balance) {
+        com.riverfishing.item.StackNbt.mutate(out, tag -> {
+            tag.putInt(TAG_WEIGHT, grams);
+            if (tiedBy != null) tag.putString(TAG_TIED_BY, tiedBy);
+            // §tackle-adv: the knobs ride along; effects arrive with the bite-engine wiring.
+            // Hook link (formerly "leader") is a RIG concept — the distance hook-to-anchor point.
+            if (form.rig) tag.putInt(TAG_LEADER_CM, leaderCm);
+            else tag.putInt(TAG_BALANCE, balance);
+            if (form == SPINNER || form == SPOON) {
+                tag.putInt(TAG_BLADE, Math.min(5, 1 + grams / 15)); // blade follows the mass
+            }
+        });
+    }
+
+    /** The middle weight step — the "stock" size a shop would sensibly carry. */
+    public int stockWeight() {
+        return weights[weights.length / 2];
+    }
+
+    /** The form that ties this item id, or null if the bench can't make it (built-in rod rigs). */
+    public static TackleForm byItemId(String id) {
+        for (TackleForm f : values()) {
+            if (f.id.equals(id)) return f;
+        }
+        return null;
+    }
 }
