@@ -139,7 +139,7 @@ The same idea with **Rotten Flesh**.
 
 Sold at expert tier for 5 emeralds.
 
-> **Caveat:** the Worm Farm and the Maggot Farm currently have **no loot table**, so breaking one does not give the block back. Pick your spot before you build.
+> **Note:** breaking either farm returns the block, but **not** what was already growing inside it. The bred worms and maggots live as a counter on the block, not as items, so harvest before you move.
 
 ---
 

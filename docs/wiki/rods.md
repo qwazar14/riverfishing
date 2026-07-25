@@ -9,16 +9,16 @@ Every rod is a bare **blank**; the reel, line and rig live inside it. The blank 
 | Stick Rod | `stick_rod` | Float | none | 2–25 g | 6 blocks | Primitive Rig | 32 | Stick |
 | Bamboo Rod | `bamboo_rod` | Float | none | 2–30 g | 6 blocks | Light Float Rig | 64 | Bamboo |
 | Pole Rod | `pole_rod` | Float | none | 2–30 g | 6 blocks | Float Rig | 128 | Iron Ingot |
-| Winter Rod | `winter_rod` | Float (ice only) | none | 1–12 g | ice hole only | Winter Rig | 128 | Iron Ingot |
+| Winter Rod | `winter_rod` | Float (ice only) | none | 1–12 g | ice hole only | Winter Rig | 96 | Iron Ingot |
 | Ultralight Rod | `ultralight_rod` | Active | 1000–2000 | 1–10 g | 18 blocks | Predator Rig | 144 | Iron Ingot |
 | Spinning Rod | `spinning_rod` | Active | 2000–4000 | 3–35 g | 16 blocks | Predator Rig | 192 | Iron Ingot |
 | Feeder Rod | `feeder_rod` | Bottom | 3000–5000 | 20–90 g | 32 blocks | — (swappable) | 224 | Gold Ingot |
 | Bottom Rod | `bottom_rod` | Bottom | 5000–7000 | 40–160 g | 32 blocks | — (swappable) | 256 | Gold Ingot |
 | Carp Rod | `carp_rod` | Bottom | 5000–7000 | 60–220 g | 32 blocks | — (swappable) | 320 | Diamond |
-| Surf rod | `surf_rod` | Bottom | 6000–8000 | 80–250 g | 32 blocks | — (swappable) | 128 | Diamond |
-| Sea spinning rod | `sea_spin_rod` | Active | 5000–9000 | 20–120 g | 32 blocks | Predator Rig | 128 | Diamond |
-| Boat rod | `boat_rod` | Bottom | 8000–12000 | 100–400 g | 18 blocks | — (swappable) | 128 | Diamond |
-| Trolling rod | `trolling_rod` | Active | 10000–14000 | 150–600 g | 18 blocks | Predator Rig | 128 | Diamond |
+| Surf rod | `surf_rod` | Bottom | 6000–8000 | 80–250 g | 32 blocks | — (swappable) | 384 | Diamond |
+| Sea spinning rod | `sea_spin_rod` | Active | 5000–9000 | 20–120 g | 32 blocks | Predator Rig | 320 | Diamond |
+| Boat rod | `boat_rod` | Bottom | 8000–12000 | 100–400 g | 18 blocks | — (swappable) | 448 | Diamond |
+| Trolling rod | `trolling_rod` | Active | 10000–14000 | 150–600 g | 18 blocks | Predator Rig | 512 | Diamond |
 
 Notes on the columns:
 
@@ -26,7 +26,7 @@ Notes on the columns:
 - **Cast-weight window ("test")** — the rigged weight the blank is built to throw, shown on the rod tooltip as `Test: N–M g`. See [Loading the blank](#loading-the-blank-the-test-window) below.
 - **Max cast reach** — the farthest the rig can land at full power bar, *before* the cast-weight penalty. Reel-less blanks are hard-capped at 6 blocks (a fixed length of line on a tip); a longer throw is refused with *"A pole cannot reach past 6 blocks"*.
 - **Built-in rig** — float and lure blanks carry one permanent rig; the assembly screen shows that rig's own slots inline and there is no swappable rig column. Bottom blanks keep the swappable rig column. A freshly crafted or trade-bought rod installs its built-in rig automatically the first time you open it or cast it.
-- **Durability** — each hook-set (strike) costs 1 point. At zero the blank breaks for good. Repair on an **anvil** with the listed material.
+- **Durability** — each hook-set (strike) costs 1 point. At zero the blank breaks for good. Repair on an **anvil** with the listed material. The ladder rises with the tier, and the saltwater blanks sit above the freshwater top: the trolling rod takes 512 strikes to the carp rod's 320.
 
 ## The three flows
 

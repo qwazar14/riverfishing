@@ -75,7 +75,7 @@ Angling numbering: **a bigger number means a smaller hook.**
 | Hook #2 | `hook_2` | **Not craftable** — [fisherman](villager.md), master tier |
 | Hook #1 | `hook_1` | **Not craftable** — [fisherman](villager.md), master tier |
 
-The two biggest hooks (#2, #1) are also **outside** the `riverfishing:hooks` tag, so they cannot be used as the hook ingredient in a lure recipe.
+All nine sizes are in the `riverfishing:hooks` tag, so any hook can serve as the hook ingredient in a lure recipe. (Before 0.6.0 the tag stopped at #4, which locked the two biggest hooks — the ones only the master fisherman sells — out of every lure craft.)
 
 **Hook size is a hard gate.** Each species has an ideal hook size and a tolerance; the score falls off linearly and if it drops below **0.34** the fish will simply not take. In practice you must be within roughly ±2.6 × the species' tolerance of its ideal. Put a No.1 on a bleak swim and nothing bites at all.
 

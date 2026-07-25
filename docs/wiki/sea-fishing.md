@@ -15,7 +15,7 @@ Four blanks, four reels, and a heavy line tier.
 
 All four are diamond-built and repair with a **diamond**. Their recipes differ only in the tip — prismarine shard, two shards, prismarine crystals, nautilus shell — so the ladder reads at a glance. Full details in [Rods](rods.md).
 
-The four saltwater reels (8000, 10000, 12000, 14000) need ocean loot: prismarine, crystals, a nautilus shell. See [Reels and lines](reels-and-lines.md#reel-recipes). Note that their **tooltip drag** figures (9.5 / 14.5 / 19.5 / 24.5 kg) are more generous than what the [fight actually uses](reels-and-lines.md#two-drag-numbers) (8 / 10 / 12 / 14 kg).
+The four saltwater reels (8000, 10000, 12000, 14000) need ocean loot: prismarine, crystals, a nautilus shell. See [Reels and lines](reels-and-lines.md#reel-recipes). Their [drag](reels-and-lines.md#the-drag-curve) climbs steeper than the freshwater ladder — 9.5 / 14.5 / 19.5 / 24.5 kg — which is what makes the pelagics stoppable at all.
 
 For line, the heavy tier exists precisely for these reels: mono up to 0.80 mm (64 kg) and braid up to 0.60 mm (108 kg). A 400 kg marlin needs it.
 

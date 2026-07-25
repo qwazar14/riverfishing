@@ -22,24 +22,24 @@ Eleven sizes, in the usual angling numbering: bigger number = bigger reel.
 
 There is **no 9000 reel item**, even though the sea spinning rod's band reaches 9000.
 
-### Two drag numbers
+### The drag curve
 
-Two different drag formulas exist in the mod and it is worth knowing which one you are looking at.
-
-The **tooltip** shows a tiered figure — the freshwater ladder is linear, the saltwater sizes climb steeper:
+The freshwater ladder is linear; the saltwater sizes climb steeper, because ocean fish are an order of
+magnitude heavier and a linear drag simply cannot stop them:
 
 ```
 size ≤ 7000 :  drag = size / 1000
 size > 7000 :  drag = 7.0 + (size − 7000) / 1000 × 2.5
 ```
 
-The **fight itself** uses the plain linear figure for every size:
+So 1000 → 1 kg up to 7000 → 7 kg, then 8000 → 9.5 kg, 10000 → 14.5 kg, 12000 → 19.5 kg,
+14000 → 24.5 kg. The tooltip and the fight read the same figure.
 
-```
-fight drag = size / 1000        (so a 14000 contributes 14.0, not 24.5)
-```
+> Before 0.6.0 they did not: the fight computed a plain `size / 1000` of its own, so a 14000 advertised
+> 24.5 kg and delivered 14.0, and the whole saltwater bonus existed only in the tooltip. Freshwater was
+> unaffected — the two formulas agree at and below 7000.
 
-So on the biggest reels the tooltip is optimistic. What the fight drag actually does:
+What the drag actually does in the fight:
 
 - Adds `0.5 × drag` on top of your line's breaking strain when working out the break tolerance.
 - **Gives line faster** when you ease off: `relaxTick = 0.010 + clamp(drag/10, 0, 0.5) × 0.02`. A big reel bleeds tension roughly three times as fast as a 1000.

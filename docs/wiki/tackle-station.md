@@ -67,7 +67,9 @@ The grams you choose are read by three separate systems.
 
 The tackle's weight must sit inside the blank's [cast-weight window](rods.md#loading-the-blank-the-test-window). Too light and the blank cannot load — a short cast and a silent 25 % longer wait. Too heavy and your line's break tolerance drops; 2.5× over and the blank cracks on the cast.
 
-A rig's weight for this purpose is its bench weight **plus** the bench weight of any tied lure sitting in one of its slots. Untied (crafted or traded, unstamped) tackle contributes its rig-type fallback mass, and an untied lure contributes **0 g**.
+A rig's weight for this purpose is its bench weight **plus** the bench weight of any tied lure sitting in one of its slots. Unstamped tackle contributes its rig-type fallback mass, and an unstamped **lure contributes 0 g** — so a hand-crafted spinner adds nothing to the cast.
+
+Tackle bought from the [fisherman](villager.md) *is* bench tackle: anything the bench can tie leaves the stall carrying the same weight stamp, whether it is a lure sold loose or a rig socketed inside an assembled rod. Only hand-crafted lures are unstamped. (Before 0.6.0 shop lures were unstamped too, so a bought spinner cast like an empty hook while a bench-tied one of the same name had real mass.)
 
 ### 2. The lure-size filter (lures only)
 

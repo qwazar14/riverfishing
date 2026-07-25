@@ -18,17 +18,21 @@ The same block is also the [Tackle Station](tackle-station.md) — right-click i
 
 ## How his offers work
 
-Vanilla draws **exactly two offers per villager level** out of that level's pool. Pool size is therefore the real currency: every listing added dilutes every other one.
+Vanilla draws exactly **two** offers per villager level out of that level's pool, for every profession. The Fisherman is topped up to **three** — a fishing shop needs counter space for bait, line, a rod *and* a fish buy. Pool size is the real currency here: every listing added dilutes every other one.
 
 To keep gear visible, variants of the same thing are folded into **one rotating listing** — the trick vanilla itself uses for enchanted books. A pool entry means "a reel appears", not "the 12000 appears". Fish buys are collected per tier and sliced into **two disjoint rotating groups**, so a fisherman buys two *different* species per tier and never shows a duplicate.
 
-| Tier | Pool size | Of which fish buys |
-|---|---|---|
-| 1 Novice | 9 | 2 |
-| 2 Apprentice | 9 | 2 |
-| 3 Journeyman | 7 | 2 |
-| 4 Expert | 13 | 2 |
-| 5 Master | 11 | 2 |
+| Tier | Pool size | Of which fish buys | Offers drawn |
+|---|---|---|---|
+| 1 Novice | 10 | 2 | 3 |
+| 2 Apprentice | 10 | 2 | 3 |
+| 3 Journeyman | 7 | 2 | 3 |
+| 4 Expert | 14 | 2 | 3 |
+| 5 Master | 12 | 2 | 3 |
+
+**A level-1 Fisherman always buys a common fish.** The draw is random, so a fresh stall could have come up gear-only — and that first emerald for a bleak is the point of the profession. If none of the level-1 offers takes a fish, one is swapped in, rolled among Bleak, Roach, Gudgeon and Rotan: the four smalls that live in every water, so the guarantee is reachable wherever you spawned.
+
+Across all five levels a maxed Fisherman shows 15 offers, of which roughly 3 are fish buys.
 
 Ordinary sells allow 12 uses before restock; assembled rods and rigs allow 8. Every listing carries the usual 5 % price multiplier.
 
@@ -47,6 +51,7 @@ Entries marked **(rotating)** are one pool slot that picks one of the listed var
 | 3 × Corn / Pea / Barley Seeds **(rotating)** | 1 emerald |
 | Mono Line 0.14 | 2 emeralds |
 | Worm Farm | 4 emeralds |
+| 4 × String | 1 emerald |
 
 ### Tier 2 — Apprentice
 
@@ -57,6 +62,7 @@ Entries marked **(rotating)** are one pool slot that picks one of the listed var
 | Mono Line 0.18 | 2 emeralds |
 | 6 × Grain Groundbait | 1 emerald |
 | Bait Trap | 3 emeralds |
+| Oak Boat | 4 emeralds |
 | **Light Float Rig** — loaded with a Float and a Hook No.10 | 4 emeralds |
 | **Bamboo Rod, assembled** — Mono 0.18 + Light Float Rig (float, No.10 hook) | 9 emeralds |
 
@@ -65,6 +71,7 @@ Entries marked **(rotating)** are one pool slot that picks one of the listed var
 | Offer | Price |
 |---|---|
 | Spinner / Spoon Lure / 2 × Soft Plastic **(rotating)** | 3 / 4 / 2 emeralds |
+| *(shop lures ship bench-stamped — see below)* | |
 | Braided Line 0.16 / Fluorocarbon 0.20 **(rotating)** | 5 emeralds |
 | 2 × Fluorocarbon Leader | 3 emeralds |
 | Fish Finder | 14 emeralds |
@@ -74,8 +81,9 @@ Entries marked **(rotating)** are one pool slot that picks one of the listed var
 
 | Offer | Price |
 |---|---|
-| Wobbler | 7 emeralds |
+| Wobbler / Crankbait / Popper **(rotating)** | 7 / 7 / 6 emeralds |
 | 3 × Live Bait | 2 emeralds |
+| 4 × Prismarine Shard | 5 emeralds |
 | 8 × Boilie | 3 emeralds |
 | Reel 5000 / Reel 6000 **(rotating)** | 10 / 13 emeralds |
 | Fluorocarbon 0.30 | 6 emeralds |
@@ -94,6 +102,7 @@ The prestige tier, and the only source of several items.
 |---|---|
 | Digital Bite Alarm | 10 emeralds |
 | Titanium Leader | 8 emeralds |
+| Nautilus Shell | 10 emeralds |
 | Reel 7000 / 8000 / 10000 / 12000 / 14000 **(rotating)** | 16 / 18 / 22 / 26 / 30 emeralds |
 | Mono line 0.50 / 0.60 / 0.70 / 0.80 **(rotating)** | 8 / 10 / 12 / 14 emeralds |
 | Braided Line 0.30 / Braid line 0.40 / 0.50 / 0.60 / Fluorocarbon 0.40 **(rotating)** | 10 / 14 / 16 / 18 / 12 emeralds |
@@ -107,6 +116,10 @@ The prestige tier, and the only source of several items.
 | • Trolling rod — Reel 12000 + Braid 0.60 + Predator Rig (titanium leader, wobbler) | 40 emeralds |
 
 **Hook #2 and Hook #1 have no crafting recipe** — the master fisherman is the only source.
+
+His tackle is **bench-grade**. Anything the [Tackle Station](tackle-station.md) can tie leaves the stall carrying the same weight stamp the bench writes, so a bought lure pulls its real mass on the cast and a bought rig reads its real weight. Village stock carries no maker's mark, which is the only way to tell it from your own work.
+
+He also stocks the plain vanilla items his own trade tree leans on: **string** (every reeled rod recipe needs it for the guide wraps), an **oak boat** (trolling needs one under you), and the two saltwater gate inputs — **prismarine shards** and a **nautilus shell**. The ocean tier stays expensive, but it no longer hinges on guardian luck.
 
 Every assembled rod was checked against its blank's reel band and the [spool-diameter rule](reels-and-lines.md#the-spool-diameter-rule), so the stall can never sell a rod the assembly screen would refuse to socket. He sells **no bare blanks at all** — every rod that leaves the stall can be cast on the spot. Consumables (bait, groundbait) are left out on purpose; those are your call.
 
@@ -144,6 +157,7 @@ Prices below are the **base**; see [the market](#the-market) for how they actual
 | Species | Accepts from | Base price | Trade XP |
 |---|---|---|---|
 | Crucian Carp | 1.1 kg | 2 emeralds | 2 |
+| White Bream | 0.8 kg | 2 emeralds | 2 |
 | Perch | 1.4 kg | 2 emeralds | 2 |
 | Ruffe | 105 g | 1 emerald | 2 |
 | Rudd | 700 g | 2 emeralds | 2 |
@@ -157,6 +171,7 @@ Prices below are the **base**; see [the market](#the-market) for how they actual
 | Species | Accepts from | Base price | Trade XP |
 |---|---|---|---|
 | Bream | 2.8 kg | 3 emeralds | 4 |
+| Asp | 5.6 kg | 6 emeralds | 9 |
 | Ide | 2.1 kg | 3 emeralds | 5 |
 | Chub | 2.8 kg | 3 emeralds | 5 |
 | Tench | 2.5 kg | 4 emeralds | 5 |
@@ -171,6 +186,7 @@ Prices below are the **base**; see [the market](#the-market) for how they actual
 | Species | Accepts from | Base price | Trade XP |
 |---|---|---|---|
 | Carp | 10.5 kg | 6 emeralds | 12 |
+| Mirror Carp | 9.8 kg | 7 emeralds | 13 |
 | Grass Carp | 17.5 kg | 9 emeralds | 14 |
 | Zander | 4.2 kg | 6 emeralds | 10 |
 | Trout | 3.5 kg | 6 emeralds | 12 |
@@ -213,7 +229,7 @@ Prices below are the **base**; see [the market](#the-market) for how they actual
 | Sturgeon | 105 kg | 26 emeralds | 38 |
 | Halibut | 140 kg | 22 emeralds | 34 |
 
-**Eight species cannot be sold at all**: Asp, White Bream, Mirror Carp and the five Koi. Nothing buys them.
+**The five Koi cannot be sold at all.** They are collectibles, not commerce. Every other species has a buy-trade somewhere in the five tiers. (Asp, White Bream and Mirror Carp were unsellable before 0.6.0 — an oversight, now on tiers 3, 2 and 4.)
 
 ## The market
 
