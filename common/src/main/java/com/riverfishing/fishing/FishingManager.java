@@ -92,8 +92,12 @@ public final class FishingManager {
         TROLL_GOOD.remove(uuid);
         TROLL_LAST.remove(uuid);
         FishingSession session = SESSIONS.remove(uuid);
-        if (session != null && session.bossBar != null) {
-            session.bossBar.removeAllPlayers();
+        if (session != null) {
+            if (session.bossBar != null) {
+                session.bossBar.removeAllPlayers();
+            }
+            // §rod-bend: logging out mid-fight would otherwise SAVE a bent rod into the inventory.
+            com.riverfishing.item.RodData.setBend(session.rodStackRef, 0);
         }
     }
 
@@ -1682,6 +1686,11 @@ public final class FishingManager {
                     (float) Mth.clamp(session.landProgress, 0.0, 1.0), session.lineColor,
                     session.rodClass == RodClass.FLOAT, false, fightStress(session),
                     true, session.runTicksLeft > 0)); // §pump-reel: run state drives the HUD cue
+            // §rod-bend (26.x): the bucket goes onto the ROD, not just into the packet — the item
+            // definition range_dispatches the blank sprite on it, so the load is visible to every
+            // player tracking this angler. setBend no-ops unless the bucket actually moved.
+            com.riverfishing.item.RodData.setBend(session.rodStackRef,
+                    com.riverfishing.item.RodData.bendBucket(fightStress(session)));
         }
     }
 
@@ -2015,6 +2024,8 @@ public final class FishingManager {
         if (!session.rodStackRef.isEmpty()) {
             com.riverfishing.item.RodData.setLineOut(session.rodStackRef, false);
         }
+        // §rod-bend: the fight is over — unload the blank, or the rod sits bent in the inventory forever.
+        com.riverfishing.item.RodData.setBend(session.rodStackRef, 0);
         // Clear the line for everyone who can see this angler (§line-multiplayer).
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), false, null, 0f, 0, false));
     }

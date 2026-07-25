@@ -29,8 +29,13 @@ public final class ClientHud {
      * intuition. Fish RUNNING → ease off (open the drag / stop cranking); calm → crank. Near the
      * break point the cue turns into a drag alarm.
      */
-    private static void renderPumpReel(GuiGraphics g, Minecraft mc) {
+    private static void renderPumpReel(GuiGraphicsExtractor g, Minecraft mc) {
+        // §26.2: Options.hideGui moved onto the Hud itself (mc.gui.hud.isHidden()).
+        //? if <26.2 {
         if (mc.player == null || mc.options.hideGui) return;
+        //?} else {
+        /*if (mc.player == null || mc.gui.hud.isHidden()) return;
+        *///?}
         ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
         if (l == null || !l.fighting) return;
         String key;
@@ -45,10 +50,11 @@ public final class ClientHud {
         var font = mc.font;
         String text = net.minecraft.client.resources.language.I18n.get(key);
         // Round 6: the coach lives right under the boss bar — the fight info reads in ONE glance.
-        int cx = g.guiWidth() / 2, y = 30;
+        int cx = mc.getWindow().getGuiScaledWidth() / 2, y = 30;
         int w = font.width(text);
         g.fill(cx - w / 2 - 4, y - 3, cx + w / 2 + 4, y + 11, 0x66000000);
-        g.drawCenteredString(font, text, cx, y, color);
+        // §26.1: drawString/drawCenteredString are gone — it's text(), and centring is on us.
+        g.text(font, text, cx - w / 2, y, color, false);
     }
 
     /** Cast power bar (§cast-minigame): shown while charging a cast (holding RMB with no line out). */
