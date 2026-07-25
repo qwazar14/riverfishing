@@ -16,76 +16,76 @@ Companion page: **[Species reference](species-reference.md)** holds the habitat 
 
 | # | Species | Item id | Weight (min – max) | Median catch | Length | Water bodies (presence factor) | Level |
 |---|---|---|---|---|---|---|---|
-| 1 | Bream | `bream` | 300 g – 4 kg | 900 g | 25–55 cm | lake 1.1, river 1.0, pond 0.9, swamp 0.4 | — |
-| 2 | Crucian Carp | `crucian_carp` | 50 g – 1.5 kg | 250 g | 10–38 cm | pond 1.2, swamp 1.1, lake 1.0, river 0.5, puddle 0.3 | — |
-| 3 | Roach | `roach` | 50 g – 1 kg | 120 g | 10–40 cm | river 1.0, lake 1.0, pond 0.7, swamp 0.4 | — |
-| 4 | Rudd | `rudd` | 50 g – 1 kg | 110 g | 10–40 cm | lake 1.1, swamp 1.0, pond 0.9, river 0.6 | — |
-| 5 | White Bream | `white_bream` | 100 g – 1.2 kg | 300 g | 12–35 cm | river 1.0, lake 1.0, pond 0.6, swamp 0.3 | — |
-| 6 | Carp | `carp` | 1 kg – 15 kg | 3.5 kg | 35–100 cm | lake 1.2, pond 1.1, river 0.6, swamp 0.4 | 3 |
-| 7 | Catfish | `catfish` | 2 kg – 120 kg | 7 kg | 60–260 cm | river 1.1, lake 1.0, swamp 0.3, pond 0.2 | 6 |
-| 8 | Perch | `perch` | 50 g – 2 kg | 250 g | 10–45 cm | lake 1.1, river 1.0, pond 0.8, swamp 0.5 | — |
-| 9 | Pike | `pike` | 500 g – 10 kg | 2 kg | 35–120 cm | lake 1.1, river 1.0, swamp 0.7, pond 0.6 | 4 |
-| 10 | Zander | `zander` | 500 g – 6 kg | 1.5 kg | 35–90 cm | river 1.1, lake 1.0, pond 0.3, swamp 0.2 | 4 |
-| 11 | Gudgeon | `gudgeon` | 20 g – 150 g | 60 g | 8–20 cm | river 1.2, lake 0.3, pond 0.2 | — |
-| 12 | Ruffe | `ruffe` | 20 g – 150 g | 60 g | 8–20 cm | lake 1.1, river 1.0, pond 0.4, swamp 0.2 | — |
-| 13 | Bleak | `bleak` | 10 g – 100 g | 30 g | 6–18 cm | river 1.1, lake 1.0, pond 0.5 | — |
-| 14 | Ide | `ide` | 300 g – 3 kg | 800 g | 25–60 cm | river 1.2, lake 0.7, pond 0.2, swamp 0.1 | 2 |
-| 15 | Chub | `chub` | 200 g – 4 kg | 700 g | 20–60 cm | river 1.2 | 3 |
-| 16 | Asp | `asp` | 500 g – 8 kg | 2 kg | 30–90 cm | river 1.2 | 5 |
-| 17 | Tench | `tench` | 300 g – 3.5 kg | 800 g | 20–60 cm | pond 1.2, swamp 1.2, lake 1.0, river 0.2 | 2 |
-| 18 | Burbot | `burbot` | 500 g – 8 kg | 1.5 kg | 30–100 cm | river 1.1, lake 0.9, pond 0.1 | 4 |
-| 19 | Eel | `eel` | 300 g – 4 kg | 900 g | 40–130 cm | lake 1.1, river 0.9, pond 0.6, swamp 0.4 | 5 |
-| 20 | Grayling | `grayling` | 150 g – 2.5 kg | 500 g | 18–55 cm | river 1.3, lake 0.4 | 3 |
-| 21 | Trout | `trout` | 300 g – 5 kg | 1 kg | 25–80 cm | river 1.2, lake 0.8, pond 0.2 | 5 |
-| 22 | Sterlet | `sterlet` | 1 kg – 16 kg | 3 kg | 40–125 cm | river 1.2 | 8 |
-| 23 | Wild Carp | `wild_carp` | 1.5 kg – 18 kg | 4.2 kg | 40–110 cm | river 1.3, lake 0.9, pond 0.5, swamp 0.3 | 4 |
-| 24 | Mirror Carp | `mirror_carp` | 1 kg – 14 kg | 3.2 kg | 33–95 cm | lake 1.2, pond 1.2, river 0.5, swamp 0.4 | 3 |
-| 25 | Grass Carp | `grass_carp` | 1.5 kg – 25 kg | 5 kg | 40–120 cm | lake 1.3, pond 1.2, river 0.7, swamp 0.6 | 4 |
-| 26 | Koi Kohaku | `carp_koi_kohaku` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
-| 27 | Koi Tancho Sanke | `carp_koi_tancho_sanke` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
-| 28 | Koi Showa Sanke | `carp_koi_showa_sanke` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
-| 29 | Koi Asagi | `carp_koi_asagi` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
-| 30 | Koi Bekko | `carp_koi_bekko` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
-| 31 | Bluegill | `bluegill` | 40 g – 800 g | 150 g | 8–35 cm | pond 1.3, lake 1.2, river 0.6, swamp 0.4 | — |
-| 32 | Largemouth bass | `largemouth_bass` | 400 g – 8 kg | 1.5 kg | 25–75 cm | lake 1.3, pond 1.1, swamp 0.8, river 0.7 | 3 |
-| 33 | Rainbow trout | `rainbow_trout` | 300 g – 6 kg | 1.1 kg | 25–85 cm | river 1.3, lake 0.9, pond 0.2 | 4 |
-| 34 | Channel catfish | `channel_catfish` | 800 g – 18 kg | 3.5 kg | 35–110 cm | river 1.2, lake 1.0, pond 0.6, swamp 0.5 | 5 |
-| 35 | Silver carp | `silver_carp` | 2 kg – 25 kg | 6 kg | 50–120 cm | lake 1.3, pond 0.9, river 0.8, swamp 0.2 | 6 |
-| 36 | Sabrefish | `sabrefish` | 150 g – 1.5 kg | 400 g | 20–60 cm | river 1.3, lake 0.8, pond 0.1 | 2 |
-| 37 | Blue bream | `blue_bream` | 150 g – 800 g | 350 g | 15–45 cm | river 1.1, lake 1.0, pond 0.3, swamp 0.2 | 2 |
-| 38 | Mackerel | `mackerel` | 300 g – 2 kg | 600 g | 25–60 cm | sea 1.2 | 4 |
-| 39 | Herring | `herring` | 100 g – 600 g | 250 g | 15–40 cm | sea 1.3 | 4 |
-| 40 | Garfish | `garfish` | 300 g – 1.5 kg | 600 g | 40–95 cm | sea 1.1 | 4 |
-| 41 | Sea bass | `seabass` | 500 g – 8 kg | 1.5 kg | 30–90 cm | sea 1.2 | 5 |
-| 42 | Flounder | `flounder` | 300 g – 4 kg | 900 g | 20–60 cm | sea 1.2 | 4 |
-| 43 | Cod | `cod` | 2 kg – 40 kg | 6 kg | 50–150 cm | sea 1.2 | 6 |
-| 44 | Saithe | `saithe` | 1 kg – 15 kg | 3 kg | 40–110 cm | sea 1.1 | 5 |
-| 45 | Conger eel | `conger` | 3 kg – 60 kg | 9 kg | 80–250 cm | sea 1.1 | 7 |
-| 46 | Ray | `ray` | 2 kg – 50 kg | 8 kg | 40–180 cm | sea 1.1 | 6 |
-| 47 | Mahi-mahi | `mahi` | 2 kg – 20 kg | 5 kg | 50–160 cm | sea 1.1 | 7 |
-| 48 | Wahoo | `wahoo` | 5 kg – 40 kg | 12 kg | 80–210 cm | sea 1.0 | 7 |
-| 49 | Yellowfin tuna | `yellowfin_tuna` | 10 kg – 150 kg | 30 kg | 90–220 cm | sea 1.0 | 7 |
-| 50 | Barracuda | `barracuda` | 2 kg – 20 kg | 6 kg | 60–180 cm | sea 1.1 | 6 |
-| 51 | Blue marlin | `blue_marlin` | 50 kg – 400 kg | 110 kg | 200–450 cm | sea 1.0 | 7 |
-| 52 | Sailfish | `sailfish` | 20 kg – 80 kg | 35 kg | 150–320 cm | sea 1.0 | 7 |
-| 53 | Swordfish | `swordfish` | 30 kg – 300 kg | 80 kg | 150–400 cm | sea 1.0 | 7 |
-| 54 | Mako shark | `mako` | 20 kg – 200 kg | 60 kg | 150–380 cm | sea 1.0 | 7 |
-| 55 | Rotan | `rotan` | 20 g – 600 g | 90 g | 8–35 cm | pond 1.3, swamp 1.3, puddle 1.0, lake 0.4, river 0.2 | — |
-| 56 | Nase | `nase` | 100 g – 1 kg | 400 g | 15–45 cm | river 1.3, lake 0.1 | 2 |
-| 57 | Vimba bream | `vimba` | 200 g – 1.5 kg | 700 g | 20–50 cm | river 1.2, lake 0.3, sea 0.2 | 3 |
-| 58 | Smelt | `smelt` | 20 g – 250 g | 60 g | 10–30 cm | sea 1.2, river 0.3, lake 0.2 | 1 |
-| 59 | Whitefish | `whitefish` | 300 g – 4 kg | 1 kg | 25–70 cm | lake 1.3, river 0.5, pond 0.1 | 4 |
-| 60 | Arctic char | `char` | 300 g – 6 kg | 1.2 kg | 25–85 cm | lake 1.1, river 1.0, sea 0.2, pond 0.1 | 5 |
-| 61 | Lenok | `lenok` | 500 g – 6 kg | 1.5 kg | 30–90 cm | river 1.2, lake 0.4 | 5 |
-| 62 | Taimen | `taimen` | 3 kg – 60 kg | 11 kg | 60–180 cm | river 1.3, lake 0.4 | 8 |
-| 63 | Atlantic salmon | `salmon` | 1.5 kg – 25 kg | 5 kg | 50–130 cm | river 1.1, sea 1.0, lake 0.2 | 6 |
-| 64 | Pink salmon | `pink_salmon` | 800 g – 3.5 kg | 1.4 kg | 35–70 cm | sea 1.1, river 1.0, lake 0.1 | 3 |
-| 65 | Sturgeon | `sturgeon` | 5 kg – 150 kg | 22 kg | 80–250 cm | river 1.2, lake 0.6, sea 0.3 | 9 |
-| 66 | Halibut | `halibut` | 2 kg – 200 kg | 18 kg | 50–250 cm | sea 1.2 | 9 |
-| 67 | Common dace | `common_dace` | 20 g – 1 kg | 150 g | 15–40 cm | river 1.3, lake 0.2 | — |
-| 68 | Volga zander | `volga_zander` | 100 g – 2 kg | 450 g | 20–40 cm | river 1.3, lake 0.6 | 3 |
-| 69 | White-eye bream | `white_eye_bream` | 50 g – 1.3 kg | 300 g | 15–35 cm | river 1.3, lake 0.3 | 2 |
-| 70 | Round goby | `round_goby` | 10 g – 380 g | 100 g | 10–35 cm | sea 1.1, river 1.0, lake 0.6, pond 0.2 | — |
+| 1 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/bream.png" width="28" alt=""> Bream | `bream` | 300 g – 4 kg | 900 g | 25–55 cm | lake 1.1, river 1.0, pond 0.9, swamp 0.4 | — |
+| 2 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/crucian_carp.png" width="28" alt=""> Crucian Carp | `crucian_carp` | 50 g – 1.5 kg | 250 g | 10–38 cm | pond 1.2, swamp 1.1, lake 1.0, river 0.5, puddle 0.3 | — |
+| 3 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/roach.png" width="28" alt=""> Roach | `roach` | 50 g – 1 kg | 120 g | 10–40 cm | river 1.0, lake 1.0, pond 0.7, swamp 0.4 | — |
+| 4 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/rudd.png" width="28" alt=""> Rudd | `rudd` | 50 g – 1 kg | 110 g | 10–40 cm | lake 1.1, swamp 1.0, pond 0.9, river 0.6 | — |
+| 5 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/white_bream.png" width="28" alt=""> White Bream | `white_bream` | 100 g – 1.2 kg | 300 g | 12–35 cm | river 1.0, lake 1.0, pond 0.6, swamp 0.3 | — |
+| 6 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp.png" width="28" alt=""> Carp | `carp` | 1 kg – 15 kg | 3.5 kg | 35–100 cm | lake 1.2, pond 1.1, river 0.6, swamp 0.4 | 3 |
+| 7 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/catfish.png" width="28" alt=""> Catfish | `catfish` | 2 kg – 120 kg | 7 kg | 60–260 cm | river 1.1, lake 1.0, swamp 0.3, pond 0.2 | 6 |
+| 8 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/perch.png" width="28" alt=""> Perch | `perch` | 50 g – 2 kg | 250 g | 10–45 cm | lake 1.1, river 1.0, pond 0.8, swamp 0.5 | — |
+| 9 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/pike.png" width="28" alt=""> Pike | `pike` | 500 g – 10 kg | 2 kg | 35–120 cm | lake 1.1, river 1.0, swamp 0.7, pond 0.6 | 4 |
+| 10 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/zander.png" width="28" alt=""> Zander | `zander` | 500 g – 6 kg | 1.5 kg | 35–90 cm | river 1.1, lake 1.0, pond 0.3, swamp 0.2 | 4 |
+| 11 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/gudgeon.png" width="28" alt=""> Gudgeon | `gudgeon` | 20 g – 150 g | 60 g | 8–20 cm | river 1.2, lake 0.3, pond 0.2 | — |
+| 12 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/ruffe.png" width="28" alt=""> Ruffe | `ruffe` | 20 g – 150 g | 60 g | 8–20 cm | lake 1.1, river 1.0, pond 0.4, swamp 0.2 | — |
+| 13 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/bleak.png" width="28" alt=""> Bleak | `bleak` | 10 g – 100 g | 30 g | 6–18 cm | river 1.1, lake 1.0, pond 0.5 | — |
+| 14 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/ide.png" width="28" alt=""> Ide | `ide` | 300 g – 3 kg | 800 g | 25–60 cm | river 1.2, lake 0.7, pond 0.2, swamp 0.1 | 2 |
+| 15 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/chub.png" width="28" alt=""> Chub | `chub` | 200 g – 4 kg | 700 g | 20–60 cm | river 1.2 | 3 |
+| 16 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/asp.png" width="28" alt=""> Asp | `asp` | 500 g – 8 kg | 2 kg | 30–90 cm | river 1.2 | 5 |
+| 17 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/tench.png" width="28" alt=""> Tench | `tench` | 300 g – 3.5 kg | 800 g | 20–60 cm | pond 1.2, swamp 1.2, lake 1.0, river 0.2 | 2 |
+| 18 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/burbot.png" width="28" alt=""> Burbot | `burbot` | 500 g – 8 kg | 1.5 kg | 30–100 cm | river 1.1, lake 0.9, pond 0.1 | 4 |
+| 19 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/eel.png" width="28" alt=""> Eel | `eel` | 300 g – 4 kg | 900 g | 40–130 cm | lake 1.1, river 0.9, pond 0.6, swamp 0.4 | 5 |
+| 20 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/grayling.png" width="28" alt=""> Grayling | `grayling` | 150 g – 2.5 kg | 500 g | 18–55 cm | river 1.3, lake 0.4 | 3 |
+| 21 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/trout.png" width="28" alt=""> Trout | `trout` | 300 g – 5 kg | 1 kg | 25–80 cm | river 1.2, lake 0.8, pond 0.2 | 5 |
+| 22 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/sterlet.png" width="28" alt=""> Sterlet | `sterlet` | 1 kg – 16 kg | 3 kg | 40–125 cm | river 1.2 | 8 |
+| 23 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/wild_carp.png" width="28" alt=""> Wild Carp | `wild_carp` | 1.5 kg – 18 kg | 4.2 kg | 40–110 cm | river 1.3, lake 0.9, pond 0.5, swamp 0.3 | 4 |
+| 24 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/mirror_carp.png" width="28" alt=""> Mirror Carp | `mirror_carp` | 1 kg – 14 kg | 3.2 kg | 33–95 cm | lake 1.2, pond 1.2, river 0.5, swamp 0.4 | 3 |
+| 25 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/grass_carp.png" width="28" alt=""> Grass Carp | `grass_carp` | 1.5 kg – 25 kg | 5 kg | 40–120 cm | lake 1.3, pond 1.2, river 0.7, swamp 0.6 | 4 |
+| 26 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_kohaku.png" width="28" alt=""> Koi Kohaku | `carp_koi_kohaku` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
+| 27 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_tancho_sanke.png" width="28" alt=""> Koi Tancho Sanke | `carp_koi_tancho_sanke` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
+| 28 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_showa_sanke.png" width="28" alt=""> Koi Showa Sanke | `carp_koi_showa_sanke` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
+| 29 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_asagi.png" width="28" alt=""> Koi Asagi | `carp_koi_asagi` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
+| 30 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_bekko.png" width="28" alt=""> Koi Bekko | `carp_koi_bekko` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
+| 31 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/bluegill.png" width="28" alt=""> Bluegill | `bluegill` | 40 g – 800 g | 150 g | 8–35 cm | pond 1.3, lake 1.2, river 0.6, swamp 0.4 | — |
+| 32 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/largemouth_bass.png" width="28" alt=""> Largemouth bass | `largemouth_bass` | 400 g – 8 kg | 1.5 kg | 25–75 cm | lake 1.3, pond 1.1, swamp 0.8, river 0.7 | 3 |
+| 33 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/rainbow_trout.png" width="28" alt=""> Rainbow trout | `rainbow_trout` | 300 g – 6 kg | 1.1 kg | 25–85 cm | river 1.3, lake 0.9, pond 0.2 | 4 |
+| 34 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/channel_catfish.png" width="28" alt=""> Channel catfish | `channel_catfish` | 800 g – 18 kg | 3.5 kg | 35–110 cm | river 1.2, lake 1.0, pond 0.6, swamp 0.5 | 5 |
+| 35 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/silver_carp.png" width="28" alt=""> Silver carp | `silver_carp` | 2 kg – 25 kg | 6 kg | 50–120 cm | lake 1.3, pond 0.9, river 0.8, swamp 0.2 | 6 |
+| 36 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/sabrefish.png" width="28" alt=""> Sabrefish | `sabrefish` | 150 g – 1.5 kg | 400 g | 20–60 cm | river 1.3, lake 0.8, pond 0.1 | 2 |
+| 37 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/blue_bream.png" width="28" alt=""> Blue bream | `blue_bream` | 150 g – 800 g | 350 g | 15–45 cm | river 1.1, lake 1.0, pond 0.3, swamp 0.2 | 2 |
+| 38 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/mackerel.png" width="28" alt=""> Mackerel | `mackerel` | 300 g – 2 kg | 600 g | 25–60 cm | sea 1.2 | 4 |
+| 39 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/herring.png" width="28" alt=""> Herring | `herring` | 100 g – 600 g | 250 g | 15–40 cm | sea 1.3 | 4 |
+| 40 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/garfish.png" width="28" alt=""> Garfish | `garfish` | 300 g – 1.5 kg | 600 g | 40–95 cm | sea 1.1 | 4 |
+| 41 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/seabass.png" width="28" alt=""> Sea bass | `seabass` | 500 g – 8 kg | 1.5 kg | 30–90 cm | sea 1.2 | 5 |
+| 42 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/flounder.png" width="28" alt=""> Flounder | `flounder` | 300 g – 4 kg | 900 g | 20–60 cm | sea 1.2 | 4 |
+| 43 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/cod.png" width="28" alt=""> Cod | `cod` | 2 kg – 40 kg | 6 kg | 50–150 cm | sea 1.2 | 6 |
+| 44 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/saithe.png" width="28" alt=""> Saithe | `saithe` | 1 kg – 15 kg | 3 kg | 40–110 cm | sea 1.1 | 5 |
+| 45 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/conger.png" width="28" alt=""> Conger eel | `conger` | 3 kg – 60 kg | 9 kg | 80–250 cm | sea 1.1 | 7 |
+| 46 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/ray.png" width="28" alt=""> Ray | `ray` | 2 kg – 50 kg | 8 kg | 40–180 cm | sea 1.1 | 6 |
+| 47 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/mahi.png" width="28" alt=""> Mahi-mahi | `mahi` | 2 kg – 20 kg | 5 kg | 50–160 cm | sea 1.1 | 7 |
+| 48 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/wahoo.png" width="28" alt=""> Wahoo | `wahoo` | 5 kg – 40 kg | 12 kg | 80–210 cm | sea 1.0 | 7 |
+| 49 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/yellowfin_tuna.png" width="28" alt=""> Yellowfin tuna | `yellowfin_tuna` | 10 kg – 150 kg | 30 kg | 90–220 cm | sea 1.0 | 7 |
+| 50 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/barracuda.png" width="28" alt=""> Barracuda | `barracuda` | 2 kg – 20 kg | 6 kg | 60–180 cm | sea 1.1 | 6 |
+| 51 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/blue_marlin.png" width="28" alt=""> Blue marlin | `blue_marlin` | 50 kg – 400 kg | 110 kg | 200–450 cm | sea 1.0 | 7 |
+| 52 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/sailfish.png" width="28" alt=""> Sailfish | `sailfish` | 20 kg – 80 kg | 35 kg | 150–320 cm | sea 1.0 | 7 |
+| 53 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/swordfish.png" width="28" alt=""> Swordfish | `swordfish` | 30 kg – 300 kg | 80 kg | 150–400 cm | sea 1.0 | 7 |
+| 54 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/mako.png" width="28" alt=""> Mako shark | `mako` | 20 kg – 200 kg | 60 kg | 150–380 cm | sea 1.0 | 7 |
+| 55 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/rotan.png" width="28" alt=""> Rotan | `rotan` | 20 g – 600 g | 90 g | 8–35 cm | pond 1.3, swamp 1.3, puddle 1.0, lake 0.4, river 0.2 | — |
+| 56 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/nase.png" width="28" alt=""> Nase | `nase` | 100 g – 1 kg | 400 g | 15–45 cm | river 1.3, lake 0.1 | 2 |
+| 57 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/vimba.png" width="28" alt=""> Vimba bream | `vimba` | 200 g – 1.5 kg | 700 g | 20–50 cm | river 1.2, lake 0.3, sea 0.2 | 3 |
+| 58 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/smelt.png" width="28" alt=""> Smelt | `smelt` | 20 g – 250 g | 60 g | 10–30 cm | sea 1.2, river 0.3, lake 0.2 | 1 |
+| 59 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/whitefish.png" width="28" alt=""> Whitefish | `whitefish` | 300 g – 4 kg | 1 kg | 25–70 cm | lake 1.3, river 0.5, pond 0.1 | 4 |
+| 60 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/char.png" width="28" alt=""> Arctic char | `char` | 300 g – 6 kg | 1.2 kg | 25–85 cm | lake 1.1, river 1.0, sea 0.2, pond 0.1 | 5 |
+| 61 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/lenok.png" width="28" alt=""> Lenok | `lenok` | 500 g – 6 kg | 1.5 kg | 30–90 cm | river 1.2, lake 0.4 | 5 |
+| 62 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/taimen.png" width="28" alt=""> Taimen | `taimen` | 3 kg – 60 kg | 11 kg | 60–180 cm | river 1.3, lake 0.4 | 8 |
+| 63 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/salmon.png" width="28" alt=""> Atlantic salmon | `salmon` | 1.5 kg – 25 kg | 5 kg | 50–130 cm | river 1.1, sea 1.0, lake 0.2 | 6 |
+| 64 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/pink_salmon.png" width="28" alt=""> Pink salmon | `pink_salmon` | 800 g – 3.5 kg | 1.4 kg | 35–70 cm | sea 1.1, river 1.0, lake 0.1 | 3 |
+| 65 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/sturgeon.png" width="28" alt=""> Sturgeon | `sturgeon` | 5 kg – 150 kg | 22 kg | 80–250 cm | river 1.2, lake 0.6, sea 0.3 | 9 |
+| 66 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/halibut.png" width="28" alt=""> Halibut | `halibut` | 2 kg – 200 kg | 18 kg | 50–250 cm | sea 1.2 | 9 |
+| 67 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/common_dace.png" width="28" alt=""> Common dace | `common_dace` | 20 g – 1 kg | 150 g | 15–40 cm | river 1.3, lake 0.2 | — |
+| 68 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/volga_zander.png" width="28" alt=""> Volga zander | `volga_zander` | 100 g – 2 kg | 450 g | 20–40 cm | river 1.3, lake 0.6 | 3 |
+| 69 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/white_eye_bream.png" width="28" alt=""> White-eye bream | `white_eye_bream` | 50 g – 1.3 kg | 300 g | 15–35 cm | river 1.3, lake 0.3 | 2 |
+| 70 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/round_goby.png" width="28" alt=""> Round goby | `round_goby` | 10 g – 380 g | 100 g | 10–35 cm | sea 1.1, river 1.0, lake 0.6, pond 0.2 | — |
 
 ## Ideal tackle
 
