@@ -20,6 +20,34 @@ public final class ClientHud {
                     partialTick);
         }
         renderCastPower(graphics, mc);
+        renderPumpReel(graphics, mc);
+    }
+
+    /**
+     * §pump-reel (0.6.0): the fight coach — a compact cue under the crosshair replacing pure
+     * intuition. Fish RUNNING → ease off (open the drag / stop cranking); calm → crank. Near the
+     * break point the cue turns into a drag alarm.
+     */
+    private static void renderPumpReel(GuiGraphics g, Minecraft mc) {
+        if (mc.player == null || mc.options.hideGui) return;
+        ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
+        if (l == null || !l.fighting) return;
+        String key;
+        int color;
+        if (l.smoothTension > 0.85f) {
+            key = "hud.riverfishing.drag_now"; color = 0xFFFF5040;
+        } else if (l.running) {
+            key = "hud.riverfishing.ease"; color = 0xFFFFC850;
+        } else {
+            key = "hud.riverfishing.reel"; color = 0xFF7CE07C;
+        }
+        var font = mc.font;
+        String text = net.minecraft.client.resources.language.I18n.get(key);
+        // Round 6: the coach lives right under the boss bar — the fight info reads in ONE glance.
+        int cx = g.guiWidth() / 2, y = 30;
+        int w = font.width(text);
+        g.fill(cx - w / 2 - 4, y - 3, cx + w / 2 + 4, y + 11, 0x66000000);
+        g.drawCenteredString(font, text, cx, y, color);
     }
 
     /** Cast power bar (§cast-minigame): shown while charging a cast (holding RMB with no line out). */
@@ -40,10 +68,15 @@ public final class ClientHud {
         float usable = 1.0f;
         var rodType = rodItem.rodType();
         var rig = com.riverfishing.item.RodData.get(player.getUseItem(), com.riverfishing.component.ComponentSlot.RIG);
-        if (rig.getItem() instanceof com.riverfishing.item.RigItem ri
-                && rodType.castWeightMin() > 0
-                && ri.rigType().massGrams() < rodType.castWeightMin()) {
-            usable = 0.55f; // matches maxRange *= 0.55 server-side
+        // §cast-bar-cut (round 6): mirror the server's ACTUAL weight curve — bench-chosen grams,
+        // in-window 85..100%, sqrt collapse below — instead of the stale fixed-mass 0.55 cut.
+        if (rig.getItem() instanceof com.riverfishing.item.RigItem && rodType.castWeightMax() > 0) {
+            double wG = com.riverfishing.rig.RigData.effectiveWeightG(rig);
+            double minW = rodType.castWeightMin(), maxW = rodType.castWeightMax();
+            double f = wG >= minW
+                    ? 0.85 + 0.15 * Math.min(1.0, Math.max(0.0, (wG - minW) / Math.max(1.0, maxW - minW)))
+                    : 0.85 * Math.sqrt(Math.max(0.10, wG / Math.max(1.0, minW)));
+            usable = (float) Math.min(1.0, Math.max(0.30, f));
         }
 
         int sw = mc.getWindow().getGuiScaledWidth();

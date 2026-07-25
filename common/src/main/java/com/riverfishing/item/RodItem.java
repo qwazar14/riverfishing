@@ -86,7 +86,7 @@ public class RodItem extends Item {
         // No session: begin the power-bar charge (§cast-minigame) — the cast fires on release.
         if (!RodData.isAssembled(rod)) {
             if (!level.isClientSide) {
-                player.displayClientMessage(Component.translatable("message.riverfishing.not_assembled")
+                player.displayClientMessage(Component.translatable(RodData.missingKey(rod))
                         .withStyle(ChatFormatting.RED), true);
             }
             return InteractionResultHolder.fail(rod);
@@ -105,8 +105,13 @@ public class RodItem extends Item {
         if ("stick".equals(key)) return repair.is(net.minecraft.world.item.Items.STICK);
         if ("bamboo".equals(key)) return repair.is(net.minecraft.world.item.Items.BAMBOO);
         if ("feeder".equals(key) || "bottom".equals(key)) return repair.is(net.minecraft.world.item.Items.GOLD_INGOT);
-        if ("carp".equals(key)) return repair.is(net.minecraft.world.item.Items.DIAMOND);
-        return repair.is(net.minecraft.world.item.Items.IRON_INGOT); // pole / ultralight / spinning
+        // §tackle-craft: the carp blank and the whole saltwater tier are diamond-built. Their prismarine /
+        // nautilus tips are the TIER marker in the recipe, not repair stock you can farm.
+        if ("carp".equals(key) || "sea_spin".equals(key) || "surf".equals(key)
+                || "boat".equals(key) || "trolling".equals(key)) {
+            return repair.is(net.minecraft.world.item.Items.DIAMOND);
+        }
+        return repair.is(net.minecraft.world.item.Items.IRON_INGOT); // pole / ultralight / spinning / winter
     }
 
     /**
@@ -177,11 +182,11 @@ public class RodItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, net.minecraft.world.level.Level level, List<Component> tooltip, TooltipFlag flag) {
-        boolean assembled = RodData.isAssembled(stack);
-        tooltip.add(Component.translatable(assembled
-                        ? "tooltip.riverfishing.rod_assembled"
-                        : "tooltip.riverfishing.rod_unassembled")
-                .withStyle(assembled ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
+        // §assembly-hint: name the part that is actually missing — "needs line and rig" left players
+        // guessing which of the two (and that a reeled blank wants its reel BEFORE the line).
+        String missing = RodData.missingKey(stack);
+        tooltip.add(Component.translatable(missing == null ? "tooltip.riverfishing.rod_assembled" : missing)
+                .withStyle(missing == null ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
         // Rod test (§rod-test): the rigged-weight window this blank is built for.
         if (rodType.castWeightMax() > 0) {
             tooltip.add(Component.translatable("tooltip.riverfishing.rod_test",

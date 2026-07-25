@@ -12,7 +12,7 @@ import java.util.List;
 
 /** Spinning reel (§3.2). Size drives casting distance and drag ceiling. */
 public class ReelItem extends Item implements RodComponentItem {
-    private final int size; // 1000..7000
+    private final int size; // 1000..14000 (8000+ is the saltwater tier, §sea-tackle)
 
     public ReelItem(int size, Properties properties) {
         super(properties);
@@ -31,9 +31,17 @@ public class ReelItem extends Item implements RodComponentItem {
      * §sea-tackle (0.5.0): the freshwater ladder stays linear (1000→1 kg … 7000→7 kg); the saltwater
      * sizes climb steeper (+2.5 kg per 1000 above 7000, 14000→24.5 kg) — ocean drags are a different
      * machine, and without one the pelagics simply cannot be stopped.
+     *
+     * <p>§drag-one-source: static so the FIGHT can read the same curve. It used to compute
+     * {@code reelSize / 1000} on its own, which silently threw away the whole saltwater bonus — a 14000
+     * advertised 24.5 kg in this tooltip and delivered 14.0 in the water.
      */
-    public double maxDragKg() {
+    public static double dragKgFor(int size) {
         return size <= 7000 ? size / 1000.0 : 7.0 + (size - 7000) / 1000.0 * 2.5;
+    }
+
+    public double maxDragKg() {
+        return dragKgFor(size);
     }
 
     @Override

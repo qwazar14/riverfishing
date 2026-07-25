@@ -32,6 +32,51 @@ public final class RodDebugCommand {
                     say(c, "§ereset to defaults");
                     return show(c);
                 }))
+                // §rod-bend debug: force a bend bucket on the held rod (-1 = back to live tension);
+                // no argument = print the live client-side bend state (run it mid-fight).
+                .then(ClientCommandRegistrationEvent.literal("bend")
+                        .executes(c -> {
+                            var mc = net.minecraft.client.Minecraft.getInstance();
+                            var l = mc.player == null ? null
+                                    : ClientLineState.lines().get(mc.player.getId());
+                            say(c, l == null
+                                    ? "§cno line entry for local player"
+                                    : String.format("§etension=%.3f smooth=%.3f force=%d",
+                                            l.tension, l.smoothTension, RodItemRenderer.FORCE_BEND));
+                            return 1;
+                        })
+                        .then(ClientCommandRegistrationEvent.argument("bucket",
+                                com.mojang.brigadier.arguments.IntegerArgumentType.integer(-1, 6))
+                                .executes(c -> {
+                                    RodItemRenderer.FORCE_BEND =
+                                            com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "bucket");
+                                    say(c, "§ebend force = " + RodItemRenderer.FORCE_BEND);
+                                    return 1;
+                                })))
+                // §rod-bend-tip: tune the line-anchor offset per bend bucket. Force the bucket with
+                // /rfrod bend N first, then nudge dx/dy until the line sits on the bent tip.
+                .then(ClientCommandRegistrationEvent.literal("tip")
+                        .executes(c -> {
+                            StringBuilder sb = new StringBuilder("§etip offsets:");
+                            for (int b = 1; b <= RodItemRenderer.BEND_BUCKETS; b++) {
+                                sb.append(String.format(" %d:(%.3f,%.3f)", b,
+                                        RodItemRenderer.TIP_BEND_OFFSET[b][0], RodItemRenderer.TIP_BEND_OFFSET[b][1]));
+                            }
+                            say(c, sb.toString());
+                            return 1;
+                        })
+                        .then(ClientCommandRegistrationEvent.argument("bucket",
+                                com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 6))
+                                .then(ClientCommandRegistrationEvent.argument("dx", FloatArgumentType.floatArg(-1f, 1f))
+                                        .then(ClientCommandRegistrationEvent.argument("dy", FloatArgumentType.floatArg(-1f, 1f))
+                                                .executes(c -> {
+                                                    int b = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "bucket");
+                                                    RodItemRenderer.TIP_BEND_OFFSET[b][0] = FloatArgumentType.getFloat(c, "dx");
+                                                    RodItemRenderer.TIP_BEND_OFFSET[b][1] = FloatArgumentType.getFloat(c, "dy");
+                                                    say(c, String.format("§etip[%d] = (%.3f, %.3f)", b,
+                                                            RodItemRenderer.TIP_BEND_OFFSET[b][0], RodItemRenderer.TIP_BEND_OFFSET[b][1]));
+                                                    return 1;
+                                                })))))
                 .then(ClientCommandRegistrationEvent.literal("set")
                         .then(ClientCommandRegistrationEvent.argument("ctx", StringArgumentType.word())
                                 .then(ClientCommandRegistrationEvent.argument("field", StringArgumentType.word())

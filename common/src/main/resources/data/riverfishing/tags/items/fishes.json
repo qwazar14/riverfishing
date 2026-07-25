@@ -7,7 +7,7 @@
     "riverfishing:bleak", "riverfishing:ide", "riverfishing:chub", "riverfishing:asp",
     "riverfishing:tench", "riverfishing:burbot", "riverfishing:eel", "riverfishing:grayling",
     "riverfishing:trout", "riverfishing:sterlet",
-    "riverfishing:wild_carp", "riverfishing:mirror_carp",
+    "riverfishing:wild_carp", "riverfishing:mirror_carp", "riverfishing:grass_carp",
     "riverfishing:carp_koi_kohaku", "riverfishing:carp_koi_tancho_sanke",
     "riverfishing:carp_koi_showa_sanke", "riverfishing:carp_koi_asagi", "riverfishing:carp_koi_bekko",
     "riverfishing:bluegill", "riverfishing:largemouth_bass",
@@ -16,6 +16,11 @@
     "riverfishing:mackerel", "riverfishing:herring", "riverfishing:garfish", "riverfishing:seabass",
     "riverfishing:flounder", "riverfishing:cod", "riverfishing:saithe", "riverfishing:conger", "riverfishing:ray",
     "riverfishing:mahi", "riverfishing:wahoo", "riverfishing:yellowfin_tuna", "riverfishing:barracuda",
-    "riverfishing:blue_marlin", "riverfishing:sailfish", "riverfishing:swordfish", "riverfishing:mako"
+    "riverfishing:blue_marlin", "riverfishing:sailfish", "riverfishing:swordfish", "riverfishing:mako",
+    "riverfishing:rotan", "riverfishing:nase", "riverfishing:vimba", "riverfishing:smelt",
+    "riverfishing:whitefish", "riverfishing:char", "riverfishing:lenok", "riverfishing:taimen",
+    "riverfishing:salmon", "riverfishing:pink_salmon", "riverfishing:sturgeon", "riverfishing:halibut",
+    "riverfishing:common_dace", "riverfishing:volga_zander",
+    "riverfishing:white_eye_bream", "riverfishing:round_goby"
   ]
 }
