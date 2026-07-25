@@ -1,0 +1,19 @@
+{
+  "wants": {
+    "id": "riverfishing:sturgeon",
+    "components": {
+      "riverfishing:prime": 105000
+    }
+  },
+  "gives": {
+    "id": "minecraft:emerald",
+    "count": 26
+  },
+  "max_uses": 12,
+  "xp": 38,
+  "reputation_discount": 0.05,
+  "merchant_predicate": {
+    "condition": "minecraft:random_chance",
+    "chance": 0.09091
+  }
+}

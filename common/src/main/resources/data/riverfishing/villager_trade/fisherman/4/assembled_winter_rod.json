@@ -1,0 +1,18 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 14
+  },
+  "gives": {
+    "id": "riverfishing:winter_rod"
+  },
+  "given_item_modifiers": [
+    {
+      "function": "minecraft:set_custom_data",
+      "tag": "{RodComponents:{Line:{id:\"riverfishing:line_mono_014\",count:1},Rig:{id:\"riverfishing:rig_winter\",count:1,components:{\"minecraft:custom_data\":{RigContents:{Items:[{Slot:0b,Item:{id:\"riverfishing:mormyshka\",count:1}}]}}}}}}"
+    }
+  ],
+  "max_uses": 8,
+  "xp": 14,
+  "reputation_discount": 0.05
+}
