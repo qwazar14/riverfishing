@@ -2,46 +2,61 @@ package com.riverfishing.block;
 
 import com.riverfishing.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.Containers;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * §tackle-station (0.6.0): the bench keeps its material slots while the block stands — walk up and
  * re-tie without re-feeding it. Contents drop on break.
  */
 public class TackleStationBlockEntity extends BlockEntity {
-    private final SimpleContainer items = new SimpleContainer(4);
+    // §26.1: SimpleContainer lost addListener, so the "mark the chunk dirty" hook is an override of
+    // setChanged instead — it fires from exactly the places the old listener did (setItem /
+    // removeItem / addItem / clearContent), so the bench still persists what a player drops in.
+    private final SimpleContainer items = new SimpleContainer(4) {
+        @Override
+        public void setChanged() {
+            super.setChanged();
+            TackleStationBlockEntity.this.setChanged();
+        }
+    };
 
     public TackleStationBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.TACKLE_STATION.get(), pos, state);
-        items.addListener(c -> setChanged());
     }
 
     public SimpleContainer items() {
         return items;
     }
 
+    // §26.1: the block's onRemove hook is gone — the BE pops its own materials on removal, same shape
+    // as AquariumBlockEntity/RodPodBlockEntity. Only called on a real removal, so the old
+    // "!state.is(newState.getBlock())" guard is implicit.
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        ListTag list = new ListTag();
-        for (int i = 0; i < items.getContainerSize(); i++) {
-            list.add(items.getItem(i).saveOptional(registries));
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (level != null && !level.isClientSide()) {
+            Containers.dropContents(level, pos, items);
         }
-        tag.put("Materials", list);
+        super.preRemoveSideEffects(pos, state);
+    }
+
+    // §26.1: block-entity NBT is ValueOutput/ValueInput, and ItemStack.saveOptional/parseOptional are
+    // gone. ContainerHelper does the whole slot-indexed round-trip over the container's backing list
+    // (the same call RodPodBlockEntity uses for its docked rods), so no per-slot codec work here.
+    @Override
+    protected void saveAdditional(ValueOutput tag) {
+        super.saveAdditional(tag);
+        ContainerHelper.saveAllItems(tag, items.getItems());
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        ListTag list = tag.getList("Materials", 10);
-        for (int i = 0; i < items.getContainerSize() && i < list.size(); i++) {
-            items.setItem(i, ItemStack.parseOptional(registries, list.getCompound(i)));
-        }
+    protected void loadAdditional(ValueInput tag) {
+        super.loadAdditional(tag);
+        ContainerHelper.loadAllItems(tag, items.getItems());
     }
 }

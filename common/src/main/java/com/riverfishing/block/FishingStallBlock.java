@@ -32,19 +32,15 @@ public class FishingStallBlock extends Block implements net.minecraft.world.leve
         return new TackleStationBlockEntity(pos, state);
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
-        if (!state.is(newState.getBlock())
-                && level.getBlockEntity(pos) instanceof TackleStationBlockEntity be) {
-            net.minecraft.world.Containers.dropContents(level, pos, be.items());
-        }
-        super.onRemove(state, level, pos, newState, moved);
-    }
+    // §26.1: onRemove is gone — the materials pop from TackleStationBlockEntity#preRemoveSideEffects.
 
+    // useWithoutItem still exists unchanged on 26.x, so the bench keeps opening for an EMPTY HAND only
+    // (a held item goes through useItemOn, which this block does not implement).
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
                                                Player player, BlockHitResult hit) {
-        if (!level.isClientSide && player instanceof ServerPlayer sp) {
+        // §26.1: Level.isClientSide the FIELD is private now — call the isClientSide() method.
+        if (!level.isClientSide() && player instanceof ServerPlayer sp) {
             dev.architectury.registry.menu.MenuRegistry.openExtendedMenu(sp,
                     new dev.architectury.registry.menu.ExtendedMenuProvider() {
                         @Override
@@ -64,6 +60,8 @@ public class FishingStallBlock extends Block implements net.minecraft.world.leve
                         }
                     });
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        // §26.1: sidedSuccess is gone — InteractionResult.SUCCESS is already the sided success (it swings
+        // the arm on the client and does not re-run the action there), matching IceHoleBlock's port.
+        return InteractionResult.SUCCESS;
     }
 }
