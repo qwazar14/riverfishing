@@ -78,10 +78,51 @@ public class RigItem extends Item implements RodComponentItem {
         dev.architectury.registry.menu.MenuRegistry.openExtendedMenu(player, provider);
     }
 
+    /** §tackle-station: shared weight + tied-by tooltip lines (also used by BaitItem). */
+    // §26.x: tooltips are fed through a Consumer, not a List, and the CompoundTag getters are the
+    // Or-variants that carry their own default.
+    public static void appendTackleStationLines(ItemStack stack, java.util.function.Consumer<Component> tooltip) {
+        var tag = StackNbt.get(stack);
+        if (tag.contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)) {
+            tooltip.accept(Component.translatable("tooltip.riverfishing.tackle_weight",
+                    tag.getIntOr(com.riverfishing.tackle.TackleForm.TAG_WEIGHT, 0))
+                    .withStyle(s -> s.withColor(0xFFD97A)));
+        }
+        // §tackle-adv: the fine-tuning rides the tooltip so the tackle explains itself.
+        if (tag.contains(com.riverfishing.tackle.TackleForm.TAG_LEADER_CM)) {
+            tooltip.accept(Component.translatable("tooltip.riverfishing.hook_link",
+                    tag.getIntOr(com.riverfishing.tackle.TackleForm.TAG_LEADER_CM, 0))
+                    .withStyle(s -> s.withColor(0xA0A0C8)));
+        }
+        if (tag.contains(com.riverfishing.tackle.TackleForm.TAG_BALANCE)) {
+            String pos = switch (tag.getIntOr(com.riverfishing.tackle.TackleForm.TAG_BALANCE, 1)) {
+                case 0 -> "nose"; case 2 -> "tail"; default -> "center";
+            };
+            tooltip.accept(Component.translatable("tooltip.riverfishing.balance",
+                    Component.translatable("screen.riverfishing.tackle_station.balance_" + pos))
+                    .withStyle(s -> s.withColor(0xA0A0C8)));
+        }
+        if (tag.contains(com.riverfishing.tackle.TackleForm.TAG_BLADE)) {
+            tooltip.accept(Component.translatable("tooltip.riverfishing.blade",
+                    tag.getIntOr(com.riverfishing.tackle.TackleForm.TAG_BLADE, 1))
+                    .withStyle(s -> s.withColor(0xA0A0C8)));
+        }
+        if (tag.contains(com.riverfishing.tackle.TackleForm.TAG_TIED_BY)) {
+            tooltip.accept(Component.translatable("tooltip.riverfishing.tied_by",
+                    tag.getStringOr(com.riverfishing.tackle.TackleForm.TAG_TIED_BY, ""))
+                    .withStyle(s -> s.withColor(0x8FB08A).withItalic(true)));
+        }
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
-        tooltip.accept(Component.translatable("tooltip.riverfishing.rig_mass",
-                String.format("%.0f", type.massGrams())).withStyle(s -> s.withColor(0xA0A0A0)));
+        // §tackle-station (0.6.0): a bench-tied rig shows its CHOSEN weight instead of the old fixed
+        // type mass — one weight line, not two.
+        if (!StackNbt.get(stack).contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)) {
+            tooltip.accept(Component.translatable("tooltip.riverfishing.rig_mass",
+                    String.format("%.0f", type.massGrams())).withStyle(s -> s.withColor(0xA0A0A0)));
+        }
+        appendTackleStationLines(stack, tooltip);
 
         // What's loaded inside the rig (#2).
         NonNullList<ItemStack> contents = RigData.load(stack);

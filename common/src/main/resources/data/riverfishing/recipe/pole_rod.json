@@ -1,14 +1,20 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "  s",
+    "  b",
     " b ",
-    "i  "
+    "is "
   ],
   "key": {
-    "s": "minecraft:stick",
-    "b": "minecraft:bamboo",
-    "i": "minecraft:iron_ingot"
+    "b": {
+      "item": "minecraft:bamboo"
+    },
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "s": {
+      "item": "minecraft:string"
+    }
   },
   "result": {
     "id": "riverfishing:pole_rod"

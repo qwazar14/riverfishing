@@ -23,6 +23,11 @@ public final class ModMenus {
             REGISTER.register("rig",
                     () -> MenuRegistry.ofExtended(RigMenu::fromNetwork));
 
+    // §tackle-station (0.6.0): the universal tackle bench.
+    public static final RegistrySupplier<MenuType<com.riverfishing.menu.TackleStationMenu>> TACKLE_STATION =
+            REGISTER.register("tackle_station",
+                    () -> MenuRegistry.ofExtended(com.riverfishing.menu.TackleStationMenu::fromNetwork));
+
     public static void init() {
         REGISTER.register();
     }

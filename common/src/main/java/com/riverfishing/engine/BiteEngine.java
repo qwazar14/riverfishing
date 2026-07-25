@@ -239,6 +239,18 @@ public final class BiteEngine {
             w *= Math.min(1.2, 0.85 + meanKg * 0.15);
         }
 
+        // §lure-size (0.6.0): the lure's bench mass IS its size — the optimum predator weighs about
+        // 0.15 kg per gram of lure (a 20 g spoon calls ~3 kg pike). Off-size fish don't vanish, they
+        // just bite far less — and since the TOTAL weight drives the wait, a big lure also means
+        // slower, rarer, bigger takes. Untied (no TackleWeightG) lures skip the filter entirely.
+        if (c.lureWeightG > 0) {
+            // §round-6: SUBLINEAR optimum (0.5·√g) — a 200 g pilker hunts ~7 kg fish, not a mythical
+            // 30 kg; and the off-size floor drops to 0.05 so a big lure truly silences the tiddlers.
+            double opt = 0.5 * Math.sqrt(c.lureWeightG);
+            double ratio = Math.max(0.05, meanKg / Math.max(0.1, opt));
+            w *= Math.max(0.05, 2.0 / (ratio + 1.0 / ratio));
+        }
+
         // §lure-color (§8): a painted lure whose colour suits the light/water pulls more takes; the wrong
         // colour for the conditions puts predators off. Only when a dyed lure is actually on the rig.
         if (c.lureColor != null) {

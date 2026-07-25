@@ -192,6 +192,12 @@ public final class FishingManager {
      * bites, strike QTE and the fight all ride the existing ACTIVE flow untouched. Any watercraft that
      * moves the player works — vanilla boats today, modded ships tomorrow.
      */
+    /** §rod-bend: fight stress 0..1 — tension relative to THIS line's breaking point (0 outside a fight). */
+    private static float fightStress(FishingSession session) {
+        if (!session.fighting) return 0f;
+        return (float) Mth.clamp(session.tension / Math.max(0.05, session.breakTension), 0.0, 1.0);
+    }
+
     public static void trollingTick(ServerPlayer sp) {
         ItemStack trollRod = sp.getMainHandItem();
         boolean capable = trollRod.getItem() instanceof RodItem ri
@@ -204,10 +210,15 @@ public final class FishingManager {
         }
         // §trolling-speed: measure from the boat's actual position change — a player-paddled boat is
         // client-authoritative and its server-side delta movement stays ~0 (why trolling never armed).
-        double[] last = TROLL_LAST.put(sp.getUUID(), new double[]{boat.getX(), boat.getZ()});
+        // §troll-smooth (0.5.1): the boat is client-authoritative, so its server position advances in
+        // PACKET-SIZED jumps — raw per-tick deltas jitter between 0 and 2x the real speed. An EMA over
+        // the deltas reads the true cruise speed through the jitter.
+        double[] last = TROLL_LAST.get(sp.getUUID());
         double dx = last == null ? 0 : boat.getX() - last[0];
         double dz = last == null ? 0 : boat.getZ() - last[1];
-        double speed = Math.sqrt(dx * dx + dz * dz);
+        double inst = Math.sqrt(dx * dx + dz * dz);
+        double speed = last == null ? inst : last[2] * 0.8 + inst * 0.2;
+        TROLL_LAST.put(sp.getUUID(), new double[]{boat.getX(), boat.getZ(), speed});
         boolean inWindow = speed >= 0.12 && speed <= 0.60;
         ServerLevel level = sp.level();
 
@@ -230,7 +241,9 @@ public final class FishingManager {
             return;
         }
         if (!inWindow) {
-            TROLL_GOOD.remove(sp.getUUID());
+            // §troll-smooth: a rough patch DECAYS the arm counter instead of zeroing it — a turn or a
+            // wave no longer restarts the whole 3-second arming from scratch.
+            TROLL_GOOD.computeIfPresent(sp.getUUID(), (k, v) -> v > 3 ? v - 3 : null);
             return;
         }
         int good = TROLL_GOOD.merge(sp.getUUID(), 1, Integer::sum);
@@ -259,7 +272,7 @@ public final class FishingManager {
     private static boolean startCast(ServerPlayer sp, ServerLevel level, InteractionHand hand, long now, double power) {
         ItemStack rod = sp.getItemInHand(hand);
         if (!RodData.isAssembled(rod)) {
-            actionbar(sp, Component.translatable("message.riverfishing.not_assembled").withStyle(ChatFormatting.RED));
+            actionbar(sp, Component.translatable(RodData.missingKey(rod)).withStyle(ChatFormatting.RED));
             return false;
         }
 
@@ -285,12 +298,22 @@ public final class FishingManager {
         // draws the same cut on the power bar (§cast-bar-cut). The bite penalty below is SILENT.
         boolean underloaded = false;
         ItemStack rigCheck = RodData.get(rod, ComponentSlot.RIG);
-        if (rigCheck.getItem() instanceof RigItem ri
-                && type.castWeightMin() > 0
-                && ri.rigType().massGrams() < type.castWeightMin()) {
-            maxRange *= 0.55;
-            underloaded = true;
-            actionbar(sp, Component.translatable("message.riverfishing.rod_underloaded").withStyle(ChatFormatting.YELLOW));
+        // §test-tolerance (0.6.0): a hidden ±15% slack on the printed window — real blanks forgive a
+        // little; the weight is the bench-chosen grams now, not the fixed type mass.
+        if (rigCheck.getItem() instanceof RigItem && type.castWeightMax() > 0) {
+            double wG = com.riverfishing.rig.RigData.effectiveWeightG(rigCheck);
+            // §cast-weight (round 5): IN-WINDOW tackle always flies well — 85% at the window's bottom
+            // rising to 100% at the top (a 160 g wobbler on a 150-600 trolling rod is fine). Only
+            // BELOW the window does the flight collapse on a sqrt curve.
+            double minW = type.castWeightMin(), maxW = type.castWeightMax();
+            double f = wG >= minW
+                    ? 0.85 + 0.15 * Mth.clamp((wG - minW) / Math.max(1.0, maxW - minW), 0.0, 1.0)
+                    : 0.85 * Math.sqrt(Math.max(0.10, wG / Math.max(1.0, minW)));
+            maxRange *= Mth.clamp(f, 0.30, 1.0);
+            if (minW > 0 && wG < minW * 0.85) {
+                underloaded = true;
+                actionbar(sp, Component.translatable("message.riverfishing.rod_underloaded").withStyle(ChatFormatting.YELLOW));
+            }
         }
         double throwDist = 2.0 + power * (maxRange - 2.0);
         net.minecraft.world.phys.Vec3 look = sp.getLookAngle();
@@ -336,7 +359,8 @@ public final class FishingManager {
         // over-weight rig (a catfish rig on an ultralight) snaps the blank on the cast; a moderately
         // heavy one strains it (lower break tolerance in the fight).
         double overloadPenalty = 1.0;
-        double rodMax = ctx.rod.castWeightMax();
+        // §test-tolerance (0.6.0): the same hidden +15% slack on the top of the window.
+        double rodMax = ctx.rod.castWeightMax() * 1.15;
         if (rodMax > 0 && ctx.castWeightG > rodMax * ROD_BREAK_RATIO) {
             // §rod-overload: a wildly over-weight rig no longer SNAPS the blank outright — it cracks it,
             // costing a THIRD of its durability (+1), so it survives a few abuses before finally breaking.
@@ -422,7 +446,7 @@ public final class FishingManager {
             actionbar(sp, Component.translatable("message.riverfishing.line_worn_out").withStyle(ChatFormatting.RED));
         }
         session.lineStrainKg = ctx.lineType.breakingStrainKg(ctx.lineDiameterMm) * WearData.lineStrainMultiplier(lineWear);
-        session.dragKg = ctx.reelSize / 1000.0;
+        session.dragKg = com.riverfishing.item.ReelItem.dragKgFor(ctx.reelSize);
         session.reelSize = ctx.reelSize;
         session.overloadPenalty = overloadPenalty;
         session.hasLeader = ctx.hasLeader;
@@ -515,7 +539,7 @@ public final class FishingManager {
         long now = level.getGameTime();
         ItemStack rod = sp.getItemInHand(hand);
         if (!RodData.isAssembled(rod)) {
-            actionbar(sp, Component.translatable("message.riverfishing.not_assembled").withStyle(ChatFormatting.RED));
+            actionbar(sp, Component.translatable(RodData.missingKey(rod)).withStyle(ChatFormatting.RED));
             return false;
         }
         if (SESSIONS.containsKey(sp.getUUID())) return false; // one line at a time
@@ -888,7 +912,8 @@ public final class FishingManager {
             }
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     visProgress, session.lineColor, session.rodClass == RodClass.FLOAT,
-                    session.bitten && !session.fighting && now <= session.biteWindowEnd));
+                    session.bitten && !session.fighting && now <= session.biteWindowEnd,
+                    fightStress(session)));
         }
 
         if (session.fighting) {
@@ -1134,7 +1159,7 @@ public final class FishingManager {
         }
 
         double weightKg = session.weightG / 1000.0;
-        double drag = session.reelSize / 1000.0;                       // 0 for a reel-less float rod
+        double drag = session.dragKg;                                  // 0 for a reel-less float rod
         double requiredKg = Math.max(0.5, profile.fightStrength * (1.0 + weightKg) * 2.0);
         double effectiveStrain = session.lineStrainKg + 0.5 * drag;    // lineStrain already wear-reduced (§3.8)
         double baseTolerance = Mth.clamp(effectiveStrain / requiredKg, 0.2, 1.0);
@@ -1163,6 +1188,15 @@ public final class FishingManager {
 
         session.runTensionPulse = 0.18 * sens * (0.7 + 0.6 * weightStress);
         session.calmTensionPulse = 0.07 * sens;
+        // §small-fry (0.5.1): the weightStress floor (0.2) let a 50 g perch load the rod like a
+        // kilo fish — sub-kilo fish now damp their pulses toward "barely felt" without touching
+        // the balance above ~1.2 kg.
+        double smallDamp = Math.min(1.0, 0.25 + weightKg / 1.5);
+        session.runTensionPulse *= smallDamp;
+        session.calmTensionPulse *= smallDamp;
+        // §fish-fatigue (0.5.1): full burn-out after ~(4 + 2.5·kg) seconds of RUNNING — a perch gases
+        // out in seconds, a carp holds for half a minute, big game outlasts the drag instead.
+        session.fatigueRunTick = 1.0 / (20.0 * (4.0 + 2.5 * weightKg));
         session.landPulse = 0.05 / (0.7 + 0.6 * weightStress) * (0.9 + session.reelSize / 14000.0);
         session.relaxTick = 0.010 + dragRelief * 0.02;                 // big reel gives line faster
         session.fightPattern = profile.fightPattern;
@@ -1262,8 +1296,9 @@ public final class FishingManager {
         }
 
         // §fight-mystery: NO species name during the fight — you learn what it was when you land it.
-        session.bossBar = new ServerBossEvent(java.util.UUID.randomUUID(), 
-                Component.translatable("message.riverfishing.fighting"),
+        // §26.x: ServerBossEvent needs an explicit id; §bossbar-2 keeps the "whose fight it is" title.
+        session.bossBar = new ServerBossEvent(java.util.UUID.randomUUID(),
+                Component.translatable("message.riverfishing.bar_fight", sp.getDisplayName()),
                 BossEvent.BossBarColor.GREEN, BossEvent.BossBarOverlay.PROGRESS);
         session.bossBar.setProgress(0.0f);
         session.bossBar.addPlayer(sp);
@@ -1314,8 +1349,9 @@ public final class FishingManager {
         session.fightStartTick = now;
         session.fightTimeout = 600;
         session.fightPattern = "steady";
-        session.bossBar = new ServerBossEvent(java.util.UUID.randomUUID(), 
-                Component.translatable("message.riverfishing.fighting"),
+        // §26.x: ServerBossEvent needs an explicit id; §bossbar-2 keeps the "whose fight it is" title.
+        session.bossBar = new ServerBossEvent(java.util.UUID.randomUUID(),
+                Component.translatable("message.riverfishing.bar_fight", sp.getDisplayName()),
                 BossEvent.BossBarColor.GREEN, BossEvent.BossBarOverlay.PROGRESS);
         session.bossBar.setProgress(0.0f);
         session.bossBar.addPlayer(sp);
@@ -1415,9 +1451,12 @@ public final class FishingManager {
         }
         boolean inRun = session.runTicksLeft > 0;
         // Reeling in a run spikes tension and barely gains line — you should ease off during runs.
-        session.tension += inRun ? session.runTensionPulse : session.calmTensionPulse;
+        // §fish-fatigue: a tired fish pulls softer and comes in faster.
+        double tired = 1.0 - 0.55 * session.fatigue;
+        session.tension += (inRun ? session.runTensionPulse : session.calmTensionPulse) * tired;
         session.landProgress = Mth.clamp(
-                session.landProgress + session.landPulse * (inRun ? 0.2 : 1.0), 0.0, 1.0);
+                session.landProgress + session.landPulse * (inRun ? 0.2 : 1.0)
+                        * (1.0 + 0.6 * session.fatigue), 0.0, 1.0);
         session.tension = Math.max(0.0, session.tension);
 
         level.playSound(null, sp.blockPosition(), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.25f, 1.6f);
@@ -1466,14 +1505,28 @@ public final class FishingManager {
         session.tension = Math.max(0.0, session.tension - session.relaxTick);
         session.landProgress = Math.max(0.0, session.landProgress - 0.0008);
 
+        // §run-load (0.5.1): a RUNNING fish loads the tackle BY ITSELF — before this, tension only rose
+        // on cranks, so riding out a run with a closed drag was free (and the rod never bent). Now a hot
+        // run against a standing drag climbs toward the break point on its own; crouch (open drag) and
+        // the fish takes line instead of loading the rod. This is what makes the drag a real decision.
+        if (session.runTicksLeft > 0 && !sp.isCrouching()) {
+            session.tension += session.runTensionPulse * 0.12 * (1.0 - 0.55 * session.fatigue);
+        }
+
+        // §fish-fatigue: the fight itself wears the fish down — fast while it RUNS, slowly between.
+        session.fatigue = Math.min(1.0,
+                session.fatigue + (session.runTicksLeft > 0 ? session.fatigueRunTick
+                                                            : session.fatigueRunTick * 0.2));
+
         // §drag (0.5.0): crouching OPENS the drag — the reel free-spools. Tension bleeds off fast and a
         // running fish TAKES line, but it cannot snap you: the answer to a jump or a dive you can't hold.
         // Stand up = working drag; holding the reel = winching. Three drag positions, zero new inputs.
         if (sp.isCrouching()) {
             session.tension = Math.max(0.0, session.tension - session.relaxTick * 3.0);
-            if (session.runTicksLeft > 0) {
-                session.landProgress = Math.max(0.0, session.landProgress - 0.004);
-            }
+            // §drag-cost (0.5.1): an open drag ALWAYS pays out line — even a resting fish swims off with
+            // it. Camping shift between runs is no longer free tension immunity; runs drain extra.
+            session.landProgress = Math.max(0.0, session.landProgress
+                    - (session.runTicksLeft > 0 ? 0.004 : 0.0025));
         }
 
         double progress = session.landProgress;
@@ -1583,6 +1636,15 @@ public final class FishingManager {
                     SoundSource.PLAYERS, 0.8f, 1.0f);
         }
         session.bossBar.setProgress((float) Mth.clamp(session.landProgress, 0.0, 1.0));
+        // §bossbar-2: the bar tells WHOSE fight it is and what the fish is doing — no more guessing
+        // between two friends' bars. Name re-sends only when the state flips.
+        int barState = session.runTicksLeft > 0 ? 1 : session.fatigue > 0.7 ? 2 : 0;
+        if (barState != session.barState) {
+            session.barState = barState;
+            String key = barState == 1 ? "message.riverfishing.bar_run"
+                    : barState == 2 ? "message.riverfishing.bar_tired" : "message.riverfishing.bar_fight";
+            session.bossBar.setName(Component.translatable(key, sp.getDisplayName()));
+        }
         session.bossBar.setColor(session.tension >= session.breakTension ? BossEvent.BossBarColor.RED
                 : inRun ? BossEvent.BossBarColor.RED
                 : session.tension > session.breakTension * 0.66 ? BossEvent.BossBarColor.YELLOW
@@ -1614,10 +1676,12 @@ public final class FishingManager {
         }
 
         // Keep every client's view of the line in step with the fight so it visibly reels in (§immersion).
+        // §rod-bend: this same sync carries the live fight stress — the in-hand bend breathes off it.
         if (now % 5 == 0) {
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     (float) Mth.clamp(session.landProgress, 0.0, 1.0), session.lineColor,
-                    session.rodClass == RodClass.FLOAT));
+                    session.rodClass == RodClass.FLOAT, false, fightStress(session),
+                    true, session.runTicksLeft > 0)); // §pump-reel: run state drives the HUD cue
         }
     }
 
@@ -1639,6 +1703,11 @@ public final class FishingManager {
 
     /** Probability a run starts when the timer is up, by pattern and how far into the fight we are. */
     private static double runChance(FishingSession s, double progress) {
+        // §fish-fatigue: a gassed-out fish stops running — the tell that it's ready for the net.
+        return (1.0 - 0.65 * s.fatigue) * rawRunChance(s, progress);
+    }
+
+    private static double rawRunChance(FishingSession s, double progress) {
         return switch (s.fightPattern) {
             case "relentless" -> 0.97; // §grass-carp: fights just as hard at the net as at the strike
             case "aggressive" -> 0.95;
@@ -1651,6 +1720,11 @@ public final class FishingManager {
     }
 
     private static int runDuration(FishingSession s, double progress, RandomSource r) {
+        // §fish-fatigue: tired runs are short runs.
+        return Math.max(6, (int) (rawRunDuration(s, progress, r) * (1.0 - 0.5 * s.fatigue)));
+    }
+
+    private static int rawRunDuration(FishingSession s, double progress, RandomSource r) {
         return switch (s.fightPattern) {
             case "relentless" -> 40 + r.nextInt(35); // §grass-carp: long torpedo runs toward open water
             case "aggressive" -> 22 + r.nextInt(18);
@@ -2057,6 +2131,17 @@ public final class FishingManager {
             biased = floor + (1.0 - floor) * biased;
         }
 
+        // §lure-size (round 6): the same physics for ARTIFICIAL lures — a fish that commits to a
+        // 200 g jig is one that can swallow it. The individual roll floors at ~8x the lure's mass
+        // (capped at 60% of the range so the roll stays a roll). Kills the 709 g zander on a pilker.
+        double lureW = session.ctx != null ? session.ctx.lureWeightG : 0;
+        if (lureW > 0 && p.weightMax > p.weightMin) {
+            double minW = Mth.clamp(lureW * 8.0, p.weightMin,
+                    p.weightMin + (p.weightMax - p.weightMin) * 0.6);
+            double floor = (minW - p.weightMin) / (p.weightMax - p.weightMin);
+            biased = floor + (1.0 - floor) * biased;
+        }
+
         double weight = p.weightMin + (p.weightMax - p.weightMin) * biased;
         session.weightG = (int) Math.round(weight);
 
@@ -2338,7 +2423,9 @@ public final class FishingManager {
         ItemStack rigStack = RodData.get(rod, ComponentSlot.RIG);
         if (rigStack.getItem() instanceof RigItem rg) {
             ctx.rig = rg.rigType();
-            ctx.castWeightG = rg.rigType().massGrams();
+            // §tackle-station (0.6.0): bench-chosen grams (rig + tied lure) over the fixed type mass.
+            ctx.castWeightG = RigData.effectiveWeightG(rigStack);
+            ctx.lureWeightG = RigData.lureTackleWeightG(rigStack); // §lure-size: size gates the take
             ctx.hookSizes = RigData.hookSizes(rigStack);
             ctx.baits = RigData.baitIds(rigStack);
             int lureRgb = RigData.lureColorRgb(rigStack);

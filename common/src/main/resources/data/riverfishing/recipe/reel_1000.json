@@ -1,9 +1,15 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    "minecraft:iron_ingot",
-    "minecraft:iron_ingot",
-    "minecraft:redstone"
+    {
+      "item": "minecraft:iron_ingot"
+    },
+    {
+      "item": "minecraft:iron_ingot"
+    },
+    {
+      "item": "minecraft:redstone"
+    }
   ],
   "result": {
     "id": "riverfishing:reel_1000",

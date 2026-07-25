@@ -106,8 +106,22 @@ public final class RodData {
      * empty hook only lowers the bite chance, it doesn't block casting).
      */
     public static boolean isAssembled(ItemStack rod) {
-        return !get(rod, ComponentSlot.LINE).isEmpty()
-                && !get(rod, ComponentSlot.RIG).isEmpty();
+        return missingKey(rod) == null;
+    }
+
+    /**
+     * Translation key naming the FIRST part the rod still needs, or null when it can fish
+     * (§assembly-hint). A bare "the rod is not assembled" made players hunt blind — a reeled blank
+     * REFUSES line until its reel is fitted, and a silently bouncing line slot reads as a broken GUI.
+     */
+    public static String missingKey(ItemStack rod) {
+        if (get(rod, ComponentSlot.LINE).isEmpty()) {
+            boolean needsReel = rod.getItem() instanceof RodItem ri && ri.rodType().takesReel()
+                    && get(rod, ComponentSlot.REEL).isEmpty();
+            return needsReel ? "message.riverfishing.need_reel" : "message.riverfishing.need_line";
+        }
+        if (get(rod, ComponentSlot.RIG).isEmpty()) return "message.riverfishing.need_rig";
+        return null;
     }
 
     /** Float depth setting stored on the ROD ("спуск", §fishing-depth): surface / mid / bottom. */
