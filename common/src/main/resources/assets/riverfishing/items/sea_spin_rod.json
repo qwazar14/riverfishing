@@ -9,8 +9,57 @@
           "type": "minecraft:composite",
           "models": [
             {
-              "type": "minecraft:model",
-              "model": "riverfishing:item/rod_layer/blank_sea_spin"
+              "type": "minecraft:range_dispatch",
+              "property": "minecraft:custom_model_data",
+              "index": 0,
+              "entries": [
+                {
+                  "threshold": 1,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/blank_sea_spin_bend1"
+                  }
+                },
+                {
+                  "threshold": 2,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/blank_sea_spin_bend2"
+                  }
+                },
+                {
+                  "threshold": 3,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/blank_sea_spin_bend3"
+                  }
+                },
+                {
+                  "threshold": 4,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/blank_sea_spin_bend4"
+                  }
+                },
+                {
+                  "threshold": 5,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/blank_sea_spin_bend5"
+                  }
+                },
+                {
+                  "threshold": 6,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/blank_sea_spin_bend6"
+                  }
+                }
+              ],
+              "fallback": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/blank_sea_spin"
+              }
             },
             {
               "type": "minecraft:select",
@@ -112,8 +161,57 @@
             "type": "minecraft:composite",
             "models": [
               {
-                "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                "type": "minecraft:range_dispatch",
+                "property": "minecraft:custom_model_data",
+                "index": 0,
+                "entries": [
+                  {
+                    "threshold": 1,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend1"
+                    }
+                  },
+                  {
+                    "threshold": 2,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend2"
+                    }
+                  },
+                  {
+                    "threshold": 3,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend3"
+                    }
+                  },
+                  {
+                    "threshold": 4,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend4"
+                    }
+                  },
+                  {
+                    "threshold": 5,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend5"
+                    }
+                  },
+                  {
+                    "threshold": 6,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend6"
+                    }
+                  }
+                ],
+                "fallback": {
+                  "type": "minecraft:model",
+                  "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                }
               },
               {
                 "type": "minecraft:select",
@@ -208,8 +306,57 @@
             "type": "minecraft:composite",
             "models": [
               {
-                "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                "type": "minecraft:range_dispatch",
+                "property": "minecraft:custom_model_data",
+                "index": 0,
+                "entries": [
+                  {
+                    "threshold": 1,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend1"
+                    }
+                  },
+                  {
+                    "threshold": 2,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend2"
+                    }
+                  },
+                  {
+                    "threshold": 3,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend3"
+                    }
+                  },
+                  {
+                    "threshold": 4,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend4"
+                    }
+                  },
+                  {
+                    "threshold": 5,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend5"
+                    }
+                  },
+                  {
+                    "threshold": 6,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend6"
+                    }
+                  }
+                ],
+                "fallback": {
+                  "type": "minecraft:model",
+                  "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                }
               },
               {
                 "type": "minecraft:select",
@@ -416,8 +563,57 @@
             "type": "minecraft:composite",
             "models": [
               {
-                "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                "type": "minecraft:range_dispatch",
+                "property": "minecraft:custom_model_data",
+                "index": 0,
+                "entries": [
+                  {
+                    "threshold": 1,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend1"
+                    }
+                  },
+                  {
+                    "threshold": 2,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend2"
+                    }
+                  },
+                  {
+                    "threshold": 3,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend3"
+                    }
+                  },
+                  {
+                    "threshold": 4,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend4"
+                    }
+                  },
+                  {
+                    "threshold": 5,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend5"
+                    }
+                  },
+                  {
+                    "threshold": 6,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend6"
+                    }
+                  }
+                ],
+                "fallback": {
+                  "type": "minecraft:model",
+                  "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                }
               },
               {
                 "type": "minecraft:select",
@@ -512,8 +708,57 @@
             "type": "minecraft:composite",
             "models": [
               {
-                "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                "type": "minecraft:range_dispatch",
+                "property": "minecraft:custom_model_data",
+                "index": 0,
+                "entries": [
+                  {
+                    "threshold": 1,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend1"
+                    }
+                  },
+                  {
+                    "threshold": 2,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend2"
+                    }
+                  },
+                  {
+                    "threshold": 3,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend3"
+                    }
+                  },
+                  {
+                    "threshold": 4,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend4"
+                    }
+                  },
+                  {
+                    "threshold": 5,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend5"
+                    }
+                  },
+                  {
+                    "threshold": 6,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend6"
+                    }
+                  }
+                ],
+                "fallback": {
+                  "type": "minecraft:model",
+                  "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                }
               },
               {
                 "type": "minecraft:select",
@@ -720,8 +965,57 @@
             "type": "minecraft:composite",
             "models": [
               {
-                "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                "type": "minecraft:range_dispatch",
+                "property": "minecraft:custom_model_data",
+                "index": 0,
+                "entries": [
+                  {
+                    "threshold": 1,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend1"
+                    }
+                  },
+                  {
+                    "threshold": 2,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend2"
+                    }
+                  },
+                  {
+                    "threshold": 3,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend3"
+                    }
+                  },
+                  {
+                    "threshold": 4,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend4"
+                    }
+                  },
+                  {
+                    "threshold": 5,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend5"
+                    }
+                  },
+                  {
+                    "threshold": 6,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend6"
+                    }
+                  }
+                ],
+                "fallback": {
+                  "type": "minecraft:model",
+                  "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                }
               },
               {
                 "type": "minecraft:select",
@@ -816,8 +1110,57 @@
             "type": "minecraft:composite",
             "models": [
               {
-                "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                "type": "minecraft:range_dispatch",
+                "property": "minecraft:custom_model_data",
+                "index": 0,
+                "entries": [
+                  {
+                    "threshold": 1,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend1"
+                    }
+                  },
+                  {
+                    "threshold": 2,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend2"
+                    }
+                  },
+                  {
+                    "threshold": 3,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend3"
+                    }
+                  },
+                  {
+                    "threshold": 4,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend4"
+                    }
+                  },
+                  {
+                    "threshold": 5,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend5"
+                    }
+                  },
+                  {
+                    "threshold": 6,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend6"
+                    }
+                  }
+                ],
+                "fallback": {
+                  "type": "minecraft:model",
+                  "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                }
               },
               {
                 "type": "minecraft:select",
@@ -1024,8 +1367,57 @@
             "type": "minecraft:composite",
             "models": [
               {
-                "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                "type": "minecraft:range_dispatch",
+                "property": "minecraft:custom_model_data",
+                "index": 0,
+                "entries": [
+                  {
+                    "threshold": 1,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend1"
+                    }
+                  },
+                  {
+                    "threshold": 2,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend2"
+                    }
+                  },
+                  {
+                    "threshold": 3,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend3"
+                    }
+                  },
+                  {
+                    "threshold": 4,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend4"
+                    }
+                  },
+                  {
+                    "threshold": 5,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend5"
+                    }
+                  },
+                  {
+                    "threshold": 6,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend6"
+                    }
+                  }
+                ],
+                "fallback": {
+                  "type": "minecraft:model",
+                  "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                }
               },
               {
                 "type": "minecraft:select",
@@ -1120,8 +1512,57 @@
             "type": "minecraft:composite",
             "models": [
               {
-                "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                "type": "minecraft:range_dispatch",
+                "property": "minecraft:custom_model_data",
+                "index": 0,
+                "entries": [
+                  {
+                    "threshold": 1,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend1"
+                    }
+                  },
+                  {
+                    "threshold": 2,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend2"
+                    }
+                  },
+                  {
+                    "threshold": 3,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend3"
+                    }
+                  },
+                  {
+                    "threshold": 4,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend4"
+                    }
+                  },
+                  {
+                    "threshold": 5,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend5"
+                    }
+                  },
+                  {
+                    "threshold": 6,
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/blank_sea_spin_bend6"
+                    }
+                  }
+                ],
+                "fallback": {
+                  "type": "minecraft:model",
+                  "model": "riverfishing:item/rod_layer_m/blank_sea_spin"
+                }
               },
               {
                 "type": "minecraft:select",
@@ -1323,8 +1764,57 @@
       "type": "minecraft:composite",
       "models": [
         {
-          "type": "minecraft:model",
-          "model": "riverfishing:item/rod_layer/blank_sea_spin"
+          "type": "minecraft:range_dispatch",
+          "property": "minecraft:custom_model_data",
+          "index": 0,
+          "entries": [
+            {
+              "threshold": 1,
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/blank_sea_spin_bend1"
+              }
+            },
+            {
+              "threshold": 2,
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/blank_sea_spin_bend2"
+              }
+            },
+            {
+              "threshold": 3,
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/blank_sea_spin_bend3"
+              }
+            },
+            {
+              "threshold": 4,
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/blank_sea_spin_bend4"
+              }
+            },
+            {
+              "threshold": 5,
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/blank_sea_spin_bend5"
+              }
+            },
+            {
+              "threshold": 6,
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/blank_sea_spin_bend6"
+              }
+            }
+          ],
+          "fallback": {
+            "type": "minecraft:model",
+            "model": "riverfishing:item/rod_layer/blank_sea_spin"
+          }
         },
         {
           "type": "minecraft:select",

@@ -24,6 +24,41 @@ import org.joml.Matrix4f;
 public final class LineRenderer {
     private LineRenderer() {}
 
+    /**
+     * §rod-bend-tip: per-bucket line-anchor offset {dx, dy} in near-plane units. A bent blank's tip
+     * sits lower and closer than the straight sprite's, so the first-person anchor has to follow the
+     * bucket or the line leaves the rod in mid-air. Index 0 stays {0,0} — a straight rod needs none.
+     * Hand-tuned in game with {@code /rfrod bend N} + {@code /rfrod tip N dx dy} (2026-07-22 playtest).
+     */
+    public static final float[][] TIP_BEND_OFFSET = new float[com.riverfishing.item.RodData.BEND_BUCKETS + 1][2];
+    static {
+        float[][] tuned = {{0.043f, -0.060f}, {0.045f, -0.100f}, {0.047f, -0.130f},
+                           {0.045f, -0.200f}, {0.060f, -0.250f}, {0.060f, -0.300f}};
+        for (int b = 1; b <= com.riverfishing.item.RodData.BEND_BUCKETS; b++) {
+            TIP_BEND_OFFSET[b] = tuned[b - 1];
+        }
+    }
+
+    /** §rod-bend debug: {@code /rfrod bend N} pins the offset lookup to a bucket (-1 = read the rod). */
+    public static int FORCE_BEND = -1;
+
+    /**
+     * §rod-bend: the bucket the local player's held rod is BENT to. On 26.x the bend lives in the
+     * stack (RodData FLOAT 0, written server-side), so the client just reads back whatever the model
+     * is already rendering instead of re-deriving it from tension — the two can never disagree.
+     */
+    public static int heldBend(Player player) {
+        if (FORCE_BEND >= 0) return Math.min(FORCE_BEND, com.riverfishing.item.RodData.BEND_BUCKETS);
+        for (net.minecraft.world.item.ItemStack stack
+                : new net.minecraft.world.item.ItemStack[]{player.getMainHandItem(), player.getOffhandItem()}) {
+            if (stack.getItem() instanceof com.riverfishing.item.RodItem) {
+                return Mth.clamp(com.riverfishing.item.RodData.getBend(stack), 0,
+                        com.riverfishing.item.RodData.BEND_BUCKETS);
+            }
+        }
+        return 0;
+    }
+
     //? if <26.2 {
     // 26.1: immediate mode — pull the shared buffer source and flush the lines batch ourselves.
     public static void render(PoseStack pose, Vec3 cam, float pt) {
@@ -146,13 +181,18 @@ public final class LineRenderer {
         if (player == mc.player && mc.options.getCameraType().isFirstPerson()) {
             double fov = mc.options.fov().get();
             double fovScale = 960.0 / fov;
+            // §rod-bend-tip: shift the anchor with the blank's current bend so the line stays ON the
+            // bent tip instead of hanging off where the straight sprite used to end (/rfrod tip tunes).
+            int bend = heldBend(player);
+            float tipDx = TIP_BEND_OFFSET[bend][0];
+            float tipDy = TIP_BEND_OFFSET[bend][1];
             // §26.1: getNearPlane now takes the fov in degrees instead of reading it itself.
             //? if <26.2 {
             Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane((float) fov)
             //?} else {
             /*Vec3 v = mc.gameRenderer.mainCamera().getNearPlane((float) fov)
             *///?}
-                    .getPointOnPlane(arm * 0.525f, -0.1f)
+                    .getPointOnPlane(arm * (0.525f + tipDx), -0.1f + tipDy)
                     .scale(fovScale)
                     .yRot(swing * 0.5f)
                     .xRot(-swing * 0.7f);

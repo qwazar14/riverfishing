@@ -7,6 +7,9 @@ RODS (§rod-layers): items/<rod>.json selects on DISPLAY CONTEXT first —
   * fixed (rod pod): blank + reel only — the line is out in the water, drawn in 3D (§pod-line);
   * hands: MIRRORED rod_m sprites with the tuned hand transforms (§rod-mirror/§rod-debug), and the
     line+rig overlays hide while the line is cast (custom_model_data FLAG 0, set by FishingManager).
+  In EVERY context the base blank layer is a range_dispatch on custom_model_data FLOAT 0 — the
+  §rod-bend bucket FishingManager writes onto the rod during a fight (RodData.setBend). Bucket 0
+  falls back to the straight blank, so a rod that never fought looks exactly as it always did.
 
 FISH (§fish-scale): items/<fish>.json range_dispatches on custom_model_data float[0] (written by
 FishItem.create at the catch) into scale-bucket models that multiply every display-context scale.
@@ -23,6 +26,7 @@ REELS = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 10000, 12000, 14000]
 LINE_TYPES = ["mono", "braid", "fluoro"]
 RIG_SPRITES = ["rig_primitive", "rig_float", "rig_grusha", "rig_feeder", "rig_flat_feeder",
                "rig_ground", "rig_predator", "rig_carp", "rig_catfish"]
+BEND_BUCKETS = 6  # §rod-bend: must match RodData.BEND_BUCKETS and tools/GenRodBend.java's AMP length
 # depth lift per overlay category so coplanar composite layers don't z-fight
 Z_OFF = {"blank": 0.0, "reel": 0.03, "line": 0.06, "rig": 0.09}
 
@@ -57,9 +61,15 @@ def write(path, obj):
 
 def rod_layers():
     return [("blank_%s" % r, "blank") for r in RODS] \
+        + [(bend_sprite(r, b), "blank") for r in RODS for b in range(1, BEND_BUCKETS + 1)] \
         + [("reel_%d" % r, "reel") for r in REELS] \
         + [("line_%s" % t, "line") for t in LINE_TYPES] \
         + [(s, "rig") for s in RIG_SPRITES]
+
+
+def bend_sprite(rod, bucket):
+    """§rod-bend: the arc-sheared blank for one bucket (tools/GenRodBend.java draws these)."""
+    return "blank_%s_bend%d" % (rod, bucket)
 
 
 def normal_display(base_display, dz):
@@ -102,6 +112,22 @@ def composite(models):
     return {"type": "minecraft:composite", "models": models}
 
 
+def blank_node(folder, rod):
+    """§rod-bend: the base blank layer, dispatched on the bend bucket in custom_model_data FLOAT 0
+    (RodData.setBend). Same range_dispatch technique the fish scale buckets use; bucket 0 — and any
+    rod with no float stored at all — resolves to the fallback, i.e. the straight blank."""
+    straight = model_node("riverfishing:item/%s/blank_%s" % (folder, rod))
+    return {
+        "type": "minecraft:range_dispatch",
+        "property": "minecraft:custom_model_data",
+        "index": 0,
+        "entries": [{"threshold": b,
+                     "model": model_node("riverfishing:item/%s/%s" % (folder, bend_sprite(rod, b)))}
+                    for b in range(1, BEND_BUCKETS + 1)],
+        "fallback": straight,
+    }
+
+
 def main():
     for d in ("rod_layer", "rod_layer_m", "fish_scaled"):
         shutil.rmtree(os.path.join(MODELS, d), ignore_errors=True)
@@ -122,7 +148,7 @@ def main():
 
     # ---- rod item definitions ----
     def parts(folder, rod, with_tackle):
-        out = [model_node("riverfishing:item/%s/blank_%s" % (folder, rod)),
+        out = [blank_node(folder, rod),
                str_select(0, [("reel_%d" % r, folder, "reel_%d" % r) for r in REELS])]
         if with_tackle:
             out.append(str_select(1, [(t, folder, "line_%s" % t) for t in LINE_TYPES]))

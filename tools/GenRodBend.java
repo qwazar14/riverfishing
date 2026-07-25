@@ -1,14 +1,17 @@
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * §rod-bend: generates the 3 bent variants of every rod blank sprite by a progressive downward
+ * §rod-bend: generates the 6 bent variants of every rod blank sprite by a progressive downward
  * arc-shear — the butt (reel end) stays put, the tip droops by amp * u^2 along the rod axis.
- * Normal sprites run butt-left → tip-right; mirrored (rod_m) the other way. Also writes the
- * matching item model JSONs. Rerun after adding a rod or redrawing a blank.
+ * Normal sprites run butt-left → tip-right; mirrored (rod_m) the other way. Rerun after adding a
+ * rod or redrawing a blank, then rerun {@code tools/gen_dynamic_icons.py}.
+ *
+ * <p>§26.1: SPRITES ONLY. The 1.21.1 BEWLR needed a one-off {@code item/generated} model per
+ * sprite; the data-driven icons don't — {@code gen_dynamic_icons.py} writes the layer models
+ * (with their per-context display transforms) and the range_dispatch that picks a bucket.
  *
  * <p>Run: {@code java tools/GenRodBend.java}
  */
@@ -38,20 +41,11 @@ public final class GenRodBend {
                             out.setRGB(x, y, sy >= 0 && sy < h ? src.getRGB(x, sy) : 0);
                         }
                     }
-                    String outName = base + "_bend" + b;
-                    ImageIO.write(out, "png", new File(texDir, outName + ".png"));
-                    Files.writeString(assets.resolve("models/item/" + dir + "/" + outName + ".json"), """
-                            {
-                              "parent": "minecraft:item/generated",
-                              "textures": {
-                                "layer0": "riverfishing:item/%s/%s"
-                              }
-                            }
-                            """.formatted(dir, outName));
+                    ImageIO.write(out, "png", new File(texDir, base + "_bend" + b + ".png"));
                     made++;
                 }
             }
         }
-        System.out.println("wrote " + made + " bent sprites + models");
+        System.out.println("wrote " + made + " bent sprites (run gen_dynamic_icons.py next)");
     }
 }
