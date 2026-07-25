@@ -110,13 +110,22 @@ public final class ModItems {
         String key = type.jsonKey();
         if ("stick".equals(key)) return 32;
         if ("bamboo".equals(key)) return 64;
+        if ("winter".equals(key)) return 96;       // short, reel-less, and ice fish are small
         if ("pole".equals(key)) return 128;
         if ("ultralight".equals(key)) return 144;
         if ("spinning".equals(key)) return 192;
         if ("feeder".equals(key)) return 224;
         if ("bottom".equals(key)) return 256;
         if ("carp".equals(key)) return 320;
-        return 128;
+        // §sea-durability: these five used to fall through to the 128 default, so a surf rod —
+        // diamond-built, prismarine-tipped, rated to a 250 g cast and fish an order of magnitude
+        // heavier — wore out faster than a gold-guided feeder. Saltwater now sits above the
+        // freshwater top and climbs with the blank's test window.
+        if ("sea_spin".equals(key)) return 320;
+        if ("surf".equals(key)) return 384;
+        if ("boat".equals(key)) return 448;
+        if ("trolling".equals(key)) return 512;
+        return 128; // only reached by a blank added without a durability decision
     }
 
     static {

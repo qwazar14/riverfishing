@@ -195,6 +195,7 @@ public final class ModVillagers {
         buyPrime(fish, 2, "white_eye_bream", 2, 3);   // §river-four
         buyPrime(fish, 2, "nase", 2, 4);
         buyPrime(fish, 2, "vimba", 3, 5);
+        buyPrime(fish, 2, "white_bream", 2, 2);       // was unsellable — an oversight, not a design
 
         buyPrime(fish, 3, "bream", 3, 4);
         buyPrime(fish, 3, "ide", 3, 5);
@@ -205,8 +206,10 @@ public final class ModVillagers {
         buyPrime(fish, 3, "volga_zander", 4, 6);      // §river-four: a lighter, cheaper zander
         buyPrime(fish, 3, "pink_salmon", 4, 8);
         buyPrime(fish, 3, "whitefish", 4, 8);
+        buyPrime(fish, 3, "asp", 6, 9);               // was unsellable — a hard-won 8 kg predator
 
         buyPrime(fish, 4, "carp", 6, 12);
+        buyPrime(fish, 4, "mirror_carp", 7, 13);  // was unsellable; the koi stay uncommercial on purpose
         buyPrime(fish, 4, "grass_carp", 9, 14);   // §grass-carp: a hard-fighting prize, pays well
         buyPrime(fish, 4, "zander", 6, 10);
         buyPrime(fish, 4, "trout", 6, 12);

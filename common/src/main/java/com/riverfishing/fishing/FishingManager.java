@@ -446,7 +446,7 @@ public final class FishingManager {
             actionbar(sp, Component.translatable("message.riverfishing.line_worn_out").withStyle(ChatFormatting.RED));
         }
         session.lineStrainKg = ctx.lineType.breakingStrainKg(ctx.lineDiameterMm) * WearData.lineStrainMultiplier(lineWear);
-        session.dragKg = ctx.reelSize / 1000.0;
+        session.dragKg = com.riverfishing.item.ReelItem.dragKgFor(ctx.reelSize);
         session.reelSize = ctx.reelSize;
         session.overloadPenalty = overloadPenalty;
         session.hasLeader = ctx.hasLeader;
@@ -1157,7 +1157,7 @@ public final class FishingManager {
         }
 
         double weightKg = session.weightG / 1000.0;
-        double drag = session.reelSize / 1000.0;                       // 0 for a reel-less float rod
+        double drag = session.dragKg;                                  // 0 for a reel-less float rod
         double requiredKg = Math.max(0.5, profile.fightStrength * (1.0 + weightKg) * 2.0);
         double effectiveStrain = session.lineStrainKg + 0.5 * drag;    // lineStrain already wear-reduced (§3.8)
         double baseTolerance = Mth.clamp(effectiveStrain / requiredKg, 0.2, 1.0);
