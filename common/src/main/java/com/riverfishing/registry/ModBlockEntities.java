@@ -20,10 +20,11 @@ public final class ModBlockEntities {
 
     // §tackle-station (0.6.0, round 5): the STALL keeps the bench's material slots while it stands.
     public static final RegistrySupplier<BlockEntityType<com.riverfishing.block.TackleStationBlockEntity>> TACKLE_STATION =
-            REGISTER.register("tackle_station", () -> BlockEntityType.Builder.of(
-                    com.riverfishing.block.TackleStationBlockEntity::new,
-                    ModBlocks.FISHING_STALL.get()
-            ).build(null));
+            // §26.x: the BlockEntityType ctor went private, so every type in this file goes through
+            // the platform seam instead of Builder.of(...).build(null).
+            REGISTER.register("tackle_station", () -> com.riverfishing.platform.PlatformHelper
+                    .createBlockEntityType(com.riverfishing.block.TackleStationBlockEntity::new,
+                            ModBlocks.FISHING_STALL.get()));
 
     public static final RegistrySupplier<BlockEntityType<RodPodBlockEntity>> ROD_POD =
             REGISTER.register("rod_pod", () -> com.riverfishing.platform.PlatformHelper.createBlockEntityType(RodPodBlockEntity::new, ModBlocks.ROD_POD_1.get(), ModBlocks.ROD_POD_3.get()));

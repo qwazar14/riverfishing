@@ -53,7 +53,8 @@ public enum TackleForm {
     }
 
     public Item item() {
-        return BuiltInRegistries.ITEM.get(RiverFishing.id(id));
+        // §26.x: Registry.get returns an Optional<Holder.Reference>; getValue is the direct lookup.
+        return BuiltInRegistries.ITEM.getValue(RiverFishing.id(id));
     }
 
     /** The weight IS the price: 1 ingot per started 30 g, feeders pay +1 for the cage frame. */

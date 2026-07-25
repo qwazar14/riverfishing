@@ -54,7 +54,9 @@ public class TackleStationMenu extends AbstractContainerMenu {
         this.materials = inv.player.level().getBlockEntity(pos)
                 instanceof com.riverfishing.block.TackleStationBlockEntity be
                 ? be.items() : new SimpleContainer(4);
-        materials.addListener(c -> updateResult());
+        // §26.x: SimpleContainer lost addListener, so the result preview refreshes from the menu's own
+        // slotsChanged hook instead (see below). Without it the bench renders fine and never shows a
+        // result when you feed it — which reads as broken.
 
         addSlot(new Slot(materials, SLOT_HOOK, 14, 138) {
             @Override public boolean mayPlace(ItemStack s) { return s.getItem() instanceof HookItem; }
@@ -162,7 +164,7 @@ public class TackleStationMenu extends AbstractContainerMenu {
         ItemStack out = new ItemStack(f.item());
         int leader = leaderCm();
         int balance = balancePos();
-        TackleForm.stamp(out, f, grams, player.getGameProfile().getName(), leader, balance);
+        TackleForm.stamp(out, f, grams, player.getPlainTextName(), leader, balance);
         if (f.rig) {
             // The consumed hooks go straight INTO the rig's hook slots — the rig comes ready to bait.
             SlotRole[] roles = RigLayout.rolesFor(RigData.rigType(out));
@@ -176,10 +178,26 @@ public class TackleStationMenu extends AbstractContainerMenu {
             }
             RigData.save(out, contents);
         }
-        if (f.dyeable && materials.getItem(SLOT_DYE).getItem() instanceof DyeItem dye) {
-            out = DyedItemColor.applyDyes(out, List.of(dye)); // applyDyes RETURNS the dyed copy
+        // §26.x: a dye's colour is no longer on the DyeItem — it rides the stack as DataComponents.DYE,
+        // and applyDyes takes DyeColor instead of DyeItem. Still returns the dyed copy.
+        if (f.dyeable) {
+            net.minecraft.world.item.DyeColor dye =
+                    materials.getItem(SLOT_DYE).get(net.minecraft.core.component.DataComponents.DYE);
+            if (dye != null) {
+                out = DyedItemColor.applyDyes(out, List.of(dye));
+            }
         }
         return out;
+    }
+
+    /**
+     * §26.x replacement for the old container listener: the result preview has to follow whatever the
+     * player drops into the material slots.
+     */
+    @Override
+    public void slotsChanged(net.minecraft.world.Container container) {
+        super.slotsChanged(container);
+        updateResult();
     }
 
     private void consumeMaterials() {

@@ -81,7 +81,7 @@ public final class RigData {
     public static double effectiveWeightG(ItemStack rig) {
         var tag = StackNbt.get(rig);
         double w = tag.contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)
-                ? tag.getInt(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)
+                ? tag.getIntOr(com.riverfishing.tackle.TackleForm.TAG_WEIGHT, 0)
                 : rigType(rig).massGrams();
         return w + lureTackleWeightG(rig);
     }
@@ -93,7 +93,7 @@ public final class RigData {
             if (lure[0] == 0 && (role == SlotRole.LURE || role == SlotRole.BAIT)) {
                 var t = StackNbt.get(stack);
                 if (t.contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)) {
-                    lure[0] = t.getInt(com.riverfishing.tackle.TackleForm.TAG_WEIGHT);
+                    lure[0] = t.getIntOr(com.riverfishing.tackle.TackleForm.TAG_WEIGHT, 0);
                 }
             }
         });
