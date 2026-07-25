@@ -1,0 +1,22 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 34
+  },
+  "gives": {
+    "id": "riverfishing:surf_rod"
+  },
+  "given_item_modifiers": [
+    {
+      "function": "minecraft:set_custom_data",
+      "tag": "{RodComponents:{Reel:{id:\"riverfishing:reel_8000\",count:1},Line:{id:\"riverfishing:line_mono_050\",count:1},Rig:{id:\"riverfishing:rig_ground\",count:1,components:{\"minecraft:custom_data\":{RigContents:{Items:[{Slot:0b,Item:{id:\"riverfishing:hook_2\",count:1}}]},TackleWeightG:60,LeaderLenCm:40}}}}}"
+    }
+  ],
+  "max_uses": 8,
+  "xp": 30,
+  "reputation_discount": 0.05,
+  "merchant_predicate": {
+    "condition": "minecraft:random_chance",
+    "chance": 0.25
+  }
+}
