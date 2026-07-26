@@ -347,6 +347,12 @@ aside{border-right:1px solid var(--rule);background:var(--raise);
   font-weight:700}
 .lg:hover:not([aria-pressed="true"]){color:var(--ink)}
 .lg:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+/* The one link out of the page, so it sits below the nav rather than competing with it. */
+.dsc{display:block;font-family:var(--sans);font-size:11px;text-transform:uppercase;
+  letter-spacing:.13em;color:var(--faint);text-decoration:none;margin:18px 20px 4px;
+  padding-top:12px;border-top:1px solid var(--rule)}
+.dsc:hover{color:var(--brass-lift)}
+.dsc:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 .grp{font-family:var(--sans);font-size:10px;text-transform:uppercase;letter-spacing:.15em;
   color:var(--faint);padding:16px 20px 5px}
 .nl{display:block;font-family:var(--sans);font-size:14px;padding:4px 20px 4px 17px;
@@ -426,6 +432,7 @@ __ART_CSS__
     <input class="find" id="find" type="search" placeholder="Filter pages&hellip;"
            aria-label="Filter pages">
     <div id="nav">__NAV__</div>
+    <a class="dsc" href="https://discord.gg/Kk2nKvsuRh" target="_blank" rel="noopener">Discord</a>
   </aside>
   <main>
     <article id="doc">__SECTIONS__</article>

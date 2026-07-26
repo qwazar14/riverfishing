@@ -8,6 +8,8 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 - **Required:** [Architectury API](https://www.curseforge.com/minecraft/mc-mods/architectury-api); on Fabric also Fabric API
 - **Recommended:** Serene Seasons (unlocks the seasonal bite), Biomes O' Plenty (richer habitat model)
 - **Also integrates with:** Farmer's Delight, Jade, JEI
+- **Discord:** [discord.gg/Kk2nKvsuRh](https://discord.gg/Kk2nKvsuRh) — questions, bug reports, catches
+- **This wiki also in:** [русском](../ru/README.md) · [українською](../uk/README.md)
 
 ---
 

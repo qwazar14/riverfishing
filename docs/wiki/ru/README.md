@@ -8,6 +8,8 @@
 - **Требуется:** [Architectury API](https://www.curseforge.com/minecraft/mc-mods/architectury-api); на Fabric ещё и Fabric API
 - **Рекомендуется:** Serene Seasons (открывает сезонный клёв), Biomes O' Plenty (богаче модель местообитаний)
 - **Также дружит с:** Farmer's Delight, Jade, JEI
+- **Discord:** [discord.gg/Kk2nKvsuRh](https://discord.gg/Kk2nKvsuRh) — вопросы, баг-репорты, уловы
+- **Эта вики также на:** [English](../README.md) · [українською](../uk/README.md)
 
 ---
 

@@ -13,8 +13,12 @@ given fish under the current conditions.
 > Branches: `mc-1.21.1` (this one), `mc-1.20.1` (Fabric + Forge), `mc-26.1` (Stonecutter: 26.1.2 + 26.2).
 > The original single-loader Forge build is archived on `forge-1.20.1`.
 
+💬 **[Join the Discord](https://discord.gg/Kk2nKvsuRh)** — bug reports, catch screenshots, balance
+arguments, and news of what is coming next. It is where the community lives.
+
 📖 **[Full wiki in `docs/wiki/`](docs/wiki/README.md)** — every rod, reel, line, rig, bait, species and
-mechanic, with the actual numbers.
+mechanic, with the actual numbers. Also in **[русском](docs/wiki/ru/README.md)** and
+**[українською](docs/wiki/uk/README.md)**.
 
 ---
 
