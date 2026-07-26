@@ -582,7 +582,7 @@ The engine always reads and dulls your **sharpest** hook — you fish with your 
 
 ## Difficulty
 
-The mod ships with four presets. The **realism** preset is the default and the one every number on this page assumes.
+The mod ships with four presets — the three below plus **custom**, which takes each value individually and so has nothing to tabulate. **realism** is the default and the one every number on this page assumes.
 
 | Setting | arcade | realism | hardcore |
 |---|---|---|---|

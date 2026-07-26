@@ -4,7 +4,7 @@ From an empty inventory to your first fish in about five minutes. Vanilla fishin
 
 ## 1. Dig up some bait
 
-Take a **shovel** to dirt, grass, coarse dirt, podzol, rooted dirt, farmland, a dirt path or mud. Each block you break has a **10 % chance** to pop a **Worm**.
+Take a **shovel** to dirt, a grass block, coarse dirt, podzol, rooted dirt, farmland, a dirt path or mud. Each block you break has a **10 % chance** to pop a **Worm**.
 
 Worm is the single most widely liked bait in the game — 35 of the 70 species rate it, 19 of them at 0.9 or better. Six or seven will get you started.
 

@@ -105,10 +105,17 @@ def esc(t):
     return html.escape(t, quote=False)
 
 
+# species.md carries an <img> per row for the GitHub view, written by tools/gen_wiki_md_sprites.py.
+# Here they are worse than useless: this converter escapes inline HTML, so they printed as a wall of
+# literal <img src="..."> text, AND they broke illustrate(), whose whole-cell match no longer saw a
+# bare species name — so the one table people actually read lost its tiles in both languages.
+MD_IMG = re.compile(r"<img[^>]*>\s*")
+
+
 class Page:
     def __init__(self, pid, raw):
         self.pid = pid
-        self.raw = raw
+        self.raw = MD_IMG.sub("", raw)
         self.title = ""
         self.headings = []      # (level, text, anchor)
 
@@ -290,7 +297,9 @@ def illustrate(body):
     return re.sub(r"<tr>(.*?)</tr>", row, body, flags=re.S)
 
 
-TPL = u"""<title>River Fishing — Wiki</title>
+TPL = u"""<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>River Fishing — Wiki</title>
 <style>
 :root{
   --paper:#F2F4F1; --raise:#FBFCFA; --ink:#171C1A; --dim:#5C6660; --faint:#8C948E;
@@ -532,12 +541,6 @@ def main():
             print("  no --mc-jar: vanilla ingredients fall back to coloured tiles")
 
         craft_grids, craft_count = wiki_art.craft_html()
-        FISH_NAMES = wiki_art.names()
-        GEAR_NAMES = wiki_art.gear_names()
-        # Case-insensitive fallback: the lang file itself is inconsistent — "Mono Line 0.10" but
-        # "Mono line 0.50" — and the wiki copied both, so exact matching alone drops half the lines.
-        FISH_CI = {k.lower(): v for k, v in FISH_NAMES.items()}
-        GEAR_CI = {k.lower(): v for k, v in GEAR_NAMES.items()}
 
         sections, navs, index, built = [], [], {}, []
         for code, label, sub in LANGS:
@@ -550,6 +553,16 @@ def main():
                 print("  %-3s skipped: %d of %d pages not translated yet"
                       % (code, len(missing), sum(len(i) for _, i in GROUPS)))
                 continue
+
+            # Sprites are matched by the item's NAME, so each language needs its own lookup — the
+            # Russian tables say "Лещ", not "Bream", and would otherwise come out undecorated.
+            global FISH_NAMES, GEAR_NAMES, FISH_CI, GEAR_CI
+            FISH_NAMES = wiki_art.names(code)
+            GEAR_NAMES = wiki_art.gear_names(code)
+            # Case-insensitive fallback: the lang file itself is inconsistent — "Mono Line 0.10" but
+            # "Mono line 0.50" — and the wiki copied both, so exact matching alone drops half the lines.
+            FISH_CI = {k.lower(): v for k, v in FISH_NAMES.items()}
+            GEAR_CI = {k.lower(): v for k, v in GEAR_NAMES.items()}
 
             pages, order = {}, []
             for _, ids in GROUPS:

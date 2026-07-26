@@ -15,7 +15,8 @@ import base64, io, json, os, re
 REPO = "."
 TEX = REPO + "/common/src/main/resources/assets/riverfishing/textures/item"
 RECIPES = REPO + "/common/src/main/resources/data/riverfishing/recipe"
-LANG = REPO + "/common/src/main/resources/assets/riverfishing/lang/en_us.json"
+LANGDIR = REPO + "/common/src/main/resources/assets/riverfishing/lang"
+LOCALE = {"en": "en_us", "ru": "ru_ru", "uk": "uk_ua"}
 
 # Materials, coloured from the real thing. Code is what shows in the tile.
 VANILLA = {
@@ -144,9 +145,9 @@ def mc_css():
     return "\n".join(rules)
 
 
-def names():
-    """English display name -> species id, from the lang file the game itself uses."""
-    lang = json.load(io.open(LANG, encoding="utf-8"))
+def names(lang_code="en"):
+    """Display name -> species id, from the lang file the game itself uses for that language."""
+    lang = json.load(io.open(os.path.join(LANGDIR, LOCALE[lang_code] + ".json"), encoding="utf-8"))
     out = {}
     for k, v in lang.items():
         if k.startswith("fish.riverfishing."):
@@ -154,10 +155,10 @@ def names():
     return out
 
 
-def gear_names():
+def gear_names(lang_code="en"):
     """Display name -> id for every non-fish item and block that has a sprite we can show."""
-    lang = json.load(io.open(LANG, encoding="utf-8"))
-    fish = set(names().values())
+    lang = json.load(io.open(os.path.join(LANGDIR, LOCALE[lang_code] + ".json"), encoding="utf-8"))
+    fish = set(names(lang_code).values())
     out = {}
     for k, v in lang.items():
         if not (k.startswith("item.riverfishing.") or k.startswith("block.riverfishing.")):
