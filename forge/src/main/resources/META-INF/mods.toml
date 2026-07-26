@@ -13,8 +13,11 @@ version="${version}"
 displayName="River Fishing"
 logoFile="icon.png"
 authors="Qwazar"
+displayURL="https://github.com/qwazar14/riverfishing"
 description='''
 A deep, realistic river & ice-fishing simulator built as a modpack anchor.
+
+Discord: https://discord.gg/Kk2nKvsuRh
 '''
 
 [[dependencies.riverfishing]]
