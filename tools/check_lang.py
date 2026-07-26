@@ -94,6 +94,14 @@ def check(locale, en):
                 and any(c.isalpha() for c in re.sub(r"%(?:\d+\$)?[A-Za-z%]", "", a)):
             warns.append("%s: identical to the English — untranslated?" % k)
 
+    # A species is named twice — on the fish and on the item you hold. They must not disagree.
+    for k in tr:
+        if not k.startswith("fish.riverfishing."):
+            continue
+        ik = "item.riverfishing." + k.rsplit(".", 1)[1]
+        if ik in tr and tr[ik] != tr[k]:
+            errs.append("%s: the item is called %r but the species %r" % (k.rsplit(".", 1)[1], tr[ik], tr[k]))
+
     print("%s: %d keys, %d errors, %d warnings" % (locale, len(tr), len(errs), len(warns)))
     for e in errs:
         print("  ERROR " + e)
