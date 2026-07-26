@@ -95,6 +95,12 @@ All nine hook sizes make up the `riverfishing:hooks` tag used by the lure recipe
 
 ## Rigs
 
+> **These are the basic recipes.** A hand-tied rig comes out at its rig type's fallback mass — you get
+> no say in it. For a rig at a **weight you choose**, tie it at the **[Tackle Station](tackle-station.md)**
+> instead. Strongly recommended: the weight is what has to fit your blank's
+> [test window](rods.md#loading-the-blank-the-test-window), and bench rigs arrive with their hooks
+> already slotted.
+
 Only the six swappable bottom rigs are craftable. The Primitive, Light Float, Float, Winter and Predator rigs are built into their rod blanks and cannot be made or held.
 
 | Rig | Type | Ingredients |
@@ -124,6 +130,12 @@ All shapeless.
 ---
 
 ## Lures
+
+> **These are the basic recipes, and they cost you the lure's mass.** A hand-crafted lure carries **no
+> weight stamp**, which the game reads as **0 g** — it adds nothing to your cast and does not drive the
+> [lure-size filter](tackle-station.md#2-the-lure-size-filter-lures-only), so it never picks its fish.
+> Tie lures at the **[Tackle Station](tackle-station.md)** instead — pick the grams, get a real size.
+> The two heaviest classes (sea sizes) exist only there.
 
 The `h` ingredient is the `riverfishing:hooks` tag (No.16–No.4).
 
