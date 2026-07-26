@@ -234,10 +234,39 @@ def _result(res):
     return '<i class="ct out ob" title="%s">%s%s</i>' % (label, initials, n)
 
 
-def craft_html():
+# The grid markup is language-independent, but everything around it is prose: the section heading, the
+# seven family headings, and each recipe's caption. Those were English on every page.
+GRID_LABELS = {
+    "en": {"title": "Recipe grids",
+           "Rods": "Rods", "Reels": "Reels", "Lines and leaders": "Lines and leaders",
+           "Rigs": "Rigs", "Lures and baits": "Lures and baits",
+           "Blocks and tools": "Blocks and tools", "Food and other": "Food and other"},
+    "ru": {"title": "Схемы крафта",
+           "Rods": "Удилища", "Reels": "Катушки", "Lines and leaders": "Лески и поводки",
+           "Rigs": "Оснастки", "Lures and baits": "Приманки и наживки",
+           "Blocks and tools": "Блоки и инструменты", "Food and other": "Еда и прочее"},
+    "uk": {"title": "Схеми крафту",
+           "Rods": "Вудилища", "Reels": "Котушки", "Lines and leaders": "Волосінь і повідці",
+           "Rigs": "Оснастки", "Lures and baits": "Приманки й наживки",
+           "Blocks and tools": "Блоки й інструменти", "Food and other": "Їжа та інше"},
+}
+GRID_INTRO = {
+    "en": "Generated straight from the recipe files, so these cannot drift from what the game loads. "
+          "Hover any cell for its full id.",
+    "ru": "Собрано прямо из файлов рецептов, так что разойтись с тем, что грузит игра, они не могут. "
+          "Наведите на клетку, чтобы увидеть полный id.",
+    "uk": "Зібрано просто з файлів рецептів, тож розійтися з тим, що завантажує гра, вони не можуть. "
+          "Наведіть на клітинку, щоб побачити повний id.",
+}
+
+
+def craft_html(lang_code="en"):
     """Every shaped/shapeless recipe as a real grid, grouped by output family."""
     groups = {"Rods": [], "Reels": [], "Lines and leaders": [], "Rigs": [],
               "Lures and baits": [], "Blocks and tools": [], "Food and other": []}
+    lab = GRID_LABELS.get(lang_code, GRID_LABELS["en"])
+    # Caption each recipe with the item's real name in this language, not its raw id.
+    strings = json.load(io.open(os.path.join(LANGDIR, LOCALE[lang_code] + ".json"), encoding="utf-8"))
 
     def bucket(name):
         if name.endswith("_rod") and name != "rod_pod_1" and name != "rod_pod_3":
@@ -287,16 +316,20 @@ def craft_html():
         groups[bucket(name)].append(
             '<figure class="rc"><figcaption>%s</figcaption><div class="rr">%s'
             '<span class="ar">&rarr;</span>%s</div></figure>'
-            % (name.replace("_", " "), grid, _result(res)))
+            % (strings.get("item.riverfishing." + name)
+               or strings.get("block.riverfishing." + name)
+               or name.replace("_", " "), grid, _result(res)))
 
-    out = ['<h2 id="crafting--recipe-grids">Recipe grids</h2>',
-           '<p>Generated straight from the recipe files, so these cannot drift from what the game '
-           'loads. Our own items show their real sprite; vanilla materials are coloured tiles &mdash; '
-           'hover any cell for its full id.</p>']
+    intro = GRID_INTRO.get(lang_code, GRID_INTRO["en"])
+    if not MCICONS:
+        intro += " (Built without a Minecraft jar, so vanilla materials are labelled colour tiles.)"
+    out = ['<h2 id="crafting--recipe-grids">%s</h2>' % lab["title"], "<p>%s</p>" % intro]
     for g, items in groups.items():
         if not items:
             continue
-        out.append('<h3 id="crafting--grids-%s">%s</h3>' % (re.sub(r"\W+", "-", g.lower()), g))
+        # The id stays keyed off the English name so cross-page anchors do not shift per language.
+        out.append('<h3 id="crafting--grids-%s">%s</h3>'
+                   % (re.sub(r"\W+", "-", g.lower()), lab.get(g, g)))
         out.append('<div class="rg">%s</div>' % "".join(items))
     return "\n".join(out), sum(len(v) for v in groups.values())
 

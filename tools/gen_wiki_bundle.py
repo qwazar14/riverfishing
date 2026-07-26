@@ -25,12 +25,14 @@ On top of the conversion it adds two things the plain markdown cannot show:
 of the given jar; without it they fall back to labelled colour tiles and the build still works.
 Nothing extracted from the jar is ever written into the repo — see tools/wiki_art.py for why.
 """
-import argparse, io, os, re, html, json, shutil, subprocess, sys, tempfile, zipfile
+import argparse, glob, io, os, re, html, json, shutil, subprocess, sys, tempfile, zipfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wiki_art
 
 SRC = "docs/wiki"
+MOD_VERSION = "0.6.0"
+MC_VERSION = "1.21.1"
 
 # English lives at the root of docs/wiki; every other language mirrors the same filenames in a
 # subdirectory. All of them go into ONE page: the sprites and recipe grids are the bulk of the payload
@@ -81,6 +83,20 @@ def shrink_fish(dest, size):
                             "-vf", "scale=%d:%d:flags=neighbor" % (size, size),
                             os.path.join(dest, f)], check=True)
     return dest
+
+
+def find_mc_jar():
+    """The loom cache already holds a client jar, so look there before falling back to colour tiles.
+
+    Most of a recipe grid is vanilla — a rod is bamboo, stick and iron — so without these icons the rod
+    and reel grids degrade to nothing but three-letter labels, which reads as "the grids are gone". The
+    art is still not committed; it is read at build time and embedded only in the generated page.
+    """
+    pats = glob.glob(os.path.expanduser("~/.gradle/caches/fabric-loom/*/minecraft-client.jar"))
+    # Prefer the version this wiki documents; the cache also holds the port branches' jars, and a
+    # different version can have renamed a texture we then silently miss.
+    exact = [p for p in pats if os.path.basename(os.path.dirname(p)) == MC_VERSION]
+    return (exact or sorted(pats, reverse=True) or [None])[0]
 
 
 def unpack_mc(jar, dest):
@@ -427,7 +443,7 @@ __ART_CSS__
 
 <div class="wrap">
   <aside>
-    <div class="brand"><b>River Fishing</b><span>Wiki &middot; 0.6.0 &middot; MC 1.21.1</span></div>
+    <div class="brand"><b>River Fishing</b><span>Wiki &middot; __VER__ &middot; MC __MC__</span></div>
     <div class="lgs" id="lgs" role="group" aria-label="Language">__SWITCH__</div>
     <input class="find" id="find" type="search" placeholder="Filter pages&hellip;"
            aria-label="Filter pages">
@@ -542,12 +558,14 @@ def main():
     scratch = tempfile.mkdtemp(prefix="rf-wiki-")
     try:
         FISH64 = shrink_fish(os.path.join(scratch, "fish"), args.fish_size)
-        if args.mc_jar:
-            wiki_art.MCICONS = unpack_mc(args.mc_jar, os.path.join(scratch, "mc"))
+        jar = args.mc_jar or find_mc_jar()
+        if jar:
+            wiki_art.MCICONS = unpack_mc(jar, os.path.join(scratch, "mc"))
+            print("  vanilla icons from %s" % jar)
         else:
-            print("  no --mc-jar: vanilla ingredients fall back to coloured tiles")
+            print("  no Minecraft jar found: vanilla ingredients fall back to coloured tiles")
 
-        craft_grids, craft_count = wiki_art.craft_html()
+        craft_count = 0
 
         sections, navs, index, built = [], [], {}, []
         for code, label, sub in LANGS:
@@ -570,6 +588,8 @@ def main():
             # "Mono line 0.50" — and the wiki copied both, so exact matching alone drops half the lines.
             FISH_CI = {k.lower(): v for k, v in FISH_NAMES.items()}
             GEAR_CI = {k.lower(): v for k, v in GEAR_NAMES.items()}
+            # The grids are the same art in every language, but their headings and captions are prose.
+            craft_grids, craft_count = wiki_art.craft_html(code)
 
             pages, order = {}, []
             for _, ids in GROUPS:
@@ -586,7 +606,8 @@ def main():
                 body = illustrate(convert(p))
                 if pid == "crafting":
                     body += "\n" + craft_grids
-                    p.headings.append((2, "Recipe grids", "crafting--recipe-grids"))
+                    p.headings.append((2, wiki_art.GRID_LABELS.get(
+                        code, wiki_art.GRID_LABELS["en"])["title"], "crafting--recipe-grids"))
                 sections.append('<section class="pg" data-l="%s" id="pg-%s-%s" hidden>%s</section>'
                                 % (code, code, pid, body))
                 idx.append({"id": pid, "title": p.title or pid,
@@ -612,6 +633,7 @@ def main():
 
         doc = (TPL.replace("__ART_CSS__", "\n".join([wiki_art.CSS, wiki_art.fish_css(FISH64),
                                                      wiki_art.gear_css(), wiki_art.mc_css()]))
+                  .replace("__VER__", MOD_VERSION).replace("__MC__", MC_VERSION)
                   .replace("__SWITCH__", switch)
                   .replace("__NAV__", "\n".join(navs))
                   .replace("__SECTIONS__", "\n".join(sections))
