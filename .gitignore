@@ -34,3 +34,6 @@ reference/
 
 # python bytecode from the tools/ generators
 __pycache__/
+
+# agent worktrees (git worktree list still tracks them; this only keeps them out of git status)
+.claude/worktrees/
