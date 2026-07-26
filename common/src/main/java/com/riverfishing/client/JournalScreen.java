@@ -144,6 +144,10 @@ public class JournalScreen extends Screen {
         addGuide("tacklebench", modStack("fishing_stall"));
         addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
         addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
+        // §discord: last on the shelf on purpose — the other eleven teach a mechanic, this one is where
+        // to go when one of them misbehaves. Note the id is NOT "community": that is taken by the guide
+        // about a water's own fish population.
+        addGuide("discord", new ItemStack(net.minecraft.world.item.Items.PLAYER_HEAD));
 
         catRects = new int[Math.max(guideCat.size(), Math.max(baitCat.size(), gearCat.size()))][2];
     }
