@@ -6,90 +6,90 @@
 
 ## Як це читати
 
-- **Вага (мін. – макс.)** — увесь можливий розкид виду. **Медіанний улов** — це `mean` із профілю, і це справді медіана: половина твоїх риб цього виду виявиться легшою. Див. [розрахунок ваги](fishing-mechanics.md#weight).
+- **Вага (мін. – макс.)** — увесь можливий розкид виду. **Медіанний улов** — це `mean` із профілю, і це справді медіана: половина твоїх риб цього виду виявиться легшою. Див. [розрахунок ваги](fishing-mechanics.md#вага).
 - **Водойми** — усі типи, у яких вид живе, з коефіцієнтом присутності. У типу, якого немає в списку, коефіцієнт 0, і риби там **ніколи** не буде.
 - **Рівень** — це `min_angler_level`. Обмеження м'яке: кожен недобраний рівень множить вагу поклівки цієї риби на 0.6, але не нижче 3 %. Новачок може випадково витягнути трофей — з правильною снастю і в правильному місці, просто рідко.
 - **Найкращі наживки** оцінюються від 0 до ~1.2. Рушій бере з оснастки одну наживку — з найкращою оцінкою. Наживка, якої немає в списку, отримує 0, і **якщо в оснастці немає жодної з перелічених, риба не візьме взагалі**.
-- Ідентифікатори наживок відповідають предметам так, як розписано на сторінці [Оснастки і наживки](rigs-and-baits.md#natural-baits): `pearl_barley` = Перлівка, `bread` = Хлібний м'якуш, `silicone` = Силіконова приманка, `jig` = Джиг, `mormyshka` = Мормишка, `fish_strip` = Смужка риби, `livebait` = Живець.
+- Ідентифікатори наживок відповідають предметам так, як розписано на сторінці [Оснастки і наживки](rigs-and-baits.md#натуральні-наживки): `pearl_barley` = Перлівка, `bread` = Хлібний м'якуш, `silicone` = Силіконова приманка, `jig` = Джиг, `mormyshka` = Мормишка, `fish_strip` = Смужка риби, `livebait` = Живець.
 
 ## Усі види
 
 | # | Вид | ID предмета | Вага (мін. – макс.) | Медіанний улов | Довжина | Водойми (коефіцієнт присутності) | Рівень |
 |---|---|---|---|---|---|---|---|
-| 1 | Лящ | `bream` | 300 г – 4 кг | 900 г | 25–55 см | озеро 1.1, річка 1.0, ставок 0.9, болото 0.4 | — |
-| 2 | Карась | `crucian_carp` | 50 г – 1.5 кг | 250 г | 10–38 см | ставок 1.2, болото 1.1, озеро 1.0, річка 0.5, калюжа 0.3 | — |
-| 3 | Плітка | `roach` | 50 г – 1 кг | 120 г | 10–40 см | річка 1.0, озеро 1.0, ставок 0.7, болото 0.4 | — |
-| 4 | Краснопірка | `rudd` | 50 г – 1 кг | 110 г | 10–40 см | озеро 1.1, болото 1.0, ставок 0.9, річка 0.6 | — |
-| 5 | Плоскирка | `white_bream` | 100 г – 1.2 кг | 300 г | 12–35 см | річка 1.0, озеро 1.0, ставок 0.6, болото 0.3 | — |
-| 6 | Короп | `carp` | 1 кг – 15 кг | 3.5 кг | 35–100 см | озеро 1.2, ставок 1.1, річка 0.6, болото 0.4 | 3 |
-| 7 | Сом | `catfish` | 2 кг – 120 кг | 7 кг | 60–260 см | річка 1.1, озеро 1.0, болото 0.3, ставок 0.2 | 6 |
-| 8 | Окунь | `perch` | 50 г – 2 кг | 250 г | 10–45 см | озеро 1.1, річка 1.0, ставок 0.8, болото 0.5 | — |
-| 9 | Щука | `pike` | 500 г – 10 кг | 2 кг | 35–120 см | озеро 1.1, річка 1.0, болото 0.7, ставок 0.6 | 4 |
-| 10 | Судак | `zander` | 500 г – 6 кг | 1.5 кг | 35–90 см | річка 1.1, озеро 1.0, ставок 0.3, болото 0.2 | 4 |
-| 11 | Пічкур | `gudgeon` | 20 г – 150 г | 60 г | 8–20 см | річка 1.2, озеро 0.3, ставок 0.2 | — |
-| 12 | Йорж | `ruffe` | 20 г – 150 г | 60 г | 8–20 см | озеро 1.1, річка 1.0, ставок 0.4, болото 0.2 | — |
-| 13 | Верховодка | `bleak` | 10 г – 100 г | 30 г | 6–18 см | річка 1.1, озеро 1.0, ставок 0.5 | — |
-| 14 | В'язь | `ide` | 300 г – 3 кг | 800 г | 25–60 см | річка 1.2, озеро 0.7, ставок 0.2, болото 0.1 | 2 |
-| 15 | Головень | `chub` | 200 г – 4 кг | 700 г | 20–60 см | річка 1.2 | 3 |
-| 16 | Білизна | `asp` | 500 г – 8 кг | 2 кг | 30–90 см | річка 1.2 | 5 |
-| 17 | Лин | `tench` | 300 г – 3.5 кг | 800 г | 20–60 см | ставок 1.2, болото 1.2, озеро 1.0, річка 0.2 | 2 |
-| 18 | Минь | `burbot` | 500 г – 8 кг | 1.5 кг | 30–100 см | річка 1.1, озеро 0.9, ставок 0.1 | 4 |
-| 19 | Вугор | `eel` | 300 г – 4 кг | 900 г | 40–130 см | озеро 1.1, річка 0.9, ставок 0.6, болото 0.4 | 5 |
-| 20 | Харіус | `grayling` | 150 г – 2.5 кг | 500 г | 18–55 см | річка 1.3, озеро 0.4 | 3 |
-| 21 | Форель | `trout` | 300 г – 5 кг | 1 кг | 25–80 см | річка 1.2, озеро 0.8, ставок 0.2 | 5 |
-| 22 | Стерлядь | `sterlet` | 1 кг – 16 кг | 3 кг | 40–125 см | річка 1.2 | 8 |
-| 23 | Сазан | `wild_carp` | 1.5 кг – 18 кг | 4.2 кг | 40–110 см | річка 1.3, озеро 0.9, ставок 0.5, болото 0.3 | 4 |
-| 24 | Дзеркальний короп | `mirror_carp` | 1 кг – 14 кг | 3.2 кг | 33–95 см | озеро 1.2, ставок 1.2, річка 0.5, болото 0.4 | 3 |
-| 25 | Білий амур | `grass_carp` | 1.5 кг – 25 кг | 5 кг | 40–120 см | озеро 1.3, ставок 1.2, річка 0.7, болото 0.6 | 4 |
-| 26 | Кої Кохаку | `carp_koi_kohaku` | 800 г – 8 кг | 2.5 кг | 25–90 см | ставок 1.0, озеро 1.0, річка 0.4 | 3 |
-| 27 | Кої Танчо Санке | `carp_koi_tancho_sanke` | 800 г – 8 кг | 2.5 кг | 25–90 см | ставок 1.0, озеро 1.0, річка 0.4 | 3 |
-| 28 | Кої Сьова Санке | `carp_koi_showa_sanke` | 800 г – 8 кг | 2.5 кг | 25–90 см | ставок 1.0, озеро 1.0, річка 0.4 | 3 |
-| 29 | Кої Асагі | `carp_koi_asagi` | 800 г – 8 кг | 2.5 кг | 25–90 см | ставок 1.0, озеро 1.0, річка 0.4 | 3 |
-| 30 | Кої Бекко | `carp_koi_bekko` | 800 г – 8 кг | 2.5 кг | 25–90 см | ставок 1.0, озеро 1.0, річка 0.4 | 3 |
-| 31 | Блюгіл | `bluegill` | 40 г – 800 г | 150 г | 8–35 см | ставок 1.3, озеро 1.2, річка 0.6, болото 0.4 | — |
-| 32 | Великоротий бас | `largemouth_bass` | 400 г – 8 кг | 1.5 кг | 25–75 см | озеро 1.3, ставок 1.1, болото 0.8, річка 0.7 | 3 |
-| 33 | Райдужна форель | `rainbow_trout` | 300 г – 6 кг | 1.1 кг | 25–85 см | річка 1.3, озеро 0.9, ставок 0.2 | 4 |
-| 34 | Канальний сомик | `channel_catfish` | 800 г – 18 кг | 3.5 кг | 35–110 см | річка 1.2, озеро 1.0, ставок 0.6, болото 0.5 | 5 |
-| 35 | Товстолобик | `silver_carp` | 2 кг – 25 кг | 6 кг | 50–120 см | озеро 1.3, ставок 0.9, річка 0.8, болото 0.2 | 6 |
-| 36 | Чехоня | `sabrefish` | 150 г – 1.5 кг | 400 г | 20–60 см | річка 1.3, озеро 0.8, ставок 0.1 | 2 |
-| 37 | Синець | `blue_bream` | 150 г – 800 г | 350 г | 15–45 см | річка 1.1, озеро 1.0, ставок 0.3, болото 0.2 | 2 |
-| 38 | Скумбрія | `mackerel` | 300 г – 2 кг | 600 г | 25–60 см | море 1.2 | 4 |
-| 39 | Оселедець | `herring` | 100 г – 600 г | 250 г | 15–40 см | море 1.3 | 4 |
-| 40 | Сарган | `garfish` | 300 г – 1.5 кг | 600 г | 40–95 см | море 1.1 | 4 |
-| 41 | Лаврак | `seabass` | 500 г – 8 кг | 1.5 кг | 30–90 см | море 1.2 | 5 |
-| 42 | Камбала | `flounder` | 300 г – 4 кг | 900 г | 20–60 см | море 1.2 | 4 |
-| 43 | Тріска | `cod` | 2 кг – 40 кг | 6 кг | 50–150 см | море 1.2 | 6 |
-| 44 | Сайда | `saithe` | 1 кг – 15 кг | 3 кг | 40–110 см | море 1.1 | 5 |
-| 45 | Морський вугор | `conger` | 3 кг – 60 кг | 9 кг | 80–250 см | море 1.1 | 7 |
-| 46 | Скат | `ray` | 2 кг – 50 кг | 8 кг | 40–180 см | море 1.1 | 6 |
-| 47 | Махі-махі | `mahi` | 2 кг – 20 кг | 5 кг | 50–160 см | море 1.1 | 7 |
-| 48 | Ваху | `wahoo` | 5 кг – 40 кг | 12 кг | 80–210 см | море 1.0 | 7 |
-| 49 | Жовтоперий тунець | `yellowfin_tuna` | 10 кг – 150 кг | 30 кг | 90–220 см | море 1.0 | 7 |
-| 50 | Барракуда | `barracuda` | 2 кг – 20 кг | 6 кг | 60–180 см | море 1.1 | 6 |
-| 51 | Синій марлін | `blue_marlin` | 50 кг – 400 кг | 110 кг | 200–450 см | море 1.0 | 7 |
-| 52 | Вітрильник | `sailfish` | 20 кг – 80 кг | 35 кг | 150–320 см | море 1.0 | 7 |
-| 53 | Риба-меч | `swordfish` | 30 кг – 300 кг | 80 кг | 150–400 см | море 1.0 | 7 |
-| 54 | Акула-мако | `mako` | 20 кг – 200 кг | 60 кг | 150–380 см | море 1.0 | 7 |
-| 55 | Ротань | `rotan` | 20 г – 600 г | 90 г | 8–35 см | ставок 1.3, болото 1.3, калюжа 1.0, озеро 0.4, річка 0.2 | — |
-| 56 | Підуст | `nase` | 100 г – 1 кг | 400 г | 15–45 см | річка 1.3, озеро 0.1 | 2 |
-| 57 | Рибець | `vimba` | 200 г – 1.5 кг | 700 г | 20–50 см | річка 1.2, озеро 0.3, море 0.2 | 3 |
-| 58 | Корюшка | `smelt` | 20 г – 250 г | 60 г | 10–30 см | море 1.2, річка 0.3, озеро 0.2 | 1 |
-| 59 | Сиг | `whitefish` | 300 г – 4 кг | 1 кг | 25–70 см | озеро 1.3, річка 0.5, ставок 0.1 | 4 |
-| 60 | Палія арктична | `char` | 300 г – 6 кг | 1.2 кг | 25–85 см | озеро 1.1, річка 1.0, море 0.2, ставок 0.1 | 5 |
-| 61 | Ленок | `lenok` | 500 г – 6 кг | 1.5 кг | 30–90 см | річка 1.2, озеро 0.4 | 5 |
-| 62 | Таймень | `taimen` | 3 кг – 60 кг | 11 кг | 60–180 см | річка 1.3, озеро 0.4 | 8 |
-| 63 | Атлантичний лосось | `salmon` | 1.5 кг – 25 кг | 5 кг | 50–130 см | річка 1.1, море 1.0, озеро 0.2 | 6 |
-| 64 | Горбуша | `pink_salmon` | 800 г – 3.5 кг | 1.4 кг | 35–70 см | море 1.1, річка 1.0, озеро 0.1 | 3 |
-| 65 | Осетер | `sturgeon` | 5 кг – 150 кг | 22 кг | 80–250 см | річка 1.2, озеро 0.6, море 0.3 | 9 |
-| 66 | Палтус | `halibut` | 2 кг – 200 кг | 18 кг | 50–250 см | море 1.2 | 9 |
-| 67 | Ялець | `common_dace` | 20 г – 1 кг | 150 г | 15–40 см | річка 1.3, озеро 0.2 | — |
-| 68 | Берш | `volga_zander` | 100 г – 2 кг | 450 г | 20–40 см | річка 1.3, озеро 0.6 | 3 |
-| 69 | Клепець | `white_eye_bream` | 50 г – 1.3 кг | 300 г | 15–35 см | річка 1.3, озеро 0.3 | 2 |
-| 70 | Бичок-кругляк | `round_goby` | 10 г – 380 г | 100 г | 10–35 см | море 1.1, річка 1.0, озеро 0.6, ставок 0.2 | — |
+| 1 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/bream.png" width="28" alt=""> Лящ | `bream` | 300 г – 4 кг | 900 г | 25–55 см | озеро 1.1, річка 1.0, ставок 0.9, болото 0.4 | — |
+| 2 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/crucian_carp.png" width="28" alt=""> Карась | `crucian_carp` | 50 г – 1.5 кг | 250 г | 10–38 см | ставок 1.2, болото 1.1, озеро 1.0, річка 0.5, калюжа 0.3 | — |
+| 3 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/roach.png" width="28" alt=""> Плітка | `roach` | 50 г – 1 кг | 120 г | 10–40 см | річка 1.0, озеро 1.0, ставок 0.7, болото 0.4 | — |
+| 4 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/rudd.png" width="28" alt=""> Краснопірка | `rudd` | 50 г – 1 кг | 110 г | 10–40 см | озеро 1.1, болото 1.0, ставок 0.9, річка 0.6 | — |
+| 5 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/white_bream.png" width="28" alt=""> Плоскирка | `white_bream` | 100 г – 1.2 кг | 300 г | 12–35 см | річка 1.0, озеро 1.0, ставок 0.6, болото 0.3 | — |
+| 6 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp.png" width="28" alt=""> Короп | `carp` | 1 кг – 15 кг | 3.5 кг | 35–100 см | озеро 1.2, ставок 1.1, річка 0.6, болото 0.4 | 3 |
+| 7 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/catfish.png" width="28" alt=""> Сом | `catfish` | 2 кг – 120 кг | 7 кг | 60–260 см | річка 1.1, озеро 1.0, болото 0.3, ставок 0.2 | 6 |
+| 8 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/perch.png" width="28" alt=""> Окунь | `perch` | 50 г – 2 кг | 250 г | 10–45 см | озеро 1.1, річка 1.0, ставок 0.8, болото 0.5 | — |
+| 9 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/pike.png" width="28" alt=""> Щука | `pike` | 500 г – 10 кг | 2 кг | 35–120 см | озеро 1.1, річка 1.0, болото 0.7, ставок 0.6 | 4 |
+| 10 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/zander.png" width="28" alt=""> Судак | `zander` | 500 г – 6 кг | 1.5 кг | 35–90 см | річка 1.1, озеро 1.0, ставок 0.3, болото 0.2 | 4 |
+| 11 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/gudgeon.png" width="28" alt=""> Пічкур | `gudgeon` | 20 г – 150 г | 60 г | 8–20 см | річка 1.2, озеро 0.3, ставок 0.2 | — |
+| 12 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/ruffe.png" width="28" alt=""> Йорж | `ruffe` | 20 г – 150 г | 60 г | 8–20 см | озеро 1.1, річка 1.0, ставок 0.4, болото 0.2 | — |
+| 13 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/bleak.png" width="28" alt=""> Верховодка | `bleak` | 10 г – 100 г | 30 г | 6–18 см | річка 1.1, озеро 1.0, ставок 0.5 | — |
+| 14 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/ide.png" width="28" alt=""> В'язь | `ide` | 300 г – 3 кг | 800 г | 25–60 см | річка 1.2, озеро 0.7, ставок 0.2, болото 0.1 | 2 |
+| 15 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/chub.png" width="28" alt=""> Головень | `chub` | 200 г – 4 кг | 700 г | 20–60 см | річка 1.2 | 3 |
+| 16 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/asp.png" width="28" alt=""> Білизна | `asp` | 500 г – 8 кг | 2 кг | 30–90 см | річка 1.2 | 5 |
+| 17 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/tench.png" width="28" alt=""> Лин | `tench` | 300 г – 3.5 кг | 800 г | 20–60 см | ставок 1.2, болото 1.2, озеро 1.0, річка 0.2 | 2 |
+| 18 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/burbot.png" width="28" alt=""> Минь | `burbot` | 500 г – 8 кг | 1.5 кг | 30–100 см | річка 1.1, озеро 0.9, ставок 0.1 | 4 |
+| 19 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/eel.png" width="28" alt=""> Вугор | `eel` | 300 г – 4 кг | 900 г | 40–130 см | озеро 1.1, річка 0.9, ставок 0.6, болото 0.4 | 5 |
+| 20 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/grayling.png" width="28" alt=""> Харіус | `grayling` | 150 г – 2.5 кг | 500 г | 18–55 см | річка 1.3, озеро 0.4 | 3 |
+| 21 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/trout.png" width="28" alt=""> Форель | `trout` | 300 г – 5 кг | 1 кг | 25–80 см | річка 1.2, озеро 0.8, ставок 0.2 | 5 |
+| 22 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/sterlet.png" width="28" alt=""> Стерлядь | `sterlet` | 1 кг – 16 кг | 3 кг | 40–125 см | річка 1.2 | 8 |
+| 23 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/wild_carp.png" width="28" alt=""> Сазан | `wild_carp` | 1.5 кг – 18 кг | 4.2 кг | 40–110 см | річка 1.3, озеро 0.9, ставок 0.5, болото 0.3 | 4 |
+| 24 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/mirror_carp.png" width="28" alt=""> Дзеркальний короп | `mirror_carp` | 1 кг – 14 кг | 3.2 кг | 33–95 см | озеро 1.2, ставок 1.2, річка 0.5, болото 0.4 | 3 |
+| 25 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/grass_carp.png" width="28" alt=""> Білий амур | `grass_carp` | 1.5 кг – 25 кг | 5 кг | 40–120 см | озеро 1.3, ставок 1.2, річка 0.7, болото 0.6 | 4 |
+| 26 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_kohaku.png" width="28" alt=""> Кої Кохаку | `carp_koi_kohaku` | 800 г – 8 кг | 2.5 кг | 25–90 см | ставок 1.0, озеро 1.0, річка 0.4 | 3 |
+| 27 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_tancho_sanke.png" width="28" alt=""> Кої Танчо Санке | `carp_koi_tancho_sanke` | 800 г – 8 кг | 2.5 кг | 25–90 см | ставок 1.0, озеро 1.0, річка 0.4 | 3 |
+| 28 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_showa_sanke.png" width="28" alt=""> Кої Сьова Санке | `carp_koi_showa_sanke` | 800 г – 8 кг | 2.5 кг | 25–90 см | ставок 1.0, озеро 1.0, річка 0.4 | 3 |
+| 29 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_asagi.png" width="28" alt=""> Кої Асагі | `carp_koi_asagi` | 800 г – 8 кг | 2.5 кг | 25–90 см | ставок 1.0, озеро 1.0, річка 0.4 | 3 |
+| 30 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_bekko.png" width="28" alt=""> Кої Бекко | `carp_koi_bekko` | 800 г – 8 кг | 2.5 кг | 25–90 см | ставок 1.0, озеро 1.0, річка 0.4 | 3 |
+| 31 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/bluegill.png" width="28" alt=""> Блюгіл | `bluegill` | 40 г – 800 г | 150 г | 8–35 см | ставок 1.3, озеро 1.2, річка 0.6, болото 0.4 | — |
+| 32 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/largemouth_bass.png" width="28" alt=""> Великоротий бас | `largemouth_bass` | 400 г – 8 кг | 1.5 кг | 25–75 см | озеро 1.3, ставок 1.1, болото 0.8, річка 0.7 | 3 |
+| 33 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/rainbow_trout.png" width="28" alt=""> Райдужна форель | `rainbow_trout` | 300 г – 6 кг | 1.1 кг | 25–85 см | річка 1.3, озеро 0.9, ставок 0.2 | 4 |
+| 34 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/channel_catfish.png" width="28" alt=""> Канальний сомик | `channel_catfish` | 800 г – 18 кг | 3.5 кг | 35–110 см | річка 1.2, озеро 1.0, ставок 0.6, болото 0.5 | 5 |
+| 35 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/silver_carp.png" width="28" alt=""> Товстолобик | `silver_carp` | 2 кг – 25 кг | 6 кг | 50–120 см | озеро 1.3, ставок 0.9, річка 0.8, болото 0.2 | 6 |
+| 36 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/sabrefish.png" width="28" alt=""> Чехоня | `sabrefish` | 150 г – 1.5 кг | 400 г | 20–60 см | річка 1.3, озеро 0.8, ставок 0.1 | 2 |
+| 37 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/blue_bream.png" width="28" alt=""> Синець | `blue_bream` | 150 г – 800 г | 350 г | 15–45 см | річка 1.1, озеро 1.0, ставок 0.3, болото 0.2 | 2 |
+| 38 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/mackerel.png" width="28" alt=""> Скумбрія | `mackerel` | 300 г – 2 кг | 600 г | 25–60 см | море 1.2 | 4 |
+| 39 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/herring.png" width="28" alt=""> Оселедець | `herring` | 100 г – 600 г | 250 г | 15–40 см | море 1.3 | 4 |
+| 40 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/garfish.png" width="28" alt=""> Сарган | `garfish` | 300 г – 1.5 кг | 600 г | 40–95 см | море 1.1 | 4 |
+| 41 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/seabass.png" width="28" alt=""> Лаврак | `seabass` | 500 г – 8 кг | 1.5 кг | 30–90 см | море 1.2 | 5 |
+| 42 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/flounder.png" width="28" alt=""> Камбала | `flounder` | 300 г – 4 кг | 900 г | 20–60 см | море 1.2 | 4 |
+| 43 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/cod.png" width="28" alt=""> Тріска | `cod` | 2 кг – 40 кг | 6 кг | 50–150 см | море 1.2 | 6 |
+| 44 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/saithe.png" width="28" alt=""> Сайда | `saithe` | 1 кг – 15 кг | 3 кг | 40–110 см | море 1.1 | 5 |
+| 45 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/conger.png" width="28" alt=""> Морський вугор | `conger` | 3 кг – 60 кг | 9 кг | 80–250 см | море 1.1 | 7 |
+| 46 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/ray.png" width="28" alt=""> Скат | `ray` | 2 кг – 50 кг | 8 кг | 40–180 см | море 1.1 | 6 |
+| 47 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/mahi.png" width="28" alt=""> Махі-махі | `mahi` | 2 кг – 20 кг | 5 кг | 50–160 см | море 1.1 | 7 |
+| 48 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/wahoo.png" width="28" alt=""> Ваху | `wahoo` | 5 кг – 40 кг | 12 кг | 80–210 см | море 1.0 | 7 |
+| 49 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/yellowfin_tuna.png" width="28" alt=""> Жовтоперий тунець | `yellowfin_tuna` | 10 кг – 150 кг | 30 кг | 90–220 см | море 1.0 | 7 |
+| 50 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/barracuda.png" width="28" alt=""> Барракуда | `barracuda` | 2 кг – 20 кг | 6 кг | 60–180 см | море 1.1 | 6 |
+| 51 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/blue_marlin.png" width="28" alt=""> Синій марлін | `blue_marlin` | 50 кг – 400 кг | 110 кг | 200–450 см | море 1.0 | 7 |
+| 52 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/sailfish.png" width="28" alt=""> Вітрильник | `sailfish` | 20 кг – 80 кг | 35 кг | 150–320 см | море 1.0 | 7 |
+| 53 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/swordfish.png" width="28" alt=""> Риба-меч | `swordfish` | 30 кг – 300 кг | 80 кг | 150–400 см | море 1.0 | 7 |
+| 54 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/mako.png" width="28" alt=""> Акула-мако | `mako` | 20 кг – 200 кг | 60 кг | 150–380 см | море 1.0 | 7 |
+| 55 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/rotan.png" width="28" alt=""> Ротань | `rotan` | 20 г – 600 г | 90 г | 8–35 см | ставок 1.3, болото 1.3, калюжа 1.0, озеро 0.4, річка 0.2 | — |
+| 56 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/nase.png" width="28" alt=""> Підуст | `nase` | 100 г – 1 кг | 400 г | 15–45 см | річка 1.3, озеро 0.1 | 2 |
+| 57 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/vimba.png" width="28" alt=""> Рибець | `vimba` | 200 г – 1.5 кг | 700 г | 20–50 см | річка 1.2, озеро 0.3, море 0.2 | 3 |
+| 58 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/smelt.png" width="28" alt=""> Корюшка | `smelt` | 20 г – 250 г | 60 г | 10–30 см | море 1.2, річка 0.3, озеро 0.2 | 1 |
+| 59 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/whitefish.png" width="28" alt=""> Сиг | `whitefish` | 300 г – 4 кг | 1 кг | 25–70 см | озеро 1.3, річка 0.5, ставок 0.1 | 4 |
+| 60 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/char.png" width="28" alt=""> Палія арктична | `char` | 300 г – 6 кг | 1.2 кг | 25–85 см | озеро 1.1, річка 1.0, море 0.2, ставок 0.1 | 5 |
+| 61 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/lenok.png" width="28" alt=""> Ленок | `lenok` | 500 г – 6 кг | 1.5 кг | 30–90 см | річка 1.2, озеро 0.4 | 5 |
+| 62 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/taimen.png" width="28" alt=""> Таймень | `taimen` | 3 кг – 60 кг | 11 кг | 60–180 см | річка 1.3, озеро 0.4 | 8 |
+| 63 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/salmon.png" width="28" alt=""> Атлантичний лосось | `salmon` | 1.5 кг – 25 кг | 5 кг | 50–130 см | річка 1.1, море 1.0, озеро 0.2 | 6 |
+| 64 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/pink_salmon.png" width="28" alt=""> Горбуша | `pink_salmon` | 800 г – 3.5 кг | 1.4 кг | 35–70 см | море 1.1, річка 1.0, озеро 0.1 | 3 |
+| 65 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/sturgeon.png" width="28" alt=""> Осетер | `sturgeon` | 5 кг – 150 кг | 22 кг | 80–250 см | річка 1.2, озеро 0.6, море 0.3 | 9 |
+| 66 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/halibut.png" width="28" alt=""> Палтус | `halibut` | 2 кг – 200 кг | 18 кг | 50–250 см | море 1.2 | 9 |
+| 67 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/common_dace.png" width="28" alt=""> Ялець | `common_dace` | 20 г – 1 кг | 150 г | 15–40 см | річка 1.3, озеро 0.2 | — |
+| 68 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/volga_zander.png" width="28" alt=""> Берш | `volga_zander` | 100 г – 2 кг | 450 г | 20–40 см | річка 1.3, озеро 0.6 | 3 |
+| 69 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/white_eye_bream.png" width="28" alt=""> Клепець | `white_eye_bream` | 50 г – 1.3 кг | 300 г | 15–35 см | річка 1.3, озеро 0.3 | 2 |
+| 70 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/round_goby.png" width="28" alt=""> Бичок-кругляк | `round_goby` | 10 г – 380 г | 100 г | 10–35 см | море 1.1, річка 1.0, озеро 0.6, ставок 0.2 | — |
 
 ## Ідеальна снасть
 
-Збіглося — і вага поклівки різко йде вгору; що більша риба, то різкіше. Див. [коефіцієнт відповідності](fishing-mechanics.md#match-coefficient-m--your-tackle).
+Збіглося — і вага поклівки різко йде вгору; що більша риба, то різкіше. Див. [коефіцієнт відповідності](fishing-mechanics.md#коефіцієнт-відповідності-m--твоя-снасть).
 
 | Вид | Найкращі наживки (оцінка) | Ідеальні вудилища | Ідеальні оснастки | Гачок | Котушка | Волосінь | Прикормка | Повідець |
 |---|---|---|---|---|---|---|---|---|
@@ -181,7 +181,7 @@
 
 ### Легендарні екземпляри
 
-У семи видів захований один іменний екземпляр — один на весь сервер. Уся механіка — в [Механіці риболовлі](fishing-mechanics.md#legendary-fish).
+У семи видів захований один іменний екземпляр — один на весь сервер. Уся механіка — в [Механіці риболовлі](fishing-mechanics.md#легендарні-риби).
 
 | Вид | Ім'я | Вага | Шанс |
 |---|---|---|---|
