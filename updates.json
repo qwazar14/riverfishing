@@ -7,6 +7,24 @@
   },
   "changelog": [
     {
+      "version": "0.6.0",
+      "ru": [
+        "Снастевой станок: вяжи оснастки и приманки под нужный вес — вес решает и заброс, и размер рыбы",
+        "Удилище гнётся под нагрузкой, рыба устаёт, мелочь больше не воюет как монстр",
+        "Рыбак больше не рыбный рынок: 3 трейда на уровень, удочки только собранные, все катушки крафтятся"
+      ],
+      "uk": [
+        "Снастевий стіл: в'яжи оснастки й приманки під потрібну вагу — вага вирішує і закид, і розмір риби",
+        "Вудилище гнеться під навантаженням, риба втомлюється, дрібнота більше не воює як монстр",
+        "Рибак більше не рибний ринок: 3 обміни на рівень, вудки лише зібрані, усі котушки крафтяться"
+      ],
+      "en": [
+        "The Tackle Station: tie rigs and lures to a chosen weight — weight drives both the cast and the size of fish",
+        "The rod bends under load, fish tire out, and small fry stop fighting like monsters",
+        "The fisherman is no longer a fish market: 3 trades per level, rods sold assembled only, every reel craftable"
+      ]
+    },
+    {
       "version": "0.5.0",
       "ru": [
         "Морская рыбалка: океан, троллинг, big-game бои и 36 новых видов (всего 66)",
