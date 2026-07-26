@@ -32,6 +32,17 @@ import wiki_art
 
 SRC = "docs/wiki"
 
+# English lives at the root of docs/wiki; every other language mirrors the same filenames in a
+# subdirectory. All of them go into ONE page: the sprites and recipe grids are the bulk of the payload
+# and are shared, so a second language costs only its text (~120 KB against ~950 KB of art).
+LANGS = [("en", "English", ""), ("ru", "Русский", "ru"), ("uk", "Українська", "uk")]
+
+# Sidebar group headings per language. A missing language falls back to English.
+GROUP_LABELS = {
+    "ru": {"Start": "Начало", "Gear": "Снасть", "Playing": "Игра", "Reference": "Справочник"},
+    "uk": {"Start": "Початок", "Gear": "Снасть", "Playing": "Гра", "Reference": "Довідник"},
+}
+
 # Sidebar order and grouping, mirroring the wiki's own index.
 GROUPS = [
     ("", ["README"]),
@@ -320,6 +331,13 @@ aside{border-right:1px solid var(--rule);background:var(--raise);
   padding:7px 9px;background:var(--paper);color:var(--ink);
   border:1px solid var(--rule);border-radius:2px}
 .find:focus{outline:2px solid var(--brass);outline-offset:1px;border-color:var(--brass)}
+.lgs{display:flex;gap:1px;margin:0 20px 14px}
+.lg{flex:1;font-family:var(--sans);font-size:11px;letter-spacing:.04em;padding:5px 2px;
+  background:var(--paper);color:var(--dim);border:1px solid var(--rule);cursor:pointer}
+.lg[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:#12100E;
+  font-weight:700}
+.lg:hover:not([aria-pressed="true"]){color:var(--ink)}
+.lg:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 .grp{font-family:var(--sans);font-size:10px;text-transform:uppercase;letter-spacing:.15em;
   color:var(--faint);padding:16px 20px 5px}
 .nl{display:block;font-family:var(--sans);font-size:14px;padding:4px 20px 4px 17px;
@@ -395,9 +413,10 @@ __ART_CSS__
 <div class="wrap">
   <aside>
     <div class="brand"><b>River Fishing</b><span>Wiki &middot; 0.6.0 &middot; MC 1.21.1</span></div>
+    <div class="lgs" id="lgs" role="group" aria-label="Language">__SWITCH__</div>
     <input class="find" id="find" type="search" placeholder="Filter pages&hellip;"
            aria-label="Filter pages">
-    <nav id="nav">__NAV__</nav>
+    <div id="nav">__NAV__</div>
   </aside>
   <main>
     <article id="doc">__SECTIONS__</article>
@@ -406,24 +425,40 @@ __ART_CSS__
 </div>
 
 <script>
+// IX is keyed by language: { en: [pages…], ru: […], uk: […] }. The hash carries both, "#ru/rods",
+// so a language choice survives a reload and can be linked to directly.
 var IX = __INDEX__;
-var byId = {}; IX.forEach(function(p){ byId[p.id] = p; });
+var LANG = '__DEFAULT_LANG__';
+var TOC_TITLE = { en: 'On this page', ru: 'На этой странице', uk: 'На цій сторінці' };
 
-function show(pid, anchor){
-  if(!byId[pid]) pid = IX[0].id;
+function pagesOf(l){ return IX[l] || IX[LANG]; }
+function byId(l, pid){ return pagesOf(l).filter(function(p){ return p.id === pid; })[0]; }
+
+function show(lang, pid, anchor){
+  if(!IX[lang]) lang = LANG;
+  LANG = lang;
+  if(!byId(lang, pid)) pid = pagesOf(lang)[0].id;
+
   document.querySelectorAll('.pg').forEach(function(s){
-    s.hidden = (s.id !== 'pg-' + pid);
+    s.hidden = (s.id !== 'pg-' + lang + '-' + pid);
   });
-  document.querySelectorAll('.nl').forEach(function(a){
+  document.querySelectorAll('#nav nav').forEach(function(n){ n.hidden = n.dataset.l !== lang; });
+  document.querySelectorAll('.lg').forEach(function(b){
+    b.setAttribute('aria-pressed', b.dataset.l === lang ? 'true' : 'false');
+  });
+  document.documentElement.lang = lang;
+  document.querySelectorAll('#nav nav[data-l="' + lang + '"] .nl').forEach(function(a){
     if(a.dataset.p === pid) a.setAttribute('aria-current','page');
     else a.removeAttribute('aria-current');
   });
-  var p = byId[pid], t = document.getElementById('toc');
-  if(p.h.length){
-    t.innerHTML = '<b>On this page</b>' + p.h.map(function(h){
-      return '<a href="#' + h.a + '">' + h.t + '</a>';
-    }).join('');
-  } else { t.innerHTML = ''; }
+
+  var p = byId(lang, pid), t = document.getElementById('toc');
+  t.innerHTML = p.h.length
+    ? '<b>' + (TOC_TITLE[lang] || TOC_TITLE.en) + '</b>' + p.h.map(function(h){
+        return '<a href="#' + h.a + '">' + h.t + '</a>';
+      }).join('')
+    : '';
+
   if(anchor){
     var el = document.getElementById(anchor);
     if(el){ el.scrollIntoView(); return; }
@@ -433,10 +468,18 @@ function show(pid, anchor){
 
 function route(){
   var h = decodeURIComponent(location.hash.replace(/^#/,''));
-  if(!h){ show(IX[0].id); return; }
+  var lang = LANG;
+  var slash = h.indexOf('/');
+  if(slash > -1){
+    var want = h.slice(0,slash);
+    // Strip the prefix even when that language is not in this build, so a shared "#uk/rods" link
+    // still lands on the right PAGE in the default language instead of doing nothing.
+    if(/^[a-z]{2}$/.test(want)){ if(IX[want]) lang = want; h = h.slice(slash+1); }
+  }
+  if(!h){ show(lang, pagesOf(lang)[0].id); return; }
   var cut = h.indexOf('--');
-  if(cut > -1) show(h.slice(0,cut), h);
-  else if(byId[h]) show(h);
+  if(cut > -1) show(lang, h.slice(0,cut), h);
+  else if(byId(lang, h)) show(lang, h);
   else {
     var el = document.getElementById(h);
     if(el) el.scrollIntoView();
@@ -444,10 +487,19 @@ function route(){
 }
 window.addEventListener('hashchange', route);
 
+// Switching language keeps you on the same page, which is the whole point of a switcher.
+document.querySelectorAll('.lg').forEach(function(b){
+  b.addEventListener('click', function(){
+    var cur = document.querySelector('.pg:not([hidden])');
+    var pid = cur ? cur.id.replace('pg-' + LANG + '-', '') : pagesOf(b.dataset.l)[0].id;
+    location.hash = b.dataset.l + '/' + pid;
+  });
+});
+
 document.getElementById('find').addEventListener('input', function(e){
   var q = e.target.value.trim().toLowerCase();
-  document.querySelectorAll('.nl').forEach(function(a){
-    var p = byId[a.dataset.p];
+  document.querySelectorAll('#nav nav[data-l="' + LANG + '"] .nl').forEach(function(a){
+    var p = byId(LANG, a.dataset.p);
     var hay = (a.textContent + ' ' + p.h.map(function(h){return h.t;}).join(' ')).toLowerCase();
     a.classList.toggle('off', q !== '' && hay.indexOf(q) === -1);
   });
@@ -479,13 +531,6 @@ def main():
         else:
             print("  no --mc-jar: vanilla ingredients fall back to coloured tiles")
 
-        pages, order = {}, []
-        for _, ids in GROUPS:
-            for pid in ids:
-                p = Page(pid, io.open(os.path.join(SRC, pid + ".md"), encoding="utf-8").read())
-                pages[pid] = p
-                order.append(pid)
-
         craft_grids, craft_count = wiki_art.craft_html()
         FISH_NAMES = wiki_art.names()
         GEAR_NAMES = wiki_art.gear_names()
@@ -494,42 +539,76 @@ def main():
         FISH_CI = {k.lower(): v for k, v in FISH_NAMES.items()}
         GEAR_CI = {k.lower(): v for k, v in GEAR_NAMES.items()}
 
-        sections, nav_index = [], []
-        for pid in order:
-            p = pages[pid]
-            body = illustrate(convert(p))   # fish AND gear, wherever a cell is exactly an item name
-            if pid == "crafting":
-                body += "\n" + craft_grids
-                p.headings.append((2, "Recipe grids", "crafting--recipe-grids"))
-            sections.append('<section class="pg" id="pg-%s" hidden>%s</section>' % (pid, body))
-            nav_index.append({"id": pid, "title": p.title or pid,
-                              "h": [{"t": t, "a": a} for lvl, t, a in p.headings if lvl == 2]})
+        sections, navs, index, built = [], [], {}, []
+        for code, label, sub in LANGS:
+            root = os.path.join(SRC, sub) if sub else SRC
+            missing = [pid for _, ids in GROUPS for pid in ids
+                       if not os.path.exists(os.path.join(root, pid + ".md"))]
+            if missing:
+                # A language is either complete or absent — half a wiki is worse than none, and the
+                # switcher must never offer a tab that 404s half its pages.
+                print("  %-3s skipped: %d of %d pages not translated yet"
+                      % (code, len(missing), sum(len(i) for _, i in GROUPS)))
+                continue
 
-        nav = []
-        for label, ids in GROUPS:
-            if label:
-                nav.append('<div class="grp">%s</div>' % label)
-            for pid in ids:
-                nav.append('<a class="nl" href="#%s" data-p="%s">%s</a>'
-                           % (pid, pid, esc(pages[pid].title or pid)))
+            pages, order = {}, []
+            for _, ids in GROUPS:
+                for pid in ids:
+                    p = Page(pid, io.open(os.path.join(root, pid + ".md"), encoding="utf-8").read())
+                    pages[pid] = p
+                    order.append(pid)
+
+            idx = []
+            for pid in order:
+                p = pages[pid]
+                # The recipe grids and the item sprites are generated from the game's own files, so
+                # they are identical in every language — only the surrounding prose is translated.
+                body = illustrate(convert(p))
+                if pid == "crafting":
+                    body += "\n" + craft_grids
+                    p.headings.append((2, "Recipe grids", "crafting--recipe-grids"))
+                sections.append('<section class="pg" data-l="%s" id="pg-%s-%s" hidden>%s</section>'
+                                % (code, code, pid, body))
+                idx.append({"id": pid, "title": p.title or pid,
+                            "h": [{"t": t, "a": a} for lvl, t, a in p.headings if lvl == 2]})
+            index[code] = idx
+
+            nav = []
+            for grp, ids in GROUPS:
+                if grp:
+                    nav.append('<div class="grp">%s</div>'
+                               % esc(GROUP_LABELS.get(code, {}).get(grp, grp)))
+                for pid in ids:
+                    nav.append('<a class="nl" href="#%s/%s" data-p="%s">%s</a>'
+                               % (code, pid, pid, esc(pages[pid].title or pid)))
+            navs.append('<nav data-l="%s" hidden>%s</nav>' % (code, "\n".join(nav)))
+            built.append((code, label))
+            print("  %-3s %d pages" % (code, len(order)))
+
+        if not built:
+            ap.error("no complete language found under %s" % SRC)
+
+        switch = "".join('<button class="lg" data-l="%s">%s</button>' % (c, esc(l)) for c, l in built)
 
         doc = (TPL.replace("__ART_CSS__", "\n".join([wiki_art.CSS, wiki_art.fish_css(FISH64),
                                                      wiki_art.gear_css(), wiki_art.mc_css()]))
-                  .replace("__NAV__", "\n".join(nav))
+                  .replace("__SWITCH__", switch)
+                  .replace("__NAV__", "\n".join(navs))
                   .replace("__SECTIONS__", "\n".join(sections))
-                  .replace("__INDEX__", json.dumps(nav_index, ensure_ascii=False)))
+                  .replace("__DEFAULT_LANG__", built[0][0])
+                  .replace("__INDEX__", json.dumps(index, ensure_ascii=False)))
 
         out_dir = os.path.dirname(os.path.abspath(args.out))
         if out_dir:
             os.makedirs(out_dir, exist_ok=True)
         io.open(args.out, "w", encoding="utf-8", newline="\n").write(doc)
 
-        print("pages=%d headings=%d grids=%d\n"
+        print("langs=%s  sections=%d  grids=%d\n"
               "  fish  %3d refs / %d sprites\n"
               "  gear  %3d refs / %d sprites\n"
               "  mc    %3d sprites, %d coloured tiles left\n"
               "  -> %s (%.0f KB)"
-              % (len(order), sum(len(p.headings) for p in pages.values()), craft_count,
+              % ("+".join(c for c, _ in built), len(sections), craft_count,
                  doc.count('class="fs f-'), len(wiki_art._used_fish),
                  doc.count('class="fs g-'), len(wiki_art._gear_used),
                  len(wiki_art._mc_used), doc.count('class="ct"'),
