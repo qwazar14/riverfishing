@@ -79,6 +79,26 @@ Both require permission level 2. See [Progression](progression.md#operator-comma
 
 ---
 
+## Reading this offline
+
+These pages are plain Markdown — GitHub and any editor render them as they are, and the species
+table carries its sprites inline.
+
+There is also a **single-page build** with everything in one file: a sidebar, a filter box, and every
+crafting recipe drawn as a real 3×3 grid rather than written out as a pattern string. Build it from
+the repo root:
+
+```
+python tools/gen_wiki_bundle.py --out build/wiki.html
+python tools/gen_wiki_bundle.py --out build/wiki.html --mc-jar <a Minecraft client jar>
+```
+
+The grids are generated from the recipe JSON, so they cannot drift from what the game loads. Passing
+`--mc-jar` makes vanilla ingredients show their real icons, read out of that jar at build time;
+without it they render as labelled colour tiles and everything still works. Nothing from the jar is
+stored in this repository — Mojang's art is not ours to redistribute — which is why the built page is
+not committed either.
+
 ## For pack makers
 
 Every species is one JSON file at `data/riverfishing/fish_profiles/<species>.json`, and **all of it is datapack-overridable** — where a fish lives, what it eats, how it fights, how rare it is, what level it needs. The bite engine, the journal pages, the JEI entries and the villager gating all read the same file, so your changes stay consistent everywhere.

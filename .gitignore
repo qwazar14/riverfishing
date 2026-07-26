@@ -31,3 +31,6 @@ Thumbs.db
 # Files from Forge MDK
 forge*changelog.txt
 reference/
+
+# python bytecode from the tools/ generators
+__pycache__/
