@@ -94,13 +94,19 @@ def check(locale, en):
                 and any(c.isalpha() for c in re.sub(r"%(?:\d+\$)?[A-Za-z%]", "", a)):
             warns.append("%s: identical to the English — untranslated?" % k)
 
-    # A species is named twice — on the fish and on the item you hold. They must not disagree.
+    # A species is named twice — on the fish and on the item you hold. They must not disagree, and the
+    # item name must EXIST: grass_carp shipped for three releases with a fish. key and no item. key, so
+    # the journal read fine while a caught white amur showed the raw translation key in the inventory.
+    # Only comparing the two when both are present is what let that through.
     for k in tr:
         if not k.startswith("fish.riverfishing."):
             continue
-        ik = "item.riverfishing." + k.rsplit(".", 1)[1]
-        if ik in tr and tr[ik] != tr[k]:
-            errs.append("%s: the item is called %r but the species %r" % (k.rsplit(".", 1)[1], tr[ik], tr[k]))
+        sp = k.rsplit(".", 1)[1]
+        ik = "item.riverfishing." + sp
+        if ik not in tr:
+            errs.append("%s: has a species name but NO item name — a caught one shows %r" % (sp, ik))
+        elif tr[ik] != tr[k]:
+            errs.append("%s: the item is called %r but the species %r" % (sp, tr[ik], tr[k]))
 
     print("%s: %d keys, %d errors, %d warnings" % (locale, len(tr), len(errs), len(warns)))
     for e in errs:
@@ -110,8 +116,27 @@ def check(locale, en):
     return len(errs)
 
 
+def check_reference(en):
+    """en_us is the yardstick every other locale is measured against, so nothing ever measured IT.
+    That is precisely how grass_carp shipped with no item name in any language for three releases:
+    the key was absent from the reference, so "missing vs en_us" could never fire. Rules that stand
+    on their own — not comparisons — belong here."""
+    errs = []
+    for k in en:
+        if not k.startswith("fish.riverfishing."):
+            continue
+        sp = k.rsplit(".", 1)[1]
+        if "item.riverfishing." + sp not in en:
+            errs.append("%s: has a species name but NO item name — a caught one shows the raw key" % sp)
+    print("en_us: %d keys, %d errors (reference self-check)" % (len(en), len(errs)))
+    for e in errs:
+        print("  ERROR " + e)
+    return len(errs)
+
+
 if __name__ == "__main__":
     en = json.load(io.open(os.path.join(LANGDIR, "en_us.json"), encoding="utf-8"))
     todo = sys.argv[1:] or sorted(f[:-5] for f in os.listdir(LANGDIR)
                                   if f.endswith(".json") and f != "en_us.json")
-    sys.exit(min(1, sum(check(l, en) for l in todo)))
+    bad = check_reference(en) + sum(check(l, en) for l in todo)
+    sys.exit(min(1, bad))
