@@ -38,7 +38,7 @@ Fish finder — biting here right now:
 Bream, Roach, Perch, Pike, Rudd, Gudgeon, Bleak, Tench
 Known for: Tench
 Stock: Bream 180%, Mako shark 45% (temp)
-Pressure: 1004 hPa ↓  —  frenzy
+Pressure: 1004 hPa ↓  —  bite: frenzy
 ```
 
 | Line | Meaning |
@@ -156,11 +156,11 @@ You can also gather Live Bait passively from a [Bait Trap](blocks.md#bait-trap).
 
 | Bait | Source |
 |---|---|
-| Worm | Dig dirt / grass / coarse dirt / podzol / rooted dirt / farmland / dirt path / mud **with a shovel** — 10 % |
+| Worm | Dig dirt / grass block / coarse dirt / podzol / rooted dirt / farmland / dirt path / mud **with a shovel** — 10 % |
 | Maggot | Zombie drops — 33 % |
 | Bloodworm | Drowned drops — 33 % |
 | Chicken Liver | Chicken drops — 25 % |
-| Corn / Pea Seeds / Barley Seeds | Grass and tall grass — 5 % each |
+| Corn Seeds / Pea Seeds / Barley Seeds | Grass and tall grass (the plants) — 5 % each |
 
 All of these are loot-table injections, so they behave identically on both loaders. Bait can also be farmed ([Worm Farm](blocks.md#worm-farm), [Maggot Farm](blocks.md#maggot-farm), [bait crops](blocks.md#bait-crops)) or bought from the fisherman.
 

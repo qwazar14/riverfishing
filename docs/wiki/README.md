@@ -2,12 +2,15 @@
 
 **River Fishing** turns fishing into a process instead of a click on the water. You assemble a rod from a blank, a reel, a line and a rig; you match bait, hook size, groundbait and leader to the fish you actually want; you read the water, the season, the hour and the barometer; and then you fight what takes.
 
-Nothing bites by luck. A data-driven bite engine weighs your whole setup against every one of **70 species** under the current conditions, and decides both *what* takes and *how long you wait*. Mismatched gear catches nothing, a line that is too visible spooks small wary fish, big fish demand a near-perfect kit, and every water in the world holds its own species community fixed by the world seed.
+Nothing bites by luck. A data-driven bite engine weighs your whole setup against every one of **79 species** under the current conditions, and decides both *what* takes and *how long you wait*. Mismatched gear catches nothing, a line that is too visible spooks small wary fish, big fish demand a near-perfect kit, and every water in the world holds its own species community fixed by the world seed.
 
-- **Minecraft** 1.21.1 · **Fabric** and **NeoForge** (Architectury) · **version 0.6.0**
+- **Minecraft** 1.21.1 · **Fabric** and **NeoForge** (Architectury) · **version 0.6.1**
 - **Required:** [Architectury API](https://www.curseforge.com/minecraft/mc-mods/architectury-api); on Fabric also Fabric API
 - **Recommended:** Serene Seasons (unlocks the seasonal bite), Biomes O' Plenty (richer habitat model)
 - **Also integrates with:** Farmer's Delight, Jade, JEI
+- **Discord:** [discord.gg/Kk2nKvsuRh](https://discord.gg/Kk2nKvsuRh) — questions, bug reports, catches
+- **This wiki also in:** [русском](../ru/README.md) · [українською](../uk/README.md)
+- **Online, all three languages in one page:** [qwazar14.github.io/riverfishing](https://qwazar14.github.io/riverfishing/)
 
 ---
 
@@ -43,7 +46,7 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 
 | Page | What's in it |
 |---|---|
-| [Species](species.md) | All 70 species: sizes, home waters, level gates, best baits, ideal tackle, plus notes on the unusual ones |
+| [Species](species.md) | All 79 species: sizes, home waters, level gates, best baits, ideal tackle, plus notes on the unusual ones |
 | [Species reference](species-reference.md) | Habitat gates, season / time / weather tables, fight statistics |
 | [Progression](progression.md) | Angler XP, levels and ranks, the skill tree, the 8-stage quest chain, all 22 advancements, the journal |
 | [Villager](villager.md) | The Fisherman, the Fishing Stall, all five trade tiers, the prime-fish rule, the dynamic market |
@@ -78,6 +81,27 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 Both require permission level 2. See [Progression](progression.md#operator-commands).
 
 ---
+
+## Reading this offline
+
+These pages are plain Markdown — GitHub and any editor render them as they are, and the species
+table carries its sprites inline.
+
+There is also a **single-page build** with everything in one file: a sidebar, a filter box, and every
+crafting recipe drawn as a real 3×3 grid rather than written out as a pattern string. Build it from
+the repo root:
+
+```
+python tools/gen_wiki_bundle.py --out build/wiki.html
+python tools/gen_wiki_bundle.py --out build/wiki.html --mc-jar <a Minecraft client jar>
+```
+
+The grids are generated from the recipe JSON, so they cannot drift from what the game loads. Passing
+`--mc-jar` makes vanilla ingredients show their real icons, read out of that jar at build time;
+without it they render as labelled colour tiles and everything still works. Nothing from the jar is
+stored in this repository — Mojang's art is not ours to redistribute — which is why the built page is
+not committed to a source branch. The published copy lives on the generated `gh-pages` branch, put
+there by `tools/publish_pages.py`.
 
 ## For pack makers
 
