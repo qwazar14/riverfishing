@@ -118,8 +118,13 @@ public class FishingSession {
     public int bycatch;            // Â§bycatch-intrigue: 0 = fish, 1 = junk, 2 = treasure (short heavy fight)
     public boolean finalSurgeDone; // the guaranteed last dash at the bank has fired
     public int lineColor = 0xFFE8E4D0; // in-hand line render colour, from the line type (Â§immersion)
-    /** The exact rod stack the cast was made with; switching hotbar slots ends the session. */
+    /** The exact rod stack the cast was made with; also the rig source for pods, which fish with no
+     *  rod in hand. NEVER compare this by ==: the slot can be rewritten with an equal-but-different
+     *  object and the reference goes stale (§session-guard). */
     public net.minecraft.world.item.ItemStack rodStackRef = net.minecraft.world.item.ItemStack.EMPTY;
+    /** Hotbar slot the cast was made from, or -1 for off-hand/pod. This is what "still the same rod"
+     *  actually means — an index survives the stack object being replaced. */
+    public int rodSlot = -1;
 
     // §big-game greyhounding (0.5.0): reeling inside this window throws the hook — give slack.
     public long jumpWindowEnd;
