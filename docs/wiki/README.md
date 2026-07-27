@@ -2,7 +2,7 @@
 
 **River Fishing** turns fishing into a process instead of a click on the water. You assemble a rod from a blank, a reel, a line and a rig; you match bait, hook size, groundbait and leader to the fish you actually want; you read the water, the season, the hour and the barometer; and then you fight what takes.
 
-Nothing bites by luck. A data-driven bite engine weighs your whole setup against every one of **70 species** under the current conditions, and decides both *what* takes and *how long you wait*. Mismatched gear catches nothing, a line that is too visible spooks small wary fish, big fish demand a near-perfect kit, and every water in the world holds its own species community fixed by the world seed.
+Nothing bites by luck. A data-driven bite engine weighs your whole setup against every one of **79 species** under the current conditions, and decides both *what* takes and *how long you wait*. Mismatched gear catches nothing, a line that is too visible spooks small wary fish, big fish demand a near-perfect kit, and every water in the world holds its own species community fixed by the world seed.
 
 - **Minecraft** 1.21.1 · **Fabric** and **NeoForge** (Architectury) · **version 0.6.1**
 - **Required:** [Architectury API](https://www.curseforge.com/minecraft/mc-mods/architectury-api); on Fabric also Fabric API
@@ -46,7 +46,7 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 
 | Page | What's in it |
 |---|---|
-| [Species](species.md) | All 70 species: sizes, home waters, level gates, best baits, ideal tackle, plus notes on the unusual ones |
+| [Species](species.md) | All 79 species: sizes, home waters, level gates, best baits, ideal tackle, plus notes on the unusual ones |
 | [Species reference](species-reference.md) | Habitat gates, season / time / weather tables, fight statistics |
 | [Progression](progression.md) | Angler XP, levels and ranks, the skill tree, the 8-stage quest chain, all 22 advancements, the journal |
 | [Villager](villager.md) | The Fisherman, the Fishing Stall, all five trade tiers, the prime-fish rule, the dynamic market |

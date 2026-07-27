@@ -20,7 +20,7 @@ Nothing bites by luck. This page is the full model: how the engine decides *what
 
 ## The bite engine
 
-For every one of the 70 species, the engine computes an attractiveness weight **W**. Species with W above zero go into a weighted lottery for *which* fish bites; the **sum** of all their weights decides *how long you wait*.
+For every one of the 79 species, the engine computes an attractiveness weight **W**. Species with W above zero go into a weighted lottery for *which* fish bites; the **sum** of all their weights decides *how long you wait*.
 
 ### Match coefficient M — your tackle
 

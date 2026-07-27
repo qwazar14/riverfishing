@@ -1,6 +1,6 @@
 # Виды рыб
 
-Семьдесят видов. Каждое число на этой странице взято из профиля этого вида в `data/riverfishing/fish_profiles/`, а профиль полностью переопределяется датапаком — схема описана в [`docs/FISH_PROFILES.md`](../../FISH_PROFILES.md).
+Семьдесят девять видов. Каждое число на этой странице взято из профиля этого вида в `data/riverfishing/fish_profiles/`, а профиль полностью переопределяется датапаком — схема описана в [`docs/FISH_PROFILES.md`](../../FISH_PROFILES.md).
 
 Парная страница: **[Справочник по видам](species-reference.md)** — там жёсткие условия обитания, таблицы сезона / времени / погоды и статистика вываживания.
 
@@ -86,6 +86,15 @@
 | 68 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/volga_zander.png" width="28" alt=""> Берш | `volga_zander` | 100 г – 2 кг | 450 г | 20–40 см | река 1.3, озеро 0.6 | 3 |
 | 69 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/white_eye_bream.png" width="28" alt=""> Белоглазка | `white_eye_bream` | 50 г – 1.3 кг | 300 г | 15–35 см | река 1.3, озеро 0.3 | 2 |
 | 70 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/round_goby.png" width="28" alt=""> Бычок-кругляк | `round_goby` | 10 г – 380 г | 100 г | 10–35 см | море 1.1, река 1.0, озеро 0.6, пруд 0.2 | — |
+| 71 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/bluefish.png" width="28" alt=""> Луфарь | `bluefish` | 400 г – 14 кг | 2 кг | 30–110 см | море 1.2 | 6 |
+| 72 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/bullseye_snakehead.png" width="28" alt=""> Глазчатый змееголов | `bullseye_snakehead` | 400 г – 8 кг | 1.5 кг | 30–90 см | озеро 1.2, пруд 1.1, река 1, болото 0.9 | 5 |
+| 73 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/jack_crevalle.png" width="28" alt=""> Каранкс | `jack_crevalle` | 800 г – 30 кг | 4.5 кг | 35–120 см | море 1.2, река 0.5, болото 0.3 | 7 |
+| 74 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/mayan_cichlid.png" width="28" alt=""> Цихлазома майя | `mayan_cichlid` | 80 г – 1.2 кг | 300 г | 12–35 см | озеро 1.2, пруд 1.1, река 1, болото 0.9 | 3 |
+| 75 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/oscar.png" width="28" alt=""> Астронотус | `oscar` | 150 г – 1.6 кг | 450 г | 15–40 см | озеро 1.2, пруд 1.1, река 1, болото 0.9 | 3 |
+| 76 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/peacock_bass.png" width="28" alt=""> Павлиний окунь | `peacock_bass` | 300 г – 12 кг | 1.8 кг | 25–75 см | озеро 1.2, пруд 1.1, река 1, болото 0.9 | 5 |
+| 77 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/snook.png" width="28" alt=""> Снук | `snook` | 700 г – 25 кг | 3.5 кг | 35–140 см | море 1.2, река 0.5, болото 0.3 | 7 |
+| 78 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/striped_bass.png" width="28" alt=""> Полосатый лаврак | `striped_bass` | 500 г – 35 кг | 4 кг | 30–130 см | море 1.2, река 0.5, болото 0.3 | 6 |
+| 79 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/tarpon.png" width="28" alt=""> Тарпон | `tarpon` | 5 кг – 130 кг | 30 кг | 90–250 см | море 1.2, река 0.5, болото 0.3 | 9 |
 
 ## Идеальная снасть
 
@@ -163,6 +172,15 @@
 | Берш | silicone 1.0, jig 0.95, livebait 0.9, worm 0.7, crankbait 0.6, wobbler 0.55 | spinning, ultralight | predator | №6 ±2 | 2000 ±1000 | braid 0.1 ±0.04 | — | — |
 | Белоглазка | worm 1.0, maggot 0.95, bloodworm 0.85, pearl_barley 0.5, corn 0.4 | bottom, feeder | feeder, float | №12 ±3 | 3500 ±1500 | mono 0.18 ±0.05 | grain, powder | — |
 | Бычок-кругляк | worm 1.0, fish_strip 0.9, bloodworm 0.7, maggot 0.6, silicone 0.5 | bottom, feeder, ultralight | feeder, primitive | №8 ±3 | 3000 ±2000 | mono 0.2 ±0.06 | — | — |
+| Павлиний окунь | wobbler 1.2, popper 1.15, crankbait 1, silicone 0.95, spinner 0.9, livebait 0.85, jig 0.8 | spinning, ultralight | predator | №4 ±3 | 3000 ±1000 | braid 0.2 ±0.05 | — | — |
+| Глазчатый змееголов | livebait 1.2, silicone 1.05, popper 1, wobbler 0.95, jig 0.85, worm 0.6 | spinning | predator | №2 ±3 | 3000 ±1000 | braid 0.22 ±0.06 | — | — |
+| Цихлазома майя | worm 1.2, bloodworm 1, maggot 1, silicone 0.8, bread 0.7 | pole, ultralight | float, predator | №10 ±3 | 1500 ±1000 | mono 0.14 ±0.04 | — | — |
+| Астронотус | worm 1.2, livebait 1.1, maggot 0.9, silicone 0.9, jig 0.8 | spinning, ultralight | float, predator | №8 ±3 | 2000 ±1000 | mono 0.16 ±0.04 | — | — |
+| Полосатый лаврак | livebait 1.2, fish_strip 1.1, wobbler 1, silicone 0.95, spoon 0.9, jig 0.85 | boat, sea_spin, surf | ground, predator | №2 ±2 | 7000 ±2000 | braid 0.3 ±0.08 | — | — |
+| Луфарь | spoon 1.2, castmaster 1.15, fish_strip 1.1, wobbler 1, livebait 0.9, silicone 0.9 | boat, sea_spin, surf | predator | №2 ±2 | 6000 ±2000 | braid 0.28 ±0.07 | — | **yes** |
+| Каранкс | popper 1.25, castmaster 1.1, spoon 1.1, livebait 1, silicone 1, wobbler 0.95 | boat, sea_spin, surf | predator | №1 ±2 | 8000 ±2000 | braid 0.35 ±0.08 | — | — |
+| Тарпон | livebait 1.3, fish_strip 1.1, popper 1, silicone 1, jig 0.9 | boat, sea_spin, surf | catfish, predator | №1 ±2 | 10000 ±3000 | braid 0.45 ±0.1 | — | — |
+| Снук | livebait 1.25, silicone 1.1, wobbler 1.05, popper 1, jig 0.9, fish_strip 0.85 | sea_spin, spinning, surf | predator | №2 ±2 | 6000 ±2000 | braid 0.3 ±0.08 | — | — |
 
 ## Заметки по видам
 
@@ -192,8 +210,9 @@
 | Голубой марлин | Левиафан | 380 кг | 0.8 % |
 | Осётр | Царь-рыба | 145 кг | 0.4 % |
 | Акула-мако | Мегалодон | 390 кг | 0.4 % |
+| Палтус | Демон Бездны | 250 кг | 0.4 % |
 
-Три из них **тяжелее обычного максимума своего вида**: щука (14 кг против потолка в 10 кг), сом (150 кг против 120 кг) и особенно мако (390 кг против 200 кг). Легендарная рыба и правда выходит за тот размер, до которого иначе не добраться.
+Четыре из них **тяжелее обычного максимума своего вида**: щука (14 кг против потолка в 10 кг), сом (150 кг против 120 кг), палтус (250 кг против 200 кг) и особенно мако (390 кг против 200 кг). Легендарная рыба и правда выходит за тот размер, до которого иначе не добраться.
 
 ### Необычные профили
 

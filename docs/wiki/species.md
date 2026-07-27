@@ -1,6 +1,6 @@
 # Species
 
-Seventy species. Every number on this page comes from that species' profile in `data/riverfishing/fish_profiles/`, which is fully datapack-overridable — see [`docs/FISH_PROFILES.md`](../FISH_PROFILES.md) for the schema.
+Seventy-nine species. Every number on this page comes from that species' profile in `data/riverfishing/fish_profiles/`, which is fully datapack-overridable — see [`docs/FISH_PROFILES.md`](../FISH_PROFILES.md) for the schema.
 
 Companion page: **[Species reference](species-reference.md)** holds the habitat gates, the season / time / weather tables and the fight statistics.
 
@@ -86,6 +86,15 @@ Companion page: **[Species reference](species-reference.md)** holds the habitat 
 | 68 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/volga_zander.png" width="28" alt=""> Volga zander | `volga_zander` | 100 g – 2 kg | 450 g | 20–40 cm | river 1.3, lake 0.6 | 3 |
 | 69 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/white_eye_bream.png" width="28" alt=""> White-eye bream | `white_eye_bream` | 50 g – 1.3 kg | 300 g | 15–35 cm | river 1.3, lake 0.3 | 2 |
 | 70 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/round_goby.png" width="28" alt=""> Round goby | `round_goby` | 10 g – 380 g | 100 g | 10–35 cm | sea 1.1, river 1.0, lake 0.6, pond 0.2 | — |
+| 71 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/bluefish.png" width="28" alt=""> Bluefish | `bluefish` | 400 g – 14 kg | 2 kg | 30–110 cm | sea 1.2 | 6 |
+| 72 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/bullseye_snakehead.png" width="28" alt=""> Bullseye snakehead | `bullseye_snakehead` | 400 g – 8 kg | 1.5 kg | 30–90 cm | lake 1.2, pond 1.1, river 1, swamp 0.9 | 5 |
+| 73 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/jack_crevalle.png" width="28" alt=""> Jack crevalle | `jack_crevalle` | 800 g – 30 kg | 4.5 kg | 35–120 cm | sea 1.2, river 0.5, swamp 0.3 | 7 |
+| 74 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/mayan_cichlid.png" width="28" alt=""> Mayan cichlid | `mayan_cichlid` | 80 g – 1.2 kg | 300 g | 12–35 cm | lake 1.2, pond 1.1, river 1, swamp 0.9 | 3 |
+| 75 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/oscar.png" width="28" alt=""> Oscar | `oscar` | 150 g – 1.6 kg | 450 g | 15–40 cm | lake 1.2, pond 1.1, river 1, swamp 0.9 | 3 |
+| 76 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/peacock_bass.png" width="28" alt=""> Peacock bass | `peacock_bass` | 300 g – 12 kg | 1.8 kg | 25–75 cm | lake 1.2, pond 1.1, river 1, swamp 0.9 | 5 |
+| 77 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/snook.png" width="28" alt=""> Snook | `snook` | 700 g – 25 kg | 3.5 kg | 35–140 cm | sea 1.2, river 0.5, swamp 0.3 | 7 |
+| 78 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/striped_bass.png" width="28" alt=""> Striped bass | `striped_bass` | 500 g – 35 kg | 4 kg | 30–130 cm | sea 1.2, river 0.5, swamp 0.3 | 6 |
+| 79 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/tarpon.png" width="28" alt=""> Tarpon | `tarpon` | 5 kg – 130 kg | 30 kg | 90–250 cm | sea 1.2, river 0.5, swamp 0.3 | 9 |
 
 ## Ideal tackle
 
@@ -163,6 +172,15 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Volga zander | silicone 1.0, jig 0.95, livebait 0.9, worm 0.7, crankbait 0.6, wobbler 0.55 | spinning, ultralight | predator | No.6 ±2 | 2000 ±1000 | braid 0.1 ±0.04 | — | — |
 | White-eye bream | worm 1.0, maggot 0.95, bloodworm 0.85, pearl_barley 0.5, corn 0.4 | bottom, feeder | feeder, float | No.12 ±3 | 3500 ±1500 | mono 0.18 ±0.05 | grain, powder | — |
 | Round goby | worm 1.0, fish_strip 0.9, bloodworm 0.7, maggot 0.6, silicone 0.5 | bottom, feeder, ultralight | feeder, primitive | No.8 ±3 | 3000 ±2000 | mono 0.2 ±0.06 | — | — |
+| Peacock bass | wobbler 1.2, popper 1.15, crankbait 1, silicone 0.95, spinner 0.9, livebait 0.85, jig 0.8 | spinning, ultralight | predator | No.4 ±3 | 3000 ±1000 | braid 0.2 ±0.05 | — | — |
+| Bullseye snakehead | livebait 1.2, silicone 1.05, popper 1, wobbler 0.95, jig 0.85, worm 0.6 | spinning | predator | No.2 ±3 | 3000 ±1000 | braid 0.22 ±0.06 | — | — |
+| Mayan cichlid | worm 1.2, bloodworm 1, maggot 1, silicone 0.8, bread 0.7 | pole, ultralight | float, predator | No.10 ±3 | 1500 ±1000 | mono 0.14 ±0.04 | — | — |
+| Oscar | worm 1.2, livebait 1.1, maggot 0.9, silicone 0.9, jig 0.8 | spinning, ultralight | float, predator | No.8 ±3 | 2000 ±1000 | mono 0.16 ±0.04 | — | — |
+| Striped bass | livebait 1.2, fish_strip 1.1, wobbler 1, silicone 0.95, spoon 0.9, jig 0.85 | boat, sea_spin, surf | ground, predator | No.2 ±2 | 7000 ±2000 | braid 0.3 ±0.08 | — | — |
+| Bluefish | spoon 1.2, castmaster 1.15, fish_strip 1.1, wobbler 1, livebait 0.9, silicone 0.9 | boat, sea_spin, surf | predator | No.2 ±2 | 6000 ±2000 | braid 0.28 ±0.07 | — | **yes** |
+| Jack crevalle | popper 1.25, castmaster 1.1, spoon 1.1, livebait 1, silicone 1, wobbler 0.95 | boat, sea_spin, surf | predator | No.1 ±2 | 8000 ±2000 | braid 0.35 ±0.08 | — | — |
+| Tarpon | livebait 1.3, fish_strip 1.1, popper 1, silicone 1, jig 0.9 | boat, sea_spin, surf | catfish, predator | No.1 ±2 | 10000 ±3000 | braid 0.45 ±0.1 | — | — |
+| Snook | livebait 1.25, silicone 1.1, wobbler 1.05, popper 1, jig 0.9, fish_strip 0.85 | sea_spin, spinning, surf | predator | No.2 ±2 | 6000 ±2000 | braid 0.3 ±0.08 | — | — |
 
 ## Per-species notes
 
@@ -192,8 +210,9 @@ Seven species hide one named, one-per-server specimen. Full mechanics in [Fishin
 | Blue marlin | The Leviathan | 380 kg | 0.8 % |
 | Sturgeon | The Tsar-Fish | 145 kg | 0.4 % |
 | Mako shark | The Megalodon | 390 kg | 0.4 % |
+| Halibut | The Abyssal Demon | 250 kg | 0.4 % |
 
-Three of these are **heavier than their species' normal maximum**: the pike (14 kg vs a 10 kg ceiling), the catfish (150 kg vs 120 kg) and especially the mako (390 kg vs 200 kg). A legendary is genuinely outside the size range you can otherwise reach.
+Four of these are **heavier than their species' normal maximum**: the pike (14 kg vs a 10 kg ceiling), the catfish (150 kg vs 120 kg), the halibut (250 kg vs 200 kg) and especially the mako (390 kg vs 200 kg). A legendary is genuinely outside the size range you can otherwise reach.
 
 ### Unusual profiles
 

@@ -100,6 +100,8 @@ SPECIES = {
         rod=["sea_spin", "surf", "boat"], reel=6000, reel_tol=2000,
         line=("braid", 0.28, 0.07), rig=["predator"],
         bait={"spoon": 1.2, "castmaster": 1.15, "fish_strip": 1.1, "wobbler": 1.0, "silicone": 0.9, "livebait": 0.9},
+        # A mouthful of teeth that goes through mono — the same class as pike, barracuda and wahoo.
+        leader=True,
         hook=(2, 2), season=(1.0, 1.2, 1.3, 0.4), time=(1.3, 0.9, 1.3, 0.8),
         weather=(1.0, 1.1, 1.1), depth="mid", dist=(10, 50),
         habitat=dict(depth_min=2, width_min=14),
@@ -163,6 +165,7 @@ def profile(s):
             "reel_size": s["reel"], "reel_tolerance": s["reel_tol"],
             "line": {"type": lt, "diameter_mm": ld, "tolerance_mm": ltol},
             "rig": s["rig"], "groundbait": [],
+            **({"requires_leader": True} if s.get("leader") else {}),
             "bait": s["bait"],
             "hook": {"ideal": hi, "tolerance": htol},
         },

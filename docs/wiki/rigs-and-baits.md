@@ -104,7 +104,7 @@ bait presented at the species' preferred depth : bite weight ×1.3
 wrong horizon                                  : bite weight ×0.55
 ```
 
-Every species has a `depth_pref`. Across the 70 species: 33 are **bottom**, 28 **mid**, 9 **surface**.
+Every species has a `depth_pref`. Across the 79 species: 33 are **bottom**, 28 **mid**, 9 **surface**.
 
 ## Natural baits
 
