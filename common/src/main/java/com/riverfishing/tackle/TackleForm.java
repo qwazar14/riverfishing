@@ -29,7 +29,12 @@ public enum TackleForm {
     POPPER("popper", true, false, true, new int[]{7, 12, 30}, 0),
     CRANKBAIT("crankbait", true, false, true, new int[]{8, 14, 22, 40}, 0),
     JIG("jig", true, false, true, new int[]{10, 20, 40, 80, 200}, 0),
-    CASTMASTER("castmaster", true, false, true, new int[]{14, 28, 45, 80, 160}, 0);
+    CASTMASTER("castmaster", true, false, true, new int[]{14, 28, 45, 80, 160}, 0),
+    // §trolling-lures (0.7.0): the two heavy forms a trolled spread actually uses. Their
+    // ladders START above the heaviest older lure (the 180 g spoon), because that is the
+    // gap — the boat blank tests to 400 g and the trolling blank to 600 g.
+    OCTOPUS_JIG("octopus_jig", true, false, true, new int[]{60, 120, 250, 400}, 0),
+    GIANT_SPOON("giant_spoon", true, false, true, new int[]{80, 160, 300, 500}, 0);
 
     /** NBT keys on the tied tackle. */
     public static final String TAG_WEIGHT = "TackleWeightG";

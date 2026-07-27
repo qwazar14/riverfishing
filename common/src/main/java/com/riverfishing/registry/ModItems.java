@@ -224,6 +224,9 @@ public final class ModItems {
         registerBait("crankbait", true);
         registerBait("jig", true);
         registerBait("castmaster", true);
+        // §trolling-lures (0.7.0): heavy skirted jig and big trolling spoon.
+        registerBait("octopus_jig", true);
+        registerBait("giant_spoon", true);
 
         // ----- Groundbaits -----
         for (String cat : new String[]{"powder", "grain", "pellet", "cake"}) {

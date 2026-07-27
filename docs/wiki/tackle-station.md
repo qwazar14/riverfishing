@@ -54,6 +54,8 @@ All eight lures take an optional dye.
 | Crankbait | 8 / 14 / 22 / 40 | 1 / 1 / 1 / 1 |
 | Soft Jig | 10 / 20 / 40 / 80 / 200 | 1 / 1 / 1 / 3 / 7 |
 | Castmaster | 14 / 28 / 45 / 80 / 160 | 1 / 1 / 2 / 3 / 5 |
+| Skirted Octopus Jig | 60 / 120 / 250 / 400 | 2 / 4 / 8 / 13 |
+| Giant Spoon | 80 / 160 / 300 / 500 | 3 / 5 / 10 / 17 |
 
 The heavy steps at the top of the spoon, wobbler, jig and castmaster ladders are the **sea sizes** — they exist so the sea spinning (20–120 g), boat (100–400 g) and trolling (150–600 g) rods finally have tackle inside their test windows.
 
