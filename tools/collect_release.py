@@ -1,0 +1,131 @@
+# -*- coding: utf-8 -*-
+"""Collect every shippable jar into one folder, renamed unambiguously, with an upload sheet.
+
+    python tools/collect_release.py
+
+Output: build/release-<version>/ — gitignored, so nothing here pollutes the repo.
+
+The rename is the point. The build names the 1.20.1 and the 1.21.1 Fabric jars *identically*
+(`riverfishing-fabric-0.6.0.jar`), because each lives under its own branch and never meets the other.
+Put all eight in one folder to upload and those two collide — and uploading the wrong one to the wrong
+game version is a broken release that looks fine on the page. Everything here carries `+<mc version>`,
+the way the Stonecutter builds already do.
+
+The upload sheet is generated FROM the jars, not typed: loader, game versions and each dependency with
+its required/optional flag are read out of the metadata that will actually ship. If the sheet and the
+jar disagree, the sheet is wrong by construction, not the jar.
+"""
+import glob, hashlib, io, json, os, re, shutil, sys, tomllib, zipfile
+
+VERSION = "0.6.0"
+HOME = os.path.expanduser("~")
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+WT = os.path.join(HOME, "wt")
+OUT = os.path.join(REPO, "build", "release-" + VERSION)
+
+# (source jar, minecraft version) — three source trees, one per Minecraft line.
+SOURCES = [
+    (WT + "/rf1201/fabric/build/libs/riverfishing-fabric-%s.jar" % VERSION, "1.20.1"),
+    (WT + "/rf1201/forge/build/libs/riverfishing-forge-%s.jar" % VERSION, "1.20.1"),
+    (REPO + "/fabric/build/libs/riverfishing-fabric-%s.jar" % VERSION, "1.21.1"),
+    (REPO + "/neoforge/build/libs/riverfishing-neoforge-%s.jar" % VERSION, "1.21.1"),
+    (WT + "/rf26/fabric/versions/26.1.2/build/libs/riverfishing-fabric-%s+26.1.2.jar" % VERSION, "26.1.2"),
+    (WT + "/rf26/neoforge/versions/26.1.2/build/libs/riverfishing-neoforge-%s+26.1.2.jar" % VERSION, "26.1.2"),
+    (WT + "/rf26/fabric/versions/26.2/build/libs/riverfishing-fabric-%s+26.2.jar" % VERSION, "26.2"),
+    (WT + "/rf26/neoforge/versions/26.2/build/libs/riverfishing-neoforge-%s+26.2.jar" % VERSION, "26.2"),
+]
+DOCS = [("docs/patchnotes/%s.md" % VERSION, "CHANGELOG-en.md"),
+        ("docs/CHANGELOG.md", "CHANGELOG-en-uk-ru.md")]
+
+
+def loader_of(name):
+    for l in ("fabric", "neoforge", "forge"):
+        if "-%s-" % l in name:
+            return l
+    return "?"
+
+
+def read_meta(jar):
+    """Loader, game-version range and dependencies, out of the jar that ships."""
+    with zipfile.ZipFile(jar) as z:
+        names = set(z.namelist())
+        if "fabric.mod.json" in names:
+            d = json.loads(z.read("fabric.mod.json"))
+            deps = [(k, v, "required") for k, v in d.get("depends", {}).items()]
+            deps += [(k, v, "optional") for k, v in d.get("recommends", {}).items()]
+            return "Fabric", d.get("depends", {}).get("minecraft", "?"), deps
+        for meta in ("META-INF/neoforge.mods.toml", "META-INF/mods.toml"):
+            if meta in names:
+                t = tomllib.loads(z.read(meta).decode("utf-8"))
+                key = list(t.get("dependencies", {}))
+                deps = []
+                for dep in (t["dependencies"][key[0]] if key else []):
+                    req = dep.get("type") or ("required" if dep.get("mandatory") else "optional")
+                    deps.append((dep["modId"], dep.get("versionRange", "*"), req))
+                mc = next((v for m, v, _ in deps if m == "minecraft"), "?")
+                loader = "NeoForge" if "neoforge" in meta else "Forge"
+                return loader, mc, deps
+    return "?", "?", []
+
+
+def main():
+    missing = [s for s, _ in SOURCES if not os.path.exists(s)]
+    if missing:
+        for m in missing:
+            print("NOT BUILT: %s" % m)
+        sys.exit("build every branch first — nothing collected")
+
+    if os.path.isdir(OUT):
+        shutil.rmtree(OUT)
+    os.makedirs(OUT)
+
+    rows, sums = [], []
+    for src, mc in SOURCES:
+        loader = loader_of(os.path.basename(src))
+        dst_name = "riverfishing-%s-%s+%s.jar" % (loader, VERSION, mc)
+        dst = os.path.join(OUT, dst_name)
+        shutil.copy2(src, dst)
+        digest = hashlib.sha256(io.open(dst, "rb").read()).hexdigest()
+        sums.append("%s  %s" % (digest, dst_name))
+        nice_loader, mc_range, deps = read_meta(dst)
+        rows.append((dst_name, nice_loader, mc, mc_range, os.path.getsize(dst), deps))
+        print("  %-44s %6.1f MB  %s %s" % (dst_name, os.path.getsize(dst) / 1e6, nice_loader, mc))
+
+    for rel, name in DOCS:
+        p = os.path.join(REPO, rel)
+        if os.path.exists(p):
+            shutil.copy2(p, os.path.join(OUT, name))
+            print("  %-44s (%s)" % (name, rel))
+
+    io.open(os.path.join(OUT, "SHA256SUMS.txt"), "w", encoding="utf-8", newline="\n").write(
+        "\n".join(sums) + "\n")
+
+    # The sheet: one row per upload, so nothing has to be remembered while clicking through a form.
+    L = ["# River Fishing %s — upload sheet" % VERSION, "",
+         "Generated by `tools/collect_release.py` from the jars in this folder. Loader, game version and",
+         "dependencies are read out of each jar's own metadata, so this cannot disagree with what ships.", "",
+         "Paste `CHANGELOG-en.md` as the changelog on CurseForge and Modrinth.", "",
+         "| File | Loader | Game version | Required | Optional |", "|---|---|---|---|---|"]
+    for name, loader, mc, mc_range, size, deps in rows:
+        req = ", ".join("%s" % m for m, _, r in deps
+                        if r == "required" and m not in ("minecraft", "java", "fabricloader",
+                                                         "forge", "neoforge")) or "—"
+        opt = ", ".join(m for m, _, r in deps if r != "required") or "—"
+        L.append("| `%s` | %s | %s | %s | %s |" % (name, loader, mc, req, opt))
+    L += ["", "## Order of operations", "",
+          "1. Upload all eight files, each against its own game version and loader.",
+          "2. Post the changelog.",
+          "3. Announce in Discord with the wiki link: https://qwazar14.github.io/riverfishing/",
+          "4. **Last:** bump `latest` in `updates.json` on the `mc-1.21.1` branch and push. That is what",
+          "   tells every running client an update exists, so it goes after the files are actually live.",
+          "   Add the `26.2` key at the same time — the feed has never had one.", "",
+          "## Verify a download", "",
+          "`SHA256SUMS.txt` holds the hash of every file as uploaded. CurseForge and Modrinth both show a",
+          "SHA-256 per file, so they can be compared without downloading anything.", ""]
+    io.open(os.path.join(OUT, "UPLOAD.md"), "w", encoding="utf-8", newline="\n").write("\n".join(L))
+    print("\n-> %s  (%d jars, %d files)" % (OUT, len(rows), len(os.listdir(OUT))))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
