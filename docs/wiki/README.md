@@ -10,6 +10,7 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 - **Also integrates with:** Farmer's Delight, Jade, JEI
 - **Discord:** [discord.gg/Kk2nKvsuRh](https://discord.gg/Kk2nKvsuRh) — questions, bug reports, catches
 - **This wiki also in:** [русском](../ru/README.md) · [українською](../uk/README.md)
+- **Online, all three languages in one page:** [qwazar14.github.io/riverfishing](https://qwazar14.github.io/riverfishing/)
 
 ---
 
@@ -99,7 +100,8 @@ The grids are generated from the recipe JSON, so they cannot drift from what the
 `--mc-jar` makes vanilla ingredients show their real icons, read out of that jar at build time;
 without it they render as labelled colour tiles and everything still works. Nothing from the jar is
 stored in this repository — Mojang's art is not ours to redistribute — which is why the built page is
-not committed either.
+not committed to a source branch. The published copy lives on the generated `gh-pages` branch, put
+there by `tools/publish_pages.py`.
 
 ## For pack makers
 

@@ -16,9 +16,10 @@ given fish under the current conditions.
 💬 **[Join the Discord](https://discord.gg/Kk2nKvsuRh)** — bug reports, catch screenshots, balance
 arguments, and news of what is coming next. It is where the community lives.
 
-📖 **[Full wiki in `docs/wiki/`](docs/wiki/README.md)** — every rod, reel, line, rig, bait, species and
-mechanic, with the actual numbers. Also in **[русском](docs/wiki/ru/README.md)** and
-**[українською](docs/wiki/uk/README.md)**.
+📖 **[Read the wiki online](https://qwazar14.github.io/riverfishing/)** — one page, three languages, every rod, reel, line, rig, bait,
+species and mechanic with the actual numbers, and all 91 recipes drawn as real crafting grids.
+The markdown source is in [`docs/wiki/`](docs/wiki/README.md) (also
+[русский](docs/wiki/ru/README.md), [українська](docs/wiki/uk/README.md)).
 
 ---
 
