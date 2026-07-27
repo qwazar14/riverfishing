@@ -69,7 +69,10 @@ public final class ModItems {
             "blue_marlin", "sailfish", "swordfish", "mako",
             // north-wave (0.5.0): taiga rivers, the salmon run and the two bottom giants.
             "rotan", "nase", "vimba", "smelt", "whitefish", "char",
-            "lenok", "taimen", "salmon", "pink_salmon", "sturgeon", "halibut"
+            "lenok", "taimen", "salmon", "pink_salmon", "sturgeon", "halibut",
+            // §river-four (0.6.0): the community-requested RU river wave — dace, Volga zander,
+            // white-eye bream and the round goby.
+            "common_dace", "volga_zander", "white_eye_bream", "round_goby"
     };
     public static final Map<Identifier, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
     // ---- Baits referenced by event drops ----
@@ -110,7 +113,12 @@ public final class ModItems {
         if ("stick".equals(key)) return net.minecraft.world.item.Items.STICK;
         if ("bamboo".equals(key)) return net.minecraft.world.item.Items.BAMBOO;
         if ("feeder".equals(key) || "bottom".equals(key)) return net.minecraft.world.item.Items.GOLD_INGOT;
-        if ("carp".equals(key)) return net.minecraft.world.item.Items.DIAMOND;
+        // §tackle-craft: the carp blank and the whole saltwater tier are diamond-built. Their prismarine /
+        // nautilus tips are the TIER marker in the recipe, not repair stock you can farm.
+        if ("carp".equals(key) || "sea_spin".equals(key) || "surf".equals(key)
+                || "boat".equals(key) || "trolling".equals(key)) {
+            return net.minecraft.world.item.Items.DIAMOND;
+        }
         return net.minecraft.world.item.Items.IRON_INGOT; // pole / ultralight / spinning / winter
     }
 
@@ -119,13 +127,22 @@ public final class ModItems {
         String key = type.jsonKey();
         if ("stick".equals(key)) return 32;
         if ("bamboo".equals(key)) return 64;
+        if ("winter".equals(key)) return 96;       // short, reel-less, and ice fish are small
         if ("pole".equals(key)) return 128;
         if ("ultralight".equals(key)) return 144;
         if ("spinning".equals(key)) return 192;
         if ("feeder".equals(key)) return 224;
         if ("bottom".equals(key)) return 256;
         if ("carp".equals(key)) return 320;
-        return 128;
+        // §sea-durability: these five used to fall through to the 128 default, so a surf rod —
+        // diamond-built, prismarine-tipped, rated to a 250 g cast and fish an order of magnitude
+        // heavier — wore out faster than a gold-guided feeder. Saltwater now sits above the
+        // freshwater top and climbs with the blank's test window.
+        if ("sea_spin".equals(key)) return 320;
+        if ("surf".equals(key)) return 384;
+        if ("boat".equals(key)) return 448;
+        if ("trolling".equals(key)) return 512;
+        return 128; // only reached by a blank added without a durability decision
     }
 
     static {

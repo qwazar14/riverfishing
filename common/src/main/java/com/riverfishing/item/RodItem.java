@@ -86,7 +86,7 @@ public class RodItem extends Item {
         // No session: begin the power-bar charge (§cast-minigame) — the cast fires on release.
         if (!RodData.isAssembled(rod)) {
             if (!level.isClientSide()) {
-                player.sendOverlayMessage(Component.translatable("message.riverfishing.not_assembled")
+                player.sendOverlayMessage(Component.translatable(RodData.missingKey(rod))
                         .withStyle(ChatFormatting.RED));
             }
             return InteractionResult.FAIL;
@@ -100,6 +100,9 @@ public class RodItem extends Item {
      * custom_model_data layer strings yet — heal them once so the composited icon shows immediately.
      */
     @Override
+    // §26.x: there is no isValidRepairItem override — anvil repair is declared once in
+    // Item.Properties.repairable(), so §tackle-craft's "the saltwater tier is diamond-built" rule
+    // lives in ModItems.rodRepairItem instead.
     public void inventoryTick(ItemStack stack, net.minecraft.server.level.ServerLevel level,
                               net.minecraft.world.entity.Entity entity, net.minecraft.world.entity.EquipmentSlot slot) {
         if (!stack.has(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA)
@@ -177,11 +180,11 @@ public class RodItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
-        boolean assembled = RodData.isAssembled(stack);
-        tooltip.accept(Component.translatable(assembled
-                        ? "tooltip.riverfishing.rod_assembled"
-                        : "tooltip.riverfishing.rod_unassembled")
-                .withStyle(assembled ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
+        // §assembly-hint: name the part that is actually missing — "needs line and rig" left players
+        // guessing which of the two (and that a reeled blank wants its reel BEFORE the line).
+        String missing = RodData.missingKey(stack);
+        tooltip.accept(Component.translatable(missing == null ? "tooltip.riverfishing.rod_assembled" : missing)
+                .withStyle(missing == null ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
         // Rod test (§rod-test): the rigged-weight window this blank is built for.
         if (rodType.castWeightMax() > 0) {
             tooltip.accept(Component.translatable("tooltip.riverfishing.rod_test",

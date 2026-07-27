@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  c",
+    "si ",
+    "id "
+  ],
+  "key": {
+    "c": {
+      "item": "minecraft:prismarine_crystals"
+    },
+    "d": {
+      "item": "minecraft:diamond"
+    },
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "s": {
+      "item": "minecraft:string"
+    }
+  },
+  "result": {
+    "id": "riverfishing:boat_rod"
+  }
+}

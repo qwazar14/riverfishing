@@ -73,6 +73,33 @@ public final class RigData {
 
     // ---- queries for the bite engine ----
 
+    /**
+     * §tackle-station (0.6.0): the rig's EFFECTIVE cast weight — the grams chosen at the bench
+     * (TackleWeightG) when tied there, else the old fixed type mass. A tied lure in the rig's
+     * LURE/BAIT slot adds its own bench weight on top.
+     */
+    public static double effectiveWeightG(ItemStack rig) {
+        var tag = StackNbt.get(rig);
+        double w = tag.contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)
+                ? tag.getIntOr(com.riverfishing.tackle.TackleForm.TAG_WEIGHT, 0)
+                : rigType(rig).massGrams();
+        return w + lureTackleWeightG(rig);
+    }
+
+    /** §lure-size: the tied lure's bench weight sitting in a LURE/BAIT slot, or 0. */
+    public static double lureTackleWeightG(ItemStack rig) {
+        double[] lure = {0};
+        forEachFilled(rig, (role, stack) -> {
+            if (lure[0] == 0 && (role == SlotRole.LURE || role == SlotRole.BAIT)) {
+                var t = StackNbt.get(stack);
+                if (t.contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)) {
+                    lure[0] = t.getIntOr(com.riverfishing.tackle.TackleForm.TAG_WEIGHT, 0);
+                }
+            }
+        });
+        return lure[0];
+    }
+
     /** Hook sizes loaded in the rig; the engine picks the best fit per fish. */
     public static List<Integer> hookSizes(ItemStack rig) {
         List<Integer> sizes = new ArrayList<>();

@@ -1,8 +1,8 @@
 {
   "display": "Плотва",
   "water_bodies": { "river": 1.0, "lake": 1.0, "pond": 0.7, "swamp": 0.4, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 50, "max": 500, "mean": 120 },
-  "length_cm": { "min": 10, "max": 30 },
+  "weight_g": { "min": 50, "max": 1000, "mean": 120 },
+  "length_cm": { "min": 10, "max": 40 },
   "fight": { "strength": 0.2, "stamina": 0.3, "runs": 1 },
   "ideal": {
     "rod": ["pole", "ultralight"],

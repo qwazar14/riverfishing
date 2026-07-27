@@ -65,6 +65,8 @@ public class JournalScreen extends Screen {
     private static final int TAB_QUEST = 3;
     private static final int TAB_SKILL = 4;
     private static final int TAB_GUIDE = 5;
+    /** §discord: same invite as the mod metadata and the wiki — one place for the community. */
+    private static final String DISCORD_URL = "https://discord.gg/Kk2nKvsuRh";
     private static final String[] TAB_KEYS = {
             "journal.riverfishing.tab_fish", "journal.riverfishing.tab_bait",
             "journal.riverfishing.tab_gear", "journal.riverfishing.tab_quest",
@@ -96,6 +98,8 @@ public class JournalScreen extends Screen {
     /** Quest rows' {x,y} from the last render (§quest-claim) + optimistic locally-claimed ids. */
     private final int[][] questRects = new int[Quests.ALL.size()][2];
     private final java.util.Set<String> claimedNow = new java.util.HashSet<>();
+    /** §discord: the "open Discord" button's rect on the Discord guide page, or zeros when not shown. */
+    private final int[] linkRect = new int[4];
     /** Skill "+" button rects {x,y,x2,y2} from the last render (§skills) + optimistic local spends. */
     private final int[][] skillRects = new int[com.riverfishing.fishing.AnglerSkills.Perk.values().length][4];
     private final java.util.Map<String, Integer> spentNow = new java.util.HashMap<>();
@@ -145,8 +149,13 @@ public class JournalScreen extends Screen {
         addGuide("biggame", modStack("yellowfin_tuna"));
         addGuide("legendary", modStack("blue_marlin"));
         addGuide("community", modStack("fish_finder"));
+        addGuide("tacklebench", modStack("fishing_stall"));
         addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
         addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
+        // §discord: last on the shelf on purpose — the other eleven teach a mechanic, this one is where
+        // to go when one of them misbehaves. Note the id is NOT "community": that is taken by the guide
+        // about a water's own fish population.
+        addGuide("discord", new ItemStack(net.minecraft.world.item.Items.PLAYER_HEAD));
 
         catRects = new int[Math.max(guideCat.size(), Math.max(baitCat.size(), gearCat.size()))][2];
     }
@@ -176,13 +185,21 @@ public class JournalScreen extends Screen {
         JournalScreen next = new JournalScreen(data);
         // A refresh (server re-sends the journal after a skill unlock / quest claim) reuses this same
         // entry point — carry the reader's place over so they don't get thrown back to the FISH tab.
+        //? if <26.2 {
         if (Minecraft.getInstance().screen instanceof JournalScreen prev) {
+        //?} else {
+        /*if (Minecraft.getInstance().gui.screen() instanceof JournalScreen prev) {
+        *///?}
             next.tab = prev.tab;
             next.scroll = prev.scroll;
             next.detail = prev.detail;
             next.catDetail = prev.catDetail;
         }
+        //? if <26.2 {
         Minecraft.getInstance().setScreen(next);
+        //?} else {
+        /*Minecraft.getInstance().setScreenAndShow(next);
+        *///?}
     }
 
     @Override
@@ -236,7 +253,7 @@ public class JournalScreen extends Screen {
         } else {
             List<Cat> list = tab == TAB_BAIT ? baitCat : tab == TAB_GUIDE ? guideCat : gearCat;
             if (catDetail >= 0 && catDetail < list.size()) {
-                renderCatDetail(g, list.get(catDetail));
+                renderCatDetail(g, list.get(catDetail), mouseX, mouseY);
             } else {
                 if (tab == TAB_BAIT) {
                     g.text(this.font, Component.translatable("journal.riverfishing.tab_bait_hint"),
@@ -389,7 +406,7 @@ public class JournalScreen extends Screen {
 
     private static String descText(String sp) {
         String k = "fishdesc.riverfishing." + sp;
-        return I18n.exists(k) ? I18n.get(k) : "";
+        return net.minecraft.locale.Language.getInstance().has(k) ? I18n.get(k) : "";
     }
 
     // ---- QUESTS tab ----
@@ -640,7 +657,7 @@ public class JournalScreen extends Screen {
         if (tooltip != null) g.setComponentTooltipForNextFrame(this.font, tooltip, mouseX, mouseY);
     }
 
-    private void renderCatDetail(GuiGraphicsExtractor g, Cat e) {
+    private void renderCatDetail(GuiGraphicsExtractor g, Cat e, int mouseX, int mouseY) {
         g.item(e.stack(), left + 10, top + 22);
         g.text(this.font, e.stack().getHoverName(), left + 30, top + 26, GuiStyle.TEXT, false);
         g.text(this.font, Component.translatable(kindKey(e.kind())), left + 10, top + 44,
@@ -661,6 +678,19 @@ public class JournalScreen extends Screen {
             lastCatH = (dy + scroll) - contentTop;
             g.disableScissor();
             renderScrollbar(g, contentTop, contentBottom);
+            // §discord: a real button, pinned outside the scrolled area — a call to action that scrolls
+            // out of reach is not one. Only this guide has a link, so only this guide gets a button.
+            linkRect[0] = linkRect[1] = linkRect[2] = linkRect[3] = 0;
+            if ("discord".equals(e.id())) {
+                Component label = Component.translatable("guide.riverfishing.discord.button");
+                int bw = this.font.width(label) + 14, bh = 14;
+                int bx = left + 10, by = top + H - 32;
+                boolean hov = mouseX >= bx && mouseX < bx + bw && mouseY >= by && mouseY < by + bh;
+                g.fill(bx, by, bx + bw, by + bh, hov ? 0xFF57C063 : 0xFF3FA34A);
+                g.fill(bx + 1, by + 1, bx + bw - 1, by + bh - 1, hov ? 0xFF6FD07B : 0xFF4FB459);
+                g.centeredText(this.font, label, bx + bw / 2, by + 3, 0xFFFFFFFF);
+                linkRect[0] = bx; linkRect[1] = by; linkRect[2] = bx + bw; linkRect[3] = by + bh;
+            }
             g.text(this.font, Component.translatable("guide.riverfishing.back"),
                     left + 10, top + H - 14, GuiStyle.GHOST, false);
             return;
@@ -676,7 +706,7 @@ public class JournalScreen extends Screen {
         // §bait-desc: an optional flavour line for a bait/lure (e.g. the ice jig), shown under the big icon.
         if (isBait(e.kind())) {
             String bk = "baitdesc.riverfishing." + e.id();
-            if (I18n.exists(bk)) {
+            if (net.minecraft.locale.Language.getInstance().has(bk)) {
                 int dy = top + 104;
                 for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.translatable(bk), W - 20)) {
                     g.text(this.font, seq, left + 10, dy, GuiStyle.TEXT_HINT, false);
@@ -1006,7 +1036,14 @@ public class JournalScreen extends Screen {
                         return true;
                     }
                 }
-            } else if (tab == TAB_BAIT || tab == TAB_GEAR) {
+            } else if (tab == TAB_BAIT || tab == TAB_GEAR || tab == TAB_GUIDE) {
+                // §discord: test the link button before the "any click closes the page" rule below.
+                if (linkRect[2] > 0 && mouseX >= linkRect[0] && mouseX < linkRect[2]
+                        && mouseY >= linkRect[1] && mouseY < linkRect[3]) {
+                    // Vanilla's confirm-link flow: it shows the URL, offers "copy link", then opens it.
+                    net.minecraft.client.gui.screens.ConfirmLinkScreen.confirmLinkNow(this, DISCORD_URL, false);
+                    return true;
+                }
                 if (catDetail >= 0) { catDetail = -1; scroll = 0; return true; }
                 List<Cat> list = tab == TAB_BAIT ? baitCat : tab == TAB_GUIDE ? guideCat : gearCat;
                 int contentTop = top + 38, contentBottom = top + H - 6;

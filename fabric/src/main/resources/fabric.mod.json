@@ -3,13 +3,15 @@
   "id": "riverfishing",
   "version": "${version}",
   "name": "River Fishing",
-  "description": "A deep, realistic river & ice-fishing simulator built as a modpack anchor.",
+  "description": "A deep, realistic river & ice-fishing simulator built as a modpack anchor. Discord: https://discord.gg/Kk2nKvsuRh",
   "authors": [
     "Qwazar"
   ],
   "contact": {
     "homepage": "https://github.com/qwazar14/riverfishing",
     "sources": "https://github.com/qwazar14/riverfishing",
+    "issues": "https://github.com/qwazar14/riverfishing/issues",
+    "discord": "https://discord.gg/Kk2nKvsuRh",
     "donate": "https://patreon.com/qwazar14",
     "monobank": "https://send.monobank.ua/jar/5ajJCESU2B"
   },

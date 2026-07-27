@@ -42,14 +42,19 @@ public final class ClientPlatformImpl {
     static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.ROD_ASSEMBLY.get(), RodAssemblyScreen::new);
         event.register(ModMenus.RIG.get(), RigScreen::new);
+        event.register(ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
     }
 
     public static void registerLevelRenderer() {
+        //? if <26.2 {
         // §26.1: RenderLevelStageEvent became typed per-stage subclasses (no getStage()).
         NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent.AfterTranslucentBlocks e) -> {
             LineRenderer.render(e.getPoseStack(), e.getLevelRenderState().cameraRenderState.pos,
                     net.minecraft.client.Minecraft.getInstance().getDeltaTracker()
                             .getGameTimeDeltaPartialTick(false));
         });
+        //?}
+        // On 26.2 this is a no-op: the stage event fires at DRAW time — too late to submit retained
+        // geometry. The cast line goes through the loader-neutral common LevelRendererSubmitMixin.
     }
 }

@@ -10,12 +10,12 @@
   },
   "weight_g": {
     "min": 2000,
-    "max": 40000,
+    "max": 120000,
     "mean": 7000
   },
   "length_cm": {
     "min": 60,
-    "max": 200
+    "max": 260
   },
   "fight": {
     "strength": 1.0,
@@ -84,7 +84,7 @@
     "temperate": 1.0,
     "warm": 1.2
   },
-  "legendary": { "weight_g": 38000, "chance": 0.005 },
+  "legendary": { "weight_g": 150000, "chance": 0.005 },
   "base": 0.5,
   "min_angler_level": 6
 }

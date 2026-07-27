@@ -22,9 +22,9 @@ stonecutter {
     create(rootProject) {
         // 26.x family only (all unobfuscated). 1.21.1 was the port base; it stays frozen/released on the
         // mc-1.21.1 branch. 26.2 gets added once 26.1.2 compiles + runs.
-        branch("common")   { versions("26.1.2") }
-        branch("fabric")   { versions("26.1.2") }
-        branch("neoforge") { versions("26.1.2") }
+        branch("common")   { versions("26.1.2", "26.2") }
+        branch("fabric")   { versions("26.1.2", "26.2") }
+        branch("neoforge") { versions("26.1.2", "26.2") }
         vcsVersion = "26.1.2"
     }
 }

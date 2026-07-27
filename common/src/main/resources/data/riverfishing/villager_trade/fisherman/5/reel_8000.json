@@ -1,0 +1,16 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 18
+  },
+  "gives": {
+    "id": "riverfishing:reel_8000"
+  },
+  "max_uses": 12,
+  "xp": 28,
+  "reputation_discount": 0.05,
+  "merchant_predicate": {
+    "condition": "minecraft:random_chance",
+    "chance": 0.2
+  }
+}

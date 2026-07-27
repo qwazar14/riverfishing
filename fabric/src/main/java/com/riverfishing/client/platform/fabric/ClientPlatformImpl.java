@@ -21,6 +21,8 @@ public final class ClientPlatformImpl {
                 com.riverfishing.registry.ModMenus.ROD_ASSEMBLY.get(), com.riverfishing.client.RodAssemblyScreen::new);
         net.minecraft.client.gui.screens.MenuScreens.register(
                 com.riverfishing.registry.ModMenus.RIG.get(), com.riverfishing.client.RigScreen::new);
+        net.minecraft.client.gui.screens.MenuScreens.register(
+                com.riverfishing.registry.ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
     }
 
     /** §26.1: handled by FeatureRenderDispatcherMixin (WorldRenderEvents is gone) — nothing to register. */

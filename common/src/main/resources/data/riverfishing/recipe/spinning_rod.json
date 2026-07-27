@@ -2,13 +2,19 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "  b",
-    "ni ",
+    "si ",
     "i  "
   ],
   "key": {
-    "b": "minecraft:bamboo",
-    "n": "minecraft:iron_nugget",
-    "i": "minecraft:iron_ingot"
+    "b": {
+      "item": "minecraft:bamboo"
+    },
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "s": {
+      "item": "minecraft:string"
+    }
   },
   "result": {
     "id": "riverfishing:spinning_rod"

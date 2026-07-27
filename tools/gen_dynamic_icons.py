@@ -7,6 +7,9 @@ RODS (§rod-layers): items/<rod>.json selects on DISPLAY CONTEXT first —
   * fixed (rod pod): blank + reel only — the line is out in the water, drawn in 3D (§pod-line);
   * hands: MIRRORED rod_m sprites with the tuned hand transforms (§rod-mirror/§rod-debug), and the
     line+rig overlays hide while the line is cast (custom_model_data FLAG 0, set by FishingManager).
+  In EVERY context the base blank layer is a range_dispatch on custom_model_data FLOAT 0 — the
+  §rod-bend bucket FishingManager writes onto the rod during a fight (RodData.setBend). Bucket 0
+  falls back to the straight blank, so a rod that never fought looks exactly as it always did.
 
 FISH (§fish-scale): items/<fish>.json range_dispatches on custom_model_data float[0] (written by
 FishItem.create at the catch) into scale-bucket models that multiply every display-context scale.
@@ -23,6 +26,7 @@ REELS = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 10000, 12000, 14000]
 LINE_TYPES = ["mono", "braid", "fluoro"]
 RIG_SPRITES = ["rig_primitive", "rig_float", "rig_grusha", "rig_feeder", "rig_flat_feeder",
                "rig_ground", "rig_predator", "rig_carp", "rig_catfish"]
+BEND_BUCKETS = 6  # §rod-bend: must match RodData.BEND_BUCKETS and tools/GenRodBend.java's AMP length
 # depth lift per overlay category so coplanar composite layers don't z-fight
 Z_OFF = {"blank": 0.0, "reel": 0.03, "line": 0.06, "rig": 0.09}
 
@@ -31,15 +35,14 @@ HAND_CONTEXTS = ["thirdperson_righthand", "thirdperson_lefthand",
 # §rod-debug: the ACTUAL hand poses live in CODE (RodHandTransform, applied by the two in-hand
 # mixins) so /rfrod can tune them live — the JSON hand displays only carry the per-layer depth lift.
 
-FISH = ["asp", "barracuda", "bleak", "blue_bream", "blue_marlin", "bluegill", "bream", "burbot",
-        "carp", "carp_koi_asagi", "carp_koi_bekko", "carp_koi_kohaku", "carp_koi_showa_sanke",
-        "carp_koi_tancho_sanke", "catfish", "channel_catfish", "char", "chub", "cod", "conger",
-        "crucian_carp", "eel", "flounder", "garfish", "grass_carp", "grayling", "gudgeon",
-        "halibut", "herring", "ide", "largemouth_bass", "lenok", "mackerel", "mahi", "mako",
-        "mirror_carp", "nase", "perch", "pike", "pink_salmon", "rainbow_trout", "ray", "roach",
-        "rotan", "rudd", "ruffe", "sabrefish", "sailfish", "saithe", "salmon", "seabass",
-        "silver_carp", "smelt", "sterlet", "sturgeon", "swordfish", "taimen", "tench", "trout",
-        "vimba", "wahoo", "white_bream", "whitefish", "wild_carp", "yellowfin_tuna", "zander"]  # ALL registered species (0.5.0: 66)
+# Derived, never hand-listed: a registered fish item is exactly one that has both a fish profile and an
+# item model. The old hardcoded list said "ALL registered species (0.5.0: 66)" and silently stayed at 66
+# when 0.6.0 added four — so those four shipped on 26.x with no item definition and rendered as the
+# missing-texture checkerboard.
+PROFILES = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "common", "src", "main",
+                                         "resources", "data", "riverfishing", "fish_profiles"))
+FISH = sorted({f[:-5] for f in os.listdir(PROFILES) if f.endswith(".json")}
+              & {f[:-5] for f in os.listdir(MODELS) if f.endswith(".json")})
 BUCKETS = [0.45, 0.6, 0.75, 0.9, 1.05, 1.25, 1.55, 2.0]
 
 
@@ -57,9 +60,15 @@ def write(path, obj):
 
 def rod_layers():
     return [("blank_%s" % r, "blank") for r in RODS] \
+        + [(bend_sprite(r, b), "blank") for r in RODS for b in range(1, BEND_BUCKETS + 1)] \
         + [("reel_%d" % r, "reel") for r in REELS] \
         + [("line_%s" % t, "line") for t in LINE_TYPES] \
         + [(s, "rig") for s in RIG_SPRITES]
+
+
+def bend_sprite(rod, bucket):
+    """§rod-bend: the arc-sheared blank for one bucket (tools/GenRodBend.java draws these)."""
+    return "blank_%s_bend%d" % (rod, bucket)
 
 
 def normal_display(base_display, dz):
@@ -102,6 +111,22 @@ def composite(models):
     return {"type": "minecraft:composite", "models": models}
 
 
+def blank_node(folder, rod):
+    """§rod-bend: the base blank layer, dispatched on the bend bucket in custom_model_data FLOAT 0
+    (RodData.setBend). Same range_dispatch technique the fish scale buckets use; bucket 0 — and any
+    rod with no float stored at all — resolves to the fallback, i.e. the straight blank."""
+    straight = model_node("riverfishing:item/%s/blank_%s" % (folder, rod))
+    return {
+        "type": "minecraft:range_dispatch",
+        "property": "minecraft:custom_model_data",
+        "index": 0,
+        "entries": [{"threshold": b,
+                     "model": model_node("riverfishing:item/%s/%s" % (folder, bend_sprite(rod, b)))}
+                    for b in range(1, BEND_BUCKETS + 1)],
+        "fallback": straight,
+    }
+
+
 def main():
     for d in ("rod_layer", "rod_layer_m", "fish_scaled"):
         shutil.rmtree(os.path.join(MODELS, d), ignore_errors=True)
@@ -122,7 +147,7 @@ def main():
 
     # ---- rod item definitions ----
     def parts(folder, rod, with_tackle):
-        out = [model_node("riverfishing:item/%s/blank_%s" % (folder, rod)),
+        out = [blank_node(folder, rod),
                str_select(0, [("reel_%d" % r, folder, "reel_%d" % r) for r in REELS])]
         if with_tackle:
             out.append(str_select(1, [(t, folder, "line_%s" % t) for t in LINE_TYPES]))

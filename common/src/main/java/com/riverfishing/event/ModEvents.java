@@ -59,7 +59,11 @@ public final class ModEvents {
         PlayerEvent.PLAYER_QUIT.register(player -> FishingManager.clear(player.getUUID()));
 
         // Worms from digging soil with a shovel (§9.6).
+        //? if <26.2 {
         BlockEvent.BREAK.register((level, pos, state, player, xp) -> {
+        //?} else {
+        /*BlockEvent.BREAK.register((level, pos, state, player) -> { // arch 21 dropped the xp param
+        *///?}
             if (!level.isClientSide() && player != null
                     && player.getMainHandItem().getItem() instanceof ShovelItem
                     && isDiggableSoil(state)
