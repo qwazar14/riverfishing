@@ -186,7 +186,7 @@ public class RodItem extends Item {
         // The winter rod is FLOAT but is JIGGED through an ice hole, so "never reel" would be a lie for
         // it — it gets the dedicated winter_hole line below instead.
         if (rodType != com.riverfishing.component.RodType.WINTER) {
-            tooltip.add(Component.translatable("tooltip.riverfishing.rod_class."
+            tooltip.accept(Component.translatable("tooltip.riverfishing.rod_class."
                             + rodType.rodClass().name().toLowerCase(java.util.Locale.ROOT))
                     .withStyle(ChatFormatting.GOLD));
         }
