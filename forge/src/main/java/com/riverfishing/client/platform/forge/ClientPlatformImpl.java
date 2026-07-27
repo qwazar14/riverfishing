@@ -23,6 +23,10 @@ public final class ClientPlatformImpl {
                 com.riverfishing.registry.ModMenus.ROD_ASSEMBLY.get(), com.riverfishing.client.RodAssemblyScreen::new);
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.RIG.get(), com.riverfishing.client.RigScreen::new);
+        // 0.6.0 shipped without this line, so on Forge the stall opened the menu server-side and no GUI
+        // ever appeared. Every menu in ModMenus needs a factory on EVERY loader — check all six.
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
     }
 
     /**
