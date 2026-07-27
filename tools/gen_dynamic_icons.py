@@ -127,7 +127,32 @@ def blank_node(folder, rod):
     }
 
 
+def normalise_fish_base_models():
+    """26.x draws fish from a real model, so their base model must be item/generated with a layer0.
+
+    On 1.21.1 every fish parents minecraft:builtin/entity because a BEWLR renderer draws it. The port
+    converted all 66 in one commit (557fb0d) and nothing kept doing it, so the four species added in
+    0.6.0 arrived in the 1.21.1 shape: builtin/entity with only a `particle` texture, which renders as
+    the missing-texture checkerboard in the inventory and on the ground. Idempotent — run it after
+    adding a species.
+    """
+    fixed = []
+    for sp in FISH:
+        p = os.path.join(MODELS, sp + ".json")
+        d = read(p)
+        tex = "riverfishing:item/fish/" + sp
+        if d.get("parent") == "minecraft:builtin/entity" or "layer0" not in d.get("textures", {}):
+            d["parent"] = "minecraft:item/generated"
+            d.setdefault("textures", {})["particle"] = tex
+            d["textures"]["layer0"] = tex
+            write(p, d)
+            fixed.append(sp)
+    print("fish base models: %d normalised%s"
+          % (len(fixed), (" — " + ", ".join(fixed)) if fixed else " (all already item/generated)"))
+
+
 def main():
+    normalise_fish_base_models()
     for d in ("rod_layer", "rod_layer_m", "fish_scaled"):
         shutil.rmtree(os.path.join(MODELS, d), ignore_errors=True)
 
