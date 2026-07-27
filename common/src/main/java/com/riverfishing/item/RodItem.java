@@ -182,6 +182,16 @@ public class RodItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, net.minecraft.world.level.Level level, List<Component> tooltip, TooltipFlag flag) {
+        // §rod-class: the FIRST line on purpose. It is the one fact that decides how the rod is
+        // fished, and until 0.6.1 every rod carried the identical hint — so nothing told a donka
+        // owner not to crank it. Keys are tooltip.riverfishing.rod_class.<active|float|bottom>.
+        // The winter rod is FLOAT but is JIGGED through an ice hole, so "never reel" would be a lie for
+        // it — it gets the dedicated winter_hole line below instead.
+        if (rodType != com.riverfishing.component.RodType.WINTER) {
+            tooltip.add(Component.translatable("tooltip.riverfishing.rod_class."
+                            + rodType.rodClass().name().toLowerCase(java.util.Locale.ROOT))
+                    .withStyle(ChatFormatting.GOLD));
+        }
         // §assembly-hint: name the part that is actually missing — "needs line and rig" left players
         // guessing which of the two (and that a reeled blank wants its reel BEFORE the line).
         String missing = RodData.missingKey(stack);
