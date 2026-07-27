@@ -151,6 +151,8 @@ Eight lures. All are **predator-only** — a peaceful fish will not take an arti
 | Spinner | `spinner` | Iron Nugget + Iron Ingot + hook (vertical) | Forgiving retrieve. |
 | Spoon Lure | `spoon` | Gold Ingot + hook (vertical) | Forgiving retrieve. |
 | Castmaster | `castmaster` | 2 × Iron Ingot + hook (shapeless) | Long-casting; forgiving retrieve. |
+| Skirted Octopus Jig | `octopus_jig` | Tackle Station only | Trolling weight, 60–400 g. A skirted head for a trolled spread; the pelagics rate it highest. |
+| Giant Spoon | `giant_spoon` | Tackle Station only | Trolling weight, 80–500 g. Big flash and a wide wobble; bluefish and jack crevalle rate it above everything. |
 | Crankbait | `crankbait` | Iron Ingot + Iron Nugget + hook (shapeless) | **Needs a steady rhythm.** |
 | Soft Jig | `jig` | Iron Ingot + String + hook (shapeless) | Forgiving retrieve. |
 | Popper | `popper` | Iron Nugget + Bamboo + hook (shapeless) | **Topwater** — pop-and-pause. |

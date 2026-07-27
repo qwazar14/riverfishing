@@ -48,7 +48,9 @@
       "wobbler": 1.0,
       "silicone": 0.95,
       "spoon": 0.9,
-      "jig": 0.85
+      "jig": 0.85,
+      "octopus_jig": 0.9,
+      "giant_spoon": 1.05
     },
     "hook": {
       "ideal": 2,

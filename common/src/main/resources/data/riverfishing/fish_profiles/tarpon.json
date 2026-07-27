@@ -47,7 +47,9 @@
       "fish_strip": 1.1,
       "silicone": 1.0,
       "popper": 1.0,
-      "jig": 0.9
+      "jig": 0.9,
+      "octopus_jig": 0.95,
+      "giant_spoon": 0.85
     },
     "hook": {
       "ideal": 1,

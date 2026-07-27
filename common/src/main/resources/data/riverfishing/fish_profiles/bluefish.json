@@ -48,7 +48,9 @@
       "fish_strip": 1.1,
       "wobbler": 1.0,
       "silicone": 0.9,
-      "livebait": 0.9
+      "livebait": 0.9,
+      "octopus_jig": 0.85,
+      "giant_spoon": 1.2
     },
     "hook": {
       "ideal": 2,
