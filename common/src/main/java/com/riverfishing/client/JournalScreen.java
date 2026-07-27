@@ -136,6 +136,10 @@ public class JournalScreen extends Screen {
                 .thenComparing(e -> e.stack().getHoverName().getString()));
 
         // §guide (0.5.0): the how-to shelf — mechanics that deserve a page, newest first.
+        // §wait-guide: FIRST on purpose. The drag page below defines RMB as "crank" with no
+        // rod-class qualifier, and three pages teach cranking — a float/bottom angler has to meet
+        // "do not crank this rod" before any of that.
+        addGuide("waiting", modStack("bottom_rod"));
         addGuide("drag", modStack("reel_7000"));
         addGuide("lurework", modStack("wobbler"));
         addGuide("stress", modStack("line_mono_030"));
