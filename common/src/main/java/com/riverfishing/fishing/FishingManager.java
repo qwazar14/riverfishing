@@ -112,7 +112,7 @@ public final class FishingManager {
             s.bossBar = null;
         }
         SESSIONS.remove(sp.getUUID());
-        ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), false, null, 0f, 0, false)); // line now lives on the pod
+        ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), false, null, 0f, 0, (byte) 0)); // line now lives on the pod
         return s;
     }
 
@@ -129,8 +129,19 @@ public final class FishingManager {
         session.rigType = rigType;
         SESSIONS.put(sp.getUUID(), session);
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, target, 0f, session.lineColor,
-                session.rodClass == RodClass.FLOAT));
+                session.floatKind));
         hookUp(sp, level, session, now);
+    }
+
+    /**
+     * §float-kind: what, if anything, floats on the surface for this cast. Derived from the RIG, not
+     * from the rod class — a stick rod is FLOAT-class but its built-in primitive rig has no float slot
+     * and can never hold one, so deriving it from the class alone drew a bobber that was not there.
+     * An ice hole shows nothing: the line simply drops through.
+     */
+    private static byte floatKind(RodClass rodClass, boolean iceFishing, ItemStack rig) {
+        if (rodClass != RodClass.FLOAT || iceFishing) return 0;
+        return RigData.hasFloat(rig) ? (byte) 2 : (byte) 1;
     }
 
     private static long biteWindow(RodClass rodClass) {
@@ -486,13 +497,15 @@ public final class FishingManager {
         session.rodStackRef = rod;
         session.rodSlot = session.hand == InteractionHand.MAIN_HAND
                 ? sp.getInventory().getSelectedSlot() : -1;
+        session.floatKind = floatKind(session.rodClass, session.iceFishing,
+                RodData.get(rod, ComponentSlot.RIG));
         com.riverfishing.item.RodData.setLineOut(rod, true); // §rod-layers: hide in-hand tackle overlays
         // §live-conditions: keep the snapshot + current speed so the waiting line can re-read the world.
         session.ctx = ctx;
         session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
         SESSIONS.put(sp.getUUID(), session);
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, waterPos, 0f, session.lineColor,
-                rodClass == RodClass.FLOAT));
+                session.floatKind));
 
         pressure.addCast(chunkKey, now);
 
@@ -595,13 +608,15 @@ public final class FishingManager {
         session.rodStackRef = rod;
         session.rodSlot = session.hand == InteractionHand.MAIN_HAND
                 ? sp.getInventory().getSelectedSlot() : -1;
+        session.floatKind = floatKind(session.rodClass, session.iceFishing,
+                RodData.get(rod, ComponentSlot.RIG));
         com.riverfishing.item.RodData.setLineOut(rod, true); // §rod-layers: hide in-hand tackle overlays
         session.ctx = ctx;
         session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
         SESSIONS.put(sp.getUUID(), session);
         pressure.addCast(chunkKey, now);
         // §ice-fishing: no float on the line under the ice — the line just drops into the hole (bobber=false).
-        ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, waterPos, 0f, session.lineColor, false));
+        ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, waterPos, 0f, session.lineColor, (byte) 0));
         level.playSound(null, waterPos, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.5f, 1.4f);
         actionbar(sp, Component.translatable("message.riverfishing.ice_fishing").withStyle(ChatFormatting.AQUA));
         return true;
@@ -792,7 +807,7 @@ public final class FishingManager {
         if (session.retrieveTicks % 2 == 0 && session.retrieveMax > 0) {
             float prog = Mth.clamp((float) session.retrieveTicks / session.retrieveMax, 0f, 1f);
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target, prog,
-                    session.lineColor, false));
+                    session.lineColor, (byte) 0));
         }
 
         // The reel ticks while winding line (§reel-sound) — quiet fast clicks at the player's hands.
@@ -922,7 +937,7 @@ public final class FishingManager {
                 visProgress = 0f;
             }
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
-                    visProgress, session.lineColor, session.rodClass == RodClass.FLOAT,
+                    visProgress, session.lineColor, session.floatKind,
                     session.bitten && !session.fighting && now <= session.biteWindowEnd,
                     fightStress(session)));
         }
@@ -966,7 +981,7 @@ public final class FishingManager {
                 // §catch-the-moment: NO "Поклёвка!" text — the bobber PLUNGES on the client and
                 // that's the whole cue; spotting it is the game.
                 ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target, 0f,
-                        session.lineColor, session.rodClass == RodClass.FLOAT && !session.iceFishing, true));
+                        session.lineColor, session.floatKind, true));
                 // Only ONE QTE per catch (§pull-qte): reel-less rods save their timing for the
                 // pull-out, so their strike is a plain click; reeled float rods keep the strike QTE.
                 if (session.rodClass == RodClass.FLOAT && session.reelSize > 0) {
@@ -1691,7 +1706,7 @@ public final class FishingManager {
         if (now % 5 == 0) {
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     (float) Mth.clamp(session.landProgress, 0.0, 1.0), session.lineColor,
-                    session.rodClass == RodClass.FLOAT, false, fightStress(session),
+                    session.floatKind, false, fightStress(session),
                     true, session.runTicksLeft > 0)); // §pump-reel: run state drives the HUD cue
             // §rod-bend (26.x): the bucket goes onto the ROD, not just into the packet — the item
             // definition range_dispatches the blank sprite on it, so the load is visible to every
@@ -2034,7 +2049,7 @@ public final class FishingManager {
         // §rod-bend: the fight is over — unload the blank, or the rod sits bent in the inventory forever.
         com.riverfishing.item.RodData.setBend(session.rodStackRef, 0);
         // Clear the line for everyone who can see this angler (§line-multiplayer).
-        ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), false, null, 0f, 0, false));
+        ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), false, null, 0f, 0, (byte) 0));
     }
 
     // ---- float strike-timing mini-game (#5) ----
