@@ -187,6 +187,8 @@ Reeled float rods run the strike-timing bar. Reel-less ones (all three wooden bl
 
 A long cast and a long wait, with a very forgiving **200-tick** (10 s) bite window and a plain click to set the hook — no timing bar. These are the rods you can leave on a [rod pod](blocks.md#rod-pods) with a [bite alarm](tools.md#bite-alarms).
 
+**These rods are not retrieved.** A right-click *outside* the bite window does not crank the reel — it reels the cast in and ends it. Cast once, then leave it alone until a fish takes. Only the Active rods below are worked with clicks.
+
 ### Active (Ultralight, Spinning, Sea spinning, Trolling)
 
 The bite clock does not even start until your first crank. Each right-click advances the lure 4 ticks and its **gap from the previous click is the lure action** — see [working the lure](rigs-and-baits.md#working-the-lure).

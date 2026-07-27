@@ -5,6 +5,45 @@ Full patchnotes. The short three-bullet form the in-game update checker shows li
 
 ---
 
+## 0.6.1 — the hotfix
+
+**Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.
+
+A fix release. Every item came from a player report in the week 0.6.0 shipped.
+
+### The cast no longer disappears on its own
+
+The guard that checks you are still holding the rod your cast was made with compared the rod's item
+**by memory reference**. An `ItemStack` reference goes stale as soon as anything rewrites the inventory
+slot — common on a server, rare in single player — and from that tick the mod believed you had swapped
+rods and ended the cast **silently, with no message**. It looked exactly like the rod reeling itself in
+a moment after the cast, on every rod class. It now compares the hotbar slot, which is what "still the
+same rod" was always meant to mean and cannot go stale.
+
+### The Fishing Stall opens its bench on Forge
+
+On **1.20.1 Forge only**, the Tackle Station screen was never registered, so right-clicking the stall
+with an empty hand opened the menu server-side and drew nothing. Every other loader had it.
+
+### The mod no longer teaches the wrong input
+
+- `message.riverfishing.cast_spin` said **"Hold right-click to retrieve"**. Holding auto-repeats roughly
+  five times a second, which both empties the retrieve at full speed and is too fast a cadence for a
+  fish to take — the guide page already said the opposite. It now describes rhythmic clicks.
+- **The rod tooltip names the rod's class on its first line** (`tooltip.riverfishing.rod_class.*`),
+  derived from `RodType.rodClass()`: active rods are worked with clicks, float and bottom rods are cast
+  and left alone. Previously every rod shared one identical hint. The winter rod is exempt — it is
+  jigged in an ice hole and has its own line.
+- **A new journal guide covers the waiting flow.** The shelf had thirteen guides, three of which taught
+  RMB-cranking, and none about the two rod classes that are never retrieved.
+
+### Wiki
+
+The bottom-rod section now states that these rods are not retrieved and that a right-click outside a
+bite ends the cast — in English, Russian and Ukrainian.
+
+---
+
 ## 0.6.0 — the tackle & fight update
 
 **Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.
@@ -58,7 +97,7 @@ The 0.5.0 trade tables were mostly fish, and gear almost never appeared.
 
 ### Crafting
 
-- **Every rod blank and every reel is craftable**, on one cost ladder — 21 recipes, no gaps.
+- **Every rod blank and every reel is craftable**, on one cost ladder — 24 recipes, no gaps.
 - Hooks #2 and #1 joined the `riverfishing:hooks` tag, which had silently locked the two biggest hooks
   out of every lure recipe.
 
@@ -151,7 +190,7 @@ shelf, and on every page of the wiki. Bug reports and catches both welcome.
 
 ### Крафт
 
-- **Кожен бланк і кожна котушка крафтяться** — 21 рецепт, без прогалин.
+- **Кожен бланк і кожна котушка крафтяться** — 24 рецепти, без прогалин.
 - Гачки №2 і №1 додані до тегу `riverfishing:hooks`, який досі тихо не пускав два найбільші гачки в
   жоден рецепт приманки.
 
@@ -244,7 +283,7 @@ shelf, and on every page of the wiki. Bug reports and catches both welcome.
 
 ### Крафт
 
-- **Каждый бланк и каждая катушка крафтятся** — 21 рецепт, без пробелов.
+- **Каждый бланк и каждая катушка крафтятся** — 24 рецепта, без пробелов.
 - Крючки №2 и №1 добавлены в тег `riverfishing:hooks`, который до этого тихо не пускал два самых больших
   крючка ни в один рецепт приманки.
 
