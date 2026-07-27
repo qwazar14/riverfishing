@@ -107,41 +107,53 @@ public final class LineRenderer {
     }
 
     /**
-     * §float-kind geometry. The old float was three vertical lines 0.018 apart, and the visible gaps
-     * between them are exactly why players read it as holed sticks — so the proper float is a tapered
-     * bundle at 0.008 spacing, which reads as one solid body at any distance.
+     * §float-kind geometry, matched to the float item's own 16×16 icon so the thing on the water and the
+     * thing in the inventory are recognisably one object.
      *
-     * @param proper a float item is rigged: red-tipped, bodied, with a keel. Otherwise a plain peg —
-     *               honest about the fact that there is no float on this rig.
+     * <p>The float this replaced was three vertical lines 0.018 apart, which is exactly why it read as a
+     * TRIPLED float on the stick, bamboo and pole rods — three separated columns instead of one body.
+     * Both shapes here are built as tightly-packed column bundles cross-hatched in X and Z, so they read
+     * solid from any angle and can never separate into stripes.
+     *
+     * @param proper a float item is rigged: antenna, bulbous red-over-white body, dark keel — the icon.
+     *               Otherwise a single red-over-white line: a goose quill, and honestly nothing more,
+     *               because nothing more is on the rig.
      */
     private static void drawFloat(VertexConsumer vc, Matrix4f m, Matrix3f nrm, Vec3 end, boolean proper) {
+        final int rR = 192, rG = 57, rB = 43;        // #C0392B — the icon's red
+        final int wR = 236, wG = 236, wB = 226;      // #ECECE2 — the icon's white
+        final int dR = 46, dG = 28, dB = 16;         // #2E1C10 — the icon's dark outline / keel
+
         if (!proper) {
-            // A bare stick riding the surface. Deliberately plain: it should look like something is
-            // missing, because something is.
-            for (int i = -1; i <= 1; i++) {
-                double dx = i * 0.008;
-                line(vc, m, nrm, end.add(dx, 0.11, 0), end.add(dx, -0.02, 0), 196, 190, 176);
-            }
+            // A goose quill: ONE column, red above the water, white at the surface. Nothing else — a
+            // float rod with no float rigged should look like it has no float rigged.
+            line(vc, m, nrm, end.add(0, 0.22, 0), end.add(0, 0.07, 0), rR, rG, rB);
+            line(vc, m, nrm, end.add(0, 0.07, 0), end.add(0, -0.03, 0), wR, wG, wB);
             return;
         }
-        // Antenna: thin, tall, red — the part a player actually watches for the plunge.
-        for (int i = -1; i <= 1; i++) {
-            double dx = i * 0.008;
-            line(vc, m, nrm, end.add(dx, 0.26, 0), end.add(dx, 0.11, 0), 226, 58, 46);
-            line(vc, m, nrm, end.add(0, 0.26, dx), end.add(0, 0.11, dx), 226, 58, 46);
+
+        // Antenna — one thin red stalk, cross-hatched so it survives being viewed edge-on.
+        line(vc, m, nrm, end.add(0, 0.26, 0), end.add(0, 0.12, 0), rR, rG, rB);
+        line(vc, m, nrm, end.add(0.005, 0.26, 0), end.add(0.005, 0.12, 0), rR, rG, rB);
+        line(vc, m, nrm, end.add(0, 0.26, 0.005), end.add(0, 0.12, 0.005), rR, rG, rB);
+
+        // Body — widest at the red/white waterline, tapering to both ends, exactly like the icon's bulge.
+        // Nine columns at 0.006 leave no gap to read as a stripe.
+        for (int i = -4; i <= 4; i++) {
+            double off = i * 0.006;
+            double taper = 1.0 - Math.abs(i) / 5.5;          // 1.0 at the centre, ~0.27 at the rim
+            double top = 0.05 + 0.07 * taper;                // red cap height
+            double bot = 0.05 - 0.07 * taper;                // white belly depth
+            line(vc, m, nrm, end.add(off, top, 0), end.add(off, 0.05, 0), rR, rG, rB);
+            line(vc, m, nrm, end.add(off, 0.05, 0), end.add(off, bot, 0), wR, wG, wB);
+            line(vc, m, nrm, end.add(0, top, off), end.add(0, 0.05, off), rR, rG, rB);
+            line(vc, m, nrm, end.add(0, 0.05, off), end.add(0, bot, off), wR, wG, wB);
         }
-        // Body: seven columns, tapered at the edges so the silhouette is rounded rather than a slab.
-        for (int i = -3; i <= 3; i++) {
-            double dx = i * 0.008;
-            double taper = 0.10 - Math.abs(i) * 0.018;          // shorter towards the rim
-            line(vc, m, nrm, end.add(dx, 0.11, 0), end.add(dx, 0.11 - 0.13 - taper, 0), 242, 240, 230);
-            line(vc, m, nrm, end.add(0, 0.11, dx), end.add(0, 0.11 - 0.13 - taper, dx), 242, 240, 230);
-        }
-        // Keel below the waterline, darker — gives the float a bottom instead of a cut-off edge.
-        for (int i = -1; i <= 1; i++) {
-            double dx = i * 0.008;
-            line(vc, m, nrm, end.add(dx, -0.12, 0), end.add(dx, -0.19, 0), 120, 116, 108);
-        }
+
+        // Keel below the waterline — gives the body a bottom instead of a cut-off edge.
+        line(vc, m, nrm, end.add(0, -0.02, 0), end.add(0, -0.10, 0), dR, dG, dB);
+        line(vc, m, nrm, end.add(0.005, -0.02, 0), end.add(0.005, -0.10, 0), dR, dG, dB);
+        line(vc, m, nrm, end.add(0, -0.02, 0.005), end.add(0, -0.10, 0.005), dR, dG, dB);
     }
 
     /**
