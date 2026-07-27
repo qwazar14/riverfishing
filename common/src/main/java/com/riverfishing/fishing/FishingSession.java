@@ -125,6 +125,10 @@ public class FishingSession {
     /** Hotbar slot the cast was made from, or -1 for off-hand/pod. This is what "still the same rod"
      *  actually means — an index survives the stack object being replaced. */
     public int rodSlot = -1;
+    /** §float-kind: 0 = nothing on the surface, 1 = a plain peg (float rod, no float item),
+     *  2 = the proper float (a float item is rigged). Decided once at the cast — the client cannot
+     *  see the rig, so this has to cross the wire. */
+    public byte floatKind;
 
     // §big-game greyhounding (0.5.0): reeling inside this window throws the hook — give slack.
     public long jumpWindowEnd;

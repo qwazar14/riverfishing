@@ -20,7 +20,8 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
     public final BlockPos target;
     public final float progress;
     public final int color;
-    public final boolean bobber;
+    /** §float-kind: 0 none / 1 plain peg / 2 proper float — see FishingSession.floatKind. */
+    public final byte floatKind;
     public final boolean biting;
     /** §rod-bend: live line tension 0..1 — drives the in-hand rod bend on the client. */
     public final float tension;
@@ -29,28 +30,28 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
     public final boolean running;
 
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
-                          boolean bobber) {
-        this(playerId, active, target, progress, color, bobber, false, 0f, false, false);
+                          byte floatKind) {
+        this(playerId, active, target, progress, color, floatKind, false, 0f, false, false);
     }
 
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
-                          boolean bobber, boolean biting) {
-        this(playerId, active, target, progress, color, bobber, biting, 0f, false, false);
+                          byte floatKind, boolean biting) {
+        this(playerId, active, target, progress, color, floatKind, biting, 0f, false, false);
     }
 
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
-                          boolean bobber, boolean biting, float tension) {
-        this(playerId, active, target, progress, color, bobber, biting, tension, false, false);
+                          byte floatKind, boolean biting, float tension) {
+        this(playerId, active, target, progress, color, floatKind, biting, tension, false, false);
     }
 
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
-                          boolean bobber, boolean biting, float tension, boolean fighting, boolean running) {
+                          byte floatKind, boolean biting, float tension, boolean fighting, boolean running) {
         this.playerId = playerId;
         this.active = active;
         this.target = target == null ? BlockPos.ZERO : target;
         this.progress = progress;
         this.color = color;
-        this.bobber = bobber;
+        this.floatKind = floatKind;
         this.biting = biting;
         this.tension = tension;
         this.fighting = fighting;
@@ -69,7 +70,7 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
         buf.writeBlockPos(target);
         buf.writeFloat(progress);
         buf.writeInt(color);
-        buf.writeBoolean(bobber);
+        buf.writeByte(floatKind);
         buf.writeBoolean(biting);
         buf.writeFloat(tension);
         buf.writeBoolean(fighting);
@@ -78,7 +79,7 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
 
     public static LineSyncPacket decode(FriendlyByteBuf buf) {
         return new LineSyncPacket(buf.readVarInt(), buf.readBoolean(), buf.readBlockPos(),
-                buf.readFloat(), buf.readInt(), buf.readBoolean(), buf.readBoolean(), buf.readFloat(),
+                buf.readFloat(), buf.readInt(), buf.readByte(), buf.readBoolean(), buf.readFloat(),
                 buf.readBoolean(), buf.readBoolean());
     }
 

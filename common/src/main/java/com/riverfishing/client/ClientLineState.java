@@ -21,7 +21,7 @@ public final class ClientLineState {
         public float progress;         // authoritative (server) reel-in progress 0..1
         public float smoothProgress;   // eased for rendering
         public int color = 0xFFE8E4D0;
-        public boolean bobber;         // float rigs show a bobber at the line end
+        public byte floatKind;         // §float-kind: 0 none / 1 plain peg / 2 proper float
         public boolean biting;         // bite in progress: bobber plunges / line twitches
         public float tension;          // §rod-bend: authoritative fight tension 0..1
         public float smoothTension;    // eased for the in-hand bend
@@ -57,7 +57,7 @@ public final class ClientLineState {
         line.target = p.target;
         line.progress = p.progress;
         line.color = p.color;
-        line.bobber = p.bobber;
+        line.floatKind = p.floatKind;
         line.biting = p.biting;
         line.tension = p.tension;
         line.fighting = p.fighting;

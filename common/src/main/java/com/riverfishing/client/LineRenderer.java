@@ -67,7 +67,7 @@ public final class LineRenderer {
         // rises. The float and the line END move together — like the vanilla bobber on water.
         float bobT = mc.level.getGameTime() + pt;
         double bob;
-        if (!state.bobber) {
+        if (state.floatKind == 0) {
             bob = 0.0;
         } else if (state.biting) {
             // §bite-visual: the float PLUNGES under and twitches hard — the classic "подсекай!" cue.
@@ -101,13 +101,46 @@ public final class LineRenderer {
         // The bobber (§bobber-render): only float rigs show one — a red antenna over a white body.
         // Spinning lures and bottom rigs have nothing on the surface. Wave motion is already in
         // `end`, so the float and the line move as one.
-        if (state.bobber) {
-            Vec3 fb = end;
-            line(vc, m, nrm, fb.add(0, 0.24, 0), fb.add(0, 0.10, 0), 224, 58, 48);   // antenna
-            line(vc, m, nrm, fb.add(0.018, 0.24, 0), fb.add(0.018, 0.10, 0), 224, 58, 48);
-            line(vc, m, nrm, fb.add(0, 0.10, 0), fb.add(0, -0.06, 0), 240, 238, 228); // body
-            line(vc, m, nrm, fb.add(0.018, 0.10, 0), fb.add(0.018, -0.06, 0), 240, 238, 228);
-            line(vc, m, nrm, fb.add(-0.018, 0.10, 0), fb.add(-0.018, -0.06, 0), 240, 238, 228);
+        if (state.floatKind != 0) {
+            drawFloat(vc, m, nrm, end, state.floatKind == 2);
+        }
+    }
+
+    /**
+     * §float-kind geometry. The old float was three vertical lines 0.018 apart, and the visible gaps
+     * between them are exactly why players read it as holed sticks — so the proper float is a tapered
+     * bundle at 0.008 spacing, which reads as one solid body at any distance.
+     *
+     * @param proper a float item is rigged: red-tipped, bodied, with a keel. Otherwise a plain peg —
+     *               honest about the fact that there is no float on this rig.
+     */
+    private static void drawFloat(VertexConsumer vc, Matrix4f m, Matrix3f nrm, Vec3 end, boolean proper) {
+        if (!proper) {
+            // A bare stick riding the surface. Deliberately plain: it should look like something is
+            // missing, because something is.
+            for (int i = -1; i <= 1; i++) {
+                double dx = i * 0.008;
+                line(vc, m, nrm, end.add(dx, 0.11, 0), end.add(dx, -0.02, 0), 196, 190, 176);
+            }
+            return;
+        }
+        // Antenna: thin, tall, red — the part a player actually watches for the plunge.
+        for (int i = -1; i <= 1; i++) {
+            double dx = i * 0.008;
+            line(vc, m, nrm, end.add(dx, 0.26, 0), end.add(dx, 0.11, 0), 226, 58, 46);
+            line(vc, m, nrm, end.add(0, 0.26, dx), end.add(0, 0.11, dx), 226, 58, 46);
+        }
+        // Body: seven columns, tapered at the edges so the silhouette is rounded rather than a slab.
+        for (int i = -3; i <= 3; i++) {
+            double dx = i * 0.008;
+            double taper = 0.10 - Math.abs(i) * 0.018;          // shorter towards the rim
+            line(vc, m, nrm, end.add(dx, 0.11, 0), end.add(dx, 0.11 - 0.13 - taper, 0), 242, 240, 230);
+            line(vc, m, nrm, end.add(0, 0.11, dx), end.add(0, 0.11 - 0.13 - taper, dx), 242, 240, 230);
+        }
+        // Keel below the waterline, darker — gives the float a bottom instead of a cut-off edge.
+        for (int i = -1; i <= 1; i++) {
+            double dx = i * 0.008;
+            line(vc, m, nrm, end.add(dx, -0.12, 0), end.add(dx, -0.19, 0), 120, 116, 108);
         }
     }
 
