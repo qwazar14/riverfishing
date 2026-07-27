@@ -58,7 +58,7 @@ The 0.5.0 trade tables were mostly fish, and gear almost never appeared.
 
 ### Crafting
 
-- **Every rod blank and every reel is craftable**, on one cost ladder — 21 recipes, no gaps.
+- **Every rod blank and every reel is craftable**, on one cost ladder — 24 recipes, no gaps.
 - Hooks #2 and #1 joined the `riverfishing:hooks` tag, which had silently locked the two biggest hooks
   out of every lure recipe.
 
@@ -151,7 +151,7 @@ shelf, and on every page of the wiki. Bug reports and catches both welcome.
 
 ### Крафт
 
-- **Кожен бланк і кожна котушка крафтяться** — 21 рецепт, без прогалин.
+- **Кожен бланк і кожна котушка крафтяться** — 24 рецепти, без прогалин.
 - Гачки №2 і №1 додані до тегу `riverfishing:hooks`, який досі тихо не пускав два найбільші гачки в
   жоден рецепт приманки.
 
@@ -244,7 +244,7 @@ shelf, and on every page of the wiki. Bug reports and catches both welcome.
 
 ### Крафт
 
-- **Каждый бланк и каждая катушка крафтятся** — 21 рецепт, без пробелов.
+- **Каждый бланк и каждая катушка крафтятся** — 24 рецепта, без пробелов.
 - Крючки №2 и №1 добавлены в тег `riverfishing:hooks`, который до этого тихо не пускал два самых больших
   крючка ни в один рецепт приманки.
 
