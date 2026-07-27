@@ -58,7 +58,7 @@ Every spot is classified into a **set** of groups. A species' `biomes` map lists
 
 Exactly one of cold / temperate / warm always applies; the rest stack on top.
 
-How many of the 70 species reference each group: **temperate** 55, **cold** 34, **warm** 32, **ocean_biome** 15, **deep** 12, **mountain** 8, **taiga** 7, **beach** 5, **swamp** 5, **cherry** 5. The `river_biome`, `forest`, `jungle` and `dry` groups are recognised but **no shipped species currently uses them** — they exist for datapacks.
+How many of the 79 species reference each group: **temperate** 55, **cold** 34, **warm** 32, **ocean_biome** 15, **deep** 12, **mountain** 8, **taiga** 7, **beach** 5, **swamp** 5, **cherry** 5. The `river_biome`, `forest`, `jungle` and `dry` groups are recognised but **no shipped species currently uses them** — they exist for datapacks.
 
 Note that Biomes O' Plenty biomes carry the vanilla tags, so the habitat model works across it without any extra data.
 

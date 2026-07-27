@@ -1,6 +1,6 @@
 # Species reference
 
-The rest of the profile data for all 70 species: habitat gates, the environmental multiplier tables, and fight statistics. The player-facing tables (size, water, bait, tackle) are on [Species](species.md).
+The rest of the profile data for all 79 species: habitat gates, the environmental multiplier tables, and fight statistics. The player-facing tables (size, water, bait, tackle) are on [Species](species.md).
 
 ## Habitat gates
 
@@ -83,6 +83,15 @@ These four columns are **hard gates** — outside them the fish is simply absent
 | Volga zander | 5+ | 14+ | temperate 1.0, cold 0.9 | bottom | 10–35 |
 | White-eye bream | 4+ | 12+ | temperate 1.1, cold 0.9 | bottom | 10–35 |
 | Round goby | 1+ | 6+ | warm 1.2, beach 1.2, temperate 1.0, ocean_biome 0.9 | bottom | 2–20 |
+| Bluefish | 2+ | 14+ | beach 1.2, temperate 1.2, ocean_biome 1.1, warm 1 | mid | 10–50 |
+| Bullseye snakehead | 1–6 | 4+ | warm 1.4, swamp 1.2 | surface | 3–20 |
+| Jack crevalle | 2+ | 12+ | warm 1.4, beach 1.2, ocean_biome 1.1 | mid | 10–50 |
+| Mayan cichlid | 1+ | 3+ | warm 1.4, swamp 1.1 | mid | 2–15 |
+| Oscar | 1+ | 4+ | warm 1.4, swamp 1.1 | mid | 2–18 |
+| Peacock bass | 1–10 | 6+ | warm 1.4 | mid | 5–30 |
+| Snook | 2+ | 8+ | warm 1.4, beach 1.2, swamp 1, ocean_biome 0.9 | mid | 5–35 |
+| Striped bass | 2+ | 12+ | beach 1.3, temperate 1.2, cold 1, ocean_biome 1 | mid | 10–45 |
+| Tarpon | 3+ | 16+ | warm 1.5, beach 1.2, ocean_biome 1 | mid | 15–60 |
 
 ## Season, time and weather
 
@@ -162,6 +171,15 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Volga zander | 0.9 | 0.9 | 1.3 | 0.8 | 1.2 | 0.6 | 1.3 | 1.2 | 1.0 | 1.0 | 0.8 |
 | White-eye bream | 1.2 | 1.0 | 1.1 | 0.4 | 1.2 | 0.9 | 1.2 | 0.7 | 1.0 | 1.1 | 0.9 |
 | Round goby | 1.0 | 1.3 | 1.1 | 0.3 | 1.1 | 1.1 | 1.1 | 0.6 | 1.1 | 1.0 | 0.8 |
+| Bluefish | 1 | 1.2 | 1.3 | 0.4 | 1.3 | 0.9 | 1.3 | 0.8 | 1 | 1.1 | 1.1 |
+| Bullseye snakehead | 1.1 | 1.3 | 1 | 0.05 | 1.2 | 1 | 1.2 | 0.6 | 1 | 1.1 | 1 |
+| Jack crevalle | 1.1 | 1.3 | 1.2 | 0.3 | 1.3 | 1 | 1.3 | 0.6 | 1 | 1.1 | 1 |
+| Mayan cichlid | 1.1 | 1.3 | 1 | 0.05 | 1.1 | 1.1 | 1.1 | 0.5 | 1 | 1 | 0.9 |
+| Oscar | 1.1 | 1.3 | 1 | 0.05 | 1.2 | 1 | 1.2 | 0.5 | 1 | 1 | 0.9 |
+| Peacock bass | 1.2 | 1.3 | 1 | 0.05 | 1.3 | 1 | 1.3 | 0.4 | 1 | 1 | 0.9 |
+| Snook | 1.1 | 1.3 | 1.1 | 0.2 | 1.4 | 0.7 | 1.4 | 1.3 | 1 | 1.1 | 1 |
+| Striped bass | 1.2 | 0.9 | 1.3 | 0.7 | 1.3 | 0.7 | 1.4 | 1.1 | 0.9 | 1.2 | 1.2 |
+| Tarpon | 1.2 | 1.3 | 1 | 0.2 | 1.4 | 0.7 | 1.4 | 1.2 | 1 | 1.1 | 0.9 |
 
 ## Fight statistics
 
@@ -244,6 +262,15 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Volga zander | active_then_passive | 0.55 | 2 | 0.7 | 0.7 | — |
 | White-eye bream | active_then_passive | 0.4 | 2 | 0.5 | 0.8 | — |
 | Round goby | burst | 0.25 | 2 | 0.7 | 1.0 | — |
+| Bluefish | aggressive | 0.8 | 4 | 1 | 0.6 | — |
+| Bullseye snakehead | active_then_passive | 0.9 | 2 | 0.85 | 0.6 | — |
+| Jack crevalle | relentless | 0.95 | 5 | 0.95 | 0.55 | — |
+| Mayan cichlid | burst | 0.45 | 2 | 0.8 | 1 | — |
+| Oscar | burst | 0.55 | 2 | 0.85 | 0.9 | — |
+| Peacock bass | aggressive | 0.95 | 4 | 0.95 | 0.55 | — |
+| Snook | burst | 0.9 | 3 | 0.85 | 0.55 | — |
+| Striped bass | relentless | 0.85 | 4 | 0.7 | 0.6 | — |
+| Tarpon | greyhounding | 1 | 5 | 0.75 | 0.35 | — |
 
 ## See also
 

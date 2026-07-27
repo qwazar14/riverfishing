@@ -20,7 +20,7 @@ Nothing bites by luck. This page is the full model: how the engine decides *what
 
 ## The bite engine
 
-For every one of the 70 species, the engine computes an attractiveness weight **W**. Species with W above zero go into a weighted lottery for *which* fish bites; the **sum** of all their weights decides *how long you wait*.
+For every one of the 79 species, the engine computes an attractiveness weight **W**. Species with W above zero go into a weighted lottery for *which* fish bites; the **sum** of all their weights decides *how long you wait*.
 
 ### Match coefficient M — your tackle
 
@@ -186,6 +186,8 @@ Reeled float rods run the strike-timing bar. Reel-less ones (all three wooden bl
 ### Bottom (Feeder, Bottom, Carp, Surf, Boat)
 
 A long cast and a long wait, with a very forgiving **200-tick** (10 s) bite window and a plain click to set the hook — no timing bar. These are the rods you can leave on a [rod pod](blocks.md#rod-pods) with a [bite alarm](tools.md#bite-alarms).
+
+**These rods are not retrieved.** A right-click *outside* the bite window does not crank the reel — it reels the cast in and ends it. Cast once, then leave it alone until a fish takes. Only the Active rods below are worked with clicks.
 
 ### Active (Ultralight, Spinning, Sea spinning, Trolling)
 
@@ -582,7 +584,7 @@ The engine always reads and dulls your **sharpest** hook — you fish with your 
 
 ## Difficulty
 
-The mod ships with four presets. The **realism** preset is the default and the one every number on this page assumes.
+The mod ships with four presets — the three below plus **custom**, which takes each value individually and so has nothing to tabulate. **realism** is the default and the one every number on this page assumes.
 
 | Setting | arcade | realism | hardcore |
 |---|---|---|---|

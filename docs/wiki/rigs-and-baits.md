@@ -104,7 +104,7 @@ bait presented at the species' preferred depth : bite weight ×1.3
 wrong horizon                                  : bite weight ×0.55
 ```
 
-Every species has a `depth_pref`. Across the 70 species: 33 are **bottom**, 28 **mid**, 9 **surface**.
+Every species has a `depth_pref`. Across the 79 species: 33 are **bottom**, 28 **mid**, 9 **surface**.
 
 ## Natural baits
 
@@ -112,7 +112,7 @@ Twelve natural baits, plus the Ice Jig which lives in bait slots.
 
 | Bait | Item id | Where it comes from |
 |---|---|---|
-| Worm | `worm` | Dig dirt, grass, coarse dirt, podzol, rooted dirt, farmland, dirt path or mud **with a shovel** — 10 % per block. Also the [Worm Farm](blocks.md#worm-farm) and the fisherman. |
+| Worm | `worm` | Dig dirt, grass block, coarse dirt, podzol, rooted dirt, farmland, dirt path or mud **with a shovel** — 10 % per block. Also the [Worm Farm](blocks.md#worm-farm) and the fisherman. |
 | Maggot | `maggot` | Zombie drops (33 %), the [Maggot Farm](blocks.md#maggot-farm), the fisherman. |
 | Bloodworm | `bloodworm` | Drowned drops (33 %), the fisherman. |
 | Chicken Liver | `chicken_liver` | Chicken drops (25 %). |
@@ -166,7 +166,7 @@ Each right-click is one crank. The **gap between clicks** is the lure's action:
 | Lure family | Good cadence | If you get it wrong |
 |---|---|---|
 | Wobbler, Crankbait | a click every **8–18 ticks** (~0.4–0.9 s) | The swimming action dies — fish follow and turn away. |
-| Spinner, Spoon, Soft Jig, Soft Plastic, Castmaster | anything from **5 to 30 ticks** | Almost nothing forgives less. |
+| Spinner, Spoon, Soft Jig, Soft Plastic, Castmaster | anything from **5 to 30 ticks** | Hard to get wrong — the window is that wide. |
 | Popper | Deliberate **pauses** — a pop 6–30 ticks after the last one | Constant cranking drags it under; sitting dead over 60 ticks lets it go stale. |
 
 A good crank pulls the bite **10 ticks closer**; a sloppy one only 2. **Holding** right-click auto-repeats about every 4 ticks — line comes in, but no fish takes that "action". A lure left dead in the water for more than 30 ticks (80 for a popper) pushes the take back out.

@@ -41,6 +41,7 @@
       "predator"
     ],
     "groundbait": [],
+    "requires_leader": true,
     "bait": {
       "spoon": 1.2,
       "castmaster": 1.15,
