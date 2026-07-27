@@ -480,6 +480,8 @@ public final class FishingManager {
             default -> 0xFFE8E4D0;      // warm mono white
         };
         session.rodStackRef = rod;
+        session.rodSlot = session.hand == InteractionHand.MAIN_HAND
+                ? sp.getInventory().selected : -1;
         // §live-conditions: keep the snapshot + current speed so the waiting line can re-read the world.
         session.ctx = ctx;
         session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
@@ -586,6 +588,8 @@ public final class FishingManager {
             default -> 0xFFE8E4D0;
         };
         session.rodStackRef = rod;
+        session.rodSlot = session.hand == InteractionHand.MAIN_HAND
+                ? sp.getInventory().selected : -1;
         session.ctx = ctx;
         session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
         SESSIONS.put(sp.getUUID(), session);
@@ -886,8 +890,11 @@ public final class FishingManager {
         // The line is tied to THE rod it was cast with: switching hotbar slots (a different stack in
         // hand) drops the cast (§session-guard), same as walking away.
         ItemStack inHand = sp.getItemInHand(session.hand);
+        // §session-guard: compare the SLOT, never the stack object. An ItemStack reference goes stale
+        // the moment anything rewrites the inventory slot, and this branch ends the cast with no
+        // message — which reads as the rod reeling itself in the instant you cast.
         boolean holdingRod = inHand.getItem() instanceof RodItem
-                && (session.rodStackRef.isEmpty() || inHand == session.rodStackRef);
+                && (session.rodSlot < 0 || sp.getInventory().selected == session.rodSlot);
         boolean tooFar = sp.distanceToSqr(session.target.getX() + 0.5, sp.getY(), session.target.getZ() + 0.5)
                 > MAX_SESSION_DISTANCE * MAX_SESSION_DISTANCE;
         if (!holdingRod || tooFar) {
