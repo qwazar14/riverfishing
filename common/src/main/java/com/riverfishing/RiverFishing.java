@@ -21,6 +21,7 @@ public final class RiverFishing {
 
     public static void init() {
         LOGGER.info("River Fishing: common init on {}", PlatformHelper.platformName());
+        com.riverfishing.config.ConfigLoader.load();    // §config: before anything reads a multiplier
         ModRegistries.init();
         com.riverfishing.network.ModNetwork.register(); // Architectury NetworkManager (was SimpleChannel)
         com.riverfishing.event.ModEvents.init();        // reload/tick/quit/block-break + mob-bait loot
