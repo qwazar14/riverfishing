@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wiki_art
 
 SRC = "docs/wiki"
-MOD_VERSION = "0.6.0"
+MOD_VERSION = "0.6.1"
 MC_VERSION = "1.21.1"
 
 # English lives at the root of docs/wiki; every other language mirrors the same filenames in a

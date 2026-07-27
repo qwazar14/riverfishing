@@ -17,7 +17,7 @@ jar disagree, the sheet is wrong by construction, not the jar.
 """
 import glob, hashlib, io, json, os, re, shutil, sys, tomllib, zipfile
 
-VERSION = "0.6.0"
+VERSION = "0.6.1"
 HOME = os.path.expanduser("~")
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WT = os.path.join(HOME, "wt")
