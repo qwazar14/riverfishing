@@ -441,6 +441,7 @@
     "guide.riverfishing.coop.text":  "Everyone nearby sees the fight — the boss bar is shared with spectators within 12 blocks.\nA friend can NET your fish: empty hand, crouch right beside you when the fish is nearly in.\nIt counts for both — the helper earns journal XP.",
     "guide.riverfishing.discord.title":  "Discord",
     "guide.riverfishing.discord.text":  "Everyone who plays this mod is in one place:\ndiscord.gg/Kk2nKvsuRh\nBug reports, catches worth showing, arguments about the balance, and what is coming in the next update.\nIf something here behaves oddly, say so there. A report with a screenshot and your mod list gets fixed far faster than one without.\nThe full wiki — every rod, line, rig, bait and species with the real numbers — is at github.com/qwazar14/riverfishing, in English, Russian and Ukrainian.",
+    "guide.riverfishing.discord.button":  "Open Discord",
     "journal.riverfishing.bait_natural":  "Natural bait",
     "journal.riverfishing.bait_artificial":  "Lure",
     "journal.riverfishing.bait_groundbait":  "Groundbait",

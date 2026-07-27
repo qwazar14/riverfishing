@@ -35,15 +35,14 @@ HAND_CONTEXTS = ["thirdperson_righthand", "thirdperson_lefthand",
 # §rod-debug: the ACTUAL hand poses live in CODE (RodHandTransform, applied by the two in-hand
 # mixins) so /rfrod can tune them live — the JSON hand displays only carry the per-layer depth lift.
 
-FISH = ["asp", "barracuda", "bleak", "blue_bream", "blue_marlin", "bluegill", "bream", "burbot",
-        "carp", "carp_koi_asagi", "carp_koi_bekko", "carp_koi_kohaku", "carp_koi_showa_sanke",
-        "carp_koi_tancho_sanke", "catfish", "channel_catfish", "char", "chub", "cod", "conger",
-        "crucian_carp", "eel", "flounder", "garfish", "grass_carp", "grayling", "gudgeon",
-        "halibut", "herring", "ide", "largemouth_bass", "lenok", "mackerel", "mahi", "mako",
-        "mirror_carp", "nase", "perch", "pike", "pink_salmon", "rainbow_trout", "ray", "roach",
-        "rotan", "rudd", "ruffe", "sabrefish", "sailfish", "saithe", "salmon", "seabass",
-        "silver_carp", "smelt", "sterlet", "sturgeon", "swordfish", "taimen", "tench", "trout",
-        "vimba", "wahoo", "white_bream", "whitefish", "wild_carp", "yellowfin_tuna", "zander"]  # ALL registered species (0.5.0: 66)
+# Derived, never hand-listed: a registered fish item is exactly one that has both a fish profile and an
+# item model. The old hardcoded list said "ALL registered species (0.5.0: 66)" and silently stayed at 66
+# when 0.6.0 added four — so those four shipped on 26.x with no item definition and rendered as the
+# missing-texture checkerboard.
+PROFILES = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "common", "src", "main",
+                                         "resources", "data", "riverfishing", "fish_profiles"))
+FISH = sorted({f[:-5] for f in os.listdir(PROFILES) if f.endswith(".json")}
+              & {f[:-5] for f in os.listdir(MODELS) if f.endswith(".json")})
 BUCKETS = [0.45, 0.6, 0.75, 0.9, 1.05, 1.25, 1.55, 2.0]
 
 
