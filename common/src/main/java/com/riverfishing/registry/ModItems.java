@@ -48,6 +48,10 @@ public final class ModItems {
     public static final List<RegistrySupplier<Item>> RODS = new ArrayList<>();
     // ---- Caught fish: one item + texture per species (Module 8; ÃÂ§ecology adds habitat-bound species) ----
     public static final String[] FISH_SPECIES = {
+            // §florida-nine (0.7.0): the US/Florida wave, from a player who also
+            // found the §session-guard bug that 0.6.1 fixes.
+            "peacock_bass", "bullseye_snakehead", "mayan_cichlid", "oscar",
+            "striped_bass", "bluefish", "jack_crevalle", "tarpon", "snook",
             "bream", "crucian_carp", "roach", "rudd", "white_bream",
             "carp", "catfish", "perch", "pike", "zander",
             "gudgeon", "ruffe", "bleak", "ide", "chub", "asp",
