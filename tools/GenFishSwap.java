@@ -55,6 +55,17 @@ public final class GenFishSwap {
         make("pink_salmon", "white_bream", ramp(0x171B20, 0x333E48, 0x525F6C, 0x8B98A2, 0xC2C9CE, 0xF0F1EC), 0);
         make("sturgeon", "sterlet", ramp(0x14120E, 0x2C281E, 0x46402F, 0x6A6248, 0x928866, 0xBCB08C), 0);
         make("halibut", "crucian_carp", ramp(0x1A140C, 0x362A18, 0x524026, 0x6E5836, 0x8E744A, 0xB49A6A), 0);
+        // §florida-nine (0.7.0): the US/Florida wave requested by idkwho0457_07869. Donors chosen by
+        // BODY SHAPE, not colour — the ramp does the colour and mark() does the species markings.
+        make("peacock_bass", "largemouth_bass", ramp(0x1A2410, 0x3A4A16, 0x5E7220, 0x92A62E, 0xC2CE5A, 0xE8E29A), 0xE08A1E);
+        make("bullseye_snakehead", "burbot", ramp(0x171410, 0x322C1E, 0x4C422C, 0x6E603E, 0x928058, 0xB8A47C), 0);
+        make("mayan_cichlid", "bluegill", ramp(0x1C2016, 0x3A422A, 0x586440, 0x86905E, 0xB2B486, 0xD8D2AE), 0xC03A28);
+        make("oscar", "bluegill", ramp(0x14120E, 0x2A2620, 0x403A30, 0x5C5244, 0x7C6E5C, 0x9E8C76), 0xD8541E);
+        make("striped_bass", "asp", ramp(0x181E1C, 0x36423E, 0x5A6660, 0x94A09A, 0xC8D0CA, 0xF2F4EE), 0);
+        make("bluefish", "whitefish", ramp(0x121C22, 0x1E3E4E, 0x2E6072, 0x7A9AAA, 0xC0CED6, 0xEFF2F0), 0);
+        make("jack_crevalle", "blue_bream", ramp(0x1A1C14, 0x3A3C26, 0x5E5E3A, 0x968E5E, 0xC8BE8E, 0xEEE8C4), 0xE0B428);
+        make("tarpon", "sabrefish", ramp(0x16202A, 0x32404E, 0x5A6874, 0x9AA6AE, 0xD0D8DC, 0xF6F7F2), 0);
+        make("snook", "chub", ramp(0x3A3E2E, 0x6E7252, 0x9A9C74, 0xC2C29A, 0xDEDCBE, 0xF6F4E2), 0xB8912E);
         System.out.println("done");
     }
 
@@ -141,6 +152,64 @@ public final class GenFishSwap {
             case "salmon" -> speckles(rng, 20, x0 + 6, y0 + 2, x1 - 8, cyM + 1, -45);          // sparse X-spots
             case "pink_salmon" -> speckles(rng, 30, x0 + (x1 - x0) / 2, y0 + 2, x1, y1 - 2, -45); // spotted rear+tail
             case "halibut" -> speckles(rng, 60, x0 + 4, y0 + 3, x1 - 5, y1 - 3, -40);          // mottled topside
+            // ---- §florida-nine (0.7.0) ----
+            case "peacock_bass" -> { // the three dark vertical bars, and the black ocellus on the tail
+                for (int i = 1; i <= 3; i++) {
+                    int bx = x0 + (x1 - x0) * i / 5;
+                    for (int y = y0 + 2; y <= y1 - 2; y++) { tint(bx, y, -60); tint(bx + 1, y, -45); }
+                }
+                dot(x1 - 3, cyM, 0x141414); dot(x1 - 4, cyM, 0x141414);
+            }
+            case "bullseye_snakehead" -> { // heavy mottling plus the ringed "bullseye" it is named for
+                speckles(rng, 52, x0 + 4, y0 + 2, x1 - 6, y1 - 2, -55);
+                dot(x1 - 4, cyM, 0x141410); dot(x1 - 5, cyM, 0x141410);
+                dot(x1 - 4, cyM - 1, 0xD8A048); dot(x1 - 4, cyM + 1, 0xD8A048); dot(x1 - 6, cyM, 0xD8A048);
+            }
+            case "mayan_cichlid" -> { // six bars and a tail spot; the red throat comes from the accent
+                for (int i = 1; i <= 6; i++) {
+                    int bx = x0 + (x1 - x0) * i / 8;
+                    for (int y = y0 + 2; y <= y1 - 2; y++) tint(bx, y, -50);
+                }
+                dot(x1 - 3, cyM, 0x161616);
+            }
+            case "oscar" -> { // near-black with ragged marbling and the false eye at the tail
+                speckles(rng, 46, x0 + 5, y0 + 2, x1 - 5, y1 - 2, -60);
+                speckles(rng, 22, x0 + 8, cyM - 2, x1 - 8, y1 - 3, 60);
+                dot(x1 - 4, cyM, 0x101010); dot(x1 - 5, cyM, 0x101010); dot(x1 - 4, cyM - 1, 0xE06018);
+            }
+            case "striped_bass" -> { // seven longitudinal stripes, followed PER COLUMN so they hug the
+                // body instead of cutting across the fins. A flat y-row misses at 256px: the body is
+                // only ~60px tall mid-flank while the sprite bounds are 113px including dorsal and anal.
+                for (int x = x0 + 12; x <= x1 - 16; x++) {
+                    int[] c = column(x);
+                    if (c == null || c[1] - c[0] < 12) continue;
+                    for (int i = 0; i < 7; i++) {
+                        int sy = c[0] + (int) ((c[1] - c[0]) * (0.16 + i * 0.11));
+                        tint(x, sy, -80); tint(x, sy + 1, -80); tint(x, sy + 2, -45);
+                    }
+                }
+            }
+            case "bluefish" -> { for (int sy = cyM - 2; sy <= cyM; sy++)   // the dark shoulder smudge
+                    for (int sx = x0 + 9; sx <= x0 + 13; sx++) tint(sx, sy, -50); }
+            case "jack_crevalle" -> { // the black spot on the gill cover, unmistakable on a jack
+                for (int sy = cyM - 2; sy <= cyM + 1; sy++) for (int sx = x0 + 7; sx <= x0 + 9; sx++) tint(sx, sy, -75);
+            }
+            case "tarpon" -> { // chrome scale glints and a dark dorsal ridge
+                speckles(rng, 30, x0 + 8, cyM - 3, x1 - 8, cyM + 3, 60);
+                for (int x = x0 + 6; x <= x1 - 6; x++) tint(x, y0 + 2, -45);
+            }
+            case "snook" -> { // the hard black lateral line, the one field mark nobody mistakes —
+                // traced along the body's own midline so it does not drift off the flank.
+                for (int x = x0 + 8; x <= x1 - 6; x++) {
+                    int[] c = column(x);
+                    if (c == null || c[1] - c[0] < 8) continue;
+                    int sy = c[0] + (int) ((c[1] - c[0]) * 0.52);
+                    // blend, not tint: a relative darken on an olive flank never reaches near-black,
+                    // and on a snook the line IS near-black or it is not a snook.
+                    blend(x, sy, 0x14181A, 0.80); blend(x, sy + 1, 0x14181A, 0.80);
+                    blend(x, sy + 2, 0x14181A, 0.35);
+                }
+            }
             default -> { }
         }
     }
@@ -152,6 +221,15 @@ public final class GenFishSwap {
         for (int y = 0; y < H; y++) for (int x = 0; x < W; x++)
             if (px[y * W + x] != 0) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
         return new int[]{x0, y0, x1, y1};
+    }
+
+    /** Top and bottom of the opaque run in column x, or null if the column is empty. Marks that must
+     *  follow the FISH rather than the sprite box (stripes, a lateral line) need the body, not bounds(). */
+    static int[] column(int x) {
+        if (x < 0 || x >= W) return null;
+        int top = -1, bot = -1;
+        for (int y = 0; y < H; y++) if (px[y * W + x] != 0) { if (top < 0) top = y; bot = y; }
+        return top < 0 ? null : new int[]{top, bot};
     }
 
     static void tint(int x, int y, int d) {
