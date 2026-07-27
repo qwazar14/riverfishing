@@ -75,7 +75,9 @@ public final class UpdateChecker {
 
     /** Header (clickable → releases page) + up to three bullets per missed version, newest first. */
     private static List<Component> digest(JsonObject root, String current, String remote) {
-        boolean ru = Minecraft.getInstance().options.languageCode.startsWith("ru");
+        // The feed carries bullets per language; take the player's if it has them, else English.
+        String code = Minecraft.getInstance().options.languageCode;
+        String lang = code.startsWith("ru") ? "ru" : code.startsWith("uk") ? "uk" : "en";
         List<Component> out = new ArrayList<>();
         out.add(Component.translatable("message.riverfishing.update_available", remote, current)
                 .withStyle(s -> s.withColor(ChatFormatting.GOLD)
@@ -90,7 +92,7 @@ public final class UpdateChecker {
             if (cmp(v, current) <= 0 || cmp(v, remote) > 0) continue;
             if (++shown > MAX_VERSIONS) break;
             out.add(Component.literal(v).withStyle(ChatFormatting.YELLOW));
-            JsonArray bullets = entry.getAsJsonArray(ru && entry.has("ru") ? "ru" : "en");
+            JsonArray bullets = entry.getAsJsonArray(entry.has(lang) ? lang : "en");
             if (bullets == null) continue;
             for (int i = 0; i < Math.min(3, bullets.size()); i++) {
                 out.add(Component.literal("  • " + bullets.get(i).getAsString())

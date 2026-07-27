@@ -74,6 +74,7 @@ public final class ClientPlatformImpl {
     static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.ROD_ASSEMBLY.get(), RodAssemblyScreen::new);
         event.register(ModMenus.RIG.get(), RigScreen::new);
+        event.register(ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
     }
 
     /**

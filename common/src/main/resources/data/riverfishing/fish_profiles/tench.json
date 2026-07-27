@@ -1,7 +1,7 @@
 {
   "display": "Линь",
   "water_bodies": { "pond": 1.2, "swamp": 1.2, "lake": 1.0, "river": 0.2, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 300, "max": 3500, "mean": 800, "spread": 0.6 },
+  "weight_g": { "min": 300, "max": 3500, "mean": 800 },
   "length_cm": { "min": 20, "max": 60 },
   "fight": { "strength": 0.55, "stamina": 0.7, "runs": 2, "pattern": "steady" },
   "ideal": {

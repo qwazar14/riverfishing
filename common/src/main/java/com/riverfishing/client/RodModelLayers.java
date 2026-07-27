@@ -27,8 +27,10 @@ public final class RodModelLayers {
     private RodModelLayers() {}
 
     public static final String[] ROD_KEYS =
-            {"stick", "bamboo", "pole", "winter", "ultralight", "spinning", "feeder", "bottom", "carp"};
-    public static final int[] REEL_SIZES = {1000, 2000, 3000, 4000, 5000, 6000, 7000};
+            {"stick", "bamboo", "pole", "winter", "ultralight", "spinning", "feeder", "bottom", "carp",
+             "surf", "sea_spin", "boat", "trolling"};
+    public static final int[] REEL_SIZES = {1000, 2000, 3000, 4000, 5000, 6000, 7000,
+            8000, 10000, 12000, 14000};
 
     public static ResourceLocation loc(String path) {
         return RiverFishing.id("item/rod/" + path);
@@ -41,6 +43,11 @@ public final class RodModelLayers {
 
     public static ResourceLocation blank(String rodKey) {
         return loc("blank_" + rodKey);
+    }
+
+    /** §rod-bend: the blank bent into bucket {@code bend} (1..3); 0 = straight. */
+    public static ResourceLocation blank(String rodKey, int bend) {
+        return bend <= 0 ? blank(rodKey) : loc("blank_" + rodKey + "_bend" + bend);
     }
 
     public static ResourceLocation reel(int size) {
@@ -73,7 +80,10 @@ public final class RodModelLayers {
      */
     public static List<ResourceLocation> candidates() {
         List<ResourceLocation> normal = new ArrayList<>();
-        for (String k : ROD_KEYS) normal.add(blank(k));
+        for (String k : ROD_KEYS) {
+            normal.add(blank(k));
+            for (int b = 1; b <= 6; b++) normal.add(blank(k, b)); // §rod-bend buckets
+        }
         normal.add(reelGeneric());
         for (int s : REEL_SIZES) normal.add(reel(s));
         normal.add(lineGeneric());

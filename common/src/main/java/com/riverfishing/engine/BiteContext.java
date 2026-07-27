@@ -29,6 +29,7 @@ public class BiteContext {
     public double leaderProtection; // bite-through resistance of the fitted leader (0..1)
     public double leaderStealth;    // invisibility of the fitted leader (0..1)
     public double castWeightG;      // rig mass
+    public double lureWeightG;      // §lure-size (0.6.0): the tied lure's bench weight, 0 = none/untied
 
     // ---- Angler (progression gate) ----
     public int anglerLevel;         // the caster's journal level; species can require a minimum
@@ -65,4 +66,11 @@ public class BiteContext {
 
     /** §population: per-species depletion at this spot (1.0 plenty … 0.1 fished out), or null = neutral. */
     public java.util.function.ToDoubleFunction<net.minecraft.resources.ResourceLocation> speciesFactor;
+
+    /** §community: this water's deterministic species set — 0 = not present here, 1.8 = signature. */
+    public java.util.function.ToDoubleFunction<net.minecraft.resources.ResourceLocation> communityFactor;
+
+    /** §residency: stocked presence — 1.0 settled, 0..1 temp transplant, 0 none. Floors the env score
+     *  so a settled species survives (weakly) even in water that doesn't suit it. */
+    public java.util.function.ToDoubleFunction<net.minecraft.resources.ResourceLocation> stockedPresence;
 }

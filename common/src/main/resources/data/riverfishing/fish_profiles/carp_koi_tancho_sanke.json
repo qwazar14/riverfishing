@@ -1,7 +1,7 @@
 {
   "display": "Кои Танчо Санке",
   "water_bodies": { "pond": 1.0, "lake": 1.0, "river": 0.4, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 800, "max": 8000, "mean": 2500, "spread": 0.6 },
+  "weight_g": { "min": 800, "max": 8000, "mean": 2500 },
   "length_cm": { "min": 25, "max": 90 },
   "fight": { "strength": 0.7, "stamina": 0.7, "runs": 3, "pattern": "burst", "aggression": 0.6 },
   "ideal": {

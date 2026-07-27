@@ -1,0 +1,24 @@
+{
+  "display": "Скат",
+  "water_bodies": { "sea": 1.1, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
+  "weight_g": { "min": 2000, "max": 50000, "mean": 8000 },
+  "length_cm": { "min": 40, "max": 180 },
+  "fight": { "strength": 0.95, "stamina": 0.95, "runs": 1, "pattern": "steady", "aggression": 0.2 },
+  "ideal": {
+    "rod": ["surf", "boat"],
+    "reel_size": 12000, "reel_tolerance": 2000,
+    "line": { "type": "mono", "diameter_mm": 0.50, "tolerance_mm": 0.10 },
+    "rig": ["grusha", "catfish"], "groundbait": [],
+    "bait": { "fish_strip": 1.0, "worm": 0.7, "livebait": 0.6 },
+    "hook": { "ideal": 2, "tolerance": 2 }
+  },
+  "season": { "spring": 0.9, "summer": 1.2, "autumn": 1.1, "winter": 0.5 },
+  "time":   { "dawn": 1.0, "day": 0.9, "dusk": 1.1, "night": 1.2 },
+  "weather":{ "clear": 1.0, "rain": 1.0, "thunder": 0.9 },
+  "depth_pref": "bottom",
+  "distance_pref": { "min": 18, "max": 45 },
+  "habitat": { "depth_min": 3, "width_min": 14 },
+  "biomes": { "ocean_biome": 1.0, "beach": 1.1, "warm": 1.2, "temperate": 1.0 },
+  "base": 0.5,
+  "min_angler_level": 6
+}

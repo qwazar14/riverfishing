@@ -37,7 +37,7 @@ public final class TackleCompat {
      * and {@link #maxLineDiameter}/{@link #minReelForLine} (still shown in the journal/reel tooltip as a
      * reference) are kept intact; flip this back to {@code true} to re-enforce it in the assembly GUI.
      */
-    public static final boolean ENFORCE_REEL_LINE = false;
+    public static final boolean ENFORCE_REEL_LINE = true;
 
     /** Can a reel of {@code size} spool a line of {@code diameterMm}? (Only the MAX is a hard limit.) */
     public static boolean reelAcceptsLine(int reelSize, double diameterMm) {

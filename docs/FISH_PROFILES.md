@@ -23,7 +23,10 @@ data/riverfishing/fish_profiles/<species>.json
   // Types: puddle, pond, lake, river, swamp, sea
   "water_bodies": { "lake": 1.1, "river": 1.0, "pond": 0.8, "swamp": 0.5, "sea": 0.0, "puddle": 0.0 },
 
-  "weight_g":  { "min": 50, "max": 2000, "mean": 250, "spread": 0.6 },  // grams; drives fight & value
+  // grams; drives fight & value. "mean" is the MEDIAN catch weight — half of all catches land under
+  // it (the roll's power curve is solved per species from it). Omitted mean = the default rare-big
+  // curve (median ≈ min + 19% of the range).
+  "weight_g":  { "min": 50, "max": 2000, "mean": 250 },
   "length_cm": { "min": 10, "max": 45 },   // length follows weight by the cube-root law automatically
 
   "fight": {
@@ -46,7 +49,9 @@ data/riverfishing/fish_profiles/<species>.json
       // lures:   spinner, spoon, silicone, wobbler, popper, crankbait, jig, castmaster
       "livebait": 0.9, "crankbait": 1.0, "silicone": 0.95
     },
-    "hook": { "ideal": 8, "tolerance": 3 },// hook size; outside ideal±tolerance the bite drops off
+    "hook": { "ideal": 8, "tolerance": 3 },// hook size; the score falls off LINEARLY and only hits
+                                           // zero at ideal ± 4×tolerance (within ±tolerance it's still
+                                           // ≥0.75) — tolerance is the "steepness step", not a cutoff
     "requires_leader": false               // true = toothy: bites through leaderless line
   },
 
@@ -83,7 +88,7 @@ Balance rules of thumb:
 | Field | Common panfish | Mid predator | Trophy prize |
 |---|---|---|---|
 | `base` | 1.0–1.2 | 0.7–0.9 | 0.4–0.6 |
-| `weight_g.spread` | 0.6 | 0.7 | 0.7–0.8 |
+| `weight_g.mean` (median catch) | ~min + 15% of range | ~min + 25% | ~min + 30–40% |
 | `min_angler_level` | 0 | 3–4 | 5+ |
 | `fight.strength` | 0.2–0.4 | 0.5–0.8 | 0.8+ |
 

@@ -3,6 +3,9 @@ loaderVersion="[4,)"
 license="All Rights Reserved (source-available, see LICENSE.txt)"
 issueTrackerURL="https://github.com/qwazar14/riverfishing/issues"
 
+# NeoForge has no structured field for a chat link, so the invite also lives in the description below —
+# that is the text the mod list actually shows.
+
 # §multiloader (1.21.1): NeoForge loads mixin configs from this file. The common koi-release mixin
 # applies on both loaders; the Forge-client BEWLR mixins are replaced on NeoForge by
 # RegisterClientExtensionsEvent (see the client stage), so no NeoForge client mixin config here yet.
@@ -15,8 +18,11 @@ version="${version}"
 displayName="River Fishing"
 logoFile="icon.png"
 authors="Qwazar"
+displayURL="https://github.com/qwazar14/riverfishing"
 description='''
 A deep, realistic river & ice-fishing simulator built as a modpack anchor.
+
+Discord: https://discord.gg/Kk2nKvsuRh
 '''
 
 [[dependencies.riverfishing]]

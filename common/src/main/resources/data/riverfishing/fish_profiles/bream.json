@@ -1,7 +1,7 @@
 {
   "display": "Лещ",
   "water_bodies": { "river": 1.0, "lake": 1.1, "pond": 0.9, "swamp": 0.4, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 300, "max": 4000, "mean": 900, "spread": 0.6 },
+  "weight_g": { "min": 300, "max": 4000, "mean": 900 },
   "length_cm": { "min": 25, "max": 55 },
   "fight": { "strength": 0.4, "stamina": 0.5, "runs": 2, "pattern": "active_then_passive" },
   "ideal": {

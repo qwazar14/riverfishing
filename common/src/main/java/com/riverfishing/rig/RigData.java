@@ -75,6 +75,33 @@ public final class RigData {
 
     // ---- queries for the bite engine ----
 
+    /**
+     * §tackle-station (0.6.0): the rig's EFFECTIVE cast weight — the grams chosen at the bench
+     * (TackleWeightG) when tied there, else the old fixed type mass. A tied lure in the rig's
+     * LURE/BAIT slot adds its own bench weight on top.
+     */
+    public static double effectiveWeightG(ItemStack rig) {
+        var tag = StackNbt.get(rig);
+        double w = tag.contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)
+                ? tag.getInt(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)
+                : rigType(rig).massGrams();
+        return w + lureTackleWeightG(rig);
+    }
+
+    /** §lure-size: the tied lure's bench weight sitting in a LURE/BAIT slot, or 0. */
+    public static double lureTackleWeightG(ItemStack rig) {
+        double[] lure = {0};
+        forEachFilled(rig, (role, stack) -> {
+            if (lure[0] == 0 && (role == SlotRole.LURE || role == SlotRole.BAIT)) {
+                var t = StackNbt.get(stack);
+                if (t.contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)) {
+                    lure[0] = t.getInt(com.riverfishing.tackle.TackleForm.TAG_WEIGHT);
+                }
+            }
+        });
+        return lure[0];
+    }
+
     /** Hook sizes loaded in the rig; the engine picks the best fit per fish. */
     public static List<Integer> hookSizes(ItemStack rig) {
         List<Integer> sizes = new ArrayList<>();
@@ -166,19 +193,34 @@ public final class RigData {
      * the BAIT slot, not something a fish can eat. Returns true when something was eaten.
      */
     public static boolean consumeBait(ItemStack rig) {
+        return consumeBait(rig, null);
+    }
+
+    /**
+     * §bait-attribution: with a preference (the biting species' own bait scores) the bait the fish
+     * actually TOOK is the one consumed — not just the first filled slot.
+     */
+    public static boolean consumeBait(ItemStack rig, java.util.function.ToDoubleFunction<String> preference) {
         SlotRole[] roles = RigLayout.rolesFor(rigType(rig));
         NonNullList<ItemStack> inv = load(rig);
+        int bestSlot = -1;
+        double bestScore = -Double.MAX_VALUE;
         for (int i = 0; i < roles.length && i < inv.size(); i++) {
             ItemStack s = inv.get(i);
             if (roles[i] == SlotRole.BAIT && !s.isEmpty()
                     && s.getItem() instanceof BaitItem b && !b.artificial()
                     && !"mormyshka".equals(b.baitId())) {
-                s.shrink(1);
-                save(rig, inv);
-                return true;
+                double score = preference != null ? preference.applyAsDouble(b.baitId()) : 0.0;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestSlot = i;
+                }
             }
         }
-        return false;
+        if (bestSlot < 0) return false;
+        inv.get(bestSlot).shrink(1);
+        save(rig, inv);
+        return true;
     }
 
     /** True when a float is actually loaded in the rig's FLOAT slot (§fishing-depth). */

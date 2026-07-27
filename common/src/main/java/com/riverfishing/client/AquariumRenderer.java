@@ -57,8 +57,12 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             double u, height;
             float travel; // horizontal travel direction: +1 swims one way, −1 the other
             if (big) {
-                // §aquarium-big: a big fish just cruises side to side (the old behaviour).
-                u = Mth.sin(t) * 0.30;
+                // §aquarium-big: a big fish just cruises side to side (the old behaviour). The cruise
+                // amplitude shrinks with the fish's rendered length so a tank-filling giant (§fish-scale:
+                // FIXED caps at 2 blocks) sways in place instead of poking through the glass.
+                float fishLen = Math.min(2.0f, FishItem.getIconScale(fish)) * 0.9f;
+                double amp = Mth.clamp(0.95 - fishLen / 2.0, 0.05, 0.30);
+                u = Mth.sin(t) * amp;
                 height = 1.5 + Mth.sin(time * 0.09f + i) * 0.04;
                 travel = Mth.cos(t) >= 0 ? 1f : -1f;
             } else {

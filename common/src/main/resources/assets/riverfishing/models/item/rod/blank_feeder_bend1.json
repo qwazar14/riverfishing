@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "riverfishing:item/rod/blank_feeder_bend1"
+  }
+}

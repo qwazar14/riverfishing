@@ -47,6 +47,8 @@ public final class ModEvents {
         TickEvent.PLAYER_POST.register(player -> {
             if (player instanceof ServerPlayer sp) {
                 FishingManager.tick(sp);
+                FishingManager.trollingTick(sp); // trolling v1 (0.5.0): boat-agnostic towing loop
+                announceDailyOrder(sp); // market (0.5.0): one chat line per player per Minecraft day
                 if (sp.tickCount % 10 == 0) {
                     var level = sp.serverLevel();
                     com.riverfishing.fishing.FeedZoneData.get(level)
@@ -81,6 +83,21 @@ public final class ModEvents {
                 addDrop(context, RiverFishing.id("barley_seeds"), SEED_CHANCE);
             }
         });
+    }
+
+    // market (0.5.0): the daily-order announcement, once per player per Minecraft day.
+    private static final java.util.Map<java.util.UUID, Long> ORDER_TOLD = new java.util.HashMap<>();
+
+    private static void announceDailyOrder(net.minecraft.server.level.ServerPlayer sp) {
+        long day = sp.server.overworld().getDayTime() / 24000L;
+        Long told = ORDER_TOLD.get(sp.getUUID());
+        if (told != null && told == day) return;
+        ORDER_TOLD.put(sp.getUUID(), day);
+        String species = com.riverfishing.fishing.MarketData.orderOfTheDay(sp.serverLevel());
+        sp.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                "message.riverfishing.daily_order",
+                net.minecraft.network.chat.Component.translatable("fish.riverfishing." + species))
+                .withStyle(net.minecraft.ChatFormatting.GOLD));
     }
 
     private static boolean matches(ResourceLocation lootId, String entity) {

@@ -65,7 +65,7 @@ public class IceHoleBlock extends IceBlock {
         }
         if (!RodData.isAssembled(held)) {
             if (!level.isClientSide) {
-                player.displayClientMessage(Component.translatable("message.riverfishing.not_assembled")
+                player.displayClientMessage(Component.translatable(RodData.missingKey(held))
                         .withStyle(ChatFormatting.RED), true);
             }
             return net.minecraft.world.ItemInteractionResult.CONSUME;

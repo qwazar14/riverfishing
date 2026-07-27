@@ -22,7 +22,9 @@ public final class FishProfile {
 
     // Presence / size
     public final Map<String, Double> waterBodies;
-    public final double weightMin, weightMax, weightMean, weightSpread;
+    public final double weightMin, weightMax, weightMean;
+    /** §weight-curve: true when the profile explicitly sets weight_g.mean — it then becomes the roll's median. */
+    public final boolean weightMeanSet;
     public final double lengthMin, lengthMax;
 
     // Fight (used by the vyvazhivanie mini-game)
@@ -56,6 +58,10 @@ public final class FishProfile {
     // …and only in these biome groups (group -> factor; empty = anywhere; no match = 0).
     public final Map<String, Double> biomes;
 
+    // §legendary (0.5.0): the species hides ONE named specimen per server (0 = none).
+    public final int legendaryWeightG;
+    public final double legendaryChance;
+
     // Base attractiveness / relative density (§1.4)
     public final double base;
 
@@ -68,7 +74,7 @@ public final class FishProfile {
         this.weightMin = b.weightMin;
         this.weightMax = b.weightMax;
         this.weightMean = b.weightMean;
-        this.weightSpread = b.weightSpread;
+        this.weightMeanSet = b.weightMeanSet;
         this.lengthMin = b.lengthMin;
         this.lengthMax = b.lengthMax;
         this.fightStrength = b.fightStrength;
@@ -94,6 +100,8 @@ public final class FishProfile {
         this.depthPref = b.depthPref;
         this.distMin = b.distMin;
         this.distMax = b.distMax;
+        this.legendaryWeightG = b.legendaryWeightG;
+        this.legendaryChance = b.legendaryChance;
         this.base = b.base;
         this.minAnglerLevel = b.minAnglerLevel;
         this.depthMin = b.depthMin;
@@ -137,7 +145,7 @@ public final class FishProfile {
         b.weightMin = GsonHelper.getAsDouble(w, "min", 50);
         b.weightMax = GsonHelper.getAsDouble(w, "max", 1000);
         b.weightMean = GsonHelper.getAsDouble(w, "mean", (b.weightMin + b.weightMax) / 2.0);
-        b.weightSpread = GsonHelper.getAsDouble(w, "spread", 0.6);
+        b.weightMeanSet = w.has("mean");
 
         JsonObject len = GsonHelper.getAsJsonObject(json, "length_cm", new JsonObject());
         b.lengthMin = GsonHelper.getAsDouble(len, "min", 8);
@@ -178,6 +186,13 @@ public final class FishProfile {
         b.base = GsonHelper.getAsDouble(json, "base", 1.0);
         b.minAnglerLevel = GsonHelper.getAsInt(json, "min_angler_level", 0);
 
+        // §legendary (0.5.0): optional one-per-server named specimen.
+        if (json.has("legendary")) {
+            JsonObject leg = GsonHelper.getAsJsonObject(json, "legendary");
+            b.legendaryWeightG = GsonHelper.getAsInt(leg, "weight_g", 0);
+            b.legendaryChance = GsonHelper.getAsDouble(leg, "chance", 0.005);
+        }
+
         // Habitat gates (§ecology): depth/size of the water body + biome groups.
         JsonObject hab = GsonHelper.getAsJsonObject(json, "habitat", new JsonObject());
         b.depthMin = GsonHelper.getAsInt(hab, "depth_min", 0);
@@ -207,7 +222,8 @@ public final class FishProfile {
     private static final class Builder {
         final ResourceLocation id;
         Map<String, Double> waterBodies = new HashMap<>();
-        double weightMin, weightMax, weightMean, weightSpread;
+        double weightMin, weightMax, weightMean;
+        boolean weightMeanSet;
         double lengthMin, lengthMax;
         double fightStrength, fightStamina;
         int fightRuns;
@@ -229,6 +245,8 @@ public final class FishProfile {
         double distMin, distMax;
         double base = 1.0;
         int minAnglerLevel = 0;
+        int legendaryWeightG = 0;
+        double legendaryChance = 0.005;
         int depthMin = 0, depthMax = 999;
         double widthMin = 0, widthMax = 99999;
         Map<String, Double> biomes = new HashMap<>();

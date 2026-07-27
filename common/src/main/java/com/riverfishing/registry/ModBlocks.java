@@ -47,8 +47,10 @@ public final class ModBlocks {
                     BlockBehaviour.Properties.of().strength(0.6f).sound(SoundType.WOOD).noOcclusion()));
 
     // Fisherman's workstation / POI job-site block (§8). noOcclusion: the model is a stall, not a cube.
+    // §tackle-station (round 5): the stall is the tackle bench too — profession POI + tying UI.
     public static final RegistrySupplier<Block> FISHING_STALL = registerSimple("fishing_stall",
-            () -> new Block(BlockBehaviour.Properties.of().strength(2.0f).sound(SoundType.WOOD).noOcclusion()));
+            () -> new com.riverfishing.block.FishingStallBlock(
+                    BlockBehaviour.Properties.of().strength(2.0f).sound(SoundType.WOOD).noOcclusion()));
 
     // Trophy stand (§15.5) — mounts a caught fish.
     public static final RegistrySupplier<Block> TROPHY_STAND = registerSimple("trophy_stand",

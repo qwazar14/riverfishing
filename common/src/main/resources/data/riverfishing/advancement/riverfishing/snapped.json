@@ -1,0 +1,15 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": { "id": "riverfishing:line_mono_010" },
+    "title": { "translate": "advancement.riverfishing.snapped.title" },
+    "description": { "translate": "advancement.riverfishing.snapped.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "criteria": {
+    "code": { "trigger": "minecraft:impossible" }
+  }
+}
