@@ -1,12 +1,30 @@
 {
   "_comment": "River Fishing update feed (§update-check). Served raw from the mc-1.21.1 branch; the in-game checker compares 'latest' for the running MC version and prints up to 3 bullets per missed release. Bump 'latest' ONLY when a release is actually published.",
   "latest": {
-    "1.20.1": "0.6.0",
-    "1.21.1": "0.6.0",
-    "26.1.2": "0.6.0",
-    "26.2": "0.6.0"
+    "1.20.1": "0.6.1",
+    "1.21.1": "0.6.1",
+    "26.1.2": "0.6.1",
+    "26.2": "0.6.1"
   },
   "changelog": [
+    {
+      "version": "0.6.1",
+      "ru": [
+        "Заброс больше не пропадает сам — на серверах он обрывался молча, без сообщения",
+        "Прилавок на 1.20.1 Forge наконец открывает снастевой станок",
+        "Удилище в подсказке говорит, как им ловят, а сообщение о проводке больше не врёт"
+      ],
+      "uk": [
+        "Закид більше не зникає сам — на серверах він обривався мовчки, без повідомлення",
+        "Прилавок на 1.20.1 Forge нарешті відкриває снастевий стіл",
+        "Вудилище в підказці каже, як ним ловлять, а повідомлення про проводку більше не бреше"
+      ],
+      "en": [
+        "The cast no longer vanishes on its own — on servers it was ending silently, with no message",
+        "The Fishing Stall finally opens the Tackle Station on 1.20.1 Forge",
+        "Every rod tooltip says how that rod is fished, and the retrieve message stops lying"
+      ]
+    },
     {
       "version": "0.6.0",
       "ru": [
