@@ -15,8 +15,20 @@ public final class GenFishSwap {
     static int W, H;
     static int[] px;
 
+    /** §sprite-guard: a sprite that already exists is the ARTIST'S, not ours — see main(). */
+    static boolean force;
+
     public static void main(String[] args) throws Exception {
-        dir = new File(args.length > 0 ? args[0] : "common/src/main/resources/assets/riverfishing/textures/item/fish");
+        // §sprite-guard (0.7.0). This generator SEEDS a new species from a donor; it is not the source of
+        // truth for a sprite that has since been drawn on by hand. Re-running it used to rewrite every
+        // entry in the list below, which silently replaced 36 hand-worked sprites with flat recolours —
+        // and nothing downstream noticed, because the files were still valid PNGs of the right size.
+        // So: existing files are KEPT unless --force is passed, and each one says which it did.
+        java.util.List<String> a = new java.util.ArrayList<>();
+        for (String s : args) {
+            if (s.equals("--force")) force = true; else a.add(s);
+        }
+        dir = new File(!a.isEmpty() ? a.get(0) : "common/src/main/resources/assets/riverfishing/textures/item/fish");
         // id, donor, 6-stop ramp dark->light, accent (0 = none: warm donor tones go through the ramp)
         make("bluegill", "perch", ramp(0x1E2A1C, 0x3E5A38, 0x5E7E4A, 0x8FA86A, 0xB9C48A, 0xE2D2A0), 0xC46A2A);
         make("largemouth_bass", "zander", ramp(0x18241A, 0x2E4A2C, 0x4A6A3E, 0x7FA05C, 0xAABF86, 0xDCD8AC), 0);
@@ -72,6 +84,11 @@ public final class GenFishSwap {
     static int[] ramp(int... stops) { return stops; }
 
     static void make(String id, String donor, int[] ramp, int accent) throws Exception {
+        File out = new File(dir, id + ".png");
+        if (out.exists() && !force) {
+            System.out.println("  kept   " + id + " (already drawn — pass --force to overwrite)");
+            return;
+        }
         BufferedImage src = ImageIO.read(new File(dir, donor + ".png"));
         W = src.getWidth(); H = src.getHeight();
         px = new int[W * H];
@@ -100,10 +117,10 @@ public final class GenFishSwap {
             px[y * W + x] = 0xFF000000 | c;
         }
         mark(id, new Random(id.hashCode()));
-        BufferedImage out = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
-        out.setRGB(0, 0, W, H, px, 0, W);
-        ImageIO.write(out, "png", new File(dir, id + ".png"));
-        System.out.println("  " + id + " <- " + donor);
+        BufferedImage img = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
+        img.setRGB(0, 0, W, H, px, 0, W);
+        ImageIO.write(img, "png", out);
+        System.out.println("  wrote  " + id + " <- " + donor);
     }
 
     /** Species markings by darkening/tinting EXISTING pixels — the drawn texture stays. */
