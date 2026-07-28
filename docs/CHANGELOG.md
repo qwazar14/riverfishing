@@ -11,6 +11,46 @@ Full patchnotes. The short three-bullet form the in-game update checker shows li
 
 *In development.*
 
+### Somewhere to put the tackle
+
+Asked for plainly by **arsen_501**: "неудобно все снасти в инвентаре носить". It is a fair complaint —
+this mod ships seventeen line diameters, six hook sizes, four rig types and dozens of baits, and until
+now they all lived loose in the same nine rows as your food and your building blocks.
+
+- **Four sizes** — 9, 18, 27 and 36 slots. Each is a craft of the one below, and a chest is the heart of
+  every recipe.
+- **Tackle only**: line, hooks, rigs, lures, bait, leaders. Not rods and reels — those are what you hold,
+  not what you rummage for, and a box that swallowed a rod would be a backpack wearing a tackle box's name.
+- **Rename it in the box**, top row, no trip to an anvil. Renaming is the whole point of owning four of
+  them, so it costs one click.
+- **Dye the inserts** like leather armour. The colour shows on the icon, inside the open box and on the
+  placed one, because all three read the same stack.
+- **Set it down** and it faces you. **Break it** and it keeps everything, because the placed block stores
+  the box ITEM rather than a copy of its contents — there is one object, so the two can never drift apart.
+
+The fisherman sells four **ready-made kits** — float, pike, carp and saltwater — each named, dyed and
+packed with bench-graded tackle. A kit is the answer to "what do I actually need for pike", in a form you
+can carry to the water and open.
+
+### Taking a species out of a water
+
+Asked for by **vptareo-aao**: a way to remove a nuisance species from a particular water so it stops
+getting in the way. The **electrofisher** does it — which is what real electrofishing is for, a survey
+crew stunning a stretch of river to take out what does not belong.
+
+Right-click water, get the list of what genuinely lives there, click a row twice. Nothing happens on one
+click: a mis-click that empties a lake is not a mistake anyone should be able to make.
+
+**Creative only**, as requested, and it refuses to fire outside creative as well as being uncraftable —
+it permanently changes what a water can hold, and no survival cost would make that a fair trade.
+
+The ban is checked in one place, the same function that decides whether a species lives in a water at
+all, so a culled fish disappears from the bite engine, from the shoal you can see swimming, from the fish
+finder and from stocking together. It is reversible from the same screen, and releasing one of that
+species there lifts the ban as well: a fish that visibly swims in a water has to be catchable in it. The
+screen states its own scope, because a water is a ~128-block region and an operator who thinks they
+cleared a pond may have cleared a river.
+
 ### The fish are in the water
 
 Lean over a lake and you can see what lives in it. Every 12-block cell of water across the 3×3 chunks
