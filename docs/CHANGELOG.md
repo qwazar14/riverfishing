@@ -66,6 +66,11 @@ and it never becomes a quiz. Holding across the run tires the fish nearly twice 
 into it costs up to **three times** the tension. The boss bar says which way while the run lasts, because
 an instruction you have to infer is not one.
 
+**The rod shows it.** A run drags the tip over the way the fish is going — left, right, up, down — which
+is both what physically happens and where a player actually reads a fight. The boss bar names the course
+as well, but the bar alone did not land: the first build had the text and not the rod, and the direction
+simply did not register.
+
 The seven fight patterns in the profiles become **direction scripts** rather than being replaced: a
 greyhounding marlin keeps coming up, a sounding tuna is one long pull down, a relentless grass carp
 alternates sides and never rests.

@@ -60,6 +60,14 @@ public final class RodHandTransform {
                 || ctx == ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
     }
 
+    /**
+     * §fight-course: how far the tip is dragged over by a running fish, in degrees. Live-tunable through
+     * {@code /rfrod course <yaw> <pitch>} because it is a look-at-it number, like every other pose value
+     * in this file.
+     */
+    public static float COURSE_YAW = 18f;
+    public static float COURSE_PITCH = 15f;
+
     /** Applies the hand transform for a hand context (no-op otherwise). Each hand uses its own array. */
     public static void apply(PoseStack pose, ItemDisplayContext ctx) {
         float[] a = switch (ctx) {
@@ -70,9 +78,14 @@ public final class RodHandTransform {
             default -> null;
         };
         if (a == null) return;
+        // §fight-course: a run drags the tip the way the fish is going. The boss bar names the course,
+        // but the rod is where a player actually reads a fight, and without this the direction did not
+        // land at all.
+        float[] lean = ClientLineState.ownLean();
         pose.translate(a[0] / 16f, a[1] / 16f, a[2] / 16f);
         pose.mulPose(new Quaternionf().rotationXYZ(
-                (float) Math.toRadians(a[3]), (float) Math.toRadians(a[4]), (float) Math.toRadians(a[5])));
+                (float) Math.toRadians(a[3] + lean[1]), (float) Math.toRadians(a[4] + lean[0]),
+                (float) Math.toRadians(a[5])));
         pose.scale(a[6], a[6], a[6]);
     }
 

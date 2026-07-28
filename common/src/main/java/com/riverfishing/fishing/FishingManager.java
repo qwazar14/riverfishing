@@ -1820,7 +1820,8 @@ public final class FishingManager {
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     (float) Mth.clamp(session.landProgress, 0.0, 1.0), session.lineColor,
                     session.floatKind, false, fightStress(session),
-                    true, session.runTicksLeft > 0)); // §pump-reel: run state drives the HUD cue
+                    true, session.runTicksLeft > 0,   // §pump-reel: run state drives the HUD cue
+                    (byte) session.course.ordinal())); // §fight-course: which way the tip gets dragged
         }
     }
 

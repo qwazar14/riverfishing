@@ -27,6 +27,18 @@ public final class RodDebugCommand {
     public static void register(CommandDispatcher<ClientCommandSourceStack> dispatcher) {
         dispatcher.register(ClientCommandRegistrationEvent.literal("rfrod")
                 .then(ClientCommandRegistrationEvent.literal("show").executes(RodDebugCommand::show))
+                // §fight-course: how hard a running fish drags the tip over. Look at it mid-run and
+                // dial it until the direction reads without the boss bar.
+                .then(ClientCommandRegistrationEvent.literal("course")
+                        .then(ClientCommandRegistrationEvent.argument("yaw", FloatArgumentType.floatArg(0f, 60f))
+                                .then(ClientCommandRegistrationEvent.argument("pitch", FloatArgumentType.floatArg(0f, 60f))
+                                        .executes(c -> {
+                                            RodHandTransform.COURSE_YAW = FloatArgumentType.getFloat(c, "yaw");
+                                            RodHandTransform.COURSE_PITCH = FloatArgumentType.getFloat(c, "pitch");
+                                            say(c, String.format("§bcourse lean: yaw %.0f  pitch %.0f",
+                                                    RodHandTransform.COURSE_YAW, RodHandTransform.COURSE_PITCH));
+                                            return 1;
+                                        }))))
                 .then(ClientCommandRegistrationEvent.literal("reset").executes(c -> {
                     RodHandTransform.reset();
                     say(c, "§ereset to defaults");
