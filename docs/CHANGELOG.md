@@ -25,8 +25,11 @@ now they all lived loose in the same nine rows as your food and your building bl
   them, so it costs one click.
 - **Dye the inserts** like leather armour. The colour shows on the icon, inside the open box and on the
   placed one, because all three read the same stack.
-- **Set it down** and it faces you. **Break it** and it keeps everything, because the placed block stores
-  the box ITEM rather than a copy of its contents — there is one object, so the two can never drift apart.
+- **Right-click to set it down** and it faces you; **sneak + right-click to open**, in your hand or
+  already placed. **Break it** and it keeps everything, because the placed block stores the box ITEM
+  rather than a copy of its contents — there is one object, so the two can never drift apart.
+- There is a **journal page** for it, next to the tackle bench: one ties the tackle, the other is where
+  it lives afterwards.
 
 The fisherman sells four **ready-made kits** — float, pike, carp and saltwater — each named, dyed and
 packed with bench-graded tackle. A kit is the answer to "what do I actually need for pike", in a form you

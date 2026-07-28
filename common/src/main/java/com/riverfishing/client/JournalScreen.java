@@ -154,6 +154,9 @@ public class JournalScreen extends Screen {
         // not come near you. Boots, because the whole mechanic is about how you walk up to the water.
         addGuide("spook", new ItemStack(net.minecraft.world.item.Items.LEATHER_BOOTS));
         addGuide("tacklebench", modStack("fishing_stall"));
+        // §tackle-box: next to the bench, because they are the same subject — one ties the tackle, the
+        // other is where it lives afterwards.
+        addGuide("tacklebox", modStack("tackle_box_medium"));
         addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
         addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
         // §discord: last on the shelf on purpose — the other eleven teach a mechanic, this one is where

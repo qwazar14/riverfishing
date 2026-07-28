@@ -41,24 +41,24 @@ public class TackleBoxItem extends net.minecraft.world.item.BlockItem {
         return dc != null ? dc.rgb() : 0xE8E6DF;
     }
 
+    /**
+     * Crouch to open, plain click to place — the way round every other block in the game already works,
+     * so the box does not need its own rule in the player's head. Clicking at the sky with nothing to
+     * place against still opens it, because there is nothing else that click could mean.
+     */
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        // Crouching is the "place me" gesture, so a player standing at a chest can still set the box down
-        // deliberately; an ordinary right-click always opens it, which is what you want ninety-nine
-        // times in a hundred.
-        if (player.isCrouching()) return InteractionResultHolder.pass(stack);
         if (!level.isClientSide && player instanceof net.minecraft.server.level.ServerPlayer sp) {
             com.riverfishing.menu.TackleBoxMenu.open(sp, hand);
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
-    /** Only place it when the player asked for that (crouch); otherwise the click opened the box. */
     @Override
     public net.minecraft.world.InteractionResult useOn(net.minecraft.world.item.context.UseOnContext ctx) {
         Player p = ctx.getPlayer();
-        if (p != null && !p.isCrouching()) {
+        if (p != null && p.isCrouching()) {
             if (!ctx.getLevel().isClientSide && p instanceof net.minecraft.server.level.ServerPlayer sp) {
                 com.riverfishing.menu.TackleBoxMenu.open(sp, ctx.getHand());
             }

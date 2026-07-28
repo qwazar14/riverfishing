@@ -900,7 +900,7 @@
     "block.riverfishing.tackle_box_huge": "Huge Tackle Box",
     "tooltip.riverfishing.tackle_box_size": "%s slots — tackle only",
     "tooltip.riverfishing.tackle_box_full": "%s of %s used",
-    "tooltip.riverfishing.tackle_box_hint": "Right-click to open, sneak + right-click to place",
+    "tooltip.riverfishing.tackle_box_hint": "Sneak + right-click to open, right-click to place",
     "gui.riverfishing.tackle_box_name_hint": "Name this box…",
     "item.riverfishing.electro_rod": "Electrofisher",
     "tooltip.riverfishing.electro_rod": "Right-click water for what lives in it",
@@ -917,5 +917,7 @@
     "kit.riverfishing.float": "Kit: Float Fishing",
     "kit.riverfishing.pike": "Kit: Pike",
     "kit.riverfishing.carp": "Kit: Carp",
-    "kit.riverfishing.sea": "Kit: Saltwater"
+    "kit.riverfishing.sea": "Kit: Saltwater",
+    "guide.riverfishing.tacklebox.title": "Where the tackle lives",
+    "guide.riverfishing.tacklebox.text": "Seventeen line diameters, six hook sizes, four rig types and dozens of baits, all living loose next to your food and your building blocks. The box takes them.\n\nTackle only: line, hooks, rigs, lures, bait and leaders. Not rods and reels — those are what you hold, not what you rummage for.\n\nFour sizes: 9, 18, 27 and 36 slots. Each is a craft of the one below, and a chest is the heart of every recipe.\n\nRight-click to set it down, and it faces you. Sneak + right-click to open it, in your hand or already placed: it is the same object either way, so contents, name and colour are shared. Break it and it drops with everything still inside.\n\nRename it in the top row of the box itself — no anvil. Dye the inserts with any dye, like leather armour, and the contents come through the craft untouched. Four boxes with four names and four colours IS the navigation: pike, carp, winter.\n\nThe fisherman sells ready-made kits — float, pike, carp and saltwater — each named, dyed and packed with bench-graded tackle. A kit is the answer to “what do I need for pike”, in a form you can carry."
 }
