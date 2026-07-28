@@ -90,6 +90,10 @@ distance between you and your hook grew or shrank since the last tick.
 
 - **Backing away from the water is pumping with your legs.** It wins line and it loads the rod — the same
   trade a crank makes, at the same rate your tackle allows. It is how you actually beat a fish off a bank.
+  A line you are pulling on does not go slack, so the rod does not bleed off while you walk: a few blocks
+  at a time, then stop and let it settle. Walk the whole way and you snap long before you land it — on a
+  carp that is about five blocks of room, on a marlin one. An open drag free-spools, so crouch-walking
+  wins nothing at all.
 - **Walking at the fish is slack**, the tension falls off fast, and a dead line is how a hook falls out.
   You get one warning; keep walking and it comes off. That is the only way to lose a fish that has nothing
   to do with how strong your line is.

@@ -137,6 +137,8 @@ public class FishingSession {
     public int slackTicks;
     /** So the slack warning fires once per episode rather than every tick. */
     public boolean slackWarned;
+    /** §fight-footwork: the angler's legs are loading the line RIGHT NOW, so it must not relax. */
+    public boolean legPull;
     /** Which run of the fight this is, so a pattern can script its directions in order. */
     public int runIndex;
     /**

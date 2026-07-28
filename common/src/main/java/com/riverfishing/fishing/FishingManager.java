@@ -320,6 +320,7 @@ public final class FishingManager {
         // Clamped so a teleport, a knockback or an elytra landing cannot be read as one giant heave.
         double delta = session.lastDist < 0 ? 0.0 : Mth.clamp(dist - session.lastDist, -0.5, 0.5);
         session.lastDist = dist;
+        session.legPull = false;
         // A passenger is not walking anywhere — that is the BOAT moving, and reading it as footwork made a
         // §trolling fight (which happens under way, by definition) win or snap itself in a couple of
         // seconds while the player did nothing at all.
@@ -332,7 +333,10 @@ public final class FishingManager {
             return false;
         }
         boolean inRun = session.runTicksLeft > 0;
-        if (delta > 0) {
+        // An OPEN drag free-spools: walk to the next county and the reel just pays line out behind you.
+        // Legs only move a fish through a working drag — and without this gate, crouching (which bleeds
+        // tension three times as fast) plus walking would have handed back the free win above.
+        if (delta > 0 && !sp.isCrouching()) {
             // Legs are a slow winch: line gained scales with the tackle exactly as a crank does, and during
             // a run it is throttled by the same course factor — you cannot walk a running fish backwards.
             session.landProgress = Mth.clamp(session.landProgress + session.landPulse * delta * 0.9
@@ -340,6 +344,7 @@ public final class FishingManager {
                     0.0, 1.0);
             session.tension += session.calmTensionPulse * delta * 3.0 * (inRun ? 2.5 : 1.0)
                     * (sp.isSprinting() ? 1.8 : 1.0);
+            session.legPull = true;   // the line is loaded by the legs: it does not relax this tick
             session.slackTicks = Math.max(0, session.slackTicks - 2);
             session.slackWarned = false;
             return false;
@@ -1733,11 +1738,18 @@ public final class FishingManager {
         session.courseAlign = session.course.isRun() ? session.course.alignment(session.pullDir) : 1f;
         brace(sp, true);   // §fight-brace: you are anchored to the rod for as long as it is bent
 
-        session.tension = Math.max(0.0, session.tension - session.relaxTick);
         session.landProgress = Math.max(0.0, session.landProgress - 0.0008);
 
         // §fight-footwork: where the angler's feet went since last tick, before anything reads the tension.
         if (footwork(sp, level, session)) return;
+        // A line you are actively pulling on does not go slack. Measured: without this the passive give
+        // out-bled the walk on EVERY tackle combination in the mod (0.0036/t of load against 0.014-0.020/t
+        // of relax), so backing away won line at zero cost and 20-40 s of walking landed anything with no
+        // cranking at all. Now the give is suspended for exactly as long as the legs are loading the rod,
+        // which is what makes walking a fish in a burst move rather than the whole fight.
+        if (!session.legPull) {
+            session.tension = Math.max(0.0, session.tension - session.relaxTick);
+        }
 
         // §run-load (0.5.1): a RUNNING fish loads the tackle BY ITSELF — before this, tension only rose
         // on cranks, so riding out a run with a closed drag was free (and the rod never bent). Now a hot
