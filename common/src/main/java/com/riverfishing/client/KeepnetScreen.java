@@ -33,15 +33,14 @@ import net.minecraft.world.item.ItemStack;
 public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
     private static final int CELL = KeepnetMenu.CELL;
     /**
-     * §keepnet-tune: the three numbers that decide how big a fish is drawn in its footprint. They are
-     * mutable statics rather than constants so {@code /rfnet} can dial them in with the box open — the
-     * same arrangement the in-hand rod pose uses, and for the same reason: this is a look-at-it decision,
-     * not a compute-it one. Whatever ends up looking right gets pasted back here as the default.
+     * §keepnet-tune: one multiplier over the measured fit, live-tunable through {@code /rfnet}.
+     *
+     * <p>It used to be three numbers, two of which were a GUESS at how much of its icon a fish fills. That
+     * guess is why no single value worked: a ray fills its canvas nearly corner to corner and a flounder
+     * is a flat oval, so a scale that suited one made the other tiny. The proportions are measured per
+     * species now ({@link FishBounds}), which leaves nothing to guess and this knob at 1.0.
      */
     public static float iconScale = 1.0f;
-    /** How much of its square icon a fish fills, across and down. Bigger numbers draw the fish smaller. */
-    public static float canvasW = 16f;
-    public static float canvasH = 7f;
 
     /** Which way round the thing on the cursor goes down. Client state: it is a property of the pointer. */
     private int rot;
@@ -115,7 +114,8 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
                     g.fill(cx, cy, cx + CELL - 1, cy + CELL - 1, 0xFF23505E);
                 }
             }
-            drawInFootprint(g, p.stack(), x0 + p.x() * CELL, y0 + p.y() * CELL, s.width(), s.height());
+            drawInFootprint(g, p.stack(), x0 + p.x() * CELL, y0 + p.y() * CELL,
+                    s.width(), s.height(), p.rot());
         }
 
         int[] cell = cellAt(mouseX, mouseY);
@@ -124,6 +124,9 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
             if (!carried.isEmpty()) {
                 boolean ok = data.fits(carried.copyWithCount(1), cell[0], cell[1], rot);
                 FishShape s = FishShape.of(carried).rotated(rot);
+                // Ghost the fish itself into the cells it would take, turned as it would land.
+                drawInFootprint(g, carried, x0 + cell[0] * CELL, y0 + cell[1] * CELL,
+                        s.width(), s.height(), rot);
                 for (int y = 0; y < s.height(); y++) {
                     for (int x = 0; x < s.width(); x++) {
                         if (!s.at(x, y)) continue;
@@ -153,20 +156,28 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
     }
 
     /**
-     * Draw a fish at the size of the space it is taking. The item renderer normally scales a fish by its
-     * LENGTH, which here would multiply two versions of the same fact and make a catfish burst out of its
-     * own footprint; inside the grid the footprint IS the statement about size.
+     * Draw a fish at the size of the space it is taking, turned the way it was placed.
      *
-     * <p>The icon's square canvas holds a fish about {@link #canvasW} across and {@link #canvasH} tall, so
-     * the scale is whichever of the two fits — that is what stops a 4x1 eel being drawn four cells tall.
-     * All three numbers are live-tunable through {@code /rfnet}.
+     * <p>Two things had to be right for this to stop looking wrong. The item renderer normally scales a
+     * fish by its LENGTH, which inside the grid multiplies two versions of the same fact and bursts a
+     * catfish out of its own footprint — so the renderer takes an override here. And the fit needs the
+     * fish's REAL proportions inside its square icon, which vary enormously (a ray is nearly square, an
+     * eel is a bar a seventh as tall as it is long); those are measured per species rather than assumed,
+     * because assuming them made the ray look right and the flounder look tiny.
      */
-    private void drawInFootprint(GuiGraphics g, ItemStack stack, int px, int py, int cw, int ch) {
-        float scale = Math.min(cw * CELL / canvasW, ch * CELL / canvasH) * iconScale;
+    private void drawInFootprint(GuiGraphics g, ItemStack stack, int px, int py, int cw, int ch, int rot) {
+        var sp = com.riverfishing.item.FishItem.getSpecies(stack);
+        float[] b = FishBounds.of(sp == null ? "" : sp.getPath());
+        float fishW = 16f * b[0], fishH = 16f * b[1];
+        // A turned fish lies on its side, so the footprint's axes swap for the purposes of fitting it.
+        float availW = (rot == 0 ? cw : ch) * CELL;
+        float availH = (rot == 0 ? ch : cw) * CELL;
+        float scale = Math.min(availW / fishW, availH / fishH) * iconScale;
+
         FishItemRenderer.gridScale = scale;
         g.pose().pushPose();
-        // renderItem draws a 16x16 at the given corner, so centre the scaled 16x16 on the footprint.
         g.pose().translate(px + cw * CELL / 2f, py + ch * CELL / 2f, 0);
+        if (rot != 0) g.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(90f));
         g.pose().scale(scale, scale, 1f);
         g.renderItem(stack, -8, -8);
         g.pose().popPose();

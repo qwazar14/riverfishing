@@ -15,11 +15,10 @@ import net.minecraft.network.chat.Component;
  * <p>Client-only, and every value is a plain multiplier so the printout can be read straight into source.
  *
  * <ul>
- *   <li>{@code /rfnet scale <v>} — overall size of every fish in the grid. 1.0 fills the footprint.</li>
- *   <li>{@code /rfnet canvasw <v>} / {@code canvash <v>} — how much of its square icon a fish is assumed
- *       to fill, across and down. Raising these SHRINKS the fish; the height one is what governs whether
- *       a long fish spills out of a one-cell-tall footprint.</li>
- *   <li>{@code /rfnet add <field> <delta>} — nudge, for finding the number by feel.</li>
+ *   <li>{@code /rfnet scale <v>} — overall size of every fish in the grid. At 1.0 a fish exactly fills
+ *       the cells it occupies, which is now the right answer for all of them: the proportions of each
+ *       sprite are measured rather than assumed (see {@link FishBounds}).</li>
+ *   <li>{@code /rfnet add scale <delta>} — nudge, for finding the number by feel.</li>
  *   <li>{@code /rfnet show} · {@code /rfnet reset}</li>
  * </ul>
  */
@@ -31,16 +30,11 @@ public final class KeepnetDebugCommand {
                 .then(ClientCommandRegistrationEvent.literal("show").executes(KeepnetDebugCommand::show))
                 .then(ClientCommandRegistrationEvent.literal("reset").executes(c -> {
                     KeepnetScreen.iconScale = 1.0f;
-                    KeepnetScreen.canvasW = 16.0f;
-                    KeepnetScreen.canvasH = 7.0f;
                     say(c, "§ereset");
                     return show(c);
                 }))
                 .then(set("scale"))
-                .then(set("canvasw"))
-                .then(set("canvash"))
-                .then(ClientCommandRegistrationEvent.literal("add")
-                        .then(add("scale")).then(add("canvasw")).then(add("canvash"))));
+                .then(ClientCommandRegistrationEvent.literal("add").then(add("scale"))));
     }
 
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ClientCommandSourceStack> set(String field) {
@@ -56,11 +50,8 @@ public final class KeepnetDebugCommand {
     }
 
     private static int apply(CommandContext<ClientCommandSourceStack> c, String field, float v, boolean delta) {
-        switch (field) {
-            case "scale" -> KeepnetScreen.iconScale = clamp(delta ? KeepnetScreen.iconScale + v : v);
-            case "canvasw" -> KeepnetScreen.canvasW = clamp(delta ? KeepnetScreen.canvasW + v : v);
-            case "canvash" -> KeepnetScreen.canvasH = clamp(delta ? KeepnetScreen.canvasH + v : v);
-            default -> { }
+        if ("scale".equals(field)) {
+            KeepnetScreen.iconScale = clamp(delta ? KeepnetScreen.iconScale + v : v);
         }
         return show(c);
     }
@@ -70,9 +61,8 @@ public final class KeepnetDebugCommand {
     }
 
     private static int show(CommandContext<ClientCommandSourceStack> c) {
-        say(c, String.format("§bkeepnet icon:  scale %.2f   canvasW %.1f   canvasH %.1f",
-                KeepnetScreen.iconScale, KeepnetScreen.canvasW, KeepnetScreen.canvasH));
-        say(c, "§7paste into KeepnetScreen: ICON scale/W/H");
+        say(c, String.format("§bkeepnet icon scale: %.2f", KeepnetScreen.iconScale));
+        say(c, "§71.0 means the fish exactly fills the cells it occupies");
         return 1;
     }
 
