@@ -1,6 +1,8 @@
 package com.riverfishing.client;
 
+import com.riverfishing.network.FightInputPacket;
 import com.riverfishing.network.LineSyncPacket;
+import com.riverfishing.network.ModNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -81,6 +83,33 @@ public final class ClientLineState {
         line.lastUpdate = Minecraft.getInstance().level != null
                 ? Minecraft.getInstance().level.getGameTime() : 0;
     }
+
+    /**
+     * §fight-course: poll the movement keys during our own fight and tell the server when they change.
+     *
+     * <p>Polled rather than hooked because this version of MC only ships raw movement input to the server
+     * for players riding a vehicle. Only edges are sent, so a whole fight is a handful of bytes; leaving the
+     * fight sends one final "hands off".
+     */
+    public static void pollFightInput() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        Line own = LINES.get(mc.player.getId());
+        byte dir = FightInputPacket.NONE;
+        if (own != null && own.fighting && mc.screen == null) {
+            var o = mc.options;
+            if (o.keyLeft.isDown()) dir = FightInputPacket.PULL_LEFT;
+            else if (o.keyRight.isDown()) dir = FightInputPacket.PULL_RIGHT;
+            else if (o.keyUp.isDown()) dir = FightInputPacket.PUSH;
+            else if (o.keyDown.isDown()) dir = FightInputPacket.LIFT;
+        }
+        if (dir != sentDir) {
+            sentDir = dir;
+            ModNetwork.toServer(new FightInputPacket(dir));
+        }
+    }
+
+    private static byte sentDir;
 
     /**
      * §fight-course: the local angler's rod lean, {yaw, pitch} in degrees. Zero when nothing is running.

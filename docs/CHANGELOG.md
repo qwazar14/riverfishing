@@ -56,15 +56,25 @@ The fight was deep but one-dimensional: tension up, progress up, and a forty-min
 a forty-second roach only in how long the numbers took. Every run now has a **course**, and the answer is
 to put the rod the other way.
 
-- It tracks **left** — hold the rod right. **Right** — hold it left.
-- It has gone **deep** — lift the rod and get its head up.
-- It is coming **up** to jump — rod down, which is what actually stops a fish leaping off the hook.
+- It tracks **left** — pull right, **D**. **Right** — pull left, **A**.
+- It has gone **deep** — **S**, pull back and get its head up.
+- It is coming **up** to jump — **W**, rod down, which is what actually stops a fish leaping off the hook.
 
-The input is your own aim: no new keys, no new bindings, and it is what an angler does — you lead a
-running fish with the rod tip. Alignment is a slope rather than a switch, so half-right is half-rewarded
-and it never becomes a quiz. Holding across the run tires the fish nearly twice as fast; winding straight
-into it costs up to **three times** the tension. The boss bar says which way while the run lasts, because
-an instruction you have to infer is not one.
+The input is the movement keys. Aim was tried first, because the server knows it for free, and it was
+wrong on its own terms: countering a left-hand run meant turning thirty degrees away from the water, so
+the mechanic asked you to stop watching the fight — and the leaning rod swung off screen with you.
+
+Answering the run correctly is not a tax you avoid, it is the thing that lets you work: the fish tires
+nearly **three times** as fast, the run loads the tackle at **half** rate, and — this is the part that was
+missing — you can actually **gain line during a run**, most of a normal crank instead of the near-nothing
+a wind into the run has always been. Pull the same way it is going and you get none of that. Standing
+there with your hands off is in between: enough that a player who has not worked the mechanic out yet
+still lands fish, slowly. The boss bar names the course *and the key* while the run lasts, because an
+instruction you have to infer is not one.
+
+**Runs last about 1.6× longer**, because a run is where all of this lives and the old two-second burst
+was over before anyone could read the bar, decide and press. Held right, a long run is no harder on the
+tackle than a short one used to be. Held wrong, it is a real problem.
 
 **The rod shows it.** A run drags the tip over the way the fish is going — left, right, up, down — which
 is both what physically happens and where a player actually reads a fight. The boss bar names the course

@@ -126,6 +126,8 @@ public class FishingSession {
     /** §fight-course: which way THIS run is going, and how well the rod is being held against it. */
     public FightCourse course = FightCourse.NONE;
     public float courseAlign = 1f;
+    /** §fight-course: the movement key currently held, as {@link com.riverfishing.network.FightInputPacket}. */
+    public byte pullDir;
     /** Which run of the fight this is, so a pattern can script its directions in order. */
     public int runIndex;
     /**

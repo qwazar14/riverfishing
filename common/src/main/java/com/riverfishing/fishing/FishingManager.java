@@ -22,6 +22,7 @@ import com.riverfishing.item.RodData;
 import com.riverfishing.item.RodItem;
 import com.riverfishing.item.WearData;
 import com.riverfishing.network.FloatTimingPacket;
+import com.riverfishing.network.FightInputPacket;
 import com.riverfishing.network.LineSyncPacket;
 import com.riverfishing.network.ModNetwork;
 import com.riverfishing.rig.RigData;
@@ -267,6 +268,15 @@ public final class FishingManager {
                         .withStyle(ChatFormatting.AQUA));
             }
         }
+    }
+
+    /**
+     * §fight-course: the client tells us which way it is pulling (see {@link FightInputPacket}). Kept on the
+     * session so it dies with the fight; nothing outside a run ever reads it.
+     */
+    public static void setPullDirection(ServerPlayer sp, byte dir) {
+        FishingSession session = SESSIONS.get(sp.getUUID());
+        if (session != null) session.pullDir = dir >= 0 && dir <= 4 ? dir : 0;
     }
 
     public static boolean hasSession(ServerPlayer sp) {
@@ -1305,6 +1315,7 @@ public final class FishingManager {
         session.anglerStamina = 1.0;
         session.course = FightCourse.NONE;
         session.runIndex = 0;
+        session.pullDir = 0;
         session.runTicksLeft = 0;
         session.fightStartTick = now;
         session.nextRunAt = now + 30 + random.nextInt(40);
@@ -1431,6 +1442,7 @@ public final class FishingManager {
         session.anglerStamina = 1.0;
         session.course = FightCourse.NONE;
         session.runIndex = 0;
+        session.pullDir = 0;
         session.runTicksLeft = 22;      // the first second FEELS alive — fish or boot?
         session.nextRunAt = now + 100000;
         session.fightStartTick = now;
@@ -1542,13 +1554,16 @@ public final class FishingManager {
         // §fight-course: winding against the run's own direction is the expensive mistake — up to three
         // times the tension of a crank made with the rod across it. §angler-stamina: and a spent angler
         // cannot wind hard, so the answer to being tired is to stop, not to click faster.
-        float align = inRun ? session.course.alignment(sp, session.target) : 1f;
-        double wrongWay = 1.0 + 2.0 * (1.0 - align);
+        float align = inRun ? session.course.alignment(session.pullDir) : 1f;
+        double wrongWay = 2.2 - 1.7 * align;
         double armStrength = 0.35 + 0.65 * session.anglerStamina;
         session.tension += (inRun ? session.runTensionPulse : session.calmTensionPulse) * tired * wrongWay
                 * (1.0 + 0.5 * (1.0 - session.anglerStamina));
+        // …and the payoff. Winding INTO a run has always been near-useless (0.2x); winding while leaning on
+        // the fish from the right side gains most of a normal crank. That is the whole mechanic in one
+        // number — the direction is not a tax to avoid, it is the thing that lets you work.
         session.landProgress = Mth.clamp(
-                session.landProgress + session.landPulse * (inRun ? 0.2 : 1.0)
+                session.landProgress + session.landPulse * (inRun ? 0.2 + 0.5 * align : 1.0)
                         * (1.0 + 0.6 * session.fatigue) * armStrength, 0.0, 1.0);
         // A crank is work whether it gains anything or not.
         session.anglerStamina = Math.max(0.0, session.anglerStamina - (inRun ? 0.030 * wrongWay : 0.014));
@@ -1610,20 +1625,20 @@ public final class FishingManager {
         if (session.runTicksLeft > 0 && !sp.isCrouching()) {
             // §fight-course: a rod held across the run bleads the fish and loads less; one pointed the
             // wrong way takes the full weight of it.
-            double wrongWay = 1.0 + 1.2 * (1.0 - session.course.alignment(sp, session.target));
+            double wrongWay = 1.9 - 1.35 * session.courseAlign;
             session.tension += session.runTensionPulse * 0.12 * (1.0 - 0.55 * session.fatigue) * wrongWay;
         }
 
         // §fight-course: how well the rod is being held against this run, 0..1. Read every tick from
         // where the player is aiming, so easing off the wrong angle is felt immediately.
-        session.courseAlign = session.course.isRun()
-                ? session.course.alignment(sp, session.target) : 1f;
+        session.courseAlign = session.course.isRun() ? session.course.alignment(session.pullDir) : 1f;
 
         // §fish-fatigue: the fight itself wears the fish down — fast while it RUNS, slowly between.
         // §fight-course: and a fish held ACROSS its own run tires almost twice as fast. This is the
         // reward for reading the direction, and it is why a fight is now shorter when fought well
         // rather than merely safer.
-        double courseGain = session.runTicksLeft > 0 ? 1.0 + 0.9 * session.courseAlign : 1.0;
+        double courseGain = session.runTicksLeft > 0
+                ? 1.0 + 1.8 * session.courseAlign * session.courseAlign : 1.0;
         session.fatigue = Math.min(1.0,
                 session.fatigue + (session.runTicksLeft > 0 ? session.fatigueRunTick * courseGain
                                                             : session.fatigueRunTick * 0.2));
@@ -1861,18 +1876,24 @@ public final class FishingManager {
 
     private static int runDuration(FishingSession s, double progress, RandomSource r) {
         // §fish-fatigue: tired runs are short runs.
-        return Math.max(6, (int) (rawRunDuration(s, progress, r) * (1.0 - 0.5 * s.fatigue)));
+        return Math.max(10, (int) (rawRunDuration(s, progress, r) * (1.0 - 0.5 * s.fatigue)));
     }
 
+    /**
+     * §fight-course (0.7.0): runs are ~1.6x their old length. A run is where the direction mechanic lives,
+     * and the old two-second burst was over before a player could read the bar, decide, and press anything.
+     * The extra length is affordable because a correctly-answered run loads the tackle at roughly half rate
+     * — held right, a long run is no harder than a short one used to be; held wrong, it is a real problem.
+     */
     private static int rawRunDuration(FishingSession s, double progress, RandomSource r) {
         return switch (s.fightPattern) {
-            case "relentless" -> 40 + r.nextInt(35); // §grass-carp: long torpedo runs toward open water
-            case "aggressive" -> 22 + r.nextInt(18);
-            case "burst" -> 50 + r.nextInt(40);
-            case "active_then_passive" -> progress < 0.5 ? 30 + r.nextInt(20) : 14 + r.nextInt(10);
-            case "sounding" -> 60 + r.nextInt(50);     // §big-game: the long vertical dive
-            case "greyhounding" -> 18 + r.nextInt(14); // short bursts between jumps
-            default -> 25 + r.nextInt(20);
+            case "relentless" -> 65 + r.nextInt(55); // §grass-carp: long torpedo runs toward open water
+            case "aggressive" -> 36 + r.nextInt(30);
+            case "burst" -> 80 + r.nextInt(60);
+            case "active_then_passive" -> progress < 0.5 ? 50 + r.nextInt(34) : 24 + r.nextInt(16);
+            case "sounding" -> 100 + r.nextInt(80);    // §big-game: the long vertical dive
+            case "greyhounding" -> 30 + r.nextInt(22); // short bursts between jumps
+            default -> 42 + r.nextInt(32);
         };
     }
 

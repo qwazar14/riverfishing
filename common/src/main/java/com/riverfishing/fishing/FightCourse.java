@@ -1,8 +1,6 @@
 package com.riverfishing.fishing;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
+import com.riverfishing.network.FightInputPacket;
 import net.minecraft.util.RandomSource;
 
 /**
@@ -14,10 +12,10 @@ import net.minecraft.util.RandomSource;
  * line of new content: a marlin that greyhounds is a fish that keeps coming UP, and a tuna that sounds is
  * one long pull DOWN.
  *
- * <p>The input is the player's own aim, which the server already knows to the degree — no new keys, no new
- * packets, and it is what an angler actually does: you lead a running fish with the rod tip, and you lift
- * the rod on one that has gone deep. Alignment is a slope rather than a switch, so half-right is
- * half-rewarded and the fight never feels like a quiz.
+ * <p>The input is the movement keys, not the camera. Aim was tried first because the server already knows
+ * it for free, and it was wrong on its own terms: countering a left-hand run meant turning thirty degrees
+ * away from the water, so the mechanic asked the player to stop watching the fight — and the leaning rod
+ * swung off screen with them. WASD costs one small packet and leaves the camera where it belongs.
  */
 public enum FightCourse {
     /** No run in progress. */
@@ -31,9 +29,11 @@ public enum FightCourse {
     /** It is coming up to jump. Rod DOWN — a low rod is what stops a fish leaping off the hook. */
     UP;
 
-    /** How far off the line the rod has to be held for full credit, in degrees. */
-    private static final float FULL_YAW = 45f;
-    private static final float FULL_PITCH = 40f;
+    /**
+     * Credit for standing there doing nothing. Not zero — a player who has not worked out the mechanic yet
+     * still lands fish, just slowly — and not close to one, or the mechanic may as well not exist.
+     */
+    private static final float IDLE = 0.4f;
 
     public boolean isRun() {
         return this != NONE;
@@ -44,24 +44,26 @@ public enum FightCourse {
         return "message.riverfishing.course_" + name().toLowerCase();
     }
 
+    /** The key that answers this course — {@link FightInputPacket}'s constants. */
+    public byte counter() {
+        return switch (this) {
+            case LEFT -> FightInputPacket.PULL_RIGHT;  // it goes left, you lean on it from the right
+            case RIGHT -> FightInputPacket.PULL_LEFT;
+            case DOWN -> FightInputPacket.LIFT;        // S — pull back and get its head up
+            case UP -> FightInputPacket.PUSH;          // W — rod down, or it throws the hook in the air
+            default -> FightInputPacket.NONE;
+        };
+    }
+
     /**
-     * How well the player is holding against this course, 0..1.
-     *
-     * <p>Measured from where they are AIMING relative to the line: yaw for a fish tracking sideways, pitch
-     * for one that has sounded or is about to jump. Straight down the line is zero credit for a sideways
-     * run, which is right — a rod pointed at a running fish is a rod doing nothing.
+     * How well the player is pulling against this course: 1 on the answering key, {@link #IDLE} for hands
+     * off, 0 for any other key — including, deliberately, the one that pulls the same way the fish is
+     * already going.
      */
-    public float alignment(ServerPlayer sp, BlockPos target) {
+    public float alignment(byte pull) {
         if (this == NONE) return 1f;
-        if (this == DOWN) return Mth.clamp(-sp.getXRot() / FULL_PITCH, 0f, 1f);
-        if (this == UP) return Mth.clamp(sp.getXRot() / FULL_PITCH, 0f, 1f);
-        // Yaw from the player to the fish, then how far off it they are holding. Positive delta is to the
-        // player's right, because Minecraft's yaw grows clockwise from above.
-        double dx = target.getX() + 0.5 - sp.getX();
-        double dz = target.getZ() + 0.5 - sp.getZ();
-        float bearing = (float) (Mth.atan2(dz, dx) * (180.0 / Math.PI)) - 90f;
-        float delta = Mth.wrapDegrees(sp.getYRot() - bearing);
-        return Mth.clamp((this == LEFT ? delta : -delta) / FULL_YAW, 0f, 1f);
+        if (pull == counter()) return 1f;
+        return pull == FightInputPacket.NONE ? IDLE : 0f;
     }
 
     /**
