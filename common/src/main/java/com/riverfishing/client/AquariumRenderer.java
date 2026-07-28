@@ -82,6 +82,13 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             // Flip on travel>0 so the head leads the swim (travel<0 was tail-first — "задом наперёд").
             float flip = travel > 0 ? 180f : 0f;
             pose.mulPose(Axis.YP.rotationDegrees(-facing.toYRot() + flip + Mth.sin(time * 0.15f + i) * 4f));
+            // §fish-pose: the flatfish lie down in the tank too. The viewer is always out in front of the
+            // glass rather than above it, so they keep the full lean — flat enough to read as a flatfish,
+            // tipped enough to be more than an edge.
+            ResourceLocation fsp = FishItem.getSpecies(fish);
+            if (fsp != null && com.riverfishing.fish.FishPose.isFlat(fsp.getPath())) {
+                pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.layFixed()));
+            }
             float scale = big ? 0.9f : 0.7f;
             pose.scale(scale, scale, scale);
             itemRenderer.renderStatic(fish, ItemDisplayContext.FIXED, light, overlay, pose, buffers, be.getLevel(), 0);

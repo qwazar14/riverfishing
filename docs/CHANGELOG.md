@@ -137,6 +137,18 @@ It is also free diagnostics with nobody's data in it: every offer writes one lin
 saying which rod class and which failure tripped it. The flows that turn out to be unteachable will show
 up there rather than in a bug report nobody bothers to write.
 
+### Flatfish lie flat
+
+The flounder, the halibut and the ray are drawn from ABOVE — their sprite is the broad, eyed face of a
+fish whose whole body is horizontal. Rendered upright like every other species they read as a bream
+standing on its edge, which is the one thing a flatfish never does. They now lie down: in open water, in
+the aquarium, and on the ground where you dropped them.
+
+A perfectly flat sprite seen from the bank is a line one pixel high, so the lay leans towards the viewer
+by however much the angle needs — look down on one from a boat and it is flat, crouch at the water's edge
+and it tips up enough to be a fish. In an inventory slot the icon stays exactly as drawn: there it is a
+picture of the fish, not the fish.
+
 ### A fish can no longer carry another species' weight
 
 **Reported as a 242 g ruffe — a fish whose range tops out at 150 g.** The specimen is rolled once, at the

@@ -75,6 +75,12 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         // Cancel one of the ItemRenderer's centring translations (see RodItemRenderer) and scale the
         // sprite about its centre so a longer fish simply reads bigger.
         pose.translate(0.5, 0.5, 0.5);
+        // §fish-pose: dropped on the ground, a flatfish lies on it. Only the loose entity — in a slot the
+        // icon is a picture of the fish and should stay the picture that was drawn.
+        if ((ctx == ItemDisplayContext.GROUND || ctx == ItemDisplayContext.NONE)
+                && com.riverfishing.fish.FishPose.isFlat(sp.getPath())) {
+            pose.mulPose(com.mojang.math.Axis.XP.rotationDegrees(-90f));
+        }
         // §morph-shape: a stunted fish is short and thin for its weight, a humpbacked one short and deep.
         // Neither reads from colour, so the sprite itself is stretched — a different silhouette out of the
         // same drawing, which is the only honest way to show a body-shape morph without new art.
