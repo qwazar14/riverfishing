@@ -33,6 +33,36 @@ Technically it costs almost nothing: each fish is a single textured quad carryin
 sprite, because the 256px fish icons turn into roughly a thousand quads each through a normal item model.
 The whole thing is one packet every couple of seconds, and only when it has changed.
 
+### The fight has a direction now
+
+The fight was deep but one-dimensional: tension up, progress up, and a forty-minute catfish differed from
+a forty-second roach only in how long the numbers took. Every run now has a **course**, and the answer is
+to put the rod the other way.
+
+- It tracks **left** — hold the rod right. **Right** — hold it left.
+- It has gone **deep** — lift the rod and get its head up.
+- It is coming **up** to jump — rod down, which is what actually stops a fish leaping off the hook.
+
+The input is your own aim: no new keys, no new bindings, and it is what an angler does — you lead a
+running fish with the rod tip. Alignment is a slope rather than a switch, so half-right is half-rewarded
+and it never becomes a quiz. Holding across the run tires the fish nearly twice as fast; winding straight
+into it costs up to **three times** the tension. The boss bar says which way while the run lasts, because
+an instruction you have to infer is not one.
+
+The seven fight patterns in the profiles become **direction scripts** rather than being replaced: a
+greyhounding marlin keeps coming up, a sounding tuna is one long pull down, a relentless grass carp
+alternates sides and never rests.
+
+### The angler runs out too
+
+A stamina bar for the person holding the rod. Winding costs it, and holding against a running fish costs
+it — more when the rod is pointed the wrong way, because then you are fighting the rod as well as the
+fish. It comes back **only when you stop pulling**: fully with the drag open, half with a standing drag
+between runs, not at all while you wind.
+
+Spent arms wind weakly and load the line harder, so the answer to being tired is to stop rather than to
+click faster. That is the real technique the fight had never asked for — let the fish tire itself.
+
 ### Fish are wary of you
 
 A short-lived fright value per patch of water — the counterpart to the chunk depletion that already

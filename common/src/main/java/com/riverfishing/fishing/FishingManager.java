@@ -1291,6 +1291,9 @@ public final class FishingManager {
                 ? Mth.clamp((double) session.retrieveTicks / session.retrieveMax, 0.0, 0.85)
                 : 0.0;
         session.runsLeft = fightRunCount(profile, weightKg);
+        session.anglerStamina = 1.0;
+        session.course = FightCourse.NONE;
+        session.runIndex = 0;
         session.runTicksLeft = 0;
         session.fightStartTick = now;
         session.nextRunAt = now + 30 + random.nextInt(40);
@@ -1414,6 +1417,9 @@ public final class FishingManager {
         session.landPulse = 0.09;       // ~10 pulls ≈ 1.5–2 s of dragging
         session.relaxTick = 0.02;
         session.runsLeft = 0;
+        session.anglerStamina = 1.0;
+        session.course = FightCourse.NONE;
+        session.runIndex = 0;
         session.runTicksLeft = 22;      // the first second FEELS alive — fish or boot?
         session.nextRunAt = now + 100000;
         session.fightStartTick = now;
@@ -1522,10 +1528,19 @@ public final class FishingManager {
         // Reeling in a run spikes tension and barely gains line — you should ease off during runs.
         // §fish-fatigue: a tired fish pulls softer and comes in faster.
         double tired = 1.0 - 0.55 * session.fatigue;
-        session.tension += (inRun ? session.runTensionPulse : session.calmTensionPulse) * tired;
+        // §fight-course: winding against the run's own direction is the expensive mistake — up to three
+        // times the tension of a crank made with the rod across it. §angler-stamina: and a spent angler
+        // cannot wind hard, so the answer to being tired is to stop, not to click faster.
+        float align = inRun ? session.course.alignment(sp, session.target) : 1f;
+        double wrongWay = 1.0 + 2.0 * (1.0 - align);
+        double armStrength = 0.35 + 0.65 * session.anglerStamina;
+        session.tension += (inRun ? session.runTensionPulse : session.calmTensionPulse) * tired * wrongWay
+                * (1.0 + 0.5 * (1.0 - session.anglerStamina));
         session.landProgress = Mth.clamp(
                 session.landProgress + session.landPulse * (inRun ? 0.2 : 1.0)
-                        * (1.0 + 0.6 * session.fatigue), 0.0, 1.0);
+                        * (1.0 + 0.6 * session.fatigue) * armStrength, 0.0, 1.0);
+        // A crank is work whether it gains anything or not.
+        session.anglerStamina = Math.max(0.0, session.anglerStamina - (inRun ? 0.030 * wrongWay : 0.014));
         session.tension = Math.max(0.0, session.tension);
 
         level.playSound(null, sp.blockPosition(), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.25f, 1.6f);
@@ -1582,13 +1597,43 @@ public final class FishingManager {
         // run against a standing drag climbs toward the break point on its own; crouch (open drag) and
         // the fish takes line instead of loading the rod. This is what makes the drag a real decision.
         if (session.runTicksLeft > 0 && !sp.isCrouching()) {
-            session.tension += session.runTensionPulse * 0.12 * (1.0 - 0.55 * session.fatigue);
+            // §fight-course: a rod held across the run bleads the fish and loads less; one pointed the
+            // wrong way takes the full weight of it.
+            double wrongWay = 1.0 + 1.2 * (1.0 - session.course.alignment(sp, session.target));
+            session.tension += session.runTensionPulse * 0.12 * (1.0 - 0.55 * session.fatigue) * wrongWay;
         }
 
+        // §fight-course: how well the rod is being held against this run, 0..1. Read every tick from
+        // where the player is aiming, so easing off the wrong angle is felt immediately.
+        session.courseAlign = session.course.isRun()
+                ? session.course.alignment(sp, session.target) : 1f;
+
         // §fish-fatigue: the fight itself wears the fish down — fast while it RUNS, slowly between.
+        // §fight-course: and a fish held ACROSS its own run tires almost twice as fast. This is the
+        // reward for reading the direction, and it is why a fight is now shorter when fought well
+        // rather than merely safer.
+        double courseGain = session.runTicksLeft > 0 ? 1.0 + 0.9 * session.courseAlign : 1.0;
         session.fatigue = Math.min(1.0,
-                session.fatigue + (session.runTicksLeft > 0 ? session.fatigueRunTick
+                session.fatigue + (session.runTicksLeft > 0 ? session.fatigueRunTick * courseGain
                                                             : session.fatigueRunTick * 0.2));
+
+        // §angler-stamina: holding a rod against a running fish costs the ANGLER, and standing there
+        // pointing it the wrong way costs more, because you are fighting the rod as well as the fish.
+        if (session.runTicksLeft > 0 && !sp.isCrouching()) {
+            session.anglerStamina -= 0.0030 + 0.0035 * (1.0 - session.courseAlign);
+        }
+        // It comes back only when you stop pulling. An open drag is rest; a standing drag between runs
+        // is half of one; winding is not rest at all (see reelPulse).
+        if (now - session.lastClickTick > 20) {
+            session.anglerStamina += sp.isCrouching() ? 0.0110 : 0.0055;
+        }
+        session.anglerStamina = Mth.clamp(session.anglerStamina, 0.0, 1.0);
+        if (session.anglerStamina < 0.22 && !session.staminaWarned) {
+            session.staminaWarned = true;
+            actionbar(sp, Component.translatable("message.riverfishing.spent").withStyle(ChatFormatting.RED));
+        } else if (session.anglerStamina > 0.5) {
+            session.staminaWarned = false;
+        }
 
         // §drag (0.5.0): crouching OPENS the drag — the reel free-spools. Tension bleeds off fast and a
         // running fish TAKES line, but it cannot snap you: the answer to a jump or a dive you can't hold.
@@ -1606,11 +1651,16 @@ public final class FishingManager {
             session.runTicksLeft--;
             if (session.runTicksLeft == 0) {
                 session.nextRunAt = now + runInterval(session, progress, random);
+                session.course = FightCourse.NONE;
+                session.barState = -1;
             }
         } else if (now >= session.nextRunAt) {
             if (session.runsLeft > 0 && random.nextDouble() < runChance(session, progress)) {
                 session.runTicksLeft = runDuration(session, progress, random);
                 session.runsLeft--;
+                // §fight-course: the run gets a direction, scripted by the species' own fight pattern.
+                session.course = FightCourse.forPattern(session.fightPattern, session.runIndex++, random);
+                session.barState = -1;   // force the bar to re-title with the new course
                 level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.7f, 1.2f);
                 level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
                         session.target.getZ() + 0.5, 10, 0.2, 0.1, 0.2, 0.2);
@@ -1714,9 +1764,14 @@ public final class FishingManager {
         int barState = session.runTicksLeft > 0 ? 1 : session.fatigue > 0.7 ? 2 : 0;
         if (barState != session.barState) {
             session.barState = barState;
-            String key = barState == 1 ? "message.riverfishing.bar_run"
-                    : barState == 2 ? "message.riverfishing.bar_tired" : "message.riverfishing.bar_fight";
-            session.bossBar.setName(Component.translatable(key, sp.getDisplayName()));
+            // §fight-course: while it runs, the bar says WHICH WAY — the course is the instruction, and
+            // an instruction the player has to infer is not one. Between runs it goes back to the state.
+            Component name = barState == 1 && session.course.isRun()
+                    ? Component.translatable("message.riverfishing.bar_course",
+                            sp.getDisplayName(), Component.translatable(session.course.key()))
+                    : Component.translatable(barState == 2 ? "message.riverfishing.bar_tired"
+                            : "message.riverfishing.bar_fight", sp.getDisplayName());
+            session.bossBar.setName(name);
         }
         session.bossBar.setColor(session.tension >= session.breakTension ? BossEvent.BossBarColor.RED
                 : inRun ? BossEvent.BossBarColor.RED

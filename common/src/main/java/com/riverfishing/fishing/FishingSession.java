@@ -117,6 +117,19 @@ public class FishingSession {
     public boolean overstressWarned; // one "ease off!" warning per overstress episode
     public int runsLeft;
     public int runTicksLeft;      // >0 while the fish is making a run (don't reel!)
+    /** §fight-course: which way THIS run is going, and how well the rod is being held against it. */
+    public FightCourse course = FightCourse.NONE;
+    public float courseAlign = 1f;
+    /** Which run of the fight this is, so a pattern can script its directions in order. */
+    public int runIndex;
+    /**
+     * §angler-stamina: 1 fresh, 0 spent. Winding and holding a rod against a running fish are WORK, and
+     * it only comes back when you stop doing them and let the drag do the fighting — which is the real
+     * technique the fight never asked for before.
+     */
+    public double anglerStamina = 1.0;
+    /** So the "you are spent" warning fires once per episode rather than every tick. */
+    public boolean staminaWarned;
     public long nextRunAt;
     public long fightStartTick;
     public int weightG;
