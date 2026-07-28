@@ -1192,7 +1192,7 @@ public final class FishingManager {
         }
         // §match-size: how well the whole kit suits the species shapes the specimen it dares to take.
         double match = session.ctx != null ? BiteEngine.matchScore(profile, session.ctx) : 0.85;
-        rollFish(random, profile, session, AnglerSkills.trophyChanceBonus(sp), livebaitW, match);
+        rollFish(random, profile, session, AnglerSkills.sizeLuck(sp), livebaitW, match);
 
         ItemStack rod = sp.getItemInHand(session.hand);
         // A blunt hook can slip on the strike (§3.8) — empty set, fish gone, hook dulls a touch more.
@@ -2174,7 +2174,7 @@ public final class FishingManager {
 
     // ---- fish generation ----
 
-    private static void rollFish(RandomSource random, FishProfile p, FishingSession session, double trophyBonus,
+    private static void rollFish(RandomSource random, FishProfile p, FishingSession session, double luck,
                                  int livebaitWeightG, double match) {
         // §weight-curve (0.5.0): the profile's weight_g.mean is the MEDIAN catch — the power curve is
         // solved per species so half the catches land under it (0.5^k = (mean-min)/(max-min)). Profiles
@@ -2187,16 +2187,10 @@ public final class FishingManager {
         }
         // §match-size: a crude setup catches the smaller end — the big wary specimens ignore it.
         k += Math.max(0.0, 0.85 - match) * 2.0;
+        // §skills ANGLERS_LUCK flattens the size curve instead of handing out a flag: a lucky angler
+        // meets bigger fish, which is the only thing luck can honestly mean here.
+        k /= 1.0 + luck * 2.0;
         double biased = Math.pow(random.nextDouble(), k);
-
-        // Trophy roll (configurable): a specimen from the top of the species' size range. It fights
-        // accordingly (weight drives the fight), shimmers as an item and gives triple XP.
-        // §skills ANGLERS_LUCK adds a flat bonus (+1%/rank); §match-size scales the base chance down
-        // on a poorly matched kit — a trophy demands the whole setup near-ideal, like the bite did.
-        if (random.nextDouble() < RiverFishingConfig.trophyChance() * Mth.clamp(match / 0.85, 0.2, 1.0) + trophyBonus) {
-            session.trophy = true;
-            biased = 0.85 + 0.15 * random.nextDouble();
-        }
 
         // §livebait-2 (0.4.0): a predator that commits to a live baitfish is one that can swallow it —
         // roughly 6× the bait's weight and up. A weighed livebait FLOORS the size roll there (capped at
@@ -2222,6 +2216,15 @@ public final class FishingManager {
 
         double weight = p.weightMin + (p.weightMax - p.weightMin) * biased;
         session.weightG = (int) Math.round(weight);
+
+        // §trophy (0.7.0): a trophy is a PROPERTY OF THE FISH, not a dice roll. It used to be rolled
+        // first and the weight forced into the top band afterwards, which meant an ordinary fish could
+        // out-weigh a trophy of the same species — a player reported catching a 240 g ruffe that was
+        // ordinary and a lighter one that was a trophy, and he was right to call it broken. In a mod that
+        // sells itself as a simulator the word has to mean what an angler means by it: this specimen is
+        // in the top of its species' size range. Every floor above (livebait, lure mass, luck) can push a
+        // fish into that band, which is exactly how those things work in the water.
+        session.trophy = biased >= RiverFishingConfig.trophyFraction();
 
         // Length from weight by the real allometric law L ∝ W^(1/3) — a fish's mass grows with its volume
         // (~length³), so length tracks the CUBE ROOT of weight, anchored to the species' own length range.

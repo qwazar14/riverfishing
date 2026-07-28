@@ -390,6 +390,11 @@ public class JournalScreen extends Screen {
             y = line(g, y, "guide.riverfishing.bait", baits(p));
             y = line(g, y, "guide.riverfishing.tackle", tackle(p));
             y = line(g, y, "guide.riverfishing.best", best(p.season, "season") + "  •  " + best(p.time, "time"));
+            // §trophy: the bar, in grams, for THIS species. It is a plain weight threshold now, so it
+            // can simply be stated — the old dice roll was the reason players had to ask.
+            y = line(g, y, "guide.riverfishing.trophy_from",
+                    com.riverfishing.item.FishItem.weightLabel(
+                            com.riverfishing.item.FishItem.trophyThresholdG(p.weightMin, p.weightMax)));
             if (p.minAnglerLevel > 0) {
                 g.drawString(this.font, Component.translatable("jei.riverfishing.level", p.minAnglerLevel),
                         left + 10, y, 0xFFB05A00, false);

@@ -57,7 +57,7 @@ public final class ConfigLoader {
             RiverFishingConfig.foul = num(o, "foul", RiverFishingConfig.foul, 0.0, 5.0);
             RiverFishingConfig.spook = num(o, "spook", RiverFishingConfig.spook, 0.0, 5.0);
 
-            RiverFishingConfig.trophyChance = num(o, "trophy_chance", RiverFishingConfig.trophyChance, 0.0, 1.0);
+            RiverFishingConfig.trophyFraction = num(o, "trophy_fraction", RiverFishingConfig.trophyFraction, 0.5, 0.999);
             RiverFishingConfig.frenzySpeed = num(o, "frenzy_speed", RiverFishingConfig.frenzySpeed, 1.0, 20.0);
             RiverFishingConfig.bycatchJunk = num(o, "bycatch_junk", RiverFishingConfig.bycatchJunk, 0.0, 1.0);
             RiverFishingConfig.bycatchTreasure = num(o, "bycatch_treasure", RiverFishingConfig.bycatchTreasure, 0.0, 1.0);
@@ -131,7 +131,9 @@ public final class ConfigLoader {
                 "ONLY when preset is 'custom'. Everything from 'trophy_chance' down is read directly and",
                 "applies whatever the preset is.",
                 "Higher is harsher for: phantom, break_sensitivity, depletion, leader_biteoff, line_wear,",
-                "hook_wear, snag, foul, spook. 'spook' at 0 switches off the fish reacting to you at all."
+                "hook_wear, snag, foul, spook. 'spook' at 0 switches off the fish reacting to you at all.",
+                "'trophy_fraction' is WHERE the trophy bar sits in a species' weight range, not a chance:",
+                "0.90 means the top tenth of the range. Raise it for rarer trophies."
               ],
 
               "preset": "realism",
@@ -146,7 +148,7 @@ public final class ConfigLoader {
               "foul": 1.0,
               "spook": 1.0,
 
-              "trophy_chance": 0.04,
+              "trophy_fraction": 0.90,
               "frenzy_speed": 3.0,
               "bycatch_junk": 0.045,
               "bycatch_treasure": 0.013,

@@ -181,6 +181,15 @@ public class FishItem extends Item {
         StackNbt.mutate(stack, t -> t.putString(TAG_MORPH, morphId));
     }
 
+    /**
+     * §trophy: the weight at which a specimen of this species IS a trophy. A plain reading of the size
+     * range, published in the journal, so the rule is something a player can look up rather than infer.
+     */
+    public static int trophyThresholdG(double weightMinG, double weightMaxG) {
+        return (int) Math.ceil(weightMinG + (weightMaxG - weightMinG)
+                * com.riverfishing.config.RiverFishingConfig.trophyFraction());
+    }
+
     /** The fisherman's minimum accepted weight for a species (§prime-fish). */
     public static int primeThresholdG(double weightMaxG) {
         return (int) Math.ceil(weightMaxG * com.riverfishing.registry.ModVillagers.PRIME_FRACTION);

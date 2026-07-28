@@ -25,7 +25,12 @@ public final class RiverFishingConfig {
     public static double spook = 1.0;
 
     // Gameplay events (§polish): read directly, not preset-driven.
-    public static double trophyChance = 0.04;
+    /**
+     * §trophy: where the trophy bar sits in a species' weight range, 0..1. 0.90 means "the top tenth",
+     * which across the 79 profiles works out at 2-7% of catches depending on how skewed the species is —
+     * a rare catfish trophy, a commoner ruffe one, which is how it should be.
+     */
+    public static double trophyFraction = 0.90;
     public static double frenzySpeed = 3.0;
     public static boolean consumeBait = true;
     public static boolean consumeGroundbait = true;
@@ -56,7 +61,7 @@ public final class RiverFishingConfig {
     /** §spook: how sharply the fish react to the angler. Zero switches the mechanic off entirely. */
     public static double spookRate() { return byPreset(0.35, 1.0, 1.6, spook); }
 
-    public static double trophyChance() { return trophyChance; }
+    public static double trophyFraction() { return trophyFraction; }
     public static double frenzySpeed() { return frenzySpeed; }
     public static boolean consumeBait() { return consumeBait; }
     public static boolean consumeGroundbait() { return consumeGroundbait; }

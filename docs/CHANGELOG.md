@@ -49,6 +49,27 @@ worth making. Crouched and still is the one state that makes no noise at all. Re
 seconds — a murky swamp forgets you quickly, clear shallows stay wary three times as long. Preset-driven
 like every other harsh mechanic, and `"spook": 0` in the config switches it off.
 
+### A trophy is a big fish again
+
+**Reported as a bug, and it was one.** A trophy was a dice roll: about 4% of catches won it, and the
+weight was forced into the top of the range *afterwards*. That let an ordinary fish out-weigh a trophy of
+the same species — the report was a 240 g ruffe that was ordinary next to a 233 g one that was a trophy.
+In a mod that calls itself a simulator, the word has to mean what an angler means by it.
+
+A trophy is now simply **a specimen in the top tenth of its species' weight range**, and nothing else. No
+roll, no hidden flag. Everything that can put a bigger fish on your line — a heavy livebait, lure mass,
+a well-matched kit, the Angler's Luck skill — now produces trophies by producing bigger fish, which is
+how it works in the water.
+
+The rate barely moves: across the 79 species the honest rule gives 2 to 7% of catches depending on how
+skewed the species is (a catfish trophy stays rare, a ruffe trophy is commoner), median 4.0% against the
+old flat 4%. **Angler's Luck** no longer adds a trophy chance — it flattens the size curve, which is the
+only thing luck can honestly mean here. The config knob `trophy_chance` becomes `trophy_fraction`
+(default 0.90 — raise it for rarer trophies).
+
+And the bar is now **printed in the journal**: every species page states the weight from which a specimen
+counts as a trophy. Nobody should have had to ask.
+
 ### Every fish shows its age, and some show more than that
 
 Fish are now coloured by a table rather than by a single flat sprite. A specimen's colour is read off its
