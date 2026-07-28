@@ -134,13 +134,11 @@ public final class ShoalRenderer {
                 pose.translate(x - cam.x, y - cam.y, z - cam.z);
                 pose.mulPose(Axis.YP.rotationDegrees(yaw));
                 // §fish-pose: a flounder, a halibut and a ray are drawn from ABOVE — their sprite is the
-                // broad face of a fish that lies horizontal. Upright they read as a bream standing on its
-                // edge. Laid flat, leaning towards the viewer by as much as the angle needs, so one seen
-                // from the bank is still a fish and one seen from above is flat.
+                // broad face of a fish that lies horizontal, and these three travel along the bottom.
+                // Parallel to it, then: from the bank one is barely anything, which is exactly what a
+                // flatfish looks like from there.
                 if (com.riverfishing.fish.FishPose.isFlat(e.species().getPath())) {
-                    double flat = Math.sqrt(toCamX * toCamX + toCamZ * toCamZ);
-                    float elev = (float) Math.toDegrees(Math.atan2(Math.max(0.0, cam.y - y), Math.max(0.01, flat)));
-                    pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay(elev)));
+                    pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
                 }
                 pose.mulPose(Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + i) * 3f));   // a slight roll
                 float size = spriteSize(e.lengthCm());

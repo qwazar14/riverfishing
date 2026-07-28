@@ -144,10 +144,10 @@ fish whose whole body is horizontal. Rendered upright like every other species t
 standing on its edge, which is the one thing a flatfish never does. They now lie down: in open water, in
 the aquarium, and on the ground where you dropped them.
 
-A perfectly flat sprite seen from the bank is a line one pixel high, so the lay leans towards the viewer
-by however much the angle needs — look down on one from a boat and it is flat, crouch at the water's edge
-and it tips up enough to be a fish. In an inventory slot the icon stays exactly as drawn: there it is a
-picture of the fish, not the fish.
+Flat means **parallel to the bottom** they travel along, and in the aquarium they work the floor of the
+tank rather than looping through open water. Seen from the bank a flounder is barely anything to look at
+— which is exactly what a flounder looks like from there, and you look DOWN at a flatfish anyway. In an
+inventory slot the icon stays exactly as drawn: there it is a picture of the fish, not the fish.
 
 ### A fish can no longer carry another species' weight
 
