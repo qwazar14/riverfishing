@@ -29,7 +29,42 @@ import javax.annotation.Nullable;
  * {@link com.riverfishing.network.KeepnetActionPacket} — the client only ever asks.
  */
 public class KeepnetMenu extends AbstractContainerMenu {
-    /** Where the player's inventory sits, below however tall the grid is. */
+    /**
+     * §keepnet-layout: the ONE place the panel's geometry is decided. The menu positions the inventory
+     * slots and the screen draws around them, and when those two disagreed by even a few pixels the
+     * inventory ended up drawn across the grid — which is exactly what happened the first time.
+     */
+    public static final int CELL = 18;
+    public static final int GRID_LEFT = 8;
+    public static final int GRID_TOP = 18;
+    /** The row of buttons under the grid. */
+    public static final int BUTTON_H = 14;
+
+    public static int gridBottom(KeepnetTier t) {
+        return GRID_TOP + t.height() * CELL;
+    }
+
+    public static int buttonRow(KeepnetTier t) {
+        return gridBottom(t) + 4;
+    }
+
+    public static int invLabel(KeepnetTier t) {
+        return buttonRow(t) + BUTTON_H + 6;
+    }
+
+    public static int invTop(KeepnetTier t) {
+        return invLabel(t) + 11;
+    }
+
+    public static int panelWidth(KeepnetTier t) {
+        return Math.max(176, GRID_LEFT * 2 + t.width() * CELL);
+    }
+
+    public static int panelHeight(KeepnetTier t) {
+        // three rows, a gap, the hotbar, and a margin
+        return invTop(t) + 3 * CELL + 4 + CELL + 7;
+    }
+
     public static final int INV_LEFT = 8;
 
     private final Player player;
@@ -41,14 +76,17 @@ public class KeepnetMenu extends AbstractContainerMenu {
         this.hand = hand;
 
         KeepnetTier tier = net().getItem() instanceof KeepnetItem k ? k.tier() : KeepnetTier.WICKER;
-        int invTop = 30 + tier.height() * 18 + 14;
+        int invTop = invTop(tier);
+        // The inventory is centred under the grid rather than pinned left: the grid is wider than nine
+        // slots on the bigger boxes, and an off-centre inventory reads as a mistake.
+        int invLeft = (panelWidth(tier) - 9 * CELL) / 2;
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(inv, col + row * 9 + 9, INV_LEFT + col * 18, invTop + row * 18));
+                addSlot(new Slot(inv, col + row * 9 + 9, invLeft + col * CELL, invTop + row * CELL));
             }
         }
         for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(inv, col, INV_LEFT + col * 18, invTop + 58));
+            addSlot(new Slot(inv, col, invLeft + col * CELL, invTop + 3 * CELL + 4));
         }
     }
 

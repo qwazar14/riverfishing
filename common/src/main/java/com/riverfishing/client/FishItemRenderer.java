@@ -23,6 +23,9 @@ import net.minecraft.world.item.ItemStack;
 public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static FishItemRenderer instance;
 
+    /** §keepnet: when positive, the size to draw at instead of the length-derived one. */
+    public static float gridScale = 0f;
+
     public static FishItemRenderer get() {
         if (instance == null) {
             Minecraft mc = Minecraft.getInstance();
@@ -51,16 +54,20 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         BakedModel model = com.riverfishing.client.platform.ClientPlatform.bakedModel(iconModel(sp.getPath()));
         if (model == null || model == mm.getMissingModel()) return;
 
-        float s = FishItem.getIconScale(stack);
+        // §keepnet: in the grid a fish is sized by the CELLS IT OCCUPIES, not by its length — the
+        // footprint already says how big it is, and multiplying the two makes a catfish fill the screen.
+        // Set by the keepnet screen around its own draws and cleared straight after; the client renders
+        // on one thread, so a static is honest here.
+        float s = gridScale > 0f ? gridScale : FishItem.getIconScale(stack);
         // §fish-scale (0.5.0): the giants are capped per context — an inventory slot or item frame
         // stays readable at ≤2, but in hand, dropped on the ground or mounted the monsters are the
         // spectacle they should be (a 380 cm Megalodon towers over the player at 5 blocks).
         float cap = (ctx == ItemDisplayContext.GUI || ctx == ItemDisplayContext.FIXED
                 || ctx == ItemDisplayContext.HEAD) ? 2.0f : 5.0f;
-        s = Math.min(s, cap);
+        if (gridScale <= 0f) s = Math.min(s, cap);
         // §gui-readability: in a SLOT even a gudgeon should be recognisable — floor the GUI scale
         // (the ground drop and the aquarium keep the true-size 0.45 floor).
-        if (ctx == ItemDisplayContext.GUI) s = Math.max(s, 0.8f);
+        if (ctx == ItemDisplayContext.GUI && gridScale <= 0f) s = Math.max(s, 0.8f);
         // §release: a dropped fish shrinks away over its final 2 s in the water (the client mirrors
         // the server countdown stored in NBT). Only the loose item entity shrinks, not the inventory.
         if ((ctx == ItemDisplayContext.GROUND || ctx == ItemDisplayContext.NONE) && mc.level != null) {
