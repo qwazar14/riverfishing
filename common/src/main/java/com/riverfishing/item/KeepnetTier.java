@@ -11,14 +11,14 @@ package com.riverfishing.item;
  * you can put a pickaxe in is not a keepnet. Every cell is water now.
  */
 public enum KeepnetTier {
-    /** Плетёнка: a morning's small fish and nothing more. */
+    /** Плетёная корзина: a morning's small fish and nothing more. */
     WICKER("wicker_creel", 5, 3),
-    /** Садок: the working net. */
+    /** Садок: the working net, and the one every angler owns. */
     KEEPNET("keepnet", 7, 4),
-    /** Холодильник: a cool box — more room, and it keeps a fish worth selling. */
+    /** Термобокс: more room, and it keeps a fish worth selling. */
     COOLER("cool_box", 8, 5),
-    /** Живорыбный ящик: the boat's livewell, and room for something enormous. */
-    LIVEWELL("livewell", 9, 6);
+    /** Рыбацкий ящик: the big box, and room for something enormous. */
+    LIVEWELL("angler_box", 9, 6);
 
     private final String id;
     private final int width;

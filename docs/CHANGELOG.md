@@ -148,7 +148,7 @@ fish is: about 0.2 for an eel, 1 for a pike, over 2 for a bream. So an eel is a 
 carp is a fat 3×2, and a 30 kg catfish is a tapered 6×3 that eats half a box. Long fish turn to fit.
 
 Four tiers, each a crafting upgrade of the last: **wicker creel** 5×3, **keepnet** 7×4, **cool box** 8×5,
-**livewell** 9×6. A keepnet holds this mod's fish and nothing else — every cell is water.
+**angler's box** 9×6. A keepnet holds this mod's fish and nothing else — every cell is water.
 
 Three rules are in from the first build rather than promised for later, because the designer this is
 borrowed from was explicit that a spatial inventory without them is a frustration generator:
