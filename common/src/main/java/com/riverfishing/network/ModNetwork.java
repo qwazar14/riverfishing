@@ -36,6 +36,9 @@ public final class ModNetwork {
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, SkillUnlockPacket.TYPE, SkillUnlockPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §keepnet: the grid asks, the server decides.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeepnetActionPacket.TYPE, KeepnetActionPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
 
         if (dev.architectury.platform.Platform.getEnvironment() == dev.architectury.utils.Env.SERVER) {
             NetworkManager.registerS2CPayloadType(FloatTimingPacket.TYPE, FloatTimingPacket.STREAM_CODEC);

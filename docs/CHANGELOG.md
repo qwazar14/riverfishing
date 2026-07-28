@@ -137,6 +137,32 @@ It is also free diagnostics with nobody's data in it: every offer writes one lin
 saying which rod class and which failure tripped it. The flows that turn out to be unteachable will show
 up there rather than in a bug report nobody bothers to write.
 
+### The catch takes up room
+
+The keepnet is a **grid**, and what you keep is the decision of the day.
+
+A fish's footprint is worked out from the length and the weight the mod already records for every
+specimen — nothing is authored per species. Length gives the long axis, one cell per 25 cm. The short axis
+comes from Fulton's condition factor, 100·W/L³, the number an angling club uses to say how deep-bodied a
+fish is: about 0.2 for an eel, 1 for a pike, over 2 for a bream. So an eel is a 4×1 bar, a pike is 3×1, a
+carp is a fat 3×2, and a 30 kg catfish is a tapered 6×3 that eats half a box. Long fish turn to fit.
+
+Four tiers, each a crafting upgrade of the last: **wicker creel** 5×3, **keepnet** 7×4, **cool box** 8×5,
+**livewell** 9×6. Every tier above the creel reserves its right-hand column or two for GEAR — single cells
+that take anything except a fish — so the bait and the groundbait you actually carry compete with the
+catch for the same box.
+
+Three rules are in from the first build rather than promised for later, because the designer this is
+borrowed from was explicit that a spatial inventory without them is a frustration generator:
+
+- **Always rearrange.** Pick anything up, put it anywhere it fits, whenever you like.
+- **The game never places for you, but it offers.** Shift-click drops a fish wherever it fits; TIDY
+  repacks the whole box biggest-first and hands back anything that no longer goes in.
+- **It opens only in a pause** — on the held keepnet, never mid-fight.
+
+The shapes are checked by a self-test rather than by eye:  prints the table for the real
+species and asserts the invariants that must hold for every one of them.
+
 ### Flatfish lie flat
 
 The flounder, the halibut and the ray are drawn from ABOVE — their sprite is the broad, eyed face of a

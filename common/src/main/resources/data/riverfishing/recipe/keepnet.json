@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SSS",
+    "TCT",
+    "TTT"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:string"
+    },
+    "T": {
+      "item": "minecraft:stick"
+    },
+    "C": {
+      "item": "riverfishing:wicker_creel"
+    }
+  },
+  "result": {
+    "id": "riverfishing:keepnet",
+    "count": 1
+  }
+}

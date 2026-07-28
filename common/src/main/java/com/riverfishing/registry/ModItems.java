@@ -237,6 +237,11 @@ public final class ModItems {
 
         // ----- Water analysis (ÃÂ§QoL): player fish finder + admin probe -----
         reg("fish_finder", () -> new com.riverfishing.item.WaterProbeItem(false, props().stacksTo(1)));
+        // §keepnet (0.7.0): the spatial catch box, four tiers of it. Each is its own item so the upgrade
+        // path is a crafting recipe rather than a hidden NBT field.
+        for (com.riverfishing.item.KeepnetTier t : com.riverfishing.item.KeepnetTier.values()) {
+            reg(t.id(), () -> new com.riverfishing.item.KeepnetItem(t, props().stacksTo(1)));
+        }
         reg("hydro_probe", () -> new com.riverfishing.item.WaterProbeItem(true, props().stacksTo(1)));
 
         // ----- Caught fish: a distinct item + texture per species (Module 8) -----

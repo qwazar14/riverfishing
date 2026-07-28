@@ -28,6 +28,11 @@ public final class ModMenus {
             REGISTER.register("tackle_station",
                     () -> MenuRegistry.ofExtended(com.riverfishing.menu.TackleStationMenu::fromNetwork));
 
+    // §keepnet (0.7.0): the spatial catch box.
+    public static final RegistrySupplier<MenuType<com.riverfishing.menu.KeepnetMenu>> KEEPNET =
+            REGISTER.register("keepnet",
+                    () -> MenuRegistry.ofExtended(com.riverfishing.menu.KeepnetMenu::fromNetwork));
+
     public static void init() {
         REGISTER.register();
     }
