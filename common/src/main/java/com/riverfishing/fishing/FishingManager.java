@@ -402,7 +402,7 @@ public final class FishingManager {
         RandomSource random = level.getRandom();
         BiteEngine.Outcome outcome = BiteEngine.evaluate(FishProfileManager.get().all(), ctx, random);
         if (!outcome.willBite()) {
-            actionbar(sp, Component.translatable("message.riverfishing.no_bites_here").withStyle(ChatFormatting.GRAY));
+            noBitesHint(sp, ctx);
             return false;
         }
 
@@ -575,7 +575,7 @@ public final class FishingManager {
         RandomSource random = level.getRandom();
         BiteEngine.Outcome outcome = BiteEngine.evaluate(FishProfileManager.get().all(), ctx, random);
         if (!outcome.willBite()) {
-            actionbar(sp, Component.translatable("message.riverfishing.no_bites_here").withStyle(ChatFormatting.GRAY));
+            noBitesHint(sp, ctx);
             return false;
         }
         ResourceLocation species = maybeKoi(outcome.pickSpecies(random), ctx, random);
@@ -1113,8 +1113,8 @@ public final class FishingManager {
             addLineWear(broken, 5);
             level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.LINE_BREAK.get(),
                     SoundSource.PLAYERS, 0.9f, 1.0f);
-            sp.displayClientMessage(Component.translatable("message.riverfishing.line_break")
-                    .withStyle(ChatFormatting.RED), false);
+            sp.displayClientMessage(Component.translatable("message.riverfishing.line_break",
+                    FishItem.approxWeightText(session.weightG)).withStyle(ChatFormatting.RED), false);
             com.riverfishing.quest.AnglerAdvancements.grant(sp, "snapped"); // §joke: the 0.3% gut-punch
             endSession(sp, session);
             return;
@@ -1531,7 +1531,8 @@ public final class FishingManager {
             landFish(sp, level, session);
         } else {
             endSession(sp, session);
-            actionbar(sp, Component.translatable("message.riverfishing.shake_off").withStyle(ChatFormatting.YELLOW));
+            actionbar(sp, Component.translatable("message.riverfishing.shake_off",
+                    FishItem.approxWeightText(session.weightG)).withStyle(ChatFormatting.YELLOW));
         }
     }
 
@@ -2073,13 +2074,13 @@ public final class FishingManager {
                         .withStyle(ChatFormatting.RED), false);
             } else {
                 sp.displayClientMessage(Component.translatable(
-                        leader ? "message.riverfishing.leader_bite_off" : "message.riverfishing.line_break")
-                        .withStyle(ChatFormatting.RED), false);
+                        leader ? "message.riverfishing.leader_bite_off" : "message.riverfishing.line_break",
+                        FishItem.approxWeightText(session.weightG)).withStyle(ChatFormatting.RED), false);
             }
         } else {
             level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.6f, 0.7f);
-            sp.displayClientMessage(Component.translatable("message.riverfishing.shake_off")
-                    .withStyle(ChatFormatting.YELLOW), false);
+            sp.displayClientMessage(Component.translatable("message.riverfishing.shake_off",
+                    FishItem.approxWeightText(session.weightG)).withStyle(ChatFormatting.YELLOW), false);
         }
         endSession(sp, session);
     }
@@ -2706,6 +2707,54 @@ public final class FishingManager {
     }
 
     /** Which habitat gate blocks this species here — mirrors environmentScore's order (§QoL). */
+    /**
+     * §why-nothing: instead of "nothing bites here", say what is actually in the way.
+     *
+     * <p>Every species is asked the engine's own question ({@link BiteEngine#blockReason}) and the most
+     * common answer wins. Two different situations, and the difference is the whole point:
+     * <ul>
+     *   <li>Some fish WOULD take, but your kit stops them — the bait, or the hook size. That is on you,
+     *       and it is the case a player can fix in ten seconds once they know.</li>
+     *   <li>Nothing here is feeding at all — then the answer is the water, the hour, the season or the
+     *       weather, and the honest advice is to come back or move.</li>
+     * </ul>
+     *
+     * <p>Deliberately a HINT, not an instruction: it names the category and never the answer. "The fish
+     * here will not take that bait" sends a player to the journal; "use a worm" sends them to sleep.
+     */
+    private static void noBitesHint(ServerPlayer sp, BiteContext ctx) {
+        java.util.Map<String, Integer> tackle = new java.util.HashMap<>();
+        java.util.Map<String, Integer> absent = new java.util.HashMap<>();
+        int couldBeHere = 0;
+        for (FishProfile p : FishProfileManager.get().all()) {
+            String r = BiteEngine.blockReason(p, ctx);
+            if ("absent".equals(r)) {
+                // Only species that at least live in THIS KIND of water can say anything useful about
+                // why the swim is dead — a marlin has no opinion about a village pond.
+                if (p.waterFactor(ctx.water) > 0) {
+                    String g = gateReason(p, ctx);
+                    int br = g.indexOf('(');
+                    absent.merge(br < 0 ? g : g.substring(0, br), 1, Integer::sum);
+                }
+                continue;
+            }
+            couldBeHere++;
+            if (r != null) tackle.merge(r, 1, Integer::sum);
+        }
+        String key = couldBeHere > 0 ? top(tackle, "other") : top(absent, "water");
+        actionbar(sp, Component.translatable("message.riverfishing.no_bites." + key)
+                .withStyle(ChatFormatting.GRAY));
+    }
+
+    private static String top(java.util.Map<String, Integer> tally, String fallback) {
+        String best = fallback;
+        int n = 0;
+        for (var e : tally.entrySet()) {
+            if (e.getValue() > n) { n = e.getValue(); best = e.getKey(); }
+        }
+        return best;
+    }
+
     private static String gateReason(FishProfile p, BiteContext c) {
         if (p.waterFactor(c.water) <= 0) return "water";
         if (c.waterDepth < p.depthMin || c.waterDepth > p.depthMax) return "depth(" + c.waterDepth + ")";

@@ -218,6 +218,22 @@ public class FishItem extends Item {
                 : Component.translatable("unit.riverfishing.g", weightG);
     }
 
+    /**
+     * §one-that-got-away: the weight of a fish that was never on the scales. Rounded hard on purpose —
+     * you felt it on the rod and you saw it turn, you did not weigh it, and a figure to the gram would be
+     * a precision the moment never had. Coarser as the fish gets bigger, the way an estimate really is.
+     */
+    public static Component approxWeightText(int weightG) {
+        int step = weightG < 100 ? 10 : weightG < 1000 ? 50 : weightG < 10000 ? 500 : 1000;
+        int rounded = Math.max(step, Math.round(weightG / (float) step) * step);
+        if (rounded < 1000) return Component.translatable("unit.riverfishing.g", rounded);
+        // An estimate has to LOOK like an estimate: half-kilos up to ten, whole kilos above. The normal
+        // two-decimal form would read as "around 30.00 kg", which is a weighed figure, not a guess.
+        return Component.translatable("unit.riverfishing.kg", step >= 1000
+                ? String.valueOf(rounded / 1000)
+                : String.format("%.1f", rounded / 1000.0));
+    }
+
     /** Flat-string form of {@link #weightText} for plain-text call sites; resolves the caller-side lang. */
     public static String weightLabel(int weightG) {
         return weightText(weightG).getString();

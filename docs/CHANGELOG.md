@@ -49,6 +49,25 @@ worth making. Crouched and still is the one state that makes no noise at all. Re
 seconds — a murky swamp forgets you quickly, clear shallows stay wary three times as long. Preset-driven
 like every other harsh mechanic, and `"spook": 0` in the config switches it off.
 
+### The mod says what it means
+
+Two messages stopped being dead ends.
+
+**The one that got away now has a size.** A shake-off, a snapped line and a bitten-through leader all
+report roughly what was on the end of it — rounded hard on purpose, half-kilos up to ten and whole kilos
+above, because you felt that fish and watched it turn, you did not put it on the scales. A figure to the
+gram would be a precision the moment never had.
+
+**"Nothing is taking here" now says why.** Every species is asked the bite engine's own question and the
+most common answer is shown. If some fish here would take but your kit stops them, it names the kit — no
+hook on the rig, nothing on the hook, a bait they do not eat, a hook the wrong size for their mouths. If
+nothing at all is feeding, it names the water instead: the hour, the season, the weather, the depth.
+
+It is a **hint, not an instruction**. It names the category and never the answer: "there are fish here,
+but not for this bait" sends a player to the journal, where the species pages already list what each fish
+eats. The diagnosis is one function inside the engine next to the gates it reports, so the advice can
+never drift from the rule.
+
 ### A trophy is a big fish again
 
 **Reported as a bug, and it was one.** A trophy was a dice roll: about 4% of catches won it, and the
