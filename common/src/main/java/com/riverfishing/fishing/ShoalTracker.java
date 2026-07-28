@@ -1,5 +1,7 @@
 package com.riverfishing.fishing;
 
+import com.riverfishing.engine.BiteContext;
+import com.riverfishing.engine.BiteEngine;
 import com.riverfishing.fish.FishProfile;
 import com.riverfishing.fish.FishProfileManager;
 import com.riverfishing.network.ModNetwork;
@@ -126,13 +128,6 @@ public final class ShoalTracker {
         cells.sort(Comparator.comparingDouble(p -> p.distToLowCornerSqr(px, py, pz)));
 
         FishingPressureData pressure = FishingPressureData.get(level);
-        var season = com.riverfishing.integration.SeasonProvider.getSeason(level);
-        var time = com.riverfishing.engine.TimeOfDay.fromDayTime(level.getDayTime());
-        var weather = level.isThundering() ? com.riverfishing.engine.Weather.THUNDER
-                : (level.isRaining() ? com.riverfishing.engine.Weather.RAIN : com.riverfishing.engine.Weather.CLEAR);
-        // Two neighbouring cells of the same lake at the same depth hold the same species in the same
-        // proportions, so the profile pass is done once per distinct answer, not once per cell.
-        Map<String, Pool> pools = new HashMap<>();
 
         List<ShoalPacket.Spot> out = new ArrayList<>();
         int budget = MAX_FISH_TOTAL;
@@ -143,17 +138,12 @@ public final class ShoalTracker {
             int minLen = d > FAR ? SEE_FAR_CM : d > MID ? SEE_MID_CM : 0;
             WaterBody body = WaterBodyCache.forLevel(level).get(level, surface);
             if (body == null || body.type() == WaterType.NONE) continue;
-            int depth = waterDepth(level, surface);
-            int sx = SectionPos.blockToSectionCoord(surface.getX());
-            int sz = SectionPos.blockToSectionCoord(surface.getZ());
-
-            String poolKey = body.type() + "|" + (depth / 2) + "|" + (int) (body.width() / 4) + "|" + sx + "," + sz;
-            Pool pool = pools.computeIfAbsent(poolKey, k ->
-                    poolFor(body, depth, sx, sz, pressure, season, time, weather, now));
+            BiteContext env = FishingManager.environmentAt(level, surface, body);
+            Pool pool = poolFor(env, surface, pressure, now);
             if (pool.total <= 0) continue;
 
             RandomSource rng = RandomSource.create(surface.asLong() * 31L + hour);
-            List<ShoalPacket.Entry> fish = pick(pool, depth, Math.min(want, budget), minLen, rng);
+            List<ShoalPacket.Entry> fish = pick(pool, env.waterDepth, Math.min(want, budget), minLen, rng);
             if (fish.isEmpty()) continue;
             budget -= fish.size();
             // Circuits have to stay inside the cell, or two neighbouring shoals swim through each other
@@ -185,28 +175,28 @@ public final class ShoalTracker {
     }
 
     /**
-     * The species this water holds, weighted the way the bite engine weights habitat — but with no tackle
-     * term at all. Pressure scales each species' presence, so a fished-out swim visibly empties.
+     * The species this water holds — asked of the bite engine itself, not worked out again here.
+     *
+     * <p>This function used to re-derive the weighting from the same JSON: water type, depth, width,
+     * season, time, weather. It looked equivalent and was not. It silently missed the maximum depth and
+     * width gates, the biome range, and above all §community — the per-water species set that decides
+     * that THIS lake simply does not hold grass carp — so the shoal drew fish the fish finder did not
+     * list and that stocking refused to settle. {@code environmentScore} is the one function that owns
+     * that answer (it is also what the finder calls), and it costs less than the copy did.
+     *
+     * <p>Pressure is applied on top, so a hammered swim visibly empties: {@code surplus} is negative
+     * where the stock has been fished down.
      */
-    private static Pool poolFor(WaterBody body, int depth, int sx, int sz, FishingPressureData pressure,
-                                com.riverfishing.engine.Season season, com.riverfishing.engine.TimeOfDay time,
-                                com.riverfishing.engine.Weather weather, long now) {
+    private static Pool poolFor(BiteContext env, BlockPos surface, FishingPressureData pressure, long now) {
+        int sx = SectionPos.blockToSectionCoord(surface.getX());
+        int sz = SectionPos.blockToSectionCoord(surface.getZ());
         Map<ResourceLocation, Double> weights = new HashMap<>();
         double total = 0;
         for (FishProfile p : FishProfileManager.get().all()) {
-            // The profile's own accessors, so the shoal is weighted by exactly the same numbers the bite
-            // engine reads — no second interpretation of the same JSON to drift out of step.
-            double w = p.waterFactor(body.type());
-            if (w <= 0) continue;
-            if (depth < p.depthMin || (p.depthMax > 0 && depth > p.depthMax)) continue;
-            if (body.width() < p.widthMin) continue;
-            w *= p.base;
-            if (season != null) w *= p.seasonFactor(season);
-            w *= p.timeFactor(time);
-            w *= p.weatherFactor(weather);
-            // §shoal-pressure: a hammered swim shows fewer fish. surplus is negative when depleted.
-            double surplus = pressure.surplusAround(sx, sz, p.id.getPath(), now);
-            w *= Mth.clamp(1.0 + surplus, 0.05, 2.5);
+            double w = BiteEngine.environmentScore(p, env);
+            if (w <= 1e-4) continue;
+            // §shoal-pressure: fewer fish where the fishing has been heavy.
+            w *= Mth.clamp(1.0 + pressure.surplusAround(sx, sz, p.id.getPath(), now), 0.05, 2.5);
             if (w > 1e-4) {
                 weights.put(p.id, w);
                 total += w;
@@ -279,16 +269,6 @@ public final class ShoalTracker {
             case "bottom" -> Math.max(0, max - rng.nextInt(2));
             default -> Mth.clamp(max / 2 + rng.nextInt(2) - 1, 0, max);
         };
-    }
-
-    private static int waterDepth(ServerLevel level, BlockPos surface) {
-        int d = 0;
-        BlockPos p = surface;
-        while (d < 24 && !level.getFluidState(p).isEmpty()) {
-            d++;
-            p = p.below();
-        }
-        return d;
     }
 
     /**
