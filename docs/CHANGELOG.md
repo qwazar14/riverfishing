@@ -52,7 +52,8 @@ all, so a culled fish disappears from the bite engine, from the shoal you can se
 finder and from stocking together. It is reversible from the same screen, and releasing one of that
 species there lifts the ban as well: a fish that visibly swims in a water has to be catchable in it. The
 screen states its own scope, because a water is a ~128-block region and an operator who thinks they
-cleared a pond may have cleared a river.
+cleared a pond may have cleared a river. There is a **journal page** for it, sitting after every page
+that teaches fishing — this one is not for anglers.
 
 ### The fish are in the water
 

@@ -161,7 +161,11 @@ public class JournalScreen extends Screen {
         addGuide("tacklebox", modStack("tackle_box_medium"));
         addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
         addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
-        // §discord: last on the shelf on purpose — the other eleven teach a mechanic, this one is where
+        // §cull: after every page that teaches fishing, because this one is not for anglers — it is the
+        // operator's tool, and a survival player will never hold it. Still documented here rather than
+        // nowhere: the person who needs it is reading this book on a server they run.
+        addGuide("cull", modStack("electro_rod"));
+        // §discord: last on the shelf on purpose — every other page teaches a mechanic, this one is where
         // to go when one of them misbehaves. Note the id is NOT "community": that is taken by the guide
         // about a water's own fish population.
         addGuide("discord", new ItemStack(net.minecraft.world.item.Items.PLAYER_HEAD));
