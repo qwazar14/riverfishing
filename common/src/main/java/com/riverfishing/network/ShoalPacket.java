@@ -1,7 +1,5 @@
 package com.riverfishing.network;
 
-import dev.architectury.networking.NetworkManager;
-import dev.architectury.utils.Env;
 import dev.architectury.utils.EnvExecutor;
 import net.fabricmc.api.EnvType;
 import net.minecraft.core.BlockPos;
@@ -11,7 +9,9 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * §shoal (0.7.0): what is actually swimming in the water in front of you.
@@ -19,13 +19,13 @@ import java.util.List;
  * <p>The client cannot work this out for itself. Fish profiles load under {@code PackType.SERVER_DATA},
  * so a multiplayer client has none of them, and the two things that make the answer honest — per-chunk
  * fishing pressure and pond stocking — live in server {@code SavedData}. So the server decides and sends
- * a short list, and what you SEE is what the water actually holds.
+ * the shoals, and what you SEE is what the water actually holds.
  *
- * <p>Deliberately small: a handful of entries, no per-tick updates. The client animates them itself, the
- * same way the aquarium does, so this is a few hundred bytes every couple of seconds, not a stream.
+ * <p>One packet covers every shoal across the 3×3 chunks around the player, so a whole stretch of water
+ * is populated rather than one ring at your feet. The client animates them itself, the same way the
+ * aquarium does, so this is sent every couple of seconds and only when it has actually changed.
  */
-public record ShoalPacket(BlockPos centre, float clarity, byte spread, List<Entry> fish)
-        implements ModNetwork.RfPacket {
+public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
 
     /**
      * One visible fish. {@code lengthCm} is what drives the rendered SIZE — FishItem.getIconScale reads
@@ -36,43 +36,79 @@ public record ShoalPacket(BlockPos centre, float clarity, byte spread, List<Entr
     public record Entry(ResourceLocation species, int weightG, int lengthCm,
                         byte depth, byte lane, byte phase) {}
 
+    /**
+     * One shoal, anchored to a water surface block. {@code clarity} is how well this water shows what it
+     * holds, {@code spread} how far its circuits may reach before they would leave the water.
+     */
+    public record Spot(BlockPos centre, float clarity, byte spread, List<Entry> fish) {}
+
     public static final CustomPacketPayload.Type<ShoalPacket> TYPE =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("riverfishing", "shoal"));
 
     public static final StreamCodec<FriendlyByteBuf, ShoalPacket> STREAM_CODEC =
             StreamCodec.of(ShoalPacket::encode, ShoalPacket::read);
 
-    /** No fish here — the client clears its shoal. Sent once when you walk away from water. */
+    /** No fish here — the client clears its shoals. Sent once when you walk away from water. */
     public static ShoalPacket empty() {
-        return new ShoalPacket(BlockPos.ZERO, 0f, (byte) 0, List.of());
+        return new ShoalPacket(List.of());
     }
 
     private static void encode(FriendlyByteBuf buf, ShoalPacket p) {
-        buf.writeBlockPos(p.centre);
-        buf.writeFloat(p.clarity);
-        buf.writeByte(p.spread);
-        buf.writeVarInt(p.fish.size());
-        for (Entry e : p.fish) {
-            buf.writeResourceLocation(e.species());
-            buf.writeVarInt(e.weightG());
-            buf.writeVarInt(e.lengthCm());
-            buf.writeByte(e.depth());
-            buf.writeByte(e.lane());
-            buf.writeByte(e.phase());
+        // A species palette, not a species per fish: a ResourceLocation costs ~25 bytes on the wire and
+        // the same roach id appears in a dozen entries. Fourteen shoals of bream fit in a few hundred.
+        List<ResourceLocation> palette = new ArrayList<>();
+        Map<ResourceLocation, Integer> index = new HashMap<>();
+        for (Spot s : p.spots) {
+            for (Entry e : s.fish()) {
+                index.computeIfAbsent(e.species(), id -> {
+                    palette.add(id);
+                    return palette.size() - 1;
+                });
+            }
+        }
+        buf.writeVarInt(palette.size());
+        for (ResourceLocation id : palette) buf.writeResourceLocation(id);
+
+        buf.writeVarInt(p.spots.size());
+        for (Spot s : p.spots) {
+            buf.writeBlockPos(s.centre());
+            buf.writeFloat(s.clarity());
+            buf.writeByte(s.spread());
+            buf.writeVarInt(s.fish().size());
+            for (Entry e : s.fish()) {
+                buf.writeVarInt(index.get(e.species()));
+                buf.writeVarInt(e.weightG());
+                buf.writeVarInt(e.lengthCm());
+                buf.writeByte(e.depth());
+                buf.writeByte(e.lane());
+                buf.writeByte(e.phase());
+            }
         }
     }
 
     private static ShoalPacket read(FriendlyByteBuf buf) {
-        BlockPos centre = buf.readBlockPos();
-        float clarity = buf.readFloat();
-        byte spread = buf.readByte();
-        int n = buf.readVarInt();
-        List<Entry> out = new ArrayList<>(n);
-        for (int i = 0; i < n; i++) {
-            out.add(new Entry(buf.readResourceLocation(), buf.readVarInt(), buf.readVarInt(),
-                    buf.readByte(), buf.readByte(), buf.readByte()));
+        int np = buf.readVarInt();
+        List<ResourceLocation> palette = new ArrayList<>(np);
+        for (int i = 0; i < np; i++) palette.add(buf.readResourceLocation());
+
+        int ns = buf.readVarInt();
+        List<Spot> spots = new ArrayList<>(ns);
+        for (int s = 0; s < ns; s++) {
+            BlockPos centre = buf.readBlockPos();
+            float clarity = buf.readFloat();
+            byte spread = buf.readByte();
+            int nf = buf.readVarInt();
+            List<Entry> fish = new ArrayList<>(nf);
+            for (int i = 0; i < nf; i++) {
+                int pi = buf.readVarInt();
+                ResourceLocation id = pi >= 0 && pi < palette.size() ? palette.get(pi) : null;
+                Entry e = new Entry(id, buf.readVarInt(), buf.readVarInt(),
+                        buf.readByte(), buf.readByte(), buf.readByte());
+                if (id != null) fish.add(e);
+            }
+            spots.add(new Spot(centre, clarity, spread, fish));
         }
-        return new ShoalPacket(centre, clarity, spread, out);
+        return new ShoalPacket(spots);
     }
 
     @Override

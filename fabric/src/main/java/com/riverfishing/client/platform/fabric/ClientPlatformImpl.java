@@ -70,12 +70,18 @@ public final class ClientPlatformImpl {
     }
 
     public static void registerLevelRenderer() {
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
-            float pt = context.tickCounter().getGameTimeDeltaPartialTick(false);
-            // §shoal before the line: the fish are behind the water surface, the line is in front of it.
-            com.riverfishing.client.ShoalRenderer.render(context.matrixStack(), context.camera().getPosition(), pt);
-            LineRenderer.render(context.matrixStack(), context.camera().getPosition(), pt);
-        });
+        // §shoal is UNDER the water, so it has to be drawn before the water is — the translucent terrain
+        // pass writes depth, and anything submitted after it that sits behind the surface is thrown away
+        // by the depth test. This is the same pass vanilla draws a squid in, and it gets the water's own
+        // tint blended over the fish for free.
+        WorldRenderEvents.AFTER_ENTITIES.register(context ->
+                com.riverfishing.client.ShoalRenderer.render(context.matrixStack(),
+                        context.camera().getPosition(),
+                        context.tickCounter().getGameTimeDeltaPartialTick(false)));
+        // The line is above the water, so it stays after the water.
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(context ->
+                LineRenderer.render(context.matrixStack(), context.camera().getPosition(),
+                        context.tickCounter().getGameTimeDeltaPartialTick(false)));
     }
 
     /** Vanilla/Fabric ignores the model's "render_type", so wire the non-solid layers up explicitly. */
