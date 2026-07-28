@@ -97,22 +97,7 @@ public final class KeepnetData {
 
     /** Can this stack sit here, in this rotation, without leaving the box or touching anything? */
     public boolean fits(ItemStack stack, int px, int py, int rot) {
-        boolean fish = isFish(stack);
-        FishShape s = FishShape.of(stack).rotated(rot);
-        int[] grid = occupancy();
-        for (int y = 0; y < s.height(); y++) {
-            for (int x = 0; x < s.width(); x++) {
-                if (!s.at(x, y)) continue;
-                int gx = px + x, gy = py + y;
-                if (gx < 0 || gy < 0 || gx >= tier.width() || gy >= tier.height()) return false;
-                // The gear columns are for what you carry, not what you caught — and a fish is never
-                // allowed to spill into them, whichever way round it is turned.
-                if (fish && tier.isGearCell(gx)) return false;
-                if (!fish && !tier.isGearCell(gx)) return false;
-                if (grid[gy * tier.width() + gx] != -1) return false;
-            }
-        }
-        return true;
+        return isFish(stack) && fits(occupied(), FishShape.of(stack).rotated(rot), px, py);
     }
 
     public boolean place(ItemStack stack, int x, int y, int rot) {
@@ -129,43 +114,128 @@ public final class KeepnetData {
     }
 
     /**
-     * Find somewhere for this stack and put it there. Tries both rotations at every cell, reading
-     * left-to-right and top-to-bottom, so the box packs from the corner the way a person would fill it.
+     * Find the best place for this stack and put it there.
      *
-     * @return true if it went in
+     * <p>"Best" is not "first that fits". First-fit reads left to right and drops a piece in the first
+     * hole big enough, which strands single cells all over a box — and in a box where the whole point is
+     * deciding what to keep, wasted cells are the mechanic misfiring. Every legal position in both
+     * rotations is scored by how much of the piece's edge ends up against a wall or another fish, and the
+     * most contact wins; ties go to the highest, then leftmost. That is the standard maximal-contact
+     * heuristic and it costs nothing at this size.
      */
     public boolean autoPlace(ItemStack stack) {
-        if (stack.isEmpty()) return false;
-        int rots = FishShape.of(stack).width() == FishShape.of(stack).height() ? 1 : 2;
-        for (int y = 0; y < tier.height(); y++) {
-            for (int x = 0; x < tier.width(); x++) {
-                for (int rot = 0; rot < rots; rot++) {
-                    if (fits(stack, x, y, rot)) {
-                        items.add(new Placed(stack.copy(), x, y, rot));
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        if (stack.isEmpty() || !isFish(stack)) return false;
+        boolean[] used = occupied();
+        Spot best = bestSpot(stack, used);
+        if (best == null) return false;
+        items.add(new Placed(stack.copy(), best.x, best.y, best.rot));
+        return true;
     }
 
     /**
-     * Repack everything from scratch, biggest first. This is the tidy-up button, and it exists because
-     * the developer of the game this is borrowed from was explicit that a spatial inventory without one
-     * is a frustration generator.
+     * Repack from scratch, biggest and most awkward first. This is the tidy-up button, and it exists
+     * because the designer this borrows from was explicit that a spatial inventory without one is a
+     * frustration generator.
+     *
+     * <p>It keeps ONE occupancy grid and updates it as it goes, instead of rebuilding the map from the
+     * item list on every trial placement — the first cut did that thousands of times per press.
      */
     public void repack() {
         List<ItemStack> all = new ArrayList<>();
         for (Placed p : items) all.add(p.stack());
-        all.sort((a, b) -> Integer.compare(FishShape.of(b).cells(), FishShape.of(a).cells()));
+        // Area first, then the longest side: a 6x1 eel is small but far harder to fit than a 2x2 bream,
+        // and packing the awkward pieces while the box is empty is the whole trick.
+        all.sort((a, b) -> {
+            FishShape sa = FishShape.of(a), sb = FishShape.of(b);
+            int byArea = Integer.compare(sb.cells(), sa.cells());
+            return byArea != 0 ? byArea
+                    : Integer.compare(Math.max(sb.width(), sb.height()), Math.max(sa.width(), sa.height()));
+        });
         items.clear();
-        List<ItemStack> spilled = new ArrayList<>();
-        for (ItemStack s : all) {
-            if (!autoPlace(s)) spilled.add(s);
+        boolean[] used = new boolean[tier.width() * tier.height()];
+        List<ItemStack> over = new ArrayList<>();
+        for (ItemStack st : all) {
+            Spot spot = bestSpot(st, used);
+            if (spot == null) {
+                over.add(st);
+                continue;
+            }
+            FishShape sh = FishShape.of(st).rotated(spot.rot);
+            mark(used, sh, spot.x, spot.y);
+            items.add(new Placed(st, spot.x, spot.y, spot.rot));
         }
-        // Anything that no longer fits after a repack has to go back to the player, not vanish.
-        this.spilled = spilled;
+        // Anything that no longer fits after a repack goes back to the player, never nowhere.
+        this.spilled = over;
+    }
+
+    private record Spot(int x, int y, int rot, int contact) {}
+
+    /** The placement with the most edge against a wall or another fish; ties to the top-left. */
+    private Spot bestSpot(ItemStack stack, boolean[] used) {
+        FishShape base = FishShape.of(stack);
+        int rots = base.width() == base.height() ? 1 : 2;
+        Spot best = null;
+        for (int rot = 0; rot < rots; rot++) {
+            FishShape sh = base.rotated(rot);
+            for (int y = 0; y + sh.height() <= tier.height(); y++) {
+                for (int x = 0; x + sh.width() <= tier.width(); x++) {
+                    if (!fits(used, sh, x, y)) continue;
+                    int c = contact(used, sh, x, y);
+                    if (best == null || c > best.contact()) best = new Spot(x, y, rot, c);
+                }
+            }
+        }
+        return best;
+    }
+
+    private boolean fits(boolean[] used, FishShape sh, int px, int py) {
+        for (int y = 0; y < sh.height(); y++) {
+            for (int x = 0; x < sh.width(); x++) {
+                if (!sh.at(x, y)) continue;
+                int gx = px + x, gy = py + y;
+                if (gx < 0 || gy < 0 || gx >= tier.width() || gy >= tier.height()) return false;
+                if (used[gy * tier.width() + gx]) return false;
+            }
+        }
+        return true;
+    }
+
+    /** How many of the piece's cell edges land against a wall or something already in the box. */
+    private int contact(boolean[] used, FishShape sh, int px, int py) {
+        int n = 0;
+        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        for (int y = 0; y < sh.height(); y++) {
+            for (int x = 0; x < sh.width(); x++) {
+                if (!sh.at(x, y)) continue;
+                for (int[] d : dirs) {
+                    int sx = x + d[0], sy = y + d[1];
+                    if (sx >= 0 && sy >= 0 && sx < sh.width() && sy < sh.height() && sh.at(sx, sy)) {
+                        continue;   // its own body, not contact
+                    }
+                    int gx = px + x + d[0], gy = py + y + d[1];
+                    if (gx < 0 || gy < 0 || gx >= tier.width() || gy >= tier.height()
+                            || used[gy * tier.width() + gx]) {
+                        n++;
+                    }
+                }
+            }
+        }
+        return n;
+    }
+
+    private void mark(boolean[] used, FishShape sh, int px, int py) {
+        for (int y = 0; y < sh.height(); y++) {
+            for (int x = 0; x < sh.width(); x++) {
+                if (sh.at(x, y)) used[(py + y) * tier.width() + px + x] = true;
+            }
+        }
+    }
+
+    /** The occupancy of the box as flags, built once by whoever needs it. */
+    private boolean[] occupied() {
+        boolean[] used = new boolean[tier.width() * tier.height()];
+        for (Placed p : items) mark(used, p.shape(), p.x(), p.y());
+        return used;
     }
 
     private List<ItemStack> spilled = List.of();
@@ -173,6 +243,10 @@ public final class KeepnetData {
     /** What a {@link #repack()} could not fit back in. Empty in every normal case. */
     public List<ItemStack> spilled() { return spilled; }
 
+    /**
+     * A keepnet holds this mod's fish and nothing else — not another mod's fish, not a pickaxe. Everything
+     * that decides what may go in asks here.
+     */
     public static boolean isFish(ItemStack stack) {
         return stack.getItem() instanceof FishItem;
     }
@@ -181,7 +255,7 @@ public final class KeepnetData {
     public double fullness() {
         int used = 0;
         for (Placed p : items) used += p.shape().cells();
-        int water = tier.width() * tier.height();
+        int water = tier.cells();
         return water <= 0 ? 0 : Math.min(1.0, used / (double) water);
     }
 }

@@ -148,16 +148,17 @@ fish is: about 0.2 for an eel, 1 for a pike, over 2 for a bream. So an eel is a 
 carp is a fat 3×2, and a 30 kg catfish is a tapered 6×3 that eats half a box. Long fish turn to fit.
 
 Four tiers, each a crafting upgrade of the last: **wicker creel** 5×3, **keepnet** 7×4, **cool box** 8×5,
-**livewell** 9×6. Every tier above the creel reserves its right-hand column or two for GEAR — single cells
-that take anything except a fish — so the bait and the groundbait you actually carry compete with the
-catch for the same box.
+**livewell** 9×6. A keepnet holds this mod's fish and nothing else — every cell is water.
 
 Three rules are in from the first build rather than promised for later, because the designer this is
 borrowed from was explicit that a spatial inventory without them is a frustration generator:
 
 - **Always rearrange.** Pick anything up, put it anywhere it fits, whenever you like.
-- **The game never places for you, but it offers.** Shift-click drops a fish wherever it fits; TIDY
-  repacks the whole box biggest-first and hands back anything that no longer goes in.
+- **The game never places for you, but it offers.** Shift-click drops a fish in the best place for it;
+  TIDY repacks the whole box and hands back anything that no longer goes in. Neither is first-fit:
+  every legal position in both rotations is scored by how much of the fish ends up against a wall or
+  another fish, and the most contact wins. On a real dozen-fish catch that is one to two more fish in the
+  same box than reading left-to-right and dropping each one in the first hole big enough.
 - **It opens only in a pause** — on the held keepnet, never mid-fight.
 
 The shapes are checked by a self-test rather than by eye:  prints the table for the real

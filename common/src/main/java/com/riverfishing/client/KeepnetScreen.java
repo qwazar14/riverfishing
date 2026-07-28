@@ -75,12 +75,11 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
         g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF2B2118);
         g.fill(leftPos + 3, topPos + 3, leftPos + imageWidth - 3, topPos + imageHeight - 3, 0xFF473726);
 
-        // The water, and the gear strip at its edge — a different colour because it holds different things.
         int x0 = gridX(), y0 = gridY();
         for (int y = 0; y < t.height(); y++) {
             for (int x = 0; x < t.width(); x++) {
                 int cx = x0 + x * CELL, cy = y0 + y * CELL;
-                g.fill(cx, cy, cx + CELL - 1, cy + CELL - 1, t.isGearCell(x) ? 0xFF3A3226 : 0xFF16323C);
+                g.fill(cx, cy, cx + CELL - 1, cy + CELL - 1, 0xFF16323C);
                 g.renderOutline(cx, cy, CELL - 1, CELL - 1, 0x28FFFFFF);
             }
         }
