@@ -174,11 +174,12 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
         float availH = (rot == 0 ? ch : cw) * CELL;
         float scale = Math.min(availW / fishW, availH / fishH) * iconScale;
 
+        // The size is applied ONCE, by the renderer override. Scaling the pose as well multiplied it by
+        // itself — a ray computed at 6.06 came out at 36, which is how it ended up larger than the screen.
         FishItemRenderer.gridScale = scale;
         g.pose().pushPose();
         g.pose().translate(px + cw * CELL / 2f, py + ch * CELL / 2f, 0);
         if (rot != 0) g.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(90f));
-        g.pose().scale(scale, scale, 1f);
         g.renderItem(stack, -8, -8);
         g.pose().popPose();
         FishItemRenderer.gridScale = 0f;
