@@ -33,8 +33,18 @@ public final class TackleBoxData {
                 || stack.getItem() instanceof HookItem
                 || stack.getItem() instanceof RigItem
                 || stack.getItem() instanceof BaitItem      // both live baits and artificial lures
-                || stack.getItem() instanceof LeaderItem;
+                || stack.getItem() instanceof LeaderItem
+                || stack.is(TACKLE);
     }
+
+    /**
+     * The odd ones out: things that are obviously tackle but are not one of the classes above — a float is
+     * a plain {@code Item} with no behaviour of its own, and so is anything a pack adds. The classes carry
+     * the families; the tag carries the exceptions and the extension point.
+     */
+    public static final net.minecraft.tags.TagKey<net.minecraft.world.item.Item> TACKLE =
+            net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM,
+                    com.riverfishing.RiverFishing.id("tackle"));
 
     public static TackleBoxTier tierOf(ItemStack box) {
         return box.getItem() instanceof TackleBoxItem b ? b.tier() : TackleBoxTier.SMALL;

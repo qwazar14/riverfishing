@@ -2586,6 +2586,11 @@ public final class FishingManager {
         FishingPressureData pd = FishingPressureData.get(level);
         int cx = waterPos.getX() >> 4, cz = waterPos.getZ() >> 4;
         return id -> {
+            // §cull (0.7.0): removed from this water by an operator. FIRST, before the common-species
+            // shortcut below — a culled roach is exactly the case this exists for, and roach take that
+            // shortcut. Everything that asks "does this live here" comes through this lambda: the bite
+            // engine, the shoal you can see in the water, the fish finder and the stocking check.
+            if (stocked.isCulled(region, id.getPath())) return 0.0;
             FishProfile pr = FishProfileManager.get().byId(id);
             if (pr == null || pr.base >= 0.95) return 1.0;
             if (stocked.isStocked(region, id.getPath())) return 1.0;
@@ -2829,6 +2834,23 @@ public final class FishingManager {
      * which species CAN bite here right now. The admin variant adds the full habitat summary,
      * per-species environment scores, level gates and the species' favourite bait.
      */
+    /**
+     * §cull: everything that can be caught in this water right now, best fit first — the same set and the
+     * same order the fish finder prints, because it is the same question asked of the same function.
+     */
+    public static java.util.List<ResourceLocation> speciesHere(ServerLevel level, BlockPos waterPos) {
+        WaterBody body = WaterBodyCache.forLevel(level).get(level, waterPos);
+        if (body.type() == WaterType.NONE) return java.util.List.of();
+        BiteContext env = environmentAt(level, waterPos, body);
+        java.util.List<java.util.Map.Entry<ResourceLocation, Double>> here = new java.util.ArrayList<>();
+        for (FishProfile p : FishProfileManager.get().all()) {
+            double e = BiteEngine.environmentScore(p, env);
+            if (e > 1e-4) here.add(java.util.Map.entry(p.id, e));
+        }
+        here.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+        return here.stream().map(java.util.Map.Entry::getKey).toList();
+    }
+
     public static void analyzeWater(ServerPlayer sp, ServerLevel level, BlockPos waterPos, boolean admin) {
         WaterBody body = WaterBodyCache.forLevel(level).get(level, waterPos);
         if (body.type() == WaterType.NONE) {

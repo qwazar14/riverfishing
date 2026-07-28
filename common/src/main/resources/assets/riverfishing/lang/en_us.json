@@ -901,5 +901,21 @@
     "tooltip.riverfishing.tackle_box_size": "%s slots — tackle only",
     "tooltip.riverfishing.tackle_box_full": "%s of %s used",
     "tooltip.riverfishing.tackle_box_hint": "Right-click to open, sneak + right-click to place",
-    "gui.riverfishing.tackle_box_name_hint": "Name this box…"
+    "gui.riverfishing.tackle_box_name_hint": "Name this box…",
+    "item.riverfishing.electro_rod": "Electrofisher",
+    "tooltip.riverfishing.electro_rod": "Right-click water for what lives in it",
+    "tooltip.riverfishing.electro_rod_creative": "Creative only: changes the water for good",
+    "message.riverfishing.cull_creative_only": "The electrofisher only works in creative",
+    "message.riverfishing.cull_empty": "Nothing lives in this water",
+    "message.riverfishing.cull_done": "%s no longer lives in this water",
+    "message.riverfishing.cull_undone": "%s lives here again",
+    "gui.riverfishing.cull_title": "Electrofisher: what to remove",
+    "gui.riverfishing.cull_where": "Water at %s, %s, %s",
+    "gui.riverfishing.cull_confirm": "click again to remove",
+    "gui.riverfishing.cull_confirm_back": "click again to restore",
+    "gui.riverfishing.cull_scope": "Applies to the whole water (~128-block region). Releasing one here brings it back.",
+    "kit.riverfishing.float": "Kit: Float Fishing",
+    "kit.riverfishing.pike": "Kit: Pike",
+    "kit.riverfishing.carp": "Kit: Carp",
+    "kit.riverfishing.sea": "Kit: Saltwater"
 }

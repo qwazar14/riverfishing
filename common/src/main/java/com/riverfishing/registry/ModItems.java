@@ -249,6 +249,9 @@ public final class ModItems {
                     t, ModBlocks.TACKLE_BOXES.get(t).get(), props().stacksTo(1)));
         }
         reg("hydro_probe", () -> new com.riverfishing.item.WaterProbeItem(true, props().stacksTo(1)));
+        // §cull (0.7.0): the electrofisher — a world-editing tool. No recipe anywhere: it is creative-only
+        // by design, and it refuses to fire outside creative mode as well as being uncraftable.
+        reg("electro_rod", () -> new com.riverfishing.item.ElectroRodItem(props().stacksTo(1)));
 
         // ----- Caught fish: a distinct item + texture per species (Module 8) -----
         for (String sp : FISH_SPECIES) {

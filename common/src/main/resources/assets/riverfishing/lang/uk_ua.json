@@ -901,5 +901,21 @@
     "tooltip.riverfishing.tackle_box_size": "Комірок: %s — лише снасті",
     "tooltip.riverfishing.tackle_box_full": "Зайнято %s з %s",
     "tooltip.riverfishing.tackle_box_hint": "ПКМ — відкрити, Shift+ПКМ — поставити",
-    "gui.riverfishing.tackle_box_name_hint": "Назва ящика…"
+    "gui.riverfishing.tackle_box_name_hint": "Назва ящика…",
+    "item.riverfishing.electro_rod": "Електровудка",
+    "tooltip.riverfishing.electro_rod": "ПКМ по воді — список видів цієї водойми",
+    "tooltip.riverfishing.electro_rod_creative": "Лише в креативі: змінює водойму назавжди",
+    "message.riverfishing.cull_creative_only": "Електровудка працює лише в креативі",
+    "message.riverfishing.cull_empty": "Тут не живе жоден вид",
+    "message.riverfishing.cull_done": "%s більше не водиться в цій водоймі",
+    "message.riverfishing.cull_undone": "%s знову водиться тут",
+    "gui.riverfishing.cull_title": "Електровудка: кого прибрати",
+    "gui.riverfishing.cull_where": "Водойма в точці %s, %s, %s",
+    "gui.riverfishing.cull_confirm": "ще раз — прибрати",
+    "gui.riverfishing.cull_confirm_back": "ще раз — повернути",
+    "gui.riverfishing.cull_scope": "Діє на всю водойму (ділянка ~128 блоків). Відпустити рибу тут — повернути вид.",
+    "kit.riverfishing.float": "Набір: поплавкова ловля",
+    "kit.riverfishing.pike": "Набір: на щуку",
+    "kit.riverfishing.carp": "Набір: коропівський",
+    "kit.riverfishing.sea": "Набір: морський"
 }

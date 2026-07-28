@@ -147,6 +147,10 @@ public final class ModVillagers {
         oneOf(t, 3, sellOf("line_braid_016", 5, 1, 10), sellOf("line_fluoro_020", 5, 1, 10));
         sell(t, 3, "leader_fluoro", 3, 2, 6);
         sell(t, 3, "fish_finder", 14, 1, 12);        // §QoL: read the swim before you cast
+        // §keepnet + §tackle-box: somewhere to put the catch, and somewhere to put the tackle. Both were
+        // asked for by players, and neither is worth a crafting detour when you are already at the stall.
+        sell(t, 3, "keepnet_small", 5, 1, 6);
+        oneOf(t, 3, sellStackOf(8, ModVillagers::floatKit, 10), sellStackOf(13, ModVillagers::pikeKit, 14));
         sellStack(t, 3, 16, ModVillagers::assembledSpinningRod, 14);
 
         // Level 4 — Expert: serious predator/carp gear + winter tackle + a ready feeder setup.
@@ -159,6 +163,8 @@ public final class ModVillagers {
         sell(t, 4, "ice_auger", 9, 1, 14);           // §ice-fishing: drill your first hole
         sell(t, 4, "mormyshka", 3, 2, 8);
         sell(t, 4, "maggot_farm", 5, 1, 8);          // §bait-farm
+        oneOf(t, 4, sellOf("keepnet_medium", 9, 1, 10), sellOf("keepnet_large", 14, 1, 14));
+        sellStack(t, 4, 16, ModVillagers::carpKit, 16);
         sell(t, 4, "groundbait_cake", 4, 3, 6);      // жмых (sunflower+piston)
         // §vanilla-stock + §tackle-craft: the saltwater reels are gated on ocean drops. Selling the
         // INPUTS keeps the gate (you still pay for it) without making it hinge on guardian RNG.
@@ -168,6 +174,8 @@ public final class ModVillagers {
 
         // Level 5 — Master: the trade-only prestige gear (§progression).
         sell(t, 5, "digital_alarm", 10, 1, 25);
+        sell(t, 5, "keepnet_huge", 20, 1, 24);
+        sellStack(t, 5, 26, ModVillagers::seaKit, 28);
         sell(t, 5, "leader_titanium", 8, 1, 20);
         // §vanilla-stock + §tackle-craft: the 14000 reel and the trolling rod each want a nautilus
         // shell, which is the single worst piece of RNG in the ladder. Master tier sells it.
@@ -497,6 +505,65 @@ public final class ModVillagers {
             return new MerchantOffer(
                     new net.minecraft.world.item.trading.ItemCost(Items.EMERALD, emeraldCost), out, 12, xp, 0.05f);
         };
+    }
+
+    /**
+     * §tackle-box kits (0.7.0): a named, dyed box that arrives with the tackle for one kind of fishing
+     * already in it. Asked for as "готовые наборы... лут внутри — логичен (карповый набор, на щуку и тп)",
+     * and it is the best thing the fisherman sells: a box that IS the answer to "what do I need for pike".
+     *
+     * <p>Everything inside is bench-graded like the rest of his stock, so the grams count toward a cast the
+     * moment you open it. A kit that had to be re-tied to be usable would be a souvenir.
+     */
+    private static ItemStack kit(String boxId, String nameKey, int colour, String... contents) {
+        Item boxItem = item(boxId);
+        if (boxItem == null || boxItem == Items.AIR) return ItemStack.EMPTY;
+        ItemStack box = new ItemStack(boxItem);
+        NonNullList<ItemStack> inside =
+                NonNullList.withSize(com.riverfishing.item.TackleBoxData.tierOf(box).slots(), ItemStack.EMPTY);
+        int slot = 0;
+        for (String id : contents) {
+            String[] parts = id.split("#");                 // "worm#8" — item and count
+            Item part = item(parts[0]);
+            if (part == null || part == Items.AIR) return ItemStack.EMPTY;   // a typo voids the kit, loudly
+            ItemStack stack = benchGrade(new ItemStack(part, parts.length > 1 ? Integer.parseInt(parts[1]) : 1),
+                    parts[0]);
+            if (!com.riverfishing.item.TackleBoxData.isTackle(stack)) return ItemStack.EMPTY;
+            if (slot >= inside.size()) break;
+            inside.set(slot++, stack);
+        }
+        com.riverfishing.item.TackleBoxData.save(box, inside);
+        box.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
+                net.minecraft.network.chat.Component.translatable(nameKey)
+                        .withStyle(net.minecraft.ChatFormatting.WHITE));
+        box.set(net.minecraft.core.component.DataComponents.DYED_COLOR,
+                new net.minecraft.world.item.component.DyedItemColor(colour, false));
+        return box;
+    }
+
+    /** Float kit: the everyday small-fish box — a couple of floats, fine hooks, worms and maggots. */
+    private static ItemStack floatKit() {
+        return kit("tackle_box_small", "kit.riverfishing.float", 0xC8D8E8,
+                "float#2", "hook_10#4", "hook_12#4", "worm#8", "maggot#8", "line_mono_014");
+    }
+
+    /** Pike kit: wire leaders and hardware, the box you grab when something is eating your roach. */
+    private static ItemStack pikeKit() {
+        return kit("tackle_box_medium", "kit.riverfishing.pike", 0x4A7A3A,
+                "leader", "leader#1", "spinner#2", "spoon", "wobbler", "hook_4#3", "line_braid_016");
+    }
+
+    /** Carp kit: boilies, big hooks and the heavy end — a session box rather than a day box. */
+    private static ItemStack carpKit() {
+        return kit("tackle_box_medium", "kit.riverfishing.carp", 0xB0863C,
+                "boilie#8", "hook_6#4", "hook_8#4", "corn#8", "line_mono_030", "leader_fluoro#2");
+    }
+
+    /** Sea kit: the saltwater end, sold late because the rest of that ladder is late (§progression). */
+    private static ItemStack seaKit() {
+        return kit("tackle_box_large", "kit.riverfishing.sea", 0x2E5E8A,
+                "leader_titanium", "octopus_jig", "giant_spoon", "hook_2#3", "hook_4#3",
+                "line_braid_040", "livebait#4");
     }
 
     /** Bamboo's built-in light float rig, loaded with a float and a №10 hook — cast-ready for the beginner. */

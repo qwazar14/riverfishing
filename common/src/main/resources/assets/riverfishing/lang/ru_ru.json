@@ -901,5 +901,21 @@
     "tooltip.riverfishing.tackle_box_size": "Ячеек: %s — только снасти",
     "tooltip.riverfishing.tackle_box_full": "Занято %s из %s",
     "tooltip.riverfishing.tackle_box_hint": "ПКМ — открыть, Shift+ПКМ — поставить",
-    "gui.riverfishing.tackle_box_name_hint": "Название ящика…"
+    "gui.riverfishing.tackle_box_name_hint": "Название ящика…",
+    "item.riverfishing.electro_rod": "Электроудочка",
+    "tooltip.riverfishing.electro_rod": "ПКМ по воде — список видов этого водоёма",
+    "tooltip.riverfishing.electro_rod_creative": "Только в креативе: меняет водоём навсегда",
+    "message.riverfishing.cull_creative_only": "Электроудочка работает только в креативе",
+    "message.riverfishing.cull_empty": "Здесь не живёт ни один вид",
+    "message.riverfishing.cull_done": "%s больше не водится в этом водоёме",
+    "message.riverfishing.cull_undone": "%s снова водится здесь",
+    "gui.riverfishing.cull_title": "Электроудочка: кого убрать",
+    "gui.riverfishing.cull_where": "Водоём в точке %s, %s, %s",
+    "gui.riverfishing.cull_confirm": "ещё раз — убрать",
+    "gui.riverfishing.cull_confirm_back": "ещё раз — вернуть",
+    "gui.riverfishing.cull_scope": "Действует на весь водоём (участок ~128 блоков). Отпустить рыбу тут — вернуть вид.",
+    "kit.riverfishing.float": "Набор: поплавочная ловля",
+    "kit.riverfishing.pike": "Набор: на щуку",
+    "kit.riverfishing.carp": "Набор: карповый",
+    "kit.riverfishing.sea": "Набор: морской"
 }
