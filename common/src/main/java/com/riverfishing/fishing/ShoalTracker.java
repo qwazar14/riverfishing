@@ -44,7 +44,10 @@ import java.util.UUID;
 public final class ShoalTracker {
     /** Two seconds. The shoal is ambient scenery, not a HUD — it does not need to be current. */
     private static final int PERIOD = 40;
-    private static final int MAX_FISH = 6;
+    /** Раньше было 6 — вода выглядела пустой. Мелочь ходит стаями, и это её главный признак. */
+    private static final int MAX_FISH = 28;
+    /** Ниже этой массы вид выходит СТАЕЙ, а не одиночкой. */
+    private static final int SHOAL_UNDER_G = 900;
     /** How far to look for water. Beyond this the sprites would be too small to read anyway. */
     private static final int SEARCH_R = 10;
 
@@ -77,7 +80,10 @@ public final class ShoalTracker {
 
         List<ShoalPacket.Entry> fish = pick(level, sp, body, surface, chunkKey, now, rng);
         float clarity = clarity(level, body, surface);
-        ShoalPacket pkt = new ShoalPacket(surface, clarity, fish);
+        // §shoal-spread: how far the circuits may reach from the centre. A ditch keeps its fish in the
+        // ditch — without this the outer lanes would visibly swim over the bank.
+        byte spread = (byte) Mth.clamp((int) Math.round(body.width() * 0.4), 2, 14);
+        ShoalPacket pkt = new ShoalPacket(surface, clarity, spread, fish);
 
         String sig = surface.toString() + "|" + hour + "|" + fish.size() + "|" + Math.round(clarity * 20);
         if (sig.equals(LAST.get(sp.getUUID()))) return;
@@ -152,22 +158,41 @@ public final class ShoalTracker {
         }
         if (weights.isEmpty()) return List.of();
 
-        // How many are visible at all follows the total weight: rich water looks busy, poor water empty.
+        // How busy the water looks follows the total weight — rich water is crowded, poor water bare.
         double total = weights.values().stream().mapToDouble(Double::doubleValue).sum();
-        int count = (int) Mth.clamp(Math.round(Math.sqrt(total) * 1.4), 1, MAX_FISH);
+        int budget = (int) Mth.clamp(Math.round(Math.sqrt(total) * 4.0), 3, MAX_FISH);
 
-        List<ShoalPacket.Entry> out = new ArrayList<>(count);
+        List<ShoalPacket.Entry> out = new ArrayList<>(budget);
         List<ResourceLocation> ids = new ArrayList<>(weights.keySet());
-        for (int i = 0; i < count; i++) {
+        byte lane = 0;
+        while (out.size() < budget && lane < 12) {
             ResourceLocation pickId = weightedPick(ids, weights, total, rng);
             if (pickId == null) break;
             FishProfile p = FishProfileManager.get().byId(pickId);
             if (p == null) continue;
-            // A believable everyday fish, not a trophy: the shoal is the population, not the record book.
             double mean = p.weightMeanSet ? p.weightMean : (p.weightMin + p.weightMax) / 2.0;
-            int grams = (int) Mth.clamp(mean * (0.55 + rng.nextDouble() * 0.9), p.weightMin, p.weightMax);
-            byte d = (byte) Mth.clamp(depthFor(p, depth, rng), 0, 15);
-            out.add(new ShoalPacket.Entry(pickId, grams, d, (byte) i, (byte) rng.nextInt(64)));
+
+            // §shoal-groups: bleak and roach move in numbers; a pike does not. Sharing a lane puts the
+            // group on one circuit, and near-identical phases keep it together instead of strung out.
+            boolean shoaling = mean < SHOAL_UNDER_G;
+            int n = shoaling ? 3 + rng.nextInt(5) : 1;
+            n = Math.min(n, budget - out.size());
+            int basePhase = rng.nextInt(64);
+            int baseDepth = depthFor(p, depth, rng);
+
+            for (int k = 0; k < n; k++) {
+                // Everyday fish, not trophies: the shoal is the population, not the record book.
+                int grams = (int) Mth.clamp(mean * (0.55 + rng.nextDouble() * 0.9), p.weightMin, p.weightMax);
+                double frac = (grams - p.weightMin) / Math.max(1.0, p.weightMax - p.weightMin);
+                int lengthCm = (int) Math.round(p.lengthMin + frac * (p.lengthMax - p.lengthMin));
+                int ph = shoaling ? (basePhase + rng.nextInt(9) - 4 + 64) % 64 : basePhase;
+                // Never past the bottom: a fish nudged into the mud is a fish drawn inside the terrain,
+                // which reads as "at depth you cannot see anything".
+                int dd = Mth.clamp(baseDepth + (shoaling ? rng.nextInt(3) - 1 : 0), 0, Math.max(0, depth - 1));
+                out.add(new ShoalPacket.Entry(pickId, grams, Math.max(1, lengthCm),
+                        (byte) dd, lane, (byte) ph));
+            }
+            lane++;
         }
         return out;
     }

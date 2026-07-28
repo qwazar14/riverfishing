@@ -24,14 +24,17 @@ import java.util.List;
  * <p>Deliberately small: a handful of entries, no per-tick updates. The client animates them itself, the
  * same way the aquarium does, so this is a few hundred bytes every couple of seconds, not a stream.
  */
-public record ShoalPacket(BlockPos centre, float clarity, List<Entry> fish) implements ModNetwork.RfPacket {
+public record ShoalPacket(BlockPos centre, float clarity, byte spread, List<Entry> fish)
+        implements ModNetwork.RfPacket {
 
     /**
-     * One visible fish. {@code weightG} drives the rendered size, {@code depth} how far under the surface
-     * it swims, {@code lane} spreads the shoal out so they do not overlap, and {@code phase} keeps each
-     * one on its own point of the swim path across packets.
+     * One visible fish. {@code lengthCm} is what drives the rendered SIZE — FishItem.getIconScale reads
+     * length, not weight, and returns a flat 1.0 when there is none, which is why the first cut of this
+     * feature drew every fish the same size. {@code depth} is blocks under the surface, {@code lane}
+     * groups a shoal onto one circuit, {@code phase} places each fish on it.
      */
-    public record Entry(ResourceLocation species, int weightG, byte depth, byte lane, byte phase) {}
+    public record Entry(ResourceLocation species, int weightG, int lengthCm,
+                        byte depth, byte lane, byte phase) {}
 
     public static final CustomPacketPayload.Type<ShoalPacket> TYPE =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("riverfishing", "shoal"));
@@ -41,16 +44,18 @@ public record ShoalPacket(BlockPos centre, float clarity, List<Entry> fish) impl
 
     /** No fish here — the client clears its shoal. Sent once when you walk away from water. */
     public static ShoalPacket empty() {
-        return new ShoalPacket(BlockPos.ZERO, 0f, List.of());
+        return new ShoalPacket(BlockPos.ZERO, 0f, (byte) 0, List.of());
     }
 
     private static void encode(FriendlyByteBuf buf, ShoalPacket p) {
         buf.writeBlockPos(p.centre);
         buf.writeFloat(p.clarity);
+        buf.writeByte(p.spread);
         buf.writeVarInt(p.fish.size());
         for (Entry e : p.fish) {
             buf.writeResourceLocation(e.species());
             buf.writeVarInt(e.weightG());
+            buf.writeVarInt(e.lengthCm());
             buf.writeByte(e.depth());
             buf.writeByte(e.lane());
             buf.writeByte(e.phase());
@@ -60,13 +65,14 @@ public record ShoalPacket(BlockPos centre, float clarity, List<Entry> fish) impl
     private static ShoalPacket read(FriendlyByteBuf buf) {
         BlockPos centre = buf.readBlockPos();
         float clarity = buf.readFloat();
+        byte spread = buf.readByte();
         int n = buf.readVarInt();
         List<Entry> out = new ArrayList<>(n);
         for (int i = 0; i < n; i++) {
-            out.add(new Entry(buf.readResourceLocation(), buf.readVarInt(),
+            out.add(new Entry(buf.readResourceLocation(), buf.readVarInt(), buf.readVarInt(),
                     buf.readByte(), buf.readByte(), buf.readByte()));
         }
-        return new ShoalPacket(centre, clarity, out);
+        return new ShoalPacket(centre, clarity, spread, out);
     }
 
     @Override
