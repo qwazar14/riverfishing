@@ -35,6 +35,9 @@ import com.riverfishing.water.WaterBodyDetector;
 import com.riverfishing.water.WaterType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -268,6 +271,92 @@ public final class FishingManager {
                         .withStyle(ChatFormatting.AQUA));
             }
         }
+    }
+
+    /**
+     * §fight-brace (0.7.0): a hooked fish nails you to the spot.
+     *
+     * <p>The fight input is WASD, so without this a run turns into a foot race — you strafe half a chunk
+     * answering three runs, which looks absurd and quietly beats the tension model by walking the fish in.
+     * Braced against a rod you shuffle, and the movement that remains is meaningful rather than free
+     * (see {@link #footwork}).
+     *
+     * <p>Transient on purpose: it is never written to the player's save, so no combination of disconnect,
+     * crash or dimension change can leave someone permanently slow. {@link #endSession} is the single
+     * teardown path every fight goes through, and it lifts this.
+     */
+    private static void brace(ServerPlayer sp, boolean on) {
+        AttributeInstance speed = sp.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (speed == null) return;
+        if (on) {
+            if (speed.getModifier(BRACE_ID) == null) speed.addTransientModifier(BRACE);
+        } else {
+            speed.removeModifier(BRACE_ID);
+        }
+    }
+
+    private static final ResourceLocation BRACE_ID = com.riverfishing.RiverFishing.id("fight_brace");
+    private static final AttributeModifier BRACE = new AttributeModifier(
+            BRACE_ID, -0.72, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+
+    /**
+     * §fight-footwork (0.7.0): the angler's feet are tackle too, and this reads them whether or not the
+     * player has ever heard of {@link FightCourse}. Only the change in distance to the hook matters, so an
+     * angler who stands still fishes exactly as they did before — nothing here punishes not knowing it.
+     *
+     * <ul>
+     *   <li><b>Backing away</b> is pumping with your legs: it wins line and it loads the rod, the same
+     *       trade a crank makes. It is how you actually beat a fish off a bank.
+     *   <li><b>Walking at the fish</b> is slack, and slack is how a hook falls out — the one way to lose a
+     *       fish that has nothing to do with how strong the line is.
+     * </ul>
+     *
+     * @return true if the fish came off and the session is already gone
+     */
+    private static boolean footwork(ServerPlayer sp, ServerLevel level, FishingSession session) {
+        double dx = session.target.getX() + 0.5 - sp.getX();
+        double dz = session.target.getZ() + 0.5 - sp.getZ();
+        double dist = Math.sqrt(dx * dx + dz * dz);
+        // Clamped so a teleport, a knockback or an elytra landing cannot be read as one giant heave.
+        double delta = session.lastDist < 0 ? 0.0 : Mth.clamp(dist - session.lastDist, -0.5, 0.5);
+        session.lastDist = dist;
+        if (Math.abs(delta) < 0.002) {          // standing still: the fight behaves exactly as it always did
+            session.slackTicks = Math.max(0, session.slackTicks - 2);
+            return false;
+        }
+        boolean inRun = session.runTicksLeft > 0;
+        if (delta > 0) {
+            // Legs are a slow winch: line gained scales with the tackle exactly as a crank does, and during
+            // a run it is throttled by the same course factor — you cannot walk a running fish backwards.
+            session.landProgress = Mth.clamp(session.landProgress + session.landPulse * delta * 0.9
+                    * (inRun ? 0.2 + 0.5 * session.courseAlign : 1.0), 0.0, 1.0);
+            session.tension += session.calmTensionPulse * delta * 3.0 * (inRun ? 2.5 : 1.0)
+                    * (sp.isSprinting() ? 1.8 : 1.0);
+            session.slackTicks = Math.max(0, session.slackTicks - 2);
+            session.slackWarned = false;
+            return false;
+        }
+        session.tension = Math.max(0.0, session.tension + session.calmTensionPulse * delta * 4.0);
+        // A boot on the end of the line has no mouth to spit the hook out of (§bycatch-intrigue).
+        if (session.bycatch != 0 || session.tension >= 0.10 * session.breakTension) {
+            session.slackTicks = Math.max(0, session.slackTicks - 1);
+            return false;
+        }
+        session.slackTicks++;
+        if (session.slackTicks >= 20 && !session.slackWarned) {
+            session.slackWarned = true;
+            actionbar(sp, Component.translatable("message.riverfishing.slack").withStyle(ChatFormatting.RED));
+        }
+        if (session.slackTicks > 45 && level.getRandom().nextDouble() < 0.05) {
+            endSession(sp, session);
+            level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE,
+                    SoundSource.PLAYERS, 0.6f, 1.4f);
+            actionbar(sp, Component.translatable("message.riverfishing.slack_lost",
+                    FishItem.approxWeightText(session.weightG)).withStyle(ChatFormatting.YELLOW));
+            GuideNudge.failure(sp, session.rodClass, GuideNudge.SHAKE_OFF);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -1298,7 +1387,7 @@ public final class FishingManager {
                         + ("burst".equals(profile.fightPattern) ? 300
                         : "relentless".equals(profile.fightPattern) ? 500
                         : "sounding".equals(profile.fightPattern) ? 700      // §big-game: dives eat time
-                        : "greyhounding".equals(profile.fightPattern) ? 400 : 0), 700, 3000);
+                        : "greyhounding".equals(profile.fightPattern) ? 400 : 0), 900, 3400);
 
         session.fighting = true;
         session.tension = 0.0;
@@ -1615,8 +1704,16 @@ public final class FishingManager {
             }
             return;
         }
+        // §fight-course: read the pull FIRST. The old order let the run load below use LAST tick's
+        // alignment, so letting go of the key was felt one tick late and pressing it one tick early.
+        session.courseAlign = session.course.isRun() ? session.course.alignment(session.pullDir) : 1f;
+        brace(sp, true);   // §fight-brace: you are anchored to the rod for as long as it is bent
+
         session.tension = Math.max(0.0, session.tension - session.relaxTick);
         session.landProgress = Math.max(0.0, session.landProgress - 0.0008);
+
+        // §fight-footwork: where the angler's feet went since last tick, before anything reads the tension.
+        if (footwork(sp, level, session)) return;
 
         // §run-load (0.5.1): a RUNNING fish loads the tackle BY ITSELF — before this, tension only rose
         // on cranks, so riding out a run with a closed drag was free (and the rod never bent). Now a hot
@@ -1628,10 +1725,6 @@ public final class FishingManager {
             double wrongWay = 1.9 - 1.35 * session.courseAlign;
             session.tension += session.runTensionPulse * 0.12 * (1.0 - 0.55 * session.fatigue) * wrongWay;
         }
-
-        // §fight-course: how well the rod is being held against this run, 0..1. Read every tick from
-        // where the player is aiming, so easing off the wrong angle is felt immediately.
-        session.courseAlign = session.course.isRun() ? session.course.alignment(session.pullDir) : 1f;
 
         // §fish-fatigue: the fight itself wears the fish down — fast while it RUNS, slowly between.
         // §fight-course: and a fish held ACROSS its own run tires almost twice as fast. This is the
@@ -1876,24 +1969,27 @@ public final class FishingManager {
 
     private static int runDuration(FishingSession s, double progress, RandomSource r) {
         // §fish-fatigue: tired runs are short runs.
-        return Math.max(10, (int) (rawRunDuration(s, progress, r) * (1.0 - 0.5 * s.fatigue)));
+        return Math.max(14, (int) (rawRunDuration(s, progress, r) * (1.0 - 0.35 * s.fatigue)));
     }
 
     /**
-     * §fight-course (0.7.0): runs are ~1.6x their old length. A run is where the direction mechanic lives,
-     * and the old two-second burst was over before a player could read the bar, decide, and press anything.
-     * The extra length is affordable because a correctly-answered run loads the tackle at roughly half rate
-     * — held right, a long run is no harder than a short one used to be; held wrong, it is a real problem.
+     * §fight-course (0.7.0): runs are ~2.2x their old length, in two passes — the first was still short
+     * enough that the run was over before a player could read the bar, decide and press. A run is where
+     * every fight decision now lives, so it has to last long enough to BE a decision. Fatigue also shortens
+     * runs less harshly (0.35 rather than 0.5), or the back half of a long fight went limp.
+     *
+     * <p>The length is affordable because a correctly-answered run loads the tackle at roughly half rate:
+     * held right, a long run is no harder than a short one used to be; held wrong, it is a real problem.
      */
     private static int rawRunDuration(FishingSession s, double progress, RandomSource r) {
         return switch (s.fightPattern) {
-            case "relentless" -> 65 + r.nextInt(55); // §grass-carp: long torpedo runs toward open water
-            case "aggressive" -> 36 + r.nextInt(30);
-            case "burst" -> 80 + r.nextInt(60);
-            case "active_then_passive" -> progress < 0.5 ? 50 + r.nextInt(34) : 24 + r.nextInt(16);
-            case "sounding" -> 100 + r.nextInt(80);    // §big-game: the long vertical dive
-            case "greyhounding" -> 30 + r.nextInt(22); // short bursts between jumps
-            default -> 42 + r.nextInt(32);
+            case "relentless" -> 88 + r.nextInt(74); // §grass-carp: long torpedo runs toward open water
+            case "aggressive" -> 48 + r.nextInt(40);
+            case "burst" -> 108 + r.nextInt(80);
+            case "active_then_passive" -> progress < 0.5 ? 68 + r.nextInt(46) : 32 + r.nextInt(22);
+            case "sounding" -> 135 + r.nextInt(108);   // §big-game: the long vertical dive
+            case "greyhounding" -> 40 + r.nextInt(30); // short bursts between jumps
+            default -> 56 + r.nextInt(44);
         };
     }
 
@@ -2208,6 +2304,7 @@ public final class FishingManager {
     }
 
     private static void endSession(ServerPlayer sp, FishingSession session) {
+        brace(sp, false);   // §fight-brace: every fight exits through here, so this is the only lift needed
         if (session.bossBar != null) {
             session.bossBar.removeAllPlayers();
             session.bossBar = null;

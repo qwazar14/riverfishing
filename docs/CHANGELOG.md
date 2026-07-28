@@ -72,9 +72,31 @@ there with your hands off is in between: enough that a player who has not worked
 still lands fish, slowly. The boss bar names the course *and the key* while the run lasts, because an
 instruction you have to infer is not one.
 
-**Runs last about 1.6× longer**, because a run is where all of this lives and the old two-second burst
+**Runs last about 2.2× longer**, because a run is where all of this lives and the old two-second burst
 was over before anyone could read the bar, decide and press. Held right, a long run is no harder on the
-tackle than a short one used to be. Held wrong, it is a real problem.
+tackle than a short one used to be. Held wrong, it is a real problem. A tiring fish also shortens its
+runs less sharply than it did, so the back half of a long fight no longer goes limp.
+
+### A hooked fish nails you to the spot
+
+The fight input is WASD, so without this a run turns into a foot race: you strafe half a chunk answering
+three runs, which looks absurd and quietly beats the tension model by walking the fish in. While a fish
+is on you move at **under a third** of normal speed — braced against the rod, shuffling, not jogging.
+
+### Your feet are tackle too
+
+This one works whether or not you have ever heard of the course mechanic. It reads one thing: whether the
+distance between you and your hook grew or shrank since the last tick.
+
+- **Backing away from the water is pumping with your legs.** It wins line and it loads the rod — the same
+  trade a crank makes, at the same rate your tackle allows. It is how you actually beat a fish off a bank.
+- **Walking at the fish is slack**, the tension falls off fast, and a dead line is how a hook falls out.
+  You get one warning; keep walking and it comes off. That is the only way to lose a fish that has nothing
+  to do with how strong your line is.
+
+An angler who stands still fishes exactly as before — nothing here punishes not knowing about it. During
+a run your legs win line at the same throttled rate a reel does, so you cannot walk a running fish
+backwards, and a boot on the end of the line has no mouth to spit a hook out of.
 
 **The rod shows it.** A run drags the tip over the way the fish is going — left, right, up, down — which
 is both what physically happens and where a player actually reads a fight. The boss bar names the course

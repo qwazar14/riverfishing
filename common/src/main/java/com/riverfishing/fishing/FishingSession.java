@@ -128,6 +128,15 @@ public class FishingSession {
     public float courseAlign = 1f;
     /** §fight-course: the movement key currently held, as {@link com.riverfishing.network.FightInputPacket}. */
     public byte pullDir;
+    /**
+     * §fight-footwork: horizontal distance from the angler to the hook LAST tick. Negative means "not
+     * measured yet", so the first tick of a fight never reads a jump as a sprint.
+     */
+    public double lastDist = -1.0;
+    /** §fight-footwork: how long the angler has been walking AT the fish on a dead line. */
+    public int slackTicks;
+    /** So the slack warning fires once per episode rather than every tick. */
+    public boolean slackWarned;
     /** Which run of the fight this is, so a pattern can script its directions in order. */
     public int runIndex;
     /**
