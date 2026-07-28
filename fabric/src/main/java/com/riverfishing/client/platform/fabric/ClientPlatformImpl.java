@@ -37,6 +37,11 @@ public final class ClientPlatformImpl {
                 net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register(tint, r.get());
             }
         }
+        // §morph: the fish's own colour — age shading and its morph, from the shared table.
+        net.minecraft.client.color.item.ItemColor fish = com.riverfishing.client.FishTint::itemColor;
+        for (RegistrySupplier<Item> r : ModItems.FISH_ITEMS.values()) {
+            net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register(fish, r.get());
+        }
     }
 
     public static void registerScreens() {

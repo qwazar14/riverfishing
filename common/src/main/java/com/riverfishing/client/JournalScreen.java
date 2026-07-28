@@ -396,6 +396,7 @@ public class JournalScreen extends Screen {
                 y += 12;
             }
         }
+        y = morphRow(g, sp, id, y);
         lastCatH = (y + scroll) - contentTop;
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
@@ -900,6 +901,45 @@ public class JournalScreen extends Screen {
     /** Fish are builtin/entity items whose BEWLR the GUI shades dark; blit the texture directly instead. */
     private void drawFishIcon(GuiGraphics g, String sp, int x, int y) {
         g.blit(fishTex(sp), x, y, 16, 16, 0f, 0f, 16, 16, 16, 16);
+    }
+
+    /**
+     * §morph: this species' own variant list — every documented form it can show, and whether you have
+     * found it. This is where the mod turns 79 species into a collection several times that size without
+     * a single new drawing: each row is the species' own icon under the morph's tint.
+     *
+     * <p>They live on the species page rather than as extra cells in the grid on purpose. The grid sizes
+     * its columns to fit the panel, and two hundred cells would shred it — and a variant belongs next to
+     * the fish it is a variant OF, not scattered through the alphabet.
+     */
+    private int morphRow(GuiGraphics g, String sp, ResourceLocation id, int y) {
+        java.util.List<com.riverfishing.fish.FishMorph.Def> morphs =
+                com.riverfishing.fish.FishMorph.forSpecies(sp);
+        if (morphs.isEmpty()) return y;
+        int found = 0;
+        for (var d : morphs) {
+            if (com.riverfishing.fishing.JournalData.hasMorph(data, id, d.id())) found++;
+        }
+        y += 6;
+        g.drawString(this.font, Component.translatable("journal.riverfishing.morphs", found, morphs.size()),
+                left + 10, y, GuiStyle.TEXT_HINT, false);
+        y += 13;
+        for (var d : morphs) {
+            boolean have = com.riverfishing.fishing.JournalData.hasMorph(data, id, d.id());
+            if (have) {
+                // The icon is the species' own, under the morph's own multiply — the same number the
+                // fish in your hand and the fish in the water are painted with.
+                int t = d.tint();
+                g.setColor(((t >> 16) & 0xFF) / 255f, ((t >> 8) & 0xFF) / 255f, (t & 0xFF) / 255f, 1f);
+                drawFishIcon(g, sp, left + 12, y - 4);
+                g.setColor(1f, 1f, 1f, 1f);
+            }
+            g.drawString(this.font,
+                    have ? Component.translatable("morph.riverfishing." + d.id()) : Component.literal("???"),
+                    left + 32, y, have ? GuiStyle.TEXT : GuiStyle.GHOST, false);
+            y += 14;
+        }
+        return y;
     }
 
     private int line(GuiGraphics g, int y, String labelKey, String value) {

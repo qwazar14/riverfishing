@@ -30,10 +30,11 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
     /**
      * One visible fish. {@code lengthCm} is what drives the rendered SIZE — FishItem.getIconScale reads
      * length, not weight, and returns a flat 1.0 when there is none, which is why the first cut of this
-     * feature drew every fish the same size. {@code depth} is blocks under the surface, {@code lane}
-     * groups a shoal onto one circuit, {@code phase} places each fish on it.
+     * feature drew every fish the same size. {@code age} is 0..100, how grown the fish is, and it paints
+     * it (§morph): the small ones in the water are pale, the big ones dark. {@code depth} is blocks under
+     * the surface, {@code lane} groups a shoal onto one circuit, {@code phase} places each fish on it.
      */
-    public record Entry(ResourceLocation species, int weightG, int lengthCm,
+    public record Entry(ResourceLocation species, int weightG, int lengthCm, byte age,
                         byte depth, byte lane, byte phase) {}
 
     /**
@@ -79,6 +80,7 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
                 buf.writeVarInt(index.get(e.species()));
                 buf.writeVarInt(e.weightG());
                 buf.writeVarInt(e.lengthCm());
+                buf.writeByte(e.age());
                 buf.writeByte(e.depth());
                 buf.writeByte(e.lane());
                 buf.writeByte(e.phase());
@@ -102,7 +104,7 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
             for (int i = 0; i < nf; i++) {
                 int pi = buf.readVarInt();
                 ResourceLocation id = pi >= 0 && pi < palette.size() ? palette.get(pi) : null;
-                Entry e = new Entry(id, buf.readVarInt(), buf.readVarInt(),
+                Entry e = new Entry(id, buf.readVarInt(), buf.readVarInt(), buf.readByte(),
                         buf.readByte(), buf.readByte(), buf.readByte());
                 if (id != null) fish.add(e);
             }

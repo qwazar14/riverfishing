@@ -5,6 +5,68 @@ Full patchnotes. The short three-bullet form the in-game update checker shows li
 
 ---
 
+## 0.7.0 — the water you can see into
+
+**Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.
+
+*In development.*
+
+### The fish are in the water
+
+Lean over a lake and you can see what lives in it. Every 12-block cell of water across the 3×3 chunks
+around you carries its own shoal, drawn from the species that water actually holds — the same answer the
+fish finder gives, because it is the same function (`BiteEngine.environmentScore`), so the shoal, the
+finder and stocking can never disagree about a species again.
+
+- **They are the population, not the record book.** Everyday fish, weighted by habitat, season, time,
+  weather and biome, thinned by how hard the swim has been fished. A hammered spot visibly empties.
+- **Shoals are shoals.** Anything under 900 g comes out as a group of three to seven sharing one circuit
+  at nearly the same phase, so it travels together. A pike comes out alone.
+- **Size is real size.** One block is one metre. A 20 cm roach is a flicker you have to be close to see;
+  a three-metre sturgeon is a shadow you notice from the bank.
+- **Depth hides nothing.** Only the water does — a swamp, rain, dusk. Lean over and look and you can make
+  out what is sitting on the bottom.
+- **Cells are pinned to the world, not to you**, so walking adds and drops shoals at the edges instead of
+  dragging every fish along with you, and each shoal holds still while you fish it and changes by the hour.
+
+Technically it costs almost nothing: each fish is a single textured quad carrying the species' own item
+sprite, because the 256px fish icons turn into roughly a thousand quads each through a normal item model.
+The whole thing is one packet every couple of seconds, and only when it has changed.
+
+### Fish are wary of you
+
+A short-lived fright value per patch of water — the counterpart to the chunk depletion that already
+existed, but measured in seconds rather than days and never written to disk.
+
+Running and jumping within six blocks, standing **in** the water, breaking a block nearby, a boat under
+way, your own shadow when the sun is low behind you, and the cast itself where the tackle lands. While the
+fish are frightened the bites stop and the visible shoal leaves. The only feedback is the rings running
+outward across the surface and the water emptying — no message, no HUD.
+
+It is a **field, not a flag**: what you do on the bank frightens the water around you, and a bait twenty
+blocks out is disturbed only by its own cast landing. That asymmetry is what finally makes a long cast
+worth making. Crouched and still is the one state that makes no noise at all. Recovery takes 30 to 90
+seconds — a murky swamp forgets you quickly, clear shallows stay wary three times as long. Preset-driven
+like every other harsh mechanic, and `"spook": 0` in the config switches it off.
+
+### Every fish shows its age, and some show more than that
+
+Fish are now coloured by a table rather than by a single flat sprite. A specimen's colour is read off its
+own size: young fish are pale and silvery, old ones darken into their species' adult colour. A young bream
+is a bright silver coin; an old one is deep bronze. This applies to every fish from every source — a
+catch, a bait trap, a trade — and to the fish drifting in the water.
+
+On top of that sit **morphs**: xanthism, albinism, leucism, the scale patterns of carp strains, natural
+hybrids, lamprey scars, the hooked jaw of an old male, the stunted fish of an over-fished pond and the
+deep-bodied one of an over-stocked one. Each is a collection entry of its own on the species' journal
+page, and each hangs off world state the mod already tracked and had never shown you: fish a swim down and
+it starts handing out stunted fish; a stocked water that has taken hold starts throwing colour morphs.
+
+**Not one new drawing.** Every morph is the species' own icon under a different tint and a whitening pass,
+from one table shared by the item, the journal and the water.
+
+---
+
 ## 0.6.1 — the hotfix
 
 **Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.

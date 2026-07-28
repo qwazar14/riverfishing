@@ -247,7 +247,10 @@ public final class ShoalTracker {
                 int ph = shoaling ? (basePhase + rng.nextInt(9) - 4 + 64) % 64 : basePhase;
                 // Never past the bottom: a fish nudged into the mud is a fish drawn inside the terrain.
                 int dd = Mth.clamp(baseDepth + (shoaling ? rng.nextInt(3) - 1 : 0), 0, Math.max(0, waterDepth - 1));
-                out.add(new ShoalPacket.Entry(pickId, grams, Math.max(1, lengthCm),
+                // §morph: the same age figure a caught fish carries, so a shoal of small pale fish and
+                // one dark old one look like what they are.
+                byte age = (byte) Math.round(com.riverfishing.fish.FishMorph.ageFraction(p, grams) * 100);
+                out.add(new ShoalPacket.Entry(pickId, grams, Math.max(1, lengthCm), age,
                         (byte) dd, lane, (byte) ph));
             }
             lane++;

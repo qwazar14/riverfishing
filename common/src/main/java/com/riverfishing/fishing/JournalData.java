@@ -49,6 +49,31 @@ public final class JournalData {
         PlayerData.markDirty(player);
     }
 
+    /**
+     * §morph: records a morph of a species as found. Stored inside that species' own compound as a flag
+     * per morph id, so a morph is a collection entry in its own right without a second data structure.
+     *
+     * @return true if this is the FIRST time the player has seen this morph of this species
+     */
+    public static boolean recordMorph(Player player, ResourceLocation species, String morphId) {
+        if (morphId == null || morphId.isEmpty()) return false;
+        CompoundTag root = get(player);
+        CompoundTag fish = root.getCompound(species.toString());
+        CompoundTag morphs = fish.getCompound("morphs");
+        if (morphs.getBoolean(morphId)) return false;
+        morphs.putBoolean(morphId, true);
+        fish.put("morphs", morphs);
+        root.put(species.toString(), fish);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+        return true;
+    }
+
+    /** §morph: has the player found this morph of this species? Reads the journal tag straight. */
+    public static boolean hasMorph(CompoundTag journal, ResourceLocation species, String morphId) {
+        return journal.getCompound(species.toString()).getCompound("morphs").getBoolean(morphId);
+    }
+
     /** True if the player has never landed this species before (call BEFORE {@link #record}). */
     public static boolean isNewSpecies(Player player, ResourceLocation species) {
         return get(player).getCompound(species.toString()).getInt("count") == 0;

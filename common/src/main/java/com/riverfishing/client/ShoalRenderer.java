@@ -135,7 +135,12 @@ public final class ShoalRenderer {
                 pose.mulPose(Axis.YP.rotationDegrees(yaw));
                 pose.mulPose(Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + i) * 3f));   // a slight roll
                 float size = spriteSize(e.lengthCm());
-                quad(pose.last().pose(), vc, sprite, size, alpha, mirror);
+                // §morph: the fish in the water are painted by the same table as the one in your hand.
+                double age = e.age() / 100.0;
+                String path = e.species().getPath();
+                quad(pose.last().pose(), vc, sprite, size, alpha, mirror,
+                        com.riverfishing.fish.FishMorph.tint(path, age, ""),
+                        FishTint.whiten(com.riverfishing.fish.FishMorph.pale(path, age, "")));
                 pose.popPose();
                 drew = true;
             }
@@ -165,28 +170,29 @@ public final class ShoalRenderer {
      * One quad, centred on the origin, facing +Z. The sprite canvas is square and the fish is drawn along
      * it, so the quad is square too: the transparent margin costs nothing on a single quad.
      */
-    private static void quad(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp,
-                            float size, int alpha, boolean mirror) {
+    private static void quad(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, int alpha,
+                            boolean mirror, int tint, int overlay) {
         float r = size / 2f;
         float u0 = mirror ? sp.getU1() : sp.getU0();
         float u1 = mirror ? sp.getU0() : sp.getU1();
         float v0 = sp.getV0(), v1 = sp.getV1();
         // Counter-clockwise seen from +Z, so the front face is the one pointing at the camera.
-        vertex(m, vc, -r, -r, u0, v1, alpha);
-        vertex(m, vc, r, -r, u1, v1, alpha);
-        vertex(m, vc, r, r, u1, v0, alpha);
-        vertex(m, vc, -r, r, u0, v0, alpha);
+        vertex(m, vc, -r, -r, u0, v1, alpha, tint, overlay);
+        vertex(m, vc, r, -r, u1, v1, alpha, tint, overlay);
+        vertex(m, vc, r, r, u1, v0, alpha, tint, overlay);
+        vertex(m, vc, -r, r, u0, v0, alpha, tint, overlay);
     }
 
-    private static void vertex(Matrix4f m, VertexConsumer vc, float x, float y, float u, float v, int alpha) {
+    private static void vertex(Matrix4f m, VertexConsumer vc, float x, float y, float u, float v,
+                              int alpha, int tint, int overlay) {
         // Full-bright deliberately: the fade is alpha, so a fish 15 blocks down is faint but not black.
         // The normal is world UP rather than the quad's own facing — the entity shader mixes directional
         // light by the normal, and a billboard whose normal follows the camera would brighten and darken
         // as you walk around it. Up is constant and is the brightest of the two vanilla light directions.
         vc.addVertex(m, x, y, 0f)
-                .setColor(255, 255, 255, alpha)
+                .setColor((tint >> 16) & 0xFF, (tint >> 8) & 0xFF, tint & 0xFF, alpha)
                 .setUv(u, v)
-                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setOverlay(overlay)
                 .setLight(LightTexture.FULL_BRIGHT)
                 .setNormal(0f, 1f, 0f);
     }

@@ -77,7 +77,12 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         pose.translate(0.5, 0.5, 0.5);
         pose.scale(s, s, s);
         ItemRenderer ir = mc.getItemRenderer();
-        ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, model);
+        // §morph: the multiply tint arrives through the registered item colour, but multiplying can only
+        // ever darken. A young fish is PALER than its own sprite and an albino is nearly white, so the
+        // second half of the paint job rides the overlay's white channel (see FishTint).
+        int ov = FishTint.overlay(stack);
+        ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light,
+                ov == net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY ? overlay : ov, model);
         pose.popPose();
     }
 }

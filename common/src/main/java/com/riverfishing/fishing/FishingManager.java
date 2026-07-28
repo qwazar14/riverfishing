@@ -1825,7 +1825,8 @@ public final class FishingManager {
                     SoundSource.PLAYERS, 1.0f, 1.0f);
         }
 
-        giveFish(sp, session.species, session.weightG, session.lengthCm, legal, session.trophy, legendary);
+        giveFish(sp, session.species, session.weightG, session.lengthCm, legal, session.trophy, legendary,
+                session.target);
         // §population: a landed fish leaves the water for real — depletion lands on THIS species only.
         FishingPressureData.get(level).addCatch(new ChunkPos(session.target).toLong(),
                 session.species.getPath(), level.getGameTime());
@@ -1864,7 +1865,8 @@ public final class FishingManager {
         for (int i = 0; i < extras; i++) {
             int w = (int) Math.round(session.weightG * (0.9 + random.nextDouble() * 0.2));
             int l = (int) Math.round(session.lengthCm * (0.95 + random.nextDouble() * 0.1));
-            giveFish(sp, session.species, Math.max(1, w), Math.max(1, l), true, false);
+            giveFish(sp, session.species, Math.max(1, w), Math.max(1, l), true, false, false,
+                    session.target);
         }
 
         playLand(level, session.target);
@@ -1937,16 +1939,12 @@ public final class FishingManager {
     }
 
     private static void giveFish(ServerPlayer sp, ResourceLocation species, int weightG, int lengthCm,
-                                 boolean legal, boolean trophy) {
-        giveFish(sp, species, weightG, lengthCm, legal, trophy, false);
-    }
-
-    private static void giveFish(ServerPlayer sp, ResourceLocation species, int weightG, int lengthCm,
-                                 boolean legal, boolean trophy, boolean legendary) {
+                                 boolean legal, boolean trophy, boolean legendary, BlockPos where) {
         ItemStack fish = FishItem.create(ModItems.fishItem(species), species, weightG, lengthCm, legal, trophy);
         if (legendary) {
             com.riverfishing.item.StackNbt.mutate(fish, t -> t.putBoolean(FishItem.TAG_LEGEND, true));
         }
+        rollMorph(sp, fish, species, weightG, where);
         // §prime-fish: a legal top-of-range specimen gets the prime grade — the fisherman buys these.
         FishProfile profile = FishProfileManager.get().byId(species);
         if (legal && profile != null) {
@@ -1960,6 +1958,45 @@ public final class FishingManager {
         // §fish-scale: the icon now scales purely from LENGTH (FishItem.getIconScale), no NBT needed.
         if (!sp.getInventory().add(fish)) {
             sp.drop(fish, false);
+        }
+    }
+
+    /**
+     * §morph: does this specimen carry a morph, and which?
+     *
+     * <p>Every trigger in the table reads state the mod already keeps and has never shown the player.
+     * A swim fished down hands out stunted fish; a swim carrying far more of a species than it should
+     * hands out the short, deep-bodied ones every carp farmer knows; a species stocked here that has
+     * taken hold throws colour morphs; and a fish that is big for its kind carries the marks of having
+     * been alive a long time. The pressure and stocking simulations finally have a face.
+     *
+     * <p>A morph the player has never seen before is worth marking, so the landing sound comes back a
+     * fifth higher — DREDGE's trick, and it needs no new sound file.
+     */
+    private static void rollMorph(ServerPlayer sp, ItemStack fish, ResourceLocation species,
+                                  int weightG, BlockPos where) {
+        ServerLevel level = sp.serverLevel();
+        FishProfile p = FishProfileManager.get().byId(species);
+        double age = com.riverfishing.fish.FishMorph.ageFraction(p, weightG);
+        String path = species.getPath();
+        WaterBody body = WaterBodyCache.forLevel(level).get(level, where);
+        boolean settled = StockedData.get(level).isStocked(StockedData.region(where), path)
+                && !nativeHere(level, where, body, species);
+        double surplus = FishingPressureData.get(level).surplusAround(
+                where.getX() >> 4, where.getZ() >> 4, path, level.getGameTime());
+
+        var morph = com.riverfishing.fish.FishMorph.roll(path, age, settled, surplus, level.getRandom());
+        if (morph == null) return;
+        FishItem.setMorph(fish, morph.id());
+        if (JournalData.recordMorph(sp, species, morph.id())) {
+            level.playSound(null, sp.blockPosition(), SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS,
+                    0.5f, 1.5f);
+            actionbar(sp, Component.translatable("message.riverfishing.morph_new",
+                            Component.translatable("morph.riverfishing." + morph.id()))
+                    .withStyle(ChatFormatting.AQUA));
+        } else {
+            level.playSound(null, sp.blockPosition(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS,
+                    0.6f, 1.8f);
         }
     }
 

@@ -32,6 +32,14 @@ public class FishItem extends Item {
     public static final String TAG_BAIT_WEIGHT = "BaitW";
     // legendary (0.5.0): this specimen is the server one-of-a-kind named fish.
     public static final String TAG_LEGEND = "Legend";
+    /**
+     * §morph: how grown this specimen is, 0..100. Written at creation because only the SERVER has the
+     * fish profiles — the client paints the fish and would otherwise have no idea whether a 900 g bream
+     * is a youngster or an old one.
+     */
+    public static final String TAG_AGE = "Age";
+    /** §morph: the morph id from the {@link com.riverfishing.fish.FishMorph} table, or absent. */
+    public static final String TAG_MORPH = "Morph";
 
     private final ResourceLocation species;
 
@@ -138,11 +146,17 @@ public class FishItem extends Item {
     public static ItemStack create(Item fishItem, ResourceLocation species, int weightG, int lengthCm,
                                    boolean legal, boolean trophy) {
         ItemStack stack = new ItemStack(fishItem);
+        // §morph: every fish, from every source — a catch, a bait trap, a villager trade — carries how
+        // grown it is, so the age shading is universal rather than a property of one code path.
+        com.riverfishing.fish.FishProfile profile =
+                com.riverfishing.fish.FishProfileManager.get().byId(species);
+        int age = (int) Math.round(com.riverfishing.fish.FishMorph.ageFraction(profile, weightG) * 100);
         StackNbt.mutate(stack, tag -> {
             tag.putString(TAG_SPECIES, species.toString());
             tag.putInt(TAG_WEIGHT, weightG);
             tag.putInt(TAG_LENGTH, lengthCm);
             tag.putBoolean(TAG_LEGAL, legal);
+            tag.putByte(TAG_AGE, (byte) age);
             if (trophy) tag.putBoolean(TAG_TROPHY, true);
         });
         return stack;
@@ -150,6 +164,21 @@ public class FishItem extends Item {
 
     public static boolean isTrophy(ItemStack stack) {
         return StackNbt.get(stack).getBoolean(TAG_TROPHY);
+    }
+
+    /** §morph: 0..1, how grown this specimen is. Half means a typical fish of its species. */
+    public static double getAge(ItemStack stack) {
+        CompoundTag t = StackNbt.get(stack);
+        return t.contains(TAG_AGE) ? t.getByte(TAG_AGE) / 100.0 : 0.5;
+    }
+
+    /** §morph: the morph id, or "" for an ordinary fish. */
+    public static String getMorph(ItemStack stack) {
+        return StackNbt.get(stack).getString(TAG_MORPH);
+    }
+
+    public static void setMorph(ItemStack stack, String morphId) {
+        StackNbt.mutate(stack, t -> t.putString(TAG_MORPH, morphId));
     }
 
     /** The fisherman's minimum accepted weight for a species (§prime-fish). */
@@ -272,6 +301,14 @@ public class FishItem extends Item {
                         .withStyle(ChatFormatting.YELLOW));
             }
             return;
+        }
+        // §morph: named on its own line rather than folded into the item name. A prefix would have to
+        // agree in gender with 79 species names in Russian and Ukrainian, and "Золотистый плотва" is
+        // worse than no feature at all.
+        String morph = tag.getString(TAG_MORPH);
+        if (!morph.isEmpty()) {
+            tooltip.add(Component.translatable("morph.riverfishing." + morph)
+                    .withStyle(ChatFormatting.AQUA, ChatFormatting.ITALIC));
         }
         if (isTrophy(stack)) {
             tooltip.add(Component.translatable("tooltip.riverfishing.fish_trophy")
