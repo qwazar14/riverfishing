@@ -68,12 +68,19 @@ public final class RodHandTransform {
     public static float COURSE_YAW = 18f;
     public static float COURSE_PITCH = 15f;
     /**
-     * How far the LINE ANCHOR travels per degree of that lean, in near-plane units. It exists because
-     * leaning the rod pose alone leaves the line hanging off where the tip used to be — the anchor is
-     * computed separately from the item transform (the bend buckets already carry their own offset for
-     * exactly this reason). Tunable, and signed, through {@code /rfrod coursetip}.
+     * How far the LINE ANCHOR travels per degree of lean, in near-plane units — one coefficient per axis,
+     * because they do not agree in sign. The near plane's horizontal runs one way against the rod's yaw
+     * and its vertical runs the other against the rod's pitch, so a single number put the line right
+     * sideways and inverted vertically. Found in game, which is the only place it could be found.
+     *
+     * <p>The anchor needs its own travel at all because it is computed independently of the item
+     * transform: leaning the pose moves the rod and leaves the line hanging off where the tip used to be.
+     * The bend buckets already carry TIP_BEND_OFFSET for exactly this reason.
+     *
+     * <p>Both tunable through {@code /rfrod coursetip <x> <y>}, signed.
      */
-    public static float COURSE_TIP = 0.012f;
+    public static float COURSE_TIP_X = -0.005f;
+    public static float COURSE_TIP_Y = 0.005f;
 
     /** Applies the hand transform for a hand context (no-op otherwise). Each hand uses its own array. */
     public static void apply(PoseStack pose, ItemDisplayContext ctx) {

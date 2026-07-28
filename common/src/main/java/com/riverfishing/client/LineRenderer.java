@@ -181,8 +181,8 @@ public final class LineRenderer {
             // visibly leaves the rod. Added OUTSIDE the arm multiplier because a lean is a direction on
             // screen, not a distance out along the hand.
             float[] lean = ClientLineState.ownLean();
-            float leanX = lean[0] * RodHandTransform.COURSE_TIP;
-            float leanY = lean[1] * RodHandTransform.COURSE_TIP;
+            float leanX = lean[0] * RodHandTransform.COURSE_TIP_X;
+            float leanY = lean[1] * RodHandTransform.COURSE_TIP_Y;
             Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane()
                     .getPointOnPlane(arm * (0.525f + tipDx) + leanX, -0.1f + tipDy + leanY)
                     .scale(fovScale)
