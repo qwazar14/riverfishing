@@ -68,6 +68,19 @@ public final class ModVillagers {
                     ImmutableSet.of(), ImmutableSet.of(),
                     SoundEvents.VILLAGER_WORK_FISHERMAN));
 
+    /**
+     * §order-tier: which fisherman level buys each species, recorded as the trades are built so it cannot
+     * drift from them. The order-of-the-day board prints it — the standing complaint that an order can
+     * name a fish the player's own fisherman will not take is, at bottom, that the requirement was never
+     * stated anywhere.
+     */
+    private static final java.util.Map<String, Integer> BUY_TIER = new java.util.HashMap<>();
+
+    /** The lowest fisherman level that buys this species, or 0 if none does. */
+    public static int buyTier(String species) {
+        return BUY_TIER.getOrDefault(species, 0);
+    }
+
     /** Prime-grade threshold (§prime-fish): the buyer only takes the top of the species' size range. */
     public static final double PRIME_FRACTION = 0.7;
 
@@ -412,6 +425,7 @@ public final class ModVillagers {
      */
     private static void buyPrime(Int2ObjectMap<List<VillagerTrades.ItemListing>> t, int level,
                                  String path, int emeralds, int xp) {
+        BUY_TIER.merge(path, level, Math::min);
         t.get(level).add(buyPrimeOf(path, emeralds, xp));
     }
 

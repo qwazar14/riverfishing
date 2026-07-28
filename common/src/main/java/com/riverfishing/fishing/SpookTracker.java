@@ -139,7 +139,8 @@ public final class SpookTracker {
      * The nearest water surface within {@code reach}, or null. Heightmap probes on a 2-block lattice —
      * O(1) each, so this is cheap enough to run four times a second per player.
      */
-    private static BlockPos nearestSurface(ServerLevel level, BlockPos from, double reach) {
+    /** Package-visible: the order board asks the same question about the same water (§order-board). */
+    static BlockPos nearestSurface(ServerLevel level, BlockPos from, double reach) {
         int r = (int) reach;
         BlockPos best = null;
         double bestD = Double.MAX_VALUE;

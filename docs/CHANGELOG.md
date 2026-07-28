@@ -68,6 +68,30 @@ but not for this bait" sends a player to the journal, where the species pages al
 eats. The diagnosis is one function inside the engine next to the gates it reports, so the advice can
 never drift from the rule.
 
+### The order of the day is the tutorial
+
+Terraria's Angler is a tutorial wearing the costume of a chore: because the quest names the biome in
+plain words, thirty quests walk a player through thirty habitats and they never once open a wiki. The
+order of the day now does the same with the mod's own data.
+
+The journal's quest page opens with today's order **written out as the recipe for catching it** — water
+type, depth band, season, hour, bait, rig, rod, angler level — and every condition you already meet is
+ticked against where you are standing and what you are holding. One panel, read once, teaches habitat,
+depth preference, seasonality and bait choice at the same time.
+
+Nothing on it is authored. Every line is the fish profile the bite engine reads, so the board cannot
+teach something the engine does not do, and the server sends lang keys rather than sentences, so it draws
+correctly in any language — including on a multiplayer client, which has no fish profiles at all.
+
+**A fixed ladder of milestones** runs under the daily churn: every fifth order filled pays out a named
+piece of kit — the echo sounder, a 6000 reel, a feeder rig, a digital alarm, a carp rod, a 10000 reel —
+drawn on the board with the rungs you have not reached yet greyed out. Random rewards hold attention;
+fixed milestones mean you always know what you are working towards.
+
+It also closes a standing complaint: an order could name a fish the player's own fisherman would not
+take. Writing the checklist forced the question, and the board now states the fisherman level that buys
+the species — recorded as the trades are built, so it cannot drift from them.
+
 ### Help for the player who is stuck, and only for them
 
 A Super Guide rule, borrowed from Nintendo and kept to its spirit. Eight failures of the same kind on the

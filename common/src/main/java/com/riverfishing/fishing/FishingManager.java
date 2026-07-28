@@ -1966,6 +1966,8 @@ public final class FishingManager {
                 FishItem.gradePrime(fish, threshold);
                 // market (0.5.0): every prime landing saturates that species a little.
                 MarketData.get(sp.serverLevel()).addSupply(species.getPath());
+                // §order-board: and if it IS today's order, that is the order filled.
+                OrderBoard.credit(sp, species);
             }
         }
         // §fish-scale: the icon now scales purely from LENGTH (FishItem.getIconScale), no NBT needed.

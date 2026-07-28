@@ -25,6 +25,17 @@ public class JournalOpenPacket implements ModNetwork.RfPacket {
         this.guide = guide == null ? "" : guide;
     }
 
+    /**
+     * §order-board: the journal tag carries the order checklist under its own key. The SERVER builds it —
+     * it is the only side that has the fish profiles, the water body and the season — and sends lang keys
+     * rather than sentences, so a client in any language draws it correctly.
+     */
+    public static CompoundTag withOrder(CompoundTag journal, net.minecraft.server.level.ServerPlayer sp) {
+        CompoundTag copy = journal.copy();
+        copy.put("order", com.riverfishing.fishing.OrderBoard.build(sp));
+        return copy;
+    }
+
     @Override
     public net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type<? extends net.minecraft.network.protocol.common.custom.CustomPacketPayload> type() {
         return TYPE;
