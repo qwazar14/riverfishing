@@ -1233,7 +1233,12 @@ public final class FishingManager {
         double drag = session.dragKg;                                  // 0 for a reel-less float rod
         double requiredKg = Math.max(0.5, profile.fightStrength * (1.0 + weightKg) * 2.0);
         double effectiveStrain = session.lineStrainKg + 0.5 * drag;    // lineStrain already wear-reduced (§3.8)
-        double baseTolerance = Mth.clamp(effectiveStrain / requiredKg, 0.2, 1.0);
+        // §tackle-margin (0.7.0): how far the tackle OUT-GUNS this fish, uncapped. Reported as a bug and
+        // it was one: baseTolerance below is clamped at 1, so every line from "just enough" upward gave
+        // the identical tolerance — 108 kg of braid behaved exactly like 22 kg on a 10 kg catfish, and the
+        // ten mono diameters and seven braids above the minimum bought the player nothing at all.
+        session.tackleMargin = effectiveStrain / Math.max(0.5, requiredKg);
+        double baseTolerance = Mth.clamp(session.tackleMargin, 0.2, 1.0);
         // Tolerance shrinks with break-sensitivity (§14) and rod overload (#5): thin/worn line + heavy
         // fish + small reel + overloaded blank => snaps with the slightest over-pull.
         // §skills STRONG_LINE: steadier hands let the line hold a little more tension before it snaps.
@@ -1257,8 +1262,14 @@ public final class FishingManager {
                 : Mth.clamp(1.0 + (4000 - session.reelSize) / 4000.0 * 0.5, 0.6, 1.5);
         double weightStress = Mth.clamp(weightKg / 5.0, 0.2, 2.0);     // heavier fish pull harder, land slower
 
-        session.runTensionPulse = 0.18 * sens * (0.7 + 0.6 * weightStress);
-        session.calmTensionPulse = 0.07 * sens;
+        // §tackle-margin: the LOAD is what strong tackle is supposed to change. Tension stays normalised
+        // 0..1 (the bar, the bar colour and the rod bend all read tension/breakTension), so heavy gear
+        // cannot raise the ceiling — it lowers how fast everything fills it. Exactly-adequate tackle
+        // (margin 1) is unchanged, so the tuning that was right stays right; only the over-gunned case,
+        // which was the broken one, moves.
+        double loadFactor = Mth.clamp(Math.pow(Math.max(0.05, session.tackleMargin), -0.6), 0.25, 2.0);
+        session.runTensionPulse = 0.18 * sens * (0.7 + 0.6 * weightStress) * loadFactor;
+        session.calmTensionPulse = 0.07 * sens * loadFactor;
         // §small-fry (0.5.1): the weightStress floor (0.2) let a 50 g perch load the rod like a
         // kilo fish — sub-kilo fish now damp their pulses toward "barely felt" without touching
         // the balance above ~1.2 kg.

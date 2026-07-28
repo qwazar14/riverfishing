@@ -109,6 +109,12 @@ public class FishingSession {
     public double tension;        // 0..1; over breakTension the line is in overstress (Â§tackle-stress)
     public double landProgress;   // 0..1; reaching 1 lands the fish
     public double breakTension;   // how much tension the tackle tolerates for THIS fish
+    /**
+     * §tackle-margin: effective strain over what this fish demands, UNCAPPED. Above 1 the tackle
+     * out-guns the fish, and that is what makes a heavier line worth spooling: it does not raise the
+     * ceiling, it slows how fast everything fills it.
+     */
+    public double tackleMargin = 1.0;
     // Â§tackle-stress (0.4.0): crossing the limit no longer snaps instantly â a per-tick break chance
     // grows with the overshoot and with how long the line has been held over it.
     public double requiredKg;     // the fish's pull in kg (drives the break-load message)

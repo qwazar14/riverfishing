@@ -33,6 +33,23 @@ Technically it costs almost nothing: each fish is a single textured quad carryin
 sprite, because the 256px fish icons turn into roughly a thousand quads each through a normal item model.
 The whole thing is one packet every couple of seconds, and only when it has changed.
 
+### A heavier line finally buys something
+
+**Reported: top rod, thickest braid, snapped on a ten-kilo fish.** It was not bad luck.
+
+Tackle tolerance was clamped at 1.0, so every line from *just enough* upward gave exactly the same
+result — 108 kg of braid behaved identically to 22 kg against a 10 kg catfish, and the ten mono
+diameters and seven braids above the minimum bought the player literally nothing. Meanwhile a run
+against a standing drag filled the whole tension bar in about a second and a half regardless of what was
+on the spool, because the run's load never looked at the line at all.
+
+Strong tackle now changes the **load** rather than the ceiling. Tension stays normalised, so the bar, its
+colour and the rod bend are unchanged, but everything fills it more slowly the further the tackle
+out-guns the fish. Exactly-adequate tackle is untouched — the tuning that was right stays right; only the
+over-gunned case, which was the broken one, moves. On that same ten-kilo catfish, a run at a closed drag
+now takes 9 seconds to reach the limit on the heaviest braid instead of 1.6, and under-gunned mono is
+harsher than before at 0.7.
+
 ### The fight has a direction now
 
 The fight was deep but one-dimensional: tension up, progress up, and a forty-minute catfish differed from
