@@ -28,8 +28,8 @@ now they all lived loose in the same nine rows as your food and your building bl
 - **Right-click to set it down** and it faces you; **sneak + right-click to open**, in your hand or
   already placed. **Break it** and it keeps everything, because the placed block stores the box ITEM
   rather than a copy of its contents — there is one object, so the two can never drift apart.
-- There is a **journal page** for it, next to the tackle bench: one ties the tackle, the other is where
-  it lives afterwards.
+- There is a **journal page** for it, and one for the keepnet beside it: two boxes, two pages — one for
+  the catch, one for the tackle.
 
 The fisherman sells four **ready-made kits** — float, pike, carp and saltwater — each named, dyed and
 packed with bench-graded tackle. A kit is the answer to "what do I actually need for pike", in a form you

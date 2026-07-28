@@ -153,6 +153,8 @@ public class JournalScreen extends Screen {
         // §spook: right after the population page — one says what lives here, the other says why it will
         // not come near you. Boots, because the whole mechanic is about how you walk up to the water.
         addGuide("spook", new ItemStack(net.minecraft.world.item.Items.LEATHER_BOOTS));
+        // §keepnet: the catch, then §tackle-box: the tackle. Two boxes, two pages, side by side.
+        addGuide("keepnet", modStack("keepnet_medium"));
         addGuide("tacklebench", modStack("fishing_stall"));
         // §tackle-box: next to the bench, because they are the same subject — one ties the tackle, the
         // other is where it lives afterwards.
