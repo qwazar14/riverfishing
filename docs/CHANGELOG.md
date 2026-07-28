@@ -68,8 +68,9 @@ colouring already have their own drawn species here. The two morphs that matter 
 short and shallow, a humpbacked one short and deep — because a stunted fish that is only a slightly greyer
 small fish is indistinguishable from a small fish.
 
-**Not one new drawing.** Every morph is the species' own icon under a different tint and a whitening pass,
-from one table shared by the item, the journal and the water.
+**Not one new drawing.** Every morph is the species' own icon under a tint, a whitening pass and — for the
+two shaped ones — a stretch of the sprite, from one table shared by the item, the journal and the water.
+Three morphs across 79 species, plus age shading on all of them.
 
 ---
 
