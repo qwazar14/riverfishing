@@ -885,6 +885,7 @@
     "message.riverfishing.course_down":  "▼ ушла на ГЛУБИНУ — ПОДНИМАЙ удилище  [S]",
     "message.riverfishing.course_up":  "▲ идёт НАВЕРХ — ОПУСКАЙ удилище  [W]",
     "message.riverfishing.bar_course":  "%s: %s",
+    "message.riverfishing.too_far":  "Слишком далеко отошёл — снасть осталась без тебя",
     "message.riverfishing.slack":  "СЛАБИНА! Не иди на рыбу — крючок выпадет",
     "message.riverfishing.slack_lost":  "Сход! Леска обвисла, и рыба на %s выплюнула крючок",
     "message.riverfishing.spent":  "Руки кончились — перестань крутить, дай работать фрикциону",

@@ -320,6 +320,13 @@ public final class FishingManager {
         // Clamped so a teleport, a knockback or an elytra landing cannot be read as one giant heave.
         double delta = session.lastDist < 0 ? 0.0 : Mth.clamp(dist - session.lastDist, -0.5, 0.5);
         session.lastDist = dist;
+        // A passenger is not walking anywhere — that is the BOAT moving, and reading it as footwork made a
+        // §trolling fight (which happens under way, by definition) win or snap itself in a couple of
+        // seconds while the player did nothing at all.
+        if (sp.isPassenger()) {
+            session.slackTicks = 0;
+            return false;
+        }
         if (Math.abs(delta) < 0.002) {          // standing still: the fight behaves exactly as it always did
             session.slackTicks = Math.max(0, session.slackTicks - 2);
             return false;
@@ -329,7 +336,8 @@ public final class FishingManager {
             // Legs are a slow winch: line gained scales with the tackle exactly as a crank does, and during
             // a run it is throttled by the same course factor — you cannot walk a running fish backwards.
             session.landProgress = Mth.clamp(session.landProgress + session.landPulse * delta * 0.9
-                    * (inRun ? 0.2 + 0.5 * session.courseAlign : 1.0), 0.0, 1.0);
+                    * (!inRun ? 1.0 : session.course.isRun() ? 0.2 + 0.5 * session.courseAlign : 0.2),
+                    0.0, 1.0);
             session.tension += session.calmTensionPulse * delta * 3.0 * (inRun ? 2.5 : 1.0)
                     * (sp.isSprinting() ? 1.8 : 1.0);
             session.slackTicks = Math.max(0, session.slackTicks - 2);
@@ -337,8 +345,11 @@ public final class FishingManager {
             return false;
         }
         session.tension = Math.max(0.0, session.tension + session.calmTensionPulse * delta * 4.0);
+        // A RUNNING fish keeps its own line tight, so walking cannot put slack in it — and the answer to
+        // an UP course is literally the forward key, which walks you at the fish. Without this the game
+        // killed you for obeying its own boss bar: two of every three greyhounding runs are UP.
         // A boot on the end of the line has no mouth to spit the hook out of (§bycatch-intrigue).
-        if (session.bycatch != 0 || session.tension >= 0.10 * session.breakTension) {
+        if (inRun || session.bycatch != 0 || session.tension >= 0.10 * session.breakTension) {
             session.slackTicks = Math.max(0, session.slackTicks - 1);
             return false;
         }
@@ -1015,6 +1026,12 @@ public final class FishingManager {
         boolean tooFar = sp.distanceToSqr(session.target.getX() + 0.5, sp.getY(), session.target.getZ() + 0.5)
                 > MAX_SESSION_DISTANCE * MAX_SESSION_DISTANCE;
         if (!holdingRod || tooFar) {
+            // §fight-footwork teaches backing away, and a long cast leaves only a few blocks of room —
+            // walking off the end of it used to delete the fight in silence.
+            if (tooFar && session.fighting) {
+                actionbar(sp, Component.translatable("message.riverfishing.too_far")
+                        .withStyle(ChatFormatting.YELLOW));
+            }
             endSession(sp, session);
             return;
         }
@@ -1377,7 +1394,9 @@ public final class FishingManager {
         session.calmTensionPulse *= smallDamp;
         // §fish-fatigue (0.5.1): full burn-out after ~(4 + 2.5·kg) seconds of RUNNING — a perch gases
         // out in seconds, a carp holds for half a minute, big game outlasts the drag instead.
-        session.fatigueRunTick = 1.0 / (20.0 * (4.0 + 2.5 * weightKg));
+        // §fight-course: divided through by the run-length change (2.2x) and the new course bonus, or a
+        // perfectly-fought fish hit fatigue 1.0 inside its FIRST run and everything after it went limp.
+        session.fatigueRunTick = 1.0 / (20.0 * (10.4 + 6.5 * weightKg));
         session.landPulse = 0.05 / (0.7 + 0.6 * weightStress) * (0.9 + session.reelSize / 14000.0);
         session.relaxTick = 0.010 + dragRelief * 0.02;                 // big reel gives line faster
         session.fightPattern = profile.fightPattern;
@@ -1643,8 +1662,12 @@ public final class FishingManager {
         // §fight-course: winding against the run's own direction is the expensive mistake — up to three
         // times the tension of a crank made with the rod across it. §angler-stamina: and a spent angler
         // cannot wind hard, so the answer to being tired is to stop, not to click faster.
-        float align = inRun ? session.course.alignment(session.pullDir) : 1f;
-        double wrongWay = 2.2 - 1.7 * align;
+        // Only a DIRECTED run is scored. Outside one — a calm crank, a head-shake, the final surge —
+        // the multiplier is a flat 1.0, or the re-fitted curve would have quietly halved the tension of
+        // every ordinary crank in the mod.
+        boolean directed = inRun && session.course.isRun();
+        float align = directed ? session.course.alignment(session.pullDir) : 1f;
+        double wrongWay = directed ? 2.2 - 1.7 * align : 1.0;
         double armStrength = 0.35 + 0.65 * session.anglerStamina;
         session.tension += (inRun ? session.runTensionPulse : session.calmTensionPulse) * tired * wrongWay
                 * (1.0 + 0.5 * (1.0 - session.anglerStamina));
@@ -1652,7 +1675,8 @@ public final class FishingManager {
         // the fish from the right side gains most of a normal crank. That is the whole mechanic in one
         // number — the direction is not a tax to avoid, it is the thing that lets you work.
         session.landProgress = Mth.clamp(
-                session.landProgress + session.landPulse * (inRun ? 0.2 + 0.5 * align : 1.0)
+                session.landProgress + session.landPulse
+                        * (!inRun ? 1.0 : directed ? 0.2 + 0.5 * align : 0.2)
                         * (1.0 + 0.6 * session.fatigue) * armStrength, 0.0, 1.0);
         // A crank is work whether it gains anything or not.
         session.anglerStamina = Math.max(0.0, session.anglerStamina - (inRun ? 0.030 * wrongWay : 0.014));
@@ -1721,8 +1745,9 @@ public final class FishingManager {
         // the fish takes line instead of loading the rod. This is what makes the drag a real decision.
         if (session.runTicksLeft > 0 && !sp.isCrouching()) {
             // §fight-course: a rod held across the run bleads the fish and loads less; one pointed the
-            // wrong way takes the full weight of it.
-            double wrongWay = 1.9 - 1.35 * session.courseAlign;
+            // wrong way takes the full weight of it. A course-less "run" (a head-shake, the final surge)
+            // is nobody's fault and nobody's credit — it loads exactly as it did before any of this.
+            double wrongWay = session.course.isRun() ? 1.9 - 1.35 * session.courseAlign : 1.0;
             session.tension += session.runTensionPulse * 0.12 * (1.0 - 0.55 * session.fatigue) * wrongWay;
         }
 
@@ -1730,7 +1755,7 @@ public final class FishingManager {
         // §fight-course: and a fish held ACROSS its own run tires almost twice as fast. This is the
         // reward for reading the direction, and it is why a fight is now shorter when fought well
         // rather than merely safer.
-        double courseGain = session.runTicksLeft > 0
+        double courseGain = session.runTicksLeft > 0 && session.course.isRun()
                 ? 1.0 + 1.8 * session.courseAlign * session.courseAlign : 1.0;
         session.fatigue = Math.min(1.0,
                 session.fatigue + (session.runTicksLeft > 0 ? session.fatigueRunTick * courseGain
@@ -1833,6 +1858,10 @@ public final class FishingManager {
         if (!session.finalSurgeDone && session.landProgress >= 0.85) {
             session.finalSurgeDone = true;
             session.runTicksLeft = Math.max(session.runTicksLeft, (session.trophy ? 38 : 28) + random.nextInt(14));
+            // It is the fight's last real run, so it gets a course like every other one — otherwise the
+            // dash at the net was the ONLY run in the fight with nothing to answer.
+            session.course = FightCourse.forPattern(session.fightPattern, session.runIndex++, random);
+            session.barState = -1;
             level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 1.0f, 0.7f);
             // §sound: the long drag scream tears off for the final dash — at the player (the reel).
             level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.DRAG_LONG.get(),

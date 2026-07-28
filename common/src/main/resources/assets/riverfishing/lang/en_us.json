@@ -885,6 +885,7 @@
     "message.riverfishing.course_down":  "▼ it has gone DEEP — LIFT the rod  [S]",
     "message.riverfishing.course_up":  "▲ it is coming UP — rod DOWN  [W]",
     "message.riverfishing.bar_course":  "%s: %s",
+    "message.riverfishing.too_far":  "You backed off too far — the fight is out of reach",
     "message.riverfishing.slack":  "SLACK! Stop walking at it — the hook will fall out",
     "message.riverfishing.slack_lost":  "Off! The line went dead and a %s fish spat the hook",
     "message.riverfishing.spent":  "Your arms are gone — stop winding and let the drag work",

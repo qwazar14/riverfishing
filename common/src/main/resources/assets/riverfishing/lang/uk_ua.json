@@ -885,6 +885,7 @@
     "message.riverfishing.course_down":  "▼ пішла на ГЛИБИНУ — ПІДІЙМАЙ вудлище  [S]",
     "message.riverfishing.course_up":  "▲ йде НАГОРУ — ОПУСКАЙ вудлище  [W]",
     "message.riverfishing.bar_course":  "%s: %s",
+    "message.riverfishing.too_far":  "Занадто далеко відійшов — знаряддя лишилося без тебе",
     "message.riverfishing.slack":  "СЛАБИНА! Не йди на рибу — гачок випаде",
     "message.riverfishing.slack_lost":  "Зійшла! Волосінь обвисла, і риба на %s виплюнула гачок",
     "message.riverfishing.spent":  "Руки скінчилися — перестань крутити, дай працювати фрикціону",
