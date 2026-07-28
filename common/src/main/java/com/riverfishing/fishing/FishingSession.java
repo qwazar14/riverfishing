@@ -22,6 +22,13 @@ public class FishingSession {
     public long biteAtTick;
     /** §live-conditions (0.5.0): the cast's context snapshot — its dynamic half is refreshed every ~15 s. */
     public com.riverfishing.engine.BiteContext ctx;
+    /**
+     * §respec: the two roll inputs that cannot be recovered later. The specimen is rolled at the cast, but
+     * a long wait RE-PICKS which species is coming — and the new fish has to be rolled against its own
+     * profile, or it inherits the weight of a species it is not.
+     */
+    public double rollLuck;
+    public int rollLivebaitG;
     /** Bite speed at the last (re-)evaluation: swarm-capped W × frenzy × feed. Rescales the wait on change. */
     public double biteSpeed;
 

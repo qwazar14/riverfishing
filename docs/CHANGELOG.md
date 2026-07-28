@@ -137,6 +137,20 @@ It is also free diagnostics with nobody's data in it: every offer writes one lin
 saying which rod class and which failure tripped it. The flows that turn out to be unteachable will show
 up there rather than in a bug report nobody bothers to write.
 
+### A fish can no longer carry another species' weight
+
+**Reported as a 242 g ruffe — a fish whose range tops out at 150 g.** The specimen is rolled once, at the
+cast, for whichever species is coming at that moment. A long wait then RE-PICKS the biter every fifteen
+seconds as the light, the weather and freshly thrown groundbait change the odds — and that re-pick
+changed the species while leaving the weight, the length and the trophy flag exactly as they were. A wait
+that began on a perch and ended on a ruffe delivered a ruffe carrying the perch's weight.
+
+Every out-of-range fish anyone has ever seen came through there. The re-pick now rolls the specimen again
+against the new species' own profile.
+
+It is also the second half of the trophy report: the flag was rolled for the ORIGINAL species too, which
+is how an unremarkable fish could turn up flagged.
+
 ### A trophy is a big fish again
 
 **Reported as a bug, and it was one.** A trophy was a dice roll: about 4% of catches won it, and the

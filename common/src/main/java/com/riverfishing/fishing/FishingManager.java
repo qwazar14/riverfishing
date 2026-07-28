@@ -1091,7 +1091,23 @@ public final class FishingManager {
         // Re-pick the biter from the fresh weights — but a koi decided at cast stays sticky (re-rolling
         // its chance every 15 s would compound a per-cast rarity into a near-guarantee over a long wait).
         if (!session.species.getPath().startsWith("carp_koi")) {
+            ResourceLocation was = session.species;
             session.species = outcome.pickSpecies(random);
+            // §respec: and if it IS a different fish now, roll the SPECIMEN again against its own profile.
+            //
+            // Reported as a 242 g ruffe — a fish whose range tops out at 150 g. The weight, the length and
+            // the trophy flag were all rolled once, at the cast, for whichever species was coming THEN;
+            // this re-pick changed the species every fifteen seconds and left the specimen untouched, so a
+            // wait that began on a perch and ended on a ruffe delivered a ruffe carrying the perch's
+            // weight. Every out-of-range fish anyone has ever seen came through here.
+            if (!session.species.equals(was)) {
+                FishProfile fresh = FishProfileManager.get().byId(session.species);
+                if (fresh != null) {
+                    session.trophy = false;
+                    rollFish(random, fresh, session, session.rollLuck, session.rollLivebaitG,
+                            BiteEngine.matchScore(fresh, ctx));
+                }
+            }
         }
     }
 
@@ -1198,7 +1214,9 @@ public final class FishingManager {
         }
         // §match-size: how well the whole kit suits the species shapes the specimen it dares to take.
         double match = session.ctx != null ? BiteEngine.matchScore(profile, session.ctx) : 0.85;
-        rollFish(random, profile, session, AnglerSkills.sizeLuck(sp), livebaitW, match);
+        session.rollLuck = AnglerSkills.sizeLuck(sp);
+        session.rollLivebaitG = livebaitW;
+        rollFish(random, profile, session, session.rollLuck, livebaitW, match);
 
         ItemStack rod = sp.getItemInHand(session.hand);
         // A blunt hook can slip on the strike (§3.8) — empty set, fish gone, hook dulls a touch more.
