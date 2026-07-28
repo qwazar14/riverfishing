@@ -128,6 +128,14 @@ public class CullScreen extends Screen {
         return true;
     }
 
+    /**
+     * §journal-blur, again: 1.21's {@code renderBackground} runs a gaussian blur over the world behind a
+     * screen, which reads as a washed-out mess behind an opaque panel. Same no-op the journal uses.
+     */
+    @Override
+    protected void renderBlurredBackground(float partialTick) {
+    }
+
     @Override
     public boolean isPauseScreen() {
         return false;

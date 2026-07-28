@@ -59,6 +59,13 @@ public class TackleBoxMenu extends AbstractContainerMenu {
     private final Source source;
     private final TackleBoxTier tier;
     private final Container contents;
+    /**
+     * Set once the container is filled. Without it, the load loop below writes an EMPTY box straight back
+     * over the real one — {@code setItem} fires {@code setChanged} on every slot, and the first of those
+     * ran while {@code contents} was still null, so the whole menu threw in its own constructor and the
+     * box simply did not open.
+     */
+    private boolean ready;
 
     public TackleBoxMenu(int id, Inventory inv, Source source) {
         super(ModMenus.TACKLE_BOX.get(), id);
@@ -72,13 +79,14 @@ public class TackleBoxMenu extends AbstractContainerMenu {
             @Override
             public void setChanged() {
                 super.setChanged();
-                save();
+                if (ready) save();
             }
         };
+        this.contents = c;
         for (int i = 0; i < tier.slots(); i++) {
             c.setItem(i, loaded.get(i).copy());
         }
-        this.contents = c;
+        this.ready = true;
 
         for (int row = 0; row < tier.rows(); row++) {
             for (int col = 0; col < 9; col++) {
@@ -127,7 +135,7 @@ public class TackleBoxMenu extends AbstractContainerMenu {
     }
 
     private void save() {
-        if (player.level().isClientSide) return;
+        if (contents == null || player.level().isClientSide) return;
         ItemStack box = box();
         if (box.isEmpty()) return;
         NonNullList<ItemStack> out = NonNullList.withSize(tier.slots(), ItemStack.EMPTY);

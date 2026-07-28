@@ -50,9 +50,9 @@ public class TackleBoxDyeRecipe extends CustomRecipe {
             }
         }
         if (box.isEmpty() || dyes.isEmpty()) return ItemStack.EMPTY;
-        ItemStack out = box.copyWithCount(1);
-        DyedItemColor.applyDyes(out, dyes);
-        return out;
+        // applyDyes RETURNS the dyed stack rather than colouring in place — the first cut threw the
+        // result away and handed back the original, so the craft "worked" and changed nothing.
+        return DyedItemColor.applyDyes(box.copyWithCount(1), dyes);
     }
 
     @Override
