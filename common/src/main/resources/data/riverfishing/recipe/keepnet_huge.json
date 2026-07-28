@@ -2,23 +2,23 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "pattern": [
-    "GGG",
-    "GCG",
-    "III"
+    "SIS",
+    "ICI",
+    "SIS"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:glass"
-    },
-    "C": {
-      "item": "riverfishing:cool_box"
+    "S": {
+      "item": "minecraft:string"
     },
     "I": {
       "item": "minecraft:iron_ingot"
+    },
+    "C": {
+      "item": "riverfishing:keepnet_large"
     }
   },
   "result": {
-    "id": "riverfishing:angler_box",
+    "id": "riverfishing:keepnet_huge",
     "count": 1
   }
 }

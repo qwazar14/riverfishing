@@ -42,7 +42,7 @@ public final class KeepnetData {
     public List<Placed> items() { return items; }
 
     public static KeepnetData read(ItemStack net) {
-        KeepnetTier tier = net.getItem() instanceof KeepnetItem k ? k.tier() : KeepnetTier.WICKER;
+        KeepnetTier tier = net.getItem() instanceof KeepnetItem k ? k.tier() : KeepnetTier.SMALL;
         List<Placed> out = new ArrayList<>();
         ListTag list = StackNbt.get(net).getList(TAG_ITEMS, 10);
         for (int i = 0; i < list.size(); i++) {

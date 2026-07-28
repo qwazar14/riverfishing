@@ -3,8 +3,8 @@
   "category": "equipment",
   "pattern": [
     "SSS",
-    "TCT",
-    "TTT"
+    "SCS",
+    "TST"
   ],
   "key": {
     "S": {
@@ -14,11 +14,11 @@
       "item": "minecraft:stick"
     },
     "C": {
-      "item": "riverfishing:wicker_creel"
+      "item": "riverfishing:keepnet_small"
     }
   },
   "result": {
-    "id": "riverfishing:keepnet",
+    "id": "riverfishing:keepnet_medium",
     "count": 1
   }
 }

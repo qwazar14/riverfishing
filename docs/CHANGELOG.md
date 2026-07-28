@@ -147,8 +147,9 @@ comes from Fulton's condition factor, 100·W/L³, the number an angling club use
 fish is: about 0.2 for an eel, 1 for a pike, over 2 for a bream. So an eel is a 4×1 bar, a pike is 3×1, a
 carp is a fat 3×2, and a 30 kg catfish is a tapered 6×3 that eats half a box. Long fish turn to fit.
 
-Four tiers, each a crafting upgrade of the last: **wicker creel** 5×3, **keepnet** 7×4, **cool box** 8×5,
-**angler's box** 9×6. A keepnet holds this mod's fish and nothing else — every cell is water.
+Four sizes, each crafted from the one below it: **small** 5×3, **medium** 7×4, **large** 8×5 and **huge**
+9×6. It holds this mod's fish and nothing else — every cell is water. The megalodon, at 7×3, will not go
+into anything under the large.
 
 Three rules are in from the first build rather than promised for later, because the designer this is
 borrowed from was explicit that a spatial inventory without them is a frustration generator:

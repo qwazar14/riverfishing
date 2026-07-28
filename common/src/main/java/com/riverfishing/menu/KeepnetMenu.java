@@ -75,7 +75,7 @@ public class KeepnetMenu extends AbstractContainerMenu {
         this.player = inv.player;
         this.hand = hand;
 
-        KeepnetTier tier = net().getItem() instanceof KeepnetItem k ? k.tier() : KeepnetTier.WICKER;
+        KeepnetTier tier = net().getItem() instanceof KeepnetItem k ? k.tier() : KeepnetTier.SMALL;
         int invTop = invTop(tier);
         // The inventory is centred under the grid rather than pinned left: the grid is wider than nine
         // slots on the bigger boxes, and an off-centre inventory reads as a mistake.

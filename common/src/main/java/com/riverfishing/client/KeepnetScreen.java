@@ -56,7 +56,7 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
     }
 
     private KeepnetTier tier() {
-        return menu.net().getItem() instanceof KeepnetItem k ? k.tier() : KeepnetTier.WICKER;
+        return menu.net().getItem() instanceof KeepnetItem k ? k.tier() : KeepnetTier.SMALL;
     }
 
     private int gridX() { return leftPos + KeepnetMenu.GRID_LEFT; }

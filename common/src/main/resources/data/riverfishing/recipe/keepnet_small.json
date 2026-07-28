@@ -4,15 +4,18 @@
   "pattern": [
     "S S",
     "S S",
-    "SSS"
+    "TST"
   ],
   "key": {
     "S": {
+      "item": "minecraft:string"
+    },
+    "T": {
       "item": "minecraft:stick"
     }
   },
   "result": {
-    "id": "riverfishing:wicker_creel",
+    "id": "riverfishing:keepnet_small",
     "count": 1
   }
 }

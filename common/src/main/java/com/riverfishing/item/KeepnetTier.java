@@ -1,24 +1,24 @@
 package com.riverfishing.item;
 
 /**
- * §keepnet (0.7.0): the four containers a catch can go into, and the room each gives you.
+ * §keepnet (0.7.0): the four sizes of keepnet, and the room each gives you.
  *
- * <p>The ladder is the upgrade path: a wicker creel holds a morning's small fish, a livewell holds a day
- * on the sea.
+ * <p>One object at four sizes rather than four different containers — a keepnet is a keepnet, and each is
+ * made from the one below it.
  *
  * <p>A keepnet holds FISH, and nothing else. An earlier cut reserved an edge column for the bait and
  * groundbait an angler carries, so gear and catch competed for one box; it was dropped because a keepnet
  * you can put a pickaxe in is not a keepnet. Every cell is water now.
  */
 public enum KeepnetTier {
-    /** Плетёная корзина: a morning's small fish and nothing more. */
-    WICKER("wicker_creel", 5, 3),
-    /** Садок: the working net, and the one every angler owns. */
-    KEEPNET("keepnet", 7, 4),
-    /** Термобокс: more room, and it keeps a fish worth selling. */
-    COOLER("cool_box", 8, 5),
-    /** Рыбацкий ящик: the big box, and room for something enormous. */
-    LIVEWELL("angler_box", 9, 6);
+    /** A morning's small fish and nothing more. */
+    SMALL("keepnet_small", 5, 3),
+    /** The working net, the one every angler owns. */
+    MEDIUM("keepnet_medium", 7, 4),
+    /** A day on the bank. */
+    LARGE("keepnet_large", 8, 5),
+    /** Room for something enormous — and the only thing that will hold a shark. */
+    HUGE("keepnet_huge", 9, 6);
 
     private final String id;
     private final int width;
