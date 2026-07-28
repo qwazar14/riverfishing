@@ -149,6 +149,9 @@ public class JournalScreen extends Screen {
         addGuide("biggame", modStack("yellowfin_tuna"));
         addGuide("legendary", modStack("blue_marlin"));
         addGuide("community", modStack("fish_finder"));
+        // §spook: right after the population page — one says what lives here, the other says why it will
+        // not come near you. Boots, because the whole mechanic is about how you walk up to the water.
+        addGuide("spook", new ItemStack(net.minecraft.world.item.Items.LEATHER_BOOTS));
         addGuide("tacklebench", modStack("fishing_stall"));
         addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
         addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));

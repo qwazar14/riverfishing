@@ -55,6 +55,7 @@ public final class ConfigLoader {
             RiverFishingConfig.hookWear = num(o, "hook_wear", RiverFishingConfig.hookWear, 0.0, 5.0);
             RiverFishingConfig.snag = num(o, "snag", RiverFishingConfig.snag, 0.0, 5.0);
             RiverFishingConfig.foul = num(o, "foul", RiverFishingConfig.foul, 0.0, 5.0);
+            RiverFishingConfig.spook = num(o, "spook", RiverFishingConfig.spook, 0.0, 5.0);
 
             RiverFishingConfig.trophyChance = num(o, "trophy_chance", RiverFishingConfig.trophyChance, 0.0, 1.0);
             RiverFishingConfig.frenzySpeed = num(o, "frenzy_speed", RiverFishingConfig.frenzySpeed, 1.0, 20.0);
@@ -126,11 +127,11 @@ public final class ConfigLoader {
               "_comment": [
                 "River Fishing config. Delete this file to regenerate it with the defaults.",
                 "'preset' picks the multipliers for the frustrating mechanics and is the only knob most",
-                "packs need: arcade | realism | hardcore | custom. The eight values below it are used",
+                "packs need: arcade | realism | hardcore | custom. The nine values below it are used",
                 "ONLY when preset is 'custom'. Everything from 'trophy_chance' down is read directly and",
                 "applies whatever the preset is.",
                 "Higher is harsher for: phantom, break_sensitivity, depletion, leader_biteoff, line_wear,",
-                "hook_wear, snag, foul."
+                "hook_wear, snag, foul, spook. 'spook' at 0 switches off the fish reacting to you at all."
               ],
 
               "preset": "realism",
@@ -143,6 +144,7 @@ public final class ConfigLoader {
               "hook_wear": 1.0,
               "snag": 1.0,
               "foul": 1.0,
+              "spook": 1.0,
 
               "trophy_chance": 0.04,
               "frenzy_speed": 3.0,

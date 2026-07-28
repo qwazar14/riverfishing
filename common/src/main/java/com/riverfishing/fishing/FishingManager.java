@@ -827,7 +827,7 @@ public final class FishingManager {
             return;
         }
 
-        if (now >= session.biteAtTick) {
+        if (now >= session.biteAtTick && !spooked(level, session, now)) {
             session.bitten = true;
             // §strike-qte (2.4): the take fires a hook-set runner — stop it in the zone (release the retrieve,
             // or click) to set the hook. Deliberately EASY (imitating a подсечка, not a reaction test): slow
@@ -967,7 +967,7 @@ public final class FishingManager {
             if (session.ctx != null && session.biteAtTick > now && now % 300 == 0) {
                 reEvaluate(level, session, now);
             }
-            if (now >= session.biteAtTick) {
+            if (now >= session.biteAtTick && !spooked(level, session, now)) {
                 session.bitten = true;
                 session.biteWindowEnd = now + biteWindow(session.rodClass);
                 // §silent-bite: NO audible cue without an alarm — watch the float / the line.
@@ -1003,6 +1003,33 @@ public final class FishingManager {
             endSession(sp, session);
             actionbar(sp, Component.translatable("message.riverfishing.missed").withStyle(ChatFormatting.GRAY));
         }
+    }
+
+    /**
+     * §spook: the fish at the bait have just been frightened, so this attempt comes to nothing and the
+     * next one is a second or two out.
+     *
+     * <p>Applied at the ROLL rather than folded into the bite speed on purpose. Bite speed is a snapshot
+     * refreshed every fifteen seconds; spook rises and falls in single seconds, and a mechanic whose whole
+     * job is to answer "you just stamped along the bank" has to answer within a second of it happening.
+     *
+     * <p>Nothing is said to the player. The rings running out across the water already said it, and a
+     * text warning would turn reading the water into reading a HUD (§spook-quiet).
+     */
+    private static boolean spooked(ServerLevel level, FishingSession session, long now) {
+        if (!fishAreSpooked(level, session.target, now)) return false;
+        session.biteAtTick = now + 20 + level.getRandom().nextInt(40);
+        return true;
+    }
+
+    /**
+     * §spook: are the fish at this spot too frightened to take right now? Public because a rod on the pod
+     * fishes the same water under the same rule — walk up to your own bivvy and stamp about, and the
+     * podded line goes quiet exactly like the one in your hands.
+     */
+    public static boolean fishAreSpooked(ServerLevel level, BlockPos target, long now) {
+        double s = SpookData.of(level).at(target, now);
+        return s > 0.02 && level.getRandom().nextDouble() < s;
     }
 
     /** §live-conditions: bite speed at this spot right now — swarm-capped W × frenzy × fresh feed. */
@@ -2666,7 +2693,8 @@ public final class FishingManager {
     }
 
     /** Water-column depth at the cast point (blocks of water straight down, capped) — habitat gate. */
-    private static int measureDepth(ServerLevel level, BlockPos surface) {
+    /** Package-visible: §spook reads the same depth the bite engine does rather than measuring its own. */
+    static int measureDepth(ServerLevel level, BlockPos surface) {
         int depth = 0;
         BlockPos.MutableBlockPos p = surface.mutable();
         while (depth < 16 && level.getFluidState(p).is(net.minecraft.tags.FluidTags.WATER)) {
@@ -2720,6 +2748,14 @@ public final class FishingManager {
         }
         level.sendParticles(ParticleTypes.SPLASH, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
                 8, 0.2, 0.1, 0.2, 0.1);
+        // §spook: the tackle hitting the water is the ONE disturbance that reaches a spot the angler is
+        // nowhere near — which is exactly why a long cast is worth making. A feeder lead lands with a
+        // thump, a lure with a slap, a float with a plop, and the fish under each react accordingly.
+        SpookTracker.onCastLanded(level, pos, switch (rodClass) {
+            case BOTTOM -> 0.32;
+            case ACTIVE -> 0.20;
+            default -> 0.12;
+        });
     }
 
     /** §silent-bite: a bite is VISUAL only — no sound unless a mounted alarm reports it. */

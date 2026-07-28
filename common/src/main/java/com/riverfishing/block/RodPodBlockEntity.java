@@ -85,7 +85,13 @@ public class RodPodBlockEntity extends BlockEntity {
                         && serverLevel.getRandom().nextDouble() < 0.02 * (1.0 - toBite / 200.0)) {
                     nibble(serverLevel, alarm, line.target);
                 }
-                if (now >= line.biteAtTick) {
+                // §spook: the same gate the rod in your hands gets. A podded line is usually far enough
+                // out that nothing on the bank reaches it — but walk up to it and stamp around and the
+                // take simply does not come.
+                if (now >= line.biteAtTick
+                        && FishingManager.fishAreSpooked(serverLevel, line.target, now)) {
+                    line.biteAtTick = now + 20 + serverLevel.getRandom().nextInt(40);
+                } else if (now >= line.biteAtTick) {
                     line.bitten = true;
                     line.phantom = false;
                     // §pod-self-hook: 40% of real bites hook themselves against the rod's weight —

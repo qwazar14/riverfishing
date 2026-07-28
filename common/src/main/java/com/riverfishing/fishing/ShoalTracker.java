@@ -72,6 +72,8 @@ public final class ShoalTracker {
     private static final int MAX_FISH_TOTAL = 96;
     /** A lake 30 blocks below the clifftop you are standing on is not the water you are looking at. */
     private static final int Y_BAND = 20;
+    /** Spook at which a patch shows no fish at all; below it the shoal thins in proportion. */
+    private static final double SPOOK_GONE = 0.55;
 
     /** Last shoal sent, so an unchanged view is not re-sent and walking away clears exactly once. */
     private static final Map<UUID, String> LAST = new HashMap<>();
@@ -141,6 +143,13 @@ public final class ShoalTracker {
             BiteContext env = FishingManager.environmentAt(level, surface, body);
             Pool pool = poolFor(env, surface, pressure, now);
             if (pool.total <= 0) continue;
+
+            // §spook: frightened fish leave, and that is the only readout this mechanic ever gets — you
+            // watch the water empty. Above SPOOK_GONE the patch shows nothing at all.
+            double spook = SpookData.of(level).at(surface, now);
+            if (spook >= SPOOK_GONE) continue;
+            want = (int) Math.round(want * (1.0 - spook / SPOOK_GONE));
+            if (want < 1) continue;
 
             RandomSource rng = RandomSource.create(surface.asLong() * 31L + hour);
             List<ShoalPacket.Entry> fish = pick(pool, env.waterDepth, Math.min(want, budget), minLen, rng);

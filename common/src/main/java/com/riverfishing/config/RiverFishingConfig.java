@@ -22,6 +22,7 @@ public final class RiverFishingConfig {
     public static double hookWear = 1.0;
     public static double snag = 1.0;
     public static double foul = 1.0;
+    public static double spook = 1.0;
 
     // Gameplay events (§polish): read directly, not preset-driven.
     public static double trophyChance = 0.04;
@@ -52,6 +53,8 @@ public final class RiverFishingConfig {
     public static double hookWearRate() { return byPreset(0.3, 1.0, 1.7, hookWear); }
     public static double snagChance() { return byPreset(0.3, 1.0, 1.6, snag); }
     public static double foulHookChance() { return byPreset(0.4, 1.0, 1.6, foul); }
+    /** §spook: how sharply the fish react to the angler. Zero switches the mechanic off entirely. */
+    public static double spookRate() { return byPreset(0.35, 1.0, 1.6, spook); }
 
     public static double trophyChance() { return trophyChance; }
     public static double frenzySpeed() { return frenzySpeed; }
