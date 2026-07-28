@@ -49,24 +49,28 @@ worth making. Crouched and still is the one state that makes no noise at all. Re
 seconds — a murky swamp forgets you quickly, clear shallows stay wary three times as long. Preset-driven
 like every other harsh mechanic, and `"spook": 0` in the config switches it off.
 
-### The mod says what it means
+### Every fish shows its age, and some show more than that
 
-Two messages stopped being dead ends.
+Fish are now coloured by a table rather than by a single flat sprite. A specimen's colour is read off its
+own size: young fish are pale and silvery, old ones darken into their species' adult colour. A young bream
+is a bright silver coin; an old one is deep bronze. This applies to every fish from every source — a
+catch, a bait trap, a trade — and to the fish drifting in the water.
 
-**The one that got away now has a size.** A shake-off, a snapped line and a bitten-through leader all
-report roughly what was on the end of it — rounded hard on purpose, half-kilos up to ten and whole kilos
-above, because you felt that fish and watched it turn, you did not put it on the scales. A figure to the
-gram would be a precision the moment never had.
+On top of that sit **morphs**, and the list is deliberately short: the stunted fish of an over-fished
+pond, the deep-bodied one of an over-stocked pond, and xanthism — the gold mutation that turns up in
+long-established stocked water. Each is a collection entry of its own on the species' journal
+page, and each hangs off world state the mod already tracked and had never shown you: fish a swim down and
+it starts handing out stunted fish; a stocked water that has taken hold starts throwing golden ones.
 
-**"Nothing is taking here" now says why.** Every species is asked the bite engine's own question and the
-most common answer is shown. If some fish here would take but your kit stops them, it names the kit — no
-hook on the rig, nothing on the hook, a bait they do not eat, a hook the wrong size for their mouths. If
-nothing at all is feeding, it names the water instead: the hour, the season, the weather, the depth.
+Everything a colour cannot honestly show was cut. An albino, a leucistic fish, a natural hybrid, a hooked
+jaw, a set of lamprey scars — each of those is a drawing, not a tint, and the carp strains and koi
+colouring already have their own drawn species here. The two morphs that matter most are **shaped** as well as tinted — a stunted fish is drawn
+short and shallow, a humpbacked one short and deep — because a stunted fish that is only a slightly greyer
+small fish is indistinguishable from a small fish.
 
-It is a **hint, not an instruction**. It names the category and never the answer: "there are fish here,
-but not for this bait" sends a player to the journal, where the species pages already list what each fish
-eats. The diagnosis is one function inside the engine next to the gates it reports, so the advice can
-never drift from the rule.
+**Not one new drawing.** Every morph is the species' own icon under a tint, a whitening pass and — for the
+two shaped ones — a stretch of the sprite, from one table shared by the item, the journal and the water.
+Three morphs across 79 species, plus age shading on all of them.
 
 ### The order of the day is the tutorial
 
@@ -91,6 +95,25 @@ fixed milestones mean you always know what you are working towards.
 It also closes a standing complaint: an order could name a fish the player's own fisherman would not
 take. Writing the checklist forced the question, and the board now states the fisherman level that buys
 the species — recorded as the trades are built, so it cannot drift from them.
+
+### The mod says what it means
+
+Two messages stopped being dead ends.
+
+**The one that got away now has a size.** A shake-off, a snapped line and a bitten-through leader all
+report roughly what was on the end of it — rounded hard on purpose, half-kilos up to ten and whole kilos
+above, because you felt that fish and watched it turn, you did not put it on the scales. A figure to the
+gram would be a precision the moment never had.
+
+**"Nothing is taking here" now says why.** Every species is asked the bite engine's own question and the
+most common answer is shown. If some fish here would take but your kit stops them, it names the kit — no
+hook on the rig, nothing on the hook, a bait they do not eat, a hook the wrong size for their mouths. If
+nothing at all is feeding, it names the water instead: the hour, the season, the weather, the depth.
+
+It is a **hint, not an instruction**. It names the category and never the answer: "there are fish here,
+but not for this bait" sends a player to the journal, where the species pages already list what each fish
+eats. The diagnosis is one function inside the engine next to the gates it reports, so the advice can
+never drift from the rule.
 
 ### Help for the player who is stuck, and only for them
 
@@ -135,28 +158,81 @@ only thing luck can honestly mean here. The config knob `trophy_chance` becomes 
 And the bar is now **printed in the journal**: every species page states the weight from which a specimen
 counts as a trophy. Nobody should have had to ask.
 
-### Every fish shows its age, and some show more than that
+### Nine species from Florida, from the player who found the 0.6.1 bug
 
-Fish are now coloured by a table rather than by a single flat sprite. A specimen's colour is read off its
-own size: young fish are pale and silvery, old ones darken into their species' adult colour. A young bream
-is a bright silver coin; an old one is deep bronze. This applies to every fish from every source — a
-catch, a bait trap, a trade — and to the fish drifting in the water.
+**Peacock bass, bullseye snakehead, Mayan cichlid, Oscar, striped bass, bluefish, jack crevalle, tarpon
+and snook** — 79 species in total. The list came from idkwho0457_07869, the player whose report led to the
+0.6.1 cast fix, and his own words became the fight profiles: a peacock bass that "breaks equipment" is
+strength 0.95 with four runs, and a snakehead that "gives up usually quick" is the active-then-passive
+pattern with stamina 0.35. That is a design brief no reference page would have given.
 
-On top of that sit **morphs**, and the list is deliberately short: the stunted fish of an over-fished
-pond, the deep-bodied one of an over-stocked pond, and xanthism — the gold mutation that turns up in
-long-established stocked water. Each is a collection entry of its own on the species' journal
-page, and each hangs off world state the mod already tracked and had never shown you: fish a swim down and
-it starts handing out stunted fish; a stocked water that has taken hold starts throwing golden ones.
+Nine species is 27 data files, 27 asset files and three languages, so all of it is generated rather than
+typed: profiles with a vocabulary check against the existing 70 (an unknown bait key is silently ignored
+by the engine, which would make a species quietly never bite), sprites palette-swapped from the
+closest-bodied donor, and the models, cutting recipes, lang and registry wired by a script that copies
+each per-version quirk from a species that already works in that tree rather than hardcoding it.
 
-Everything a colour cannot honestly show was cut. An albino, a leucistic fish, a natural hybrid, a hooked
-jaw, a set of lamprey scars — each of those is a drawing, not a tint, and the carp strains and koi
-colouring already have their own drawn species here. The two morphs that matter most are **shaped** as well as tinted — a stunted fish is drawn
-short and shallow, a humpbacked one short and deep — because a stunted fish that is only a slightly greyer
-small fish is indistinguishable from a small fish.
+### An eighth legendary: the Abyssal Demon
 
-**Not one new drawing.** Every morph is the species' own icon under a tint, a whitening pass and — for the
-two shaped ones — a stretch of the sprite, from one table shared by the item, the journal and the water.
-Three morphs across 79 species, plus age shading on all of them.
+The **halibut** joins the legendary list — a 250 kg one-of-a-kind at 0.4% on a fish that already asks for
+angler level 9. Named by the same player, as thanks for the bug report.
+
+### Two trolling lures
+
+A **skirted octopus jig** and a **giant spoon**, the last two items from the same player's list. They fill
+a real gap rather than padding the tab: the heaviest existing lure step was 180 g while the boat blank
+tests to 400 g and the trolling blank to 600 g, so both new ladders start where the old ones end —
+60/120/250/400 g and 80/160/300/500 g.
+
+Drawn rather than palette-swapped, because the existing eight are all small diagonal blades and the whole
+point of these two is that they are big. Fifteen species now score them, weighted by what actually chases
+a trolled lure: the pelagics rate the skirted jig highest, while bluefish and jack crevalle rate the big
+spoon above everything else. Both dye like the other lures.
+
+### The float is the float you actually rigged
+
+A player described the float on the stick rod as "holey sticks", and both halves of that were true.
+
+The bobber was drawn from the **rod class alone**, never from the rig. A stick rod is float-class but its
+built-in primitive rig has no float slot and can never hold one, so the game drew a float that does not
+exist. The flag was inconsistent too: only one of the five packet sites carried the ice-fishing check, so
+an ice-fishing float rod showed a bobber at the cast and lost it at the bite.
+
+It is now decided once, at the cast, from the rig, and crosses the wire as three states — the client
+cannot see the rig, so a single bit was never enough:
+
+- **nothing** on the surface for lure and bottom rigs, and for any rod fishing an ice hole;
+- **a goose quill** — one red-over-white line — when a float rod has no float item rigged;
+- **the float's own icon** in the world when one is: red antenna, a bulbous body red above the waterline
+  and white below, a dark keel under it, with the proportions and palette read straight off the item
+  texture rather than invented.
+
+And it kills a long-standing bug nobody had reported: the old bobber was three vertical lines 0.018 apart,
+so on the stick, bamboo and pole rods it rendered as a **tripled** float. Both new shapes are tightly
+packed bundles cross-hatched in two axes, so they read solid from any angle and cannot separate into
+stripes.
+
+### The config file exists
+
+`RiverFishingConfig` has had fourteen tunable fields since 0.3.0 and **nothing ever assigned one**. Every
+server ran `realism`, and the `arcade` and `hardcore` branches were unreachable code — a modpack could not
+soften line breaks, snags or depletion without patching the jar, while the mod page called itself a pack
+anchor.
+
+`config/riverfishing.json` is now written on first run with every knob at its default, because a config
+nobody can discover is barely better than none. Numbers are clamped on read, so a stray minus sign cannot
+produce a negative chance or a multiplier that breaks the fight maths, and an unknown preset name falls
+back to realism **with a warning** rather than silently behaving as realism for no visible reason.
+
+### The wiki carries all 79 species
+
+Adding a species to the wiki by hand costs five table rows across two files, times three languages — 135
+rows of hand-typed numbers for a nine-species wave, which is exactly the part that gets skipped or
+mistyped. They are now derived from the profile JSON by a generator with two properties it was built with
+after being burned: it **refuses to invent vocabulary** (every label was harvested from rows already in
+the wiki, and it asserts the word exists in the target file before writing), and it is idempotent per
+**table** rather than per file, so a species present in one table and missing from another gets topped up
+without being duplicated.
 
 ---
 
