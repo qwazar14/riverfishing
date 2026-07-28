@@ -190,7 +190,25 @@ public class JournalScreen extends Screen {
     }
 
     public static void open(CompoundTag data) {
+        open(data, "");
+    }
+
+    /**
+     * §guide-nudge: open straight on a guide page when the player took up the offer of help. An offer
+     * that lands you on the front page and leaves you to find the right shelf is not help.
+     */
+    public static void open(CompoundTag data, String guideId) {
         JournalScreen next = new JournalScreen(data);
+        if (guideId != null && !guideId.isEmpty()) {
+            for (int i = 0; i < next.guideCat.size(); i++) {
+                if (next.guideCat.get(i).id().equals(guideId)) {
+                    next.tab = TAB_GUIDE;
+                    next.catDetail = i;
+                    Minecraft.getInstance().setScreen(next);
+                    return;
+                }
+            }
+        }
         // A refresh (server re-sends the journal after a skill unlock / quest claim) reuses this same
         // entry point — carry the reader's place over so they don't get thrown back to the FISH tab.
         if (Minecraft.getInstance().screen instanceof JournalScreen prev) {
@@ -400,6 +418,13 @@ public class JournalScreen extends Screen {
                         left + 10, y, 0xFFB05A00, false);
                 y += 12;
             }
+        }
+        // §guide-nudge: honest bookkeeping. Nothing is withheld and nothing is locked — the record just
+        // says this one was landed after the mod offered a hand.
+        if (com.riverfishing.fishing.JournalData.wasHinted(data, id)) {
+            g.drawString(this.font, Component.translatable("journal.riverfishing.hinted"),
+                    left + 10, y, GuiStyle.GHOST, false);
+            y += 12;
         }
         y = morphRow(g, sp, id, y);
         lastCatH = (y + scroll) - contentTop;

@@ -69,6 +69,25 @@ public final class JournalData {
         return true;
     }
 
+    /**
+     * §guide-nudge: this species was first landed after the player took up an offer of help. Nintendo's
+     * dignity rule — nothing is withheld and nothing is locked, the record simply tells the truth.
+     */
+    public static void markHinted(Player player, ResourceLocation species) {
+        CompoundTag root = get(player);
+        CompoundTag fish = root.getCompound(species.toString());
+        if (fish.getBoolean("hinted")) return;
+        fish.putBoolean("hinted", true);
+        root.put(species.toString(), fish);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+    }
+
+    /** §guide-nudge: was this species caught with a hint? Reads the journal tag straight. */
+    public static boolean wasHinted(CompoundTag journal, ResourceLocation species) {
+        return journal.getCompound(species.toString()).getBoolean("hinted");
+    }
+
     /** §morph: has the player found this morph of this species? Reads the journal tag straight. */
     public static boolean hasMorph(CompoundTag journal, ResourceLocation species, String morphId) {
         return journal.getCompound(species.toString()).getCompound("morphs").getBoolean(morphId);

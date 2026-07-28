@@ -68,6 +68,28 @@ but not for this bait" sends a player to the journal, where the species pages al
 eats. The diagnosis is one function inside the engine next to the gates it reports, so the advice can
 never drift from the rule.
 
+### Help for the player who is stuck, and only for them
+
+A Super Guide rule, borrowed from Nintendo and kept to its spirit. Eight failures of the same kind on the
+same rod class with nothing landed in between, and the mod offers — **one clickable line in chat** — to
+open the journal page that teaches that flow. Land anything at all and every counter for that rod class
+clears: the moment you work it out, the offer stops being on its way.
+
+The limits are the feature:
+
+- **Once per rod class per world.** A player who has seen the page has seen it, and the journal shelf
+  holds every page anyway, so reading it again is a decision they make.
+- **An offer, never a screen.** Nothing opens by itself, nothing blocks the game. Ignored, it costs one
+  line of chat — which is the price of being wrong about someone being stuck.
+- **The page fits the failure, not just the rod.** Eight snapped lines opens the tackle-stress page
+  whatever you are holding; eight fish thrown off opens the drag page.
+- **Honest bookkeeping.** Take the help and the next fish is recorded in the journal as landed after a
+  hint. Nothing is withheld, nothing is locked; the record simply tells the truth.
+
+It is also free diagnostics with nobody's data in it: every offer writes one line to the server log
+saying which rod class and which failure tripped it. The flows that turn out to be unteachable will show
+up there rather than in a bug report nobody bothers to write.
+
 ### A trophy is a big fish again
 
 **Reported as a bug, and it was one.** A trophy was a dice roll: about 4% of catches won it, and the

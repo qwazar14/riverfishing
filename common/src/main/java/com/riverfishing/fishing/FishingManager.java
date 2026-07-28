@@ -403,6 +403,7 @@ public final class FishingManager {
         BiteEngine.Outcome outcome = BiteEngine.evaluate(FishProfileManager.get().all(), ctx, random);
         if (!outcome.willBite()) {
             noBitesHint(sp, ctx);
+            GuideNudge.failure(sp, ctx.rod.rodClass(), GuideNudge.NO_BITES);
             return false;
         }
 
@@ -858,6 +859,7 @@ public final class FishingManager {
             endSession(sp, session);
             sp.stopUsingItem();
             actionbar(sp, Component.translatable("message.riverfishing.retrieve_empty").withStyle(ChatFormatting.GRAY));
+            GuideNudge.failure(sp, session.rodClass, GuideNudge.EMPTY);
         }
     }
 
@@ -875,6 +877,7 @@ public final class FishingManager {
             }
             addLineWear(rod, 3);
             sp.displayClientMessage(Component.translatable("message.riverfishing.snag_lost").withStyle(ChatFormatting.RED), false);
+            GuideNudge.failure(sp, session.rodClass, GuideNudge.SNAG);
         }
         endSession(sp, session);
     }
@@ -954,6 +957,7 @@ public final class FishingManager {
             if (session.bitten && now > session.biteWindowEnd) {
                 endSession(sp, session);
                 actionbar(sp, Component.translatable("message.riverfishing.missed").withStyle(ChatFormatting.GRAY));
+            GuideNudge.failure(sp, session.rodClass, GuideNudge.MISSED);
             }
             return;
         }
@@ -1002,6 +1006,7 @@ public final class FishingManager {
         } else if (now > session.biteWindowEnd) {
             endSession(sp, session);
             actionbar(sp, Component.translatable("message.riverfishing.missed").withStyle(ChatFormatting.GRAY));
+            GuideNudge.failure(sp, session.rodClass, GuideNudge.MISSED);
         }
     }
 
@@ -1115,6 +1120,7 @@ public final class FishingManager {
                     SoundSource.PLAYERS, 0.9f, 1.0f);
             sp.displayClientMessage(Component.translatable("message.riverfishing.line_break",
                     FishItem.approxWeightText(session.weightG)).withStyle(ChatFormatting.RED), false);
+            GuideNudge.failure(sp, session.rodClass, GuideNudge.BREAK);
             com.riverfishing.quest.AnglerAdvancements.grant(sp, "snapped"); // §joke: the 0.3% gut-punch
             endSession(sp, session);
             return;
@@ -1533,6 +1539,7 @@ public final class FishingManager {
             endSession(sp, session);
             actionbar(sp, Component.translatable("message.riverfishing.shake_off",
                     FishItem.approxWeightText(session.weightG)).withStyle(ChatFormatting.YELLOW));
+            GuideNudge.failure(sp, session.rodClass, GuideNudge.SHAKE_OFF);
         }
     }
 
@@ -1545,6 +1552,7 @@ public final class FishingManager {
                 clearFloatTiming(sp);
                 endSession(sp, session);
                 actionbar(sp, Component.translatable("message.riverfishing.missed").withStyle(ChatFormatting.GRAY));
+            GuideNudge.failure(sp, session.rodClass, GuideNudge.MISSED);
             }
             return;
         }
@@ -1656,6 +1664,7 @@ public final class FishingManager {
         if (now - session.fightStartTick > session.fightTimeout) {
             endSession(sp, session);
             actionbar(sp, Component.translatable("message.riverfishing.missed").withStyle(ChatFormatting.GRAY));
+            GuideNudge.failure(sp, session.rodClass, GuideNudge.MISSED);
             return;
         }
         if (session.landProgress >= 1.0) {
@@ -1836,6 +1845,9 @@ public final class FishingManager {
             boolean personalBest = JournalData.isPersonalBest(sp, session.species, session.weightG);
             JournalData.record(sp, session.species, session.weightG); // records (§15)
             if (session.trophy) JournalData.addTrophy(sp);
+            // §guide-nudge: this rod class works for this player now — nothing about it is on its way.
+            GuideNudge.success(sp, session.rodClass);
+            if (GuideNudge.consumeHint(sp)) JournalData.markHinted(sp, session.species);
             if (session.iceFishing) JournalData.addIceCatch(sp); // §winter-quests
             // §species-advancements (0.5.0): tiered + "all species" are CODE-counted — the old JSON
             // hand-listed 25 criteria and drifted from the real roster with every content wave.
@@ -2076,11 +2088,13 @@ public final class FishingManager {
                 sp.displayClientMessage(Component.translatable(
                         leader ? "message.riverfishing.leader_bite_off" : "message.riverfishing.line_break",
                         FishItem.approxWeightText(session.weightG)).withStyle(ChatFormatting.RED), false);
+                GuideNudge.failure(sp, session.rodClass, GuideNudge.BREAK);
             }
         } else {
             level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.6f, 0.7f);
             sp.displayClientMessage(Component.translatable("message.riverfishing.shake_off",
                     FishItem.approxWeightText(session.weightG)).withStyle(ChatFormatting.YELLOW), false);
+            GuideNudge.failure(sp, session.rodClass, GuideNudge.SHAKE_OFF);
         }
         endSession(sp, session);
     }
@@ -2170,6 +2184,7 @@ public final class FishingManager {
         } else {
             endSession(sp, session);
             actionbar(sp, Component.translatable("message.riverfishing.mistimed").withStyle(ChatFormatting.GRAY));
+            GuideNudge.failure(sp, session.rodClass, GuideNudge.MISSED);
         }
     }
 
