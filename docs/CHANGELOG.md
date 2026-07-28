@@ -57,14 +57,14 @@ is a bright silver coin; an old one is deep bronze. This applies to every fish f
 catch, a bait trap, a trade — and to the fish drifting in the water.
 
 On top of that sit **morphs**, and the list is deliberately short: the stunted fish of an over-fished
-pond, the deep-bodied one of an over-stocked pond, lamprey scars, and xanthism — the gold mutation that
-turns up in long-established stocked water. Each is a collection entry of its own on the species' journal
+pond, the deep-bodied one of an over-stocked pond, and xanthism — the gold mutation that turns up in
+long-established stocked water. Each is a collection entry of its own on the species' journal
 page, and each hangs off world state the mod already tracked and had never shown you: fish a swim down and
 it starts handing out stunted fish; a stocked water that has taken hold starts throwing golden ones.
 
-Everything a colour cannot honestly show was cut. An albino, a leucistic fish, a natural hybrid or a
-hooked jaw is a drawing, not a tint, and the carp strains and koi colouring already have their own drawn
-species here. The two morphs that matter most are **shaped** as well as tinted — a stunted fish is drawn
+Everything a colour cannot honestly show was cut. An albino, a leucistic fish, a natural hybrid, a hooked
+jaw, a set of lamprey scars — each of those is a drawing, not a tint, and the carp strains and koi
+colouring already have their own drawn species here. The two morphs that matter most are **shaped** as well as tinted — a stunted fish is drawn
 short and shallow, a humpbacked one short and deep — because a stunted fish that is only a slightly greyer
 small fish is indistinguishable from a small fish.
 

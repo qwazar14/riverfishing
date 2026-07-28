@@ -475,7 +475,6 @@
     "guide.riverfishing.market.text":  "Цены рыбака живые: чем больше вида сдают на сервере, тем дешевле он стоит (до −50%). Рынок отходит за пару дней.\nКаждый день рыбак объявляет ЗАКАЗ ДНЯ — этот вид он берёт по ×2.5, вне зависимости от рынка.",
     "morph.riverfishing.stunted":  "тугорослый",
     "morph.riverfishing.humpbacked":  "горбач",
-    "morph.riverfishing.lamprey_scarred":  "со шрамами от миноги",
     "morph.riverfishing.xanthic":  "ксантизм — золотая форма",
     "journal.riverfishing.morphs":  "Морфы: %s из %s",
     "message.riverfishing.morph_new":  "Новое в дневнике: %s",

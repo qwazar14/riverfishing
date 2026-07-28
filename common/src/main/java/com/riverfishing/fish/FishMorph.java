@@ -22,15 +22,16 @@ import java.util.Set;
  * multiply an old one by.
  *
  * <p><b>Morphs</b> are discrete, documented, real phenomena that sit on top: the stunted fish of an
- * over-fished pond, the deep-bodied one of an over-stocked one, lamprey scars, and xanthism. Each is a
- * collection entry of its own, and none of them is a new sprite — every one is the species' own 256px icon
- * under a different tint, the same pipeline the dyed lures already use.
+ * over-fished pond, the deep-bodied one of an over-stocked one, and xanthism. Each is a collection entry of
+ * its own, and none is a new sprite — every one is the species' own 256px icon under a different tint, the
+ * same pipeline the dyed lures already use.
  *
- * <p>The table is deliberately SHORT. Everything a tint cannot actually show was cut: an albino, a leucistic
- * fish, a hybrid or a hooked jaw is a drawing, not a colour, and the carp strains and koi colouring already
- * have their own drawn species in this mod. What is left is what a colour and a body outline can carry
- * honestly. The two that matter most are shaped as well as tinted, because a stunted fish that is merely a
- * slightly greyer small fish is indistinguishable from a small fish.
+ * <p>The table is deliberately SHORT, and the test each entry had to pass is whether a COLOUR AND AN
+ * OUTLINE can carry it honestly. An albino, a leucistic fish, a natural hybrid, a hooked jaw or a set of
+ * lamprey scars is a drawing, and a tint pretending to be one is worse than no entry at all; the carp
+ * strains and koi colouring already have their own drawn species here. What is left, the two that carry the
+ * pressure and stocking simulations, is shaped as well as tinted — a stunted fish that is merely a slightly
+ * greyer small fish is indistinguishable from a small fish.
  *
  * <p>What makes them worth having is the <b>trigger</b> column. Every morph hangs off world state the mod
  * already tracks and has so far kept invisible: a hammered swim hands out stunted fish, a long-settled
@@ -50,9 +51,7 @@ public final class FishMorph {
         /** A swim that has been fished down: the surplus for this species is negative. */
         OVERFISHED,
         /** A swim carrying far more of this species than it should — an over-stocked pond. */
-        CROWDED,
-        /** A big specimen for its species: it has been alive a long time. */
-        OLD
+        CROWDED
     }
 
     /**
@@ -91,10 +90,6 @@ public final class FishMorph {
             // dorsal. The body is the whole diagnosis, so the sprite carries it — a fifth taller and a
             // seventh shorter, which is exactly the silhouette every carp farmer complains about.
             new Def("humpbacked", 0xA98A4E, 0.00f, 0.86f, 1.22f, Trigger.CROWDED, 0.28, of()),
-            // Lampreys ride big fish and leave round scars. Common on old pike and on anything sharing
-            // water with them.
-            new Def("lamprey_scarred", 0xA8AE86, 0.00f, 1.00f, 1.00f, Trigger.OLD, 0.14,
-                    of("pike", "taimen", "salmon", "sturgeon", "sterlet", "cod", "saithe", "burbot")),
             // Xanthism — the gold pigment mutation. Golden tench and golden rudd are sold as ornamentals
             // for exactly this reason, and they turn up in established stocked water.
             new Def("xanthic", 0xE8B23C, 0.10f, 1.00f, 1.00f, Trigger.SETTLED, 0.07,
@@ -139,7 +134,6 @@ public final class FishMorph {
                 case SETTLED -> settled;
                 case OVERFISHED -> surplus < -0.25 && age < 0.45;
                 case CROWDED -> surplus > 0.5 && age > 0.5;
-                case OLD -> age > 0.7;
             };
             if (allowed && rng.nextDouble() < d.chance) return d;
         }

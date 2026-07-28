@@ -475,7 +475,6 @@
     "guide.riverfishing.market.text":  "The fisherman's prices are alive: the more of a species the server sells, the cheaper it gets (down to −50%). The market recovers in a couple of days.\nEvery day he names an ORDER OF THE DAY — that species pays ×2.5, market be damned.",
     "morph.riverfishing.stunted":  "stunted",
     "morph.riverfishing.humpbacked":  "humpbacked",
-    "morph.riverfishing.lamprey_scarred":  "lamprey-scarred",
     "morph.riverfishing.xanthic":  "xanthic — golden form",
     "journal.riverfishing.morphs":  "Variants: %s of %s",
     "message.riverfishing.morph_new":  "New in the journal: %s",
