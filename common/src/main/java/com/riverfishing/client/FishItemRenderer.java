@@ -75,7 +75,11 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         // Cancel one of the ItemRenderer's centring translations (see RodItemRenderer) and scale the
         // sprite about its centre so a longer fish simply reads bigger.
         pose.translate(0.5, 0.5, 0.5);
-        pose.scale(s, s, s);
+        // §morph-shape: a stunted fish is short and thin for its weight, a humpbacked one short and deep.
+        // Neither reads from colour, so the sprite itself is stretched — a different silhouette out of the
+        // same drawing, which is the only honest way to show a body-shape morph without new art.
+        float[] sh = com.riverfishing.fish.FishMorph.stretch(FishItem.getMorph(stack));
+        pose.scale(s * sh[0], s * sh[1], s);
         ItemRenderer ir = mc.getItemRenderer();
         // §morph: the multiply tint arrives through the registered item colour, but multiplying can only
         // ever darken. A young fish is PALER than its own sprite and an albino is nearly white, so the

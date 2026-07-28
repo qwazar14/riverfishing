@@ -21,11 +21,16 @@ import java.util.Set;
  * who has held both notices. Two knobs do it: how much white to wash a young fish with, and what colour to
  * multiply an old one by.
  *
- * <p><b>Morphs</b> are discrete, documented, real phenomena that sit on top: xanthism, albinism, leucism,
- * the scale patterns of carp strains, natural hybrids, lamprey scars, the hooked jaw of an old male, the
- * stunted fish of an over-fished pond and the deep-bodied one of an over-stocked one. Each is a collection
- * entry of its own. NONE of them is a new sprite — every one is the species' own 256px icon under a
- * different tint, the same pipeline the dyed lures already use.
+ * <p><b>Morphs</b> are discrete, documented, real phenomena that sit on top: the stunted fish of an
+ * over-fished pond, the deep-bodied one of an over-stocked one, lamprey scars, and xanthism. Each is a
+ * collection entry of its own, and none of them is a new sprite — every one is the species' own 256px icon
+ * under a different tint, the same pipeline the dyed lures already use.
+ *
+ * <p>The table is deliberately SHORT. Everything a tint cannot actually show was cut: an albino, a leucistic
+ * fish, a hybrid or a hooked jaw is a drawing, not a colour, and the carp strains and koi colouring already
+ * have their own drawn species in this mod. What is left is what a colour and a body outline can carry
+ * honestly. The two that matter most are shaped as well as tinted, because a stunted fish that is merely a
+ * slightly greyer small fish is indistinguishable from a small fish.
  *
  * <p>What makes them worth having is the <b>trigger</b> column. Every morph hangs off world state the mod
  * already tracks and has so far kept invisible: a hammered swim hands out stunted fish, a long-settled
@@ -40,8 +45,6 @@ public final class FishMorph {
 
     /** What has to be true of the water, or of the fish, for a morph to be possible at all. */
     public enum Trigger {
-        /** Rare everywhere, conditioned on nothing. Genuine one-in-many-hundreds oddities. */
-        ANYWHERE,
         /** A water this species was stocked into and has settled in — an old, established population. */
         SETTLED,
         /** A swim that has been fished down: the surplus for this species is negative. */
@@ -57,12 +60,15 @@ public final class FishMorph {
      *
      * @param id      the lang key suffix and the journal's own record of it
      * @param tint    multiply colour over the species' sprite — can darken and shift hue, never lighten
-     * @param pale    0..1 wash of white, which is how a fish gets LIGHTER than its own sprite (albinos)
+     * @param pale    0..1 wash of white, which is how a fish gets LIGHTER than its own sprite
+     * @param stretchX horizontal scale of the sprite: under 1 is a fish short for its weight
+     * @param stretchY vertical scale: over 1 is a deep-bodied fish
      * @param trigger the world state that allows it
      * @param chance  probability per landed fish once the trigger is satisfied
      * @param species the species it occurs in; empty means every species
      */
-    public record Def(String id, int tint, float pale, Trigger trigger, double chance, Set<String> species) {
+    public record Def(String id, int tint, float pale, float stretchX, float stretchY,
+                      Trigger trigger, double chance, Set<String> species) {
         boolean appliesTo(String speciesPath) {
             return species.isEmpty() || species.contains(speciesPath);
         }
@@ -77,51 +83,22 @@ public final class FishMorph {
      * so the specific and the condition-driven are listed above the merely rare.
      */
     private static final List<Def> TABLE = List.of(
-            // --- what the simulations look like -------------------------------------------------------
-            // A pond fished to the bone grows fish that never fill out. This is the single most common
-            // morph on purpose: it is the mod telling you what you did to the water.
-            new Def("stunted", 0x9C9C8C, 0.05f, Trigger.OVERFISHED, 0.40, of()),
+            // A pond fished to the bone grows fish that never fill out: short, thin, and dull with it.
+            // The tint alone was not enough to tell one from an ordinary small fish, so this one is also
+            // SHAPED — 10% shorter and 14% shallower than the species should be at that weight.
+            new Def("stunted", 0x7E8474, 0.00f, 0.90f, 0.86f, Trigger.OVERFISHED, 0.40, of()),
             // Too many fish, too much feed, not enough room: short, deep-bodied, humped in front of the
-            // dorsal. Every carp farmer has seen it.
-            new Def("humpbacked", 0xB8A98C, 0.00f, Trigger.CROWDED, 0.28, of()),
-            // An old male that has spent seasons on the spawning grounds: the lower jaw hooks (kype).
-            new Def("hook_jawed", 0xB79A5E, 0.00f, Trigger.OLD, 0.30,
-                    of("salmon", "pink_salmon", "trout", "rainbow_trout", "char", "taimen", "lenok", "pike")),
-            // Lampreys ride big fish and leave round scars. Common on old pike and on anything that shares
+            // dorsal. The body is the whole diagnosis, so the sprite carries it — a fifth taller and a
+            // seventh shorter, which is exactly the silhouette every carp farmer complains about.
+            new Def("humpbacked", 0xA98A4E, 0.00f, 0.86f, 1.22f, Trigger.CROWDED, 0.28, of()),
+            // Lampreys ride big fish and leave round scars. Common on old pike and on anything sharing
             // water with them.
-            new Def("lamprey_scarred", 0xA8AE86, 0.00f, Trigger.OLD, 0.14,
+            new Def("lamprey_scarred", 0xA8AE86, 0.00f, 1.00f, 1.00f, Trigger.OLD, 0.14,
                     of("pike", "taimen", "salmon", "sturgeon", "sterlet", "cod", "saithe", "burbot")),
-
-            // --- carp strains: the same fish, three coats ---------------------------------------------
-            // The wild, fully-scaled coat resurfacing in a stocked pond of mirror carp.
-            new Def("fully_scaled", 0xC9A96A, 0.00f, Trigger.SETTLED, 0.12,
-                    of("carp", "mirror_carp", "wild_carp")),
-            // The "Hungarian" linear: one row of scales along the lateral line and nothing else.
-            new Def("linear", 0xD8CBA6, 0.12f, Trigger.SETTLED, 0.10,
-                    of("carp", "mirror_carp", "wild_carp")),
             // Xanthism — the gold pigment mutation. Golden tench and golden rudd are sold as ornamentals
             // for exactly this reason, and they turn up in established stocked water.
-            new Def("xanthic", 0xE8B23C, 0.10f, Trigger.SETTLED, 0.07,
-                    of("tench", "roach", "rudd", "crucian_carp", "carp")),
-
-            // --- natural hybrids ---------------------------------------------------------------------
-            // Roach × bream is the classic: bream's body, roach's fins, and it fools everyone.
-            new Def("hybrid_roach_bream", 0xD5D2BE, 0.15f, Trigger.ANYWHERE, 0.020,
-                    of("roach", "bream", "white_bream")),
-            // Ide × chub, the other one that starts arguments on the bank.
-            new Def("hybrid_ide_chub", 0xD9C9A8, 0.10f, Trigger.ANYWHERE, 0.018, of("ide", "chub")),
-
-            // --- the genuine rarities ----------------------------------------------------------------
-            // Leucism: pigment gone, eyes normal. Bream and their relatives throw these.
-            new Def("leucistic", 0xF2ECDC, 0.45f, Trigger.ANYWHERE, 0.006,
-                    of("bream", "white_bream", "blue_bream", "white_eye_bream", "roach", "perch")),
-            // Koi colouring surfacing in an ordinary carp — the ancestry showing through.
-            new Def("koi_coloured", 0xF0785A, 0.25f, Trigger.ANYWHERE, 0.004,
-                    of("carp", "wild_carp", "mirror_carp", "crucian_carp")),
-            // Albinism. The rarest thing in the table, and it belongs on the catfish: an albino wels is
-            // the fish every angler has seen a photograph of and nobody has caught.
-            new Def("albino", 0xFFEFE6, 0.80f, Trigger.ANYWHERE, 0.002,
-                    of("catfish", "channel_catfish", "sturgeon", "sterlet", "burbot", "eel"))
+            new Def("xanthic", 0xE8B23C, 0.10f, 1.00f, 1.00f, Trigger.SETTLED, 0.07,
+                    of("tench", "roach", "rudd", "crucian_carp", "carp"))
     );
 
     /** Every morph a species can ever show, in table order — the journal's row for that fish. */
@@ -159,7 +136,6 @@ public final class FishMorph {
         for (Def d : TABLE) {
             if (!d.appliesTo(speciesPath)) continue;
             boolean allowed = switch (d.trigger) {
-                case ANYWHERE -> true;
                 case SETTLED -> settled;
                 case OVERFISHED -> surplus < -0.25 && age < 0.45;
                 case CROWDED -> surplus > 0.5 && age > 0.5;
@@ -261,6 +237,17 @@ public final class FishMorph {
         Def d = morphId == null || morphId.isEmpty() ? null : byId(morphId);
         return Math.min(1f, d == null ? young : Math.max(d.pale, young * 0.5f));
     }
+
+    /**
+     * How this specimen's sprite is stretched, {x, y}. Colour alone could not tell a stunted fish from a
+     * small ordinary one — the whole point of both shape morphs is the BODY, so the body is what changes.
+     */
+    public static float[] stretch(String morphId) {
+        Def d = morphId == null || morphId.isEmpty() ? null : byId(morphId);
+        return d == null ? NO_STRETCH : new float[]{d.stretchX(), d.stretchY()};
+    }
+
+    private static final float[] NO_STRETCH = {1f, 1f};
 
     private static int lerpRgb(int from, int to, float t) {
         t = Mth.clamp(t, 0f, 1f);

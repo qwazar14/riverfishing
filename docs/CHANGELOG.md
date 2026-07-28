@@ -56,11 +56,17 @@ own size: young fish are pale and silvery, old ones darken into their species' a
 is a bright silver coin; an old one is deep bronze. This applies to every fish from every source — a
 catch, a bait trap, a trade — and to the fish drifting in the water.
 
-On top of that sit **morphs**: xanthism, albinism, leucism, the scale patterns of carp strains, natural
-hybrids, lamprey scars, the hooked jaw of an old male, the stunted fish of an over-fished pond and the
-deep-bodied one of an over-stocked one. Each is a collection entry of its own on the species' journal
+On top of that sit **morphs**, and the list is deliberately short: the stunted fish of an over-fished
+pond, the deep-bodied one of an over-stocked pond, lamprey scars, and xanthism — the gold mutation that
+turns up in long-established stocked water. Each is a collection entry of its own on the species' journal
 page, and each hangs off world state the mod already tracked and had never shown you: fish a swim down and
-it starts handing out stunted fish; a stocked water that has taken hold starts throwing colour morphs.
+it starts handing out stunted fish; a stocked water that has taken hold starts throwing golden ones.
+
+Everything a colour cannot honestly show was cut. An albino, a leucistic fish, a natural hybrid or a
+hooked jaw is a drawing, not a tint, and the carp strains and koi colouring already have their own drawn
+species here. The two morphs that matter most are **shaped** as well as tinted — a stunted fish is drawn
+short and shallow, a humpbacked one short and deep — because a stunted fish that is only a slightly greyer
+small fish is indistinguishable from a small fish.
 
 **Not one new drawing.** Every morph is the species' own icon under a different tint and a whitening pass,
 from one table shared by the item, the journal and the water.
