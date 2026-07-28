@@ -32,9 +32,16 @@ import net.minecraft.world.item.ItemStack;
  */
 public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
     private static final int CELL = KeepnetMenu.CELL;
-    /** Roughly how much of a fish icon's square canvas the fish itself fills, across and down. */
-    private static final float ICON_W = 16f;
-    private static final float ICON_H = 7f;
+    /**
+     * §keepnet-tune: the three numbers that decide how big a fish is drawn in its footprint. They are
+     * mutable statics rather than constants so {@code /rfnet} can dial them in with the box open — the
+     * same arrangement the in-hand rod pose uses, and for the same reason: this is a look-at-it decision,
+     * not a compute-it one. Whatever ends up looking right gets pasted back here as the default.
+     */
+    public static float iconScale = 1.0f;
+    /** How much of its square icon a fish fills, across and down. Bigger numbers draw the fish smaller. */
+    public static float canvasW = 16f;
+    public static float canvasH = 7f;
 
     /** Which way round the thing on the cursor goes down. Client state: it is a property of the pointer. */
     private int rot;
@@ -150,11 +157,12 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
      * LENGTH, which here would multiply two versions of the same fact and make a catfish burst out of its
      * own footprint; inside the grid the footprint IS the statement about size.
      *
-     * <p>The icon's square canvas holds a fish about {@link #ICON_W} across and {@link #ICON_H} tall, so
+     * <p>The icon's square canvas holds a fish about {@link #canvasW} across and {@link #canvasH} tall, so
      * the scale is whichever of the two fits — that is what stops a 4x1 eel being drawn four cells tall.
+     * All three numbers are live-tunable through {@code /rfnet}.
      */
     private void drawInFootprint(GuiGraphics g, ItemStack stack, int px, int py, int cw, int ch) {
-        float scale = Math.min(cw * CELL / ICON_W, ch * CELL / ICON_H);
+        float scale = Math.min(cw * CELL / canvasW, ch * CELL / canvasH) * iconScale;
         FishItemRenderer.gridScale = scale;
         g.pose().pushPose();
         // renderItem draws a 16x16 at the given corner, so centre the scaled 16x16 on the footprint.

@@ -46,6 +46,8 @@ public final class ClientInit {
 
         // /rfrod live pose debugger (Forge RegisterClientCommandsEvent â Architectury client command).
         ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> RodDebugCommand.register(dispatcher));
+        // §keepnet-tune: live sizing for the fish in the grid, dialled in with the box open.
+        ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> KeepnetDebugCommand.register(dispatcher));
 
         // Platform-only event hooks (in-world line render + extra-model bake) â no registry objects.
         ClientPlatform.registerExtraModels();
