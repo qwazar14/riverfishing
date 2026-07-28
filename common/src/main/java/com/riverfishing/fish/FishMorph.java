@@ -243,7 +243,9 @@ public final class FishMorph {
      */
     public static int tint(String speciesPath, double age, String morphId) {
         Age a = AGE.getOrDefault(speciesPath, AGE_DEFAULT);
-        int base = lerpRgb(0xFFFFFF, a.oldTint, (float) age);
+        // A TYPICAL fish is the sprite as drawn — untinted. Only the ends of the range move: the shading
+        // has to read as "this one is young / this one is old", not as a filter over the whole mod.
+        int base = lerpRgb(0xFFFFFF, a.oldTint, (float) Math.max(0.0, (age - 0.5) * 2.0));
         Def d = morphId == null || morphId.isEmpty() ? null : byId(morphId);
         // Multiplying the two would double-darken an old morph into mud; the morph's own colour is the
         // statement, so it wins, nudged by age rather than stacked with it.
@@ -254,7 +256,8 @@ public final class FishMorph {
     /** How much white to wash over the sprite, 0..1: young fish are pale, and so are pale morphs. */
     public static float pale(String speciesPath, double age, String morphId) {
         Age a = AGE.getOrDefault(speciesPath, AGE_DEFAULT);
-        float young = (float) (a.youngPale * (1.0 - age));
+        // Mirror of the tint: nothing at all on a typical fish, full wash on the smallest.
+        float young = (float) (a.youngPale * Math.max(0.0, (0.5 - age) * 2.0));
         Def d = morphId == null || morphId.isEmpty() ? null : byId(morphId);
         return Math.min(1f, d == null ? young : Math.max(d.pale, young * 0.5f));
     }
