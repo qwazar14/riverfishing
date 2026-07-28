@@ -1,6 +1,8 @@
 package com.riverfishing.client;
 
+import com.riverfishing.network.FightInputPacket;
 import com.riverfishing.network.LineSyncPacket;
+import com.riverfishing.network.ModNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -27,12 +29,27 @@ public final class ClientLineState {
         public float smoothTension;    // eased for the in-hand bend
         public boolean fighting;       // §pump-reel: the fight is on
         public boolean running;        // §pump-reel: the fish is taking line RIGHT NOW
+        /** §fight-course: FightCourse.ordinal() of the current run, 0 when it is not running. */
+        public byte course;
+        /** Eased lean of the rod tip, in degrees: x = sideways, y = up/down. */
+        public float leanYaw;
+        public float leanPitch;
         public long lastUpdate;        // client game time of the last packet (staleness check)
 
         /** Eases the rendered progress toward the server value; call once per frame. */
         public void tickSmoothing(float frameSeconds) {
             smoothProgress = Mth.lerp(Math.min(1f, frameSeconds * 6f), smoothProgress, progress);
             smoothTension = Mth.lerp(Math.min(1f, frameSeconds * 8f), smoothTension, tension);
+            // §fight-course: the tip is DRAGGED the way the fish is going — that is the read, and it is
+            // also what physically happens. Eased hard enough to be unmistakable but not snappy, so a
+            // run reads as the rod being pulled over rather than as the item teleporting.
+            // The sign is what the bar says, not the opposite of it: a fish going LEFT drags the tip
+            // LEFT. The first build had these the wrong way round and the two cues contradicted.
+            float ty = course == 1 ? 1f : course == 2 ? -1f : 0f;
+            float tp = course == 3 ? 1f : course == 4 ? -1f : 0f;
+            float k = Math.min(1f, frameSeconds * 5f);
+            leanYaw = Mth.lerp(k, leanYaw, ty * RodHandTransform.COURSE_YAW);
+            leanPitch = Mth.lerp(k, leanPitch, tp * RodHandTransform.COURSE_PITCH);
         }
     }
 
@@ -62,9 +79,50 @@ public final class ClientLineState {
         line.tension = p.tension;
         line.fighting = p.fighting;
         line.running = p.running;
+        line.course = p.course;
         line.lastUpdate = Minecraft.getInstance().level != null
                 ? Minecraft.getInstance().level.getGameTime() : 0;
     }
+
+    /**
+     * §fight-course: poll the movement keys during our own fight and tell the server when they change.
+     *
+     * <p>Polled rather than hooked because this version of MC only ships raw movement input to the server
+     * for players riding a vehicle. Only edges are sent, so a whole fight is a handful of bytes; leaving the
+     * fight sends one final "hands off".
+     */
+    public static void pollFightInput() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        Line own = LINES.get(mc.player.getId());
+        byte dir = FightInputPacket.NONE;
+        if (own != null && own.fighting && mc.screen == null) {
+            var o = mc.options;
+            if (o.keyLeft.isDown()) dir = FightInputPacket.PULL_LEFT;
+            else if (o.keyRight.isDown()) dir = FightInputPacket.PULL_RIGHT;
+            else if (o.keyUp.isDown()) dir = FightInputPacket.PUSH;
+            else if (o.keyDown.isDown()) dir = FightInputPacket.LIFT;
+        }
+        if (dir != sentDir) {
+            sentDir = dir;
+            ModNetwork.toServer(new FightInputPacket(dir));
+        }
+    }
+
+    private static byte sentDir;
+
+    /**
+     * §fight-course: the local angler's rod lean, {yaw, pitch} in degrees. Zero when nothing is running.
+     * Only the local player's rod is posed by {@link RodHandTransform}, so only theirs is asked for.
+     */
+    public static float[] ownLean() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return NO_LEAN;
+        Line line = LINES.get(mc.player.getId());
+        return line == null ? NO_LEAN : new float[]{line.leanYaw, line.leanPitch};
+    }
+
+    private static final float[] NO_LEAN = {0f, 0f};
 
     /** All visible lines, keyed by angler entity id — the renderer iterates (and expires) these. */
     public static Map<Integer, Line> lines() {

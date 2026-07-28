@@ -20,6 +20,7 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -148,10 +149,22 @@ public class JournalScreen extends Screen {
         addGuide("biggame", modStack("yellowfin_tuna"));
         addGuide("legendary", modStack("blue_marlin"));
         addGuide("community", modStack("fish_finder"));
+        // §spook: right after the population page — one says what lives here, the other says why it will
+        // not come near you. Boots, because the whole mechanic is about how you walk up to the water.
+        addGuide("spook", new ItemStack(net.minecraft.world.item.Items.LEATHER_BOOTS));
+        // §keepnet: the catch, then §tackle-box: the tackle. Two boxes, two pages, side by side.
+        addGuide("keepnet", modStack("keepnet_medium"));
         addGuide("tacklebench", modStack("fishing_stall"));
+        // §tackle-box: next to the bench, because they are the same subject — one ties the tackle, the
+        // other is where it lives afterwards.
+        addGuide("tacklebox", modStack("tackle_box_medium"));
         addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
         addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
-        // §discord: last on the shelf on purpose — the other eleven teach a mechanic, this one is where
+        // §cull: after every page that teaches fishing, because this one is not for anglers — it is the
+        // operator's tool, and a survival player will never hold it. Still documented here rather than
+        // nowhere: the person who needs it is reading this book on a server they run.
+        addGuide("cull", modStack("electro_rod"));
+        // §discord: last on the shelf on purpose — every other page teaches a mechanic, this one is where
         // to go when one of them misbehaves. Note the id is NOT "community": that is taken by the guide
         // about a water's own fish population.
         addGuide("discord", new ItemStack(net.minecraft.world.item.Items.PLAYER_HEAD));
@@ -186,7 +199,25 @@ public class JournalScreen extends Screen {
     }
 
     public static void open(CompoundTag data) {
+        open(data, "");
+    }
+
+    /**
+     * §guide-nudge: open straight on a guide page when the player took up the offer of help. An offer
+     * that lands you on the front page and leaves you to find the right shelf is not help.
+     */
+    public static void open(CompoundTag data, String guideId) {
         JournalScreen next = new JournalScreen(data);
+        if (guideId != null && !guideId.isEmpty()) {
+            for (int i = 0; i < next.guideCat.size(); i++) {
+                if (next.guideCat.get(i).id().equals(guideId)) {
+                    next.tab = TAB_GUIDE;
+                    next.catDetail = i;
+                    Minecraft.getInstance().setScreen(next);
+                    return;
+                }
+            }
+        }
         // A refresh (server re-sends the journal after a skill unlock / quest claim) reuses this same
         // entry point — carry the reader's place over so they don't get thrown back to the FISH tab.
         if (Minecraft.getInstance().screen instanceof JournalScreen prev) {
@@ -383,12 +414,25 @@ public class JournalScreen extends Screen {
             y = line(g, y, "guide.riverfishing.bait", baits(p));
             y = line(g, y, "guide.riverfishing.tackle", tackle(p));
             y = line(g, y, "guide.riverfishing.best", best(p.season, "season") + "  •  " + best(p.time, "time"));
+            // §trophy: the bar, in grams, for THIS species. It is a plain weight threshold now, so it
+            // can simply be stated — the old dice roll was the reason players had to ask.
+            y = line(g, y, "guide.riverfishing.trophy_from",
+                    com.riverfishing.item.FishItem.weightLabel(
+                            com.riverfishing.item.FishItem.trophyThresholdG(p.weightMin, p.weightMax)));
             if (p.minAnglerLevel > 0) {
                 g.drawString(this.font, Component.translatable("jei.riverfishing.level", p.minAnglerLevel),
                         left + 10, y, 0xFFB05A00, false);
                 y += 12;
             }
         }
+        // §guide-nudge: honest bookkeeping. Nothing is withheld and nothing is locked — the record just
+        // says this one was landed after the mod offered a hand.
+        if (com.riverfishing.fishing.JournalData.wasHinted(data, id)) {
+            g.drawString(this.font, Component.translatable("journal.riverfishing.hinted"),
+                    left + 10, y, GuiStyle.GHOST, false);
+            y += 12;
+        }
+        y = morphRow(g, sp, id, y);
         lastCatH = (y + scroll) - contentTop;
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
@@ -420,6 +464,9 @@ public class JournalScreen extends Screen {
         scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - visibleH));
         scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
         int y = contentTop - scroll;
+        // §order-board: the day's order, written out as the recipe for catching it. First on the board
+        // because it is the one task that changes every day — and the one that teaches a habitat.
+        y = orderBoard(g, y);
         int stage = -1;
         int maxStage = maxUnlockedStage();
         List<Component> tooltip = null;
@@ -895,6 +942,45 @@ public class JournalScreen extends Screen {
         g.blit(fishTex(sp), x, y, 16, 16, 0f, 0f, 16, 16, 16, 16);
     }
 
+    /**
+     * §morph: this species' own variant list — every documented form it can show, and whether you have
+     * found it. This is where the mod turns 79 species into a collection several times that size without
+     * a single new drawing: each row is the species' own icon under the morph's tint.
+     *
+     * <p>They live on the species page rather than as extra cells in the grid on purpose. The grid sizes
+     * its columns to fit the panel, and two hundred cells would shred it — and a variant belongs next to
+     * the fish it is a variant OF, not scattered through the alphabet.
+     */
+    private int morphRow(GuiGraphics g, String sp, ResourceLocation id, int y) {
+        java.util.List<com.riverfishing.fish.FishMorph.Def> morphs =
+                com.riverfishing.fish.FishMorph.forSpecies(sp);
+        if (morphs.isEmpty()) return y;
+        int found = 0;
+        for (var d : morphs) {
+            if (com.riverfishing.fishing.JournalData.hasMorph(data, id, d.id())) found++;
+        }
+        y += 6;
+        g.drawString(this.font, Component.translatable("journal.riverfishing.morphs", found, morphs.size()),
+                left + 10, y, GuiStyle.TEXT_HINT, false);
+        y += 13;
+        for (var d : morphs) {
+            boolean have = com.riverfishing.fishing.JournalData.hasMorph(data, id, d.id());
+            if (have) {
+                // The icon is the species' own, under the morph's own multiply — the same number the
+                // fish in your hand and the fish in the water are painted with.
+                int t = d.tint();
+                g.setColor(((t >> 16) & 0xFF) / 255f, ((t >> 8) & 0xFF) / 255f, (t & 0xFF) / 255f, 1f);
+                drawFishIcon(g, sp, left + 12, y - 4);
+                g.setColor(1f, 1f, 1f, 1f);
+            }
+            g.drawString(this.font,
+                    have ? Component.translatable("morph.riverfishing." + d.id()) : Component.literal("???"),
+                    left + 32, y, have ? GuiStyle.TEXT : GuiStyle.GHOST, false);
+            y += 14;
+        }
+        return y;
+    }
+
     private int line(GuiGraphics g, int y, String labelKey, String value) {
         Component label = Component.translatable(labelKey);
         g.drawString(this.font, label, left + 10, y, GuiStyle.TEXT_HINT, false);
@@ -909,6 +995,86 @@ public class JournalScreen extends Screen {
 
     private static String weight(int g) {
         return com.riverfishing.item.FishItem.weightLabel(g); // §i18n: localized units (kg/g ↔ кг/г)
+    }
+
+    /**
+     * §order-board: today's order as a checklist — habitat, depth, season, hour, bait, rig, rod — with a
+     * tick against every condition the player already meets where they stand.
+     *
+     * <p>The rows arrive from the server as LANG KEYS, never as sentences, so this draws them in the
+     * reader's own language and works on a multiplayer client, which has no fish profiles at all. The tick
+     * state is a snapshot taken when the journal was opened: this is a book you consult, not a HUD.
+     */
+    private int orderBoard(GuiGraphics g, int y) {
+        CompoundTag order = data.getCompound("order");
+        if (order.isEmpty() || !order.contains("rows")) return y;
+
+        String sp = order.getString("species");
+        g.drawString(this.font, Component.translatable("journal.riverfishing.order_of_the_day"),
+                left + 10, y, 0xFFB0842C, false);
+        y += 12;
+        drawFishIcon(g, sp, left + 10, y - 3);
+        g.drawString(this.font, Component.translatable("fish.riverfishing." + sp), left + 30, y,
+                GuiStyle.TEXT, false);
+        y += 15;
+
+        ListTag rows = order.getList("rows", 10);
+        for (int i = 0; i < rows.size(); i++) {
+            CompoundTag r = rows.getCompound(i);
+            boolean info = r.getBoolean("info");
+            boolean ok = r.getBoolean("ok");
+            // A tick, an empty box, or a dash for a line that states a fact rather than sets a condition.
+            String mark = info ? "-" : ok ? "\u2714" : "\u2610";
+            int mc = info ? GuiStyle.GHOST : ok ? 0xFF2E7D32 : GuiStyle.TEXT_HINT;
+            g.drawString(this.font, mark, left + 12, y, mc, false);
+
+            Component label = Component.translatable(r.getString("l"));
+            g.drawString(this.font, label, left + 24, y, GuiStyle.TEXT_HINT, false);
+            int vx = left + 28 + this.font.width(label);
+
+            String value;
+            if (r.contains("t")) {
+                value = r.getString("t");
+            } else {
+                StringBuilder sb = new StringBuilder();
+                ListTag keys = r.getList("v", 8);
+                for (int k = 0; k < keys.size(); k++) {
+                    if (sb.length() > 0) sb.append(", ");
+                    sb.append(Component.translatable(keys.getString(k)).getString());
+                }
+                value = sb.length() == 0 ? "\u2014" : sb.toString();
+            }
+            for (net.minecraft.util.FormattedCharSequence seq
+                    : this.font.split(Component.literal(value), W - (vx - left) - 12)) {
+                g.drawString(this.font, seq, vx, y, ok || info ? GuiStyle.TEXT : GuiStyle.TEXT_HINT, false);
+                y += 11;
+            }
+        }
+
+        // The ladder: a fixed spine under the daily churn, so the grind visibly goes somewhere.
+        int filled = order.getInt("filled");
+        int every = Math.max(1, order.getInt("every"));
+        ListTag ladder = order.getList("ladder", 8);
+        y += 4;
+        g.drawString(this.font, Component.translatable("journal.riverfishing.order_progress", filled),
+                left + 10, y, GuiStyle.TEXT_HINT, false);
+        y += 12;
+        int lx = left + 12;
+        for (int i = 0; i < ladder.size(); i++) {
+            int at = (i + 1) * every;
+            boolean got = filled >= at;
+            ItemStack stack = new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM
+                    .get(RiverFishing.id(ladder.getString(i))));
+            if (!stack.isEmpty()) {
+                g.renderFakeItem(stack, lx, y);
+                if (!got) g.fill(lx, y, lx + 16, y + 16, 0xA0202020);   // a rung still ahead of you
+                String n = String.valueOf(at);
+                g.drawString(this.font, n, lx + 16 - this.font.width(n), y + 10,
+                        got ? 0xFF2E7D32 : GuiStyle.GHOST, false);
+            }
+            lx += 20;
+        }
+        return y + 22;
     }
 
     private static String waters(FishProfile p) {

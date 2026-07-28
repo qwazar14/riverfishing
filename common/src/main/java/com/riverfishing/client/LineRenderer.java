@@ -36,6 +36,7 @@ public final class LineRenderer {
         Matrix4f m = pose.last().pose();
         Matrix3f nrm = pose.last().normal();
 
+        ClientLineState.pollFightInput(); // §fight-course: WASD is the fight input, and nothing else polls it
         var it = ClientLineState.lines().entrySet().iterator();
         boolean drew = false;
         while (it.hasNext()) {
@@ -177,8 +178,14 @@ public final class LineRenderer {
             int bend = RodItemRenderer.liveBend();
             float tipDx = RodItemRenderer.TIP_BEND_OFFSET[bend][0];
             float tipDy = RodItemRenderer.TIP_BEND_OFFSET[bend][1];
+            // §fight-course: a run drags the tip over, so the anchor has to travel with it or the line
+            // visibly leaves the rod. Added OUTSIDE the arm multiplier because a lean is a direction on
+            // screen, not a distance out along the hand.
+            float[] lean = ClientLineState.ownLean();
+            float leanX = lean[0] * RodHandTransform.COURSE_TIP_X;
+            float leanY = lean[1] * RodHandTransform.COURSE_TIP_Y;
             Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane()
-                    .getPointOnPlane(arm * (0.525f + tipDx), -0.1f + tipDy)
+                    .getPointOnPlane(arm * (0.525f + tipDx) + leanX, -0.1f + tipDy + leanY)
                     .scale(fovScale)
                     .yRot(swing * 0.5f)
                     .xRot(-swing * 0.7f);

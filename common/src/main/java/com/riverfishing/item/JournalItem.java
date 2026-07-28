@@ -27,7 +27,8 @@ public class JournalItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
-            ModNetwork.toPlayer(sp, new JournalOpenPacket(exportFor(sp)));
+            // §order-board: the day's order and its checklist ride along with the journal.
+            ModNetwork.toPlayer(sp, new JournalOpenPacket(JournalOpenPacket.withOrder(exportFor(sp), sp)));
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }

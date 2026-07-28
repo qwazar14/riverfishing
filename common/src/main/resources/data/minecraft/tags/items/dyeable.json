@@ -9,6 +9,10 @@
     "riverfishing:jig",
     "riverfishing:castmaster",
     "riverfishing:octopus_jig",
-    "riverfishing:giant_spoon"
+    "riverfishing:giant_spoon",
+    "riverfishing:tackle_box_small",
+    "riverfishing:tackle_box_medium",
+    "riverfishing:tackle_box_large",
+    "riverfishing:tackle_box_huge"
   ]
 }

@@ -60,6 +60,28 @@ public final class RodHandTransform {
                 || ctx == ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
     }
 
+    /**
+     * §fight-course: how far the tip is dragged over by a running fish, in degrees. Live-tunable through
+     * {@code /rfrod course <yaw> <pitch>} because it is a look-at-it number, like every other pose value
+     * in this file.
+     */
+    public static float COURSE_YAW = 18f;
+    public static float COURSE_PITCH = 15f;
+    /**
+     * How far the LINE ANCHOR travels per degree of lean, in near-plane units — one coefficient per axis,
+     * because they do not agree in sign. The near plane's horizontal runs one way against the rod's yaw
+     * and its vertical runs the other against the rod's pitch, so a single number put the line right
+     * sideways and inverted vertically. Found in game, which is the only place it could be found.
+     *
+     * <p>The anchor needs its own travel at all because it is computed independently of the item
+     * transform: leaning the pose moves the rod and leaves the line hanging off where the tip used to be.
+     * The bend buckets already carry TIP_BEND_OFFSET for exactly this reason.
+     *
+     * <p>Both tunable through {@code /rfrod coursetip <x> <y>}, signed.
+     */
+    public static float COURSE_TIP_X = -0.005f;
+    public static float COURSE_TIP_Y = 0.005f;
+
     /** Applies the hand transform for a hand context (no-op otherwise). Each hand uses its own array. */
     public static void apply(PoseStack pose, ItemDisplayContext ctx) {
         float[] a = switch (ctx) {
@@ -70,9 +92,14 @@ public final class RodHandTransform {
             default -> null;
         };
         if (a == null) return;
+        // §fight-course: a run drags the tip the way the fish is going. The boss bar names the course,
+        // but the rod is where a player actually reads a fight, and without this the direction did not
+        // land at all.
+        float[] lean = ClientLineState.ownLean();
         pose.translate(a[0] / 16f, a[1] / 16f, a[2] / 16f);
         pose.mulPose(new Quaternionf().rotationXYZ(
-                (float) Math.toRadians(a[3]), (float) Math.toRadians(a[4]), (float) Math.toRadians(a[5])));
+                (float) Math.toRadians(a[3] + lean[1]), (float) Math.toRadians(a[4] + lean[0]),
+                (float) Math.toRadians(a[5])));
         pose.scale(a[6], a[6], a[6]);
     }
 

@@ -237,7 +237,21 @@ public final class ModItems {
 
         // ----- Water analysis (ÃÂ§QoL): player fish finder + admin probe -----
         reg("fish_finder", () -> new com.riverfishing.item.WaterProbeItem(false, props().stacksTo(1)));
+        // §keepnet (0.7.0): the spatial catch box, four tiers of it. Each is its own item so the upgrade
+        // path is a crafting recipe rather than a hidden NBT field.
+        for (com.riverfishing.item.KeepnetTier t : com.riverfishing.item.KeepnetTier.values()) {
+            reg(t.id(), () -> new com.riverfishing.item.KeepnetItem(t, props().stacksTo(1)));
+        }
+        // §tackle-box (0.7.0): four sizes of box for line, hooks, rigs, lures and bait. Each is the
+        // BlockItem of its own block, so one item both opens in the hand and stands on the bank.
+        for (com.riverfishing.item.TackleBoxTier t : com.riverfishing.item.TackleBoxTier.values()) {
+            reg(t.id(), () -> new com.riverfishing.item.TackleBoxItem(
+                    t, ModBlocks.TACKLE_BOXES.get(t).get(), props().stacksTo(1)));
+        }
         reg("hydro_probe", () -> new com.riverfishing.item.WaterProbeItem(true, props().stacksTo(1)));
+        // §cull (0.7.0): the electrofisher — a world-editing tool. No recipe anywhere: it is creative-only
+        // by design, and it refuses to fire outside creative mode as well as being uncraftable.
+        reg("electro_rod", () -> new com.riverfishing.item.ElectroRodItem(props().stacksTo(1)));
 
         // ----- Caught fish: a distinct item + texture per species (Module 8) -----
         for (String sp : FISH_SPECIES) {

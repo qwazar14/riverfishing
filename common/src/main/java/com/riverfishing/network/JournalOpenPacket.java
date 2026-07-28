@@ -12,9 +12,27 @@ public class JournalOpenPacket implements ModNetwork.RfPacket {
     public static final ResourceLocation TYPE = RiverFishing.id("journal_open");
 
     private final CompoundTag data;
+    /** §guide-nudge: a guide page to open on, or "" for the journal's normal front page. */
+    private final String guide;
 
     public JournalOpenPacket(CompoundTag data) {
+        this(data, "");
+    }
+
+    public JournalOpenPacket(CompoundTag data, String guide) {
         this.data = data;
+        this.guide = guide == null ? "" : guide;
+    }
+
+    /**
+     * §order-board: the journal tag carries the order checklist under its own key. The SERVER builds it —
+     * it is the only side that has the fish profiles, the water body and the season — and sends lang keys
+     * rather than sentences, so a client in any language draws it correctly.
+     */
+    public static CompoundTag withOrder(CompoundTag journal, net.minecraft.server.level.ServerPlayer sp) {
+        CompoundTag copy = journal.copy();
+        copy.put("order", com.riverfishing.fishing.OrderBoard.build(sp));
+        return copy;
     }
 
     @Override
@@ -25,14 +43,16 @@ public class JournalOpenPacket implements ModNetwork.RfPacket {
     @Override
     public void write(FriendlyByteBuf buf) {
         buf.writeNbt(data);
+        buf.writeUtf(guide, 32);
     }
 
     public static JournalOpenPacket decode(FriendlyByteBuf buf) {
-        return new JournalOpenPacket(buf.readNbt());
+        return new JournalOpenPacket(buf.readNbt(), buf.readUtf(32));
     }
 
     public void handleClient() {
         EnvExecutor.runInEnv(EnvType.CLIENT,
-                () -> () -> com.riverfishing.client.JournalScreen.open(data == null ? new CompoundTag() : data));
+                () -> () -> com.riverfishing.client.JournalScreen.open(
+                        data == null ? new CompoundTag() : data, guide));
     }
 }
