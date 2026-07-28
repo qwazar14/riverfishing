@@ -29,6 +29,13 @@ public final class RodDebugCommand {
                 .then(ClientCommandRegistrationEvent.literal("show").executes(RodDebugCommand::show))
                 // §fight-course: how hard a running fish drags the tip over. Look at it mid-run and
                 // dial it until the direction reads without the boss bar.
+                .then(ClientCommandRegistrationEvent.literal("coursetip")
+                        .then(ClientCommandRegistrationEvent.argument("v", FloatArgumentType.floatArg(-0.2f, 0.2f))
+                                .executes(c -> {
+                                    RodHandTransform.COURSE_TIP = FloatArgumentType.getFloat(c, "v");
+                                    say(c, String.format("§bcourse tip travel: %.3f", RodHandTransform.COURSE_TIP));
+                                    return 1;
+                                })))
                 .then(ClientCommandRegistrationEvent.literal("course")
                         .then(ClientCommandRegistrationEvent.argument("yaw", FloatArgumentType.floatArg(0f, 60f))
                                 .then(ClientCommandRegistrationEvent.argument("pitch", FloatArgumentType.floatArg(0f, 60f))

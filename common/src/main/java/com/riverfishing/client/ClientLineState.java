@@ -41,7 +41,9 @@ public final class ClientLineState {
             // §fight-course: the tip is DRAGGED the way the fish is going — that is the read, and it is
             // also what physically happens. Eased hard enough to be unmistakable but not snappy, so a
             // run reads as the rod being pulled over rather than as the item teleporting.
-            float ty = course == 1 ? -1f : course == 2 ? 1f : 0f;
+            // The sign is what the bar says, not the opposite of it: a fish going LEFT drags the tip
+            // LEFT. The first build had these the wrong way round and the two cues contradicted.
+            float ty = course == 1 ? 1f : course == 2 ? -1f : 0f;
             float tp = course == 3 ? 1f : course == 4 ? -1f : 0f;
             float k = Math.min(1f, frameSeconds * 5f);
             leanYaw = Mth.lerp(k, leanYaw, ty * RodHandTransform.COURSE_YAW);

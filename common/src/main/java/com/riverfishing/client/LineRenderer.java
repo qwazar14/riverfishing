@@ -177,8 +177,14 @@ public final class LineRenderer {
             int bend = RodItemRenderer.liveBend();
             float tipDx = RodItemRenderer.TIP_BEND_OFFSET[bend][0];
             float tipDy = RodItemRenderer.TIP_BEND_OFFSET[bend][1];
+            // §fight-course: a run drags the tip over, so the anchor has to travel with it or the line
+            // visibly leaves the rod. Added OUTSIDE the arm multiplier because a lean is a direction on
+            // screen, not a distance out along the hand.
+            float[] lean = ClientLineState.ownLean();
+            float leanX = lean[0] * RodHandTransform.COURSE_TIP;
+            float leanY = lean[1] * RodHandTransform.COURSE_TIP;
             Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane()
-                    .getPointOnPlane(arm * (0.525f + tipDx), -0.1f + tipDy)
+                    .getPointOnPlane(arm * (0.525f + tipDx) + leanX, -0.1f + tipDy + leanY)
                     .scale(fovScale)
                     .yRot(swing * 0.5f)
                     .xRot(-swing * 0.7f);
