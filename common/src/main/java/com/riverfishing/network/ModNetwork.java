@@ -40,6 +40,9 @@ public final class ModNetwork {
         // what a standing player presses, so the fight has to be told.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, FightInputPacket.TYPE, FightInputPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §tackle-box: the name field types straight onto the box the player has open.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, TackleBoxRenamePacket.TYPE,
+                TackleBoxRenamePacket.STREAM_CODEC, (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
         // §keepnet: the grid asks, the server decides.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeepnetActionPacket.TYPE, KeepnetActionPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));

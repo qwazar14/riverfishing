@@ -242,6 +242,12 @@ public final class ModItems {
         for (com.riverfishing.item.KeepnetTier t : com.riverfishing.item.KeepnetTier.values()) {
             reg(t.id(), () -> new com.riverfishing.item.KeepnetItem(t, props().stacksTo(1)));
         }
+        // §tackle-box (0.7.0): four sizes of box for line, hooks, rigs, lures and bait. Each is the
+        // BlockItem of its own block, so one item both opens in the hand and stands on the bank.
+        for (com.riverfishing.item.TackleBoxTier t : com.riverfishing.item.TackleBoxTier.values()) {
+            reg(t.id(), () -> new com.riverfishing.item.TackleBoxItem(
+                    t, ModBlocks.TACKLE_BOXES.get(t).get(), props().stacksTo(1)));
+        }
         reg("hydro_probe", () -> new com.riverfishing.item.WaterProbeItem(true, props().stacksTo(1)));
 
         // ----- Caught fish: a distinct item + texture per species (Module 8) -----

@@ -30,5 +30,10 @@ public final class ModRecipes {
             REGISTER.register("crafting_lure_dye",
                     () -> new SimpleCraftingRecipeSerializer<>(com.riverfishing.item.LureDyeRecipe::new));
 
+    // §tackle-box: dye the inserts — colour is how you tell four boxes apart.
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.TackleBoxDyeRecipe>> TACKLE_BOX_DYE =
+            REGISTER.register("crafting_tackle_box_dye",
+                    () -> new SimpleCraftingRecipeSerializer<>(com.riverfishing.item.TackleBoxDyeRecipe::new));
+
     private ModRecipes() {}
 }

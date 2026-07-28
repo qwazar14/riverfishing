@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "riverfishing:item/tackle_box_large",
+    "layer1": "riverfishing:item/tackle_box_large_inserts"
+  }
+}

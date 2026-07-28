@@ -56,5 +56,13 @@ public final class ModBlockEntities {
                     AquariumBlockEntity::new, ModBlocks.AQUARIUM.get()
             ).build(null));
 
+    // §tackle-box (0.7.0): holds the box ITEM, so the placed box and the carried box are one object.
+    public static final RegistrySupplier<BlockEntityType<com.riverfishing.block.TackleBoxBlockEntity>> TACKLE_BOX =
+            REGISTER.register("tackle_box", () -> BlockEntityType.Builder.of(
+                    com.riverfishing.block.TackleBoxBlockEntity::new,
+                    ModBlocks.TACKLE_BOXES.values().stream()
+                            .map(RegistrySupplier::get).toArray(net.minecraft.world.level.block.Block[]::new)
+            ).build(null));
+
     private ModBlockEntities() {}
 }

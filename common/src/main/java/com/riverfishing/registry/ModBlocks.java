@@ -79,6 +79,22 @@ public final class ModBlocks {
             () -> new com.riverfishing.block.BaitCropBlock("barley_seeds",
                     BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)));
 
+    /**
+     * §tackle-box (0.7.0): four sizes of set-down tackle box. Their ITEM is a {@link
+     * com.riverfishing.item.TackleBoxItem} (registered in ModItems) rather than a plain BlockItem, because
+     * the same object has to open in the hand as well as stand on the bank.
+     */
+    public static final java.util.Map<com.riverfishing.item.TackleBoxTier, RegistrySupplier<Block>>
+            TACKLE_BOXES = new java.util.EnumMap<>(com.riverfishing.item.TackleBoxTier.class);
+
+    static {
+        for (com.riverfishing.item.TackleBoxTier t : com.riverfishing.item.TackleBoxTier.values()) {
+            TACKLE_BOXES.put(t, BLOCKS.register(t.id(),
+                    () -> new com.riverfishing.block.TackleBoxBlock(t, BlockBehaviour.Properties.of()
+                            .strength(1.0f).sound(SoundType.WOOD).noOcclusion())));
+        }
+    }
+
     private ModBlocks() {}
 
     private static RegistrySupplier<Block> registerSimple(String name, Supplier<Block> supplier) {

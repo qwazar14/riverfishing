@@ -47,6 +47,19 @@ public final class ClientPlatformImpl {
     public static void registerItemColors() {
     }
 
+    /** §tackle-box: the placed box wears the same dye its item does, read off the block entity. */
+    @SubscribeEvent
+    static void onRegisterBlockColors(net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.Block event) {
+        for (var b : com.riverfishing.registry.ModBlocks.TACKLE_BOXES.values()) {
+            event.register((state, view, pos, tintIndex) -> {
+                if (tintIndex != 1) return -1;
+                return 0xFF000000 | (view != null && pos != null
+                        && view.getBlockEntity(pos) instanceof com.riverfishing.block.TackleBoxBlockEntity be
+                        ? be.color() : 0xE8E6DF);
+            }, b.get());
+        }
+    }
+
     /** §lure-color: tint painted lures by their {@code DyedItemColor} on tint-layer 0. */
     @SubscribeEvent
     static void onRegisterItemColors(net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.Item event) {
@@ -56,6 +69,14 @@ public final class ClientPlatformImpl {
                     stack.get(net.minecraft.core.component.DataComponents.DYED_COLOR);
             return dc != null ? (0xFF000000 | dc.rgb()) : -1;
         };
+        // §tackle-box: the dyed inserts on the item icon (tint layer 1).
+        net.minecraft.client.color.item.ItemColor boxTint = (stack, tintIndex) ->
+                tintIndex == 1 ? (0xFF000000 | com.riverfishing.item.TackleBoxItem.color(stack)) : -1;
+        for (RegistrySupplier<Item> r : ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.TackleBoxItem) {
+                event.register(boxTint, r.get());
+            }
+        }
         for (RegistrySupplier<Item> r : ModItems.ALL) {
             if (r.get() instanceof com.riverfishing.item.BaitItem b && b.artificial()) {
                 event.register(tint, r.get());
@@ -81,6 +102,7 @@ public final class ClientPlatformImpl {
         event.register(ModMenus.RIG.get(), RigScreen::new);
         event.register(ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
         event.register(ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
+        event.register(ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
     }
 
     /**

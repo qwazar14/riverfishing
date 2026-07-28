@@ -37,6 +37,25 @@ public final class ClientPlatformImpl {
                 net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register(tint, r.get());
             }
         }
+        // §tackle-box: the dyed inserts, on the item and on the placed box alike. Both read the same
+        // stack, so a box cannot look one colour in the hand and another on the bank.
+        net.minecraft.client.color.item.ItemColor boxTint = (stack, tintIndex) ->
+                tintIndex == 1 ? (0xFF000000 | com.riverfishing.item.TackleBoxItem.color(stack)) : -1;
+        for (RegistrySupplier<Item> r : ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.TackleBoxItem) {
+                net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register(boxTint, r.get());
+            }
+        }
+        for (var b : com.riverfishing.registry.ModBlocks.TACKLE_BOXES.values()) {
+            net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.BLOCK.register(
+                    (state, view, pos, tintIndex) -> {
+                        if (tintIndex != 1) return -1;
+                        return 0xFF000000 | (view != null && pos != null
+                                && view.getBlockEntity(pos)
+                                        instanceof com.riverfishing.block.TackleBoxBlockEntity be
+                                ? be.color() : 0xE8E6DF);
+                    }, b.get());
+        }
         // §morph: the fish's own colour — age shading and its morph, from the shared table.
         net.minecraft.client.color.item.ItemColor fish = com.riverfishing.client.FishTint::itemColor;
         for (RegistrySupplier<Item> r : ModItems.FISH_ITEMS.values()) {
@@ -53,6 +72,8 @@ public final class ClientPlatformImpl {
                 com.riverfishing.registry.ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
     }
 
     public static void registerItemRenderers() {

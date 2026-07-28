@@ -33,6 +33,11 @@ public final class ModMenus {
             REGISTER.register("keepnet",
                     () -> MenuRegistry.ofExtended(com.riverfishing.menu.KeepnetMenu::fromNetwork));
 
+    // §tackle-box (0.7.0): the box's slots, opened from a hand or from a placed box.
+    public static final RegistrySupplier<MenuType<com.riverfishing.menu.TackleBoxMenu>> TACKLE_BOX =
+            REGISTER.register("tackle_box",
+                    () -> MenuRegistry.ofExtended(com.riverfishing.menu.TackleBoxMenu::fromNetwork));
+
     public static void init() {
         REGISTER.register();
     }
