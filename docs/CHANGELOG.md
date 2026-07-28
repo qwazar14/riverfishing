@@ -94,9 +94,11 @@ distance between you and your hook grew or shrank since the last tick.
   You get one warning; keep walking and it comes off. That is the only way to lose a fish that has nothing
   to do with how strong your line is.
 
-An angler who stands still fishes exactly as before — nothing here punishes not knowing about it. During
-a run your legs win line at the same throttled rate a reel does, so you cannot walk a running fish
-backwards, and a boot on the end of the line has no mouth to spit a hook out of.
+An angler who stands still fishes exactly as before — nothing here punishes not knowing about it. Slack
+only counts **between** runs, because a running fish keeps its own line tight; during a run your legs win
+line at the same throttled rate a reel does, so you cannot walk a running fish backwards. Riding a boat
+is the boat's movement and not yours, and a boot on the end of the line has no mouth to spit a hook out
+of. Backing out of range of your own cast now says so instead of ending the fight in silence.
 
 **The rod shows it.** A run drags the tip over the way the fish is going — left, right, up, down — which
 is both what physically happens and where a player actually reads a fight. The boss bar names the course
