@@ -112,8 +112,10 @@ public final class ClientPlatformImpl {
     public static void registerLevelRenderer() {
         NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent e) -> {
             if (e.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
-            LineRenderer.render(e.getPoseStack(), e.getCamera().getPosition(),
-                    e.getPartialTick().getGameTimeDeltaPartialTick(false));
+            float pt = e.getPartialTick().getGameTimeDeltaPartialTick(false);
+            // §shoal before the line: the fish sit behind the water surface, the line in front of it.
+            com.riverfishing.client.ShoalRenderer.render(e.getPoseStack(), e.getCamera().getPosition(), pt);
+            LineRenderer.render(e.getPoseStack(), e.getCamera().getPosition(), pt);
         });
     }
 

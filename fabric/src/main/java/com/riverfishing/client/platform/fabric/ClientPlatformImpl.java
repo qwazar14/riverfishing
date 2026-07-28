@@ -70,8 +70,12 @@ public final class ClientPlatformImpl {
     }
 
     public static void registerLevelRenderer() {
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(context ->
-                LineRenderer.render(context.matrixStack(), context.camera().getPosition(), context.tickCounter().getGameTimeDeltaPartialTick(false)));
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
+            float pt = context.tickCounter().getGameTimeDeltaPartialTick(false);
+            // §shoal before the line: the fish are behind the water surface, the line is in front of it.
+            com.riverfishing.client.ShoalRenderer.render(context.matrixStack(), context.camera().getPosition(), pt);
+            LineRenderer.render(context.matrixStack(), context.camera().getPosition(), pt);
+        });
     }
 
     /** Vanilla/Fabric ignores the model's "render_type", so wire the non-solid layers up explicitly. */

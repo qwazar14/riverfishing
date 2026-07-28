@@ -47,6 +47,7 @@ public final class ModEvents {
         TickEvent.PLAYER_POST.register(player -> {
             if (player instanceof ServerPlayer sp) {
                 FishingManager.tick(sp);
+                com.riverfishing.fishing.ShoalTracker.tick(sp);  // §shoal: what is visible in the water
                 FishingManager.trollingTick(sp); // trolling v1 (0.5.0): boat-agnostic towing loop
                 announceDailyOrder(sp); // market (0.5.0): one chat line per player per Minecraft day
                 if (sp.tickCount % 10 == 0) {
