@@ -49,7 +49,9 @@ public class TackleBoxScreen extends AbstractContainerScreen<TackleBoxMenu> {
         nameField.setBordered(true);
         nameField.setResponder(this::onNameTyped);
         addRenderableWidget(nameField);
-        setInitialFocus(null);   // typing should move items by hotkey until the player clicks the field
+        // Deliberately NOT setInitialFocus(null): that method dereferences its argument
+        // (listener.nextFocusPath(...)) and threw the moment the box opened. Nothing is focused by
+        // default anyway, which is what we wanted — hotkeys move items until the field is clicked.
     }
 
     private void onNameTyped(String value) {
