@@ -107,9 +107,13 @@ public final class ModBlocks {
 
     static {
         for (com.riverfishing.item.TackleBoxTier t : com.riverfishing.item.TackleBoxTier.values()) {
+            // §26.x: Properties MUST carry their registry id — BlockBehaviour's constructor calls
+            // effectiveDrops(), which dereferences it, so a bare Properties.of() throws "Block id not
+            // set" the moment the block is built. That is what blockProps() is for; the tackle boxes
+            // were the one place that missed it.
             TACKLE_BOXES.put(t, BLOCKS.register(t.id(),
-                    () -> new com.riverfishing.block.TackleBoxBlock(t, BlockBehaviour.Properties.of()
-                            .strength(1.0f).sound(SoundType.WOOD).noOcclusion())));
+                    () -> new com.riverfishing.block.TackleBoxBlock(t,
+                            blockProps(t.id()).strength(1.0f).sound(SoundType.WOOD).noOcclusion())));
         }
     }
 
