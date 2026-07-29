@@ -100,7 +100,10 @@ public final class FishingManager {
             if (session.bossBar != null) {
                 session.bossBar.removeAllPlayers();
             }
-            // §rod-bend: logging out mid-fight would otherwise SAVE a bent rod into the inventory.
+            // §rod-bend §rod-layers: logging out mid-cast would otherwise SAVE the fishing look into
+            // the inventory — a bent rod, or a rod still wearing its line-is-out overlay with no line
+            // in the water. Both flags live in the same custom_model_data, so both are stowed here.
+            com.riverfishing.item.RodData.setLineOut(session.rodStackRef, false);
             com.riverfishing.item.RodData.setBend(session.rodStackRef, 0);
         }
     }
@@ -1606,6 +1609,14 @@ public final class FishingManager {
         // rod TYPE, not session.reelSize (bottom rods can read 0 mid-flow → the old false positive).
         if (session.trophy && (rodType == RodType.POLE || rodType == RodType.BAMBOO || rodType == RodType.STICK)) {
             com.riverfishing.quest.AnglerAdvancements.grant(sp, "trophy_on_pole");
+        }
+        // §26.x: "Trophy" used to be a datapack predicate on the item's NBT. 26.x dropped the tag/nbt
+        // fields from ItemPredicate and the codec IGNORES what it does not know, so the predicate
+        // became empty — and an empty predicate matches everything, handing the goal out for the first
+        // dirt block a player picked up. The condition is a fact the server already knows at exactly
+        // this point, so it is asserted here instead of described in JSON.
+        if (session.trophy) {
+            com.riverfishing.quest.AnglerAdvancements.grant(sp, "trophy");
         }
         // Land a fish mid-frenzy.
         if (isFrenzy(level)) {

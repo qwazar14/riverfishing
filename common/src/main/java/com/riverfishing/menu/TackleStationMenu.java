@@ -54,22 +54,10 @@ public class TackleStationMenu extends AbstractContainerMenu {
         this.materials = inv.player.level().getBlockEntity(pos)
                 instanceof com.riverfishing.block.TackleStationBlockEntity be
                 ? be.items() : new SimpleContainer(4);
-        // §26.x: SimpleContainer lost addListener, so the result preview refreshes from the menu's own
-        // slotsChanged hook instead (see below). Without it the bench renders fine and never shows a
-        // result when you feed it — which reads as broken.
-
-        addSlot(new Slot(materials, SLOT_HOOK, 14, 138) {
-            @Override public boolean mayPlace(ItemStack s) { return s.getItem() instanceof HookItem; }
-        });
-        addSlot(new Slot(materials, SLOT_IRON, 38, 138) {
-            @Override public boolean mayPlace(ItemStack s) { return s.is(Items.IRON_INGOT); }
-        });
-        addSlot(new Slot(materials, SLOT_STRING, 62, 138) {
-            @Override public boolean mayPlace(ItemStack s) { return s.is(Items.STRING); }
-        });
-        addSlot(new Slot(materials, SLOT_DYE, 86, 138) {
-            @Override public boolean mayPlace(ItemStack s) { return s.getItem() instanceof DyeItem; }
-        });
+        material(SLOT_HOOK, 14, s -> s.getItem() instanceof HookItem);
+        material(SLOT_IRON, 38, s -> s.is(Items.IRON_INGOT));
+        material(SLOT_STRING, 62, s -> s.is(Items.STRING));
+        material(SLOT_DYE, 86, s -> s.getItem() instanceof DyeItem);
         addSlot(new Slot(result, 0, 152, 138) {
             @Override public boolean mayPlace(ItemStack s) { return false; }
             @Override public boolean mayPickup(Player p) { return !getItem().isEmpty(); }
@@ -191,9 +179,29 @@ public class TackleStationMenu extends AbstractContainerMenu {
     }
 
     /**
-     * §26.x replacement for the old container listener: the result preview has to follow whatever the
-     * player drops into the material slots.
+     * One material slot: what it accepts, plus the thing all four must do — refresh the preview.
+     *
+     * <p>§26.x: {@code SimpleContainer.addListener} is gone, and the port replaced it with an override
+     * of {@link #slotsChanged}. That hook is not a general notification: vanilla only reaches it from
+     * containers that call {@code menu.slotsChanged(this)} themselves (CraftingContainer, TransientCraftingContainer),
+     * and the bench's container is the block entity's plain one — so nothing ever called it and the
+     * result slot stayed empty no matter what you fed the bench. {@code Slot#setChanged} IS called on
+     * every path that writes a slot, so the notification is taken from there instead. Going through
+     * one helper is deliberate: four hand-written copies is exactly how three of them end up right.
      */
+    private void material(int index, int x, java.util.function.Predicate<ItemStack> accepts) {
+        addSlot(new Slot(materials, index, x, 138) {
+            @Override public boolean mayPlace(ItemStack s) { return accepts.test(s); }
+
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                updateResult();
+            }
+        });
+    }
+
+    /** Kept for the paths that DO call it (a bundle emptied into the bench goes through here). */
     @Override
     public void slotsChanged(net.minecraft.world.Container container) {
         super.slotsChanged(container);
