@@ -506,6 +506,10 @@ public final class ModVillagers {
         if (i == null || i == Items.AIR) return null;
         return (trader, random) -> {
             ItemStack out = benchGrade(new ItemStack(i, count), form.id);
+            // §lure-color: the stall paints what it ties. A rack of identical silver blades is not a tackle
+            // shop, and the colour is a real parameter here — it feeds the bite engine's condition fit —
+            // so a shop lure arrives with an opinion about the water rather than as a blank.
+            if (form.dyeable) out = paint(out, random);
             return new MerchantOffer(
                     new net.minecraft.world.item.trading.ItemCost(Items.EMERALD, emeraldCost), out, 12, xp, 0.05f);
         };
