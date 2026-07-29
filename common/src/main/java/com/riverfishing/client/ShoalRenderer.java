@@ -56,7 +56,7 @@ public final class ShoalRenderer {
     public static void render(PoseStack pose, Vec3 cam, float partialTick) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
-        TextureAtlas atlas = blockAtlas(mc);
+        TextureAtlas atlas = fishAtlas(mc);
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
         RenderType layer = LAYER;
         if (drawAll(mc, atlas, pose, cam, partialTick, buffers.getBuffer(layer))) {
@@ -71,24 +71,27 @@ public final class ShoalRenderer {
                               net.minecraft.client.renderer.SubmitNodeCollector collector) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
-        TextureAtlas atlas = blockAtlas(mc);
+        TextureAtlas atlas = fishAtlas(mc);
         collector.submitCustomGeometry(pose, LAYER,
                 (posePose, vc) -> drawAll(mc, atlas, pose, cam, partialTick, vc));
     }
     *///?}
 
     /**
-     * §26.x: the atlas the fish sprites are stitched into.
+     * §26.x: the atlas the fish sprites are stitched into — the ITEM atlas.
      *
-     * <p>26.x split one name into two. The AtlasManager is keyed by the atlas's own ID
-     * ({@code minecraft:blocks}, the name of {@code assets/minecraft/atlases/blocks.json}); the render
-     * layer is keyed by the atlas's TEXTURE ({@code minecraft:textures/atlas/blocks.png}, which is what
-     * {@link TextureAtlas#LOCATION_BLOCKS} still is). Passing the texture to the manager compiles fine
-     * and throws "Invalid atlas id" the first frame a world is drawn. One place asks for the atlas, so
-     * the two 26.1/26.2 entry points below cannot drift apart on it again.
+     * <p>Two 26.x traps in one line. First, 26.x gave items an atlas of their own: a fish icon is a
+     * {@code textures/item/...} file, so it is stitched into {@code minecraft:items} and simply is not
+     * on the block atlas at all — asking there returns the missing-texture checkerboard and every
+     * species is skipped. Second, the AtlasManager is keyed by the atlas's ID ({@code minecraft:items},
+     * the name of {@code atlases/items.json}) while the render layer is keyed by the atlas's TEXTURE
+     * ({@code minecraft:textures/atlas/items.png}, which is what {@link TextureAtlas#LOCATION_ITEMS}
+     * is). Both are an Identifier, so handing one to the other compiles and throws "Invalid atlas id"
+     * on the first frame of a world. One place asks for the atlas, so the 26.1 and 26.2 entry points
+     * cannot drift apart on it again.
      */
-    private static TextureAtlas blockAtlas(Minecraft mc) {
-        return mc.getAtlasManager().getAtlasOrThrow(net.minecraft.data.AtlasIds.BLOCKS);
+    private static TextureAtlas fishAtlas(Minecraft mc) {
+        return mc.getAtlasManager().getAtlasOrThrow(net.minecraft.data.AtlasIds.ITEMS);
     }
 
     /**
@@ -98,7 +101,7 @@ public final class ShoalRenderer {
      */
     private static final RenderType LAYER =
             net.minecraft.client.renderer.rendertype.RenderTypes.entityTranslucent(
-                    TextureAtlas.LOCATION_BLOCKS);
+                    TextureAtlas.LOCATION_ITEMS);
 
     /** The shared per-frame loop. Returns true when anything was actually drawn. */
     private static boolean drawAll(Minecraft mc, TextureAtlas atlas, PoseStack pose, Vec3 cam,
@@ -210,7 +213,7 @@ public final class ShoalRenderer {
         // feature — silently drawing nothing at all — is otherwise indistinguishable from empty water.
         if (sprite == null || !tex.equals(sprite.contents().name())) {
             if (MISSING.add(species)) {
-                RiverFishing.LOGGER.warn("§shoal: {} is not on the block atlas ({}), so it will not be drawn",
+                RiverFishing.LOGGER.warn("§shoal: {} is not on the item atlas ({}), so it will not be drawn",
                         species, tex);
             }
             return null;
