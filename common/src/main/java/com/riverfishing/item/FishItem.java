@@ -160,13 +160,36 @@ public class FishItem extends Item {
             tag.putByte(TAG_AGE, (byte) age);
             if (trophy) tag.putBoolean(TAG_TROPHY, true);
         });
-        // §26.1 §fish-scale: the icon scale rides custom_model_data float[0] — the client item
-        // definition range_dispatches on it into the scale-bucket models (BEWLR is gone).
+        stampIcon(stack);
+        return stack;
+    }
+
+    /**
+     * §26.x: everything the fish's LOOK is dispatched on, written into one component.
+     *
+     * <p>BEWLR is gone, so the two things the old renderer did per specimen are now data the item
+     * carries: {@code floats[0]} is the icon scale (§fish-scale) that the client item definition
+     * range_dispatches into the bucket models, and {@code colors[0]} is the §morph multiply tint the
+     * definition's {@code minecraft:custom_model_data} tint source reads. The port moved the scale and
+     * left the tint behind, so all 79 species rendered as their flat undyed sprite — no age shading, no
+     * morphs — everywhere the item model is drawn.
+     *
+     * <p>Called from every path that writes one of the inputs; the tint depends on species, age AND
+     * morph, and the morph is stamped after the fish is built.
+     *
+     * <p>One thing does NOT come back this way: the white wash that makes a young or albino fish
+     * LIGHTER than its own sprite ({@link com.riverfishing.fish.FishMorph#pale}). An item tint can only
+     * multiply, and multiplying cannot lighten — on 1.21.1 that half rode the renderer's overlay, which
+     * has no equivalent here.
+     */
+    public static void stampIcon(ItemStack stack) {
+        Identifier sp = getSpecies(stack);
+        int tint = sp == null ? -1
+                : com.riverfishing.fish.FishMorph.tint(sp.getPath(), getAge(stack), getMorph(stack));
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
                 new net.minecraft.world.item.component.CustomModelData(
                         java.util.List.of(getIconScale(stack)),
-                        java.util.List.of(), java.util.List.of(), java.util.List.of()));
-        return stack;
+                        java.util.List.of(), java.util.List.of(), java.util.List.of(tint)));
     }
 
     public static boolean isTrophy(ItemStack stack) {
@@ -186,6 +209,7 @@ public class FishItem extends Item {
 
     public static void setMorph(ItemStack stack, String morphId) {
         StackNbt.mutate(stack, t -> t.putString(TAG_MORPH, morphId));
+        stampIcon(stack);   // the morph IS half the tint — see stampIcon
     }
 
     /**

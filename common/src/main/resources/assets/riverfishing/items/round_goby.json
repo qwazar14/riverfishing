@@ -8,62 +8,125 @@
         "threshold": 0.45,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/round_goby_0"
+          "model": "riverfishing:item/fish_scaled/round_goby_0",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 0.6,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/round_goby_1"
+          "model": "riverfishing:item/fish_scaled/round_goby_1",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 0.75,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/round_goby_2"
+          "model": "riverfishing:item/fish_scaled/round_goby_2",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 0.9,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/round_goby_3"
+          "model": "riverfishing:item/fish_scaled/round_goby_3",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 1.05,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/round_goby_4"
+          "model": "riverfishing:item/fish_scaled/round_goby_4",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 1.25,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/round_goby_5"
+          "model": "riverfishing:item/fish_scaled/round_goby_5",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 1.55,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/round_goby_6"
+          "model": "riverfishing:item/fish_scaled/round_goby_6",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 2.0,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/round_goby_7"
+          "model": "riverfishing:item/fish_scaled/round_goby_7",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       }
     ],
     "fallback": {
       "type": "minecraft:model",
-      "model": "riverfishing:item/round_goby"
+      "model": "riverfishing:item/round_goby",
+      "tints": [
+        {
+          "type": "minecraft:custom_model_data",
+          "index": 0,
+          "default": -1
+        }
+      ]
     }
   }
 }

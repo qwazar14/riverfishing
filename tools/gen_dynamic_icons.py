@@ -14,9 +14,10 @@ RODS (§rod-layers): items/<rod>.json selects on DISPLAY CONTEXT first —
 FISH (§fish-scale): items/<fish>.json range_dispatches on custom_model_data float[0] (written by
 FishItem.create at the catch) into scale-bucket models that multiply every display-context scale.
 """
-import json, os, shutil
+import io, json, os, re, shutil
 
 ASSETS = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "common", "src", "main", "resources", "assets", "riverfishing"))
+ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 MODELS = os.path.join(ASSETS, "models", "item")
 ITEMS = os.path.join(ASSETS, "items")
 
@@ -94,6 +95,40 @@ def hand_display(dz):
 
 def model_node(model):
     return {"type": "minecraft:model", "model": model}
+
+
+# §morph on 26.x: BEWLR is gone, so the per-specimen multiply tint rides custom_model_data colors[0]
+# (written by FishItem.stampIcon) and is read back by this tint source. Default -1 is opaque white,
+# i.e. the sprite exactly as drawn — which is what a fish with no stamp should look like.
+FISH_TINTS = [{"type": "minecraft:custom_model_data", "index": 0, "default": -1}]
+
+
+def fish_node(model):
+    d = model_node(model)
+    d["tints"] = FISH_TINTS
+    return d
+
+
+def flat_species():
+    """The flatfish, read out of FishPose.java so the two cannot drift apart.
+
+    §fish-pose says a flounder, a halibut and a ray lie flat "in open water, in the aquarium and on the
+    ground where you dropped it". The first two are code; the third was the BEWLR's doing and did not
+    survive the port, so on 26.x they stood on their edge on the bank. It is a display transform now,
+    which means it belongs in these generated models — and the species list has to come from the one
+    place that already owns it.
+    """
+    src = os.path.join(ROOT, "common", "src", "main", "java", "com", "riverfishing",
+                       "fish", "FishPose.java")
+    text = io.open(src, encoding="utf-8").read()
+    m = re.search(r"FLAT\s*=\s*Set\.of\(([^)]*)\)", text)
+    if not m:
+        raise SystemExit("FishPose.FLAT not found — the pose table moved, fix this reader")
+    names = re.findall(r'"([^"]+)"', m.group(1))
+    lay = re.search(r"return\s+(-?[\d.]+)f;", text[text.index("public static float lay()"):])
+    if not lay:
+        raise SystemExit("FishPose.lay() not found")
+    return set(names), float(lay.group(1))
 
 
 def str_select(index, cases):
@@ -198,8 +233,19 @@ def main():
         }})
 
     # ---- fish ----
+    flat, lay = flat_species()
     for sp in FISH:
-        fish_display = read(os.path.join(MODELS, sp + ".json")).get("display", {})
+        base = os.path.join(MODELS, sp + ".json")
+        fish_display = read(base).get("display", {})
+        # §fish-pose: a flatfish lies down where it is DROPPED. Only "ground" — in a slot or in the hand
+        # the icon is a picture of the fish and should stay the picture that was drawn.
+        if sp in flat:
+            ground = dict(fish_display.get("ground", {"translation": [0, 2, 0]}))
+            ground["rotation"] = [lay, 0, 0]
+            fish_display["ground"] = ground
+            d = read(base)
+            d.setdefault("display", {})["ground"] = ground
+            write(base, d)
         entries = []
         for i, s in enumerate(BUCKETS):
             scaled = {}
@@ -212,13 +258,13 @@ def main():
                 "display": scaled,
             })
             entries.append({"threshold": s,
-                            "model": model_node("riverfishing:item/fish_scaled/%s_%d" % (sp, i))})
+                            "model": fish_node("riverfishing:item/fish_scaled/%s_%d" % (sp, i))})
         write(os.path.join(ITEMS, sp + ".json"), {"model": {
             "type": "minecraft:range_dispatch",
             "property": "minecraft:custom_model_data",
             "index": 0,
             "entries": entries,
-            "fallback": model_node("riverfishing:item/" + sp),
+            "fallback": fish_node("riverfishing:item/" + sp),
         }})
 
     print("rods: %d defs, %d layer models x2 variants; fish: %d x %d buckets" %
