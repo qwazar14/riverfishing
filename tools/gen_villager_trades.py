@@ -32,7 +32,8 @@ Running this file GENERATES and then VERIFIES (json re-parse, pool shapes, every
 lang file, every assembled rod legal against RodType's reel band and TackleCompat's spool limit, every
 bench stamp equal to TackleForm's own numbers). Non-zero exit = do not commit the output.
 """
-import json, math, os, re, shutil, sys
+import json
+import random, math, os, re, shutil, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 COMMON = os.path.normpath(os.path.join(HERE, "..", "common", "src", "main"))
@@ -51,7 +52,7 @@ FISH_SLOTS_PER_TIER = 2     # how much of each tier's pool the species share
 STARTER_FISH = ["bleak", "roach", "gudgeon", "rotan"]  # live in every water — see the community guide
 
 # Effective pool sizes we intend to land on, asserted after generation (§trade-pool).
-TARGET_POOL = {1: 10, 2: 10, 3: 8, 4: 15, 5: 13}
+TARGET_POOL = {1: 10, 2: 10, 3: 9, 4: 16, 5: 14}
 
 
 # ---------------------------------------------------------------- SNBT
@@ -234,6 +235,117 @@ FLOAT_RIG = ["float", "hook_10"]        # FLOAT, HOOK, (bait)
 PREDATOR_RIG = ["leader", "spinner"]    # LEADER, LURE
 
 # ---------------------------------------------------------------- the shop
+
+# ---------------------------------------------------------------- §lure-color / §tackle-box kits
+
+# Vanilla's own dye diffuse colours, so a shop lure mixes exactly the way a player's would.
+DYE_RGB = [0xF9FFFE, 0xF9801D, 0xC74EBD, 0x3AB3DA, 0xFED83D, 0x80C71F, 0xF38BAA, 0x474F52,
+           0x9D9D97, 0x169C9C, 0x8932B8, 0x3C44AA, 0x835432, 0x5E7C16, 0xB02E26, 0x1D1D21]
+
+
+def mix_dyes(rng, count=None):
+    """Vanilla's leather-armour mix over 1–3 random dyes: average the channels, then rescale by the
+    average of each dye's own brightest channel, which is what keeps mixes vivid instead of muddy."""
+    picks = [DYE_RGB[rng.randrange(len(DYE_RGB))] for _ in range(count or 1 + rng.randrange(3))]
+    r = g = b = peak = 0
+    for c in picks:
+        cr, cg, cb = (c >> 16) & 255, (c >> 8) & 255, c & 255
+        r, g, b, peak = r + cr, g + cg, b + cb, peak + max(cr, cg, cb)
+    n = len(picks)
+    r, g, b, peak = r // n, g // n, b // n, peak // n
+    top = max(r, g, b) or 1
+    gain = peak / top
+    return (int(r * gain) << 16) | (int(g * gain) << 8) | int(b * gain)
+
+
+def roll_weight(item_id, rng, lo, hi):
+    """A weight inside the requested window, clamped to what the BENCH can tie — the window is the kit's
+    intent, the ladder is the form's reality (a spinner tops out at 14 g). Mirrors ModVillagers.rollWeight."""
+    form = FORMS.get(short(item_id))
+    if form is None:
+        return None
+    _, weights, _ = form
+    lo, hi = max(lo, weights[0]), min(hi, weights[-1])
+    if hi <= lo:
+        return max(weights[0], min(lo, weights[-1]))
+    return rng.randrange(lo, hi + 1)
+
+
+def inner(item_id, count, rng, lo=0, hi=0, dyed=False):
+    """One item as it sits INSIDE a box: SNBT in ItemStack.OPTIONAL_CODEC's shape."""
+    comps = {}
+    tags = stamp_tags(item_id)
+    if tags:
+        tags = dict(tags)
+        if hi:
+            grams = roll_weight(item_id, rng, lo, hi)
+            if grams is not None:
+                tags["TackleWeightG"] = grams
+                if short(item_id) in ("spinner", "spoon"):
+                    tags["BladeSize"] = min(5, 1 + grams // 15)
+        comps["minecraft:custom_data"] = tags
+    if dyed:
+        comps["minecraft:dyed_color"] = mix_dyes(rng)
+    out = {"id": full(item_id), "count": count}
+    if comps:
+        out["components"] = comps
+    return out
+
+
+def kit(name, box_id, name_key, colour, parts, cost, xp, seed):
+    """§tackle-box kits: a named, dyed box that arrives with the tackle for one kind of fishing in it.
+
+    The rolls are BAKED at generation time — a datapack trade cannot roll per purchase — so each kit
+    ships as several variants sharing one pool slot, which is how the stall varies anything else here."""
+    rng = random.Random(seed)
+    items = []
+    for slot, part in enumerate(parts):
+        items.append({"s": slot, "i": inner(*part[:2], rng, *part[2:])})
+    return name, {
+        "wants": {"id": "minecraft:emerald", "count": cost},
+        "gives": {"id": full(box_id)},
+        "given_item_modifiers": [
+            {"function": "minecraft:set_custom_data", "tag": snbt({"Box": items})},
+            {"function": "minecraft:set_components", "components": {
+                "minecraft:custom_name": {"translate": name_key, "italic": False},
+                "minecraft:dyed_color": colour}},
+        ],
+        "max_uses": 8, "xp": xp, "reputation_discount": DISCOUNT,
+    }
+
+
+# The four kits, contents settled in playtest. (item, count[, minG, maxG[, dyed]])
+FLOAT_KIT = [("float", 2), ("hook_10", 4), ("hook_12", 4), ("worm", 8), ("maggot", 8)]
+PIKE_KIT = [("leader", 2), ("spinner", 1, 3, 35, True), ("spoon", 1, 3, 35, True),
+            ("wobbler", 1, 3, 35, True)]
+CARP_KIT = [("boilie", 16), ("hook_6", 4), ("hook_8", 4), ("corn", 16), ("line_mono_030", 1),
+            ("rig_flat_feeder", 1, 40, 60)]
+SEA_KIT = [("leader_titanium", 2), ("octopus_jig", 1, 100, 200, True),
+           ("giant_spoon", 1, 100, 200, True), ("rig_ground", 1, 100, 200), ("hook_2", 3),
+           ("hook_4", 3), ("line_braid_040", 1), ("livebait", 4)]
+
+
+def kits(name, box, key, colour, parts, cost, xp, variants):
+    """The same kit rolled `variants` ways; they share one pool slot (§trade-pool)."""
+    return [kit("%s_%d" % (name, i + 1), box, key, colour, parts, cost, xp, hash((name, i)) & 0xFFFF)
+            for i in range(variants)]
+
+
+def painted(form_id, cost, count, xp, shades=3):
+    """§lure-color: the stall paints what it ties. Baked colours, so each form ships a few shades that
+    share its slot — a rack of identical silver blades is not a tackle shop."""
+    out = []
+    for i in range(shades):
+        rng = random.Random(hash((form_id, i)) & 0xFFFF)
+        name, trade = tackle(form_id, cost, count, xp)
+        trade = dict(trade)
+        trade["given_item_modifiers"] = list(trade["given_item_modifiers"]) + [
+            {"function": "minecraft:set_components",
+             "components": {"minecraft:dyed_color": mix_dyes(rng)}}]
+        out.append(("%s_%d" % (name, i + 1), trade))
+    return out
+
+
 # One list per level; each element is one POOL SLOT (variants inside it share the slot).
 
 POOL = {
@@ -265,17 +377,21 @@ POOL = {
     ],
     # ---- Level 3 — Journeyman: lures + a ready spinning setup. 5 + 2 = 7.
     3: [
-        [tackle("spinner", 3, 1, 8), tackle("spoon", 4, 1, 8), tackle("silicone", 2, 2, 6)],
+        painted("spinner", 3, 1, 8) + painted("spoon", 4, 1, 8) + painted("silicone", 2, 2, 6),
         [sell("line_braid_016", 5, 1, 10), sell("line_fluoro_020", 5, 1, 10)],
         [sell("leader_fluoro", 3, 2, 6)],
         [sell("fish_finder", 14, 1, 12)],                   # §QoL: read the swim before you cast
         [sell("keepnet_small", 5, 1, 6)],                   # §keepnet: somewhere to put the catch
+        kits("kit_float", "tackle_box_small", "kit.riverfishing.float", 0xC8D8E8,
+             FLOAT_KIT, 7, 10, 1)
+        + kits("kit_pike", "tackle_box_medium", "kit.riverfishing.pike", 0x4A7A3A,
+               PIKE_KIT, 18, 16, 3),
         [assembled("assembled_spinning_rod", "spinning_rod", "reel_2000", "line_braid_016",
                    "rig_predator", PREDATOR_RIG, 16, 14)],
     ],
     # ---- Level 4 — Expert: predator/carp gear, winter tackle, ready feeder. 12 + 2 = 14.
     4: [
-        [tackle("wobbler", 7, 1, 15), tackle("crankbait", 7, 1, 15), tackle("popper", 6, 1, 14)],
+        painted("wobbler", 7, 1, 15) + painted("crankbait", 7, 1, 15) + painted("popper", 6, 1, 14),
         [sell("livebait", 2, 3, 8)],
         [sell("boilie", 3, 8, 10)],
         [sell("reel_5000", 10, 1, 15), sell("reel_6000", 13, 1, 16)],
@@ -285,6 +401,7 @@ POOL = {
         [sell("maggot_farm", 5, 1, 8)],                     # §bait-farm
         [sell("groundbait_cake", 4, 3, 6)],                 # жмых (sunflower+piston)
         [sell("keepnet_medium", 9, 1, 10), sell("keepnet_large", 14, 1, 14)],
+        kits("kit_carp", "tackle_box_medium", "kit.riverfishing.carp", 0xB0863C, CARP_KIT, 21, 18, 2),
         # §vanilla-stock + §tackle-craft: the saltwater reels are gated on ocean drops. Selling the
         # INPUTS keeps the gate priced without making it hinge on guardian RNG.
         [sell("minecraft:prismarine_shard", 5, 4, 10)],
@@ -298,6 +415,7 @@ POOL = {
     5: [
         [sell("digital_alarm", 10, 1, 25)],
         [sell("keepnet_huge", 20, 1, 24)],
+        kits("kit_sea", "tackle_box_large", "kit.riverfishing.sea", 0x2E5E8A, SEA_KIT, 51, 34, 3),
         [sell("leader_titanium", 8, 1, 20)],
         # §vanilla-stock: the 14000 reel and the trolling rod each want a nautilus shell, the single
         # worst piece of RNG in the ladder. Master tier sells it.

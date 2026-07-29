@@ -1,22 +1,28 @@
 {
   "wants": {
     "id": "minecraft:emerald",
-    "count": 7
+    "count": 4
   },
   "gives": {
-    "id": "riverfishing:crankbait"
+    "id": "riverfishing:spoon"
   },
   "max_uses": 12,
-  "xp": 15,
+  "xp": 8,
   "reputation_discount": 0.05,
   "given_item_modifiers": [
     {
       "function": "minecraft:set_custom_data",
-      "tag": "{TackleWeightG:22,BalancePos:1}"
+      "tag": "{TackleWeightG:35,BalancePos:1,BladeSize:3}"
+    },
+    {
+      "function": "minecraft:set_components",
+      "components": {
+        "minecraft:dyed_color": 11701694
+      }
     }
   ],
   "merchant_predicate": {
     "condition": "minecraft:random_chance",
-    "chance": 0.33333
+    "chance": 0.11111
   }
 }

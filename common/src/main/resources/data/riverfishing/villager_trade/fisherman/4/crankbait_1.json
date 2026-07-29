@@ -1,0 +1,28 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 7
+  },
+  "gives": {
+    "id": "riverfishing:crankbait"
+  },
+  "max_uses": 12,
+  "xp": 15,
+  "reputation_discount": 0.05,
+  "given_item_modifiers": [
+    {
+      "function": "minecraft:set_custom_data",
+      "tag": "{TackleWeightG:22,BalancePos:1}"
+    },
+    {
+      "function": "minecraft:set_components",
+      "components": {
+        "minecraft:dyed_color": 9387401
+      }
+    }
+  ],
+  "merchant_predicate": {
+    "condition": "minecraft:random_chance",
+    "chance": 0.11111
+  }
+}

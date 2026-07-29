@@ -1,0 +1,32 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 21
+  },
+  "gives": {
+    "id": "riverfishing:tackle_box_medium"
+  },
+  "given_item_modifiers": [
+    {
+      "function": "minecraft:set_custom_data",
+      "tag": "{Box:[{s:0,i:{id:\"riverfishing:boilie\",count:16}},{s:1,i:{id:\"riverfishing:hook_6\",count:4}},{s:2,i:{id:\"riverfishing:hook_8\",count:4}},{s:3,i:{id:\"riverfishing:corn\",count:16}},{s:4,i:{id:\"riverfishing:line_mono_030\",count:1}},{s:5,i:{id:\"riverfishing:rig_flat_feeder\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:49,LeaderLenCm:10}}}}]}"
+    },
+    {
+      "function": "minecraft:set_components",
+      "components": {
+        "minecraft:custom_name": {
+          "translate": "kit.riverfishing.carp",
+          "italic": false
+        },
+        "minecraft:dyed_color": 11568700
+      }
+    }
+  ],
+  "max_uses": 8,
+  "xp": 18,
+  "reputation_discount": 0.05,
+  "merchant_predicate": {
+    "condition": "minecraft:random_chance",
+    "chance": 0.5
+  }
+}

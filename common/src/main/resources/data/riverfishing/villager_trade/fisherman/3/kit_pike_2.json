@@ -1,0 +1,32 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 18
+  },
+  "gives": {
+    "id": "riverfishing:tackle_box_medium"
+  },
+  "given_item_modifiers": [
+    {
+      "function": "minecraft:set_custom_data",
+      "tag": "{Box:[{s:0,i:{id:\"riverfishing:leader\",count:2}},{s:1,i:{id:\"riverfishing:spinner\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:4,BalancePos:1,BladeSize:1},\"minecraft:dyed_color\":8926039}}},{s:2,i:{id:\"riverfishing:spoon\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:13,BalancePos:1,BladeSize:1},\"minecraft:dyed_color\":13219151}}},{s:3,i:{id:\"riverfishing:wobbler\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:11,BalancePos:1},\"minecraft:dyed_color\":4227478}}}]}"
+    },
+    {
+      "function": "minecraft:set_components",
+      "components": {
+        "minecraft:custom_name": {
+          "translate": "kit.riverfishing.pike",
+          "italic": false
+        },
+        "minecraft:dyed_color": 4880954
+      }
+    }
+  ],
+  "max_uses": 8,
+  "xp": 16,
+  "reputation_discount": 0.05,
+  "merchant_predicate": {
+    "condition": "minecraft:random_chance",
+    "chance": 0.25
+  }
+}

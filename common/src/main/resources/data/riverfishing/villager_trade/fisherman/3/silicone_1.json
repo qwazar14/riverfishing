@@ -1,22 +1,29 @@
 {
   "wants": {
     "id": "minecraft:emerald",
-    "count": 6
+    "count": 2
   },
   "gives": {
-    "id": "riverfishing:popper"
+    "id": "riverfishing:silicone",
+    "count": 2
   },
   "max_uses": 12,
-  "xp": 14,
+  "xp": 6,
   "reputation_discount": 0.05,
   "given_item_modifiers": [
     {
       "function": "minecraft:set_custom_data",
-      "tag": "{TackleWeightG:12,BalancePos:1}"
+      "tag": "{TackleWeightG:20,BalancePos:1}"
+    },
+    {
+      "function": "minecraft:set_components",
+      "components": {
+        "minecraft:dyed_color": 11695530
+      }
     }
   ],
   "merchant_predicate": {
     "condition": "minecraft:random_chance",
-    "chance": 0.33333
+    "chance": 0.11111
   }
 }

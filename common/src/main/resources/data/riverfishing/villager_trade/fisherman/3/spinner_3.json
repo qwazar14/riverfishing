@@ -13,10 +13,16 @@
     {
       "function": "minecraft:set_custom_data",
       "tag": "{TackleWeightG:7,BalancePos:1,BladeSize:1}"
+    },
+    {
+      "function": "minecraft:set_components",
+      "components": {
+        "minecraft:dyed_color": 6825251
+      }
     }
   ],
   "merchant_predicate": {
     "condition": "minecraft:random_chance",
-    "chance": 0.33333
+    "chance": 0.11111
   }
 }
