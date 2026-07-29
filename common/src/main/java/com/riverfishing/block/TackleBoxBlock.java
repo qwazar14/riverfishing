@@ -100,9 +100,12 @@ public class TackleBoxBlock extends BaseEntityBlock {
      */
     @Override
     public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (!level.isClientSide && !player.isCreative()
+        if (!level.isClientSide
                 && level.getBlockEntity(pos) instanceof TackleBoxBlockEntity be && !be.box().isEmpty()) {
-            popResource(level, pos, be.box().copy());
+            if (!player.isCreative()) popResource(level, pos, be.box().copy());
+            // Emptied deliberately: onRemove fires straight after this on a player break and would pop
+            // the very same box a SECOND time. One removal, one box.
+            be.setBox(ItemStack.EMPTY);
         }
         super.playerWillDestroy(level, pos, state, player);
     }
