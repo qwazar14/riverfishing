@@ -6,15 +6,9 @@
     "i  "
   ],
   "key": {
-    "b": {
-      "item": "minecraft:bamboo"
-    },
-    "i": {
-      "item": "minecraft:iron_ingot"
-    },
-    "s": {
-      "item": "minecraft:string"
-    }
+    "b": "minecraft:bamboo",
+    "i": "minecraft:iron_ingot",
+    "s": "minecraft:string"
   },
   "result": {
     "id": "riverfishing:ultralight_rod"

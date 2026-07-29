@@ -7,12 +7,8 @@
     "TST"
   ],
   "key": {
-    "S": {
-      "item": "minecraft:string"
-    },
-    "T": {
-      "item": "minecraft:stick"
-    }
+    "S": "minecraft:string",
+    "T": "minecraft:stick"
   },
   "result": {
     "id": "riverfishing:keepnet_small",

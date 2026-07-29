@@ -7,18 +7,10 @@
     "XCX"
   ],
   "key": {
-    "X": {
-      "item": "minecraft:iron_ingot"
-    },
-    "C": {
-      "item": "minecraft:chest"
-    },
-    "L": {
-      "item": "minecraft:leather"
-    },
-    "B": {
-      "item": "riverfishing:tackle_box_large"
-    }
+    "X": "minecraft:iron_ingot",
+    "C": "minecraft:chest",
+    "L": "minecraft:leather",
+    "B": "riverfishing:tackle_box_large"
   },
   "result": {
     "id": "riverfishing:tackle_box_huge",

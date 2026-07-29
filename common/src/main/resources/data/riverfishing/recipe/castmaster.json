@@ -1,9 +1,11 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:iron_ingot" },
-    { "item": "minecraft:iron_ingot" },
-    { "tag": "riverfishing:hooks" }
+    "minecraft:iron_ingot",
+    "minecraft:iron_ingot",
+    "#riverfishing:hooks"
   ],
-  "result": { "id": "riverfishing:castmaster" }
+  "result": {
+    "id": "riverfishing:castmaster"
+  }
 }

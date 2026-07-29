@@ -1,24 +1,12 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    {
-      "item": "minecraft:iron_block"
-    },
-    {
-      "item": "minecraft:copper_block"
-    },
-    {
-      "item": "minecraft:redstone"
-    },
-    {
-      "item": "minecraft:redstone"
-    },
-    {
-      "item": "minecraft:prismarine_crystals"
-    },
-    {
-      "item": "minecraft:diamond"
-    }
+    "minecraft:iron_block",
+    "minecraft:copper_block",
+    "minecraft:redstone",
+    "minecraft:redstone",
+    "minecraft:prismarine_crystals",
+    "minecraft:diamond"
   ],
   "result": {
     "id": "riverfishing:reel_12000",

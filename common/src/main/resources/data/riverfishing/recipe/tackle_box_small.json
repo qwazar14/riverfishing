@@ -7,15 +7,9 @@
     "LLL"
   ],
   "key": {
-    "I": {
-      "item": "minecraft:iron_nugget"
-    },
-    "L": {
-      "item": "minecraft:leather"
-    },
-    "C": {
-      "item": "minecraft:chest"
-    }
+    "I": "minecraft:iron_nugget",
+    "L": "minecraft:leather",
+    "C": "minecraft:chest"
   },
   "result": {
     "id": "riverfishing:tackle_box_small",

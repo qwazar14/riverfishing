@@ -1,5 +1,10 @@
 {
   "type": "minecraft:crafting_shapeless",
-  "ingredients": [ { "tag": "riverfishing:fishes" } ],
-  "result": { "id": "riverfishing:fish_strip", "count": 4 }
+  "ingredients": [
+    "#riverfishing:fishes"
+  ],
+  "result": {
+    "id": "riverfishing:fish_strip",
+    "count": 4
+  }
 }
