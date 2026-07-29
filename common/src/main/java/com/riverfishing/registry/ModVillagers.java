@@ -15,6 +15,7 @@ import com.riverfishing.tackle.TackleForm;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.Villager;
@@ -137,7 +138,8 @@ public final class ModVillagers {
         sell(t, 2, "groundbait_grain", 1, 6, 3);
         sell(t, 2, "bait_trap", 3, 1, 4);           // the trap slowly farms livebait (§livebait)
         sell(t, 2, "minecraft:oak_boat", 4, 1, 5);  // §vanilla-stock: trolling needs a boat under you
-        sellStack(t, 2, 4, ModVillagers::assembledFloatRig, 6);
+        // §internal-rig: the float rig lives INSIDE the float rods (JournalScreen.isInternalRig) and is
+        // never tied on its own, so the stall stopped selling it — it was a component with a price tag.
         sellStack(t, 2, 9, ModVillagers::assembledBambooRod, 8);
 
         // Level 3 — Journeyman: lures (also craftable now, §lure-recipes) + a ready spinning setup.
@@ -150,7 +152,9 @@ public final class ModVillagers {
         // §keepnet + §tackle-box: somewhere to put the catch, and somewhere to put the tackle. Both were
         // asked for by players, and neither is worth a crafting detour when you are already at the stall.
         sell(t, 3, "keepnet_small", 5, 1, 6);
-        oneOf(t, 3, sellStackOf(8, ModVillagers::floatKit, 10), sellStackOf(13, ModVillagers::pikeKit, 14));
+        // §kit-price: each kit is priced at ~80% of what its contents cost piece by piece at this same
+        // stall, plus the box. A kit that cost MORE than the parts is a kit nobody buys.
+        oneOf(t, 3, sellStackOf(7, ModVillagers::floatKit, 10), sellStackOf(18, ModVillagers::pikeKit, 16));
         sellStack(t, 3, 16, ModVillagers::assembledSpinningRod, 14);
 
         // Level 4 — Expert: serious predator/carp gear + winter tackle + a ready feeder setup.
@@ -164,7 +168,7 @@ public final class ModVillagers {
         sell(t, 4, "mormyshka", 3, 2, 8);
         sell(t, 4, "maggot_farm", 5, 1, 8);          // §bait-farm
         oneOf(t, 4, sellOf("keepnet_medium", 9, 1, 10), sellOf("keepnet_large", 14, 1, 14));
-        sellStack(t, 4, 16, ModVillagers::carpKit, 16);
+        sellStack(t, 4, 21, ModVillagers::carpKit, 18);
         sell(t, 4, "groundbait_cake", 4, 3, 6);      // жмых (sunflower+piston)
         // §vanilla-stock + §tackle-craft: the saltwater reels are gated on ocean drops. Selling the
         // INPUTS keeps the gate (you still pay for it) without making it hinge on guardian RNG.
@@ -175,7 +179,7 @@ public final class ModVillagers {
         // Level 5 — Master: the trade-only prestige gear (§progression).
         sell(t, 5, "digital_alarm", 10, 1, 25);
         sell(t, 5, "keepnet_huge", 20, 1, 24);
-        sellStack(t, 5, 26, ModVillagers::seaKit, 28);
+        sellStack(t, 5, 51, ModVillagers::seaKit, 34);
         sell(t, 5, "leader_titanium", 8, 1, 20);
         // §vanilla-stock + §tackle-craft: the 14000 reel and the trolling rod each want a nautilus
         // shell, which is the single worst piece of RNG in the ladder. Master tier sells it.
@@ -517,19 +521,44 @@ public final class ModVillagers {
      * <p>Everything inside is bench-graded like the rest of his stock, so the grams count toward a cast the
      * moment you open it. A kit that had to be re-tied to be usable would be a souvenir.
      */
-    private static ItemStack kit(String boxId, String nameKey, int colour, String... contents) {
+    private record Part(String id, int count, int minG, int maxG, boolean dyed) {}
+
+    private static Part p(String id, int count) {
+        return new Part(id, count, 0, 0, false);
+    }
+
+    /** Bench tackle with a weight rolled inside {@code minG..maxG} and a random dye mix. */
+    private static Part p(String id, int count, int minG, int maxG) {
+        return new Part(id, count, minG, maxG, true);
+    }
+
+    /** A rig: rolled weight, no dye — rigs are hardware, not something you paint. */
+    private static Part rig(String id, int minG, int maxG) {
+        return new Part(id, 1, minG, maxG, false);
+    }
+
+    private static ItemStack kit(String boxId, String nameKey, int colour, Part... contents) {
         Item boxItem = item(boxId);
         if (boxItem == null || boxItem == Items.AIR) return ItemStack.EMPTY;
+        RandomSource rng = RandomSource.create();
         ItemStack box = new ItemStack(boxItem);
         NonNullList<ItemStack> inside =
                 NonNullList.withSize(com.riverfishing.item.TackleBoxData.tierOf(box).slots(), ItemStack.EMPTY);
         int slot = 0;
-        for (String id : contents) {
-            String[] parts = id.split("#");                 // "worm#8" — item and count
-            Item part = item(parts[0]);
-            if (part == null || part == Items.AIR) return ItemStack.EMPTY;   // a typo voids the kit, loudly
-            ItemStack stack = benchGrade(new ItemStack(part, parts.length > 1 ? Integer.parseInt(parts[1]) : 1),
-                    parts[0]);
+        for (Part part : contents) {
+            Item item = item(part.id());
+            if (item == null || item == Items.AIR) return ItemStack.EMPTY;   // a typo voids the kit, loudly
+            ItemStack stack = new ItemStack(item, part.count());
+            TackleForm form = TackleForm.byItemId(part.id());
+            if (form != null) {
+                // §tackle-craft: stamped like everything else the stall sells, so the grams count toward a
+                // cast the moment the box is opened. The weight is ROLLED rather than stock, inside the
+                // form's own ladder — two pike kits are not the same pike kit.
+                int grams = part.maxG() > 0 ? rollWeight(form, rng, part.minG(), part.maxG())
+                        : form.stockWeight();
+                TackleForm.stamp(stack, form, grams, null, form.defaultLinkCm, 1);
+            }
+            if (part.dyed()) stack = paint(stack, rng);
             if (!com.riverfishing.item.TackleBoxData.isTackle(stack)) return ItemStack.EMPTY;
             if (slot >= inside.size()) break;
             inside.set(slot++, stack);
@@ -541,29 +570,56 @@ public final class ModVillagers {
         return box;
     }
 
-    /** Float kit: the everyday small-fish box — a couple of floats, fine hooks, worms and maggots. */
+    /**
+     * A weight inside the requested window, clamped to what the BENCH can actually tie. The window is the
+     * kit's intent ("3–35 g of lure"); the ladder is the form's reality — a spinner tops out at 14 g, and a
+     * kit holding one heavier than anything craftable would be a lie about the crafting system.
+     */
+    private static int rollWeight(TackleForm form, RandomSource rng, int minG, int maxG) {
+        int floor = form.weights[0];
+        int ceil = form.weights[form.weights.length - 1];
+        int lo = Math.max(minG, floor);
+        int hi = Math.min(maxG, ceil);
+        if (hi <= lo) return Mth.clamp(lo, floor, ceil);
+        return lo + rng.nextInt(hi - lo + 1);
+    }
+
+    /** One to three random dyes, mixed the leather-armour way — no two shop lures look alike. */
+    private static ItemStack paint(ItemStack stack, RandomSource rng) {
+        java.util.List<net.minecraft.world.item.DyeItem> dyes = new java.util.ArrayList<>();
+        net.minecraft.world.item.DyeColor[] all = net.minecraft.world.item.DyeColor.values();
+        for (int i = 0, n = 1 + rng.nextInt(3); i < n; i++) {
+            dyes.add(net.minecraft.world.item.DyeItem.byColor(all[rng.nextInt(all.length)]));
+        }
+            stack = com.riverfishing.item.DyeUtil.applyDyes(stack, dyes);
+        return stack;
+    }
+
+    /** Float kit: the everyday small-fish box — floats, fine hooks, worms and maggots. */
     private static ItemStack floatKit() {
         return kit("tackle_box_small", "kit.riverfishing.float", 0xC8D8E8,
-                "float#2", "hook_10#4", "hook_12#4", "worm#8", "maggot#8", "line_mono_014");
+                p("float", 2), p("hook_10", 4), p("hook_12", 4), p("worm", 8), p("maggot", 8));
     }
 
-    /** Pike kit: wire leaders and hardware, the box you grab when something is eating your roach. */
+    /** Pike kit: wire and hardware. Every lure comes out a different weight and a different colour. */
     private static ItemStack pikeKit() {
         return kit("tackle_box_medium", "kit.riverfishing.pike", 0x4A7A3A,
-                "leader", "leader#1", "spinner#2", "spoon", "wobbler", "hook_4#3", "line_braid_016");
+                p("leader", 2), p("spinner", 1, 3, 35), p("spoon", 1, 3, 35), p("wobbler", 1, 3, 35));
     }
 
-    /** Carp kit: boilies, big hooks and the heavy end — a session box rather than a day box. */
+    /** Carp kit: a session box — bait by the handful, big hooks and a flat feeder to put it out on. */
     private static ItemStack carpKit() {
         return kit("tackle_box_medium", "kit.riverfishing.carp", 0xB0863C,
-                "boilie#8", "hook_6#4", "hook_8#4", "corn#8", "line_mono_030", "leader_fluoro#2");
+                p("boilie", 16), p("hook_6", 4), p("hook_8", 4), p("corn", 16),
+                p("line_mono_030", 1), rig("rig_flat_feeder", 40, 60));
     }
 
     /** Sea kit: the saltwater end, sold late because the rest of that ladder is late (§progression). */
     private static ItemStack seaKit() {
         return kit("tackle_box_large", "kit.riverfishing.sea", 0x2E5E8A,
-                "leader_titanium", "octopus_jig", "giant_spoon", "hook_2#3", "hook_4#3",
-                "line_braid_040", "livebait#4");
+                p("leader_titanium", 2), p("octopus_jig", 1, 100, 200), p("giant_spoon", 1, 100, 200),
+                rig("rig_ground", 100, 200), p("hook_2", 3), p("hook_4", 3),
+                p("line_braid_040", 1), p("livebait", 4));
     }
 
     /** Bamboo's built-in light float rig, loaded with a float and a №10 hook — cast-ready for the beginner. */
