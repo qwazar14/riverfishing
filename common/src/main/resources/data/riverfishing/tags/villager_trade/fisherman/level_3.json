@@ -7,6 +7,7 @@
     "riverfishing:fisherman/3/line_fluoro_020",
     "riverfishing:fisherman/3/leader_fluoro",
     "riverfishing:fisherman/3/fish_finder",
+    "riverfishing:fisherman/3/keepnet_small",
     "riverfishing:fisherman/3/assembled_spinning_rod",
     "riverfishing:fisherman/3/buy_bream",
     "riverfishing:fisherman/3/buy_ide",
@@ -17,6 +18,8 @@
     "riverfishing:fisherman/3/buy_volga_zander",
     "riverfishing:fisherman/3/buy_pink_salmon",
     "riverfishing:fisherman/3/buy_whitefish",
-    "riverfishing:fisherman/3/buy_asp"
+    "riverfishing:fisherman/3/buy_asp",
+    "riverfishing:fisherman/3/buy_oscar",
+    "riverfishing:fisherman/3/buy_mayan_cichlid"
   ]
 }

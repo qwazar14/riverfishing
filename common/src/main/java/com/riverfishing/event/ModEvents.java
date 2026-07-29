@@ -47,6 +47,8 @@ public final class ModEvents {
         TickEvent.PLAYER_POST.register(player -> {
             if (player instanceof ServerPlayer sp) {
                 FishingManager.tick(sp);
+                com.riverfishing.fishing.SpookTracker.tick(sp);  // §spook: what the fish just noticed
+                com.riverfishing.fishing.ShoalTracker.tick(sp);  // §shoal: what is visible in the water
                 FishingManager.trollingTick(sp); // trolling v1 (0.5.0): boat-agnostic towing loop
                 if (sp.tickCount % 10 == 0) {
                     var level = sp.level();
@@ -56,7 +58,10 @@ public final class ModEvents {
             }
         });
 
-        PlayerEvent.PLAYER_QUIT.register(player -> FishingManager.clear(player.getUUID()));
+        PlayerEvent.PLAYER_QUIT.register(player -> {
+            FishingManager.clear(player.getUUID());
+            com.riverfishing.fishing.SpookTracker.forget(player.getUUID());
+        });
 
         // Worms from digging soil with a shovel (§9.6).
         //? if <26.2 {
@@ -64,6 +69,8 @@ public final class ModEvents {
         //?} else {
         /*BlockEvent.BREAK.register((level, pos, state, player) -> { // arch 21 dropped the xp param
         *///?}
+            // §spook: chopping a tree on the bank is the loudest thing an angler can do by accident.
+            if (!level.isClientSide()) com.riverfishing.fishing.SpookTracker.onBlockBreak(level, pos);
             if (!level.isClientSide() && player != null
                     && player.getMainHandItem().getItem() instanceof ShovelItem
                     && isDiggableSoil(state)

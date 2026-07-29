@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "riverfishing:block/tackle_box_medium"
+    },
+    "facing=east": {
+      "model": "riverfishing:block/tackle_box_medium",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "riverfishing:block/tackle_box_medium",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "riverfishing:block/tackle_box_medium",
+      "y": 270
+    }
+  }
+}

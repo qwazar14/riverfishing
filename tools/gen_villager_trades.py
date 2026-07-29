@@ -51,7 +51,7 @@ FISH_SLOTS_PER_TIER = 2     # how much of each tier's pool the species share
 STARTER_FISH = ["bleak", "roach", "gudgeon", "rotan"]  # live in every water — see the community guide
 
 # Effective pool sizes we intend to land on, asserted after generation (§trade-pool).
-TARGET_POOL = {1: 10, 2: 10, 3: 7, 4: 14, 5: 12}
+TARGET_POOL = {1: 10, 2: 10, 3: 8, 4: 15, 5: 13}
 
 
 # ---------------------------------------------------------------- SNBT
@@ -269,6 +269,7 @@ POOL = {
         [sell("line_braid_016", 5, 1, 10), sell("line_fluoro_020", 5, 1, 10)],
         [sell("leader_fluoro", 3, 2, 6)],
         [sell("fish_finder", 14, 1, 12)],                   # §QoL: read the swim before you cast
+        [sell("keepnet_small", 5, 1, 6)],                   # §keepnet: somewhere to put the catch
         [assembled("assembled_spinning_rod", "spinning_rod", "reel_2000", "line_braid_016",
                    "rig_predator", PREDATOR_RIG, 16, 14)],
     ],
@@ -283,6 +284,7 @@ POOL = {
         [sell("mormyshka", 3, 2, 8)],
         [sell("maggot_farm", 5, 1, 8)],                     # §bait-farm
         [sell("groundbait_cake", 4, 3, 6)],                 # жмых (sunflower+piston)
+        [sell("keepnet_medium", 9, 1, 10), sell("keepnet_large", 14, 1, 14)],
         # §vanilla-stock + §tackle-craft: the saltwater reels are gated on ocean drops. Selling the
         # INPUTS keeps the gate priced without making it hinge on guardian RNG.
         [sell("minecraft:prismarine_shard", 5, 4, 10)],
@@ -295,6 +297,7 @@ POOL = {
     # ---- Level 5 — Master: the trade-only prestige gear (§progression). 10 + 2 = 12.
     5: [
         [sell("digital_alarm", 10, 1, 25)],
+        [sell("keepnet_huge", 20, 1, 24)],
         [sell("leader_titanium", 8, 1, 20)],
         # §vanilla-stock: the 14000 reel and the trolling rod each want a nautilus shell, the single
         # worst piece of RNG in the ladder. Master tier sells it.
@@ -333,12 +336,18 @@ FISH = {
         ("white_eye_bream", 2, 3), ("nase", 2, 4), ("vimba", 3, 5), ("white_bream", 2, 2)],
     3: [("bream", 3, 4), ("ide", 3, 5), ("chub", 3, 5), ("tench", 4, 5), ("blue_bream", 2, 3),
         ("pike", 5, 8), ("volga_zander", 4, 6), ("pink_salmon", 4, 8), ("whitefish", 4, 8),
-        ("asp", 6, 9)],
+        ("asp", 6, 9),
+        # §florida-nine: the two small cichlids sit with the pan-fish of their weight.
+        ("oscar", 2, 4), ("mayan_cichlid", 2, 3)],
     4: [("carp", 6, 12), ("mirror_carp", 7, 13), ("grass_carp", 9, 14), ("zander", 6, 10),
+        # §florida-nine: the mid-weight predators, priced against largemouth bass and trout.
+        ("peacock_bass", 7, 13), ("bullseye_snakehead", 6, 11), ("bluefish", 6, 12),
         ("trout", 6, 12), ("largemouth_bass", 7, 12), ("rainbow_trout", 7, 12), ("grayling", 7, 12),
         ("burbot", 5, 10), ("mackerel", 3, 6), ("herring", 2, 4), ("garfish", 3, 6),
         ("flounder", 4, 8), ("char", 6, 12), ("lenok", 6, 12), ("salmon", 10, 18)],
     5: [("catfish", 12, 25), ("eel", 8, 15), ("channel_catfish", 10, 20), ("sterlet", 16, 30),
+        # §florida-nine: the big saltwater four, against the mahi/wahoo/barracuda band.
+        ("tarpon", 20, 32), ("snook", 11, 21), ("jack_crevalle", 12, 22), ("striped_bass", 12, 23),
         ("silver_carp", 14, 26), ("seabass", 7, 14), ("cod", 9, 18), ("saithe", 7, 14),
         ("conger", 13, 24), ("ray", 12, 22), ("mahi", 10, 20), ("wahoo", 14, 26),
         ("yellowfin_tuna", 20, 34), ("barracuda", 8, 16), ("blue_marlin", 28, 40),

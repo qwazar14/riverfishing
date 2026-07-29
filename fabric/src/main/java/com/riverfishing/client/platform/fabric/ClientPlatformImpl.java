@@ -23,6 +23,11 @@ public final class ClientPlatformImpl {
                 com.riverfishing.registry.ModMenus.RIG.get(), com.riverfishing.client.RigScreen::new);
         net.minecraft.client.gui.screens.MenuScreens.register(
                 com.riverfishing.registry.ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
+        // §keepnet + §tackle-box (0.7.0): the two boxes.
+        net.minecraft.client.gui.screens.MenuScreens.register(
+                com.riverfishing.registry.ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
+        net.minecraft.client.gui.screens.MenuScreens.register(
+                com.riverfishing.registry.ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
     }
 
     /** §26.1: handled by FeatureRenderDispatcherMixin (WorldRenderEvents is gone) — nothing to register. */

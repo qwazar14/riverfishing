@@ -43,6 +43,9 @@ public final class ClientPlatformImpl {
         event.register(ModMenus.ROD_ASSEMBLY.get(), RodAssemblyScreen::new);
         event.register(ModMenus.RIG.get(), RigScreen::new);
         event.register(ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
+        // §keepnet + §tackle-box (0.7.0): the two boxes.
+        event.register(ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
+        event.register(ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
     }
 
     public static void registerLevelRenderer() {
@@ -50,6 +53,16 @@ public final class ClientPlatformImpl {
         // §26.1: RenderLevelStageEvent became typed per-stage subclasses (no getStage()).
         NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent.AfterTranslucentBlocks e) -> {
             LineRenderer.render(e.getPoseStack(), e.getLevelRenderState().cameraRenderState.pos,
+                    net.minecraft.client.Minecraft.getInstance().getDeltaTracker()
+                            .getGameTimeDeltaPartialTick(false));
+        });
+        // §shoal: under the water, so it has to go in BEFORE the translucent blocks — that pass writes
+        // depth, and anything drawn behind the surface afterwards is thrown away. AfterOpaqueFeatures is
+        // the last stage before it (26.1 has no AfterEntities; the stage list is Sky, OpaqueBlocks,
+        // OpaqueFeatures, TranslucentBlocks, TranslucentFeatures, TranslucentParticles, Weather, Level).
+        NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent.AfterOpaqueFeatures e) -> {
+            com.riverfishing.client.ShoalRenderer.render(e.getPoseStack(),
+                    e.getLevelRenderState().cameraRenderState.pos,
                     net.minecraft.client.Minecraft.getInstance().getDeltaTracker()
                             .getGameTimeDeltaPartialTick(false));
         });

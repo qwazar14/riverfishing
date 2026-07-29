@@ -82,6 +82,27 @@ public final class ModVillagers {
                     SoundEvents.VILLAGER_WORK_FISHERMAN,
                     tradeSets()));
 
+    /**
+     * §order-tier: which fisherman level buys each species. The order-of-the-day board prints it — the
+     * standing complaint that an order can name a fish the player's own fisherman will not take is, at
+     * bottom, that the requirement was never stated anywhere.
+     *
+     * <p>§26.1: the trades are data, so the answer is READ OUT of the generated datapack rather than
+     * recorded while Java builders run — {@code fisherman/<level>/buy_<species>} is the id
+     * {@code gen_villager_trades.py} writes for every fish buy, so this cannot drift from the pools.
+     *
+     * @return the lowest fisherman level that buys this species, or 0 if none does (also off-world).
+     */
+    public static int buyTier(String species) {
+        net.minecraft.server.MinecraftServer server = dev.architectury.utils.GameInstance.getServer();
+        if (server == null) return 0;
+        Registry<VillagerTrade> trades = server.registryAccess().lookupOrThrow(Registries.VILLAGER_TRADE);
+        for (int lvl = 1; lvl <= 5; lvl++) {
+            if (trades.get(RiverFishing.id("fisherman/" + lvl + "/buy_" + species)).isPresent()) return lvl;
+        }
+        return 0;
+    }
+
     /** Prime-grade threshold (§prime-fish): the buyer only takes the top of the species' size range. */
     public static final double PRIME_FRACTION = 0.7;
 

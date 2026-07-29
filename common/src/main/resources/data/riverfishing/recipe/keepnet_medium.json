@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SSS",
+    "SCS",
+    "TST"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:string"
+    },
+    "T": {
+      "item": "minecraft:stick"
+    },
+    "C": {
+      "item": "riverfishing:keepnet_small"
+    }
+  },
+  "result": {
+    "id": "riverfishing:keepnet_medium",
+    "count": 1
+  }
+}

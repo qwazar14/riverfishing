@@ -14,6 +14,6 @@
   "reputation_discount": 0.05,
   "merchant_predicate": {
     "condition": "minecraft:random_chance",
-    "chance": 0.09091
+    "chance": 0.07692
   }
 }

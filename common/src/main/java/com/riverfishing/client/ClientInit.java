@@ -46,6 +46,8 @@ public final class ClientInit {
 
         // /rfrod live pose debugger (Forge RegisterClientCommandsEvent → Architectury client command).
         ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> RodDebugCommand.register(dispatcher));
+        // §keepnet-tune: live sizing for the fish in the grid, dialled in with the box open.
+        ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> KeepnetDebugCommand.register(dispatcher));
 
         // Platform-only event hook (in-world line render) — no registry objects. §26.1: the extra-model
         // bake is gone with the BEWLR icons; item models are data-driven client items now.

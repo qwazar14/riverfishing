@@ -61,6 +61,26 @@ public final class BiteEngine {
         return best;
     }
 
+    /**
+     * Why this species will not take right now, or null if it will.
+     *
+     * <p>Exactly the gates {@link #speciesWeight} enforces, asked one at a time and in the same order.
+     * Public and living HERE rather than in the message code on purpose: the hint a player reads and the
+     * rule that actually stopped them have to come from one place, or the mod ends up teaching something
+     * that is no longer true.
+     *
+     * @return {@code absent} the fish does not live here or is not feeding, {@code no_bait} nothing is on
+     *         the hook at all, {@code bait} what is on the hook is not something it eats, {@code hook} the
+     *         hook is the wrong size band for its mouth, {@code no_hook} there is no hook on the rig at
+     *         all, or null
+     */
+    public static String blockReason(FishProfile p, BiteContext c) {
+        if (environmentScore(p, c) <= 0) return "absent";
+        if (baitScore(p, c) <= 0) return c.baits.isEmpty() ? "no_bait" : "bait";
+        if (hookScore(p, c) < HOOK_GATE) return hookScore(p, c) <= 0 && c.hookSizes.isEmpty() ? "no_hook" : "hook";
+        return null;
+    }
+
     public static double matchScore(FishProfile p, BiteContext c) {
         double sBait = baitScore(p, c);
         double sGround = groundbaitScore(p, c);

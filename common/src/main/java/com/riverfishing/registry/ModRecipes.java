@@ -36,5 +36,12 @@ public final class ModRecipes {
     public static final RegistrySupplier<RecipeSerializer<LureDyeRecipe>> LURE_DYE =
             REGISTER.register("crafting_lure_dye", () -> unit(new LureDyeRecipe()));
 
+    // §tackle-box: dye the inserts — colour is how you tell four boxes apart.
+    // §26.1: same unit-codec treatment as the three above — SimpleCraftingRecipeSerializer is gone, and
+    // CustomRecipe no longer carries a CraftingBookCategory, so the recipe is stateless too.
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.TackleBoxDyeRecipe>> TACKLE_BOX_DYE =
+            REGISTER.register("crafting_tackle_box_dye",
+                    () -> unit(new com.riverfishing.item.TackleBoxDyeRecipe()));
+
     private ModRecipes() {}
 }

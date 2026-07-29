@@ -93,6 +93,7 @@ public final class LineRenderer {
     private static boolean drawAll(Minecraft mc, VertexConsumer vc, Matrix4f m, Matrix3f nrm, float pt) {
         float frameSeconds = mc.getDeltaTracker().getGameTimeDeltaTicks() / 20f;
         long now = mc.level.getGameTime();
+        ClientLineState.pollFightInput(); // §fight-course: WASD is the fight input, and nothing else polls it
         var it = ClientLineState.lines().entrySet().iterator();
         boolean drew = false;
         while (it.hasNext()) {
@@ -231,13 +232,19 @@ public final class LineRenderer {
             int bend = heldBend(player);
             float tipDx = TIP_BEND_OFFSET[bend][0];
             float tipDy = TIP_BEND_OFFSET[bend][1];
+            // §fight-course: a run drags the tip over, so the anchor has to travel with it or the line
+            // visibly leaves the rod. Added OUTSIDE the arm multiplier because a lean is a direction on
+            // screen, not a distance out along the hand.
+            float[] lean = ClientLineState.ownLean();
+            float leanX = lean[0] * RodHandTransform.COURSE_TIP_X;
+            float leanY = lean[1] * RodHandTransform.COURSE_TIP_Y;
             // §26.1: getNearPlane now takes the fov in degrees instead of reading it itself.
             //? if <26.2 {
             Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane((float) fov)
             //?} else {
             /*Vec3 v = mc.gameRenderer.mainCamera().getNearPlane((float) fov)
             *///?}
-                    .getPointOnPlane(arm * (0.525f + tipDx), -0.1f + tipDy)
+                    .getPointOnPlane(arm * (0.525f + tipDx) + leanX, -0.1f + tipDy + leanY)
                     .scale(fovScale)
                     .yRot(swing * 0.5f)
                     .xRot(-swing * 0.7f);

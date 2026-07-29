@@ -33,6 +33,14 @@ public class FishItem extends Item {
     public static final String TAG_BAIT_WEIGHT = "BaitW";
     // legendary (0.5.0): this specimen is the server one-of-a-kind named fish.
     public static final String TAG_LEGEND = "Legend";
+    /**
+     * §morph: how grown this specimen is, 0..100. Written at creation because only the SERVER has the
+     * fish profiles — the client paints the fish and would otherwise have no idea whether a 900 g bream
+     * is a youngster or an old one.
+     */
+    public static final String TAG_AGE = "Age";
+    /** §morph: the morph id from the {@link com.riverfishing.fish.FishMorph} table, or absent. */
+    public static final String TAG_MORPH = "Morph";
 
     private final Identifier species;
 
@@ -139,11 +147,17 @@ public class FishItem extends Item {
     public static ItemStack create(Item fishItem, Identifier species, int weightG, int lengthCm,
                                    boolean legal, boolean trophy) {
         ItemStack stack = new ItemStack(fishItem);
+        // §morph: every fish, from every source — a catch, a bait trap, a villager trade — carries how
+        // grown it is, so the age shading is universal rather than a property of one code path.
+        com.riverfishing.fish.FishProfile profile =
+                com.riverfishing.fish.FishProfileManager.get().byId(species);
+        int age = (int) Math.round(com.riverfishing.fish.FishMorph.ageFraction(profile, weightG) * 100);
         StackNbt.mutate(stack, tag -> {
             tag.putString(TAG_SPECIES, species.toString());
             tag.putInt(TAG_WEIGHT, weightG);
             tag.putInt(TAG_LENGTH, lengthCm);
             tag.putBoolean(TAG_LEGAL, legal);
+            tag.putByte(TAG_AGE, (byte) age);
             if (trophy) tag.putBoolean(TAG_TROPHY, true);
         });
         // §26.1 §fish-scale: the icon scale rides custom_model_data float[0] — the client item
@@ -157,6 +171,30 @@ public class FishItem extends Item {
 
     public static boolean isTrophy(ItemStack stack) {
         return StackNbt.get(stack).getBooleanOr(TAG_TROPHY, false);
+    }
+
+    /** §morph: 0..1, how grown this specimen is. Half means a typical fish of its species. */
+    public static double getAge(ItemStack stack) {
+        CompoundTag t = StackNbt.get(stack);
+        return t.getByteOr(TAG_AGE, (byte) 50) / 100.0;
+    }
+
+    /** §morph: the morph id, or "" for an ordinary fish. */
+    public static String getMorph(ItemStack stack) {
+        return StackNbt.get(stack).getStringOr(TAG_MORPH, "");
+    }
+
+    public static void setMorph(ItemStack stack, String morphId) {
+        StackNbt.mutate(stack, t -> t.putString(TAG_MORPH, morphId));
+    }
+
+    /**
+     * §trophy: the weight at which a specimen of this species IS a trophy. A plain reading of the size
+     * range, published in the journal, so the rule is something a player can look up rather than infer.
+     */
+    public static int trophyThresholdG(double weightMinG, double weightMaxG) {
+        return (int) Math.ceil(weightMinG + (weightMaxG - weightMinG)
+                * com.riverfishing.config.RiverFishingConfig.trophyFraction());
     }
 
     /** The fisherman's minimum accepted weight for a species (§prime-fish). */
@@ -177,7 +215,7 @@ public class FishItem extends Item {
     }
 
     public static boolean isPrime(ItemStack stack) {
-        return GRADE_PRIME.equals(StackNbt.get(stack).getString(TAG_GRADE));
+        return GRADE_PRIME.equals(StackNbt.get(stack).getStringOr(TAG_GRADE, ""));
     }
 
     /** Weight as a localized component (§i18n) — "1.50 kg" / "1,50 кг" / "320 g" per the client's lang. */
@@ -185,6 +223,22 @@ public class FishItem extends Item {
         return weightG >= 1000
                 ? Component.translatable("unit.riverfishing.kg", String.format("%.2f", weightG / 1000.0))
                 : Component.translatable("unit.riverfishing.g", weightG);
+    }
+
+    /**
+     * §one-that-got-away: the weight of a fish that was never on the scales. Rounded hard on purpose —
+     * you felt it on the rod and you saw it turn, you did not weigh it, and a figure to the gram would be
+     * a precision the moment never had. Coarser as the fish gets bigger, the way an estimate really is.
+     */
+    public static Component approxWeightText(int weightG) {
+        int step = weightG < 100 ? 10 : weightG < 1000 ? 50 : weightG < 10000 ? 500 : 1000;
+        int rounded = Math.max(step, Math.round(weightG / (float) step) * step);
+        if (rounded < 1000) return Component.translatable("unit.riverfishing.g", rounded);
+        // An estimate has to LOOK like an estimate: half-kilos up to ten, whole kilos above. The normal
+        // two-decimal form would read as "around 30.00 kg", which is a weighed figure, not a guess.
+        return Component.translatable("unit.riverfishing.kg", step >= 1000
+                ? String.valueOf(rounded / 1000)
+                : String.format("%.1f", rounded / 1000.0));
     }
 
     /** Flat-string form of {@link #weightText} for plain-text call sites; resolves the caller-side lang. */
@@ -279,6 +333,14 @@ public class FishItem extends Item {
                         .withStyle(ChatFormatting.YELLOW));
             }
             return;
+        }
+        // §morph: named on its own line rather than folded into the item name. A prefix would have to
+        // agree in gender with 79 species names in Russian and Ukrainian, and "Золотистый плотва" is
+        // worse than no feature at all.
+        String morph = tag.getStringOr(TAG_MORPH, "");
+        if (!morph.isEmpty()) {
+            tooltip.accept(Component.translatable("morph.riverfishing." + morph)
+                    .withStyle(ChatFormatting.AQUA, ChatFormatting.ITALIC));
         }
         if (isTrophy(stack)) {
             tooltip.accept(Component.translatable("tooltip.riverfishing.fish_trophy")
