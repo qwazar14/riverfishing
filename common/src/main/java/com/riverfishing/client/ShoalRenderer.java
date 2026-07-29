@@ -56,8 +56,7 @@ public final class ShoalRenderer {
     public static void render(PoseStack pose, Vec3 cam, float partialTick) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
-        // §26.x: the atlases moved off ModelManager onto their own AtlasManager.
-        TextureAtlas atlas = mc.getAtlasManager().getAtlasOrThrow(TextureAtlas.LOCATION_BLOCKS);
+        TextureAtlas atlas = blockAtlas(mc);
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
         RenderType layer = LAYER;
         if (drawAll(mc, atlas, pose, cam, partialTick, buffers.getBuffer(layer))) {
@@ -72,12 +71,25 @@ public final class ShoalRenderer {
                               net.minecraft.client.renderer.SubmitNodeCollector collector) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
-        // §26.x: the atlases moved off ModelManager onto their own AtlasManager.
-        TextureAtlas atlas = mc.getAtlasManager().getAtlasOrThrow(TextureAtlas.LOCATION_BLOCKS);
+        TextureAtlas atlas = blockAtlas(mc);
         collector.submitCustomGeometry(pose, LAYER,
                 (posePose, vc) -> drawAll(mc, atlas, pose, cam, partialTick, vc));
     }
     *///?}
+
+    /**
+     * §26.x: the atlas the fish sprites are stitched into.
+     *
+     * <p>26.x split one name into two. The AtlasManager is keyed by the atlas's own ID
+     * ({@code minecraft:blocks}, the name of {@code assets/minecraft/atlases/blocks.json}); the render
+     * layer is keyed by the atlas's TEXTURE ({@code minecraft:textures/atlas/blocks.png}, which is what
+     * {@link TextureAtlas#LOCATION_BLOCKS} still is). Passing the texture to the manager compiles fine
+     * and throws "Invalid atlas id" the first frame a world is drawn. One place asks for the atlas, so
+     * the two 26.1/26.2 entry points below cannot drift apart on it again.
+     */
+    private static TextureAtlas blockAtlas(Minecraft mc) {
+        return mc.getAtlasManager().getAtlasOrThrow(net.minecraft.data.AtlasIds.BLOCKS);
+    }
 
     /**
      * §26.x: the atlas-backed layer the fish quads live on, named once. 26.x dropped the culled
