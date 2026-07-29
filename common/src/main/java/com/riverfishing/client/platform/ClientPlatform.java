@@ -28,12 +28,17 @@ public final class ClientPlatform {
     }
 
     /**
-     * Register the tint provider that colours painted lures (§lure-color) — the dyed {@code DyedItemColor}
-     * RGB on tint-layer 0. Fabric uses {@code ColorProviderRegistry}, NeoForge the
-     * {@code RegisterColorHandlersEvent.Item} mod-bus event.
+     * Register the BLOCK tints (§tackle-box insert colour).
+     *
+     * <p>§26.x: item tints are data-driven now — a {@code minecraft:dye} entry in the client item
+     * definition — so the old lure/box item providers are gone. Block tints are not: a placed block
+     * still asks Java, through {@code BlockColorRegistry} on Fabric and
+     * {@code RegisterColorHandlersEvent.BlockTintSources} on NeoForge. The method kept the old name
+     * through the port and quietly became a no-op on both sides, which is how a painted box came to be
+     * placed grey.
      */
     @ExpectPlatform
-    public static void registerItemColors() {
+    public static void registerColors() {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
     }
 

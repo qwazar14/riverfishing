@@ -26,8 +26,20 @@ public final class ClientPlatformImpl {
     public static void registerScreens() {
     }
 
-    /** §26.1: no-op — the DYED_COLOR tint ships in the client item definitions now. */
-    public static void registerItemColors() {
+    /** Handled by {@link #onRegisterBlockTints} on the mod bus — see there. */
+    public static void registerColors() {
+    }
+
+    /**
+     * §tackle-box: the placed box's insert. Item tints are data-driven on 26.x; block tints still come
+     * from Java, and NeoForge hands them out on its own mod-bus event rather than a registry call.
+     */
+    @SubscribeEvent
+    static void onRegisterBlockTints(
+            net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.BlockTintSources event) {
+        for (var box : com.riverfishing.registry.ModBlocks.TACKLE_BOXES.values()) {
+            event.register(com.riverfishing.client.TackleBoxTint.LAYERS, box.get());
+        }
     }
 
     /** §26.1: no-op — layers are data-driven (force_translucent in the model; cutout is automatic). */

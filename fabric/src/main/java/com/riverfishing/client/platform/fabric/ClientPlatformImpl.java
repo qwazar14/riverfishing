@@ -10,8 +10,12 @@ package com.riverfishing.client.platform.fabric;
 public final class ClientPlatformImpl {
     private ClientPlatformImpl() {}
 
-    /** §26.1: no-op — the DYED_COLOR tint ships in the client item definitions now. */
-    public static void registerItemColors() {
+    /** §tackle-box: the placed box's insert. Item tints are data-driven on 26.x; block tints are not. */
+    public static void registerColors() {
+        for (var box : com.riverfishing.registry.ModBlocks.TACKLE_BOXES.values()) {
+            net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry.register(
+                    com.riverfishing.client.TackleBoxTint.LAYERS, box.get());
+        }
     }
 
     public static void registerScreens() {

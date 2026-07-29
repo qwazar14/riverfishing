@@ -65,8 +65,8 @@ public final class ClientInit {
         BlockEntityRendererRegistry.register(ModBlockEntities.ROD_POD.get(), RodPodRenderer::new);
         BlockEntityRendererRegistry.register(ModBlockEntities.AQUARIUM.get(), AquariumRenderer::new);
 
-        // §lure-color: tint provider for painted lures (needs the items bound, so it lives here).
-        ClientPlatform.registerItemColors();
+        // §tackle-box: block tints (needs the blocks bound, so it lives here).
+        ClientPlatform.registerColors();
 
         // Non-solid block render layers (aquarium glass, ice hole, bait trap) — Fabric only; Forge reads
         // "render_type" from the model. Needs the blocks bound, so it lives here with the renderers.
