@@ -48,15 +48,6 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
      */
     public static float iconScale = 1.0f;
 
-    /**
-     * §26.1: BEWLR is gone, and with it {@code FishItemRenderer.gridScale} — the hook the grid used to
-     * hand the item renderer a size of its own. A fish item now carries its length-derived size in its
-     * MODEL: custom_model_data range-dispatches into the {@code item/fish_scaled/<species>_N} models,
-     * whose {@code display.gui.scale} IS the bucket value. So the grid divides that contribution back
-     * out on the pose instead of overriding it. Buckets copied from {@code tools/gen_dynamic_icons.py},
-     * the script that generates those models.
-     */
-    private static final float[] SCALE_BUCKETS = {0.45f, 0.6f, 0.75f, 0.9f, 1.05f, 1.25f, 1.55f, 2.0f};
 
     /** Which way round the thing on the cursor goes down. Client state: it is a property of the pointer. */
     private int rot;
@@ -176,45 +167,41 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
         }
     }
 
-    /** The gui scale the item's own model applies (§26.1), or 1 for anything that is not a fish. */
-    private static float modelScale(ItemStack stack) {
-        if (com.riverfishing.item.FishItem.getSpecies(stack) == null) return 1f;
-        float v = com.riverfishing.item.FishItem.getIconScale(stack);
-        float bucket = SCALE_BUCKETS[0];
-        for (float b : SCALE_BUCKETS) {
-            if (v >= b) bucket = b;
-        }
-        return bucket;
-    }
-
     /**
      * Draw a fish at the size of the space it is taking, turned the way it was placed.
      *
-     * <p>Two things had to be right for this to stop looking wrong. The item renderer normally scales a
-     * fish by its LENGTH, which inside the grid multiplies two versions of the same fact and bursts a
-     * catfish out of its own footprint — so that contribution is divided back out here. And the fit needs
-     * the fish's REAL proportions inside its square icon, which vary enormously (a ray is nearly square,
-     * an eel is a bar a seventh as tall as it is long); those are measured per species rather than
-     * assumed, because assuming them made the ray look right and the flounder look tiny.
+     * <p>§fish-icon: this blits the species' own picture rather than rendering the item. Going through
+     * the item model meant the fish arrived as a lit, extruded slab — and any fish wider than one cell
+     * came back through vanilla's oversized-item pass looking soft and washed out, which is the
+     * "squashed texture" this GUI was reported for. It also meant the size had to be handed over as a
+     * scale bucket baked into the model and then divided back out here, two numbers that had to agree
+     * exactly. A blit needs neither. See {@link FishIcon}.
+     *
+     * <p>The fit needs the fish's REAL proportions inside its square canvas, which vary enormously (a
+     * ray is nearly square, an eel is a bar a seventh as tall as it is long); those are measured per
+     * species rather than assumed, because assuming them made the ray look right and the flounder tiny.
      */
     private void drawInFootprint(GuiGraphicsExtractor g, ItemStack stack, int px, int py, int cw, int ch, int rot) {
         var sp = com.riverfishing.item.FishItem.getSpecies(stack);
-        float[] b = FishBounds.of(sp == null ? "" : sp.getPath());
-        float fishW = 16f * b[0], fishH = 16f * b[1];
+        if (sp == null) {           // bycatch: a boot is an item, and an item is what it should look like
+            g.item(stack, px + (cw * CELL - 16) / 2, py + (ch * CELL - 16) / 2);
+            return;
+        }
+        float[] b = FishBounds.of(sp.getPath());
         // A turned fish lies on its side, so the footprint's axes swap for the purposes of fitting it.
         float availW = (rot == 0 ? cw : ch) * CELL;
         float availH = (rot == 0 ? ch : cw) * CELL;
-        float scale = Math.min(availW / fishW, availH / fishH) * iconScale;
+        // The canvas side that makes the FISH — not the canvas — fill the space it was given.
+        int side = Math.round(Math.min(availW / b[0], availH / b[1]) * iconScale);
 
-        // The size is applied ONCE. Scaling the pose on top of the model's own length-derived scale
-        // multiplied it by itself — a ray computed at 6.06 came out at 36, which is how it ended up
-        // larger than the screen — so the model's share is divided out of the pose scale.
         g.pose().pushMatrix();
         g.pose().translate(px + cw * CELL / 2f, py + ch * CELL / 2f);
         if (rot != 0) g.pose().rotate((float) (Math.PI / 2));
-        float k = scale / modelScale(stack);
-        g.pose().scale(k, k);
-        g.item(stack, -8, -8);
+        // §morph: the same multiply the fish wears in the water and in the journal.
+        FishIcon.draw(g, sp.getPath(), -side / 2, -side / 2, side,
+                com.riverfishing.fish.FishMorph.tint(sp.getPath(),
+                        com.riverfishing.item.FishItem.getAge(stack),
+                        com.riverfishing.item.FishItem.getMorph(stack)));
         g.pose().popMatrix();
     }
 

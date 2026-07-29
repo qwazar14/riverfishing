@@ -960,17 +960,17 @@ public class JournalScreen extends Screen {
     // ---- shared helpers ----
 
     private static Identifier fishTex(String sp) {
-        return RiverFishing.id("textures/item/fish/" + sp + ".png");
+        return FishIcon.texture(sp);
     }
 
     /** Fish are builtin/entity items whose BEWLR the GUI shades dark; blit the texture directly instead. */
     private void drawFishIcon(GuiGraphicsExtractor g, String sp, int x, int y) {
-        drawFishIcon(g, sp, x, y, -1);
+        FishIcon.draw(g, sp, x, y);
     }
 
     /** The same icon under an ARGB multiply (§morph) — 26.x takes the tint as the blit's last argument. */
     private void drawFishIcon(GuiGraphicsExtractor g, String sp, int x, int y, int argb) {
-        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, fishTex(sp), x, y, 0f, 0f, 16, 16, 16, 16, 16, 16, argb);
+        FishIcon.draw(g, sp, x, y, 16, argb);
     }
 
     /**
