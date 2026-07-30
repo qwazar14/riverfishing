@@ -109,7 +109,8 @@ The [Fish Finder](tools.md#fish-finder) shows the reading, an arrow (a change un
 | frenzy | ≥ 1.18 |
 | active | ≥ 1.05 |
 | fair | ≥ 0.92 |
-| sluggish | below 0.92 |
+| slow | ≥ 0.80 |
+| dead | below 0.80 |
 
 ## Feeding frenzy
 

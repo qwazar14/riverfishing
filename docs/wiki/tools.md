@@ -46,7 +46,7 @@ Pressure: 1004 hPa ↓  —  bite: frenzy
 | The species list | Up to 8 species that can bite here **right now**, ordered by environment score. If nothing can: *"The finder is silent — nothing here now"* |
 | *Known for:* | This water's [signature species](water-and-conditions.md#every-water-is-its-own) — they bite ×1.8 |
 | *Stock:* | Every species whose [stock level](stocking.md) is more than 10 % off normal. **(temp)** marks an unsettled transplant |
-| *Pressure:* | The [barometer](water-and-conditions.md#barometric-pressure): reading, trend arrow, and a colour-coded outlook (frenzy / active / fair / sluggish) |
+| *Pressure:* | The [barometer](water-and-conditions.md#barometric-pressure): reading, trend arrow, and a colour-coded outlook (frenzy / active / fair / slow / dead) |
 
 The Fish Finder is sold by a journeyman [fisherman](villager.md) for 14 emeralds, and is the reward-shaped item you want before committing to a long bottom session.
 
