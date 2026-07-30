@@ -3,7 +3,7 @@
   "water_bodies": { "sea": 1.1, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 2000, "max": 50000, "mean": 8000 },
   "length_cm": { "min": 40, "max": 180 },
-  "fight": { "strength": 0.95, "stamina": 0.95, "runs": 1, "pattern": "steady", "aggression": 0.2 },
+  "fight": { "strength": 0.95, "stamina": 0.95, "runs": 2, "pattern": "active_then_passive", "aggression": 0.2 },
   "ideal": {
     "rod": ["surf", "boat"],
     "reel_size": 12000, "reel_tolerance": 2000,
