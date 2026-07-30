@@ -1410,7 +1410,13 @@ public final class FishingManager {
         // out in seconds, a carp holds for half a minute, big game outlasts the drag instead.
         // §fight-course: divided through by the run-length change (2.2x) and the new course bonus, or a
         // perfectly-fought fish hit fatigue 1.0 inside its FIRST run and everything after it went limp.
-        session.fatigueRunTick = 1.0 / (20.0 * (10.4 + 6.5 * weightKg));
+        // §fish-stamina (0.7.0): and by the SPECIES' own staying power, which until now was a number
+        // every profile carried and nothing ever read — so a 2 kg pike and a 2 kg carp gassed out
+        // identically, which is the one difference the field exists to describe. Measured against the
+        // table's median (0.70) so wiring it up leaves the fish that were tuned right exactly as they
+        // were; the clamp keeps a bleak from being untirable-fast and a tuna from being unkillable.
+        double staminaFactor = Mth.clamp(profile.fightStamina / 0.70, 0.5, 1.6);
+        session.fatigueRunTick = 1.0 / (20.0 * (10.4 + 6.5 * weightKg) * staminaFactor);
         session.landPulse = 0.05 / (0.7 + 0.6 * weightStress) * (0.9 + session.reelSize / 14000.0);
         session.relaxTick = 0.010 + dragRelief * 0.02;                 // big reel gives line faster
         session.fightPattern = profile.fightPattern;

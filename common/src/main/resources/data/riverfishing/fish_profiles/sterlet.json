@@ -3,7 +3,7 @@
   "water_bodies": { "river": 1.2, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 1000, "max": 16000, "mean": 3000 },
   "length_cm": { "min": 40, "max": 125 },
-  "fight": { "strength": 0.8, "stamina": 0.9, "runs": 3, "pattern": "steady" },
+  "fight": { "strength": 0.8, "stamina": 0.9, "runs": 4, "pattern": "burst" },
   "ideal": {
     "rod": ["bottom", "carp"],
     "reel_size": 6000, "reel_tolerance": 1000,
