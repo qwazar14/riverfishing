@@ -2990,7 +2990,8 @@ public final class FishingManager {
             case "great" -> ChatFormatting.GREEN;
             case "good" -> ChatFormatting.DARK_GREEN;
             case "fair" -> ChatFormatting.YELLOW;
-            default -> ChatFormatting.RED;
+            case "poor" -> ChatFormatting.RED;
+            default -> ChatFormatting.DARK_RED;
         };
         return Component.translatable("finder.riverfishing.pressure", hpa, arrow)
                 .withStyle(ChatFormatting.GRAY)
