@@ -32,6 +32,16 @@ public class FishItem extends Item {
     public static final String TAG_BAIT_WEIGHT = "BaitW";
     // legendary (0.5.0): this specimen is the server one-of-a-kind named fish.
     public static final String TAG_LEGEND = "Legend";
+
+    /**
+     * §dedication: legendaries named for a real person, who gets a line on the fish.
+     *
+     * <p>The Abyssal Demon is idkwho0457_07869's — they brought the mod the whole Florida wave of
+     * species and found a good share of the bugs that shipped fixed with it, and picked the halibut
+     * themselves. Add a species here and give it a {@code legendary.riverfishing.<species>.credit}
+     * line in all three lang files; the tooltip only asks for the key when the name is on this list.
+     */
+    private static final java.util.Set<String> DEDICATED = java.util.Set.of("halibut");
     /**
      * §morph: how grown this specimen is, 0..100. Written at creation because only the SERVER has the
      * fish profiles — the client paints the fish and would otherwise have no idea whether a 900 g bream
@@ -310,6 +320,14 @@ public class FishItem extends Item {
             if (lsp != null) {
                 tooltip.add(Component.translatable("legendary.riverfishing." + lsp.getPath())
                         .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+                // §dedication: a legendary named FOR someone says so on the fish itself. Listed in
+                // code rather than guessed from the lang file because a missing translation key renders
+                // as the key, and a fish claiming to honour "legendary.riverfishing.pike.credit" would
+                // be worse than no line at all.
+                if (DEDICATED.contains(lsp.getPath())) {
+                    tooltip.add(Component.translatable("legendary.riverfishing." + lsp.getPath() + ".credit")
+                            .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
+                }
             }
         }
         if (getWeightG(stack) <= 0) {
