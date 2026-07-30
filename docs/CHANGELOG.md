@@ -35,6 +35,14 @@ The fisherman sells four **ready-made kits** — float, pike, carp and saltwater
 packed with bench-graded tackle. A kit is the answer to "what do I actually need for pike", in a form you
 can carry to the water and open.
 
+### The fisherman paints what he ties
+
+Lures could be dyed at the bench since 0.6.0, and the colour changes the bite — but every lure the
+fisherman sold came out the same factory silver, so the one system was invisible until you had a bench, a
+lure and a dye. His racks now carry **mixed colours**, rolled the way a player's own dye job mixes, and
+the weights are rolled inside each form's own ladder rather than being the stock size. Two spinners from
+the same villager are two different spinners.
+
 ### Taking a species out of a water
 
 Asked for by **vptareo-aao**: a way to remove a nuisance species from a particular water so it stops
@@ -166,6 +174,30 @@ between runs, not at all while you wind.
 
 Spent arms wind weakly and load the line harder, so the answer to being tired is to stop rather than to
 click faster. That is the real technique the fight had never asked for — let the fish tire itself.
+
+### Every species tires differently now
+
+Every fish profile has carried a `stamina` value since profiles existed, and **nothing has ever read it**.
+Fatigue came from weight alone, so a 2 kg pike and a 2 kg carp gassed out on the same tick — the one
+difference the field exists to describe. It is in the fatigue maths now, measured against the table's own
+median so the species that were tuned correctly are untouched, and clamped at both ends so a bleak is not
+instantly limp and a tuna is not unkillable. The table itself was already good: bleak 0.15, gudgeon 0.20,
+up to 1.00 for tuna, sturgeon and the two big carp. It simply was not plugged in.
+
+The rest of the fight table got the review that goes with it:
+
+- **The first fish anyone hooks was fighting like a pike.** The rotan weighs 90 g, sits at angler level 0
+  and was set to *aggressive* — three runs at a 95% run chance, a new one every second and a half. It is a
+  single calm run now.
+- **Two level-4 carp were the hardest fights in the mod.** The wild carp and the grass carp ran nine
+  times where a blue marlin runs eight. Both are down to a level-4 shape, and the effective run count now
+  climbs with the level gate instead of crossing it.
+- **`steady` stopped being the drawer.** It held everything unclassified, from a 30 g bleak to a 50 kg
+  ray. The ray pulls once and then lies on the bottom being heavy, which is exactly the
+  *active-then-passive* script; the channel catfish and the sterlet are real fighters and were filed next
+  to the ruffe.
+- **The swordfish was the only big-game fish in the mod recommending mono** — 0.50 mm, 25 kg of line,
+  against an 80 kg fish, while every one of its siblings is on braid.
 
 ### Fish are wary of you
 
@@ -360,10 +392,21 @@ by the engine, which would make a species quietly never bite), sprites palette-s
 closest-bodied donor, and the models, cutting recipes, lang and registry wired by a script that copies
 each per-version quirk from a species that already works in that tree rather than hardcoding it.
 
+### The nine new species are drawn
+
+They shipped with stand-in art, and the stand-ins were sharing proportions as well as pixels: the
+bluefish, the striped bass and the tarpon all carried the asp's measurements, and the oscar carried the
+mayan cichlid's. That table is what tells the keepnet how much of its own canvas a fish fills, so the
+oscar — a deep-bodied cichlid recorded as a slim one — was being drawn half again too big to make the
+"fish" fit its cells. All ten drawings are real now, measured rather than assumed, and the **bream** was
+repainted while the brush was out.
+
 ### An eighth legendary: the Abyssal Demon
 
 The **halibut** joins the legendary list — a 250 kg one-of-a-kind at 0.4% on a fish that already asks for
-angler level 9. Named by the same player, as thanks for the bug report.
+angler level 9. Named by the same player — they picked the halibut themselves — and the fish says so:
+under its gold name it carries a dedication line, in all three languages. It is the first named-for-a-person
+catch in the mod.
 
 ### Two trolling lures
 
@@ -411,6 +454,30 @@ anchor.
 nobody can discover is barely better than none. Numbers are clamped on read, so a stray minus sign cannot
 produce a negative chance or a multiplier that breaks the fight maths, and an unknown preset name falls
 back to realism **with a warning** rather than silently behaving as realism for no visible reason.
+
+### 26.1.2 and 26.2: things that were quietly broken
+
+The 26.x builds have had less playtesting than the rest, and a runtime pass over them found four faults
+that a green compile cannot catch.
+
+- **Nothing in the mod could be crafted.** 26.x dropped the `{"item": "x"}` ingredient form — an
+  ingredient is a bare id, a `#tag` or a list — and every rod, reel, keepnet, line upgrade, lure and
+  tackle box was thrown away at datapack load. Silently: the recipe book simply had gaps. Present since
+  the first 26.x port, so it shipped in 0.5.0 and 0.6.x as well.
+- **The shoal drew nothing.** 26.x gave items an atlas of their own, and the renderer was still asking
+  the block atlas for fish sprites that are no longer on it.
+- **"Trophy" was handed out for free.** Its criterion used the pre-1.20.5 item predicate shape, which
+  26.x's codec ignores field by field — leaving an empty predicate, and an empty predicate matches
+  anything. Picking up one dirt block earned it.
+- **The Tackle Station never showed a result.** The container listener it used is gone on 26.x, and the
+  hook that replaced it is not one anything calls for a plain container.
+
+Plus: an unpainted tackle box had a transparent hole where its white insert should be (the dye tint's
+default was written without an alpha byte), a painted one was placed grey (blocks still take their tint
+from Java there), the fish lost their age shading everywhere the item model is drawn, a flatfish stood on
+its edge on the bank, and the keepnet drew fish through the item-model pipeline, which on 26.x pushes
+anything wider than its slot through an oversized-item pass and hands back a soft, washed-out copy of the
+drawing.
 
 ### The wiki carries all 79 species
 
