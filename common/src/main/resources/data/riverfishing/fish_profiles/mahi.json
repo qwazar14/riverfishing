@@ -45,7 +45,7 @@
       "popper": 0.9,
       "silicone": 0.8,
       "fish_strip": 0.6,
-      "octopus_jig": 1.15,
+      "octopus_jig": 1.0, "livebait": 1.05,
       "giant_spoon": 1.0
     },
     "hook": {
