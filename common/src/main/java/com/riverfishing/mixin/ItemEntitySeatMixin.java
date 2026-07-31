@@ -1,6 +1,7 @@
 package com.riverfishing.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.riverfishing.client.SeatedFish;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.ItemEntityRenderer;
 import net.minecraft.client.renderer.entity.state.ItemEntityRenderState;

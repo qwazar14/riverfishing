@@ -1,5 +1,6 @@
 package com.riverfishing.mixin;
 
+import com.riverfishing.client.SeatedFish;
 import net.minecraft.client.renderer.entity.state.ItemEntityRenderState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
