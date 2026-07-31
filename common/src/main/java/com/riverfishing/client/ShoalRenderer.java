@@ -55,9 +55,8 @@ public final class ShoalRenderer {
         // Shoals belong to the level they were sent for; a world change must not leave stale fish behind.
         if (ShoalState.owner() != mc.level) return;
 
-        float fade = ShoalState.tickFade(partialTick);
-        if (fade <= 0.01f) return;
-        List<ShoalPacket.Spot> spots = ShoalState.spots();
+        ShoalState.tick(partialTick);
+        List<ShoalState.Live> spots = ShoalState.live();
         if (spots.isEmpty()) return;
 
         TextureAtlas atlas = (TextureAtlas) mc.getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS);
@@ -68,9 +67,14 @@ public final class ShoalRenderer {
         float time = mc.level.getGameTime() + partialTick;
         boolean drew = false;
 
-        for (ShoalPacket.Spot spot : spots) {
+        for (ShoalState.Live live : spots) {
+            ShoalPacket.Spot spot = live.spot;
             List<ShoalPacket.Entry> fish = spot.fish();
-            if (fish.isEmpty()) continue;
+            if (fish.isEmpty() || live.fade <= 0.01f) continue;
+            // §shoal-spook: 0 calm, 1 gone. Every patch fades on its OWN clock now, so one shoal
+            // bolting or one dropping off the edge of the send radius leaves the rest alone.
+            float fade = live.fade;
+            float flight = Mth.clamp(live.flight, 0f, 1f);
 
             BlockPos c = spot.centre();
             Vec3 centre = new Vec3(c.getX() + 0.5, c.getY() + 1.0, c.getZ() + 0.5);
@@ -79,7 +83,8 @@ public final class ShoalRenderer {
 
             // Muddy water, rain and dusk are what dim a fish — not how deep it is sitting.
             float distFade = (float) Mth.clamp((MAX_DIST - dist) / FADE_BAND, 0.0, 1.0);
-            int alpha = (int) (fade * spot.clarity() * distFade * 255f);
+            // A frightened shoal is not just absent — it is leaving, and dimming as it goes.
+            int alpha = (int) (fade * spot.clarity() * distFade * (1f - 0.85f * flight) * 255f);
             if (alpha <= 6) continue;
 
             // Lanes are laid out across this shoal's own cell, so two neighbouring shoals do not swim
@@ -101,18 +106,21 @@ public final class ShoalRenderer {
                 // Each lane is one slow circuit around the spot; a shoal shares its lane, and the packet
                 // phase places each fish on it, so a group travels together instead of strung out.
                 float phase = e.phase() / 64f * Mth.TWO_PI;
-                float t = time * 0.012f + phase;
+                // §shoal-spook: a scared fish swims HARDER, so the lap speeds up as the flight builds.
+                float t = time * (0.012f + 0.030f * flight) + phase;
                 double radius = lanes == 1 ? rOuter * 0.55
                         : 0.9 + (rOuter - 0.9) * e.lane() / (double) (lanes - 1);
+                // ...and breaks outward for open water rather than holding its circuit.
+                radius *= 1.0 + 0.45 * flight;
+                // §shoal-bank: and never past where the water actually goes on this bearing. The lap
+                // comes in to hug the shoreline instead of crossing it, which is why nothing has to be
+                // hidden any more — a fish is always somewhere it could really be.
+                double y = centre.y - 0.35 - e.depth() + Mth.sin(time * 0.03f + i) * 0.18
+                        - 1.2 * flight;   // frightened fish go DOWN, which is what they do
+                radius = Math.min(radius, ShoalBank.reach(mc.level, c, y, t));
+                if (radius < 0.15) continue;    // this bearing is bank, not water
                 double x = centre.x + Mth.cos(t) * radius;
                 double z = centre.z + Mth.sin(t) * radius * 0.75;
-                // Depth from the server, plus a gentle rise and fall — fish do not hold a perfect line.
-                double y = centre.y - 0.35 - e.depth() + Mth.sin(time * 0.03f + i) * 0.18;
-
-                // The circuit is drawn around one surface block, which near a bank means part of a lap can
-                // leave the water. The client has the blocks, so it just checks: a fish is only drawn where
-                // there IS water. Without this you get fish over the grass and fish buried in the bottom.
-                if (mc.level.getFluidState(BlockPos.containing(x, y, z)).isEmpty()) continue;
 
                 // §shoal-side: a flat sprite must stay BROADSIDE to whoever is looking, or it turns
                 // edge-on and vanishes — the aquarium's rule (§aquarium-side), generalised from a fixed

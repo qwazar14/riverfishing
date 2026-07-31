@@ -144,12 +144,14 @@ public final class ShoalTracker {
             Pool pool = poolFor(env, surface, pressure, now);
             if (pool.total <= 0) continue;
 
-            // §spook: frightened fish leave, and that is the only readout this mechanic ever gets — you
-            // watch the water empty. Above SPOOK_GONE the patch shows nothing at all.
+            // §shoal-spook: frightened fish LEAVE, and you get to watch them go. The count used to be
+            // cut here and the missing fish simply were not in the next packet — which on screen is fish
+            // blinking out of existence, not fish fleeing. The number goes to the client now and the
+            // flight is animated there; the server only stops describing a patch once it is properly
+            // empty, so the last of them still swim off rather than vanishing mid-stroke.
             double spook = SpookData.of(level).at(surface, now);
-            if (spook >= SPOOK_GONE) continue;
-            want = (int) Math.round(want * (1.0 - spook / SPOOK_GONE));
-            if (want < 1) continue;
+            if (spook >= SPOOK_GONE * 1.6) continue;
+            byte spookByte = (byte) Mth.clamp((int) Math.round(spook / SPOOK_GONE * 100.0), 0, 100);
 
             RandomSource rng = RandomSource.create(surface.asLong() * 31L + hour);
             List<ShoalPacket.Entry> fish = pick(pool, env.waterDepth, Math.min(want, budget), minLen, rng);
@@ -158,7 +160,7 @@ public final class ShoalTracker {
             // Circuits have to stay inside the cell, or two neighbouring shoals swim through each other
             // and the outer laps cross the bank.
             byte spread = (byte) Mth.clamp((int) Math.round(Math.min(body.width() * 0.4, CELL / 2.0)), 1, 5);
-            out.add(new ShoalPacket.Spot(surface, clarity(level, body, surface), spread, fish));
+            out.add(new ShoalPacket.Spot(surface, clarity(level, body, surface), spread, spookByte, fish));
         }
         return out;
     }
