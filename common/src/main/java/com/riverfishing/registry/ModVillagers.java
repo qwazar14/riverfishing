@@ -19,6 +19,7 @@ import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerData;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.item.trading.TradeSet;
 import net.minecraft.world.item.trading.VillagerTrade;
@@ -94,13 +95,58 @@ public final class ModVillagers {
      * @return the lowest fisherman level that buys this species, or 0 if none does (also off-world).
      */
     public static int buyTier(String species) {
+        // §26.x: ResourceKey.location() is identifier() here — the same rename that turned
+        // ResourceLocation into Identifier, and the compiler is the one that found it.
+        return buyTrade(species)
+                .map(h -> Integer.parseInt(h.key().identifier().getPath().split("/")[1]))
+                .orElse(0);
+    }
+
+    /**
+     * The generated buy trade for a species — the ONE place that knows the id shape
+     * {@code fisherman/<level>/buy_<species>} the generator writes. {@link #buyTier} and
+     * {@link #basePrice} are two questions with one answer, so they cannot disagree; the level is
+     * read back off the key rather than handed out through a field, because a second return value
+     * smuggled through static state is how two answers get out of step in the first place.
+     */
+    private static Optional<Holder.Reference<VillagerTrade>> buyTrade(String species) {
         net.minecraft.server.MinecraftServer server = dev.architectury.utils.GameInstance.getServer();
-        if (server == null) return 0;
+        if (server == null) return Optional.empty();
         Registry<VillagerTrade> trades = server.registryAccess().lookupOrThrow(Registries.VILLAGER_TRADE);
         for (int lvl = 1; lvl <= 5; lvl++) {
-            if (trades.get(RiverFishing.id("fisherman/" + lvl + "/buy_" + species)).isPresent()) return lvl;
+            var found = trades.get(RiverFishing.id("fisherman/" + lvl + "/buy_" + species));
+            if (found.isPresent()) return found;
         }
-        return 0;
+        return Optional.empty();
+    }
+
+    /** §market-live: the emeralds the datapack pays for this species before the market moves it. */
+    private static int basePrice(String species) {
+        return buyTrade(species)
+                .map(h -> ((com.riverfishing.mixin.VillagerTradeGivesAccessor) (Object) h.value())
+                        .riverfishing$gives().count())
+                .orElse(0);
+    }
+
+    /**
+     * §market-live: re-price this stall's fish buys from the base, every time the counter opens.
+     *
+     * <p>The base is read from where the trade was DEFINED, never from the offer's current count —
+     * feeding the output back in would multiply ×2.5 on top of ×2.5 every time the player looked.
+     */
+    public static void repriceFishBuys(Villager villager) {
+        if (!(villager.level() instanceof ServerLevel level)) return;
+        if (!villager.getVillagerData().profession().is(FISHERMAN.getKey())) return;
+        var market = com.riverfishing.fishing.MarketData.get(level);
+        for (MerchantOffer offer : villager.getOffers()) {
+            if (!(offer.getCostA().getItem() instanceof FishItem fish)) continue;
+            String species = fish.species().getPath();
+            int base = basePrice(species);
+            if (base <= 0) continue;
+            ItemStack pay = offer.getResult();
+            // A stack is the ceiling: blue marlin at ×2.5 is 70 emeralds, which will not fit in a slot.
+            pay.setCount(Math.min(pay.getMaxStackSize(), market.price(level, species, base)));
+        }
     }
 
     /** Prime-grade threshold (§prime-fish): the buyer only takes the top of the species' size range. */

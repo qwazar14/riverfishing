@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ItemEntityMixin",
-    "VillagerTradePoolMixin"
+    "VillagerTradePoolMixin",
+    "VillagerRepriceMixin",
+    "VillagerTradeGivesAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -50,6 +50,7 @@ public final class ModEvents {
                 com.riverfishing.fishing.SpookTracker.tick(sp);  // §spook: what the fish just noticed
                 com.riverfishing.fishing.ShoalTracker.tick(sp);  // §shoal: what is visible in the water
                 FishingManager.trollingTick(sp); // trolling v1 (0.5.0): boat-agnostic towing loop
+                announceDailyOrder(sp); // §market: one chat line per player per Minecraft day
                 if (sp.tickCount % 10 == 0) {
                     var level = sp.level();
                     com.riverfishing.fishing.FeedZoneData.get(level)
@@ -93,6 +94,25 @@ public final class ModEvents {
                 addDrop(context, RiverFishing.id("barley_seeds"), SEED_CHANCE);
             }
         });
+    }
+
+    // §market: the daily-order announcement, once per player per Minecraft day. Without it the order
+    // exists only for a player who thinks to open the journal, which is not what a daily is for.
+    private static final java.util.Map<java.util.UUID, Long> ORDER_TOLD = new java.util.HashMap<>();
+
+    private static void announceDailyOrder(ServerPlayer sp) {
+        // §26.x: three names differ from the 1.21.1 original, not two — ServerPlayer.server is gone as
+        // well, so the server comes through the level. Copying the old line and fixing only the clock
+        // will not compile.
+        long day = sp.level().getServer().overworld().getOverworldClockTime() / 24000L;
+        Long told = ORDER_TOLD.get(sp.getUUID());
+        if (told != null && told == day) return;
+        ORDER_TOLD.put(sp.getUUID(), day);
+        String species = com.riverfishing.fishing.MarketData.orderOfTheDay(sp.level());
+        sp.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                "message.riverfishing.daily_order",
+                net.minecraft.network.chat.Component.translatable("fish.riverfishing." + species))
+                .withStyle(net.minecraft.ChatFormatting.GOLD));
     }
 
     private static boolean matches(Identifier lootId, String entity) {
