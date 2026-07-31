@@ -87,11 +87,30 @@ public final class ShoalState {
         snapshot = List.copyOf(new ArrayList<>(LIVE.values()));
     }
 
-    /** Keep every fish that is still described, and place only the ones that were not there before. */
+    /**
+     * The population changed. Keep where the surviving fish ARE, but take what they are from the packet
+     * that just arrived.
+     *
+     * <p>This used to arraycopy the old Fish objects over the new ones, which kept their positions — and
+     * also their entries, which are final and came from the previous packet. So every time a patch's
+     * count changed, the fish that stayed carried the OLD species, length and depth, and the new packet's
+     * entries at those slots were dropped on the floor. Silent, and only visible as a fish that is the
+     * wrong kind or the wrong size, which reads as the server being confused rather than the client.
+     *
+     * <p>Copying the coordinates the other way round gets both: no fish jumps, and nobody lies about
+     * what it is. The phase is not copied because it is derived from the patch centre and the index, so
+     * the new object already has the same one.
+     */
     private static ShoalSim.Fish[] resize(Level level, ShoalPacket.Spot s, ShoalSim.Fish[] had) {
         ShoalSim.Fish[] fresh = ShoalSim.populate(level, s);
         int keep = Math.min(had.length, fresh.length);
-        System.arraycopy(had, 0, fresh, 0, keep);
+        for (int i = 0; i < keep; i++) {
+            ShoalSim.Fish was = had[i], now = fresh[i];
+            now.x = was.x;
+            now.y = was.y;
+            now.z = was.z;
+            now.heading = was.heading;
+        }
         return fresh;
     }
 
