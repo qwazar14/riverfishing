@@ -137,7 +137,7 @@ public final class ShoalRenderer {
                 // to a seventh of its own length and back on every beat. One sine, and it does more for
                 // a fish swimming at you than any amount of geometry would.
                 float yaw = 180f - (float) Math.toDegrees(f.heading)
-                        + Mth.sin(time * 0.22f + f.phase) * 8f;
+                        + Mth.sin(time * 0.22f + f.phase) * 7f;
 
                 pose.pushPose();
                 pose.translate(x - cam.x, y - cam.y, z - cam.z);
