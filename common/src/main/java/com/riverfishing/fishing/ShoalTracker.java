@@ -96,8 +96,12 @@ public final class ShoalTracker {
         }
         StringBuilder sig = new StringBuilder(24).append(hour);
         for (ShoalPacket.Spot s : spots) {
+            // §shoal-spook: the spook bucket is part of the signature, or a shoal that has just been
+            // frightened never gets told to the client — the composition has not changed, so nothing
+            // would be sent, and the flight would never animate.
             sig.append('|').append(s.centre().asLong()).append(':').append(s.fish().size())
-                    .append(':').append(Math.round(s.clarity() * 20));
+                    .append(':').append(Math.round(s.clarity() * 20))
+                    .append(':').append(s.spook() / 12);
         }
         String key = sig.toString();
         if (key.equals(LAST.get(sp.getUUID()))) return;
