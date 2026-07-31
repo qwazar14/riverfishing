@@ -153,21 +153,15 @@ public final class ShoalRenderer {
                 double x = f.x, y = f.y, z = f.z;
 
 
-                // §shoal-side: a flat sprite must stay BROADSIDE to whoever is looking, or it turns
-                // edge-on and vanishes — the aquarium's rule (§aquarium-side), generalised from a fixed
-                // viewing face to a camera that moves. Rotating by atan2(dx, dz) puts the quad's +Z, and
-                // so its face, on the camera; its +X then lands on the viewer's right-hand side.
-                double toCamX = cam.x - x, toCamZ = cam.z - z;
-                float yaw = (float) Math.toDegrees(Math.atan2(toCamX, toCamZ));
-                // Every fish sprite is drawn head-to-the-LEFT, so the head leads when the fish travels
-                // left across the view; when it travels right, the sprite is mirrored instead of turned —
-                // a 180° turn would put the quad's back to the camera and cull it away.
-                // The side is decided against the camera's BLOCK, not its exact position: at the moment a
-                // fish swims straight at you the sign sits on zero, and head-bob alone would mirror it
-                // every frame. Rounding to a block makes the turn happen once, cleanly.
-                double vx = Math.cos(f.heading), vz = Math.sin(f.heading) * 0.75;
-                double rightX = Math.floor(cam.z) + 0.5 - z, rightZ = -(Math.floor(cam.x) + 0.5 - x);
-                boolean mirror = vx * rightX + vz * rightZ > 0;
+                // §shoal-heading: the fish is turned the way it is SWIMMING, not the way you happen to
+                // be standing. It was a billboard before — always broadside, the sprite mirrored left or
+                // right by which way it travelled — and the price of that is the thing you cannot unsee:
+                // a fish going away from you moved SIDEWAYS, because its picture had nowhere else to face.
+                //
+                // The sprite is drawn head-to-the-LEFT, i.e. along local −X, and a Y rotation by θ sends
+                // local −X to (−cos θ, 0, sin θ). Set that equal to the heading (cos h, 0, sin h) and
+                // θ = π − h, which is the whole derivation and the reason for the 180 below.
+                float yaw = 180f - (float) Math.toDegrees(f.heading);
 
                 pose.pushPose();
                 pose.translate(x - cam.x, y - cam.y, z - cam.z);
@@ -179,12 +173,14 @@ public final class ShoalRenderer {
                 if (com.riverfishing.fish.FishPose.isFlat(e.species().getPath())) {
                     pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
                 }
-                pose.mulPose(Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + f.phase) * 3f));   // a slight roll
+                // Local Z is the fish's own left-right axis now, so this is a nose-up, nose-down pitch
+                // rather than the screen-plane roll it used to be. It reads better, and it is free.
+                pose.mulPose(Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + f.phase) * 3f));
                 float size = spriteSize(e.lengthCm());
                 // §morph: the fish in the water are painted by the same table as the one in your hand.
                 double age = e.age() / 100.0;
                 String path = e.species().getPath();
-                quad(pose.last().pose(), vc, sprite, size, alpha, mirror,
+                flanks(pose.last().pose(), vc, sprite, size, alpha,
                         com.riverfishing.fish.FishMorph.tint(path, age, ""),
                         FishTint.whiten(com.riverfishing.fish.FishMorph.pale(path, age, "")));
                 pose.popPose();
@@ -212,29 +208,47 @@ public final class ShoalRenderer {
     }
 
     /**
-     * One quad, centred on the origin, facing +Z. The sprite canvas is square and the fish is drawn along
-     * it, so the quad is square too: the transparent margin costs nothing on a single quad.
+     * §shoal-thickness: two flanks a body's thickness apart, instead of one sheet of paper.
+     *
+     * <p>The second face is what lets the fish be turned by its heading at all (§shoal-heading). A single
+     * quad only exists from one side; turn it away and it is culled, and the fish disappears exactly when
+     * it swims past you. With a flank facing each way there is always one pointing at you.
+     *
+     * <p>Both carry the SAME uv mapping — the head texel stays on the head end of the body. The far one
+     * is not mirrored; it only winds the other way. The mirroring you see is you, standing on the other
+     * side of the fish, which is the entire point of the change.
+     *
+     * <p>No edges close the box, and that is deliberate: the canvas is square and the fish is drawn in the
+     * middle of it, so strips along the canvas boundary would draw a rectangular frame in open water,
+     * nowhere near the silhouette. Seen exactly end-on a fish is therefore a sliver — which is also what
+     * a real fish looks like from in front.
      */
-    private static void quad(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, int alpha,
-                            boolean mirror, int tint, int overlay) {
+    private static void flanks(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, int alpha,
+                               int tint, int overlay) {
         float r = size / 2f;
-        float u0 = mirror ? sp.getU1() : sp.getU0();
-        float u1 = mirror ? sp.getU0() : sp.getU1();
+        // A fish is roughly a tenth as thick as it is long, and never so thin the two flanks z-fight.
+        float t = Math.max(0.02f, size * 0.05f);
+        float u0 = sp.getU0(), u1 = sp.getU1();
         float v0 = sp.getV0(), v1 = sp.getV1();
-        // Counter-clockwise seen from +Z, so the front face is the one pointing at the camera.
-        vertex(m, vc, -r, -r, u0, v1, alpha, tint, overlay);
-        vertex(m, vc, r, -r, u1, v1, alpha, tint, overlay);
-        vertex(m, vc, r, r, u1, v0, alpha, tint, overlay);
-        vertex(m, vc, -r, r, u0, v0, alpha, tint, overlay);
+        // Near flank: counter-clockwise seen from +Z.
+        vertex(m, vc, -r, -r, t, u0, v1, alpha, tint, overlay);
+        vertex(m, vc, r, -r, t, u1, v1, alpha, tint, overlay);
+        vertex(m, vc, r, r, t, u1, v0, alpha, tint, overlay);
+        vertex(m, vc, -r, r, t, u0, v0, alpha, tint, overlay);
+        // Far flank: same corners, same uvs, wound the other way so it faces −Z.
+        vertex(m, vc, -r, r, -t, u0, v0, alpha, tint, overlay);
+        vertex(m, vc, r, r, -t, u1, v0, alpha, tint, overlay);
+        vertex(m, vc, r, -r, -t, u1, v1, alpha, tint, overlay);
+        vertex(m, vc, -r, -r, -t, u0, v1, alpha, tint, overlay);
     }
 
-    private static void vertex(Matrix4f m, VertexConsumer vc, float x, float y, float u, float v,
+    private static void vertex(Matrix4f m, VertexConsumer vc, float x, float y, float z, float u, float v,
                               int alpha, int tint, int overlay) {
         // Full-bright deliberately: the fade is alpha, so a fish 15 blocks down is faint but not black.
-        // The normal is world UP rather than the quad's own facing — the entity shader mixes directional
-        // light by the normal, and a billboard whose normal follows the camera would brighten and darken
-        // as you walk around it. Up is constant and is the brightest of the two vanilla light directions.
-        vc.addVertex(m, x, y, 0f)
+        // The normal is world UP rather than the face's own facing — the entity shader mixes directional
+        // light by the normal, so the two flanks would otherwise be lit differently and a fish would
+        // change brightness as it turned. Up is constant and is the brighter of the two light directions.
+        vc.addVertex(m, x, y, z)
                 .setColor((tint >> 16) & 0xFF, (tint >> 8) & 0xFF, tint & 0xFF, alpha)
                 .setUv(u, v)
                 .setOverlay(overlay)
