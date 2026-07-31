@@ -118,8 +118,10 @@ public final class ShoalSim {
                 want = inward;
             } else {
                 // 3. Home, and 4. wander — only when there is room to think about them.
-                float wander = Mth.sin(time * 0.31f + f.phase) * 0.6f
-                        + Mth.sin(time * 0.13f + f.phase * 1.7f) * 0.4f;
+                // NOTE: time is in TICKS (20/s). These rates are per tick — 0.016 is about a tenth
+                // of a hertz, which is a fish idly changing its mind, not a fish having a fit.
+                float wander = Mth.sin(time * 0.016f + f.phase) * 0.6f
+                        + Mth.sin(time * 0.0065f + f.phase * 1.7f) * 0.4f;
                 want = f.heading + wander * 0.9f;
                 if (out > home) {
                     float inward = (float) Math.atan2(-dz * 0.75, -dx);
@@ -133,17 +135,19 @@ public final class ShoalSim {
                 float away = (float) Math.atan2(f.z - eye.z, f.x - eye.x);
                 want = Mth.rotLerp(flight, want, away);
                 speed *= 1.0 + (FLIGHT_SPEED - 1.0) * flight;
-                f.y -= 0.9 * flight * dt;
             }
 
             float turn = TURN * (1f + 2f * flight) * (float) dt;
             f.heading = approach(f.heading, want, turn);
             f.x += Math.cos(f.heading) * speed * dt;
             f.z += Math.sin(f.heading) * speed * dt * 0.75;
-            // A fish holds its depth loosely and never breaks the surface or the bottom of its band.
-            double restY = cy - 0.35 - f.entry.depth();
-            f.y += (restY - f.y) * Math.min(1.0, dt * 0.8)
-                    + Mth.sin(time * 0.7f + f.phase) * 0.012;
+            // A fish holds its depth loosely. The rise and fall is part of the TARGET, not something
+            // added to the position: adding it per frame made it accumulate with the framerate, which
+            // is the hopping. As a target it is a slow, bounded drift the fish eases along, and a
+            // frightened one carries the whole band down with it instead of being pushed each tick.
+            double restY = cy - 0.35 - f.entry.depth() - 1.1 * flight
+                    + Mth.sin(time * 0.035f + f.phase) * 0.16;
+            f.y += (restY - f.y) * Math.min(1.0, dt * 1.6);
         }
     }
 
