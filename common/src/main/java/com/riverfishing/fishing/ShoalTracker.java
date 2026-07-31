@@ -147,9 +147,8 @@ public final class ShoalTracker {
             // §spook: frightened fish leave, and that is the only readout this mechanic ever gets — you
             // watch the water empty. Above SPOOK_GONE the patch shows nothing at all.
             double spook = SpookData.of(level).at(surface, now);
-            if (spook >= SPOOK_GONE) continue;
-            want = (int) Math.round(want * (1.0 - spook / SPOOK_GONE));
-            if (want < 1) continue;
+            if (spook >= SPOOK_GONE * 1.6) continue;
+            byte spookByte = (byte) Mth.clamp((int) Math.round(spook / SPOOK_GONE * 100.0), 0, 100);
 
             RandomSource rng = RandomSource.create(surface.asLong() * 31L + hour);
             List<ShoalPacket.Entry> fish = pick(pool, env.waterDepth, Math.min(want, budget), minLen, rng);
@@ -158,7 +157,7 @@ public final class ShoalTracker {
             // Circuits have to stay inside the cell, or two neighbouring shoals swim through each other
             // and the outer laps cross the bank.
             byte spread = (byte) Mth.clamp((int) Math.round(Math.min(body.width() * 0.4, CELL / 2.0)), 1, 5);
-            out.add(new ShoalPacket.Spot(surface, clarity(level, body, surface), spread, fish));
+            out.add(new ShoalPacket.Spot(surface, clarity(level, body, surface), spread, spookByte, fish));
         }
         return out;
     }
