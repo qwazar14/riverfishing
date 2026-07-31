@@ -47,12 +47,17 @@ TAG_DIR = os.path.join(ROOT, "tags", "villager_trade", "fisherman")
 
 PRIME_FRACTION = 0.7
 DISCOUNT = 0.05
-TRADES_PER_LEVEL = 3        # §trade-pool: one more than vanilla's two — bait, line, a rod AND a fish buy
-FISH_SLOTS_PER_TIER = 2     # how much of each tier's pool the species share
+# §trade-pool 0.7.0: four and four, up from three and two. A tier registers between eight and
+# twenty-six species and used to put TWO of them on any one counter, frozen there for that
+# villager's life — so an angler with seventy-nine species in the journal could sell five of them.
+# Doubling the slots doubles what one stall takes; the daily order slot (§order-slot) covers the
+# rest, since it is the only thing that ROTATES.
+TRADES_PER_LEVEL = 4        # §trade-pool: two more than vanilla's — bait, line, a rod AND two fish buys
+FISH_SLOTS_PER_TIER = 4     # how much of each tier's pool the species share
 STARTER_FISH = ["bleak", "roach", "gudgeon", "rotan"]  # live in every water — see the community guide
 
 # Effective pool sizes we intend to land on, asserted after generation (§trade-pool).
-TARGET_POOL = {1: 10, 2: 10, 3: 9, 4: 16, 5: 14}
+TARGET_POOL = {1: 12, 2: 12, 3: 11, 4: 18, 5: 16}
 
 
 # ---------------------------------------------------------------- SNBT
