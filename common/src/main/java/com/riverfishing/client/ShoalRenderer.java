@@ -130,7 +130,7 @@ public final class ShoalRenderer {
                 // §morph: the fish in the water are painted by the same table as the one in your hand.
                 double age = e.age() / 100.0;
                 String path = e.species().getPath();
-                flanks(pose.last().pose(), vc, sprite, size, alpha,
+                quad(pose.last().pose(), vc, sprite, size, alpha,
                         com.riverfishing.fish.FishMorph.tint(path, age, ""),
                         FishTint.whiten(com.riverfishing.fish.FishMorph.pale(path, age, "")));
                 pose.popPose();
@@ -159,46 +159,42 @@ public final class ShoalRenderer {
     }
 
     /**
-     * §shoal-thickness: two flanks a body's thickness apart, instead of one sheet of paper.
+     * One quad, centred on the origin, and one is enough — {@code entityTranslucent} is built with
+     * culling OFF on every version we ship (1.20.1, 1.21.1, 26.1.2, 26.2 all set NO_CULL / withCull
+     * (false) on that pipeline), so this single face is already drawn from both sides.
      *
-     * <p>The second face is what lets the fish be turned by its heading at all (§shoal-heading). A single
-     * quad only exists from one side; turn it away and it is culled, and the fish disappears exactly when
-     * it swims past you. With a flank facing each way there is always one pointing at you.
+     * <p>That is worth writing down, because getting it wrong is what caused §shoal-ghost. Turning the
+     * fish by its heading (§shoal-heading) looked like it needed a second, opposite-facing flank to
+     * survive being turned away — but nothing here is ever culled, so the second flank was never
+     * hidden. It was a parallel copy an eighth of a body-length to one side, and since the emission
+     * order is fixed while WHICH of the two is nearer depends on where you stand, the far one is
+     * painted first as often as not and stays visible wherever the near one does not cover it. That
+     * offset leftover is the second fish players saw, and side-on to a fish swimming at you the two
+     * slivers land beside each other and read as a pair.
      *
-     * <p>Both carry the SAME uv mapping — the head texel stays on the head end of the body. The far one
-     * is not mirrored; it only winds the other way. The mirroring you see is you, standing on the other
-     * side of the fish, which is the entire point of the change.
-     *
-     * <p>No edges close the box, and that is deliberate: the canvas is square and the fish is drawn in the
-     * middle of it, so strips along the canvas boundary would draw a rectangular frame in open water,
-     * nowhere near the silhouette. Seen exactly end-on a fish is therefore a sliver — which is also what
-     * a real fish looks like from in front.
+     * <p>So: one face, and the mirror image you see from the far side is free, because you are the one
+     * who moved. A fish seen exactly end-on is a sliver, which is what a real fish looks like from in
+     * front, and there is no honest way to give a sprite thickness on an unculled layer — any second
+     * surface ghosts exactly like this one did.
      */
-    private static void flanks(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, int alpha,
-                               int tint, int overlay) {
+    private static void quad(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, int alpha,
+                             int tint, int overlay) {
         float r = size / 2f;
-        // A fish is roughly a tenth as thick as it is long, and never so thin the two flanks z-fight.
-        float t = Math.max(0.02f, size * 0.05f);
         float u0 = sp.getU0(), u1 = sp.getU1();
         float v0 = sp.getV0(), v1 = sp.getV1();
-        // Near flank: counter-clockwise seen from +Z.
-        vertex(m, vc, -r, -r, t, u0, v1, alpha, tint, overlay);
-        vertex(m, vc, r, -r, t, u1, v1, alpha, tint, overlay);
-        vertex(m, vc, r, r, t, u1, v0, alpha, tint, overlay);
-        vertex(m, vc, -r, r, t, u0, v0, alpha, tint, overlay);
-        // Far flank: same corners, same uvs, wound the other way so it faces −Z.
-        vertex(m, vc, -r, r, -t, u0, v0, alpha, tint, overlay);
-        vertex(m, vc, r, r, -t, u1, v0, alpha, tint, overlay);
-        vertex(m, vc, r, -r, -t, u1, v1, alpha, tint, overlay);
-        vertex(m, vc, -r, -r, -t, u0, v1, alpha, tint, overlay);
+        // Counter-clockwise seen from +Z; the other side draws because the layer does not cull.
+        vertex(m, vc, -r, -r, 0f, u0, v1, alpha, tint, overlay);
+        vertex(m, vc, r, -r, 0f, u1, v1, alpha, tint, overlay);
+        vertex(m, vc, r, r, 0f, u1, v0, alpha, tint, overlay);
+        vertex(m, vc, -r, r, 0f, u0, v0, alpha, tint, overlay);
     }
 
     private static void vertex(Matrix4f m, VertexConsumer vc, float x, float y, float z, float u, float v,
                               int alpha, int tint, int overlay) {
         // Full-bright deliberately: the fade is alpha, so a fish 15 blocks down is faint but not black.
-        // The normal is world UP rather than the face's own facing — the entity shader mixes directional
-        // light by the normal, so the two flanks would otherwise be lit differently and a fish would
-        // change brightness as it turned. Up is constant and is the brighter of the two light directions.
+        // The normal is world UP rather than the quad's own facing — the entity shader mixes directional
+        // light by the normal, and a face whose normal turns with the fish would brighten and darken as
+        // it swam round. Up is constant and is the brighter of the two vanilla light directions.
         vc.addVertex(m, x, y, z)
                 .setColor((tint >> 16) & 0xFF, (tint >> 8) & 0xFF, tint & 0xFF, alpha)
                 .setUv(u, v)
