@@ -161,7 +161,14 @@ public final class ShoalRenderer {
                 // The sprite is drawn head-to-the-LEFT, i.e. along local −X, and a Y rotation by θ sends
                 // local −X to (−cos θ, 0, sin θ). Set that equal to the heading (cos h, 0, sin h) and
                 // θ = π − h, which is the whole derivation and the reason for the 180 below.
-                float yaw = 180f - (float) Math.toDegrees(f.heading);
+                // §fish-beat: a fish does not hold a dead-straight line — its tail beats and its nose
+                // swings a few degrees either side of its course. Eight degrees, under a hertz, phased
+                // per fish. Broadside this is barely perceptible; head-on it is the whole difference
+                // between a fish and a vertical line, because the flank it shows you goes from nothing
+                // to a seventh of its own length and back on every beat. One sine, and it does more for
+                // a fish swimming at you than any amount of geometry would.
+                float yaw = 180f - (float) Math.toDegrees(f.heading)
+                        + Mth.sin(time * 0.22f + f.phase) * 8f;
 
                 pose.pushPose();
                 pose.translate(x - cam.x, y - cam.y, z - cam.z);
