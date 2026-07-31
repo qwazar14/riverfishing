@@ -95,6 +95,10 @@ public final class MarketData extends SavedData {
         CompoundTag g = tag.getCompound("Glut");
         for (String k : g.getAllKeys()) d.glut.put(k, g.getDouble(k));
         d.lastDay = tag.getLong("LastDay");
+        // §market-live: lastDay below zero means this glut was piled up and never once decayed, because
+        // decay only happens inside price() and price() had no live caller. That is not a market state,
+        // it is rot — a save could open at ×0.5 across the board the day pricing starts working.
+        if (d.lastDay < 0) d.glut.clear();
         return d;
     }
 }

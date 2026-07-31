@@ -76,6 +76,8 @@ public final class ModVillagers {
      * stated anywhere.
      */
     private static final java.util.Map<String, Integer> BUY_TIER = new java.util.HashMap<>();
+    /** §market-live: the base each species is bought at, so the re-price never reads its own output. */
+    private static final java.util.Map<String, Integer> BASE_PRICE = new java.util.HashMap<>();
 
     /** The lowest fisherman level that buys this species, or 0 if none does. */
     public static int buyTier(String species) {
@@ -336,6 +338,27 @@ public final class ModVillagers {
         }
     }
 
+    /**
+     * §market-live: re-price this stall's fish buys from the base, every time the counter opens.
+     *
+     * <p>The base is read from where the trade was DEFINED, never from the offer's current count —
+     * feeding the output back in would multiply ×2.5 on top of ×2.5 every time the player looked.
+     */
+    public static void repriceFishBuys(Villager villager) {
+        if (!(villager.level() instanceof net.minecraft.server.level.ServerLevel level)) return;
+        if (villager.getVillagerData().getProfession() != FISHERMAN.get()) return;
+        var market = com.riverfishing.fishing.MarketData.get(level);
+        for (MerchantOffer offer : villager.getOffers()) {
+            if (!(offer.getCostA().getItem() instanceof FishItem fish)) continue;
+            String species = fish.species().getPath();
+            Integer base = BASE_PRICE.get(species);
+            if (base == null) continue;
+            ItemStack pay = offer.getResult();
+            // A stack is the ceiling: blue marlin at ×2.5 is 70 emeralds, which will not fit in a slot.
+            pay.setCount(Math.min(pay.getMaxStackSize(), market.price(level, species, base)));
+        }
+    }
+
     /** Same thing already on the counter? Compare both sides — a buy and a sell can share an item. */
     private static boolean duplicates(MerchantOffers offers, MerchantOffer candidate) {
         for (MerchantOffer o : offers) {
@@ -439,6 +462,8 @@ public final class ModVillagers {
     private static void buyPrime(Int2ObjectMap<List<VillagerTrades.ItemListing>> t, int level,
                                  String path, int emeralds, int xp) {
         BUY_TIER.merge(path, level, Math::min);
+        // §market-live: the same call that knows the tier knows the price. Two facts, one owner.
+        BASE_PRICE.put(path, emeralds);
         t.get(level).add(buyPrimeOf(path, emeralds, xp));
     }
 
@@ -458,10 +483,10 @@ public final class ModVillagers {
             ItemStack cost = new ItemStack(i);
             cost.getOrCreateTag().putString(FishItem.TAG_GRADE, FishItem.GRADE_PRIME);
             cost.getOrCreateTag().putInt(FishItem.TAG_MIN_WEIGHT, threshold);
-            // market (0.5.0): the pay is DYNAMIC - glut cuts it to x0.5, the daily order pays x2.5.
-            int pay = trader.level() instanceof net.minecraft.server.level.ServerLevel sl
-                    ? com.riverfishing.fishing.MarketData.get(sl).price(sl, path, emeralds) : emeralds;
-            return new MerchantOffer(cost, new ItemStack(Items.EMERALD, pay), 12, xp, 0.05f);
+            // §market-live: minted at BASE. This lambda runs once per villager-level and the count it
+            // writes is then saved, so a price decided here would be frozen on whatever day the stall
+            // happened to level up. VillagerRepriceMixin owns the price from the first screen open.
+            return new MerchantOffer(cost, new ItemStack(Items.EMERALD, emeralds), 12, xp, 0.05f);
         };
     }
 
