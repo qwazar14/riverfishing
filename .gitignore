@@ -31,3 +31,6 @@ Thumbs.db
 # Files from Forge MDK
 forge*changelog.txt
 reference/
+
+# Hand-collected jars for a tester. Builds, not sources — they do not belong in history.
+prerelease/
