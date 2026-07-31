@@ -89,14 +89,18 @@ public final class ModVillagers {
 
     /** How many rotating fish-buy listings each tier gets (§trade-pool). Two, so a fisherman reliably
      *  buys SOMETHING without the pool turning back into a fish market. */
-    private static final int FISH_LISTINGS_PER_TIER = 2;
+    // §trade-pool 0.7.0: four, up from two. A tier registers between eight and twenty-six species and
+    // used to put TWO of them on any one counter, frozen there for that villager's life — so an angler
+    // with seventy-nine species in the journal could sell five of them.
+    private static final int FISH_LISTINGS_PER_TIER = 4;
 
     /** Vanilla's own per-level offer count — a private constant in {@code Villager}, mirrored here. */
     private static final int VANILLA_TRADES_PER_LEVEL = 2;
 
     /** §trade-pool: a fishing shop needs counter space for bait, line, a rod AND a fish buy, so our
      *  fisherman gets one more offer per level than vanilla hands out. Raised by the mixin. */
-    public static final int TRADES_PER_LEVEL = 3;
+    // ...and the counter has to have room for them: two more than vanilla's two, not one.
+    public static final int TRADES_PER_LEVEL = 4;
 
     /** The pool the mixin draws the extra offer from — the same lists given to the platform registry. */
     private static Int2ObjectMap<List<VillagerTrades.ItemListing>> pool;
@@ -274,6 +278,20 @@ public final class ModVillagers {
         buyPrime(fish, 5, "taimen", 24, 36);
         buyPrime(fish, 5, "sturgeon", 26, 38);
         buyPrime(fish, 5, "halibut", 22, 34);
+
+        // §florida-nine: these nine shipped catchable in 0.7.0 and were never given a buyer here —
+        // you could land a tarpon and have nowhere on earth to sell it. Levels, prices and xp are
+        // copied from the 26.x datapack rather than invented, so the two branches cannot disagree
+        // about what a fish is worth.
+        buyPrime(fish, 4, "bluefish", 6, 12);
+        buyPrime(fish, 4, "bullseye_snakehead", 6, 11);
+        buyPrime(fish, 5, "jack_crevalle", 12, 22);
+        buyPrime(fish, 3, "mayan_cichlid", 2, 3);
+        buyPrime(fish, 3, "oscar", 2, 4);
+        buyPrime(fish, 4, "peacock_bass", 7, 13);
+        buyPrime(fish, 5, "snook", 11, 21);
+        buyPrime(fish, 5, "striped_bass", 12, 23);
+        buyPrime(fish, 5, "tarpon", 20, 32);
 
         // Slice each tier's species into FISH_LISTINGS_PER_TIER disjoint groups, one rotating listing
         // each: the fisherman ends up buying two DIFFERENT species per tier, never a duplicate offer.
