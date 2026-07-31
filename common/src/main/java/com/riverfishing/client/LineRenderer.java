@@ -172,7 +172,20 @@ public final class LineRenderer {
         float swing = Mth.sin(Mth.sqrt(swingProgress) * (float) Math.PI);
 
         if (player == mc.player && mc.options.getCameraType().isFirstPerson()) {
-            double fovScale = 960.0 / mc.options.fov().get();
+            double fovDeg = mc.options.fov().get();
+            double fovScale = 960.0 / fovDeg;
+            // §zoom-anchor: getNearPlane() and the scale above both read the SETTINGS fov, and the
+            // frame is not drawn at that. §fight-brace slows the player by 72%, vanilla derives the
+            // field of view from the movement-speed attribute, so hooking a fish zooms the screen —
+            // and the line's near-plane end slid off screen while the rod came closer. The near plane
+            // is scaled by tan(fov/2), so correcting the offset by the ratio of the two tangents puts
+            // the anchor back on the same SCREEN point. At modifier 1 this is exactly 1.0, so nothing
+            // changes for a player who is not being zoomed.
+            float fovMod = player instanceof net.minecraft.client.player.AbstractClientPlayer acp
+                    ? acp.getFieldOfViewModifier() : 1.0f;
+            double zoomFix = fovMod == 1.0f ? 1.0
+                    : Math.tan(Math.toRadians(fovDeg * fovMod * 0.5))
+                            / Math.tan(Math.toRadians(fovDeg * 0.5));
             // §rod-bend-tip: the bent blank's tip sits lower/closer than the straight sprite's — shift
             // the line anchor with the current bend bucket so the line stays ON the tip (/rfrod tip tunes).
             int bend = RodItemRenderer.liveBend();
@@ -186,7 +199,7 @@ public final class LineRenderer {
             float leanY = lean[1] * RodHandTransform.COURSE_TIP_Y;
             Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane()
                     .getPointOnPlane(arm * (0.525f + tipDx) + leanX, -0.1f + tipDy + leanY)
-                    .scale(fovScale)
+                    .scale(fovScale * zoomFix)
                     .yRot(swing * 0.5f)
                     .xRot(-swing * 0.7f);
             return new Vec3(
