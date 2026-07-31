@@ -40,6 +40,12 @@ public final class ShoalSim {
     private static final double FLIGHT_SPEED = 3.2;
     /** Radians per second of turn available at cruise; a startled fish turns faster still. */
     private static final float TURN = 1.4f;
+    /**
+     * Radians per second the wander may swing the heading by — the LAZY turn, as opposed to TURN, which
+     * is the corrective one a fish spends on a bank or on a player. At the peak of both sines this is
+     * about fourteen degrees a second, and it is nowhere near the peak most of the time.
+     */
+    private static final float WANDER_TURN = 0.25f;
 
     /** One fish, as it exists between frames. */
     public static final class Fish {
@@ -122,7 +128,16 @@ public final class ShoalSim {
                 // of a hertz, which is a fish idly changing its mind, not a fish having a fit.
                 float wander = Mth.sin(time * 0.016f + f.phase) * 0.6f
                         + Mth.sin(time * 0.0065f + f.phase * 1.7f) * 0.4f;
-                want = f.heading + wander * 0.9f;
+                // The wander is a turn RATE, and it has to be written as one. Adding it to the heading
+                // as a bare offset asked for a turn of up to half a radian EVERY FRAME — a target the
+                // fish could never reach, because it moved with the fish. So the clamp below did all the
+                // deciding and the fish turned at its full corrective rate, eighty degrees a second,
+                // reversing only when the slow sine changed sign. That is a fish circling every four
+                // seconds, which is what "it turns far too often" looks like from the bank.
+                //
+                // Multiplied by dt it stays under the clamp, so the clamp stops deciding and the sines
+                // do: the heading drifts at wander × WANDER_TURN radians a second, framerate-free.
+                want = f.heading + wander * WANDER_TURN * (float) dt;
                 if (out > home) {
                     float inward = (float) Math.atan2(-dz * 0.75, -dx);
                     want = Mth.rotLerp((float) Mth.clamp((out - home) / 2.0, 0.0, 1.0), want, inward);
