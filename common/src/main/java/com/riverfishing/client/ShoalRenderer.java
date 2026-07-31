@@ -87,14 +87,12 @@ public final class ShoalRenderer {
             int alpha = (int) (fade * spot.clarity() * distFade * (1f - 0.85f * flight) * 255f);
             if (alpha <= 6) continue;
 
-            // Lanes are laid out across this shoal's own cell, so two neighbouring shoals do not swim
-            // through each other and the outer laps do not cross the bank (§shoal-spread).
-            int lanes = 1;
-            for (ShoalPacket.Entry e : fish) lanes = Math.max(lanes, e.lane() + 1);
-            double rOuter = Mth.clamp(spot.spread() * 0.9, 1.1, 5.0);
-
-            for (int i = 0; i < fish.size(); i++) {
-                ShoalPacket.Entry e = fish.get(i);
+            // §shoal-sim: the fish carry their own positions between frames — nothing is placed here,
+            // only drawn where it already swam to.
+            ShoalSim.Fish[] swimming = live.fish;
+            for (int i = 0; i < swimming.length; i++) {
+                ShoalSim.Fish f = swimming[i];
+                ShoalPacket.Entry e = f.entry;
                 // Small fish thin out with distance, the way they actually do: a 20 cm roach 30 blocks off
                 // is two pixels of noise, while a metre of pike is worth seeing from the far bank. The
                 // server drops these too — this is here because a fish list outlives the walk that made it.
@@ -103,25 +101,7 @@ public final class ShoalRenderer {
                 TextureAtlasSprite sprite = spriteFor(atlas, e.species());
                 if (sprite == null) continue;
 
-                // Each lane is one slow circuit around the spot; a shoal shares its lane, and the packet
-                // phase places each fish on it, so a group travels together instead of strung out.
-                float phase = e.phase() / 64f * Mth.TWO_PI;
-                // §shoal-spook: a scared fish swims HARDER, so the lap speeds up as the flight builds.
-                float t = time * (0.012f + 0.030f * flight) + phase;
-                double radius = lanes == 1 ? rOuter * 0.55
-                        : 0.9 + (rOuter - 0.9) * e.lane() / (double) (lanes - 1);
-                // ...and breaks outward for open water rather than holding its circuit.
-                radius *= 1.0 + 0.45 * flight;
-                // Depth from the server, plus a gentle rise and fall — fish do not hold a perfect line.
-                double y = centre.y - 0.35 - e.depth() + Mth.sin(time * 0.03f + i) * 0.18
-                        - 1.2 * flight;   // frightened fish go DOWN, which is what they do
-                // §shoal-bank: never past where the water actually goes on this bearing. The lap comes
-                // in to hug the shoreline instead of crossing it, which is why nothing has to be hidden
-                // any more — a fish is always somewhere it could really be.
-                radius = Math.min(radius, ShoalBank.reach(mc.level, c, y, t));
-                if (radius < 0.15) continue;    // this bearing is bank, not water
-                double x = centre.x + Mth.cos(t) * radius;
-                double z = centre.z + Mth.sin(t) * radius * 0.75;
+                double x = f.x, y = f.y, z = f.z;
 
 
                 // §shoal-side: a flat sprite must stay BROADSIDE to whoever is looking, or it turns
@@ -136,7 +116,7 @@ public final class ShoalRenderer {
                 // The side is decided against the camera's BLOCK, not its exact position: at the moment a
                 // fish swims straight at you the sign sits on zero, and head-bob alone would mirror it
                 // every frame. Rounding to a block makes the turn happen once, cleanly.
-                double vx = -Mth.sin(t), vz = Mth.cos(t) * 0.75;
+                double vx = Math.cos(f.heading), vz = Math.sin(f.heading) * 0.75;
                 double rightX = Math.floor(cam.z) + 0.5 - z, rightZ = -(Math.floor(cam.x) + 0.5 - x);
                 boolean mirror = vx * rightX + vz * rightZ > 0;
 
@@ -150,7 +130,7 @@ public final class ShoalRenderer {
                 if (com.riverfishing.fish.FishPose.isFlat(e.species().getPath())) {
                     pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
                 }
-                pose.mulPose(Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + i) * 3f));   // a slight roll
+                pose.mulPose(Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + f.phase) * 3f));   // a slight roll
                 float size = spriteSize(e.lengthCm());
                 // §morph: the fish in the water are painted by the same table as the one in your hand.
                 double age = e.age() / 100.0;
