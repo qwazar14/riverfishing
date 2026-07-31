@@ -44,7 +44,24 @@ PROFILES = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "commo
                                          "resources", "data", "riverfishing", "fish_profiles"))
 FISH = sorted({f[:-5] for f in os.listdir(PROFILES) if f.endswith(".json")}
               & {f[:-5] for f in os.listdir(MODELS) if f.endswith(".json")})
-BUCKETS = [0.45, 0.6, 0.75, 0.9, 1.05, 1.25, 1.55, 2.0]
+# §fish-scale: the ladder FishItem.getIconScale walks (length/50, clamped 0.45..8.0). It used to stop
+# at 2.0, which is the INVENTORY cap — so every fish over a metre rendered identically everywhere, and
+# a 450 cm marlin in the hand was the same object as a 100 cm pike. The rungs above 2.0 exist for the
+# hand and the ground; nothing needs to go past 5.0 because that is where those contexts cap.
+BUCKETS = [0.45, 0.6, 0.75, 0.9, 1.05, 1.25, 1.55, 2.0, 2.5, 3.2, 4.0, 5.0]
+# §fish-scale caps, per display context — the numbers the BEWLR applied on 1.21.1 before 26.x made the
+# model do the sizing. A slot stays readable (0.8..2.0); in the hand, dropped or mounted the giants are
+# the spectacle they are meant to be.
+GUI_MIN, GUI_MAX, WORLD_MAX = 0.8, 2.0, 5.0
+SLOT_CONTEXTS = ("gui", "fixed", "head")
+
+
+def context_scale(ctx, bucket):
+    if ctx == "gui":
+        return min(GUI_MAX, max(GUI_MIN, bucket))
+    if ctx in SLOT_CONTEXTS:
+        return min(GUI_MAX, bucket)
+    return min(WORLD_MAX, bucket)
 
 
 def read(path):
@@ -251,7 +268,8 @@ def main():
             scaled = {}
             for ctx, tr in fish_display.items():
                 t = dict(tr)
-                t["scale"] = [round(v * s, 4) for v in t.get("scale", [1, 1, 1])]
+                k = context_scale(ctx, s)
+                t["scale"] = [round(v * k, 4) for v in t.get("scale", [1, 1, 1])]
                 scaled[ctx] = t
             write(os.path.join(MODELS, "fish_scaled", "%s_%d.json" % (sp, i)), {
                 "parent": "riverfishing:item/" + sp,

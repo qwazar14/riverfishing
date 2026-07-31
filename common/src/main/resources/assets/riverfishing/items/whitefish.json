@@ -115,6 +115,62 @@
             }
           ]
         }
+      },
+      {
+        "threshold": 2.5,
+        "model": {
+          "type": "minecraft:model",
+          "model": "riverfishing:item/fish_scaled/whitefish_8",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
+        }
+      },
+      {
+        "threshold": 3.2,
+        "model": {
+          "type": "minecraft:model",
+          "model": "riverfishing:item/fish_scaled/whitefish_9",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
+        }
+      },
+      {
+        "threshold": 4.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "riverfishing:item/fish_scaled/whitefish_10",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
+        }
+      },
+      {
+        "threshold": 5.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "riverfishing:item/fish_scaled/whitefish_11",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
+        }
       }
     ],
     "fallback": {

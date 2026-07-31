@@ -225,7 +225,16 @@ public final class LineRenderer {
         float swing = Mth.sin(Mth.sqrt(swingProgress) * (float) Math.PI);
 
         if (player == mc.player && mc.options.getCameraType().isFirstPerson()) {
-            double fov = mc.options.fov().get();
+            // §zoom-anchor: the FOV the frame is ACTUALLY drawn at, not the one in the settings menu.
+            // §fight-brace slows the player by 72%, and vanilla derives the field of view from the
+            // movement-speed attribute — so hooking a fish zooms the screen in. The anchor used to read
+            // options.fov(), which knows nothing about that, and the line's near-plane end slid off
+            // screen while everything else came closer. The camera knows the answer; ask it.
+            //? if <26.2 {
+            double fov = mc.gameRenderer.getMainCamera().getFov();
+            //?} else {
+            /*double fov = mc.gameRenderer.mainCamera().getFov();
+            *///?}
             double fovScale = 960.0 / fov;
             // §rod-bend-tip: shift the anchor with the blank's current bend so the line stays ON the
             // bent tip instead of hanging off where the straight sprite used to end (/rfrod tip tunes).
