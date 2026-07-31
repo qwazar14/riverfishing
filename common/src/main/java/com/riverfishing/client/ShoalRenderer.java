@@ -38,6 +38,12 @@ import java.util.Map;
  */
 public final class ShoalRenderer {
     /** 3×3 chunks corner to corner, plus slack. The server is not describing anything past this. */
+    /**
+     * §fish-lens: how far the mid-body stands proud of the nose-and-tail line, as a fraction of the
+     * fish's length. A fish is about a twelfth as thick as it is long; this is a hair more, because it
+     * is a single surface standing in for two flanks and so only gets to be half a body deep.
+     */
+    private static final float THICK = 0.08f;
     private static final double MAX_DIST = 42.0;
     /** Fish do not pop in at the edge of range — the last few blocks are a fade. */
     private static final double FADE_BAND = 10.0;
@@ -150,7 +156,15 @@ public final class ShoalRenderer {
                 // §morph: the fish in the water are painted by the same table as the one in your hand.
                 double age = e.age() / 100.0;
                 String path = e.species().getPath();
-                quad(pose.last().pose(), vc, sprite, size, alpha,
+                // Which flank you are on. The stack began as identity AT the camera, so column 3 of
+                // the matrix is the camera-to-fish vector and column 2 is where the fish's own +Z
+                // landed — one dot product decides it, and because it reads the finished matrix it
+                // follows the flatfish lay and the pitch for free. Verified against JOML rather than
+                // reasoned about: a fish ten blocks down +Z at yaw 0 has its +Z pointing away, and the
+                // same fish at yaw 180 has it pointing back at the camera.
+                Matrix4f m = pose.last().pose();
+                boolean plusNear = m.m20() * m.m30() + m.m21() * m.m31() + m.m22() * m.m32() < 0f;
+                lens(m, vc, sprite, size, plusNear ? size * THICK : -size * THICK, alpha,
                         com.riverfishing.fish.FishMorph.tint(path, age, ""),
                         FishTint.whiten(com.riverfishing.fish.FishMorph.pale(path, age, "")));
                 pose.popPose();
@@ -179,34 +193,44 @@ public final class ShoalRenderer {
     }
 
     /**
-     * One quad, centred on the origin, and one is enough — {@code entityTranslucent} is built with
-     * culling OFF on every version we ship (1.20.1, 1.21.1, 26.1.2, 26.2 all set NO_CULL / withCull
-     * (false) on that pipeline), so this single face is already drawn from both sides.
+     * §fish-lens: the fish as one CREASED surface rather than one flat one — pinched to the centreline
+     * at nose and tail, standing {@code t} proud of it at mid-body, always bulging toward the viewer.
      *
-     * <p>That is worth writing down, because getting it wrong is what caused §shoal-ghost. Turning the
-     * fish by its heading (§shoal-heading) looked like it needed a second, opposite-facing flank to
-     * survive being turned away — but nothing here is ever culled, so the second flank was never
-     * hidden. It was a parallel copy an eighth of a body-length to one side, and since the emission
-     * order is fixed while WHICH of the two is nearer depends on where you stand, the far one is
-     * painted first as often as not and stays visible wherever the near one does not cover it. That
-     * offset leftover is the second fish players saw, and side-on to a fish swimming at you the two
-     * slivers land beside each other and read as a pair.
+     * <p>It is thickness that cannot ghost, and that is the entire design. A dropped fish is solid
+     * because {@code item/generated} extrudes its sprite into a mesh — front face, back face, and a
+     * side quad traced round the silhouette — and we cannot have that one: measured against our own
+     * sprites it is 241x this quad count on 1.20.1 and 1.21.1 and 909x on 26.x, where the baker emits
+     * a side quad per edge TEXEL, to draw a rim one 256th of a sprite wide. Nor can we have the cheap
+     * six-quad version of it, because a dropped item is OPAQUE and these fish are not: two translucent
+     * surfaces at alpha read as 1-(1-alpha)^2, so a front and a back would silently double the density
+     * of every fish and wreck the fade, and where the two failed to overlap you would get §shoal-ghost
+     * back. Nor can that be dodged by choosing the draw order — the batch is sorted far-to-near on
+     * upload on all four versions, so the order is not ours to choose.
      *
-     * <p>So: one face, and the mirror image you see from the far side is free, because you are the one
-     * who moved. A fish seen exactly end-on is a sliver, which is what a real fish looks like from in
-     * front, and there is no honest way to give a sprite thickness on an unculled layer — any second
-     * surface ghosts exactly like this one did.
+     * <p>One surface has nothing to blend against, so all of that goes away. Broadside it is the same
+     * silhouette it always was; the bulge is along the line of sight, which is exactly where it is
+     * free. End-on the fish stops being a rasterised line and becomes a band as wide as it is thick.
+     *
+     * <p>The crease sits at mid-body, and so does the split in the uv, so each half maps linearly and
+     * nothing is stretched. On a flatfish, which §fish-pose has already laid horizontal, local Z is
+     * vertical and the same code gives it a back that stands proud of its edges — which is what a
+     * flatfish is.
      */
-    private static void quad(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, int alpha,
-                             int tint, int overlay) {
+    private static void lens(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, float t,
+                             int alpha, int tint, int overlay) {
         float r = size / 2f;
-        float u0 = sp.getU0(), u1 = sp.getU1();
+        float u0 = sp.getU0(), u1 = sp.getU1(), um = (u0 + u1) * 0.5f;
         float v0 = sp.getV0(), v1 = sp.getV1();
-        // Counter-clockwise seen from +Z; the other side draws because the layer does not cull.
+        // Head half: from the nose on the centreline back to the crease.
         vertex(m, vc, -r, -r, 0f, u0, v1, alpha, tint, overlay);
+        vertex(m, vc, 0f, -r, t, um, v1, alpha, tint, overlay);
+        vertex(m, vc, 0f, r, t, um, v0, alpha, tint, overlay);
+        vertex(m, vc, -r, r, 0f, u0, v0, alpha, tint, overlay);
+        // Tail half: from the crease back to the tail, returning to the centreline.
+        vertex(m, vc, 0f, -r, t, um, v1, alpha, tint, overlay);
         vertex(m, vc, r, -r, 0f, u1, v1, alpha, tint, overlay);
         vertex(m, vc, r, r, 0f, u1, v0, alpha, tint, overlay);
-        vertex(m, vc, -r, r, 0f, u0, v0, alpha, tint, overlay);
+        vertex(m, vc, 0f, r, t, um, v0, alpha, tint, overlay);
     }
 
     private static void vertex(Matrix4f m, VertexConsumer vc, float x, float y, float z, float u, float v,
