@@ -41,7 +41,12 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
      * One shoal, anchored to a water surface block. {@code clarity} is how well this water shows what it
      * holds, {@code spread} how far its circuits may reach before they would leave the water.
      */
-    public record Spot(BlockPos centre, float clarity, byte spread, List<Entry> fish) {}
+    public record Spot(BlockPos centre, float clarity, byte spread, byte spook, List<Entry> fish) {
+        /** §shoal-spook: 0..100, how disturbed this water is right now (see SpookTracker). */
+        public float spookFraction() {
+            return Math.max(0f, Math.min(1f, spook / 100f));
+        }
+    }
 
     public static final CustomPacketPayload.Type<ShoalPacket> TYPE =
             new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("riverfishing", "shoal"));
@@ -75,6 +80,7 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
             buf.writeBlockPos(s.centre());
             buf.writeFloat(s.clarity());
             buf.writeByte(s.spread());
+            buf.writeByte(s.spook());
             buf.writeVarInt(s.fish().size());
             for (Entry e : s.fish()) {
                 buf.writeVarInt(index.get(e.species()));
@@ -99,6 +105,7 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
             BlockPos centre = buf.readBlockPos();
             float clarity = buf.readFloat();
             byte spread = buf.readByte();
+            byte spook = buf.readByte();
             int nf = buf.readVarInt();
             List<Entry> fish = new ArrayList<>(nf);
             for (int i = 0; i < nf; i++) {
@@ -108,7 +115,7 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
                         buf.readByte(), buf.readByte(), buf.readByte());
                 if (id != null) fish.add(e);
             }
-            spots.add(new Spot(centre, clarity, spread, fish));
+            spots.add(new Spot(centre, clarity, spread, spook, fish));
         }
         return new ShoalPacket(spots);
     }
