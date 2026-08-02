@@ -1603,6 +1603,23 @@ public final class FishingManager {
         if (sp2.equals("burbot") && session.iceFishing) {
             com.riverfishing.quest.AnglerAdvancements.grant(sp, "ice_burbot");
         }
+        // §trophy-award: the trophy itself, however it was landed. Same fix 26.x already carries —
+        // it simply never reached these two branches, which is the whole bug.
+        //
+        // "Trophy" was a datapack predicate over the item tag with {Trophy:1b}. From 1.20.5 onward
+        // ItemPredicate has no `tag` and no `nbt` field, and a Mojang record codec IGNORES keys it does
+        // not know — so the predicate decoded to an EMPTY one, an empty item predicate matches every
+        // item there is, and inventory_changed fires on any pickup. That is how a player was handed the
+        // goal for picking up pea seeds. (1.20.1 is still on the old format, where the predicate really
+        // does work; it moves too, because one mechanism across the branches is what stops this class of
+        // thing recurring at the next format change.)
+        //
+        // The condition is a fact the server already knows at exactly this point, so it is asserted here
+        // rather than described in JSON. It also says something truer: you get it for LANDING a trophy,
+        // not for holding one somebody handed you.
+        if (session.trophy) {
+            com.riverfishing.quest.AnglerAdvancements.grant(sp, "trophy");
+        }
         // Funny/hard: a trophy landed on a reel-less POLE rod (no reel at all — just nerve). Gate on the
         // rod TYPE, not session.reelSize (bottom rods can read 0 mid-flow → the old false positive).
         if (session.trophy && (rodType == RodType.POLE || rodType == RodType.BAMBOO || rodType == RodType.STICK)) {
