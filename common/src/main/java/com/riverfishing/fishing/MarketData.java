@@ -26,11 +26,6 @@ public final class MarketData extends SavedData {
     private static final double DAILY_RECOVERY = 0.85; // glut multiplier per day passed
     public static final double ORDER_MULT = 2.5;
 
-    /** The daily-order rotation — liked, catchable species across the whole progression. */
-    private static final String[] ORDER_POOL = {
-            "bream", "perch", "pike", "roach", "crucian_carp", "carp", "zander", "trout",
-            "bluegill", "largemouth_bass", "sabrefish", "mackerel", "herring", "cod", "seabass", "flounder"
-    };
 
     private final Map<String, Double> glut = new HashMap<>();
     private long lastDay = -1;
@@ -44,10 +39,16 @@ public final class MarketData extends SavedData {
 
     /** The species the fisherman pays ×2.5 for today (same for the whole server). */
     public static String orderOfTheDay(ServerLevel level) {
+        // §order-slot: the rotation is every species SOME fisherman buys, read from the trades
+        // themselves. It used to be a hand-written list of sixteen, which is how an order could name a
+        // fish no fisherman on earth would take — the list and the trades were two answers to one
+        // question and nothing kept them together. Now there is one answer.
+        java.util.List<String> pool = com.riverfishing.registry.ModVillagers.buyableSpecies();
+        if (pool.isEmpty()) return "";
         long day = level.getServer().overworld().getDayTime() / 24000L;
         // A hash step so the rotation doesn't read as a fixed alphabetical cycle.
-        int idx = (int) Math.floorMod(day * 31L + 7L, ORDER_POOL.length);
-        return ORDER_POOL[idx];
+        int idx = (int) Math.floorMod(day * 31L + 7L, pool.size());
+        return pool.get(idx);
     }
 
     /** A prime specimen of {@code species} was landed — its market saturates a little. */
