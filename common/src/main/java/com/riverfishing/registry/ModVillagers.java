@@ -18,6 +18,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
@@ -76,8 +77,11 @@ public final class ModVillagers {
      * stated anywhere.
      */
     private static final java.util.Map<String, Integer> BUY_TIER = new java.util.HashMap<>();
-    /** §market-live: the base each species is bought at, so the re-price never reads its own output. */
-    private static final java.util.Map<String, Integer> BASE_PRICE = new java.util.HashMap<>();
+    /**
+     * §market-live: what each species is bought at before the market moves it — {emeralds, xp}. Both,
+     * because §order-slot has to be able to mint the very same offer the pool would have minted.
+     */
+    private static final java.util.Map<String, int[]> BASE_PRICE = new java.util.HashMap<>();
 
     /** The lowest fisherman level that buys this species, or 0 if none does. */
     public static int buyTier(String species) {
@@ -363,18 +367,62 @@ public final class ModVillagers {
      * feeding the output back in would multiply ×2.5 on top of ×2.5 every time the player looked.
      */
     public static void repriceFishBuys(Villager villager) {
-        if (!(villager.level() instanceof net.minecraft.server.level.ServerLevel level)) return;
+        if (!(villager.level() instanceof ServerLevel level)) return;
         if (villager.getVillagerData().getProfession() != FISHERMAN.get()) return;
+        MerchantOffers offers = villager.getOffers();
+        orderSlot(villager, level, offers);
         var market = com.riverfishing.fishing.MarketData.get(level);
-        for (MerchantOffer offer : villager.getOffers()) {
+        for (MerchantOffer offer : offers) {
             if (!(offer.getCostA().getItem() instanceof FishItem fish)) continue;
             String species = fish.species().getPath();
-            Integer base = BASE_PRICE.get(species);
-            if (base == null) continue;
+            int[] spec = BASE_PRICE.get(species);
+            if (spec == null) continue;
+            int base = spec[0];
             ItemStack pay = offer.getResult();
             // A stack is the ceiling: blue marlin at ×2.5 is 70 emeralds, which will not fit in a slot.
             pay.setCount(Math.min(pay.getMaxStackSize(), market.price(level, species, base)));
         }
+    }
+
+    /**
+     * §order-slot: every species some fisherman buys, sorted, so the daily rotation cannot name a fish
+     * nobody takes. The trade table IS the answer, so there is no second list to drift.
+     */
+    public static java.util.List<String> buyableSpecies() {
+        return BUY_TIER.keySet().stream().sorted().toList();
+    }
+
+    /**
+     * §order-slot: one seat on this counter always shows today's order.
+     *
+     * <p>It REPLACES rather than appends, and that is the whole design. An extra offer would have to be
+     * found and reclaimed the next day, and there is nothing on a vanilla MerchantOffer to mark it with
+     * that survives a save — so every scheme for finding it again came down to counting the counter,
+     * which breaks the moment a villager gains a level and vanilla appends behind our seat. Overwriting
+     * a seat in place has none of that: the counter never changes size, so there is nothing to count,
+     * nothing to mark, and nothing to get wrong after a restart.
+     *
+     * <p>The seat is the last fish buy on the counter. On the first day that costs one drawn species,
+     * and from then on it is the same seat every day — which is what makes it a permanent slot that
+     * changes rather than a new trade appearing and disappearing.
+     *
+     * <p>Nothing happens when the stall is too junior to buy today's species, or when it already buys
+     * it: in the second case the player can sell it anyway, and taking the seat would only cost them a
+     * second species for nothing.
+     */
+    private static void orderSlot(Villager villager, ServerLevel level, MerchantOffers offers) {
+        String order = com.riverfishing.fishing.MarketData.orderOfTheDay(level);
+        int[] spec = BASE_PRICE.get(order);
+        if (spec == null || BUY_TIER.getOrDefault(order, 0) > villager.getVillagerData().getLevel()) return;
+        int seat = -1;
+        for (int i = 0; i < offers.size(); i++) {
+            if (!(offers.get(i).getCostA().getItem() instanceof FishItem fish)) continue;
+            if (fish.species().getPath().equals(order)) return;   // already on the counter
+            seat = i;
+        }
+        if (seat < 0) return;
+        MerchantOffer offer = buyPrimeOf(order, spec[0], spec[1]).getOffer(villager, villager.getRandom());
+        if (offer != null) offers.set(seat, offer);
     }
 
     /** Same thing already on the counter? Compare both sides — a buy and a sell can share an item. */
@@ -481,7 +529,7 @@ public final class ModVillagers {
                                  String path, int emeralds, int xp) {
         BUY_TIER.merge(path, level, Math::min);
         // §market-live: the same call that knows the tier knows the price. Two facts, one owner.
-        BASE_PRICE.put(path, emeralds);
+        BASE_PRICE.put(path, new int[]{emeralds, xp});
         t.get(level).add(buyPrimeOf(path, emeralds, xp));
     }
 
