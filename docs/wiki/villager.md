@@ -18,21 +18,25 @@ The same block is also the [Tackle Station](tackle-station.md) — right-click i
 
 ## How his offers work
 
-Vanilla draws exactly **two** offers per villager level out of that level's pool, for every profession. The Fisherman is topped up to **three** — a fishing shop needs counter space for bait, line, a rod *and* a fish buy. Pool size is the real currency here: every listing added dilutes every other one.
+Vanilla draws exactly **two** offers per villager level out of that level's pool, for every profession. The Fisherman is topped up to **four** — a fishing shop needs counter space for bait, line, a rod *and* a fish buy. Pool size is the real currency here: every listing added dilutes every other one.
 
-To keep gear visible, variants of the same thing are folded into **one rotating listing** — the trick vanilla itself uses for enchanted books. A pool entry means "a reel appears", not "the 12000 appears". Fish buys are collected per tier and sliced into **two disjoint rotating groups**, so a fisherman buys two *different* species per tier and never shows a duplicate.
+To keep gear visible, variants of the same thing are folded into **one rotating listing** — the trick vanilla itself uses for enchanted books. A pool entry means "a reel appears", not "the 12000 appears". Fish buys are collected per tier and sliced into **four disjoint rotating groups**, so one counter can show up to four *different* species from a tier and never a duplicate.
 
 | Tier | Pool size | Of which fish buys | Offers drawn |
 |---|---|---|---|
-| 1 Novice | 10 | 2 | 3 |
-| 2 Apprentice | 10 | 2 | 3 |
-| 3 Journeyman | 7 | 2 | 3 |
-| 4 Expert | 14 | 2 | 3 |
-| 5 Master | 12 | 2 | 3 |
+| 1 Novice | 12 | 4 | 4 |
+| 2 Apprentice | 11 | 4 | 4 |
+| 3 Journeyman | 11 | 4 | 4 |
+| 4 Expert | 18 | 4 | 4 |
+| 5 Master | 16 | 4 | 4 |
+
+**0.7.0 widened both knobs** — fish groups per tier went 2 → 4, offers per level 3 → 4 — so a stall shows about twice as many species as it used to. A tier registers between eight and twenty-six species and used to put exactly *two* of them on any one counter, frozen there for that villager's whole life: an angler with the full journal could sell about five things in the world.
+
+> **An existing fisherman keeps the counter he was built with.** A villager only rebuilds its offers when it gains a merchant level, so a stall already sitting at Master will not grow the extra slots. New stalls have them from the start; old ones get them at their next promotion.
 
 **A level-1 Fisherman always buys a common fish.** The draw is random, so a fresh stall could have come up gear-only — and that first emerald for a bleak is the point of the profession. If none of the level-1 offers takes a fish, one is swapped in, rolled among Bleak, Roach, Gudgeon and Rotan: the four smalls that live in every water, so the guarantee is reachable wherever you spawned.
 
-Across all five levels a maxed Fisherman shows 15 offers, of which roughly 3 are fish buys.
+Across all five levels a maxed Fisherman shows 20 offers, of which roughly 6 are fish buys.
 
 Ordinary sells allow 12 uses before restock; assembled rods and rigs allow 8. Every listing carries the usual 5 % price multiplier.
 
@@ -180,6 +184,8 @@ Prices below are the **base**; see [the market](#the-market) for how they actual
 | Volga zander | 1.4 kg | 4 emeralds | 6 |
 | Pink salmon | 2.5 kg | 4 emeralds | 8 |
 | Whitefish | 2.8 kg | 4 emeralds | 8 |
+| Mayan cichlid | 840 g | 2 emeralds | 3 |
+| Oscar | 1.1 kg | 2 emeralds | 4 |
 
 #### Tier 4
 
@@ -201,6 +207,9 @@ Prices below are the **base**; see [the market](#the-market) for how they actual
 | Arctic char | 4.2 kg | 6 emeralds | 12 |
 | Lenok | 4.2 kg | 6 emeralds | 12 |
 | Atlantic salmon | 17.5 kg | 10 emeralds | 18 |
+| Bluefish | 9.8 kg | 6 emeralds | 12 |
+| Bullseye snakehead | 5.6 kg | 6 emeralds | 11 |
+| Peacock bass | 8.4 kg | 7 emeralds | 13 |
 
 #### Tier 5
 
@@ -228,12 +237,18 @@ Prices below are the **base**; see [the market](#the-market) for how they actual
 | Taimen | 42 kg | 24 emeralds | 36 |
 | Sturgeon | 105 kg | 26 emeralds | 38 |
 | Halibut | 140 kg | 22 emeralds | 34 |
+| Jack crevalle | 21 kg | 12 emeralds | 22 |
+| Snook | 17.5 kg | 11 emeralds | 21 |
+| Striped bass | 24.5 kg | 12 emeralds | 23 |
+| Tarpon | 91 kg | 20 emeralds | 32 |
 
-**The five Koi cannot be sold at all.** They are collectibles, not commerce. Every other species has a buy-trade somewhere in the five tiers. (Asp, White Bream and Mirror Carp were unsellable before 0.6.0 — an oversight, now on tiers 3, 2 and 4.)
+**The five Koi cannot be sold at all.** They are collectibles, not commerce. All 74 other species have a buy-trade somewhere in the five tiers. (Asp, White Bream and Mirror Carp were unsellable before 0.6.0 — an oversight, now on tiers 3, 2 and 4. The nine Florida species shipped catchable in 0.7.0 with no buyer anywhere: you could land a tarpon and have nowhere on earth to sell it. Fixed in the same release.)
 
 ## The market
 
 Two forces move his prices, both saved with the world and shared across the whole server.
+
+**The price is recomputed the moment you open the counter**, so what the trade screen shows is what the market says today. Before 0.7.0 it was not: the emerald count was decided at the instant a merchant level unlocked and then saved with the villager. The order-of-the-day ×2.5 therefore paid only if a stall happened to gain a level on that very day with that species in that slot, and the glut discount was frozen the same way — which is to say neither had ever really applied, on any version.
 
 ### Glut
 
@@ -250,11 +265,19 @@ So a heavily fished species pays down to **half price**. Glut recovers at **×0.
 
 One species per Minecraft day is the fisherman's **order**, paying **×2.5** regardless of glut. It rotates deterministically from the world's day count, so every player on the server sees the same order, and it is announced to each player once per day:
 
-> *Fisherman's order of the day: Pike — pays ×2.5!*
+> *Fisherman's order of the day: Pike — pays ×2.5. The journal's quest page has the full recipe.*
 
-The rotation pool is sixteen species, chosen to spread across the whole progression:
+The rotation is **every species some fisherman buys** — all 74 of them — read out of the trade table itself rather than from a list kept beside it, so it can never name a fish nobody takes. The five koi are the only species left out, because nobody buys them. (Before 0.7.0 the pool was a hand-written sixteen, and the two lists had drifted: an order could and did name a species no fisherman on earth would take.)
 
-Bream · Perch · Pike · Roach · Crucian Carp · Carp · Zander · Trout · Bluegill · Largemouth bass · Sabrefish · Mackerel · Herring · Cod · Sea bass · Flounder
+Seventy-four species is a much wider net than sixteen, so the order will more often name a fish your nearest stall is too junior to buy. The journal's **Order of the day** panel, at the top of the Quests tab, states the requirement outright — *"Bought by a fisherman of level N"* — alongside the water, depth, season, hour, bait, rig and rod the species wants.
+
+### The order slot
+
+**One seat on every fisherman's counter is today's order.** The last fish buy on the counter is overwritten each day with the day's species, at the same ×2.5 the order pays anywhere else. A stall you have already found is therefore a place you can fill today's order, instead of a place you hope drew the right species when it was built.
+
+The seat **replaces** rather than adds, and it is the same seat every day: the counter never changes size, so nothing can drift after a save or a promotion. On the first day it costs you one of the species that stall drew; from then on it is a permanent slot whose contents change.
+
+Nothing is overwritten when the stall's tier is too low to buy today's species, or when it already buys it — in the second case you can sell it there anyway, and taking the seat would only cost you a second species for nothing.
 
 ## See also
 
