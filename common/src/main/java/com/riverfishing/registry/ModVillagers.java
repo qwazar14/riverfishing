@@ -120,6 +120,73 @@ public final class ModVillagers {
         return Optional.empty();
     }
 
+    /**
+     * §order-slot: every species some fisherman buys, sorted, so the daily rotation cannot name a fish
+     * nobody takes. Read out of the trade registry — the trades ARE the answer, so there is no second
+     * list to drift. Cached because it can only change with the datapack.
+     */
+    private static java.util.List<String> buyable = java.util.List.of();
+
+    public static java.util.List<String> buyableSpecies() {
+        if (!buyable.isEmpty()) return buyable;
+        net.minecraft.server.MinecraftServer server = dev.architectury.utils.GameInstance.getServer();
+        if (server == null) return java.util.List.of();
+        Registry<VillagerTrade> trades = server.registryAccess().lookupOrThrow(Registries.VILLAGER_TRADE);
+        java.util.TreeSet<String> found = new java.util.TreeSet<>();
+        for (var key : trades.registryKeySet()) {
+            String path = key.identifier().getPath();
+            int cut = path.indexOf("/buy_");
+            if (path.startsWith("fisherman/") && cut > 0) found.add(path.substring(cut + 5));
+        }
+        buyable = java.util.List.copyOf(found);
+        return buyable;
+    }
+
+    /**
+     * §order-slot: one seat on this counter always shows today's order.
+     *
+     * <p>It REPLACES rather than appends, and that is the whole design. An extra offer would have to be
+     * found and reclaimed the next day, and there is nothing on a vanilla MerchantOffer to mark it with
+     * that survives a save — so every scheme for finding it again came down to counting the counter,
+     * which breaks the moment a villager gains a level and vanilla appends behind our seat. Overwriting
+     * a seat in place has none of that: the counter never changes size, so there is nothing to count,
+     * nothing to mark, and nothing to get wrong after a restart.
+     *
+     * <p>The seat is the last fish buy on the counter. On the first day that costs one drawn species,
+     * and from then on it is the same seat every day — which is what makes it a permanent slot that
+     * changes rather than a new trade appearing and disappearing.
+     *
+     * <p>Nothing happens when the stall is too junior to buy today's species, or when it already buys
+     * it: in the second case the player can sell it anyway, and taking the seat would only cost them a
+     * second species for nothing.
+     */
+    private static void orderSlot(Villager villager, ServerLevel level, MerchantOffers offers) {
+        String order = com.riverfishing.fishing.MarketData.orderOfTheDay(level);
+        int tier = buyTier(order);
+        if (tier <= 0 || tier > villager.getVillagerData().level()) return;
+        int seat = -1;
+        for (int i = 0; i < offers.size(); i++) {
+            if (!(offers.get(i).getCostA().getItem() instanceof FishItem fish)) continue;
+            if (fish.species().getPath().equals(order)) return;   // already on the counter
+            seat = i;
+        }
+        if (seat < 0) return;
+        MerchantOffer offer = offerFor(villager, level, order);
+        if (offer != null) offers.set(seat, offer);
+    }
+
+    /** One buy offer for a species, rolled through the same loot context vanilla uses for trades. */
+    private static MerchantOffer offerFor(Villager villager, ServerLevel level, String species) {
+        var trade = buyTrade(species);
+        if (trade.isEmpty()) return null;
+        LootContext context = new LootContext.Builder(new LootParams.Builder(level)
+                .withParameter(LootContextParams.ORIGIN, villager.position())
+                .withParameter(LootContextParams.THIS_ENTITY, villager)
+                .withParameter(LootContextParams.ADDITIONAL_COST_COMPONENT_ALLOWED, Unit.INSTANCE)
+                .create(LootContextParamSets.VILLAGER_TRADE)).create(Optional.empty());
+        return trade.get().value().getOffer(context);
+    }
+
     /** §market-live: the emeralds the datapack pays for this species before the market moves it. */
     private static int basePrice(String species) {
         return buyTrade(species)
@@ -137,8 +204,10 @@ public final class ModVillagers {
     public static void repriceFishBuys(Villager villager) {
         if (!(villager.level() instanceof ServerLevel level)) return;
         if (!villager.getVillagerData().profession().is(FISHERMAN.getKey())) return;
+        MerchantOffers offers = villager.getOffers();
+        orderSlot(villager, level, offers);
         var market = com.riverfishing.fishing.MarketData.get(level);
-        for (MerchantOffer offer : villager.getOffers()) {
+        for (MerchantOffer offer : offers) {
             if (!(offer.getCostA().getItem() instanceof FishItem fish)) continue;
             String species = fish.species().getPath();
             int base = basePrice(species);

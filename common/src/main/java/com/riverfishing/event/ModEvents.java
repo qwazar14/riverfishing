@@ -107,8 +107,11 @@ public final class ModEvents {
         long day = sp.level().getServer().overworld().getOverworldClockTime() / 24000L;
         Long told = ORDER_TOLD.get(sp.getUUID());
         if (told != null && told == day) return;
-        ORDER_TOLD.put(sp.getUUID(), day);
         String species = com.riverfishing.fishing.MarketData.orderOfTheDay(sp.level());
+        // The pool is read out of the trade registry, so before the server has one there is no
+        // order to name. Say nothing and do not mark the day told — the next tick will have it.
+        if (species.isEmpty()) return;
+        ORDER_TOLD.put(sp.getUUID(), day);
         sp.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
                 "message.riverfishing.daily_order",
                 net.minecraft.network.chat.Component.translatable("fish.riverfishing." + species))
