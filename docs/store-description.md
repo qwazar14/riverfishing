@@ -28,7 +28,8 @@ The mod runs fine alone, but the balance is written around two optional add-ons:
 - **Serene Seasons** — unlocks the full seasonal bite (spring spawning runs, the winter slow-down).
 - **Biomes O' Plenty** — a richer world for the habitat and biome factors to work in.
 
-Also integrates with **Farmer's Delight**, **JEI** and **Jade**.
+Also integrates with **Farmer's Delight** on every version, and with **JEI** and **Jade** on 1.20.1 and
+1.21.1.
 
 ## You can see into the water
 
@@ -70,8 +71,7 @@ run loads your tackle at half rate. Pull the same way it is going and you get no
   the rod, the same trade a crank makes. Walk the whole way and you snap.
 - **The angler runs out.** A stamina bar for the person holding the rod. It comes back only when you stop
   pulling, so the answer to tired arms is to stop rather than to click faster.
-- **The rod bends under tension**, in six steps driven by the real stress on your tackle, and everyone
-  nearby sees it.
+- **The rod bends under tension**, in six steps driven by the real stress on your tackle.
 - **Over-pull and the line snaps.** A real breaking-strain model means big fish demand the right line and
   a drag you know how to use — and a heavier line genuinely buys you time.
 - **Every species tires differently**, and small fry stop fighting like monsters.
@@ -112,7 +112,7 @@ run loads your tackle at half rate. Pull the same way it is going and you get no
 
 A bestiary **journal** with a page and an illustration per species, **angler levels** and a six-perk skill
 tree, an **eight-stage quest chain**, and 22 hand-crafted advancements including some tricky and some
-funny ones. Plus bait farms, a live-bait trap, a display aquarium, a trophy stand, cooking and fillets.
+funny ones. Plus bait farms, a live-bait trap, an aquarium and a mini aquarium, cooking and fillets.
 
 **The order of the day is the tutorial.** The fisherman names a species, and the journal entry for it is
 one click away — so the game answers "what do I do now" with a specific fish, a place and a bait instead
