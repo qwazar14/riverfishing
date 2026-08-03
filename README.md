@@ -94,7 +94,7 @@ too visible spooks small wary fish while a big one barely notices.
 - **Configurable.** `config/riverfishing.json` is written on first run: difficulty presets plus dials for
   phantom bites, break sensitivity, depletion, wear, snags, how much the fish notice you, and where the
   trophy bar sits.
-- Bait farms, a live-bait trap, display aquariums, a trophy stand, cooking and fillets.
+- Bait farms, a live-bait trap, an aquarium and a mini aquarium, cooking and fillets.
 
 ## Recommended companions
 

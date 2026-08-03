@@ -79,6 +79,10 @@ CF_ENVIRONMENT = {"both": ["Client", "Server"], "client": ["Client"], "server": 
 # ...and Modrinth v2 encodes it on the *project*, as this pair. See modrinth_environment() below.
 MR_PROJECT_ENV = {"both": ("required", "required"), "client": ("required", "unsupported"),
                   "server": ("unsupported", "required")}
+# v2 grew a per-version `environment` too, and Modrinth's own v2 reroute collapses these three straight
+# onto the pairs above — same fact, said once per version instead of once per project. Setting it means
+# a file states its own sides rather than inheriting whatever the project page happens to say.
+MR_VERSION_ENV = {"both": "client_and_server", "client": "client_only", "server": "server_only"}
 
 
 def http(url, header=None, data=None, content_type=None):
@@ -192,9 +196,10 @@ def plan(m, cfg, changelog, release_type):
                      "nothing telling anyone they needed Architectury." % (m["file"], d["mod_id"], CONFIG))
         deps.append((d, ids))
 
-    mr = {"project_id": cfg["modrinth_project_id"], "name": version_name(m),
+    mr = {"project_id": cfg["modrinth_id"], "name": version_name(m),
           "version_number": version_number(m), "changelog": changelog, "version_type": release_type,
           "loaders": [MR_LOADER[m["loader"]]], "game_versions": [m["minecraft"]], "featured": False,
+          "environment": MR_VERSION_ENV[m["environment"]],
           "dependencies": [{"project_id": i["modrinth"], "dependency_type": d["type"]} for d, i in deps],
           "file_parts": ["file"], "primary_file": "file"}
 
@@ -228,14 +233,13 @@ def cf_state_path(folder):
 def modrinth_environment(cfg, manifest):
     """What Modrinth can and cannot be told about client/server, reported rather than guessed.
 
-    Modrinth v2 has **no per-version environment field** — a v2 version object carries loaders,
-    game_versions and dependencies and nothing else about sides. Environment is `client_side` and
-    `server_side` on the *project*, set once in the web UI and shared by every version.
+    Each version now states its own sides — plan() sets `environment`, which v2 grew and this file used
+    to assert it did not have. What v2 still has no way to write is the *project* pair, `client_side` and
+    `server_side`, which is a web-UI setting and the thing search filters on.
 
-    v3 does have a per-version `environment` with nine values, and it is live, but Modrinth's own
-    announcement calls v3 experimental and not intended for general use, with v2 integration still to
-    come. So this reads the project setting and complains when it contradicts the jars, rather than
-    writing through an API documented as liable to change under it.
+    So this reads that pair and complains when it contradicts the jars. It does not change it: a
+    project-wide setting is not something a release script should move under its author, and the answer
+    is one click in the settings page rather than an API call nobody reviewed.
     """
     want = {m["environment"] for m in manifest["files"]}
     p = http("%s/project/%s" % (MR_API, cfg["modrinth_project_id"]))
@@ -322,6 +326,13 @@ def main():
     changelog = io.open(os.path.join(folder, manifest["changelog"]), encoding="utf-8").read()
 
     cfg = load_config()
+    # Modrinth takes "the id OR the slug" in a URL path and only the base62 id in a version payload —
+    # a distinction its own docs make and nothing enforces until the POST. The config holds the slug,
+    # because a slug is what a human can read off the page, so resolve it once here rather than asking
+    # anyone to keep a base62 string in a file by hand. GET /project/<id-or-slug> accepts either, so
+    # this is correct whichever the config happens to hold.
+    cfg["modrinth_id"] = http("%s/project/%s" % (MR_API, cfg["modrinth_project_id"]))["id"]
+
     tokens = {}
     for var in ("CURSEFORGE_TOKEN", "MODRINTH_TOKEN"):
         tokens[var] = os.environ.get(var)
@@ -367,6 +378,16 @@ def main():
 
     for m, mr, cf, skip_mr, skip_cf in todo:
         blob = io.open(os.path.join(folder, m["file"]), "rb").read()
+        # Modrinth first, and not for atomicity — there is none. The Modrinth payload is the same shape
+        # for all eight files, so a rejection of any kind fires on file one, with nothing published
+        # anywhere. Fail the other way round and CurseForge is already advertising a lone 1.20.1 Fabric
+        # jar as the release. It is also the recoverable order: a Modrinth version can be deleted, a
+        # CurseForge file cannot.
+        if not skip_mr:
+            body, ctype = multipart({"data": json.dumps(mr)}, m["file"], blob, "file")
+            # Modrinth PATs go in Authorization raw — no "Bearer " prefix, unlike almost everything else.
+            r = http(MR_API + "/version", ("Authorization", tokens["MODRINTH_TOKEN"]), body, ctype)
+            print("Modrinth    %s -> version %s" % (mr["version_number"], r.get("id")))
         if not skip_cf:
             body, ctype = multipart({"metadata": json.dumps(cf)}, m["file"], blob, "file")
             r = http("%s/projects/%s/upload-file" % (CF_API, cfg["curseforge_project_id"]),
@@ -376,11 +397,6 @@ def main():
             io.open(cf_state_path(folder), "w", encoding="utf-8", newline="\n").write(
                 json.dumps(done_cf, indent=2) + "\n")
             print("CurseForge  %s -> file %s" % (m["file"], r.get("id")))
-        if not skip_mr:
-            body, ctype = multipart({"data": json.dumps(mr)}, m["file"], blob, "file")
-            # Modrinth PATs go in Authorization raw — no "Bearer " prefix, unlike almost everything else.
-            r = http(MR_API + "/version", ("Authorization", tokens["MODRINTH_TOKEN"]), body, ctype)
-            print("Modrinth    %s -> version %s" % (mr["version_number"], r.get("id")))
 
     print("\nfiles are live. updates.json is deliberately untouched — bump it last, by hand.")
     return 0
@@ -421,7 +437,8 @@ def self_check():
             pass
 
     # The Modrinth side: one version per file, uniquely numbered, under the scheme 0.6.1 published with.
-    cfg = {"modrinth_project_id": "river-fishing", "dependencies": CONFIG_TEMPLATE["dependencies"]}
+    cfg = {"modrinth_project_id": "river-fishing", "modrinth_id": "5acJO3EU",
+           "dependencies": CONFIG_TEMPLATE["dependencies"]}
     fabric = {"file": "riverfishing-Fabric-%s+1.21.1.jar" % VERSION, "minecraft": "1.21.1",
               "loader": "Fabric", "java": 21, "environment": "both",
               "dependencies": [{"mod_id": "architectury", "type": "required"},
@@ -431,6 +448,10 @@ def self_check():
     assert mr["loaders"] == ["fabric"] and mr["game_versions"] == ["1.21.1"]
     assert mr["version_number"] == "%s-1.21.1+Fabric" % VERSION, mr["version_number"]
     assert mr["name"] != mr["version_number"], "the subtitle is not the version number"
+    # base62 has no hyphen, so a slug that leaked into the payload fails here rather than as a 400 on
+    # the first POST of a real release — which is where it failed before, one CurseForge file too late.
+    assert mr["project_id"].isalnum(), "project_id must be the base62 id, not %r" % mr["project_id"]
+    assert mr["environment"] == "client_and_server", mr["environment"]
     assert mr["dependencies"] == [{"project_id": "lhGA9TYQ", "dependency_type": "required"},
                                   {"project_id": "P7dR8mSH", "dependency_type": "required"},
                                   {"project_id": "e0bNACJD", "dependency_type": "optional"}]
