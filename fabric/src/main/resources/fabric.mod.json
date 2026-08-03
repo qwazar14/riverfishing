@@ -28,5 +28,9 @@
     "java": ">=17",
     "architectury": ">=9.0.0",
     "fabric-api": "*"
+  },
+  "recommends": {
+    "sereneseasons": "*",
+    "biomesoplenty": "*"
   }
 }
