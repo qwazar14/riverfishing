@@ -79,6 +79,11 @@ public final class ModNetwork {
             ctx.queue(p::handleClient);
         });
         // §shoal: the fish you can see in the water.
+        // §order-panel: what the fisherman wants today, for the counter the player just opened.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, OrderPacket.TYPE, (buf, ctx) -> {
+            OrderPacket p = OrderPacket.decode(buf);
+            ctx.queue(p::handleClient);
+        });
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, ShoalPacket.TYPE, (buf, ctx) -> {
             ShoalPacket p = ShoalPacket.decode(buf);
             ctx.queue(p::handleClient);

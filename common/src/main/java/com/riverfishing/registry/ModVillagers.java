@@ -366,7 +366,7 @@ public final class ModVillagers {
      * <p>The base is read from where the trade was DEFINED, never from the offer's current count —
      * feeding the output back in would multiply ×2.5 on top of ×2.5 every time the player looked.
      */
-    public static void repriceFishBuys(Villager villager) {
+    public static void repriceFishBuys(Villager villager, net.minecraft.world.entity.player.Player player) {
         if (!(villager.level() instanceof ServerLevel level)) return;
         if (villager.getVillagerData().getProfession() != FISHERMAN.get()) return;
         MerchantOffers offers = villager.getOffers();
@@ -382,6 +382,40 @@ public final class ModVillagers {
             // A stack is the ceiling: blue marlin at ×2.5 is 70 emeralds, which will not fit in a slot.
             pay.setCount(Math.min(pay.getMaxStackSize(), market.price(level, species, base)));
         }
+        sendOrder(level, offers, player);
+    }
+
+    /**
+     * §order-panel: tell this player what today's order is, and what THIS counter will pay for it.
+     *
+     * <p>The pay is read off the finished offer rather than recomputed, so the sign and the row beneath
+     * it cannot disagree — they are the same number, read once. Nothing is sent when the stall does not
+     * buy today's species: the panel would be advertising a trade the player cannot make here, and that
+     * silence doubles as the "not our fisherman" signal, because no other profession reaches this far.
+     *
+     * <p>It goes out during startTrading HEAD, which is before openTradingScreen builds the screen
+     * packet on the same connection — so the client always has the order before it has a window.
+     */
+    private static void sendOrder(ServerLevel level, MerchantOffers offers,
+                                  net.minecraft.world.entity.player.Player player) {
+        if (!(player instanceof net.minecraft.server.level.ServerPlayer sp)) return;
+        String order = com.riverfishing.fishing.MarketData.orderOfTheDay(level);
+        if (order.isEmpty()) return;
+        int base = BASE_PRICE.getOrDefault(order, new int[]{0, 0})[0];
+        if (base <= 0) return;
+        // The pay comes off the finished offer when this counter has one, so the sign and the row under
+        // it are the same number read once. When it has none the stall is too junior: say so with the
+        // rank instead of saying nothing.
+        for (MerchantOffer offer : offers) {
+            if (!(offer.getCostA().getItem() instanceof FishItem fish)) continue;
+            if (!fish.species().getPath().equals(order)) continue;
+            com.riverfishing.network.ModNetwork.toPlayer(sp,
+                    new com.riverfishing.network.OrderPacket(fish.species(),
+                            offer.getResult().getCount(), base, buyTier(order)));
+            return;
+        }
+        com.riverfishing.network.ModNetwork.toPlayer(sp,
+                new com.riverfishing.network.OrderPacket(RiverFishing.id(order), 0, base, buyTier(order)));
     }
 
     /**
@@ -422,7 +456,14 @@ public final class ModVillagers {
         }
         if (seat < 0) return;
         MerchantOffer offer = buyPrimeOf(order, spec[0], spec[1]).getOffer(villager, villager.getRandom());
-        if (offer != null) offers.set(seat, offer);
+        if (offer == null) return;
+        // The bottom row, every day. Overwriting a seat in the middle of the counter is invisible: the
+        // price moves and nothing tells the player WHICH row the mod is talking about. Taking the seat
+        // and then moving it to the end costs nothing — the counter is the same length either way — and
+        // gives the slot a fixed place to be looked for. It also keeps finding itself: the last fish buy
+        // on the counter tomorrow is this one.
+        offers.remove(seat);
+        offers.add(offer);
     }
 
     /** Same thing already on the counter? Compare both sides — a buy and a sell can share an item. */
