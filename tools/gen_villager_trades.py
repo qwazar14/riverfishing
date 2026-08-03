@@ -57,7 +57,11 @@ FISH_SLOTS_PER_TIER = 4     # how much of each tier's pool the species share
 STARTER_FISH = ["bleak", "roach", "gudgeon", "rotan"]  # live in every water — see the community guide
 
 # Effective pool sizes we intend to land on, asserted after generation (§trade-pool).
-TARGET_POOL = {1: 12, 2: 12, 3: 11, 4: 18, 5: 16}
+# §internal-rig: tier 2 is ELEVEN, not twelve. The Java table on 1.20.1/1.21.1 stopped selling the
+# assembled float rig on its own — it lives INSIDE the float rods (JournalScreen.isInternalRig) and is
+# never tied by itself, so a standalone sale was a component with a price tag. That decision never
+# reached this generator, which is why the two branches disagreed about tier 2 by exactly one slot.
+TARGET_POOL = {1: 12, 2: 11, 3: 11, 4: 18, 5: 16}
 
 
 # ---------------------------------------------------------------- SNBT
@@ -376,7 +380,6 @@ POOL = {
         [sell("groundbait_grain", 1, 6, 3)],
         [sell("bait_trap", 3, 1, 4)],                       # slowly farms livebait (§livebait)
         [sell("minecraft:oak_boat", 4, 1, 5)],              # §vanilla-stock: trolling needs a boat
-        [rig_only("assembled_float_rig", "rig_float_light", FLOAT_RIG, 4, 6)],
         [assembled("assembled_bamboo_rod", "bamboo_rod", None, "line_mono_018",
                    "rig_float_light", FLOAT_RIG, 9, 8)],
     ],

@@ -25,7 +25,7 @@ To keep gear visible, variants of the same thing are folded into **one rotating 
 | Tier | Pool size | Of which fish buys | Offers drawn |
 |---|---|---|---|
 | 1 Novice | 12 | 4 | 4 |
-| 2 Apprentice | 12 | 4 | 4 |
+| 2 Apprentice | 11 | 4 | 4 |
 | 3 Journeyman | 11 | 4 | 4 |
 | 4 Expert | 18 | 4 | 4 |
 | 5 Master | 16 | 4 | 4 |
