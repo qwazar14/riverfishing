@@ -1,12 +1,30 @@
 {
   "_comment": "River Fishing update feed (§update-check). Served raw from the mc-1.21.1 branch; the in-game checker compares 'latest' for the running MC version and prints up to 3 bullets per missed release. Bump 'latest' ONLY when a release is actually published.",
   "latest": {
-    "1.20.1": "0.6.1",
-    "1.21.1": "0.6.1",
-    "26.1.2": "0.6.1",
-    "26.2": "0.6.1"
+    "1.20.1": "0.7.0",
+    "1.21.1": "0.7.0",
+    "26.1.2": "0.7.0",
+    "26.2": "0.7.0"
   },
   "changelog": [
+    {
+      "version": "0.7.0",
+      "ru": [
+        "Рыбу теперь видно в воде — какие виды, какого размера и сколько их, ещё до заброса",
+        "У каждого рывка есть направление, и отвечают на него клавишами WASD; отход от воды тоже вываживает",
+        "Ящик для снастей, садок под размер рыбы, электроудочка и девять новых видов"
+      ],
+      "uk": [
+        "Рибу тепер видно у воді — які види, якого розміру і скільки їх, ще до закиду",
+        "Кожен ривок має напрямок, і відповідають на нього клавішами WASD; відхід від води теж вивільнює",
+        "Ящик для снастей, садок під розмір риби, електровудка і дев'ять нових видів"
+      ],
+      "en": [
+        "You can see the fish in the water now — which species, what size, how many, before you cast",
+        "Every run has a direction and you answer it with WASD; backing off the bank fights the fish too",
+        "A tackle box, a keepnet sized to the fish, an electrofisher and nine new species"
+      ]
+    },
     {
       "version": "0.6.1",
       "ru": [
