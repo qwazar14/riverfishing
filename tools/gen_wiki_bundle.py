@@ -31,7 +31,17 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wiki_art
 
 SRC = "docs/wiki"
-MOD_VERSION = "0.6.1"
+def _mod_version():
+    """From gradle.properties, because a hand-kept copy of a version number is a version number that is
+    wrong. This one said 0.6.1 while the mod said 0.7.0."""
+    for line in io.open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                     "gradle.properties"), encoding="utf-8"):
+        if line.startswith("mod_version="):
+            return line.split("=", 1)[1].strip()
+    raise SystemExit("gradle.properties has no mod_version")
+
+
+MOD_VERSION = _mod_version()
 MC_VERSION = "1.21.1"
 
 # English lives at the root of docs/wiki; every other language mirrors the same filenames in a
@@ -45,17 +55,20 @@ GROUP_LABELS = {
     "uk": {"Start": "Початок", "Gear": "Снасть", "Playing": "Гра", "Reference": "Довідник"},
 }
 
-# Sidebar order and grouping, mirroring the wiki's own index.
+# Sidebar order and grouping, mirroring the wiki's own index. THIS LIST IS THE PUBLISHED WIKI: a page
+# on disk that is not named here passes every checker and then does not exist for any reader. Six of
+# them did exactly that. The assertion after the build is what makes the next omission loud.
 GROUPS = [
     ("", ["README"]),
     ("Start", ["getting-started"]),
     ("Gear", ["rods", "reels-and-lines", "rigs-and-baits", "tackle-station", "crafting",
-              "tools", "blocks"]),
-    ("Playing", ["fishing-mechanics", "water-and-conditions", "ice-fishing", "sea-fishing",
+              "tools", "blocks", "keepnet", "tackle-box"]),
+    ("Playing", ["fishing-mechanics", "water-and-conditions", "shoal", "ice-fishing", "sea-fishing",
                  "stocking"]),
-    ("Reference", ["species", "species-reference", "progression", "villager"]),
+    ("Reference", ["species", "species-reference", "progression", "villager", "order-board",
+                   "config", "electrofisher"]),
 ]
-GITHUB = "https://github.com/qwazar14/riverfishing/blob/dev-0.6.0/docs/"
+GITHUB = "https://github.com/qwazar14/riverfishing/blob/dev-0.7.0/docs/"
 
 FISH_TEX = "common/src/main/resources/assets/riverfishing/textures/item/fish"
 

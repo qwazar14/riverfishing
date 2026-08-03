@@ -102,32 +102,52 @@ Fluorocarbon also **wears 40 % slower** than the other two.
 
 ### Every line
 
-| Diameter | Mono | Braid | Fluorocarbon |
+All 23 of them, by the name they carry in game. **Smallest reel** is the smallest reel item whose
+spool ceiling reaches that diameter, by the [spool-diameter rule](#the-spool-diameter-rule) above.
+
+#### Mono — 10 diameters
+
+| Line | Item id | Breaking strain | Smallest reel |
 |---|---|---|---|
-| 0.10 mm | **1.0 kg** | — | — |
-| 0.14 mm | **2.0 kg** | — | **2.2 kg** |
-| 0.16 mm | — | **7.7 kg** | **2.8 kg** |
-| 0.18 mm | **3.2 kg** | — | — |
-| 0.20 mm | — | **12.0 kg** | **4.4 kg** |
-| 0.25 mm | **6.3 kg** | **18.8 kg** | **6.9 kg** |
-| 0.30 mm | **9.0 kg** | **27.0 kg** | **9.9 kg** |
-| 0.40 mm | **16.0 kg** | **48.0 kg** | **17.6 kg** |
-| 0.50 mm | **25.0 kg** | **75.0 kg** | — |
-| 0.60 mm | **36.0 kg** | **108.0 kg** | — |
-| 0.70 mm | **49.0 kg** | — | — |
-| 0.80 mm | **64.0 kg** | — | — |
+| Mono Line 0.10 | `line_mono_010` | **1.0 kg** | 1000 |
+| Mono Line 0.14 | `line_mono_014` | **2.0 kg** | 1000 |
+| Mono Line 0.18 | `line_mono_018` | **3.2 kg** | 1000 |
+| Mono Line 0.25 | `line_mono_025` | **6.3 kg** | 2000 |
+| Mono Line 0.30 | `line_mono_030` | **9.0 kg** | 3000 |
+| Mono Line 0.40 | `line_mono_040` | **16.0 kg** | 5000 |
+| Mono line 0.50 | `line_mono_050` | **25.0 kg** | 7000 |
+| Mono line 0.60 | `line_mono_060` | **36.0 kg** | 10000 |
+| Mono line 0.70 | `line_mono_070` | **49.0 kg** | 12000 |
+| Mono line 0.80 | `line_mono_080` | **64.0 kg** | 14000 |
 
-Thick fluorocarbon does not exist in the mod (impractical in reality). Braid stops at 0.60 mm, mono runs all the way to 0.80 mm.
+#### Braid — 7 diameters
 
-Their in-game names are not perfectly consistent — the thin end of each ladder was added before the heavy tier:
+| Line | Item id | Breaking strain | Smallest reel |
+|---|---|---|---|
+| Braided Line 0.16 | `line_braid_016` | **7.7 kg** | 1000 |
+| Braided Line 0.20 | `line_braid_020` | **12.0 kg** | 1000 |
+| Braided Line 0.25 | `line_braid_025` | **18.8 kg** | 2000 |
+| Braided Line 0.30 | `line_braid_030` | **27.0 kg** | 3000 |
+| Braid line 0.40 | `line_braid_040` | **48.0 kg** | 5000 |
+| Braid line 0.50 | `line_braid_050` | **75.0 kg** | 7000 |
+| Braid line 0.60 | `line_braid_060` | **108.0 kg** | 10000 |
 
-| Item ids | Display name |
-|---|---|
-| `line_mono_010` … `line_mono_040` | Mono **L**ine 0.10 … 0.40 |
-| `line_mono_050` … `line_mono_080` | Mono **l**ine 0.50 … 0.80 |
-| `line_braid_016` … `line_braid_030` | Braided Line 0.16 … 0.30 |
-| `line_braid_040` … `line_braid_060` | Braid line 0.40 … 0.60 |
-| `line_fluoro_014` … `line_fluoro_040` | Fluorocarbon 0.14 … 0.40 |
+#### Fluorocarbon — 6 diameters
+
+| Line | Item id | Breaking strain | Smallest reel |
+|---|---|---|---|
+| Fluorocarbon 0.14 | `line_fluoro_014` | **2.2 kg** | 1000 |
+| Fluorocarbon 0.16 | `line_fluoro_016` | **2.8 kg** | 1000 |
+| Fluorocarbon 0.20 | `line_fluoro_020` | **4.4 kg** | 1000 |
+| Fluorocarbon 0.25 | `line_fluoro_025` | **6.9 kg** | 2000 |
+| Fluorocarbon 0.30 | `line_fluoro_030` | **9.9 kg** | 3000 |
+| Fluorocarbon 0.40 | `line_fluoro_040` | **17.6 kg** | 5000 |
+
+Thick fluorocarbon does not exist in the mod (impractical in reality). Braid stops at 0.60 mm, mono runs all the way to 0.80 mm. At any shared diameter braid is exactly 3× mono and fluorocarbon 1.1× mono — that is the whole of the material factor.
+
+There is **no 9000 reel item**, so 0.60 mm needs a 10000: the 8000's spool tops out at 0.55 mm.
+
+Their in-game names are not perfectly consistent, as the tables show — the thin end of each ladder was added before the heavy tier, so the capital letter and the word *Braided* were quietly dropped at 0.50 and 0.40 respectively. Same items, same behaviour.
 
 ### Line visibility
 

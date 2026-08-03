@@ -184,3 +184,4 @@ with hard gates on water type, depth, width, biome match and community presence 
 - [Fishing mechanics](fishing-mechanics.md) · [Species](species.md)
 - [Stocking](stocking.md) · [Tools](tools.md#fish-finder)
 - [Sea fishing](sea-fishing.md) — how the ocean zones map onto biome groups
+- [Fish in the water](shoal.md) — the same community, drawn under the surface before you cast

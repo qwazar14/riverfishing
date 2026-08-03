@@ -18,7 +18,9 @@ rollback mid-test is one rename. It never touches a jar that is not ours.
 """
 import glob, io, json, os, shutil, sys, zipfile
 
-VERSION = "0.6.1"
+from collect_release import mod_version
+
+VERSION = mod_version()
 HOME = os.path.expanduser("~")
 INST = os.path.join(HOME, "AppData/Roaming/PrismLauncher/instances")
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -179,5 +179,7 @@ All of these are loot-table injections, so they behave identically on both loade
 ## See also
 
 - [Rigs and baits](rigs-and-baits.md) · [Blocks](blocks.md)
+- [Keepnet](keepnet.md) · [Tackle box](tackle-box.md) — where the catch and the tackle go
 - [Progression](progression.md) · [Water and conditions](water-and-conditions.md)
+- [Electrofisher](electrofisher.md) — the creative-only tool that is not tackle
 - [Crafting](crafting.md)
