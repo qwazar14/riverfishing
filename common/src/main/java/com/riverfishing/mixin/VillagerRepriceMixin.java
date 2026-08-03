@@ -33,6 +33,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class VillagerRepriceMixin {
     @Inject(method = "startTrading", at = @At("HEAD"))
     private void riverfishing$repriceFishBuys(Player player, CallbackInfo ci) {
-        ModVillagers.repriceFishBuys((Villager) (Object) this);
+        ModVillagers.repriceFishBuys((Villager) (Object) this, player);
     }
 }
