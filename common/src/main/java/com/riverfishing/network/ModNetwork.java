@@ -50,6 +50,7 @@ public final class ModNetwork {
             NetworkManager.registerS2CPayloadType(JournalOpenPacket.TYPE, JournalOpenPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(LineSyncPacket.TYPE, LineSyncPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(ShoalPacket.TYPE, ShoalPacket.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(OrderPacket.TYPE, OrderPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(RodWarningPacket.TYPE, RodWarningPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(CullListPacket.TYPE, CullListPacket.STREAM_CODEC);
         }
@@ -66,6 +67,9 @@ public final class ModNetwork {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, RodWarningPacket.TYPE, RodWarningPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, ShoalPacket.TYPE, ShoalPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(payload::handleClient));
+        // §order-panel: what the fisherman wants today, for the counter the player just opened.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, OrderPacket.TYPE, OrderPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, CullListPacket.TYPE, CullListPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));

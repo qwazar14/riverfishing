@@ -17,6 +17,7 @@
     "ItemInHandLayerMixin",
     "LevelRendererSubmitMixin",
     "ItemEntityRenderStateMixin",
-    "ItemEntitySeatMixin"
+    "ItemEntitySeatMixin",
+    "MerchantOrderPanelMixin"
   ]
 }
