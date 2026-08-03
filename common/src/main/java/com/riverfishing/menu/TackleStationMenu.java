@@ -54,11 +54,11 @@ public class TackleStationMenu extends AbstractContainerMenu {
         this.materials = inv.player.level().getBlockEntity(pos)
                 instanceof com.riverfishing.block.TackleStationBlockEntity be
                 ? be.items() : new SimpleContainer(4);
-        material(SLOT_HOOK, 14, s -> s.getItem() instanceof HookItem);
-        material(SLOT_IRON, 38, s -> s.is(Items.IRON_INGOT));
-        material(SLOT_STRING, 62, s -> s.is(Items.STRING));
-        material(SLOT_DYE, 86, s -> s.getItem() instanceof DyeItem);
-        addSlot(new Slot(result, 0, 152, 138) {
+        material(SLOT_HOOK, 38, s -> s.getItem() instanceof HookItem);
+        material(SLOT_IRON, 62, s -> s.is(Items.IRON_INGOT));
+        material(SLOT_STRING, 86, s -> s.is(Items.STRING));
+        material(SLOT_DYE, 110, s -> s.getItem() instanceof DyeItem);
+        addSlot(new Slot(result, 0, 176, 150) {
             @Override public boolean mayPlace(ItemStack s) { return false; }
             @Override public boolean mayPickup(Player p) { return !getItem().isEmpty(); }
             @Override public void onTake(Player p, ItemStack taken) {
@@ -71,11 +71,11 @@ public class TackleStationMenu extends AbstractContainerMenu {
         // Player inventory + hotbar.
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(inv, col + row * 9 + 9, 20 + col * 18, 168 + row * 18));
+                addSlot(new Slot(inv, col + row * 9 + 9, 43 + col * 18, 180 + row * 18));
             }
         }
         for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(inv, col, 20 + col * 18, 228));
+            addSlot(new Slot(inv, col, 43 + col * 18, 240));
         }
 
         addDataSlot(formIndex);
@@ -190,7 +190,7 @@ public class TackleStationMenu extends AbstractContainerMenu {
      * one helper is deliberate: four hand-written copies is exactly how three of them end up right.
      */
     private void material(int index, int x, java.util.function.Predicate<ItemStack> accepts) {
-        addSlot(new Slot(materials, index, x, 138) {
+        addSlot(new Slot(materials, index, x, 150) {
             @Override public boolean mayPlace(ItemStack s) { return accepts.test(s); }
 
             @Override
