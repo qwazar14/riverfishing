@@ -284,11 +284,23 @@ Seventy-four species is a much wider net than sixteen, so the order will more of
 
 ### The order slot
 
-**One seat on every fisherman's counter is today's order.** The last fish buy on the counter is overwritten each day with the day's species, at the same ×2.5 the order pays anywhere else. A stall you have already found is therefore a place you can fill today's order, instead of a place you hope drew the right species when it was built.
+**One seat on every fisherman's counter is today's order.** The last fish buy on the counter is overwritten each day with the day's species, at the same ×2.5 the order pays anywhere else, and that seat then moves to the **bottom of the counter** — the same row every day, so there is never a question about which row is meant. A stall you have already found is therefore a place you can fill today's order, instead of a place you hope drew the right species when it was built.
 
 The seat **replaces** rather than adds, and it is the same seat every day: the counter never changes size, so nothing can drift after a save or a promotion. On the first day it costs you one of the species that stall drew; from then on it is a permanent slot whose contents change.
 
 Nothing is overwritten when the stall's tier is too low to buy today's species, or when it already buys it — in the second case you can sell it there anyway, and taking the seat would only cost you a second species for nothing.
+
+### The sign over the counter
+
+**Open any fisherman and today's order hangs over his window on its own wooden sign** — the fish on one side, what he pays on the other, in emeralds. You do not have to read down a counter of eight trades to find out whether today's order is worth a trip.
+
+**Click the sign and it selects that trade**, exactly as clicking its row in the list would: the fish is pulled out of your inventory into the trade slot, ready to sell. The sign is a control, not a notice.
+
+The sign hangs above the trade window, or below it when the GUI scale leaves no room above.
+
+**A stall too junior to buy today's fish still shows the sign** — with the rank that does buy it instead of a price. A Novice buys only 8 of the 74 sellable species, so a fresh stall usually cannot take the order; the sign then tells you what the order is and who to take it to, and does nothing when clicked. That is the answer to "why won't he take this" printed where the question gets asked.
+
+The sign appears on our fisherman only. No other profession draws it.
 
 ## See also
 
