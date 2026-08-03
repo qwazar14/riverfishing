@@ -4,8 +4,11 @@
 
 Nothing bites by luck. A data-driven bite engine weighs your whole setup against every one of **79 species** under the current conditions, and decides both *what* takes and *how long you wait*. Mismatched gear catches nothing, a line that is too visible spooks small wary fish, big fish demand a near-perfect kit, and every water in the world holds its own species community fixed by the world seed.
 
-- **Version 0.7.0**, on four Minecraft versions: **1.20.1** · **1.21.1** · **26.1.2** · **26.2**
-- **Loaders:** **Fabric** on all four; **Forge** on 1.20.1, **NeoForge** on 1.21.1 and 26.x (Architectury)
+- **Version 0.7.0**, on four Minecraft versions:
+  - **1.20.1** — Fabric & Forge
+  - **1.21.1** — Fabric & NeoForge
+  - **26.1.2** — Fabric & NeoForge
+  - **26.2** — Fabric & NeoForge
 - **Required:** [Architectury API](https://www.curseforge.com/minecraft/mc-mods/architectury-api); on Fabric also Fabric API
 - **Recommended:** Serene Seasons (unlocks the seasonal bite), Biomes O' Plenty (richer habitat model)
 - **Also integrates with:** Farmer's Delight, Jade, JEI
