@@ -109,7 +109,8 @@ The [Fish Finder](tools.md#fish-finder) shows the reading, an arrow (a change un
 | frenzy | ≥ 1.18 |
 | active | ≥ 1.05 |
 | fair | ≥ 0.92 |
-| sluggish | below 0.92 |
+| slow | ≥ 0.80 |
+| dead | below 0.80 |
 
 ## Feeding frenzy
 
@@ -183,3 +184,4 @@ with hard gates on water type, depth, width, biome match and community presence 
 - [Fishing mechanics](fishing-mechanics.md) · [Species](species.md)
 - [Stocking](stocking.md) · [Tools](tools.md#fish-finder)
 - [Sea fishing](sea-fishing.md) — how the ocean zones map onto biome groups
+- [Fish in the water](shoal.md) — the same community, drawn under the surface before you cast

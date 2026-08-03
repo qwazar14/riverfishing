@@ -38,11 +38,13 @@ To keep gear visible, variants of the same thing are folded into **one rotating 
 
 Across all five levels a maxed Fisherman shows 20 offers, of which roughly 6 are fish buys.
 
-Ordinary sells allow 12 uses before restock; assembled rods and rigs allow 8. Every listing carries the usual 5 % price multiplier.
+Ordinary sells allow 12 uses before restock; assembled rods and ready-made kits allow 8. Every listing carries the usual 5 % price multiplier.
 
 ## What he sells
 
 Entries marked **(rotating)** are one pool slot that picks one of the listed variants when the villager generates its trades.
+
+Each table below is one tier's **gear** entries, one row per pool slot. Add that tier's four fish-buy groups and you get the pool size in the table above: 8 + 4 = 12, 7 + 4 = 11, 7 + 4 = 11, 14 + 4 = 18, 12 + 4 = 16.
 
 ### Tier 1 — Novice
 
@@ -67,8 +69,9 @@ Entries marked **(rotating)** are one pool slot that picks one of the listed var
 | 6 × Grain Groundbait | 1 emerald |
 | Bait Trap | 3 emeralds |
 | Oak Boat | 4 emeralds |
-| **Light Float Rig** — loaded with a Float and a Hook No.10 | 4 emeralds |
 | **Bamboo Rod, assembled** — Mono 0.18 + Light Float Rig (float, No.10 hook) | 9 emeralds |
+
+> The **Light Float Rig is no longer sold on its own.** It lives *inside* the float blanks and is never tied separately, so a rig on the counter was a component with a price tag. It still arrives fitted to the bamboo rod above.
 
 ### Tier 3 — Journeyman
 
@@ -79,6 +82,8 @@ Entries marked **(rotating)** are one pool slot that picks one of the listed var
 | Braided Line 0.16 / Fluorocarbon 0.20 **(rotating)** | 5 emeralds |
 | 2 × Fluorocarbon Leader | 3 emeralds |
 | Fish Finder | 14 emeralds |
+| [Small Keepnet](keepnet.md) | 5 emeralds |
+| [Kit: Float Fishing](tackle-box.md) / [Kit: Pike](tackle-box.md) **(rotating)** | 7 / 18 emeralds |
 | **Spinning Rod, assembled** — Reel 2000 + Braid 0.16 + Predator Rig (steel leader, spinner) | 16 emeralds |
 
 ### Tier 4 — Expert
@@ -94,6 +99,8 @@ Entries marked **(rotating)** are one pool slot that picks one of the listed var
 | Ice Auger | 9 emeralds |
 | 2 × Ice Jig | 3 emeralds |
 | Maggot Farm | 5 emeralds |
+| [Medium Keepnet](keepnet.md) / [Large Keepnet](keepnet.md) **(rotating)** | 9 / 14 emeralds |
+| [Kit: Carp](tackle-box.md) | 21 emeralds |
 | 3 × Oil Cake Groundbait | 4 emeralds |
 | **Feeder Rod, assembled** — Reel 5000 + Mono 0.25 + Feeder Rig (No.8 hook) | 18 emeralds |
 | **Winter Rod, assembled** — Mono 0.14 + Winter Rig (mormyshka) | 14 emeralds |
@@ -105,6 +112,8 @@ The prestige tier, and the only source of several items.
 | Offer | Price |
 |---|---|
 | Digital Bite Alarm | 10 emeralds |
+| [Huge Keepnet](keepnet.md) | 20 emeralds |
+| [Kit: Saltwater](tackle-box.md) | 51 emeralds |
 | Titanium Leader | 8 emeralds |
 | Nautilus Shell | 10 emeralds |
 | Reel 7000 / 8000 / 10000 / 12000 / 14000 **(rotating)** | 16 / 18 / 22 / 26 / 30 emeralds |
@@ -122,6 +131,8 @@ The prestige tier, and the only source of several items.
 **Hook #2 and Hook #1 have no crafting recipe** — the master fisherman is the only source.
 
 His tackle is **bench-grade**. Anything the [Tackle Station](tackle-station.md) can tie leaves the stall carrying the same weight stamp the bench writes, so a bought lure pulls its real mass on the cast and a bought rig reads its real weight. Village stock carries no maker's mark, which is the only way to tell it from your own work.
+
+**Somewhere to put the catch, and somewhere to put the tackle.** The four [keepnets](keepnet.md) are laddered one per tier from Journeyman up — Small 5, Medium 9 or Large 14 (rotating), Huge 20 — so the net grows with the fish you can land. The four ready-made [kits](tackle-box.md) run alongside them: Float 7 or Pike 18 at Journeyman, Carp 21 at Expert, Saltwater 51 at Master. A kit is a named, dyed tackle box packed with bench-graded tackle, priced at roughly 80 % of what its contents cost piece by piece at this same stall — see [Tackle box](tackle-box.md) for exactly what is in each one.
 
 He also stocks the plain vanilla items his own trade tree leans on: **string** (every reeled rod recipe needs it for the guide wraps), an **oak boat** (trolling needs one under you), and the two saltwater gate inputs — **prismarine shards** and a **nautilus shell**. The ocean tier stays expensive, but it no longer hinges on guardian luck.
 
@@ -282,5 +293,7 @@ Nothing is overwritten when the stall's tier is too low to buy today's species, 
 ## See also
 
 - [Tackle Station](tackle-station.md) — the other half of the Fishing Stall
+- [Order board](order-board.md) — the journal panel that spells out today's order
+- [Keepnet](keepnet.md) · [Tackle box](tackle-box.md) — what he sells you to carry the catch and the tackle
 - [Fishing mechanics](fishing-mechanics.md#prime-grade) — how prime grade is assigned
 - [Species](species.md) · [Progression](progression.md)

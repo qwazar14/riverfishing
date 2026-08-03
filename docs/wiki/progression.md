@@ -91,7 +91,7 @@ Spend them on the **Skills** tab of the journal. Points cannot be refunded (only
 | **Keen Sense** | Sense | −5 % time to bite | −25 % |
 | **Naturalist** | Knowledge | +5 % overall bite chance | +25 % |
 | **Steady Hand** | Hand | +5 % line tension before it snaps | +25 % |
-| **Angler's Luck** | Fortune | +1 % trophy chance | +5 % |
+| **Angler's Luck** | Fortune | +1 % to the size of the fish you meet — and so to trophies | +5 % |
 | **Finesse** | Finesse | +1 % wider strike zone | +5 % |
 
 Naturalist's bonus is applied uniformly to every species' bite weight; Steady Hand multiplies your break tolerance; Finesse widens the green band of every [timing bar](fishing-mechanics.md#the-timing-bar).
