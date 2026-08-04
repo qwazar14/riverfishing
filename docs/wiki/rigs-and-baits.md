@@ -78,6 +78,8 @@ Angling numbering: **a bigger number means a smaller hook.**
 All nine sizes are in the `riverfishing:hooks` tag, so any hook can serve as the hook ingredient in a lure recipe. (Before 0.6.0 the tag stopped at #4, which locked the two biggest hooks — the ones only the master fisherman sells — out of every lure craft.)
 
 **Hook size is a hard gate.** Each species has an ideal hook size and a tolerance; the score falls off linearly and if it drops below **0.34** the fish will simply not take. In practice you must be within roughly ±2.6 × the species' tolerance of its ideal. Put a No.1 on a bleak swim and nothing bites at all.
+**But hook size does not pick the fish's weight.** The hook decides which SPECIES can take; the individual's grams are then rolled inside that species' own range. A No.4 will not keep 20 g gobies off your worm — only a live baitfish ([its weight floors the catch](#live-bait-carries-a-weight)) or a heavy lure does that.
+
 
 A Predator or Winter rig with no separate hook scores a flat **0.85** — the lure's treble and the mormyshka carry their own hooks.
 

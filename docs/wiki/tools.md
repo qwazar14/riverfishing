@@ -97,20 +97,7 @@ Cook raw fillets three ways:
 | Furnace | 200 ticks | 0.2 |
 | Campfire | 600 ticks | 0.2 |
 
-### Farmer's Delight cutting board
-
-With **Farmer's Delight** installed, all 65 non-koi species have a cutting-board recipe: a knife on the board yields fillets plus a **50 % chance of Bone Meal**.
-
-The yield is by species size:
-
-| Fillets | Species |
-|---|---|
-| **1** | Bleak, Blue bream, Bluegill, Common dace, Garfish, Gudgeon, Herring, Roach, Round goby, Rudd, Ruffe, Sabrefish |
-| **2** | Barracuda, Bream, Arctic char, Chub, Crucian Carp, Flounder, Grayling, Halibut, Ide, Largemouth bass, Lenok, Mackerel, Nase, Perch, Pink salmon, Rainbow trout, Rotan, Saithe, Atlantic salmon, Sea bass, Smelt, Sturgeon, Taimen, Tench, Trout, Vimba bream, Volga zander, White Bream, White-eye bream, Whitefish |
-| **3** | Asp, Burbot, Carp, Channel catfish, Cod, Conger eel, Eel, Mahi-mahi, Mirror Carp, Pike, Ray, Sailfish, Silver carp, Sterlet, Wahoo, Wild Carp, Yellowfin tuna, Zander |
-| **4** | Blue marlin, Catfish, Grass Carp, Mako shark, Swordfish |
-
-The five koi have no cutting recipe — use the knife if you must.
+One fish is at most **one stack** of fillets, however big it was: a legendary catfish is 64, not 500.
 
 ---
 
@@ -172,7 +159,7 @@ All of these are loot-table injections, so they behave identically on both loade
 |---|---|
 | **Serene Seasons** *(optional)* | Unlocks the whole [seasonal layer](water-and-conditions.md#seasons) of the bite engine, plus spring's faster spot recovery. Without it every season factor is 1.0. |
 | **Biomes O' Plenty** *(optional)* | Richer biomes for the habitat model. BoP biomes carry the vanilla tags, and the mod's `is_swamp` tag names BoP's Bayou, Marsh, Wetland, Bog and Mangrove explicitly. |
-| **Farmer's Delight** *(optional)* | The cutting-board recipes above; the Filleting Knife registers as a knife. |
+| **Farmer's Delight** *(optional)* | The Filleting Knife is in the `forge:tools/knives` tag, so Farmer's Delight and anything else looking for a knife will take it. |
 | **Jade** *(optional)* | Look-at counts for the farms, trap, pod and aquarium. |
 | **JEI** *(optional)* | A "Fishing" category showing each species' baits, tackle, best conditions, water and recommended level. |
 

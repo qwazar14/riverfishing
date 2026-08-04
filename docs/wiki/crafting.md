@@ -220,7 +220,7 @@ Worm, Maggot, Bloodworm and Chicken Liver come from digging and mob drops; Corn,
 | Cooked Fish Fillet | Furnace | Raw Fish Fillet | 200 ticks | 0.2 |
 | Cooked Fish Fillet | Campfire | Raw Fish Fillet | 600 ticks | 0.2 |
 
-Raw fillets come from the [Filleting Knife](tools.md#filleting-knife) (one per 300 g of fish) or, with **Farmer's Delight**, from a [cutting board](tools.md#farmers-delight-cutting-board).
+Raw fillets come from the [Filleting Knife](tools.md#filleting-knife) — one per 300 g of fish, at most a stack from any one specimen.
 
 ---
 
