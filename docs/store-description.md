@@ -28,8 +28,8 @@ The mod runs fine alone, but the balance is written around two optional add-ons:
 - **Serene Seasons** — unlocks the full seasonal bite (spring spawning runs, the winter slow-down).
 - **Biomes O' Plenty** — a richer world for the habitat and biome factors to work in.
 
-Also integrates with **Farmer's Delight** on every version, and with **JEI** and **Jade** on 1.20.1 and
-1.21.1.
+The Filleting Knife registers as a knife for **Farmer's Delight**. **JEI** and **Jade** are supported on
+1.20.1 and 1.21.1.
 
 ## You can see into the water
 

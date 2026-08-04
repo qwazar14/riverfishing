@@ -138,11 +138,17 @@ public final class RigData {
         return found[0];
     }
 
-    /** livebait-2: weight of a live baitfish loaded in a BAIT slot, or 0 (drives predator size, 0.4.0). */
+    /** livebait-2: weight of a live baitfish loaded in a BAIT or LURE slot, or 0 (predator size, 0.4.0). */
     public static int livebaitWeightG(ItemStack rig) {
         int[] found = { 0 };
         forEachFilled(rig, (role, stack) -> {
-            if (found[0] == 0 && role == SlotRole.BAIT && stack.getItem() instanceof BaitItem b
+            // §livebait-2: BAIT **or** LURE. A predator rig is {LEADER, LURE} and has no BAIT slot at
+            // all, while SlotRole.LURE deliberately accepts a live bait — so scanning BAIT only made
+            // every baitfish on a spinning rod weigh nothing, and the 6x predator size floor was
+            // skipped by its own `> 0` guard. That is how a 150 g baitfish pulled out a 100 g perch.
+            // The sibling queries in this file, baitIds() and lureColorRgb(), already scan both.
+            if (found[0] == 0 && (role == SlotRole.BAIT || role == SlotRole.LURE)
+                    && stack.getItem() instanceof BaitItem b
                     && "livebait".equals(b.baitId())) {
                 found[0] = StackNbt.get(stack).getInt(com.riverfishing.item.FishItem.TAG_BAIT_WEIGHT);
             }
