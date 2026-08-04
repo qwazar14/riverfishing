@@ -107,7 +107,17 @@ public class FishItem extends Item {
     public static boolean koiReleaseTick(ItemStack stack, net.minecraft.world.entity.item.ItemEntity entity) {
         net.minecraft.world.level.Level level = entity.level();
         if (level.isClientSide()) return false;
-        if (entity.isInWater()) {
+        // §release is a CHOICE, and vanilla already records whether one was made: Player#drop only
+        // calls setThrower when traceItem is true, which is the Q key. An INVOLUNTARY drop records
+        // none — giveFish's inventory-full fallback, Inventory#dropAll on death, a keepnet spill —
+        // and those were being read as "the player let it go", so a landed fish you had no room for
+        // was thrown at the water you were facing and then deleted. Chat said you caught it, the
+        // journal recorded it, and there was nothing in your bag.
+        //
+        // The thrower was already read below, to decide who to credit. It decides whether now too:
+        // one function, one answer.
+        if (entity.isInWater()
+                && entity.getOwner() instanceof net.minecraft.server.level.ServerPlayer thrower) {
             CompoundTag tag = StackNbt.get(stack);
             long now = level.getGameTime();
             if (!tag.contains(TAG_RELEASE_AT)) {
@@ -121,7 +131,7 @@ public class FishItem extends Item {
                     if (released != null) {
                         com.riverfishing.fishing.FishingManager.releaseFish(sl, entity.blockPosition(),
                                 released, getWeightG(stack), stack.getCount(),
-                                entity.getOwner() instanceof net.minecraft.server.level.ServerPlayer t ? t : null);
+                                thrower);
                     }
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE,
                             entity.getX(), entity.getY() + 0.1, entity.getZ(), 14, 0.25, 0.1, 0.25, 0.02);

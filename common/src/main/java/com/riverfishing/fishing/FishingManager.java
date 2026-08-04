@@ -1134,6 +1134,7 @@ public final class FishingManager {
                 }
             }
         } else if (now > session.biteWindowEnd) {
+            eatBait(sp, session);   // §consumables: it had the bait — you just did not set the hook
             endSession(sp, session);
             actionbar(sp, Component.translatable("message.riverfishing.missed").withStyle(ChatFormatting.GRAY));
             GuideNudge.failure(sp, session.rodClass, GuideNudge.MISSED);
@@ -1243,6 +1244,35 @@ public final class FishingManager {
 
     // ---- hook-up: start the fight ----
 
+    /**
+     * §consumables: the fish had the bait in its mouth, hook set or not.
+     *
+     * <p>ONE owner for "was the bait eaten", because it used to be answered in two places that
+     * disagreed: {@code hookUp} charged for it, and every way of ending a session BEFORE the hook-set
+     * charged for nothing. A bite you struck at and missed left the worm on the hook, so the cheapest
+     * way to fish was to keep missing. The rod pod's own comment said "bait gone" about a path that
+     * never took any.
+     *
+     * <p>Lures and the mormyshka are skipped inside {@link RigData#consumeBait} — nothing artificial is
+     * ever eaten. The rod is read from the HAND rather than from {@code session.rodStackRef}: that
+     * reference is documented as going stale (§session-guard), and a shrink written into a stale stack
+     * is silently lost.
+     */
+    private static void eatBait(ServerPlayer sp, FishingSession session) {
+        if (!RiverFishingConfig.consumeBait()) return;
+        ItemStack rod = sp.getItemInHand(session.hand);
+        if (!(rod.getItem() instanceof RodItem)) return;
+        // §skills FRUGAL: a frugal angler sometimes re-uses the bait (the fish nibbled without stripping it).
+        if (sp.level().getRandom().nextDouble() < AnglerSkills.baitSkipChance(sp)) return;
+        ItemStack rig = RodData.get(rod, ComponentSlot.RIG);
+        if (!(rig.getItem() instanceof RigItem)) return;
+        // §bait-attribution: the bait the FISH prefers is the one eaten — not just the first slot.
+        FishProfile p = session.species == null ? null : FishProfileManager.get().byId(session.species);
+        if (RigData.consumeBait(rig, p == null ? null : p::baitScore)) {
+            RodData.set(rod, ComponentSlot.RIG, rig);
+        }
+    }
+
     private static void hookUp(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
         sp.stopUsingItem(); // stop any retrieve animation
         clearFloatTiming(sp); // hide the timing HUD if it was up
@@ -1281,17 +1311,7 @@ public final class FishingManager {
                             : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
         }
 
-        // The fish ate the natural bait on the strike (§consumables) — lures are never consumed.
-        ItemStack rodForBait = sp.getItemInHand(session.hand);
-        // §skills FRUGAL: a frugal angler sometimes re-uses the bait (the fish nibbled without stripping it).
-        if (RiverFishingConfig.consumeBait() && rodForBait.getItem() instanceof RodItem
-                && random.nextDouble() >= AnglerSkills.baitSkipChance(sp)) {
-            ItemStack rigForBait = RodData.get(rodForBait, ComponentSlot.RIG);
-            // §bait-attribution: the bait the FISH prefers is the one eaten — not just the first slot.
-            if (rigForBait.getItem() instanceof RigItem && RigData.consumeBait(rigForBait, profile::baitScore)) {
-                RodData.set(rodForBait, ComponentSlot.RIG, rigForBait);
-            }
-        }
+        eatBait(sp, session);
 
         // §7.1: a still-tackle "bite" can be a bottom snag (зацеп — tug free or lose the rig).
         // Foul-hooking (багрение) is NOT rolled here — a fish only gets snagged in the body on a
@@ -1650,13 +1670,17 @@ public final class FishingManager {
                 default -> new ItemStack(Items.STICK, 1 + random.nextInt(3));
             };
         }
+        // §challenges: the classic — you fished up an old boot. Asked BEFORE the pickup, because
+        // Inventory.add EMPTIES the stack it accepts and an empty stack reports Items.AIR. Asked after,
+        // this fired only when the add FAILED — i.e. the advancement was awarded for a boot you could
+        // not carry and withheld for every boot you could. The line below already caches the name for
+        // exactly this reason; the item test was simply left on the wrong side of the mutation.
+        if (!treasure && loot.is(Items.LEATHER_BOOTS)) {
+            com.riverfishing.quest.AnglerAdvancements.grant(sp, "old_boot");
+        }
         Component lootName = loot.getHoverName();
         if (!sp.getInventory().add(loot)) {
             sp.drop(loot, false);
-        }
-        // §challenges: the classic — you fished up an old boot.
-        if (!treasure && loot.is(Items.LEATHER_BOOTS)) {
-            com.riverfishing.quest.AnglerAdvancements.grant(sp, "old_boot");
         }
         level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
                 session.target.getZ() + 0.5, 10, 0.25, 0.1, 0.25, 0.2);
@@ -1990,11 +2014,17 @@ public final class FishingManager {
 
         // Keep every client's view of the line in step with the fight so it visibly reels in (§immersion).
         // §rod-bend: this same sync carries the live fight stress — the in-hand bend breathes off it.
-        if (now % 5 == 0) {
+        // §jump-cue: every tick while a jump is open, not every fifth. The window is 15 ticks, so a
+        // 5-tick cadence loses up to a third of it at each edge — and the packet on the closing tick IS
+        // the all-clear. Everywhere else the cadence is fine and the traffic stays where it was.
+        if (now % 5 == 0 || now <= session.jumpWindowEnd) {
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     (float) Mth.clamp(session.landProgress, 0.0, 1.0), session.lineColor,
                     session.floatKind, false, fightStress(session),
-                    true, session.runTicksLeft > 0,   // §pump-reel: run state drives the HUD cue
+                    // §pump-reel + §jump-cue: "do not reel right now" — a run OR a breach. The HUD cue
+                    // used to read the run alone, so during a jump it showed a green "reel" directly
+                    // under the red "do not reel", and the mod contradicted itself on one screen.
+                    true, session.runTicksLeft > 0 || now < session.jumpWindowEnd,
                     (byte) session.course.ordinal())); // §fight-course: which way the tip gets dragged
             // §rod-bend (26.x): the bucket goes onto the ROD, not just into the packet — the item
             // definition range_dispatches the blank sprite on it, so the load is visible to every
@@ -2464,6 +2494,7 @@ public final class FishingManager {
         if (inZone(session, m, level.getRandom())) {
             hookUp(sp, level, session, now);
         } else {
+            eatBait(sp, session);   // §consumables: a mistimed strike still loses the bait
             endSession(sp, session);
             actionbar(sp, Component.translatable("message.riverfishing.mistimed").withStyle(ChatFormatting.GRAY));
             GuideNudge.failure(sp, session.rodClass, GuideNudge.MISSED);

@@ -12,6 +12,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraft.util.Mth;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -41,7 +42,9 @@ public class FilletKnifeItem extends Item {
             // in chat by name (§koi). The knife still does its job.
             boolean koi = FishItem.isKoi(target);
             int weight = FishItem.getWeightG(target);
-            int count = Math.max(1, weight / GRAMS_PER_FILLET);
+            // One fish is at most one stack. Unbounded, a legendary catfish paid 500 fillets and
+            // a blue marlin 1333 — a single right-click that fed a server for a week.
+            int count = Mth.clamp(weight / GRAMS_PER_FILLET, 1, 64);
             target.shrink(1);
             ItemStack fillets = new ItemStack(ModItems.RAW_FILLET.get(), count);
             if (!player.getInventory().add(fillets)) {

@@ -28,7 +28,11 @@ public final class ClientLineState {
         public float tension;          // §rod-bend: authoritative fight tension 0..1
         public float smoothTension;    // eased for the in-hand bend
         public boolean fighting;       // §pump-reel: the fight is on
-        public boolean running;        // §pump-reel: the fish is taking line RIGHT NOW
+        // §pump-reel: DO NOT REEL right now — the fish is taking line, or it is in the air
+        // on a breach (§jump-cue). Both answer the same question for the player, so they are
+        // one flag: a second one would be a second place for the HUD to disagree with the
+        // server about whether to crank.
+        public boolean running;
         /** §fight-course: FightCourse.ordinal() of the current run, 0 when it is not running. */
         public byte course;
         /** Eased lean of the rod tip, in degrees: x = sideways, y = up/down. */
