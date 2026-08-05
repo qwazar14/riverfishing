@@ -50,6 +50,20 @@ public final class RodModelLayers {
         return bend <= 0 ? blank(rodKey) : loc("blank_" + rodKey + "_bend" + bend);
     }
 
+    /**
+     * §rod-bend-3d: rigid pieces of a segmented 3D blank, butt to tip — {@code s0} is the handle
+     * (never bends), {@code s1..} are the blank sections, each hinged at the joint in front of it.
+     * A rod that has these is bent by {@link RodItemRenderer}'s bone chain instead of by swapping in
+     * a pre-drawn bend sprite: the vanilla model format has no bone hierarchy and bakes element
+     * rotation at load, so a live chain can only live in the renderer. Rods without segment models
+     * keep the sprite buckets.
+     */
+    public static final int BLANK_SEGMENTS = 5;
+
+    public static ResourceLocation segment(String rodKey, int index) {
+        return loc("blank_" + rodKey + "_s" + index);
+    }
+
     public static ResourceLocation reel(int size) {
         return loc("reel_" + size);
     }
@@ -83,6 +97,7 @@ public final class RodModelLayers {
         for (String k : ROD_KEYS) {
             normal.add(blank(k));
             for (int b = 1; b <= 6; b++) normal.add(blank(k, b)); // §rod-bend buckets
+            for (int s = 0; s < BLANK_SEGMENTS; s++) normal.add(segment(k, s)); // §rod-bend-3d chain
         }
         normal.add(reelGeneric());
         for (int s : REEL_SIZES) normal.add(reel(s));

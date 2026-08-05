@@ -75,6 +75,33 @@ public final class RodDebugCommand {
                                     say(c, "§ebend force = " + RodItemRenderer.FORCE_BEND);
                                     return 1;
                                 })))
+                // §rod-bend-3d: the switch for the bone chain, plus its one look-at-it number — total
+                // tip deflection at full tension. Turning it on also swaps /rfrod onto the 3D pose set
+                // (TP3/TPL3/FP3/FPL3), so tp/tpl/fp/fpl keep tuning whatever is actually on screen.
+                .then(ClientCommandRegistrationEvent.literal("blank")
+                        .executes(c -> {
+                            say(c, String.format("§eblank3d: %s §edeg=%.1f §7(/rfrod blank on|off|deg <v>)",
+                                    RodItemRenderer.BLANK_3D ? "§aON" : "§cOFF", RodItemRenderer.MAX_BEND_DEG));
+                            return 1;
+                        })
+                        .then(ClientCommandRegistrationEvent.literal("on").executes(c -> {
+                            RodItemRenderer.BLANK_3D = true;
+                            say(c, "§ablank3d ON §7— segmented rods now bend as a bone chain (hand only), "
+                                    + "on the 3D pose set. Drive it with /rfrod bend 0..6.");
+                            return 1;
+                        }))
+                        .then(ClientCommandRegistrationEvent.literal("off").executes(c -> {
+                            RodItemRenderer.BLANK_3D = false;
+                            say(c, "§eblank3d OFF §7— back to the pre-drawn bend sprites");
+                            return 1;
+                        }))
+                        .then(ClientCommandRegistrationEvent.literal("deg")
+                                .then(ClientCommandRegistrationEvent.argument("v", FloatArgumentType.floatArg(0f, 180f))
+                                        .executes(c -> {
+                                            RodItemRenderer.MAX_BEND_DEG = FloatArgumentType.getFloat(c, "v");
+                                            say(c, String.format("§ebend deg = %.1f", RodItemRenderer.MAX_BEND_DEG));
+                                            return 1;
+                                        }))))
                 // §rod-bend-tip: tune the line-anchor offset per bend bucket. Force the bucket with
                 // /rfrod bend N first, then nudge dx/dy until the line sits on the bent tip.
                 .then(ClientCommandRegistrationEvent.literal("tip")

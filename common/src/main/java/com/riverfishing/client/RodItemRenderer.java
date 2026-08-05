@@ -56,6 +56,48 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         }
     }
 
+    // ===== §rod-bend-3d: the bone chain for segmented 3D blanks =====
+    /**
+     * Master switch for the segmented 3D blank, OFF by default. The models ship in the release
+     * alongside the sprites — this flag decides which of the two a rod is drawn from, so the work in
+     * progress needs no separate test build and no duplicated assets. Client-side and per-session:
+     * flip it with {@code /rfrod blank on|off}, and it is back off next launch.
+     */
+    public static boolean BLANK_3D = false;
+
+    /**
+     * Joint positions along each segmented blank, in model units, butt to tip — one per bending
+     * section, sitting at that section's own rotation origin. Rods absent from this map have no
+     * segment models and keep the pre-drawn sprite buckets.
+     *
+     * <p>The joints have to be listed here rather than read from the models because a BakedModel has
+     * thrown its element origins away by the time we see it. Regenerate with tools/split_rod.js,
+     * which prints the array it just cut the geometry along.
+     */
+    private static final java.util.Map<String, float[]> BLANK_JOINTS_X =
+            java.util.Map.of("feeder", new float[]{14f, 3f, -5f, -10f});
+
+    /** Both joints and blank sit on this axis in model units; the chain hinges about Z through it. */
+    private static final float BLANK_AXIS_Y = 10.5f, BLANK_AXIS_Z = 8.5f;
+
+    /**
+     * Share of the total bend taken by each joint, butt to tip — a rod loads progressively, so the
+     * quivertip swings four times as far as the butt section. Must sum to 1.
+     */
+    private static final float[] JOINT_SHARE = {0.10f, 0.20f, 0.30f, 0.40f};
+
+    /** Total tip deflection at full tension, degrees. Live-tunable with {@code /rfrod blank deg}. */
+    public static float MAX_BEND_DEG = 80f;
+
+    /** §rod-bend-3d: continuous fight stress 0..1 for the chain — {@code /rfrod bend N} forces a step. */
+    public static float liveTension() {
+        if (FORCE_BEND >= 0) return Math.min(FORCE_BEND, BEND_BUCKETS) / (float) BEND_BUCKETS;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return 0f;
+        ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
+        return l == null ? 0f : net.minecraft.util.Mth.clamp(l.smoothTension, 0f, 1f);
+    }
+
     /** §rod-bend: the LOCAL player's current bend bucket (0 = straight), from smoothed fight stress. */
     public static int liveBend() {
         if (FORCE_BEND >= 0) return Math.min(FORCE_BEND, BEND_BUCKETS);
@@ -80,6 +122,13 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // pre-flipped rod_m layers there so it reads correctly (§rod-mirror). Inventory keeps normal.
         boolean mir = mirrored(ctx);
 
+        // §rod-bend-3d: decided BEFORE the hand pose, because a 3D blank is worn at true scale and so
+        // needs the other pose set. Outside the hand the flat icon still reads better, so the chain
+        // stays off there and the sprite path runs.
+        float[] joints = BLANK_3D && mir ? BLANK_JOINTS_X.get(rodKey) : null;
+        BakedModel chainRoot = joints == null ? null
+                : resolve(mm, missing, mir, RodModelLayers.segment(rodKey, 0));
+
         // The ItemRenderer already centred the whole composite with a translate(-0.5) before handing
         // off to us, and ir.render() does the SAME -0.5 again for each layer — cancel one so the icon
         // sits in the middle of the slot instead of the lower-left corner.
@@ -91,22 +140,31 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         applyCastAnim(pose, ctx);
         // The rod's hand pose lives in code (§rod-debug) so it can be tuned live with /rfrod; the
         // model's hand display is identity, so this IS the whole in-hand transform. No-op elsewhere.
-        RodHandTransform.apply(pose, ctx);
+        RodHandTransform.apply(pose, ctx, chainRoot != null);
 
         // §rod-bend: the blank bends under live fight tension — only edge-on (in hands, where the drag
         // is being worked) and only for the LOCAL player's own held rod (others render straight; the
         // 26.x builds carry the bend in the stack instead and show it to everyone).
         int bend = 0;
+        float tension = 0f;
         if (FORCE_BEND >= 0 || (mir && mc.player != null
                 && (ctx.firstPerson()
                     || stack == mc.player.getMainHandItem() || stack == mc.player.getOffhandItem()))) {
             bend = liveBend();
+            tension = liveTension();
         }
 
         int layer = 0;
-        // 1) The bare rod — always (bent blank falls back to the straight one if the sprite is absent).
-        layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.blank(rodKey, bend), RodModelLayers.blank(rodKey)),
-                stack, ctx, pose, buffers, light, overlay, layer);
+        // 1) The bare rod — always. A segmented rod is drawn as a bone chain that loads CONTINUOUSLY
+        // with tension (§rod-bend-3d); every other rod keeps the pre-drawn bend buckets.
+        if (chainRoot != null) {
+            layer = drawBentBlank(ir, chainRoot, joints, tension, rodKey, stack, pose, buffers,
+                    light, overlay, layer, mm, missing, mir);
+        } else {
+            // bent blank falls back to the straight one if the sprite is absent
+            layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.blank(rodKey, bend), RodModelLayers.blank(rodKey)),
+                    stack, ctx, pose, buffers, light, overlay, layer);
+        }
 
         // 2) The reel — only if one is fitted (reel-less poles have none). Always part of the rod.
         ItemStack reel = RodData.get(stack, ComponentSlot.REEL);
@@ -189,6 +247,40 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         pose.pushPose();
         pose.translate(0, 0, layer * 0.012f);
         ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, model);
+        pose.popPose();
+        return layer + 1;
+    }
+
+    /**
+     * §rod-bend-3d: draws a segmented blank as a bone chain. Each joint's rotation is applied to the
+     * shared pose and LEFT there, so every segment past it inherits the ones before it — forward
+     * kinematics, which the model format cannot express (flat element list, rotation baked at load,
+     * and only 0/±22.5/±45 allowed) and the renderer can, at any angle, every frame.
+     *
+     * <p>{@code ir.render} maps a model element coord {@code e} to {@code e/16 - 0.5} in this frame,
+     * so a joint has to be pivoted about THAT point, not about {@code e/16}.
+     *
+     * <p>No per-segment z nudge, unlike {@link #draw}: these are solid pieces standing in different
+     * places, not coplanar sprites fighting over the same depth.
+     */
+    private int drawBentBlank(ItemRenderer ir, BakedModel root, float[] jointsX, float tension,
+                              String rodKey, ItemStack stack, PoseStack pose, MultiBufferSource buffers,
+                              int light, int overlay, int layer, ModelManager mm, BakedModel missing,
+                              boolean mir) {
+        pose.pushPose();
+        ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, root);
+        float jy = BLANK_AXIS_Y / 16f - 0.5f, jz = BLANK_AXIS_Z / 16f - 0.5f;
+        for (int i = 0; i < jointsX.length; i++) {
+            float share = JOINT_SHARE[Math.min(i, JOINT_SHARE.length - 1)];
+            float jx = jointsX[i] / 16f - 0.5f;
+            pose.translate(jx, jy, jz);
+            pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(tension * MAX_BEND_DEG * share));
+            pose.translate(-jx, -jy, -jz);
+            BakedModel seg = resolve(mm, missing, mir, RodModelLayers.segment(rodKey, i + 1));
+            if (seg != null) {
+                ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, seg);
+            }
+        }
         pose.popPose();
         return layer + 1;
     }

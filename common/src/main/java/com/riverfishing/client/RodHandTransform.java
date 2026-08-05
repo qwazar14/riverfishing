@@ -28,10 +28,25 @@ public final class RodHandTransform {
     public static final float[] FPL = {0f, 2.3f, 2.8f, 0f,  -90f,   0f, 0.68f}; // first person, left
     // ==============================================================================
 
+    // ===== §rod-bend-3d: the SAME poses for a segmented 3D blank =====
+    // The sprite poses above shrink the rod (s=0.85/0.68) because a sprite blank is 16 units wide.
+    // A 3D blank is modelled at true length — the feeder is 48 units, 3 blocks, 3.9 m — so it is worn
+    // at scale 1 and needs its own set. These came straight out of Blockbench's display tab, which
+    // maps 1:1 onto these arrays: both apply translate, then rotationXYZ, then scale, in that order.
+    public static final float[] TP3  = {0.75f,  17f,   -0.5f, 5f, -90f, -90f, 1f}; // third person, right
+    public static final float[] TPL3 = {-0.75f, 17f,   -0.5f, 5f,  90f,  90f, 1f}; // third person, left
+    public static final float[] FP3  = {7.5f,   3.75f, -14f,  0f, -90f, -45f, 1f}; // first person, right
+    public static final float[] FPL3 = {7.5f,   3.75f, -14f,  0f,  90f,  45f, 1f}; // first person, left
+    // =================================================================
+
     private static final float[] TP_DEFAULT = TP.clone();
     private static final float[] TPL_DEFAULT = TPL.clone();
     private static final float[] FP_DEFAULT = FP.clone();
     private static final float[] FPL_DEFAULT = FPL.clone();
+    private static final float[] TP3_DEFAULT = TP3.clone();
+    private static final float[] TPL3_DEFAULT = TPL3.clone();
+    private static final float[] FP3_DEFAULT = FP3.clone();
+    private static final float[] FPL3_DEFAULT = FPL3.clone();
 
     // ===== CAST ANIMATION (§cast-anim) — tunable live with /rfrod cast load|whip <deg> =====
     /** Degrees the rod loads BACK as the cast charges (wind-up); tracks the power bar. */
@@ -82,13 +97,16 @@ public final class RodHandTransform {
     public static float COURSE_TIP_X = -0.005f;
     public static float COURSE_TIP_Y = 0.005f;
 
-    /** Applies the hand transform for a hand context (no-op otherwise). Each hand uses its own array. */
-    public static void apply(PoseStack pose, ItemDisplayContext ctx) {
+    /**
+     * Applies the hand transform for a hand context (no-op otherwise). Each hand uses its own array;
+     * {@code blank3d} picks the true-scale set used when the rod is drawn as a segmented 3D chain.
+     */
+    public static void apply(PoseStack pose, ItemDisplayContext ctx, boolean blank3d) {
         float[] a = switch (ctx) {
-            case THIRD_PERSON_RIGHT_HAND -> TP;
-            case THIRD_PERSON_LEFT_HAND -> TPL;
-            case FIRST_PERSON_RIGHT_HAND -> FP;
-            case FIRST_PERSON_LEFT_HAND -> FPL;
+            case THIRD_PERSON_RIGHT_HAND -> blank3d ? TP3 : TP;
+            case THIRD_PERSON_LEFT_HAND -> blank3d ? TPL3 : TPL;
+            case FIRST_PERSON_RIGHT_HAND -> blank3d ? FP3 : FP;
+            case FIRST_PERSON_LEFT_HAND -> blank3d ? FPL3 : FPL;
             default -> null;
         };
         if (a == null) return;
@@ -105,12 +123,22 @@ public final class RodHandTransform {
 
     // ---- edit API for the /rfrod command ----
 
+    /**
+     * The set {@code /rfrod} edits: whichever one is actually on screen. With the 3D chain switched on
+     * the sprite poses are not being used, so tuning them would move nothing and read as a broken
+     * command — this way {@code /rfrod tp ty 2} always nudges the rod you are looking at.
+     */
+    private static boolean editing3d() {
+        return RodItemRenderer.BLANK_3D;
+    }
+
     private static float[] array(String ctx) {
+        boolean d3 = editing3d();
         return switch (ctx.toLowerCase()) {
-            case "tp" -> TP;
-            case "tpl" -> TPL;
-            case "fp" -> FP;
-            case "fpl" -> FPL;
+            case "tp" -> d3 ? TP3 : TP;
+            case "tpl" -> d3 ? TPL3 : TPL;
+            case "fp" -> d3 ? FP3 : FP;
+            case "fpl" -> d3 ? FPL3 : FPL;
             default -> null;
         };
     }
@@ -145,20 +173,28 @@ public final class RodHandTransform {
         System.arraycopy(TPL_DEFAULT, 0, TPL, 0, TPL.length);
         System.arraycopy(FP_DEFAULT, 0, FP, 0, FP.length);
         System.arraycopy(FPL_DEFAULT, 0, FPL, 0, FPL.length);
+        System.arraycopy(TP3_DEFAULT, 0, TP3, 0, TP3.length);
+        System.arraycopy(TPL3_DEFAULT, 0, TPL3, 0, TPL3.length);
+        System.arraycopy(FP3_DEFAULT, 0, FP3, 0, FP3.length);
+        System.arraycopy(FPL3_DEFAULT, 0, FPL3, 0, FPL3.length);
         CAST_LOAD = CAST_LOAD_DEFAULT;
         CAST_WHIP = CAST_WHIP_DEFAULT;
     }
 
-    /** Human-readable current values, ready to paste back into the DEFAULT arrays above. */
+    /** Human-readable current values, ready to paste back into the arrays above. Shows the live set. */
     public static java.util.List<String> showLines() {
+        boolean d3 = editing3d();
+        String tag = d3 ? "3D" : "sprite";
         return java.util.List.of(
-                "§e/rfrod §7— rod hand transform (1/16 units, degrees; tx ty tz rx ry rz s):",
-                fmt("TP ", TP),
-                fmt("TPL", TPL),
-                fmt("FP ", FP),
-                fmt("FPL", FPL),
+                "§e/rfrod §7— rod hand transform, §f" + tag
+                        + " §7set (1/16 units, degrees; tx ty tz rx ry rz s):",
+                fmt("TP ", d3 ? TP3 : TP),
+                fmt("TPL", d3 ? TPL3 : TPL),
+                fmt("FP ", d3 ? FP3 : FP),
+                fmt("FPL", d3 ? FPL3 : FPL),
                 String.format("§bCAST §fload=%s whip=%s §7(/rfrod cast load|whip <deg>)", n(CAST_LOAD), n(CAST_WHIP)),
-                "§8paste over TP/TPL/FP/FPL (and CAST_LOAD/CAST_WHIP) in RodHandTransform.java, then rebuild");
+                "§8paste over " + (d3 ? "TP3/TPL3/FP3/FPL3" : "TP/TPL/FP/FPL")
+                        + " (and CAST_LOAD/CAST_WHIP) in RodHandTransform.java, then rebuild");
     }
 
     private static String fmt(String name, float[] a) {
