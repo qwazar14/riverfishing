@@ -35,6 +35,11 @@ public final class ClientInit {
         // arch @OnlyIn(CLIENT) registerS2CReceiver is stripped and crashes common init (see ModNetwork).
         com.riverfishing.network.ModNetwork.registerClientReceivers();
 
+        // §fight-keys: the rod's four bindings. HERE and not in registerRenderers() — NeoForge flushes
+        // queued mappings on RegisterKeyMappingsEvent, and anything later only gets in by hand-patching
+        // Options. Building a KeyMapping touches no registry object, so it honours this method's contract.
+        FightKeys.register();
+
         // Float-timing + cast-power HUD (Forge RenderGuiEvent.Post → Architectury RENDER_HUD).
         ClientGuiEvent.RENDER_HUD.register(ClientHud::render);
 
