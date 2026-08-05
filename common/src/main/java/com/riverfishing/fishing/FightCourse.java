@@ -12,7 +12,7 @@ import net.minecraft.util.RandomSource;
  * line of new content: a marlin that greyhounds is a fish that keeps coming UP, and a tuna that sounds is
  * one long pull DOWN.
  *
- * <p>The input is four dedicated keys (§fight-keys, 0.7.2), arrows by default and rebindable in the
+ * <p>The input is four dedicated keys (§fight-keys, 0.7.1), arrows by default and rebindable in the
  * vanilla Controls screen. It is <em>not</em> the camera, and it is no longer the movement keys.
  *
  * <h2>Two rejected inputs, so nobody re-derives them</h2>
@@ -22,14 +22,14 @@ import net.minecraft.util.RandomSource;
  * the mechanic asked the player to stop watching the fight — and the leaning rod swung off screen with
  * them.
  *
- * <p><b>The movement keys (rejected 0.7.2).</b> They worked, and they cost one small packet, but WASD
+ * <p><b>The movement keys (rejected 0.7.1).</b> They worked, and they cost one small packet, but WASD
  * ended up carrying three meanings at once: answer the course, work {@code §fight-footwork}, and
  * physically relocate you. The third was a side effect this mechanic never wanted — it only ever read key
  * STATE — and it put players in the water off piers. It also made the fight argue with itself, since S
  * both counters a DOWN run and backs you off the hook (a leg-pump, paid twice) while W answers an UP run
  * by walking you at the fish (slack, punished).
  *
- * <p><b>An analogue mouse pull, Fishing Planet style (designed and shelved, 0.7.2).</b> Asked for by
+ * <p><b>An analogue mouse pull, Fishing Planet style (designed and shelved, 0.7.1).</b> Asked for by
  * Foxsy1798. Designed properly before being turned down; the reasons are all about the platform, not the
  * idea:
  *
