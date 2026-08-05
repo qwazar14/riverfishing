@@ -18,6 +18,7 @@
     "LevelRendererSubmitMixin",
     "ItemEntityRenderStateMixin",
     "ItemEntitySeatMixin",
-    "MerchantOrderPanelMixin"
+    "MerchantOrderPanelMixin",
+    "FightEdgeGuardMixin"
   ]
 }

@@ -106,12 +106,14 @@ public final class ClientLineState {
         //?} else {
         /*boolean noScreen = mc.gui.screen() == null;
         *///?}
+        // §fight-keys: the rod's own bindings, NOT the movement keys. Reading WASD here is what walked
+        // people off piers while they answered the boss bar — the course never needed the movement, only
+        // the keypress. WASD now means feet and nothing else (§fight-footwork).
         if (own != null && own.fighting && noScreen) {
-            var o = mc.options;
-            if (o.keyLeft.isDown()) dir = FightInputPacket.PULL_LEFT;
-            else if (o.keyRight.isDown()) dir = FightInputPacket.PULL_RIGHT;
-            else if (o.keyUp.isDown()) dir = FightInputPacket.PUSH;
-            else if (o.keyDown.isDown()) dir = FightInputPacket.LIFT;
+            if (FightKeys.PULL_LEFT.isDown()) dir = FightInputPacket.PULL_LEFT;
+            else if (FightKeys.PULL_RIGHT.isDown()) dir = FightInputPacket.PULL_RIGHT;
+            else if (FightKeys.PUSH.isDown()) dir = FightInputPacket.PUSH;
+            else if (FightKeys.LIFT.isDown()) dir = FightInputPacket.LIFT;
         }
         if (dir != sentDir) {
             sentDir = dir;
