@@ -56,7 +56,15 @@ Every spot is classified into a **set** of groups. A species' `biomes` map lists
 | `swamp` | Swamp water body, or the mod's `is_swamp` biome tag |
 | `cherry` | Any biome whose id contains "cherry" — so vanilla Cherry Grove and BoP's Cherry Blossom Grove both count |
 
-Exactly one of cold / temperate / warm always applies; the rest stack on top.
+Exactly one of cold / temperate / warm applies to the water block itself; the rest stack on top.
+
+**A river also reads its banks.** A river is its own biome in Minecraft — `minecraft:river`, base
+temperature 0.5 — so the land it runs through never reached the water: a river across a taiga scored as
+plain temperate, and a species asking for `cold` or `taiga` was **absent from every river in the world**
+however river-dwelling it was. Since 0.7.2 a river block also takes the groups of the first land found in
+each of eight directions, out to 32 blocks, skipping any water it crosses on the way. So a taiga river is
+cold *and* temperate, and since the best listed group wins, the taimen can live there without evicting the
+roach. Lakes, ponds and the sea are unchanged — they already sat inside the biome they belong to.
 
 How many of the 79 species reference each group: **temperate** 55, **cold** 34, **warm** 32, **ocean_biome** 15, **deep** 12, **mountain** 8, **taiga** 7, **beach** 5, **swamp** 5, **cherry** 5. The `river_biome`, `forest`, `jungle` and `dry` groups are recognised but **no shipped species currently uses them** — they exist for datapacks.
 
