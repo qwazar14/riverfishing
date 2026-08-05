@@ -61,7 +61,7 @@ Exactly one of cold / temperate / warm applies to the water block itself; the re
 **A river also reads its banks.** A river is its own biome in Minecraft — `minecraft:river`, base
 temperature 0.5 — so the land it runs through never reached the water: a river across a taiga scored as
 plain temperate, and a species asking for `cold` or `taiga` was **absent from every river in the world**
-however river-dwelling it was. Since 0.7.2 a river block also takes the groups of the first land found in
+however river-dwelling it was. Since 0.7.1 a river block also takes the groups of the first land found in
 each of eight directions, out to 32 blocks, skipping any water it crosses on the way. So a taiga river is
 cold *and* temperate, and since the best listed group wins, the taimen can live there without evicting the
 roach. Lakes, ponds and the sea are unchanged — they already sat inside the biome they belong to.
