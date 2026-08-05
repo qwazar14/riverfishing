@@ -3142,6 +3142,80 @@ public final class FishingManager {
     private static java.util.Set<String> biomeGroups(ServerLevel level, BlockPos pos, WaterBody body) {
         java.util.Set<String> groups = new java.util.HashSet<>();
         var biome = level.getBiome(pos);
+        addBiomeGroups(biome, groups);
+        // §river-banks: a river is its OWN biome — minecraft:river, temperature 0.5 — so the land it runs
+        // through never reached the fish. A river across a taiga read as plain temperate water, and since
+        // a missed biome list is a hard zero (BiteEngine.biomeGroupFactor -> speciesWeight), twenty of the
+        // sixty river species could not be caught in a river at all: the whole northern group (taimen,
+        // trout, grayling, lenok, char, whitefish) wants cold/taiga/mountain, and the taimen has the
+        // highest river affinity in the mod. Lakes were always fine — a lake sits inside the land biome.
+        //
+        // So a river asks its banks. The land's groups are merged in, and because biomeGroupFactor takes
+        // the BEST listed group, a taiga river reads as both cold and temperate: the taimen can live there
+        // without evicting the roach.
+        if (biome.is(net.minecraft.tags.BiomeTags.IS_RIVER)) {
+            groups.addAll(riverBankGroups(level, pos));
+        }
+        if (body.swamp() || biome.is(com.riverfishing.water.ModBiomeTags.IS_SWAMP)) groups.add("swamp");
+        return groups;
+    }
+
+    /**
+     * §river-banks: what the land around a river block is made of.
+     *
+     * <p>Eight compass directions, stepping out until the first sample that is neither river nor ocean —
+     * that is the bank. Water samples are skipped rather than accepted, so a river mouth does not import
+     * the sea (and could not anyway: the species' own {@code water_bodies} still gates it).
+     *
+     * <p>Cached without a TTL, because a biome is a pure function of position and seed and never changes.
+     * The map is bounded and keyed by chunk: a river's banks do not differ meaningfully inside one.
+     */
+    private static final java.util.LinkedHashMap<Long, java.util.Set<String>> BANK_CACHE =
+            new java.util.LinkedHashMap<>(256, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(java.util.Map.Entry<Long, java.util.Set<String>> e) {
+                    return size() > 2048;
+                }
+            };
+
+    private static final int[] BANK_STEPS = {6, 12, 20, 32};
+    private static final int[][] BANK_DIRS =
+            {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+
+    private static java.util.Set<String> riverBankGroups(ServerLevel level, BlockPos pos) {
+        long key = ((long) (pos.getX() >> 4) << 32) ^ ((pos.getZ() >> 4) & 0xffffffffL);
+        synchronized (BANK_CACHE) {
+            java.util.Set<String> hit = BANK_CACHE.get(key);
+            if (hit != null) return hit;
+        }
+        java.util.Set<String> found = new java.util.HashSet<>();
+        for (int[] d : BANK_DIRS) {
+            for (int step : BANK_STEPS) {
+                var b = level.getBiome(pos.offset(d[0] * step, 0, d[1] * step));
+                if (b.is(net.minecraft.tags.BiomeTags.IS_RIVER)
+                        || b.is(net.minecraft.tags.BiomeTags.IS_OCEAN)
+                        || b.is(net.minecraft.tags.BiomeTags.IS_DEEP_OCEAN)) {
+                    continue;   // still water in this direction — keep walking
+                }
+                addBiomeGroups(b, found);
+                break;          // the first land in this direction is the bank
+            }
+        }
+        synchronized (BANK_CACHE) {
+            BANK_CACHE.put(key, found);
+        }
+        return found;
+    }
+
+    /**
+     * One biome to its groups. Pulled out so the water block and each bank sample are read by the same
+     * function — two copies of this mapping would be two answers to "what kind of place is this".
+     *
+     * <p>The swamp group is NOT here: it also depends on the water body's own shape, so it stays with the
+     * caller that has one.
+     */
+    private static void addBiomeGroups(net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome> biome,
+                                       java.util.Set<String> groups) {
         float temp = biome.value().getBaseTemperature();
         groups.add(temp < 0.3f ? "cold" : (temp > 0.95f ? "warm" : "temperate"));
         if (biome.is(net.minecraft.tags.BiomeTags.IS_RIVER)) groups.add("river_biome");
@@ -3153,13 +3227,11 @@ public final class FishingManager {
         if (biome.is(net.minecraft.tags.BiomeTags.IS_TAIGA)) groups.add("taiga");
         if (biome.is(net.minecraft.tags.BiomeTags.IS_MOUNTAIN) || biome.is(net.minecraft.tags.BiomeTags.IS_HILL)) groups.add("mountain");
         if (biome.is(net.minecraft.tags.BiomeTags.IS_SAVANNA) || biome.is(net.minecraft.tags.BiomeTags.IS_BADLANDS)) groups.add("dry");
-        if (body.swamp() || biome.is(com.riverfishing.water.ModBiomeTags.IS_SWAMP)) groups.add("swamp");
         // §koi: cherry groves are koi water. Match by name so vanilla cherry_grove AND BoP
         // cherry_blossom_grove both count without needing a dedicated tag.
         biome.unwrapKey().ifPresent(k -> {
             if (k.location().getPath().contains("cherry")) groups.add("cherry");
         });
-        return groups;
     }
 
     // ---- presentation ----
