@@ -5,7 +5,7 @@ import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import net.minecraft.client.KeyMapping;
 
 /**
- * §fight-keys (0.7.2): the rod gets its own four keys, and the feet keep WASD.
+ * §fight-keys (0.7.1): the rod gets its own four keys, and the feet keep WASD.
  *
  * <p>Until now the fight course read {@code options.keyLeft/keyRight/keyUp/keyDown} — the movement keys.
  * It only ever read their STATE; the walking was a side effect the mechanic neither needed nor used. But

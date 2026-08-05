@@ -81,15 +81,34 @@ public final class FishMorph {
      * The table. Order is priority order: the first morph whose trigger holds and whose roll comes up wins,
      * so the specific and the condition-driven are listed above the merely rare.
      */
+    private static final Set<String> POND_DEEP = of(
+            "carp", "mirror_carp", "wild_carp", "crucian_carp", "grass_carp", "silver_carp",
+            "bream", "white_bream", "blue_bream", "white_eye_bream",
+            "tench", "roach", "rudd", "ide", "nase", "perch", "bluegill");
+
+    /**
+     * Stunting is broader than humping — any freshwater population fished past its recovery stunts, in a
+     * shrunken river as readily as in a pond, and a thin runt is a shape almost any small fish can take.
+     * Nothing that LIVES at sea: an ocean is not limited by the size of the water in it, and a stunted
+     * blue marlin was nonsense. The vimba is here despite a small sea affinity because it feeds and grows
+     * in the river (1.2 river against 0.2 sea) and it is the river that gets fished out from under it.
+     */
+    private static final Set<String> POND_STUNTABLE = of(
+            "carp", "mirror_carp", "wild_carp", "crucian_carp", "grass_carp", "silver_carp",
+            "bream", "white_bream", "blue_bream", "white_eye_bream",
+            "tench", "roach", "rudd", "ide", "vimba", "nase", "perch", "bluegill",
+            "bleak", "gudgeon", "ruffe", "rotan", "common_dace", "sabrefish", "chub",
+            "largemouth_bass", "volga_zander", "zander", "pike");
+
     private static final List<Def> TABLE = List.of(
             // A pond fished to the bone grows fish that never fill out: short, thin, and dull with it.
             // The tint alone was not enough to tell one from an ordinary small fish, so this one is also
             // SHAPED — 10% shorter and 14% shallower than the species should be at that weight.
-            new Def("stunted", 0x7E8474, 0.00f, 0.90f, 0.86f, Trigger.OVERFISHED, 0.40, of()),
+            new Def("stunted", 0x7E8474, 0.00f, 0.90f, 0.86f, Trigger.OVERFISHED, 0.40, POND_STUNTABLE),
             // Too many fish, too much feed, not enough room: short, deep-bodied, humped in front of the
             // dorsal. The body is the whole diagnosis, so the sprite carries it — a fifth taller and a
             // seventh shorter, which is exactly the silhouette every carp farmer complains about.
-            new Def("humpbacked", 0xA98A4E, 0.00f, 0.86f, 1.22f, Trigger.CROWDED, 0.28, of()),
+            new Def("humpbacked", 0xA98A4E, 0.00f, 0.86f, 1.22f, Trigger.CROWDED, 0.28, POND_DEEP),
             // Xanthism — the gold pigment mutation. Golden tench and golden rudd are sold as ornamentals
             // for exactly this reason, and they turn up in established stocked water.
             new Def("xanthic", 0xE8B23C, 0.10f, 1.00f, 1.00f, Trigger.SETTLED, 0.07,

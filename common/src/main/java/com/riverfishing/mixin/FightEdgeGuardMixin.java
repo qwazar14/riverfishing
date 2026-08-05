@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * §fight-edge (0.7.2): you cannot walk off a pier while a fish is on.
+ * §fight-edge (0.7.1): you cannot walk off a pier while a fish is on.
  *
  * <p>Foxsy1798 reported two separate things about the fight input and only one of them is about keys.
  * The other is that answering the boss bar could walk you off a pier — and §fight-keys does not fix that
