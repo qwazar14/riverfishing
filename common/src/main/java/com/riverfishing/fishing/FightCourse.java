@@ -12,10 +12,51 @@ import net.minecraft.util.RandomSource;
  * line of new content: a marlin that greyhounds is a fish that keeps coming UP, and a tuna that sounds is
  * one long pull DOWN.
  *
- * <p>The input is the movement keys, not the camera. Aim was tried first because the server already knows
- * it for free, and it was wrong on its own terms: countering a left-hand run meant turning thirty degrees
- * away from the water, so the mechanic asked the player to stop watching the fight — and the leaning rod
- * swung off screen with them. WASD costs one small packet and leaves the camera where it belongs.
+ * <p>The input is four dedicated keys (§fight-keys, 0.7.2), arrows by default and rebindable in the
+ * vanilla Controls screen. It is <em>not</em> the camera, and it is no longer the movement keys.
+ *
+ * <h2>Two rejected inputs, so nobody re-derives them</h2>
+ *
+ * <p><b>Camera aim (rejected 0.7.0).</b> Tried first because the server already knows it for free, and
+ * wrong on its own terms: countering a left-hand run meant turning thirty degrees away from the water, so
+ * the mechanic asked the player to stop watching the fight — and the leaning rod swung off screen with
+ * them.
+ *
+ * <p><b>The movement keys (rejected 0.7.2).</b> They worked, and they cost one small packet, but WASD
+ * ended up carrying three meanings at once: answer the course, work {@code §fight-footwork}, and
+ * physically relocate you. The third was a side effect this mechanic never wanted — it only ever read key
+ * STATE — and it put players in the water off piers. It also made the fight argue with itself, since S
+ * both counters a DOWN run and backs you off the hook (a leg-pump, paid twice) while W answers an UP run
+ * by walking you at the fish (slack, punished).
+ *
+ * <p><b>An analogue mouse pull, Fishing Planet style (designed and shelved, 0.7.2).</b> Asked for by
+ * Foxsy1798. Designed properly before being turned down; the reasons are all about the platform, not the
+ * idea:
+ *
+ * <ul>
+ *   <li>There is <em>no portable raw-mouse read</em>. {@code MouseHandler.getXVelocity()/getYVelocity()}
+ *       are Forge/NeoForge patches and absent from vanilla; {@code accumulatedDX/DY} are private on all
+ *       four lines. {@code turnPlayer} is public and no-arg on 1.20.1 but private and driven per FRAME
+ *       from {@code handleAccumulatedMovement()} on 1.21.1 and 26.x — so it would be the mod's first
+ *       client-input mixin, in two bodies, on the class Mojang churns hardest.</li>
+ *   <li>A {@code Screen} is not an option: it replaces the HUD render path, which kills the boss bar and
+ *       the §pump-reel cue at the exact moment they matter, and it zeroes movement input, which kills
+ *       §fight-footwork outright.</li>
+ *   <li>{@code releaseMouse()} frees the cursor, but vanilla re-grabs on the next click and swallows it —
+ *       and that click is the reel pulse.</li>
+ *   <li>Right-drag collides with {@code RodItem} use → {@code reelPulse}, and telling a drag from a click
+ *       is a client-side judgement the server cannot verify.</li>
+ *   <li>An anchored camera is a MODAL state, and every exit has to release it — key up, fight end, screen
+ *       open, death, dimension change, disconnect, plus a timeout. Miss one and the player cannot look
+ *       around any more.</li>
+ * </ul>
+ *
+ * <p>If an analogue fight is ever built, two things are already known. The portable read is <b>not</b> the
+ * mouse but the ROTATION DELTA — {@code player.getYRot()/getXRot()} minus a stored anchor — which is the
+ * same number on every line, needs no mixin, and picks up controller right-sticks for free. And the fight
+ * MATH needs no change at all: {@code session.courseAlign} is already a float, and its four consumers
+ * (footwork's line gain, the wrong-way load, the fatigue bonus and the stamina drain) all read it as a
+ * continuous 0..1. The direction model was never the defect; the input device was.
  */
 public enum FightCourse {
     /** No run in progress. */
