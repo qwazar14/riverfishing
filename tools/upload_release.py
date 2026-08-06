@@ -148,22 +148,44 @@ def cf_index(token, refresh=False):
     return index
 
 
-def cf_resolve(index, names):
+# Which version TYPE each kind of name must come from. A bare name is not enough: "1.20.1" is a row in
+# three types at once — the real one, the `Addons` bucket for Bukkit-side plugins, and a type the
+# version-types endpoint returns no name for.
+#
+# "game" is a blacklist and the others are exact, which is not laziness. CurseForge names its Minecraft
+# types inconsistently: 1.20.1 lives under "Minecraft 1.20" and 26.1.2 under "Minecraft 26.1", but 26.2
+# lives under a type called just "26.2". A "starts with Minecraft" rule would silently drop 26.2 — the
+# version most of this mod's players are on. What is stable is which buckets are WRONG.
+CF_TYPE = {
+    # Every type that is NOT a Minecraft game version, so a loader or a Java name looked up as a game
+    # version finds nothing instead of matching by accident. Caught by the self-check, which asks for
+    # "Fabric" as a game version and requires the run to stop.
+    "game": lambda t: t not in ("Addons", "?", "Modloader", "Java", "Environment", "Bukkit"),
+    "loader": lambda t: t == "Modloader",
+    "java": lambda t: t == "Java",
+    "env": lambda t: t == "Environment",
+}
+
+
+def cf_resolve(index, named):
     """Every name, or none of them.
 
     CurseForge will also accept `gameVersionNames` and resolve them itself, but then a name it does not
     recognise is simply not applied and the upload succeeds anyway. Resolving here means a renamed
     version type or a Java release CurseForge has not listed yet stops the release instead of shipping a
     file that is invisible to every filter.
+
+    @param named (name, kind) pairs — see CF_TYPE. The kind is what makes an ambiguous name resolvable.
     """
     ids, bad = [], []
-    for n in names:
-        hits = index.get(n, [])
+    for n, kind in named:
+        hits = [h for h in index.get(n, []) if CF_TYPE[kind](h[1])]
         if len(hits) == 1:
             ids.append(hits[0][0])
         else:
-            bad.append("%r %s" % (n, "is not in CurseForge's version table" if not hits else
-                                  "is ambiguous — " + ", ".join("id %s (%s)" % h for h in hits)))
+            bad.append("%r (%s) %s" % (n, kind,
+                                       "is not in CurseForge's version table" if not hits else
+                                       "is still ambiguous — " + ", ".join("id %s (%s)" % h for h in hits)))
     if bad:
         sys.exit("cannot map this release onto CurseForge's version ids:\n  " + "\n  ".join(bad)
                  + "\n(try --refresh-versions; the cached table may predate the version you need)")
@@ -171,8 +193,14 @@ def cf_resolve(index, names):
 
 
 def cf_names(m):
-    """The four different kinds of thing CurseForge wants in one flat array."""
-    return [m["minecraft"], m["loader"], "Java %d" % m["java"]] + CF_ENVIRONMENT[m["environment"]]
+    """The four different kinds of thing CurseForge wants in one flat array — each carrying its kind.
+
+    They go up as one undifferentiated `gameVersions` array, which is why this used to return bare
+    strings. But the array is the WIRE format, not the lookup: a name has to be resolved as the kind of
+    thing it is before it can be flattened, and dropping the kind here is what made "1.20.1" unresolvable.
+    """
+    return ([(m["minecraft"], "game"), (m["loader"], "loader"), ("Java %d" % m["java"], "java")]
+            + [(e, "env") for e in CF_ENVIRONMENT[m["environment"]]])
 
 
 # --- building the two payloads for one jar --------------------------------------------------------
@@ -503,7 +531,7 @@ def main():
         skip_cf = m["file"] in done_cf
         todo.append((m, mr, cf, skip_mr, skip_cf))
         print("%s" % m["file"])
-        print("  CurseForge  %s -> %s" % (" + ".join(cf_names(m)),
+        print("  CurseForge  %s -> %s" % (" + ".join(n for n, _ in cf_names(m)),
                                             cf["gameVersions"] if index else "ids need $CURSEFORGE_TOKEN"))
         print("              %s%s" % (json.dumps({k: v for k, v in cf.items() if k != "changelog"}),
                                       "   [already uploaded, will skip]" if skip_cf else ""))
@@ -566,26 +594,37 @@ def self_check():
     version and an environment are looked up exactly the way a Minecraft version is, and that a name
     which is missing or ambiguous stops the run instead of quietly falling out of the array.
     """
-    index = {"1.21.1": [(9990, "Minecraft 1.21")], "1.20.1": [(9001, "Minecraft 1.20")],
-             "26.2": [(9995, "Minecraft 26.2")], "Fabric": [(7499, "Modloader")],
-             "Forge": [(7498, "Modloader")], "NeoForge": [(10150, "Modloader")],
-             "Java 17": [(8326, "Java")], "Java 21": [(9990, "Java")], "Java 25": [(10500, "Java")],
+    # Shaped like the LIVE table, which the old fixture was not: every Minecraft version is a row in
+    # three types at once — the real one, an `Addons` bucket for Bukkit-side plugins, and a type whose id
+    # /game/version-types returns no name for. The old one-row-per-version fixture is why this check
+    # passed for months while the resolver could not resolve a single Minecraft version.
+    #
+    # 26.2's type is named "26.2" and 1.20.1's is "Minecraft 1.20" — that inconsistency is real, and it
+    # is why the game kind is a blacklist rather than a "starts with Minecraft" prefix.
+    index = {"1.21.1": [(11779, "Minecraft 1.21"), (12735, "?"), (16115, "Addons")],
+             "1.20.1": [(9990, "Minecraft 1.20"), (9993, "Addons"), (9994, "?")],
+             "26.2": [(16498, "26.2"), (16500, "?")],
+             "Fabric": [(7499, "Modloader")], "Forge": [(7498, "Modloader")],
+             "NeoForge": [(10150, "Modloader")],
+             "Java 17": [(8326, "Java")], "Java 21": [(11135, "Java")], "Java 25": [(14454, "Java")],
              "Client": [(9638, "Environment")], "Server": [(9639, "Environment")],
-             # CurseForge really does reuse names across types; "1.21.1" as a Bukkit version is the shape
-             # of collision this has to refuse rather than resolve.
-             "1.16.5": [(8203, "Minecraft 1.16"), (8517, "Bukkit")]}
+             # Two REAL game types for one name is the collision that must still stop the run: no rule
+             # can pick between them, and guessing would ship a file onto the wrong version.
+             "1.16.5": [(8203, "Minecraft 1.16"), (8517, "Minecraft 1.16 (snapshot)")]}
 
     m = {"minecraft": "1.21.1", "loader": "Fabric", "java": 21, "environment": "both"}
-    assert cf_names(m) == ["1.21.1", "Fabric", "Java 21", "Client", "Server"], cf_names(m)
-    assert cf_resolve(index, cf_names(m)) == [9990, 7499, 9990, 9638, 9639]
+    assert cf_names(m) == [("1.21.1", "game"), ("Fabric", "loader"), ("Java 21", "java"),
+                           ("Client", "env"), ("Server", "env")], cf_names(m)
+    assert cf_resolve(index, cf_names(m)) == [11779, 7499, 11135, 9638, 9639]
 
     neo = {"minecraft": "26.2", "loader": "NeoForge", "java": 25, "environment": "both"}
-    assert cf_resolve(index, cf_names(neo)) == [9995, 10150, 10500, 9638, 9639]
+    assert cf_resolve(index, cf_names(neo)) == [16498, 10150, 14454, 9638, 9639]
     assert cf_resolve(index, cf_names({"minecraft": "1.20.1", "loader": "Forge", "java": 17,
-                                       "environment": "client"})) == [9001, 7498, 8326, 9638]
+                                       "environment": "client"})) == [9990, 7498, 8326, 9638]
 
-    for names, why in ((["Java 26"], "a Java version CurseForge has not listed"),
-                       (["1.16.5"], "a name that means two different things")):
+    for names, why in (([("Java 26", "java")], "a Java version CurseForge has not listed"),
+                       ([("1.16.5", "game")], "two real game types for one name"),
+                       ([("Fabric", "game")], "the right name looked up as the wrong kind")):
         try:
             cf_resolve(index, names)
             raise AssertionError("resolved %s — %s must stop the run" % (names, why))
