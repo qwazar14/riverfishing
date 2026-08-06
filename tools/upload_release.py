@@ -59,6 +59,11 @@ CACHE = os.path.join(os.path.expanduser("~"), ".riverfishing-release-cache.json"
 
 CF_API = "https://minecraft.curseforge.com/api"
 MR_API = "https://api.modrinth.com/v2"
+# Reads of the per-version side have to come from v3. v2 ACCEPTS `environment` when a version is created
+# — it is in its own CreatableVersion schema — and then never reports it again: GET /v2/version/<id>
+# returns no such key, so v2 can write this fact and cannot show it back. The upload stays on v2 with the
+# rest of the release; anything that needs to READ a side asks v3.
+MR_API3 = "https://api.modrinth.com/v3"
 UA = "qwazar14/riverfishing-release/%s (zenez89@gmail.com)" % VERSION  # Modrinth requires an identity.
 
 CONFIG_TEMPLATE = {
@@ -82,12 +87,16 @@ MR_LOADER = {"Fabric": "fabric", "Forge": "forge", "NeoForge": "neoforge"}
 CF_DEP_TYPE = {"required": "requiredDependency", "optional": "optionalDependency"}
 # CurseForge encodes the environment as game versions named exactly this.
 CF_ENVIRONMENT = {"both": ["Client", "Server"], "client": ["Client"], "server": ["Server"]}
-# ...and Modrinth v2 encodes it on the *project*, as this pair. See modrinth_environment() below.
-MR_PROJECT_ENV = {"both": ("required", "required"), "client": ("required", "unsupported"),
-                  "server": ("unsupported", "required")}
-# v2 grew a per-version `environment` too, and Modrinth's own v2 reroute collapses these three straight
-# onto the pairs above — same fact, said once per version instead of once per project. Setting it means
-# a file states its own sides rather than inheriting whatever the project page happens to say.
+# ...and Modrinth keeps the same fact per VERSION, spelled like this. There is no project-level pair
+# left to set; the one v2 still reports is computed from these.
+#
+# Sending it is NOT optional even though the field is. Asked to create a version with no `environment`,
+# labrinth's v2 shim copies the value off another version of the same project and falls back to
+# "unknown" — the comment in its own source calls this "inherently lossy". Every live version of this
+# mod currently says client_only, so deleting the one line in plan() that sets this would not fall back
+# to a sane default: it would quietly publish eight more client-only files.
+#
+# Ten values exist in the enum. This mod is required on both ends, so only these three come up.
 MR_VERSION_ENV = {"both": "client_and_server", "client": "client_only", "server": "server_only"}
 
 
@@ -248,9 +257,13 @@ def plan(m, cfg, changelog, release_type):
 # --- what is already up ---------------------------------------------------------------------------
 
 def published_modrinth(cfg):
-    """Listing versions needs no auth, so this is the authoritative answer and not a local guess."""
-    return {v["version_number"]
-            for v in http("%s/project/%s/version" % (MR_API, cfg["modrinth_project_id"]))}
+    """Every version already up, whole rather than just its number.
+
+    Listing needs no auth, so this is the authoritative answer and not a local guess. It reads v3 because
+    the side of a version is invisible in v2 — see MR_API3 — and one list of versions should answer both
+    "is this already published?" and "what does it claim about client and server".
+    """
+    return http("%s/project/%s/version" % (MR_API3, cfg["modrinth_project_id"]))
 
 
 def cf_state_path(folder):
@@ -267,30 +280,45 @@ def cf_state_path(folder):
     return os.path.join(os.path.dirname(CONFIG), ".riverfishing-uploaded-%s.json" % VERSION)
 
 
-def modrinth_environment(cfg, manifest):
-    """What Modrinth can and cannot be told about client/server, reported rather than guessed.
+def modrinth_environment(cfg, manifest, published):
+    """What the versions ALREADY up claim about client and server, checked against what these jars are.
 
-    Each version now states its own sides — plan() sets `environment`, which v2 grew and this file used
-    to assert it did not have. What v2 still has no way to write is the *project* pair, `client_side` and
-    `server_side`, which is a web-UI setting and the thing search filters on.
+    This used to read the project's `client_side`/`server_side` pair and tell the operator to go and fix
+    it in the project settings. Both halves were wrong. Modrinth moved sides onto the version — the
+    project carries a `side_types_migration_review_status` field as the scar — and the settings page no
+    longer has that control, so the advice sent someone looking for a switch that is not there.
 
-    So this reads that pair and complains when it contradicts the jars. It does not change it: a
-    project-wide setting is not something a release script should move under its author, and the answer
-    is one click in the settings page rather than an API call nobody reviewed.
+    The pair v2 still reports is now DERIVED from the versions, which is checkable rather than assumed:
+    Create's versions are a mix of `server_only_client_optional` and `client_and_server`, and its pair
+    reads `optional/required` — neither of those, their merge. So there is nothing project-wide left to
+    set, and uploading correct versions moves the pair by itself.
+
+    What that leaves worth checking is the versions already published, because they keep voting in that
+    merge forever. This names them and stops there. Not because it cannot reach them — PATCH /v3/version
+    takes `environment` and has no published-version gate — but because editing a file that is already
+    public is a change of its own, and a release script should not make one nobody asked for.
     """
     want = {m["environment"] for m in manifest["files"]}
-    p = http("%s/project/%s" % (MR_API, cfg["modrinth_project_id"]))
-    have = (p.get("client_side"), p.get("server_side"))
     if len(want) != 1:
-        return "jars disagree about environment (%s) — Modrinth can only hold one answer per project" \
-               % ", ".join(sorted(want))
-    expect = MR_PROJECT_ENV[want.pop()]
-    if have == expect:
+        return ("jars disagree about environment (%s) — every file in one release should claim the same "
+                "sides" % ", ".join(sorted(want)))
+    expect = MR_VERSION_ENV[want.pop()]
+    wrong = [v for v in published if v.get("environment") != expect]
+    if not wrong:
         return None
-    return ("project says client_side=%s server_side=%s, jars say it should be %s/%s.\n"
-            "    Modrinth v2 cannot set this per version and this script will not change a project-wide\n"
-            "    setting on its own — fix it once at https://modrinth.com/mod/%s/settings"
-            % (have[0], have[1], expect[0], expect[1], cfg["modrinth_project_id"]))
+    return ("%d version(s) already up say %s; these jars are %s. The project's client_side/server_side\n"
+            "    pair is derived from all of them, so it keeps reporting the merge until they are fixed.\n"
+            "    What this script uploads will be right; the ones below need the Environment selector on\n"
+            "    their own edit page:\n"
+            "    %s"
+            % (len(wrong), "/".join(sorted({str(v.get("environment")) for v in wrong})), expect,
+               # Not the version number: all eight files of a release share one, so on its own it names
+               # nothing. The loader and the Minecraft line are what tell them apart on the page.
+               "\n    ".join("%-8s %-9s %-8s https://modrinth.com/mod/%s/version/%s"
+                             % (v["version_number"], "/".join(v.get("loaders") or ["?"]),
+                                "/".join(v.get("game_versions") or ["?"]),
+                                cfg["modrinth_project_id"], v["id"])
+                             for v in wrong)))
 
 
 # --- the run --------------------------------------------------------------------------------------
@@ -518,10 +546,11 @@ def main():
     # The NAMES can still be shown, which is the part a human can actually check.
     index = cf_index(tokens["CURSEFORGE_TOKEN"], a.refresh_versions) \
         if tokens["CURSEFORGE_TOKEN"] else None
-    done_mr = published_modrinth(cfg)
+    mr_published = published_modrinth(cfg)
+    done_mr = {v["version_number"] for v in mr_published}
     done_cf = json.loads(io.open(cf_state_path(folder), encoding="utf-8").read()) \
         if os.path.exists(cf_state_path(folder)) else {}
-    env_warning = modrinth_environment(cfg, manifest)
+    env_warning = modrinth_environment(cfg, manifest, mr_published)
 
     todo = []
     for m in manifest["files"]:
@@ -664,8 +693,26 @@ def self_check():
     except SystemExit:
         pass
 
-    print("self-check passed — %d names resolved, ambiguity and unmapped dependencies both refused"
-          % len(index))
+    # Sides, against the versions rather than the project. The manifest here is both jars claiming both
+    # ends, so anything already up that says otherwise has to be named.
+    both = {"files": [fabric, dict(fabric, minecraft="1.20.1")]}
+    assert modrinth_environment(cfg, both, []) is None, "nothing published yet is nothing to report"
+    assert modrinth_environment(cfg, both, [{"id": "aa", "version_number": "0.7.0",
+                                             "environment": "client_and_server"}]) is None
+    # The real state of this project before 0.7.1: everything up is client_only, inherited from the
+    # migration off the old project-wide pair.
+    stale = modrinth_environment(cfg, both, [{"id": "aa", "version_number": "0.7.0",
+                                              "environment": "client_only"},
+                                             # `environment` ABSENT, not null — that is how an
+                                             # unmigrated version reads, and it is not "fine".
+                                             {"id": "bb", "version_number": "0.6.1"}])
+    assert stale and "2 version(s)" in stale and "modrinth.com/mod/river-fishing/version/bb" in stale, stale
+    # One release must not claim two different things.
+    mixed = modrinth_environment(cfg, {"files": [fabric, dict(fabric, environment="client")]}, [])
+    assert mixed and "disagree" in mixed, mixed
+
+    print("self-check passed — %d names resolved; ambiguity, unmapped dependencies and stale sides "
+          "all refused" % len(index))
     return 0
 
 
