@@ -338,16 +338,23 @@ def github_release(folder, manifest, changelog, release_type, confirmed):
     return True
 
 
-def load_config():
+def load_config(publishing):
+    """Config, strict only when something is about to be written.
+
+    A dry run must be runnable by someone who has not collected the secrets yet — that run is how they
+    find out which secrets they need.
+    """
     if not os.path.exists(CONFIG):
         io.open(CONFIG, "w", encoding="utf-8", newline="\n").write(
             json.dumps(CONFIG_TEMPLATE, indent=2) + "\n")
         sys.exit("wrote a config template to %s — fill in curseforge_project_id (the numeric id on the\n"
                  "project's CurseForge page) and re-run. No token goes in that file." % CONFIG)
     cfg = json.loads(io.open(CONFIG, encoding="utf-8").read())
-    for key in ("curseforge_project_id", "modrinth_project_id"):
-        if not cfg.get(key):
-            sys.exit("%s has no %s — fill it in before publishing anything" % (CONFIG, key))
+    if not cfg.get("modrinth_project_id"):
+        sys.exit("%s has no modrinth_project_id — nothing can be planned without it" % CONFIG)
+    if publishing and not cfg.get("curseforge_project_id"):
+        sys.exit("%s has no curseforge_project_id. It is the numeric id on the project's CurseForge\n"
+                 "page, under 'About Project'. A dry run works without it; publishing does not." % CONFIG)
     return cfg
 
 
@@ -428,7 +435,7 @@ def main():
             return 0
         print()
 
-    cfg = load_config()
+    cfg = load_config(a.confirm)
     # Modrinth takes "the id OR the slug" in a URL path and only the base62 id in a version payload —
     # a distinction its own docs make and nothing enforces until the POST. The config holds the slug,
     # because a slug is what a human can read off the page, so resolve it once here rather than asking
@@ -436,14 +443,15 @@ def main():
     # this is correct whichever the config happens to hold.
     cfg["modrinth_id"] = http("%s/project/%s" % (MR_API, cfg["modrinth_project_id"]))["id"]
 
-    tokens = {}
-    for var in ("CURSEFORGE_TOKEN", "MODRINTH_TOKEN"):
-        tokens[var] = os.environ.get(var)
-        if not tokens[var]:
-            sys.exit("$%s is not set. Both are needed even for a dry run: CurseForge's version table is\n"
-                     "behind the same token, and resolving it is most of what there is to check." % var)
+    tokens = {v: os.environ.get(v) for v in ("CURSEFORGE_TOKEN", "MODRINTH_TOKEN")}
+    absent = [v for v, t in tokens.items() if not t]
+    if a.confirm and absent:
+        sys.exit("cannot publish: $%s not set" % ", $".join(absent))
 
-    index = cf_index(tokens["CURSEFORGE_TOKEN"], a.refresh_versions)
+    # CurseForge's version table is behind its token, so without it the numeric ids cannot be resolved.
+    # The NAMES can still be shown, which is the part a human can actually check.
+    index = cf_index(tokens["CURSEFORGE_TOKEN"], a.refresh_versions) \
+        if tokens["CURSEFORGE_TOKEN"] else None
     done_mr = published_modrinth(cfg)
     done_cf = json.loads(io.open(cf_state_path(folder), encoding="utf-8").read()) \
         if os.path.exists(cf_state_path(folder)) else {}
@@ -452,18 +460,24 @@ def main():
     todo = []
     for m in manifest["files"]:
         mr, cf = plan(m, cfg, changelog, a.release_type)
-        cf["gameVersions"] = cf_resolve(index, cf_names(m))
+        cf["gameVersions"] = cf_resolve(index, cf_names(m)) if index else None
         skip_mr = mr["version_number"] in done_mr
         skip_cf = m["file"] in done_cf
         todo.append((m, mr, cf, skip_mr, skip_cf))
         print("%s" % m["file"])
-        print("  CurseForge  %s -> ids %s" % (" + ".join(cf_names(m)), cf["gameVersions"]))
+        print("  CurseForge  %s -> %s" % (" + ".join(cf_names(m)),
+                                            cf["gameVersions"] if index else "ids need $CURSEFORGE_TOKEN"))
         print("              %s%s" % (json.dumps({k: v for k, v in cf.items() if k != "changelog"}),
                                       "   [already uploaded, will skip]" if skip_cf else ""))
         print("  Modrinth    %s%s" % (json.dumps({k: v for k, v in mr.items() if k != "changelog"}),
                                       "   [already published, will skip]" if skip_mr else ""))
     print("\nchangelog: %s, %d chars, sent as markdown to both"
           % (manifest["changelog"], len(changelog)))
+    if absent:
+        print("MISSING    : $%s — a dry run works without them, publishing does not"
+              % ", $".join(absent))
+    if not cfg.get("curseforge_project_id"):
+        print("MISSING    : curseforge_project_id in %s (the numeric id under 'About Project')" % CONFIG)
     if env_warning:
         print("\nENVIRONMENT: %s" % env_warning)
 
