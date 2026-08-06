@@ -288,13 +288,20 @@ def modrinth_environment(cfg, manifest, published):
     project carries a `side_types_migration_review_status` field as the scar — and the settings page no
     longer has that control, so the advice sent someone looking for a switch that is not there.
 
-    The pair v2 still reports is now DERIVED from the versions, which is checkable rather than assumed:
+    The pair v2 still reports is DERIVED from the versions, which is checkable rather than assumed:
     Create's versions are a mix of `server_only_client_optional` and `client_and_server`, and its pair
     reads `optional/required` — neither of those, their merge. So there is nothing project-wide left to
-    set, and uploading correct versions moves the pair by itself.
+    set.
 
-    What that leaves worth checking is the versions already published, because they keep voting in that
-    merge forever. This names them and stops there. Not because it cannot reach them — PATCH /v3/version
+    How fast it follows is a separate question, and this docstring first answered it by guessing. Watched
+    through 0.7.1: v3's project `environment` array picked up the new versions within minutes, going from
+    `['client_only']` to `['client_and_server', 'client_only']`. The v2 pair did NOT move — still
+    `required/unsupported` an hour later. Whether that is a cache or a different projection rule is
+    unknown, so this checks neither of them and reads the versions directly.
+
+    That is the honest reason to check the versions already published rather than the summary: they are
+    the ground truth, and they keep voting in it for as long as they exist. This names them and stops
+    there. Not because it cannot reach them — PATCH /v3/version
     takes `environment` and has no published-version gate — but because editing a file that is already
     public is a change of its own, and a release script should not make one nobody asked for.
     """
