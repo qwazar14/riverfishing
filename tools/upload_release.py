@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
-"""Publish the eight release jars to CurseForge and Modrinth with the metadata each store actually wants.
+"""Publish a release: the GitHub tag, then the eight jars to Modrinth and CurseForge.
 
-    python tools/upload_release.py --release-type release             (dry run — uploads nothing)
-    python tools/upload_release.py --release-type release --confirm   (the real thing, asks first)
-    python tools/upload_release.py --self-check                       (is the mapping still sane?)
+    python tools/upload_release.py --release-type release                    (dry run — publishes nothing)
+    python tools/upload_release.py --release-type release --stage github     (GitHub only, no API tokens)
+    python tools/upload_release.py --release-type release --confirm          (the real thing, asks first)
+    python tools/upload_release.py --self-check                              (is the mapping still sane?)
+
+Three stages, in the order a player experiences them. GitHub first, because the in-game update notice
+points there and the store pages sit in approval for hours — and because it needs only the gh CLI, which
+already holds its own credential, so it must not be gated behind two API tokens the operator may not have
+yet. `--stage github` and `--stage stores` run the halves separately; the default runs both.
 
 A release here is eight files across two stores, and the fields that go wrong are the ones nobody can
 see. A jar uploaded without its loader, its Java version or its dependencies still appears on the page
@@ -35,7 +41,7 @@ Safety, because the other end of this is the public:
   * `updates.json` is never touched. Bumping it is what notifies every running client, and it belongs
     after the files are actually live — the order is in the sheet collect_release.py writes.
 """
-import argparse, io, json, os, sys, urllib.error, urllib.request, uuid
+import argparse, io, json, os, shutil, subprocess, sys, urllib.error, urllib.request, uuid
 
 from collect_release import mod_version
 from verify_release_jars import inspect, LOCALES
@@ -258,6 +264,80 @@ def modrinth_environment(cfg, manifest):
 
 # --- the run --------------------------------------------------------------------------------------
 
+# --- GitHub ---------------------------------------------------------------------------------------
+
+def gh(*args, capture=True):
+    """The gh CLI, which is already authenticated on this machine.
+
+    A third API token would be a third secret to keep out of a traceback for no gain: gh holds its own
+    credential in the OS keyring and this script never sees it. `gh` also uploads assets in one call,
+    where the raw API wants a separate upload host per file.
+    """
+    p = subprocess.run(("gh",) + args, capture_output=capture, text=True, encoding="utf-8")
+    if p.returncode != 0:
+        sys.exit("gh %s failed:\n%s" % (" ".join(args), (p.stderr or p.stdout or "").strip()[:2000]))
+    return (p.stdout or "").strip()
+
+
+def github_asset_name(m):
+    """The jar's name ON THE RELEASE PAGE, which cannot be the name in the folder.
+
+    GitHub rewrites every character outside [A-Za-z0-9._-] in an asset name to a dot, so the collect
+    name `riverfishing-fabric-0.7.1+1.20.1.jar` would arrive as `riverfishing-fabric-0.7.1.1.20.1.jar`
+    — the version and the Minecraft line run together and the two 1.20.1 Fabric jars of different
+    releases become indistinguishable. This is the scheme every previous release already used, derived
+    from the same manifest so the two names cannot drift apart.
+    """
+    return "riverfishing-%s-mc%s-%s.jar" % (VERSION, m["minecraft"], m["loader"].lower())
+
+
+def github_release(folder, manifest, changelog, release_type, confirmed):
+    """Create the release, or report that it is already there.
+
+    First of the three, because it is the one the in-game update notice points at: a player told there
+    is a new version must find it, and the store pages take hours to approve.
+    """
+    tag = "v" + VERSION
+    p = subprocess.run(("gh", "release", "view", tag, "--json", "tagName"),
+                       capture_output=True, text=True, encoding="utf-8")
+    if p.returncode == 0:
+        print("GitHub      %s already exists — skipping" % tag)
+        return False
+
+    staged = os.path.join(folder, "github")
+    pre = release_type != "release"
+    if not confirmed:
+        print("GitHub      would create %s%s with %d assets:"
+              % (tag, " (pre-release)" if pre else "", len(manifest["files"]) + 1))
+        for m in manifest["files"]:
+            print("              %s" % github_asset_name(m))
+        print("              SHA256SUMS.txt")
+        return True
+
+    # Renamed into a subfolder rather than in place: the folder is what the stores upload from, and
+    # renaming under them would break the manifest that describes it.
+    if os.path.isdir(staged):
+        shutil.rmtree(staged)
+    os.makedirs(staged)
+    for m in manifest["files"]:
+        shutil.copy2(os.path.join(folder, m["file"]), os.path.join(staged, github_asset_name(m)))
+    sums = os.path.join(staged, "SHA256SUMS.txt")
+    io.open(sums, "w", encoding="utf-8", newline="\n").write("".join(
+        "%s  %s\n" % (m["sha256"], github_asset_name(m)) for m in manifest["files"]))
+
+    notes = os.path.join(staged, "NOTES.md")
+    io.open(notes, "w", encoding="utf-8", newline="\n").write(changelog)
+    # A beta or an alpha is a PRE-release on GitHub too. Without this the stores would label it beta
+    # and the release page would call the same build final — one fact, two answers, in public.
+    args = ["release", "create", tag, "--title", "River Fishing " + VERSION, "--notes-file", notes]
+    if pre:
+        args.append("--prerelease")
+    gh(*args, *[os.path.join(staged, github_asset_name(m)) for m in manifest["files"]], sums)
+    print("GitHub      %s created%s with %d assets"
+          % (tag, " as a pre-release" if pre else "", len(manifest["files"]) + 1))
+    return True
+
+
 def load_config():
     if not os.path.exists(CONFIG):
         io.open(CONFIG, "w", encoding="utf-8", newline="\n").write(
@@ -271,24 +351,30 @@ def load_config():
     return cfg
 
 
-def confirm(n_cf, n_mr, env_warning):
+def confirm(lines, env_warning=None):
+    """The typed gate. EVERY write goes through here, including the GitHub stage.
+
+    It used to take the two store counts, which put it after the github-only early return — so that
+    stage, added later, reached a public write with nothing but --confirm behind it."""
     print("\n" + "=" * 78)
     print("ABOUT TO PUBLISH River Fishing %s WHERE EVERYONE CAN SEE IT" % VERSION)
-    print("  CurseForge : %d file(s)" % n_cf)
-    print("  Modrinth   : %d version(s)" % n_mr)
+    for line in lines:
+        print("  %s" % line)
     if env_warning:
         print("  WARNING    : %s" % env_warning.split("\n")[0])
     print("This is live the moment it succeeds and cannot be quietly undone.")
     print("=" * 78)
     want = "publish %s" % VERSION
     if input('Type "%s" to go ahead, anything else to stop: ' % want).strip() != want:
-        sys.exit("stopped — nothing was uploaded")
+        sys.exit("stopped — nothing was published")
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--release-type", choices=("release", "beta", "alpha"),
                     help="required — this script will not guess whether a build is a release")
+    ap.add_argument("--stage", choices=("all", "github", "stores"), default="all",
+                    help="github needs only the gh CLI; stores needs both API tokens")
     ap.add_argument("--confirm", action="store_true",
                     help="actually upload; without it nothing leaves this machine")
     ap.add_argument("--refresh-versions", action="store_true", help="refetch CurseForge's version table")
@@ -325,6 +411,23 @@ def main():
     # script reads nothing from it and writes nothing to it.
     changelog = io.open(os.path.join(folder, manifest["changelog"]), encoding="utf-8").read()
 
+    print("River Fishing %s — %s\n" % (VERSION, folder))
+
+    # §github-stage: first, and standalone. It is the release the in-game update notice points at, so a
+    # player told there is a new version has somewhere to go while the store pages sit in approval — and
+    # it needs no API token of ours, so it must not be gated behind two the operator may not have yet.
+    if a.stage in ("all", "github"):
+        # The typed gate has to sit HERE for a github-only run: that path returns before the gate below.
+        if a.confirm and a.stage == "github":
+            confirm(["GitHub     : release v%s with %d assets"
+                     % (VERSION, len(manifest["files"]) + 1)])
+        github_release(folder, manifest, changelog, a.release_type, a.confirm)
+        if a.stage == "github":
+            print("\nDRY RUN — nothing was created. Re-run with --confirm." if not a.confirm
+                  else "\nGitHub done. The stores are --stage stores, once both tokens are set.")
+            return 0
+        print()
+
     cfg = load_config()
     # Modrinth takes "the id OR the slug" in a URL path and only the base62 id in a version payload —
     # a distinction its own docs make and nothing enforces until the POST. The config holds the slug,
@@ -347,7 +450,6 @@ def main():
     env_warning = modrinth_environment(cfg, manifest)
 
     todo = []
-    print("River Fishing %s — %s\n" % (VERSION, folder))
     for m in manifest["files"]:
         mr, cf = plan(m, cfg, changelog, a.release_type)
         cf["gameVersions"] = cf_resolve(index, cf_names(m))
@@ -374,7 +476,9 @@ def main():
     if not n_cf and not n_mr:
         print("\neverything in this release is already published — nothing to do")
         return 0
-    confirm(n_cf, n_mr, env_warning)
+    confirm(["GitHub     : v%s (created above, before this prompt)" % VERSION,
+             "CurseForge : %d file(s)" % n_cf,
+             "Modrinth   : %d version(s)" % n_mr], env_warning)
 
     for m, mr, cf, skip_mr, skip_cf in todo:
         blob = io.open(os.path.join(folder, m["file"]), "rb").read()
