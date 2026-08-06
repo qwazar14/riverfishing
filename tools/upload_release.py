@@ -41,7 +41,7 @@ Safety, because the other end of this is the public:
   * `updates.json` is never touched. Bumping it is what notifies every running client, and it belongs
     after the files are actually live — the order is in the sheet collect_release.py writes.
 """
-import argparse, io, json, os, shutil, subprocess, sys, urllib.error, urllib.request, uuid
+import argparse, hashlib, io, json, os, shutil, subprocess, sys, urllib.error, urllib.request, uuid
 
 from collect_release import mod_version
 from verify_release_jars import inspect, LOCALES
@@ -233,7 +233,10 @@ def cf_state_path(folder):
     ponytail: local state, not the server's. A run killed between the POST and this write duplicates that
     one file; check the page. A listing endpoint on CurseForge's side would fix it properly.
     """
-    return os.path.join(folder, "uploaded-curseforge.json")
+    # NOT inside the release folder: collect_release.py opens with shutil.rmtree on it, so the natural
+    # mid-release reaction — fix one jar, re-collect — silently destroyed the only record of what had
+    # already gone up, and the resume re-uploaded all eight.
+    return os.path.join(os.path.dirname(CONFIG), ".riverfishing-uploaded-%s.json" % VERSION)
 
 
 def modrinth_environment(cfg, manifest):
@@ -273,7 +276,8 @@ def gh(*args, capture=True):
     credential in the OS keyring and this script never sees it. `gh` also uploads assets in one call,
     where the raw API wants a separate upload host per file.
     """
-    p = subprocess.run(("gh",) + args, capture_output=capture, text=True, encoding="utf-8")
+    p = subprocess.run(("gh",) + args, capture_output=capture, text=True, encoding="utf-8",
+                       cwd=REPO)
     if p.returncode != 0:
         sys.exit("gh %s failed:\n%s" % (" ".join(args), (p.stderr or p.stdout or "").strip()[:2000]))
     return (p.stdout or "").strip()
@@ -282,11 +286,14 @@ def gh(*args, capture=True):
 def github_asset_name(m):
     """The jar's name ON THE RELEASE PAGE, which cannot be the name in the folder.
 
-    GitHub rewrites every character outside [A-Za-z0-9._-] in an asset name to a dot, so the collect
-    name `riverfishing-fabric-0.7.1+1.20.1.jar` would arrive as `riverfishing-fabric-0.7.1.1.20.1.jar`
-    — the version and the Minecraft line run together and the two 1.20.1 Fabric jars of different
-    releases become indistinguishable. This is the scheme every previous release already used, derived
-    from the same manifest so the two names cannot drift apart.
+    This once claimed GitHub rewrites a "+" in an asset name. It does not — v0.6.1 of this repo is
+    live with `riverfishing-fabric-0.6.1+1.20.1.jar`, the plus stored verbatim and percent-encoded in
+    the download URL. The claim was asserted without being checked, and it is recorded here rather than
+    quietly deleted because it is exactly the kind of tidy-sounding reason that survives review.
+
+    The real reason is smaller: v0.7.0 and v0.7.1 are already public under this scheme, and a download
+    link a human retypes reads better without an escape in it. Derived from the same manifest as
+    everything else, so the release name and the store name cannot drift apart.
     """
     return "riverfishing-%s-mc%s-%s.jar" % (VERSION, m["minecraft"], m["loader"].lower())
 
@@ -298,17 +305,31 @@ def github_release(folder, manifest, changelog, release_type, confirmed):
     is a new version must find it, and the store pages take hours to approve.
     """
     tag = "v" + VERSION
-    p = subprocess.run(("gh", "release", "view", tag, "--json", "tagName"),
-                       capture_output=True, text=True, encoding="utf-8")
+    # `gh release create` without --target tags the repository's DEFAULT branch, not the commit the jars
+    # were built from. main here is 169 commits behind and says mod_version=0.6.0, so v0.7.1 was created
+    # naming 0.6.0 source: the download was right and "build it from the tag" gave you the wrong mod.
+    head = subprocess.run(("git", "rev-parse", "HEAD"), cwd=REPO,
+                          capture_output=True, text=True, encoding="utf-8")
+    if head.returncode != 0 or not head.stdout.strip():
+        sys.exit("cannot read HEAD — a release has to name the commit it was built from")
+    target = head.stdout.strip()
+    p = subprocess.run(("gh", "release", "view", tag, "--json", "tagName,isDraft"),
+                       capture_output=True, text=True, encoding="utf-8", cwd=REPO)
     if p.returncode == 0:
+        # `gh release create` with assets uploads into a DRAFT and publishes at the end, so a run killed
+        # mid-upload leaves one behind. Treating that as "already released" would skip the stage and
+        # leave a half-uploaded release invisible on the page.
+        if json.loads(p.stdout).get("isDraft"):
+            sys.exit("GitHub %s exists as an unpublished DRAFT — an earlier run died mid-upload.\n"
+                     "Delete it (gh release delete %s --cleanup-tag) and run this again." % (tag, tag))
         print("GitHub      %s already exists — skipping" % tag)
         return False
 
     staged = os.path.join(folder, "github")
     pre = release_type != "release"
     if not confirmed:
-        print("GitHub      would create %s%s with %d assets:"
-              % (tag, " (pre-release)" if pre else "", len(manifest["files"]) + 1))
+        print("GitHub      would create %s%s at %s with %d assets:"
+              % (tag, " (pre-release)" if pre else "", target[:12], len(manifest["files"]) + 1))
         for m in manifest["files"]:
             print("              %s" % github_asset_name(m))
         print("              SHA256SUMS.txt")
@@ -321,20 +342,26 @@ def github_release(folder, manifest, changelog, release_type, confirmed):
     os.makedirs(staged)
     for m in manifest["files"]:
         shutil.copy2(os.path.join(folder, m["file"]), os.path.join(staged, github_asset_name(m)))
+    # Hashed from the file being uploaded, not copied from the manifest. The manifest records what
+    # collect_release saw; between then and now a jar can have been rebuilt, and a sums file that asserts
+    # a hash nobody re-checked is worse than none — it is the thing players verify a download against.
     sums = os.path.join(staged, "SHA256SUMS.txt")
     io.open(sums, "w", encoding="utf-8", newline="\n").write("".join(
-        "%s  %s\n" % (m["sha256"], github_asset_name(m)) for m in manifest["files"]))
+        "%s  %s\n" % (hashlib.sha256(io.open(os.path.join(staged, github_asset_name(m)), "rb").read())
+                       .hexdigest(), github_asset_name(m))
+        for m in manifest["files"]))
 
     notes = os.path.join(staged, "NOTES.md")
     io.open(notes, "w", encoding="utf-8", newline="\n").write(changelog)
     # A beta or an alpha is a PRE-release on GitHub too. Without this the stores would label it beta
     # and the release page would call the same build final — one fact, two answers, in public.
-    args = ["release", "create", tag, "--title", "River Fishing " + VERSION, "--notes-file", notes]
+    args = ["release", "create", tag, "--target", target,
+            "--title", "River Fishing " + VERSION, "--notes-file", notes]
     if pre:
         args.append("--prerelease")
     gh(*args, *[os.path.join(staged, github_asset_name(m)) for m in manifest["files"]], sums)
-    print("GitHub      %s created%s with %d assets"
-          % (tag, " as a pre-release" if pre else "", len(manifest["files"]) + 1))
+    print("GitHub      %s created%s at %s with %d assets"
+          % (tag, " as a pre-release" if pre else "", target[:12], len(manifest["files"]) + 1))
     return True
 
 
@@ -373,7 +400,7 @@ def confirm(lines, env_warning=None):
     print("=" * 78)
     want = "publish %s" % VERSION
     if input('Type "%s" to go ahead, anything else to stop: ' % want).strip() != want:
-        sys.exit("stopped — nothing was published")
+        sys.exit("stopped — nothing FURTHER was published; anything printed above already is")
 
 
 def main():
@@ -405,8 +432,15 @@ def main():
     # Not the whole of verify_release_jars.py: its other half checks the PrismLauncher instances on this
     # machine, which has nothing to do with publishing and fails anywhere else. Its jar-content check is
     # the release-relevant part, and a jar that lost a translation is not one to put on a store page.
+    # manifest["version"] and VERSION both come out of gradle.properties, so they agree however stale
+    # the folder is. This is the check that would have caught 0.7.0 going out eight jars behind what was
+    # actually built: the recorded hash against the bytes on disk.
     for m in manifest["files"]:
-        info = inspect(os.path.join(folder, m["file"]))
+        path = os.path.join(folder, m["file"])
+        if hashlib.sha256(io.open(path, "rb").read()).hexdigest() != m["sha256"]:
+            sys.exit("%s does not match the hash collect_release recorded — the folder is stale.\n"
+                     "Run `python tools/collect_release.py` and try again." % m["file"])
+        info = inspect(path)
         missing = [l for l in LOCALES if l not in info["locales"]]
         if missing or not info["discord"]:
             sys.exit("%s is missing %s — fix the build before publishing it"
@@ -424,8 +458,12 @@ def main():
     # player told there is a new version has somewhere to go while the store pages sit in approval — and
     # it needs no API token of ours, so it must not be gated behind two the operator may not have yet.
     if a.stage in ("all", "github"):
-        # The typed gate has to sit HERE for a github-only run: that path returns before the gate below.
-        if a.confirm and a.stage == "github":
+        # The typed gate sits HERE for EVERY run that publishes to GitHub. It was once written
+        # `a.confirm and a.stage == "github"`, which covered the github-only path and left the DEFAULT
+        # one — --stage all — writing a public release before a single question was asked, and before
+        # load_config or the token check could abort. A guard that covers some of the paths to a write
+        # is the same mistake it was written to fix.
+        if a.confirm:
             confirm(["GitHub     : release v%s with %d assets"
                      % (VERSION, len(manifest["files"]) + 1)])
         github_release(folder, manifest, changelog, a.release_type, a.confirm)
