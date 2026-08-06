@@ -1,12 +1,30 @@
 {
   "_comment": "River Fishing update feed (§update-check). Served raw from the mc-1.21.1 branch; the in-game checker compares 'latest' for the running MC version and prints up to 3 bullets per missed release. Bump 'latest' ONLY when a release is actually published.",
   "latest": {
-    "1.20.1": "0.7.0",
-    "1.21.1": "0.7.0",
-    "26.1.2": "0.7.0",
-    "26.2": "0.7.0"
+    "1.20.1": "0.7.1",
+    "1.21.1": "0.7.1",
+    "26.1.2": "0.7.1",
+    "26.2": "0.7.1"
   },
   "changelog": [
+    {
+      "version": "0.7.1",
+      "ru": [
+        "Бой переехал на стрелки — WASD больше не уводят вас в воду с пирса; клавиши переназначаются",
+        "Реки читают берега: таёжная река держит тайменя и форель, которых там раньше не было вообще",
+        "Пойманная рыба больше не пропадает при полном инвентаре, а наживка тратится при сходе"
+      ],
+      "uk": [
+        "Бій переїхав на стрілки — WASD більше не зводять вас у воду з пірса; клавіші перепризначаються",
+        "Річки читають береги: тайгова річка тримає тайменя і форель, яких там не було взагалі",
+        "Спіймана риба більше не зникає при повному інвентарі, а живець витрачається при сході"
+      ],
+      "en": [
+        "The fight moved to the arrow keys — WASD no longer walks you off a pier; all four rebind",
+        "Rivers read their banks: a taiga river holds the taimen and trout it never could before",
+        "A landed fish is no longer lost to a full inventory, and a missed bite costs you the bait"
+      ]
+    },
     {
       "version": "0.7.0",
       "ru": [
