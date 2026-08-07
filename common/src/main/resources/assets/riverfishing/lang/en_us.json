@@ -932,5 +932,6 @@
   "key.riverfishing.pull_left": "Fight: pull LEFT",
   "key.riverfishing.pull_right": "Fight: pull RIGHT",
   "key.riverfishing.lift": "Fight: LIFT the rod",
-  "key.riverfishing.push": "Fight: rod DOWN"
+  "key.riverfishing.push": "Fight: rod DOWN",
+  "tooltip.riverfishing.knife_strips": "Crouch: cut into bait strips instead"
 }

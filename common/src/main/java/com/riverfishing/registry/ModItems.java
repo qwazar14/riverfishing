@@ -93,6 +93,7 @@ public final class ModItems {
     // ---- Processing (ÃÂ§11) ----
     public static final RegistrySupplier<Item> FILLET_KNIFE;
     public static final RegistrySupplier<Item> RAW_FILLET;
+    public static final RegistrySupplier<Item> FISH_STRIP;
     public static final RegistrySupplier<Item> COOKED_FILLET;
     // ---- Maintenance (ÃÂ§3.8) ----
     public static final RegistrySupplier<Item> WHETSTONE;
@@ -174,7 +175,8 @@ public final class ModItems {
 
         // ----- Natural baits -----
         // §sea-tackle (0.5.0): cut fish strip — the universal saltwater hook bait.
-        registerBait("fish_strip", false);
+        // Held here because the filleting knife cuts them (§one-cutter) and needs the item.
+        FISH_STRIP = registerBait("fish_strip", false);
         registerBait("maggot", false);
         WORM = registerBait("worm", false);
         registerBait("bloodworm", false);
