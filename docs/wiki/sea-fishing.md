@@ -19,7 +19,7 @@ The four saltwater reels (8000, 10000, 12000, 14000) need ocean loot: prismarine
 
 For line, the heavy tier exists precisely for these reels: mono up to 0.80 mm (64 kg) and braid up to 0.60 mm (108 kg). A 400 kg marlin needs it.
 
-The universal saltwater hook bait is **Fish strip** — four from any caught fish. Nineteen species rate it, nine of them at 0.9 or better.
+The universal saltwater hook bait is **Fish strip** — crouch and right-click a caught fish with the Filleting Knife, one strip per 100 g of it. Nineteen species rate it, nine of them at 0.9 or better.
 
 Four sea species are toothy enough to demand a leader: **Conger eel, Wahoo, Barracuda** and **Mako shark**.
 

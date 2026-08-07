@@ -124,7 +124,7 @@ Twelve natural baits, plus the Ice Jig which lives in bait slots.
 | Dough | `dough` | Wheat + Water Bucket (shapeless). |
 | Bread Crumb | `bread` | 1 × Bread → **4** (shapeless). |
 | Boilie | `boilie` | 2 × Wheat + Egg + Sugar → **4** (shapeless). |
-| Fish strip | `fish_strip` | Any caught fish → **4** (shapeless). The universal saltwater bait. |
+| Fish strip | `fish_strip` | **Crouch** + right-click a caught fish with the Filleting Knife — one strip per 100 g. The universal saltwater bait. |
 | Live Bait | `livebait` | Any caught fish of **150 g or less**, put alone in the grid. Or hold the fish, a hook in the off hand, sneak and use. Or gather them in a [Bait Trap](blocks.md#bait-trap). |
 | Ice Jig | `mormyshka` | Gold Nugget + any hook (No.16–No.4) + 2 × String. |
 

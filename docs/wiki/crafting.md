@@ -163,7 +163,6 @@ A **special recipe**: any one artificial lure plus one or more **dyes** in the g
 | Dough | shapeless | Wheat + Water Bucket |
 | Bread Crumb **×4** | shapeless | 1 × Bread |
 | Boilie **×4** | shapeless | 2 × Wheat + Egg + Sugar |
-| Fish strip **×4** | shapeless | Any fish (`riverfishing:fishes`) |
 | Ice Jig | shapeless | Gold Nugget + any hook No.16–No.4 + 2 × String |
 | Live Bait | **special** | One caught fish weighing **150 g or less**, alone in the grid — the bait keeps the fish's weight |
 

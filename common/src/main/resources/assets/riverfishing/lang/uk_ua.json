@@ -932,5 +932,6 @@
   "key.riverfishing.pull_left": "Бій: тягнути ВЛІВО",
   "key.riverfishing.pull_right": "Бій: тягнути ВПРАВО",
   "key.riverfishing.lift": "Бій: ПІДНЯТИ вудилище",
-  "key.riverfishing.push": "Бій: вудилище ВНИЗ"
+  "key.riverfishing.push": "Бій: вудилище ВНИЗ",
+  "tooltip.riverfishing.knife_strips": "Присісти: нарізати на смужки-наживку"
 }

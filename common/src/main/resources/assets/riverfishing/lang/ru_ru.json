@@ -932,5 +932,6 @@
   "key.riverfishing.pull_left": "Бой: тянуть ВЛЕВО",
   "key.riverfishing.pull_right": "Бой: тянуть ВПРАВО",
   "key.riverfishing.lift": "Бой: ПОДНЯТЬ удилище",
-  "key.riverfishing.push": "Бой: удилище ВНИЗ"
+  "key.riverfishing.push": "Бой: удилище ВНИЗ",
+  "tooltip.riverfishing.knife_strips": "Присесть: нарезать на полоски-наживку"
 }
