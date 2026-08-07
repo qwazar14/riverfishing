@@ -46,7 +46,8 @@ spook the water you are standing over, and a spooked fish does not bite.
 
 ## The fight asks you questions
 
-Every run has a **course**, and you answer it with the movement keys: the fish tracks left, you lean on
+Every run has a **course**, and you answer it on the **arrow keys** — rebindable in Minecraft's own
+controls, so WASD stays your feet. The fish tracks left, you lean on
 it from the right; it goes deep, you pull back and get its head up; it comes up to jump, you put the rod
 down. Answering right is not a tax — the fish tires nearly three times as fast and the run loads your
 tackle at half rate.
@@ -73,7 +74,7 @@ too visible spooks small wary fish while a big one barely notices.
 
 ## Highlights
 
-- **Five ways to fish** — float, spinning, long-cast bottom, ice, and a full saltwater tier with surf,
+- **Six ways to fish** — float, spinning, long-cast bottom, ice, trolling, and a full saltwater tier with surf,
   boat and trolling rods, ocean depth zones and big-game fight patterns.
 - **The Tackle Station** — the fisherman's stall is also your bench: pick a form, step the weight, feed
   it hooks, iron and string. Weight sets cast distance, has to fall inside your blank's test window, and
@@ -103,8 +104,7 @@ The mod runs fine alone, but the balance is written around two optional add-ons:
 - **Serene Seasons** — unlocks the full seasonal bite (spring spawning runs, the winter slow-down).
 - **Biomes O' Plenty** — a richer world for the habitat and biome factors to work in.
 
-Supports **JEI** and **Jade** on 1.20.1 and 1.21.1; the Filleting Knife registers as a knife for
-**Farmer's Delight**.
+Supports **JEI** and **Jade** on 1.20.1 and 1.21.1.
 
 ---
 
@@ -131,7 +131,7 @@ Supports **JEI** and **Jade** on 1.20.1 and 1.21.1; the Filleting Knife register
    be thrown properly, shown as a dead zone on the bar.
 7. **Watch the float — silently.** There is no "Bite!" text. The float plunges, the line twitches. Float
    rods run a small timing mini-game: strike while the marker is in the green.
-8. **Fight it.** Read the course off the boss bar, answer with the movement keys, ease off when it runs,
+8. **Fight it.** Read the course off the boss bar, answer on the arrow keys, ease off when it runs,
    and watch your stamina. Land it and you get a unique item carrying the **species, weight and length**.
 
 Read the **journal** for a per-species "how to catch", or scan the water with the **Fish Finder** to see
