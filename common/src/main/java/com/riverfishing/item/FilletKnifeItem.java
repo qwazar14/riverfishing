@@ -24,6 +24,8 @@ import java.util.List;
  */
 public class FilletKnifeItem extends Item {
     private static final int GRAMS_PER_FILLET = 300;
+    /** A bait strip is a smaller piece than a food fillet, so a small fish is still worth cutting. */
+    private static final int GRAMS_PER_STRIP = 100;
 
     public FilletKnifeItem(Properties properties) {
         super(properties);
@@ -44,11 +46,13 @@ public class FilletKnifeItem extends Item {
             int weight = FishItem.getWeightG(target);
             // One fish is at most one stack. Unbounded, a legendary catfish paid 500 fillets and
             // a blue marlin 1333 — a single right-click that fed a server for a week.
-            int count = Mth.clamp(weight / GRAMS_PER_FILLET, 1, 64);
+            boolean strips = player.isShiftKeyDown();   // crouch cuts bait, standing cuts food
+            int count = Mth.clamp(
+                    weight / (strips ? GRAMS_PER_STRIP : GRAMS_PER_FILLET), 1, 64);
             target.shrink(1);
-            ItemStack fillets = new ItemStack(ModItems.RAW_FILLET.get(), count);
-            if (!player.getInventory().add(fillets)) {
-                player.drop(fillets, false);
+            ItemStack cut = new ItemStack((strips ? ModItems.FISH_STRIP : ModItems.RAW_FILLET).get(), count);
+            if (!player.getInventory().add(cut)) {
+                player.drop(cut, false);
             }
             knife.hurtAndBreak(1, player, hand == net.minecraft.world.InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
             level.playSound(null, player.blockPosition(), SoundEvents.PLAYER_ATTACK_SWEEP,
