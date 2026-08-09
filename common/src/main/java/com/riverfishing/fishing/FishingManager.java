@@ -624,10 +624,12 @@ public final class FishingManager {
         // exactly like hand-feeding the water with a right-click.
         ItemStack rigNow = RodData.get(rod, ComponentSlot.RIG);
         if (RiverFishingConfig.consumeGroundbait() && rigNow.getItem() instanceof RigItem) {
-            String fedCategory = RigData.consumeGroundbait(rigNow);
-            if (fedCategory != null) {
+            ItemStack fedStack = RigData.consumeGroundbait(rigNow);
+            if (!fedStack.isEmpty()) {
                 RodData.set(rod, ComponentSlot.RIG, rigNow);
-                FeedZoneData.get(level).feed(waterPos, fedCategory, now);
+                FeedZoneData.get(level).feed(waterPos,
+                        com.riverfishing.groundbait.GroundbaitNbt.read(fedStack), now,
+                        com.riverfishing.groundbait.GroundbaitAppetite.at(level, waterPos));
             }
         }
         double typeRate = ctx.lineType == LineType.FLUORO ? 0.6 : 1.0; // fluoro wears slower (§3.8)
@@ -1189,6 +1191,8 @@ public final class FishingManager {
             ctx.inFeedZone = true;
             ctx.feedFreshness = feed.freshness();
             ctx.feedCategory = feed.category();
+            ctx.feedFraction = feed.fraction();
+            ctx.feedSatiety = feed.satiety();
         }
 
         RandomSource random = level.getRandom();
@@ -2874,6 +2878,8 @@ public final class FishingManager {
             ctx.inFeedZone = feed.inZone();
             ctx.feedFreshness = zoneFresh;
             ctx.feedCategory = feed.category();
+            ctx.feedFraction = feed.fraction();
+            ctx.feedSatiety = feed.satiety();
         } else {
             ctx.inFeedZone = true;
             ctx.feedFreshness = cageFresh;

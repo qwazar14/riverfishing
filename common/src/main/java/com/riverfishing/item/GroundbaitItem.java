@@ -55,21 +55,75 @@ public class GroundbaitItem extends Item {
             return InteractionResultHolder.fail(stack);
         }
 
-        FeedZoneData.get(serverLevel).feed(pos, category, serverLevel.getGameTime());
+        com.riverfishing.groundbait.GroundbaitMix mix =
+                com.riverfishing.groundbait.GroundbaitNbt.read(stack);
+        double appetite = com.riverfishing.groundbait.GroundbaitAppetite.at(serverLevel, pos);
+
+        // Read the spot BEFORE feeding it: telling someone they overfed only helps if it is said at the
+        // moment they did it, and after the call the new satiety is already in.
+        double satietyBefore = FeedZoneData.get(serverLevel).query(pos, serverLevel.getGameTime()).satiety();
+        FeedZoneData.get(serverLevel).feed(pos, mix, serverLevel.getGameTime(), appetite);
+        double satietyAfter = FeedZoneData.get(serverLevel).query(pos, serverLevel.getGameTime()).satiety();
         stack.shrink(1);
 
         serverLevel.playSound(null, pos, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.7f, 1.1f);
         serverLevel.sendParticles(ParticleTypes.SPLASH, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
                 16, 0.4, 0.1, 0.4, 0.1);
-        // §groundbait-particles: a coloured cloud of THIS groundbait so different feeds look different.
-        serverLevel.sendParticles(FeedZoneData.particleFor(category), pos.getX() + 0.5, pos.getY() + 1.05,
+        // §groundbait-particles: the cloud is the colour of the mix, so a bucket of your own blend looks
+        // like itself in the water and two different spots are told apart at a glance.
+        serverLevel.sendParticles(FeedZoneData.particleFor(mix.rgb()), pos.getX() + 0.5, pos.getY() + 1.05,
                 pos.getZ() + 0.5, 20, 0.4, 0.06, 0.4, 0.0);
-        sp.displayClientMessage(Component.translatable("message.riverfishing.fed_spot").withStyle(ChatFormatting.GREEN), true);
+
+        // Overfeeding is the one thing here that is worse than doing nothing, so it says so out loud —
+        // and only on the throw that crossed the line, not every throw after it.
+        if (satietyAfter > 0.65 && satietyBefore <= 0.65) {
+            sp.displayClientMessage(Component.translatable("message.riverfishing.spot_overfed")
+                    .withStyle(ChatFormatting.RED), true);
+        } else {
+            sp.displayClientMessage(Component.translatable("message.riverfishing.fed_spot")
+                    .withStyle(ChatFormatting.GREEN), true);
+        }
         return InteractionResultHolder.consume(stack);
     }
 
     @Override
     public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.riverfishing.groundbait_use").withStyle(s -> s.withColor(0x80A080)));
+
+        // §groundbait-mix: the number AND the word. The figure alone teaches nothing the first time and
+        // the word alone is never precise enough to compare two jars.
+        com.riverfishing.groundbait.GroundbaitMix mix =
+                com.riverfishing.groundbait.GroundbaitNbt.read(stack);
+        tooltip.add(Component.translatable("tooltip.riverfishing.gb_nutrition",
+                        String.format(java.util.Locale.ROOT, "%.2f", mix.nutrition()),
+                        Component.translatable("tooltip.riverfishing.gb_rich_" + richWord(mix.nutrition())))
+                .withStyle(s -> s.withColor(0xC8A050)));
+        tooltip.add(Component.translatable("tooltip.riverfishing.gb_fraction",
+                        String.format(java.util.Locale.ROOT, "%.2f", mix.fraction()),
+                        Component.translatable("tooltip.riverfishing.gb_coarse_" + coarseWord(mix.fraction())))
+                .withStyle(s -> s.withColor(0x8FB0C8)));
+        if (!mix.isPreset()) {
+            for (com.riverfishing.groundbait.GroundbaitMix.Part p : mix.parts()) {
+                tooltip.add(Component.literal("  " + p.spoons() + " x ")
+                        .append(Component.translatable(partKey(p.id())))
+                        .withStyle(s -> s.withColor(0x7F8C99)));
+            }
+        }
+    }
+
+    /** Coarse words for the three bands a player actually distinguishes. */
+    private static String richWord(double nutrition) {
+        return nutrition >= 0.70 ? "high" : nutrition >= 0.35 ? "mid" : "low";
+    }
+
+    private static String coarseWord(double fraction) {
+        return fraction >= 0.65 ? "coarse" : fraction >= 0.30 ? "mid" : "fine";
+    }
+
+    /** A pantry id is either one of ours or a vanilla item; both name themselves the same way. */
+    private static String partKey(String id) {
+        return id.startsWith("minecraft:")
+                ? "item.minecraft." + id.substring("minecraft:".length())
+                : "item.riverfishing." + id;
     }
 }

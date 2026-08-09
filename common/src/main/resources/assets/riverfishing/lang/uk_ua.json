@@ -935,5 +935,14 @@
   "key.riverfishing.push": "Бій: вудилище ВНИЗ",
   "tooltip.riverfishing.knife_strips": "Присісти: нарізати на смужки-наживку",
   "item.riverfishing.groundbait_soil": "Прикормовий ґрунт",
-  "tooltip.riverfishing.groundbait_soil": "Інертний наповнювач — об'єм і каламуть, без калорій"
+  "tooltip.riverfishing.groundbait_soil": "Інертний наповнювач — об'єм і каламуть, без калорій",
+  "message.riverfishing.spot_overfed": "Точка перегодована — риба їсть, а не клює",
+  "tooltip.riverfishing.gb_nutrition": "Поживність %s (%s)",
+  "tooltip.riverfishing.gb_fraction": "Фракція %s (%s)",
+  "tooltip.riverfishing.gb_rich_high": "ситна",
+  "tooltip.riverfishing.gb_rich_mid": "помірна",
+  "tooltip.riverfishing.gb_rich_low": "пісна",
+  "tooltip.riverfishing.gb_coarse_coarse": "велика, тримає велику рибу",
+  "tooltip.riverfishing.gb_coarse_mid": "змішана",
+  "tooltip.riverfishing.gb_coarse_fine": "дрібна, курить"
 }

@@ -935,5 +935,14 @@
   "key.riverfishing.push": "Fight: rod DOWN",
   "tooltip.riverfishing.knife_strips": "Crouch: cut into bait strips instead",
   "item.riverfishing.groundbait_soil": "Groundbait Soil",
-  "tooltip.riverfishing.groundbait_soil": "Inert filler — bulk and cloud, no food"
+  "tooltip.riverfishing.groundbait_soil": "Inert filler — bulk and cloud, no food",
+  "message.riverfishing.spot_overfed": "The spot is stuffed — they are feeding, not biting",
+  "tooltip.riverfishing.gb_nutrition": "Nutrition %s (%s)",
+  "tooltip.riverfishing.gb_fraction": "Fraction %s (%s)",
+  "tooltip.riverfishing.gb_rich_high": "rich",
+  "tooltip.riverfishing.gb_rich_mid": "moderate",
+  "tooltip.riverfishing.gb_rich_low": "lean",
+  "tooltip.riverfishing.gb_coarse_coarse": "coarse, holds big fish",
+  "tooltip.riverfishing.gb_coarse_mid": "mixed",
+  "tooltip.riverfishing.gb_coarse_fine": "fine, clouds"
 }
