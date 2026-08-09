@@ -35,5 +35,11 @@ public final class ModRecipes {
             REGISTER.register("crafting_tackle_box_dye",
                     () -> new SimpleCraftingRecipeSerializer<>(com.riverfishing.item.TackleBoxDyeRecipe::new));
 
+    // §groundbait-mix (0.8.0): stir your own groundbait — one item in the grid is one spoon.
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.groundbait.GroundbaitMixRecipe>>
+            GROUNDBAIT_MIX = REGISTER.register("crafting_groundbait_mix",
+                    () -> new SimpleCraftingRecipeSerializer<>(
+                            com.riverfishing.groundbait.GroundbaitMixRecipe::new));
+
     private ModRecipes() {}
 }

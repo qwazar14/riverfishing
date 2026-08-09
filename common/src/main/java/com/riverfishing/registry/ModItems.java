@@ -79,6 +79,8 @@ public final class ModItems {
             "common_dace", "volga_zander", "white_eye_bream", "round_goby"
     };
     public static final Map<ResourceLocation, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
+    /** category -> the ready-made jar, for §groundbait-mix. */
+    public static final Map<String, RegistrySupplier<Item>> GROUNDBAITS = new HashMap<>();
     // ---- Baits referenced by event drops ----
     public static final RegistrySupplier<Item> WORM;
     public static final RegistrySupplier<Item> CHICKEN_LIVER;
@@ -218,8 +220,10 @@ public final class ModItems {
         registerBait("giant_spoon", true);
 
         // ----- Groundbaits -----
+        // Kept by category: §groundbait-mix has to hand a stirred mix back in the jar matching what it
+        // reads as, so a grain mix also LOOKS like grain on the hotbar.
         for (String cat : new String[]{"powder", "grain", "pellet", "cake"}) {
-            reg("groundbait_" + cat, () -> new GroundbaitItem(cat, props()));
+            GROUNDBAITS.put(cat, reg("groundbait_" + cat, () -> new GroundbaitItem(cat, props())));
         }
 
         // ----- Bite alarms (Module 3) -----

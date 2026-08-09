@@ -211,6 +211,39 @@ public final class GroundbaitMix {
     }
 
     /**
+     * Is this a MIX, or is it one of the plain two-ingredient recipes?
+     *
+     * <p>The four ready-made groundbaits are crafted from pantry components — powder is bread and wheat,
+     * grain is wheat and wheat seeds — so "two things from the pantry" cannot be what defines a mix
+     * without stealing those recipes, with the winner decided by registry order. A mix is therefore
+     * something you could not have got out of the basic recipes:
+     *
+     * <ul>
+     *   <li>three or more different components, or</li>
+     *   <li>anything with ballast in it — the whole point of the system, and no basic recipe uses it, or</li>
+     *   <li>anything built on a ready-made jar — base plus your own particles, the realistic workflow, or</li>
+     *   <li>anything you dyed.</li>
+     * </ul>
+     */
+    public static boolean qualifiesAsMix(List<Part> recipe, boolean dyed) {
+        if (dyed) return true;
+        int distinct = 0;
+        for (Part p : recipe) {
+            Component c = PANTRY.get(p.id());
+            if (c == null || p.spoons() <= 0) continue;
+            distinct++;
+            if (c.pull() == null) return true;                 // ballast
+            if (PRESETS.containsKey(stripJar(p.id()))) return true;  // a ready-made jar as a base
+        }
+        return distinct >= 3;
+    }
+
+    /** "groundbait_grain" -> "grain"; anything else unchanged. */
+    private static String stripJar(String id) {
+        return id.startsWith("groundbait_") ? id.substring("groundbait_".length()) : id;
+    }
+
+    /**
      * Self-check for the arithmetic that decides what a mix is. Runs from {@code RiverFishing.init()},
      * so a bad edit to the pantry fails on load rather than three hours into someone's session.
      *
@@ -258,6 +291,20 @@ public final class GroundbaitMix {
 
         // Vanilla components have to be reachable by their full id, or the first mix waits on a farm.
         require(of(List.of(new Part("minecraft:wheat", 3))) != null, "vanilla wheat must stir");
+
+        // The mix rule must never swallow the basic two-ingredient recipes.
+        require(!qualifiesAsMix(List.of(new Part("minecraft:bread", 1), new Part("minecraft:wheat", 1)), false),
+                "bread + wheat is the powder recipe, not a mix");
+        require(!qualifiesAsMix(List.of(new Part("minecraft:wheat", 1), new Part("minecraft:wheat_seeds", 1)), false),
+                "wheat + seeds is the grain recipe, not a mix");
+        require(qualifiesAsMix(List.of(new Part("corn", 5), new Part("pea", 3), new Part("pearl_barley", 2)), false),
+                "three components is a mix");
+        require(qualifiesAsMix(List.of(new Part("corn", 3), new Part("groundbait_soil", 4)), false),
+                "anything with ballast is a mix");
+        require(qualifiesAsMix(List.of(new Part("groundbait_grain", 2), new Part("corn", 3)), false),
+                "a ready-made jar as a base is a mix");
+        require(qualifiesAsMix(List.of(new Part("minecraft:bread", 1), new Part("minecraft:wheat", 1)), true),
+                "a dye makes anything a mix");
 
         // Spoons are clamped rather than trusted: the UI limits them, the NBT does not.
         GroundbaitMix over = of(List.of(new Part("corn", 99)));
