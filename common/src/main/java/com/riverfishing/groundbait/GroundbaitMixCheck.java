@@ -24,32 +24,39 @@ public final class GroundbaitMixCheck {
             new Recipe("hammered town water", "lean, clouding, half ballast",
                     List.of(new GroundbaitMix.Part("corn", 3),
                             new GroundbaitMix.Part("bread", 1),
-                            new GroundbaitMix.Part("soil", 4))),
+                            new GroundbaitMix.Part("groundbait_soil", 4))),
             new Recipe("stocked pond", "imitates the pellets they are fed",
                     List.of(new GroundbaitMix.Part("boilie", 4),
                             new GroundbaitMix.Part("corn", 2))),
             new Recipe("wild lake", "all particle, lies on the bottom",
                     List.of(new GroundbaitMix.Part("corn", 5),
                             new GroundbaitMix.Part("pea", 3),
-                            new GroundbaitMix.Part("pearl_barley", 2))));
+                            new GroundbaitMix.Part("pearl_barley", 2))),
+            new Recipe("first mix, vanilla only", "wheat and a beetroot, hour one",
+                    List.of(new GroundbaitMix.Part("minecraft:wheat", 3),
+                            new GroundbaitMix.Part("minecraft:beetroot", 2),
+                            new GroundbaitMix.Part("minecraft:wheat_seeds", 1))));
 
     private record Recipe(String name, String intent, List<GroundbaitMix.Part> parts) {}
 
     public static void main(String[] args) {
         GroundbaitMix.selfCheck();
 
-        System.out.printf("%-22s %-8s %9s %9s   %s%n",
-                "mix", "category", "nutrition", "fraction", "intent");
-        System.out.println("-".repeat(78));
+        // Colour prints as hex, not as a LureColor class: that classifier lives in the engine package
+        // and drags Minecraft in with it, which would cost this runner the one property that makes it
+        // worth having. Tuning wants the hex anyway — the class is one of three buckets it falls in.
+        System.out.printf("%-22s %-8s %9s %9s %9s   %s%n",
+                "mix", "category", "nutrition", "fraction", "colour", "intent");
+        System.out.println("-".repeat(88));
         for (Recipe r : REFERENCE) {
             GroundbaitMix m = GroundbaitMix.of(r.parts());
             if (m == null) {
                 throw new IllegalStateException("reference mix does not stir: " + r.name());
             }
-            System.out.printf("%-22s %-8s %9.3f %9.3f   %s%n",
-                    r.name(), m.category(), m.nutrition(), m.fraction(), r.intent());
+            System.out.printf("%-22s %-8s %9.3f %9.3f  #%06X   %s%n",
+                    r.name(), m.category(), m.nutrition(), m.fraction(), m.rgb(), r.intent());
         }
-        System.out.println("-".repeat(78));
+        System.out.println("-".repeat(88));
         System.out.printf("presets: %s%n", GroundbaitMix.PRESETS.keySet());
         System.out.println("self-check passed");
     }

@@ -933,5 +933,7 @@
   "key.riverfishing.pull_right": "Fight: pull RIGHT",
   "key.riverfishing.lift": "Fight: LIFT the rod",
   "key.riverfishing.push": "Fight: rod DOWN",
-  "tooltip.riverfishing.knife_strips": "Crouch: cut into bait strips instead"
+  "tooltip.riverfishing.knife_strips": "Crouch: cut into bait strips instead",
+  "item.riverfishing.groundbait_soil": "Groundbait Soil",
+  "tooltip.riverfishing.groundbait_soil": "Inert filler — bulk and cloud, no food"
 }

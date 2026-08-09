@@ -40,10 +40,18 @@ public final class GroundbaitMix {
 
 
     /**
-     * What one component brings. {@code pull} is the category it drags the mix towards — null for an
-     * inert filler, which is the entire point of soil: volume and cloud, no calories and no identity.
+     * What one component brings.
+     *
+     * <p>{@code pull} is the category it drags the mix towards — null for an inert filler, which is the
+     * entire point of soil: volume and cloud, no calories and no identity.
+     *
+     * <p>{@code rgb} is what it stains the mix. Real groundbait is coloured on purpose — dark on clear
+     * pressured water so a fed patch does not look alarming, bright in murk so fish can find it — and
+     * beetroot really is one of the dyes people use. In the game it feeds {@link
+     * com.riverfishing.engine.LureColor}, the same classifier a painted lure goes through, so the rule
+     * a player learned on lures holds here too.
      */
-    public record Component(String id, double nutrition, double fraction, String pull) {}
+    public record Component(String id, double nutrition, double fraction, String pull, int rgb) {}
 
     /**
      * The pantry. Every entry but soil and bran is an item the mod already has.
@@ -54,53 +62,97 @@ public final class GroundbaitMix {
      */
     public static final Map<String, Component> PANTRY = new LinkedHashMap<>();
 
-    private static void put(String id, double nutrition, double fraction, String pull) {
-        PANTRY.put(id, new Component(id, nutrition, fraction, pull));
+    private static void put(String id, double nutrition, double fraction, String pull, int rgb) {
+        PANTRY.put(id, new Component(id, nutrition, fraction, pull, rgb));
     }
 
     static {
-        put("bread", 0.25, 0.10, "powder");
-        put("bran", 0.15, 0.05, "powder");
-        put("dough", 0.60, 0.30, "powder");
-        put("oil_cake", 0.55, 0.25, "cake");
-        put("corn", 0.85, 0.90, "grain");
-        put("pea", 0.80, 0.75, "grain");
-        put("pearl_barley", 0.70, 0.70, "grain");
-        put("boilie", 0.95, 1.00, "pellet");
-        put("maggot", 0.65, 0.55, "pellet");
-        put("soil", 0.00, 0.35, null);      // inert: the ballast that separates attracting from feeding
+        // ---- the four ready-made groundbaits, as INGREDIENTS ----
+        // The shop base mix is a real thing an angler builds on rather than replaces, and letting the
+        // old items into the pantry means 0.8.0 does not obsolete them: "base plus my own particles plus
+        // ballast" is both the realistic workflow and the reason a player who already has these keeps
+        // using them. Numbers are their preset numbers, so a jar of pure base fishes exactly as before.
+        put("groundbait_powder", 0.25, 0.10, "powder", 0xE0DBC4);
+        put("groundbait_grain", 0.80, 0.85, "grain", 0xEACF52);
+        put("groundbait_pellet", 0.90, 0.95, "pellet", 0x8C6640);
+        put("groundbait_cake", 0.55, 0.25, "cake", 0x8A7A3C);   // makuha: the smell-and-oil middle
+
+        // ---- the mod's own, the ones a committed angler farms ----
+        put("bread", 0.25, 0.10, "powder", 0xC9A46A);
+        put("dough", 0.60, 0.30, "powder", 0xE0D2A8);
+        put("corn", 0.85, 0.90, "grain", 0xE8C23A);
+        put("pea", 0.80, 0.75, "grain", 0x7FA24A);
+        put("pearl_barley", 0.70, 0.70, "grain", 0xD8CBA4);
+        put("boilie", 0.95, 1.00, "pellet", 0x9A4B2A);
+        put("maggot", 0.65, 0.55, "pellet", 0xEDE4C8);
+        put("groundbait_soil", 0.00, 0.35, null, 0x6B5236);   // inert ballast: no calories, no identity, all volume
+
+        // ---- vanilla, so the first mix does not wait on a farm ----
+        // Reach matters more than variety here: wheat and a potato are hour-one items, corn and boilies
+        // are not. Without these the whole system only opens up late, which is the wrong shape for the
+        // thing that is supposed to teach you how feeding works.
+        put("minecraft:wheat", 0.55, 0.45, "grain", 0xC8A83C);
+        put("minecraft:wheat_seeds", 0.30, 0.15, "powder", 0x93A857);
+        put("minecraft:bread", 0.45, 0.20, "powder", 0xB07840);
+        put("minecraft:potato", 0.60, 0.50, "grain", 0xD8B45C);
+        put("minecraft:carrot", 0.45, 0.55, "grain", 0xE8801C);
+        put("minecraft:beetroot", 0.40, 0.45, "grain", 0x8C1F35);   // the classic red dye, and it is food
+        put("minecraft:sweet_berries", 0.35, 0.40, "grain", 0xA02030);
+        put("minecraft:sugar", 0.20, 0.05, "powder", 0xF2F2F2);
+        put("minecraft:cocoa_beans", 0.35, 0.25, "cake", 0x6B3A1E);
+        put("minecraft:pumpkin_seeds", 0.55, 0.35, "cake", 0xD8CE8C);
+        put("minecraft:melon_seeds", 0.50, 0.30, "cake", 0xC8D8A0);
+        put("minecraft:dried_kelp", 0.40, 0.30, "powder", 0x2E5E36); // sea-side green, and it smells of sea
+        put("minecraft:clay_ball", 0.00, 0.55, null, 0x9AA7B4);      // the second ballast: binds, sinks, feeds nothing
     }
 
     /** The four ready-made items, as mixes. A preset is just a mix nobody had to stir. */
     public static final Map<String, GroundbaitMix> PRESETS = Map.of(
-            "powder", preset("powder", 0.25, 0.10),
-            "grain", preset("grain", 0.80, 0.85),
-            "pellet", preset("pellet", 0.90, 0.95),
-            "cake", preset("cake", 0.55, 0.25));
+            "powder", preset("powder", 0.25, 0.10, 0xE0DBC4),
+            "grain", preset("grain", 0.80, 0.85, 0xEACF52),
+            "pellet", preset("pellet", 0.90, 0.95, 0x8C6640),
+            "cake", preset("cake", 0.55, 0.25, 0xA8994D));
 
-    private static GroundbaitMix preset(String category, double nutrition, double fraction) {
-        return new GroundbaitMix(List.of(), category, nutrition, fraction);
+    private static GroundbaitMix preset(String category, double nutrition, double fraction, int rgb) {
+        return new GroundbaitMix(List.of(), category, nutrition, fraction, rgb);
     }
 
     private final List<Part> parts;
     private final String category;
     private final double nutrition;
     private final double fraction;
+    private final int rgb;
 
     public record Part(String id, int spoons) {}
 
-    private GroundbaitMix(List<Part> parts, String category, double nutrition, double fraction) {
+    private GroundbaitMix(List<Part> parts, String category, double nutrition, double fraction, int rgb) {
         this.parts = List.copyOf(parts);
         this.category = category;
         this.nutrition = nutrition;
         this.fraction = fraction;
+        this.rgb = rgb;
     }
 
     public List<Part> parts() { return parts; }
     public String category() { return category; }
     public double nutrition() { return nutrition; }
     public double fraction() { return fraction; }
+    /** The mix's own colour, before any dye. */
+    public int rgb() { return rgb; }
     public boolean isPreset() { return parts.isEmpty(); }
+
+    /** The same mix stained by a dye — what the bench does when the player drops a dye in. */
+    public GroundbaitMix dyed(int dyeRgb) {
+        return new GroundbaitMix(parts, category, nutrition, fraction, blend(rgb, dyeRgb, 0.6));
+    }
+
+    /** Weighted RGB blend. Straight per-channel: mixing powders is not light, it is paint. */
+    private static int blend(int a, int b, double towardsB) {
+        int r = (int) Math.round(((a >> 16) & 0xFF) * (1 - towardsB) + ((b >> 16) & 0xFF) * towardsB);
+        int g = (int) Math.round(((a >> 8) & 0xFF) * (1 - towardsB) + ((b >> 8) & 0xFF) * towardsB);
+        int bl = (int) Math.round((a & 0xFF) * (1 - towardsB) + (b & 0xFF) * towardsB);
+        return (r << 16) | (g << 8) | bl;
+    }
 
     /**
      * Stir the components into a mix.
@@ -114,7 +166,7 @@ public final class GroundbaitMix {
      *     groundbait, and letting it through would give the bite engine a category it cannot match.
      */
     public static GroundbaitMix of(List<Part> recipe) {
-        double totalSpoons = 0, nutrition = 0, fraction = 0;
+        double totalSpoons = 0, nutrition = 0, fraction = 0, red = 0, green = 0, blue = 0;
         Map<String, Integer> pulls = new LinkedHashMap<>();
         List<Part> kept = new ArrayList<>();
 
@@ -126,6 +178,11 @@ public final class GroundbaitMix {
             totalSpoons += spoons;
             nutrition += c.nutrition() * spoons;
             fraction += c.fraction() * spoons;
+            // Colour blends by spoon like everything else, and ballast DOES tint: a mix half soil really
+            // does come out the colour of soil, which is exactly why a lean town mix looks unalarming.
+            red += ((c.rgb() >> 16) & 0xFF) * spoons;
+            green += ((c.rgb() >> 8) & 0xFF) * spoons;
+            blue += (c.rgb() & 0xFF) * spoons;
             if (c.pull() != null) {
                 pulls.merge(c.pull(), spoons, Integer::sum);
             }
@@ -147,7 +204,10 @@ public final class GroundbaitMix {
                 category = e.getKey();
             }
         }
-        return new GroundbaitMix(kept, category, nutrition / totalSpoons, fraction / totalSpoons);
+        int rgb = ((int) Math.round(red / totalSpoons) << 16)
+                | ((int) Math.round(green / totalSpoons) << 8)
+                | (int) Math.round(blue / totalSpoons);
+        return new GroundbaitMix(kept, category, nutrition / totalSpoons, fraction / totalSpoons, rgb);
     }
 
     /**
@@ -166,11 +226,12 @@ public final class GroundbaitMix {
             require(c.nutrition() >= 0 && c.nutrition() <= 1, c.id() + " nutrition out of range");
             require(c.fraction() >= 0 && c.fraction() <= 1, c.id() + " fraction out of range");
             require(c.pull() == null || PRESETS.containsKey(c.pull()), c.id() + " pulls to no category");
+            require((c.rgb() & ~0xFFFFFF) == 0, c.id() + " colour is not a plain 24-bit rgb");
         }
 
         // Soil is the whole trick: half a mix of it halves the nutrition without changing the identity.
         GroundbaitMix pure = of(List.of(new Part("corn", 2)));
-        GroundbaitMix half = of(List.of(new Part("corn", 2), new Part("soil", 2)));
+        GroundbaitMix half = of(List.of(new Part("corn", 2), new Part("groundbait_soil", 2)));
         require(pure != null && half != null, "corn mixes must stir");
         require(pure.category().equals("grain") && half.category().equals("grain"),
                 "soil must not change what a mix is");
@@ -182,9 +243,21 @@ public final class GroundbaitMix {
         require(tie != null && tie.category().equals("grain"), "tie must go to the richer category");
 
         // Nothing but ballast is not groundbait, and must not reach the bite engine as a category.
-        require(of(List.of(new Part("soil", 5))) == null, "a jar of mud is not groundbait");
+        require(of(List.of(new Part("groundbait_soil", 5))) == null, "a jar of mud is not groundbait");
         require(of(List.of()) == null, "an empty recipe is not groundbait");
         require(of(List.of(new Part("gravel", 3))) == null, "an unknown component is not groundbait");
+
+        // Colour blends towards what there is most of, and a dye overrides most of the way.
+        GroundbaitMix red = of(List.of(new Part("minecraft:beetroot", 4), new Part("bread", 1)));
+        require(red != null, "beetroot mix must stir");
+        require(((red.rgb() >> 16) & 0xFF) > (red.rgb() & 0xFF),
+                "a beetroot mix must come out red, got " + Integer.toHexString(red.rgb()));
+        require(red.dyed(0x1D1D21).rgb() != red.rgb(), "dye must change the colour");
+        require(red.dyed(0x1D1D21).nutrition() == red.nutrition(), "dye must not change the food");
+        require(red.dyed(0x1D1D21).category().equals(red.category()), "dye must not change the category");
+
+        // Vanilla components have to be reachable by their full id, or the first mix waits on a farm.
+        require(of(List.of(new Part("minecraft:wheat", 3))) != null, "vanilla wheat must stir");
 
         // Spoons are clamped rather than trusted: the UI limits them, the NBT does not.
         GroundbaitMix over = of(List.of(new Part("corn", 99)));
@@ -203,5 +276,4 @@ public final class GroundbaitMix {
         if (!ok) throw new IllegalStateException("GroundbaitMix self-check: " + message);
     }
 
-    private GroundbaitMix() { this(List.of(), "powder", 0, 0); }
 }

@@ -933,5 +933,7 @@
   "key.riverfishing.pull_right": "Бій: тягнути ВПРАВО",
   "key.riverfishing.lift": "Бій: ПІДНЯТИ вудилище",
   "key.riverfishing.push": "Бій: вудилище ВНИЗ",
-  "tooltip.riverfishing.knife_strips": "Присісти: нарізати на смужки-наживку"
+  "tooltip.riverfishing.knife_strips": "Присісти: нарізати на смужки-наживку",
+  "item.riverfishing.groundbait_soil": "Прикормовий ґрунт",
+  "tooltip.riverfishing.groundbait_soil": "Інертний наповнювач — об'єм і каламуть, без калорій"
 }

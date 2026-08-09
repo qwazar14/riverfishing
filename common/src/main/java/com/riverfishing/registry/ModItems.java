@@ -94,6 +94,7 @@ public final class ModItems {
     public static final RegistrySupplier<Item> FILLET_KNIFE;
     public static final RegistrySupplier<Item> RAW_FILLET;
     public static final RegistrySupplier<Item> FISH_STRIP;
+    public static final RegistrySupplier<Item> GROUNDBAIT_SOIL;
     public static final RegistrySupplier<Item> COOKED_FILLET;
     // ---- Maintenance (ÃÂ§3.8) ----
     public static final RegistrySupplier<Item> WHETSTONE;
@@ -177,6 +178,10 @@ public final class ModItems {
         // §sea-tackle (0.5.0): cut fish strip — the universal saltwater hook bait. Held here because
         // the filleting knife cuts them (§one-cutter) and needs the item, not just its id.
         FISH_STRIP = registerBait("fish_strip", false);
+        // §groundbait-mix: inert ballast for a mix. NOT a bait — it never goes on a hook, it goes
+        // in the bowl, and it is the only thing in the pantry that feeds nothing at all. That is
+        // the whole point: it is the dial between pulling fish in and filling them up.
+        GROUNDBAIT_SOIL = reg("groundbait_soil", () -> new Item(props()));
         registerBait("maggot", false);
         WORM = registerBait("worm", false);
         registerBait("bloodworm", false);
