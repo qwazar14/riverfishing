@@ -18,8 +18,9 @@ that has eaten does not bite.
 | Grain Groundbait | 0.80 | 0.85 | Whole particle, lies on the bottom, holds big fish |
 | Pellet Groundbait | 0.90 | 0.95 | The richest and coarsest — what stocked fish are raised on |
 
-These still craft exactly as they always did, and if you never mix anything you can play the whole game
-on them.
+Only **one of them is crafted**: powder, from bread and wheat. It is the leanest and finest of the four,
+which is what makes it a base — everything you build adds coarseness and calories to it. Grain, pellet and
+cake are what a MIX comes out as, and the shop still sells the first three if you would rather buy than stir.
 
 ## Mixing your own
 
@@ -60,6 +61,7 @@ Bread + wheat stays the powder recipe, wheat + wheat seeds stays the grain recip
 | Wheat | 0.55 | 0.45 | grain |
 | Pumpkin Seeds | 0.55 | 0.35 | cake |
 | Dough | 0.60 | 0.30 | powder |
+| Sunflower | 0.60 | 0.25 | cake |
 | Potato | 0.60 | 0.50 | grain |
 | Maggot | 0.65 | 0.55 | pellet |
 | Pearl Barley | 0.70 | 0.70 | grain |

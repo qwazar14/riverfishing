@@ -117,6 +117,9 @@ public final class GroundbaitMix {
         put("minecraft:sweet_berries", 0.35, 0.40, "grain", 0xA02030);
         put("minecraft:sugar", 0.20, 0.05, "powder", 0xF2F2F2);
         put("minecraft:cocoa_beans", 0.35, 0.25, "cake", 0x6B3A1E);
+        // §groundbait-base: the sunflower lost its press recipe and kept its job — makuha is
+        // now something you ADD to a mix. The rich, fine end of cake, and the reason cake exists.
+        put("minecraft:sunflower", 0.60, 0.25, "cake", 0xB8912E);
         put("minecraft:pumpkin_seeds", 0.55, 0.35, "cake", 0xD8CE8C);
         put("minecraft:melon_seeds", 0.50, 0.30, "cake", 0xC8D8A0);
         put("minecraft:dried_kelp", 0.40, 0.30, "powder", 0x2E5E36); // sea-side green, and it smells of sea
@@ -264,31 +267,27 @@ public final class GroundbaitMix {
     }
 
     /**
-     * Is this a MIX, or is it one of the plain two-ingredient recipes?
+     * Is this a MIX, or is it the one plain recipe?
      *
-     * <p>The four ready-made groundbaits are crafted from pantry components — powder is bread and wheat,
-     * grain is wheat and wheat seeds — so "two things from the pantry" cannot be what defines a mix
-     * without stealing those recipes, with the winner decided by registry order. A mix is therefore
-     * something you could not have got out of the basic recipes:
+     * <p>§groundbait-base left exactly one craftable groundbait — powder, from bread and wheat — so a
+     * grid is a mix unless it IS that pair. It used to take three components to qualify, because three
+     * basic recipes could be stolen by a smaller grid; with two of them gone that bar only stood between
+     * the player and the pantry, and mixing is now the only road to grain, pellet and cake.
      *
-     * <ul>
-     *   <li>three or more different components, or</li>
-     *   <li>anything with ballast in it — the whole point of the system, and no basic recipe uses it, or</li>
-     *   <li>anything built on a ready-made jar — base plus your own particles, the realistic workflow, or</li>
-     *   <li>anything you dyed.</li>
-     * </ul>
+     * <p>Two spoons each of bread and wheat is a mix, and correctly so: the vanilla shapeless recipe
+     * matches one of each and nothing else, so there is nothing left to collide with.
      */
     public static boolean qualifiesAsMix(List<Part> recipe, boolean dyed) {
         if (dyed) return true;
-        int distinct = 0;
+        int distinct = 0, breads = 0, wheats = 0;
         for (Part p : recipe) {
-            Component c = PANTRY.get(p.id());
-            if (c == null || p.spoons() <= 0) continue;
+            if (!PANTRY.containsKey(p.id()) || p.spoons() <= 0) continue;
             distinct++;
-            if (c.pull() == null) return true;                 // ballast
-            if (PRESETS.containsKey(stripJar(p.id()))) return true;  // a ready-made jar as a base
+            if ("minecraft:bread".equals(p.id())) breads = p.spoons();
+            else if ("minecraft:wheat".equals(p.id())) wheats = p.spoons();
         }
-        return distinct >= 3;
+        if (distinct == 2 && breads == 1 && wheats == 1) return false;   // that is the powder recipe
+        return distinct >= 2;
     }
 
     /** "groundbait_grain" -> "grain"; anything else unchanged. */
@@ -357,13 +356,21 @@ public final class GroundbaitMix {
         // Vanilla components have to be reachable by their full id, or the first mix waits on a farm.
         require(of(List.of(new Part("minecraft:wheat", 3))) != null, "vanilla wheat must stir");
 
-        // The mix rule must never swallow the basic two-ingredient recipes.
+        // §groundbait-base: ONE craftable groundbait is left, so the mix rule has exactly one recipe to
+        // avoid swallowing — and everything else with two or more components is fair game.
         require(!qualifiesAsMix(List.of(new Part("minecraft:bread", 1), new Part("minecraft:wheat", 1)), false),
                 "bread + wheat is the powder recipe, not a mix");
-        require(!qualifiesAsMix(List.of(new Part("minecraft:wheat", 1), new Part("minecraft:wheat_seeds", 1)), false),
-                "wheat + seeds is the grain recipe, not a mix");
+        require(qualifiesAsMix(List.of(new Part("minecraft:bread", 2), new Part("minecraft:wheat", 2)), false),
+                "TWO each is a mix — the vanilla recipe only matches one of each");
+        require(qualifiesAsMix(List.of(new Part("minecraft:wheat", 1), new Part("minecraft:wheat_seeds", 1)), false),
+                "wheat + seeds is a MIX now that the grain recipe is gone — and it still makes grain");
+        require("grain".equals(of(List.of(new Part("minecraft:wheat", 1), new Part("minecraft:wheat_seeds", 1))).category()),
+                "the old grain pair must still read as grain, or the muscle memory lies");
         require(qualifiesAsMix(List.of(new Part("corn", 5), new Part("pea", 3), new Part("pearl_barley", 2)), false),
                 "three components is a mix");
+        // The sunflower kept its job when its press recipe went: it is how you reach cake by hand.
+        require("cake".equals(of(List.of(new Part("minecraft:sunflower", 3), new Part("bread", 1))).category()),
+                "a sunflower-led mix must read as cake");
         require(qualifiesAsMix(List.of(new Part("corn", 3), new Part("groundbait_soil", 4)), false),
                 "anything with ballast is a mix");
         require(qualifiesAsMix(List.of(new Part("groundbait_grain", 2), new Part("corn", 3)), false),

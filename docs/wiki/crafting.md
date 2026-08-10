@@ -174,9 +174,7 @@ Worm, Maggot, Bloodworm and Chicken Liver come from digging and mob drops; Corn,
 
 | Groundbait | Type | Ingredients |
 |---|---|---|
-| Powder Groundbait **×2** | shapeless | Bread + Wheat |
-| Grain Groundbait **×2** | shapeless | Wheat + Wheat Seeds |
-| Oil Cake Groundbait **×6** | **special** | Sunflower + **Piston** — the piston is the press and is returned |
+| Powder Groundbait **×2** | shapeless | Bread + Wheat — *the only groundbait you craft; grain, pellet and cake are [mixed](groundbait.md)* |
 | Pellet Groundbait | — | **quest only** (*Catch a tench*, stage 2) |
 
 ---

@@ -202,7 +202,7 @@ Four categories. Right-click water while holding groundbait to feed a spot.
 |---|---|---|
 | Powder Groundbait | `groundbait_powder` | Bread + Wheat → **2** |
 | Grain Groundbait | `groundbait_grain` | Wheat + Wheat Seeds → **2** |
-| Oil Cake Groundbait | `groundbait_cake` | Sunflower + **Piston** → **6** (the piston is the press and is *not* consumed) |
+| Oil Cake Groundbait | `groundbait_cake` | **mixed** — sunflower is a pantry component now, see [groundbait](groundbait.md) |
 | Pellet Groundbait | `groundbait_pellet` | **No recipe and not sold** — currently only obtainable as the *Catch a tench* quest reward |
 
 How many species list each category as ideal: **cake** 19, **powder** 12, **pellet** 11, **grain** 8.
