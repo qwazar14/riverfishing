@@ -29,6 +29,13 @@ everything: three corn, one breadcrumb and four soil comes out at fraction **0.5
 **0.35** — half of it is still particle, and it feeds barely more than a third of what pure corn would.
 The four spoons of soil are what did that.
 
+**How many jars you get: one per spoon of food.** Ballast pays nothing — soil is what you dilute a mix
+*with*, not what it is made *of*. Three corn, one breadcrumb and four soil is four jars, and each of the
+four is the lean mix above. That is the trade: ballast buys you leanness, not volume.
+
+**A jar you mixed yourself is finished groundbait, not an ingredient.** It will not go back into the
+grid. The four ready-made ones still will — that is what makes them a base.
+
 A grid counts as a mix — rather than one of the four basic recipes — when it has **three or more
 different components**, or **any ballast**, or **a ready-made groundbait as a base**, or **a dye**.
 Bread + wheat stays the powder recipe, wheat + wheat seeds stays the grain recipe.
