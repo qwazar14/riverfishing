@@ -200,10 +200,10 @@ Four categories. Right-click water while holding groundbait to feed a spot.
 
 | Groundbait | Item id | Recipe |
 |---|---|---|
-| Powder Groundbait | `groundbait_powder` | Bread + Wheat → **2** |
-| Grain Groundbait | `groundbait_grain` | Wheat + Wheat Seeds → **2** |
+| Powder Groundbait | `groundbait_powder` | **mixed** — see [groundbait](groundbait.md); the fisherman sells it |
+| Grain Groundbait | `groundbait_grain` | **mixed**; the fisherman sells it. (Wheat + wheat seeds is the *base* now) |
 | Oil Cake Groundbait | `groundbait_cake` | **mixed** — sunflower is a pantry component now, see [groundbait](groundbait.md) |
-| Pellet Groundbait | `groundbait_pellet` | **No recipe and not sold** — currently only obtainable as the *Catch a tench* quest reward |
+| Pellet Groundbait | `groundbait_pellet` | **mixed** — anything that pulls pellet (boilie, worm, maggot, cut fish). Also the *Catch a tench* reward |
 
 How many species list each category as ideal: **cake** 19, **powder** 12, **pellet** 11, **grain** 8.
 

@@ -85,7 +85,7 @@ run loads your tackle at half rate. Pull the same way it is going and you get no
 ## Tackle you build
 
 - **The Tackle Station.** Right-click a Fishing Stall with an empty hand and it becomes a bench: pick a
-  form, step the weight, feed it hooks, iron and string, take the finished tackle out. **Weight is a
+  form, step the weight, pick the hook size, feed it iron and string, take the finished tackle out. **Weight is a
   decision** — it sets your cast distance, it has to fall inside your blank's test window, and a lure's
   mass *is* its size, so a heavy pilker genuinely silences the small stuff.
 - **Dye a lure at the bench.** The colour affects the bite.
@@ -147,8 +147,8 @@ patching.
    refused with the reason written in the window.
 4. **Load the rig.** Drop a **hook** and **bait** into the rig's inline slots. Predators want artificial
    lures, not worms, and they bite through a bare line — fit a leader.
-5. **Feed the spot** (optional). Right-click water holding **groundbait**; the fed spot fades over the next
-   few minutes and the type decides what it pulls in.
+5. **Feed the spot** (optional). Right-click water holding **groundbait**; the fed spot lasts from three minutes for fine dust to
+   twelve for coarse grain, and what you mixed decides what it pulls in — and how full they get.
 6. **Cast.** Hold right-click to charge, release to throw. An under-loaded blank cannot reach.
 7. **Watch the float — silently.** There is no "Bite!" text. The float plunges, the line twitches, and you
    strike with a plain right-click. Lure rods put a timing bar on the strike itself.

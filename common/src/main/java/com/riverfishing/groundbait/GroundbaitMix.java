@@ -63,7 +63,8 @@ public final class GroundbaitMix {
     public record Component(String id, double nutrition, double fraction, String pull, int rgb) {}
 
     /**
-     * The pantry. Every entry but soil and bran is an item the mod already has.
+     * The pantry. Every entry but the soil and the crafted base is an item the mod already has.
+     * (Bran was designed and never built — it is not in here, whatever the design doc still says.)
      *
      * <p>Numbers come from the real thing: breadcrumb is a cloud that feeds almost nothing, boilies are
      * dense bottom food, oil cake is the smell-and-oil middle. Soil is the dial the whole system needs

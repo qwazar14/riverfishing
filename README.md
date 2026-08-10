@@ -76,8 +76,8 @@ too visible spooks small wary fish while a big one barely notices.
 
 - **Six ways to fish** — float, spinning, long-cast bottom, ice, trolling, and a full saltwater tier with surf,
   boat and trolling rods, ocean depth zones and big-game fight patterns.
-- **The Tackle Station** — the fisherman's stall is also your bench: pick a form, step the weight, feed
-  it hooks, iron and string. Weight sets cast distance, has to fall inside your blank's test window, and
+- **The Tackle Station** — the fisherman's stall is also your bench: pick a form, step the weight, pick the
+  hook size, feed it iron and string. Weight sets cast distance, has to fall inside your blank's test window, and
   a lure's mass *is* its size. Dye a lure and the colour affects the bite.
 - **The tackle box**, four sizes, 9 to 36 slots — tackle only, renameable in the box, dyeable, and it
   keeps everything when broken.

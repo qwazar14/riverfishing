@@ -179,7 +179,7 @@ public final class ModVillagers {
         sell(t, 4, "maggot_farm", 5, 1, 8);          // §bait-farm
         oneOf(t, 4, sellOf("keepnet_medium", 9, 1, 10), sellOf("keepnet_large", 14, 1, 14));
         sellStack(t, 4, 21, ModVillagers::carpKit, 18);
-        sell(t, 4, "groundbait_cake", 4, 3, 6);      // жмых (sunflower+piston)
+        sell(t, 4, "groundbait_cake", 4, 3, 6);      // жмых — теперь только торговля и квест (§groundbait-base)
         // §vanilla-stock + §tackle-craft: the saltwater reels are gated on ocean drops. Selling the
         // INPUTS keeps the gate (you still pay for it) without making it hinge on guardian RNG.
         sell(t, 4, "minecraft:prismarine_shard", 5, 4, 10);

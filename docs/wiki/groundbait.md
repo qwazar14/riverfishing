@@ -40,9 +40,9 @@ four is the lean mix above. That is the trade: ballast buys you leanness, not vo
 **A jar you mixed yourself is finished groundbait, not an ingredient.** It will not go back into the
 grid. The four ready-made ones still will — that is what makes them a base.
 
-A grid counts as a mix — rather than one of the four basic recipes — when it has **three or more
-different components**, or **any ballast**, or **a ready-made groundbait as a base**, or **a dye**.
-Bread + wheat stays the powder recipe, wheat + wheat seeds stays the grain recipe.
+A grid counts as a mix whenever it holds **two or more components**, or **a dye**. The one exception is
+exactly one wheat and one wheat seeds — that is the base recipe. Two of each IS a mix, because the
+vanilla recipe only ever matched one of each.
 
 ### What you can put in
 
@@ -106,9 +106,11 @@ Every component stains the mix, and the fed spot's cloud in the water comes out 
 the grid moves it most of the way to the dye's own colour without changing what the mix feeds or what it
 reads as.
 
-Colour is judged exactly as a lure's is: a colour that suits the light and clarity fishes better than
-one that does not. Dark and natural mixes work in clear, bright water; bright ones earn their keep in
-murk, rain and low light.
+The jar's tooltip names that colour, and the pale speckles on its icon are drawn in it, so two jars in
+a hotbar are told apart at a glance and a fed spot is recognisably yours.
+
+**Colour does not affect the bite.** Unlike a lure's, it is read nowhere in the bite engine — it is how
+you tell your mixes apart, and nothing more.
 
 ## Appetite: the thing that catches people out
 

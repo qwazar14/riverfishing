@@ -89,7 +89,7 @@ All shapeless. A bigger number is a smaller hook.
 | Hook #2 | **trade only** (master fisherman) |
 | Hook #1 | **trade only** (master fisherman) |
 
-All nine hook sizes make up the `riverfishing:hooks` tag used by the lure recipes. Note that #2 and #1 have no recipe of their own — the master fisherman is their only source.
+All nine hook sizes make up the `riverfishing:hooks` tag used by the lure recipes. Note that #2 and #1 have no recipe of their own — the master fisherman sells them, and the [Tackle Station](tackle-station.md) ties any size on for you, billed in iron.
 
 ---
 
