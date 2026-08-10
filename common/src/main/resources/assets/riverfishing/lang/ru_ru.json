@@ -936,6 +936,8 @@
   "tooltip.riverfishing.knife_strips": "Присесть: нарезать на полоски-наживку",
   "item.riverfishing.groundbait_soil": "Прикормочный грунт",
   "tooltip.riverfishing.groundbait_soil": "Инертный наполнитель — объём и муть, без калорий",
+  "item.riverfishing.groundbait_base": "Основа для прикормки",
+  "tooltip.riverfishing.groundbait_base": "Объём без характера — добавьте компоненты, чтобы вышла прикормка",
   "message.riverfishing.spot_overfed": "Точка перекормлена — рыба ест, а не клюёт",
   "tooltip.riverfishing.gb_nutrition": "Питательность %s (%s)",
   "tooltip.riverfishing.gb_fraction": "Фракция %s (%s)",

@@ -18,9 +18,12 @@ that has eaten does not bite.
 | Grain Groundbait | 0.80 | 0.85 | Whole particle, lies on the bottom, holds big fish |
 | Pellet Groundbait | 0.90 | 0.95 | The richest and coarsest — what stocked fish are raised on |
 
-Only **one of them is crafted**: powder, from bread and wheat. It is the leanest and finest of the four,
-which is what makes it a base — everything you build adds coarseness and calories to it. Grain, pellet and
-cake are what a MIX comes out as, and the shop still sells the first three if you would rather buy than stir.
+**None of the four is crafted any more.** They are what a MIX comes out as — plus the shop, which still
+sells three of them if you would rather buy than stir.
+
+What you craft is the **Groundbait Base**: wheat + wheat seeds, dead centre on both axes (0.50 / 0.50) and
+belonging to no category at all. On its own it is not groundbait and cannot be thrown — it is bulk and
+calories waiting for a character. Whatever you add decides what it becomes.
 
 ## Mixing your own
 
@@ -45,6 +48,7 @@ Bread + wheat stays the powder recipe, wheat + wheat seeds stays the grain recip
 
 | Component | Nutrition | Fraction | Reads as |
 |---|---|---|---|
+| **Groundbait Base** | 0.50 | 0.50 | — (no category) |
 | **Groundbait Soil** | 0.00 | 0.35 | — (ballast) |
 | Clay Ball | 0.00 | 0.55 | — (ballast) |
 | Sugar | 0.20 | 0.05 | powder |

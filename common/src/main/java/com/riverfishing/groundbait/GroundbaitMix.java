@@ -94,6 +94,9 @@ public final class GroundbaitMix {
         put("pearl_barley", 0.70, 0.70, "grain", 0xD8CBA4);
         put("boilie", 0.95, 1.00, "pellet", 0x9A4B2A);
         put("maggot", 0.65, 0.55, "pellet", 0xEDE4C8);
+        // §groundbait-base: the crafted base. Calories and bulk, no pull — dead centre on both
+        // axes, which is what "neutral" has to mean: it decides nothing, everything you add does.
+        put("groundbait_base", 0.50, 0.50, null, 0xC9B48A);
         put("groundbait_soil", 0.00, 0.35, null, 0x6B5236);   // inert ballast: no calories, no identity, all volume
 
         // ---- the natural baits, chopped into the feed the way an angler really does ----
@@ -245,6 +248,9 @@ public final class GroundbaitMix {
      * How many jars this mix pays out: ONE PER SPOON OF FOOD.
      *
      * <p>Ballast is what a mix is diluted WITH, not what it is made OF, so soil and clay pay nothing.
+     * Food is anything with CALORIES rather than anything with a pull: the two are the same set for
+     * every component that has ever shipped, and the difference is the crafted base, which is bulk
+     * you paid for and must not be destroyed by stirring it.
      * They still change the nutrition, the fraction and the colour of every jar; they no longer change
      * how many jars there are. Counting slots instead is how eight soil and one jar of pellet became
      * nine jars of pellet for two dirt.
@@ -261,7 +267,7 @@ public final class GroundbaitMix {
         int jars = 0;
         for (Part p : mix.parts()) {
             Component c = PANTRY.get(p.id());
-            if (c != null && c.pull() != null) jars += p.spoons();
+            if (c != null && c.nutrition() > 0) jars += p.spoons();
         }
         return jars;
     }
@@ -269,7 +275,7 @@ public final class GroundbaitMix {
     /**
      * Is this a MIX, or is it the one plain recipe?
      *
-     * <p>§groundbait-base left exactly one craftable groundbait — powder, from bread and wheat — so a
+     * <p>§groundbait-base left exactly one craftable thing — the base, from wheat and wheat seeds — so a
      * grid is a mix unless it IS that pair. It used to take three components to qualify, because three
      * basic recipes could be stolen by a smaller grid; with two of them gone that bar only stood between
      * the player and the pantry, and mixing is now the only road to grain, pellet and cake.
@@ -283,10 +289,10 @@ public final class GroundbaitMix {
         for (Part p : recipe) {
             if (!PANTRY.containsKey(p.id()) || p.spoons() <= 0) continue;
             distinct++;
-            if ("minecraft:bread".equals(p.id())) breads = p.spoons();
-            else if ("minecraft:wheat".equals(p.id())) wheats = p.spoons();
+            if ("minecraft:wheat".equals(p.id())) breads = p.spoons();
+            else if ("minecraft:wheat_seeds".equals(p.id())) wheats = p.spoons();
         }
-        if (distinct == 2 && breads == 1 && wheats == 1) return false;   // that is the powder recipe
+        if (distinct == 2 && breads == 1 && wheats == 1) return false;   // that is the BASE recipe
         return distinct >= 2;
     }
 
@@ -358,14 +364,23 @@ public final class GroundbaitMix {
 
         // §groundbait-base: ONE craftable groundbait is left, so the mix rule has exactly one recipe to
         // avoid swallowing — and everything else with two or more components is fair game.
-        require(!qualifiesAsMix(List.of(new Part("minecraft:bread", 1), new Part("minecraft:wheat", 1)), false),
-                "bread + wheat is the powder recipe, not a mix");
-        require(qualifiesAsMix(List.of(new Part("minecraft:bread", 2), new Part("minecraft:wheat", 2)), false),
+        require(!qualifiesAsMix(List.of(new Part("minecraft:wheat", 1), new Part("minecraft:wheat_seeds", 1)), false),
+                "wheat + seeds is the BASE recipe, not a mix");
+        require(qualifiesAsMix(List.of(new Part("minecraft:wheat", 2), new Part("minecraft:wheat_seeds", 2)), false),
                 "TWO each is a mix — the vanilla recipe only matches one of each");
-        require(qualifiesAsMix(List.of(new Part("minecraft:wheat", 1), new Part("minecraft:wheat_seeds", 1)), false),
-                "wheat + seeds is a MIX now that the grain recipe is gone — and it still makes grain");
-        require("grain".equals(of(List.of(new Part("minecraft:wheat", 1), new Part("minecraft:wheat_seeds", 1))).category()),
-                "the old grain pair must still read as grain, or the muscle memory lies");
+        require(qualifiesAsMix(List.of(new Part("minecraft:bread", 1), new Part("minecraft:wheat", 1)), false),
+                "bread + wheat is a mix now: nothing craftable collides with it any more");
+
+        // §groundbait-base: the base is bulk with calories and NO category, so it cannot be groundbait
+        // by itself — that refusal is the whole design statement, and it must not rot.
+        require(of(List.of(new Part("groundbait_base", 5))) == null,
+                "base alone is not groundbait — something has to give it a category");
+        require(of(List.of(new Part("groundbait_base", 5), new Part("corn", 2))).category().equals("grain"),
+                "what you ADD decides what the base becomes");
+        require(jars(of(List.of(new Part("groundbait_base", 5), new Part("corn", 2)))) == 7,
+                "the base is food you paid for: stirring it must not destroy it");
+        require(jars(of(List.of(new Part("groundbait_soil", 5), new Part("corn", 2)))) == 2,
+                "ballast still pays nothing — it has no calories, which is what makes it ballast");
         require(qualifiesAsMix(List.of(new Part("corn", 5), new Part("pea", 3), new Part("pearl_barley", 2)), false),
                 "three components is a mix");
         // The sunflower kept its job when its press recipe went: it is how you reach cake by hand.

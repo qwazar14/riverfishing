@@ -936,6 +936,8 @@
   "tooltip.riverfishing.knife_strips": "Присісти: нарізати на смужки-наживку",
   "item.riverfishing.groundbait_soil": "Прикормовий ґрунт",
   "tooltip.riverfishing.groundbait_soil": "Інертний наповнювач — об'єм і каламуть, без калорій",
+  "item.riverfishing.groundbait_base": "Основа для прикормки",
+  "tooltip.riverfishing.groundbait_base": "Обсяг без характеру — додай компоненти, щоб вийшла прикормка",
   "message.riverfishing.spot_overfed": "Точка перегодована — риба їсть, а не клює",
   "tooltip.riverfishing.gb_nutrition": "Поживність %s (%s)",
   "tooltip.riverfishing.gb_fraction": "Фракція %s (%s)",

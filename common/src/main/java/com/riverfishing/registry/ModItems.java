@@ -191,6 +191,9 @@ public final class ModItems {
         // in the bowl, and it is the only thing in the pantry that feeds nothing at all. That is
         // the whole point: it is the dial between pulling fish in and filling them up.
         GROUNDBAIT_SOIL = reg("groundbait_soil", () -> new Item(props()));
+        // §groundbait-base: the ONE thing you craft. Bulk and calories, no character at all —
+        // it has no category, so it cannot be thrown on its own. Everything else is what you add.
+        reg("groundbait_base", () -> new Item(props()));
         registerBait("maggot", false);
         WORM = registerBait("worm", false);
         registerBait("bloodworm", false);
