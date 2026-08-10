@@ -40,7 +40,7 @@
       "predator",
       "catfish"
     ],
-    "groundbait": [],
+    "groundbait": { "fraction": 1.00, "nutrition": 0.75 },
     "bait": {
       "livebait": 1.0,
       "fish_strip": 0.9,

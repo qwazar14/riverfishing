@@ -39,7 +39,7 @@
       "ground",
       "feeder"
     ],
-    "groundbait": [],
+    "groundbait": { "fraction": 0.62, "nutrition": 0.75 },
     "bait": {
       "livebait": 1.0,
       "worm": 0.9,

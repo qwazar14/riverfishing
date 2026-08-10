@@ -8,7 +8,7 @@
     "rod": ["feeder", "bottom"],
     "reel_size": 3500, "reel_tolerance": 1500,
     "line": { "type": "mono", "diameter_mm": 0.2, "tolerance_mm": 0.05 },
-    "rig": ["feeder", "float"], "groundbait": ["grain"],
+    "rig": ["feeder", "float"], "groundbait": { "fraction": 0.53, "nutrition": 0.60 },
     "bait": { "worm": 1.0, "maggot": 0.9, "bloodworm": 0.8, "pea": 0.5 },
     "hook": { "ideal": 10, "tolerance": 3 }
   },

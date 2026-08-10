@@ -154,17 +154,6 @@ public final class RigData {
         return found[0];
     }
 
-    /** Groundbait category loaded in the feeder/flat/grusha cage, or null. */
-    public static String groundbaitCategory(ItemStack rig) {
-        String[] found = new String[1];
-        forEachFilled(rig, (role, stack) -> {
-            if (found[0] == null && role == SlotRole.GROUNDBAIT && stack.getItem() instanceof GroundbaitItem g) {
-                found[0] = g.category();
-            }
-        });
-        return found[0];
-    }
-
     public static boolean hasLeader(ItemStack rig) {
         boolean[] found = new boolean[1];
         forEachFilled(rig, (role, stack) -> {

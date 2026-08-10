@@ -41,9 +41,7 @@
       "float",
       "predator"
     ],
-    "groundbait": [
-      "cake"
-    ],
+    "groundbait": { "fraction": 0.53, "nutrition": 0.56 },
     "bait": {
       "bread": 0.8,
       "worm": 0.7,

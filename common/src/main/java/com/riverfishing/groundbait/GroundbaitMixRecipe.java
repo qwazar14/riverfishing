@@ -89,8 +89,8 @@ public class GroundbaitMixRecipe extends CustomRecipe {
         for (Map.Entry<String, Integer> e : spoons.entrySet()) {
             parts.add(new GroundbaitMix.Part(e.getKey(), e.getValue()));
         }
-        // Do not steal the four basic recipes: bread + wheat is powder, wheat + seeds is grain, and
-        // both are pure pantry, so "two components" cannot be the test. See qualifiesAsMix.
+        // Do not steal the ONE basic recipe: wheat + wheat seeds is the plain jar, and both of those are
+        // pantry items, so "two components" cannot be the test on its own. See qualifiesAsMix.
         if (!GroundbaitMix.qualifiesAsMix(parts, !dyes.isEmpty())) return null;
         GroundbaitMix mix = GroundbaitMix.of(parts);
         if (mix == null) return null;                  // all ballast: a bucket of mud is not groundbait
@@ -114,21 +114,18 @@ public class GroundbaitMixRecipe extends CustomRecipe {
             mix = mix.dyed(d.getFireworkColor() & 0xFFFFFF);
         }
 
-        // The jar it comes out in is the one matching what it reads as, so a mix that fishes as grain
-        // also LOOKS like grain on the hotbar. The stamped composition is what actually counts.
+        // §groundbait-one-jar: there is one jar, and it always comes out in that. What it does in the
+        // water is the composition stamped on it, and the tooltip reads that out — the item id has not
+        // claimed anything about a groundbait since the other three were deleted.
         // §groundbait-value: HOW MANY comes off the mix itself — one jar per spoon of food, ballast
         // paying nothing — so the count and the composition are read from one list and cannot drift.
         // The clamp is for grids bigger than vanilla's, where 9 components x 9 spoons can pass a stack.
-        ItemStack out = new ItemStack(jarFor(mix.category()));
+        ItemStack out = new ItemStack(ModItems.GROUNDBAIT.get());
         out.setCount(Math.min(GroundbaitMix.jars(mix), out.getMaxStackSize()));
         GroundbaitNbt.write(out, mix);
         return out;
     }
 
-    private static net.minecraft.world.item.Item jarFor(String category) {
-        var supplier = ModItems.GROUNDBAITS.get(category);
-        return supplier != null ? supplier.get() : ModItems.GROUNDBAITS.get("powder").get();
-    }
 
     @Override
     public RecipeSerializer<GroundbaitMixRecipe> getSerializer() {

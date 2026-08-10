@@ -9,7 +9,7 @@
     "reel_size": 3000, "reel_tolerance": 1000,
     "line": { "type": "braid", "diameter_mm": 0.10, "tolerance_mm": 0.04 },
     "rig": ["feeder", "float"],
-    "groundbait": ["powder", "cake"],
+    "groundbait": { "fraction": 0.42, "nutrition": 0.57 },
     "bait": { "maggot": 1.0, "worm": 0.9, "bloodworm": 0.7 },
     "hook": { "ideal": 12, "tolerance": 2 }
   },

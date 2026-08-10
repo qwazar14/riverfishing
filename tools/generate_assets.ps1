@@ -151,9 +151,6 @@ Add-Item "silicone" "lure" "Soft Plastic" "Силиконовая приманк
 
 # Groundbaits
 Add-Item "groundbait_powder" "groundbait" "Powder Groundbait" "Сыпучая прикормка"
-Add-Item "groundbait_grain" "groundbait" "Grain Groundbait" "Зерновая прикормка"
-Add-Item "groundbait_pellet" "groundbait" "Pellet Groundbait" "Гранулированная прикормка"
-Add-Item "groundbait_cake" "groundbait" "Oil Cake Groundbait" "Жмых"
 
 # Bite alarms (Module 3)
 Add-Item "bell_alarm" "bell" "Bite Alarm (Bell)" "Сигнализатор-колокольчик"

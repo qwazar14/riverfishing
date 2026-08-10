@@ -38,7 +38,7 @@
     "rig": [
       "predator"
     ],
-    "groundbait": [],
+    "groundbait": { "fraction": 1.00, "nutrition": 0.75 },
     "bait": {
       "wobbler": 1.0,
       "silicone": 0.6,

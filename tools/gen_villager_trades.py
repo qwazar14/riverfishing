@@ -178,6 +178,26 @@ def tackle(path, cost, count=1, xp=1):
     return name, trade
 
 
+def house_blend():
+    """§house-blend: the stall's own groundbait, sold already mixed.
+
+    Base, barley, chopped worm and a spoon of maggot — the plain river blend everybody starts from, and
+    deliberately GOOD RATHER THAN RIGHT: it fishes well for the silver fish it was built for and merely
+    adequately for anything else. A ready recipe is a floor, not a ceiling, and this trade is where a
+    player first meets that idea.
+
+    The composition rides in custom_data exactly as GroundbaitNbt writes it. The colour is left out on
+    purpose — the jar derives it from the parts, so writing it here would be a second copy of a number
+    that can only ever disagree with the first.
+    """
+    name, trade = sell("groundbait_powder", 5, 8, 6)
+    parts = [{"id": "groundbait_powder", "n": 3}, {"id": "pearl_barley", "n": 2},
+             {"id": "worm", "n": 2}, {"id": "maggot", "n": 1}]
+    trade["given_item_modifiers"] = [
+        {"function": "minecraft:set_custom_data", "tag": snbt({"Groundbait": {"Parts": parts}})}]
+    return "house_blend", trade
+
+
 def stack(item_id, custom=None):
     s = {"id": full(item_id), "count": 1}
     if custom:
@@ -377,7 +397,8 @@ POOL = {
         [sell("maggot", 1, 10, 2)],
         [sell("reel_2000", 4, 1, 5), sell("reel_3000", 6, 1, 6)],
         [sell("line_mono_018", 2, 1, 4)],
-        [sell("groundbait_grain", 1, 6, 3)],
+        # §groundbait-one-jar: BALLAST, not a second groundbait — the dial the mixing system turns on.
+        [sell("groundbait_soil", 1, 8, 3)],
         [sell("bait_trap", 3, 1, 4)],                       # slowly farms livebait (§livebait)
         [sell("minecraft:oak_boat", 4, 1, 5)],              # §vanilla-stock: trolling needs a boat
         [assembled("assembled_bamboo_rod", "bamboo_rod", None, "line_mono_018",
@@ -407,7 +428,7 @@ POOL = {
         [sell("ice_auger", 9, 1, 14)],                      # §ice-fishing: drill your first hole
         [sell("mormyshka", 3, 2, 8)],
         [sell("maggot_farm", 5, 1, 8)],                     # §bait-farm
-        [sell("groundbait_cake", 4, 3, 6)],                 # жмых (sunflower+piston)
+        [house_blend()],                                    # §house-blend: the stall's own mix
         [sell("keepnet_medium", 9, 1, 10), sell("keepnet_large", 14, 1, 14)],
         kits("kit_carp", "tackle_box_medium", "kit.riverfishing.carp", 0xB0863C, CARP_KIT, 21, 18, 2),
         # §vanilla-stock + §tackle-craft: the saltwater reels are gated on ocean drops. Selling the
@@ -587,6 +608,23 @@ VANILLA_STOCK = {"minecraft:emerald", "minecraft:string", "minecraft:oak_boat",
                  "minecraft:prismarine_shard", "minecraft:nautilus_shell"}
 
 
+def pantry_ids():
+    """§groundbait-one-jar: what a mix may legally be made of, read off GroundbaitMix's own pantry."""
+    src = os.path.join(HERE, "..", "common", "src", "main", "java", "com", "riverfishing",
+                       "groundbait", "GroundbaitMix.java")
+    with open(src, encoding="utf-8") as f:
+        java = f.read()
+    # The base goes in under the BASE_ID constant rather than a literal, so it needs its own read —
+    # and asserting it landed is the point, because the base is the one component every blend has.
+    ids = set(re.findall(r'put\("([\w:/]+)",', java))
+    ids |= set(re.findall(r'BASE_ID = "([\w:/]+)"', java))
+    assert len(ids) > 20, "the pantry read came back empty — GroundbaitMix moved or changed shape"
+    return ids
+
+
+PANTRY_IDS = pantry_ids()
+
+
 def walk_ids(node, out):
     if isinstance(node, dict):
         for k, v in node.items():
@@ -614,7 +652,16 @@ def verify(tags, weights):
                 continue
         walk_ids(doc, ids)
         for mod in doc.get("given_item_modifiers", []):
-            ids |= set(re.findall(r'id:"([\w:/]+)"', mod.get("tag", "")))
+            tag = mod.get("tag", "")
+            # §groundbait-one-jar: the ids inside a Groundbait tag are PANTRY ids, not item ids — bare
+            # for this mod's own components, `minecraft:`-prefixed for vanilla ones — so the registry
+            # check below would reject every one of them. They get their own check, against the pantry,
+            # because a typo there does not crash: it silently sells a weaker blend, which is worse.
+            for pantry in re.findall(r"Groundbait:\{Parts:\[(.*?)\]\}", tag):
+                for pid in re.findall(r'id:"([\w:/]+)"', pantry):
+                    check(pid in PANTRY_IDS, "unknown pantry component %s in a trade" % pid, fails)
+                tag = tag.replace(pantry, "")
+            ids |= set(re.findall(r'id:"([\w:/]+)"', tag))
 
     known = known_ids()
     for i in sorted(ids):

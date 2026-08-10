@@ -40,7 +40,7 @@
       "float",
       "predator"
     ],
-    "groundbait": [],
+    "groundbait": { "fraction": 0.47, "nutrition": 0.68 },
     "bait": {
       "worm": 1.2,
       "livebait": 1.1,

@@ -24,20 +24,19 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * Groundbait / прикормка (§3.5). Right-click while aiming at water to feed a 3x3 spot (§5);
- * the category decides which fish the fed spot pulls in.
+ * Groundbait / прикормка (§3.5). Right-click while aiming at water to feed a 3x3 spot (§5).
+ *
+ * <p>§groundbait-one-jar: there is one of these, and there used to be four. The jar is only ever a
+ * container now — what it does in the water is decided entirely by the mix stamped on the stack, so an
+ * item class with a {@code category} field would be a second opinion about a question the mix already
+ * answers. A plain jar off the shelf is the BASE: neutral, useful, and beaten by anything you mixed.
  */
 public class GroundbaitItem extends Item {
     private static final double REACH = 32.0;
 
-    private final String category; // powder / grain / pellet / cake
-
-    public GroundbaitItem(String category, Properties properties) {
+    public GroundbaitItem(Properties properties) {
         super(properties);
-        this.category = category;
     }
-
-    public String category() { return category; }
 
     /**
      * §groundbait-tint: what the speckle layer of the icon is painted with.
@@ -75,13 +74,14 @@ public class GroundbaitItem extends Item {
 
         com.riverfishing.groundbait.GroundbaitMix mix =
                 com.riverfishing.groundbait.GroundbaitNbt.read(stack);
-        double appetite = com.riverfishing.groundbait.GroundbaitAppetite.at(serverLevel, pos);
 
-        // Read the spot BEFORE feeding it: telling someone they overfed only helps if it is said at the
-        // moment they did it, and after the call the new satiety is already in.
-        double satietyBefore = FeedZoneData.get(serverLevel).query(pos, serverLevel.getGameTime()).satiety();
-        FeedZoneData.get(serverLevel).feed(pos, mix, serverLevel.getGameTime(), appetite);
-        double satietyAfter = FeedZoneData.get(serverLevel).query(pos, serverLevel.getGameTime()).satiety();
+        // §last-thrown-wins: read what is down there BEFORE the throw. If it is a different recipe, this
+        // jar takes the swim over rather than adding to it, and that is worth saying at the moment it
+        // happens — afterwards there is nothing left to compare against.
+        FeedZoneData.Query before = FeedZoneData.get(serverLevel).query(pos, serverLevel.getGameTime());
+        boolean overwrote = before.inZone() && before.mix() != null
+                && !before.mix().signature().equals(mix.signature());
+        FeedZoneData.get(serverLevel).feed(pos, mix, serverLevel.getGameTime());
         stack.shrink(1);
 
         serverLevel.playSound(null, pos, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.7f, 1.1f);
@@ -92,15 +92,12 @@ public class GroundbaitItem extends Item {
         serverLevel.sendParticles(FeedZoneData.particleFor(mix.rgb()), pos.getX() + 0.5, pos.getY() + 1.05,
                 pos.getZ() + 0.5, 20, 0.4, 0.06, 0.4, 0.0);
 
-        // Overfeeding is the one thing here that is worse than doing nothing, so it says so out loud —
-        // and only on the throw that crossed the line, not every throw after it.
-        if (satietyAfter > 0.65 && satietyBefore <= 0.65) {
-            sp.sendOverlayMessage(Component.translatable("message.riverfishing.spot_overfed")
-                    .withStyle(ChatFormatting.RED));
-        } else {
-            sp.sendOverlayMessage(Component.translatable("message.riverfishing.fed_spot")
-                    .withStyle(ChatFormatting.GREEN));
-        }
+        // You cannot overfeed a swim (§no-overfeeding), so the only thing worth warning about is throwing
+        // a DIFFERENT recipe on top of one that was working: the old bed does not add to the new one, it
+        // is simply gone. Yellow rather than red — it is a thing to know, not a mistake to punish.
+        sp.sendOverlayMessage(Component.translatable(overwrote
+                        ? "message.riverfishing.spot_replaced" : "message.riverfishing.fed_spot")
+                .withStyle(overwrote ? ChatFormatting.YELLOW : ChatFormatting.GREEN));
         return InteractionResult.CONSUME;
     }
 
@@ -129,7 +126,7 @@ public class GroundbaitItem extends Item {
                         Component.translatable("tooltip.riverfishing.gb_color_"
                                 + com.riverfishing.engine.LureColor.fromRgb(mix.rgb()).name().toLowerCase()))
                 .withStyle(s -> s.withColor(mix.rgb())));
-        if (!mix.isPreset()) {
+        if (!mix.isBase()) {
             for (com.riverfishing.groundbait.GroundbaitMix.Part p : mix.parts()) {
                 tooltip.accept(Component.literal("  " + p.spoons() + " x ")
                         .append(Component.translatable(partKey(p.id())))

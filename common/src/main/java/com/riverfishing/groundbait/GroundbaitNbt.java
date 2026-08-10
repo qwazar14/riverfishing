@@ -1,6 +1,5 @@
 package com.riverfishing.groundbait;
 
-import com.riverfishing.item.GroundbaitItem;
 import com.riverfishing.item.StackNbt;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -31,9 +30,9 @@ public final class GroundbaitNbt {
     /**
      * What is in this jar.
      *
-     * <p>A stack with no mix tag is one of the four ready-made items, so its preset comes back rather
-     * than null — every groundbait in the game answers this, including the ones sitting in chests in
-     * worlds saved before 0.8.0.
+     * <p>A stack with no mix tag is a plain jar off the shelf, so the BASE comes back rather than null —
+     * every groundbait in the game answers this, including the ones sitting in chests in worlds saved
+     * before anyone mixed anything.
      */
     public static GroundbaitMix read(ItemStack stack) {
         CompoundTag tag = StackNbt.get(stack);
@@ -46,14 +45,15 @@ public final class GroundbaitNbt {
                 recipe.add(new GroundbaitMix.Part(part.getStringOr(ID, ""), part.getIntOr(SPOONS, 0)));
             }
             GroundbaitMix mixed = GroundbaitMix.of(recipe);
-            // A tag that no longer stirs — a component renamed out of the pantry, say — falls back to
-            // the preset rather than throwing. A stale jar should fish badly, not crash a save.
+            // A tag that no longer stirs — a component dropped out of the pantry, which is exactly what
+            // happened to the three dead jars in 0.8.0 — falls back to the base rather than throwing. A
+            // stale jar should fish like a plain one, not crash a save.
             if (mixed != null) {
                 int rgb = tag.getCompoundOrEmpty(ROOT).getIntOr(RGB, 0);
                 return rgb != 0 ? mixed.recoloured(rgb) : mixed;
             }
         }
-        return preset(stack);
+        return GroundbaitMix.BASE;
     }
 
     /**
@@ -69,15 +69,9 @@ public final class GroundbaitNbt {
         return StackNbt.get(stack).contains(ROOT);
     }
 
-    /** The preset behind a stack, by the item it is. */
-    public static GroundbaitMix preset(ItemStack stack) {
-        String category = stack.getItem() instanceof GroundbaitItem g ? g.category() : "powder";
-        return GroundbaitMix.PRESETS.getOrDefault(category, GroundbaitMix.PRESETS.get("powder"));
-    }
-
-    /** Stamp a mix onto a stack. A preset writes nothing — its numbers come from the item itself. */
+    /** Stamp a mix onto a stack. A plain jar writes nothing — the base is what an empty tag means. */
     public static void write(ItemStack stack, GroundbaitMix mix) {
-        if (mix == null || mix.isPreset()) return;
+        if (mix == null || mix.isBase()) return;
         // §26.x: item tinting here is declared in assets/riverfishing/items/*.json, and the only tint
         // source that can see a per-stack colour is minecraft:dye — which reads this component. So the
         // jar carries its colour as well as computing it, written from the same mix at the same moment

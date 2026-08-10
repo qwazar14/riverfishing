@@ -9,7 +9,7 @@
     "reel_size": 3000, "reel_tolerance": 1000,
     "line": { "type": "braid", "diameter_mm": 0.16, "tolerance_mm": 0.05 },
     "rig": ["predator"],
-    "groundbait": [],
+    "groundbait": { "fraction": 0.62, "nutrition": 0.50 },
     "bait": { "popper": 1.2, "wobbler": 1.0, "silicone": 0.95, "jig": 0.9, "crankbait": 0.9, "livebait": 0.8, "spinner": 0.7 },
     "hook": { "ideal": 4, "tolerance": 3 }
   },

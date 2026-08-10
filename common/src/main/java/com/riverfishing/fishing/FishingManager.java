@@ -531,6 +531,29 @@ public final class FishingManager {
 
         Identifier species = maybeKoi(outcome.pickSpecies(random), ctx, random);
 
+        // §feed-lands-where-the-rig-does: a feeder cage empties one jar per cast, and it empties it AT THE
+        // BOBBER — the landing spot, not the water in front of your boots. It is exactly the same call
+        // hand-feeding makes, at exactly the same block key, so a cage and a right-click build up the same
+        // swim and a swim built by one is fished by the other.
+        //
+        // It happens here rather than after the session is stored, which is where it used to be: down
+        // there the wait had already been priced and the cage's own feed did nothing until the next cast.
+        // Here it is in the water before the clock is set, and it is still past every `return false`, so a
+        // cast the rod refuses never eats a jar.
+        ItemStack rigNow = RodData.get(rod, ComponentSlot.RIG);
+        if (RiverFishingConfig.consumeGroundbait() && rigNow.getItem() instanceof RigItem) {
+            ItemStack fedStack = RigData.consumeGroundbait(rigNow);
+            if (!fedStack.isEmpty()) {
+                RodData.set(rod, ComponentSlot.RIG, rigNow);
+                FeedZoneData.get(level).feed(waterPos,
+                        com.riverfishing.groundbait.GroundbaitNbt.read(fedStack), now);
+                FeedZoneData.Query cage = FeedZoneData.get(level).query(waterPos, now);
+                ctx.inFeedZone = cage.inZone();
+                ctx.feedFreshness = cage.freshness();
+                ctx.feedMix = cage.mix();
+            }
+        }
+
         // Chunk fishing pressure (Module 7): a fished-out spot makes bites much slower (W_total falls).
         FishingPressureData pressure = FishingPressureData.get(level);
         long chunkKey = ChunkPos.pack(waterPos);
@@ -628,18 +651,6 @@ public final class FishingManager {
 
         pressure.addCast(chunkKey, now);
 
-        // A feeder cage empties one groundbait per cast and feeds the landing spot (§consumables) —
-        // exactly like hand-feeding the water with a right-click.
-        ItemStack rigNow = RodData.get(rod, ComponentSlot.RIG);
-        if (RiverFishingConfig.consumeGroundbait() && rigNow.getItem() instanceof RigItem) {
-            ItemStack fedStack = RigData.consumeGroundbait(rigNow);
-            if (!fedStack.isEmpty()) {
-                RodData.set(rod, ComponentSlot.RIG, rigNow);
-                FeedZoneData.get(level).feed(waterPos,
-                        com.riverfishing.groundbait.GroundbaitNbt.read(fedStack), now,
-                        com.riverfishing.groundbait.GroundbaitAppetite.at(level, waterPos));
-            }
-        }
         double typeRate = ctx.lineType == LineType.FLUORO ? 0.6 : 1.0; // fluoro wears slower (§3.8)
         // Fractional wear: with the slower §balance rate a single cast usually adds nothing; the
         // remainder becomes a probability so wear still accumulates over many casts.
@@ -1193,16 +1204,14 @@ public final class FishingManager {
         long popChunk = ChunkPos.pack(session.target);
         double popRegen = spawnRegen(level);
         ctx.speciesFactor = id -> popData.speciesAttractiveness(popChunk, id.getPath(), now, popRegen);
-        // Groundbait thrown AFTER the cast registers now. ponytail: freshness only ratchets up mid-cast;
-        // the decay of an old zone is re-read on the next cast, not here.
+        // Groundbait thrown AFTER the cast registers, and so does groundbait that has washed away or been
+        // replaced. §last-thrown-wins made the old "only ever ratchet up" shortcut a lie: throw a
+        // different mix over your own swim and the swim really is that other mix now, sometimes weaker.
+        // The zone is the one thing that knows, so the line simply asks it again.
         FeedZoneData.Query feed = FeedZoneData.get(level).query(session.target, now);
-        if (feed.inZone() && feed.freshness() > ctx.feedFreshness) {
-            ctx.inFeedZone = true;
-            ctx.feedFreshness = feed.freshness();
-            ctx.feedCategory = feed.category();
-            ctx.feedFraction = feed.fraction();
-            ctx.feedSatiety = feed.satiety();
-        }
+        ctx.inFeedZone = feed.inZone();
+        ctx.feedFreshness = feed.freshness();
+        ctx.feedMix = feed.mix();
 
         RandomSource random = level.getRandom();
         BiteEngine.Outcome outcome = BiteEngine.evaluate(FishProfileManager.get().all(), ctx, random);
@@ -2523,6 +2532,14 @@ public final class FishingManager {
         // §skills ANGLERS_LUCK flattens the size curve instead of handing out a flag: a lucky angler
         // meets bigger fish, which is the only thing luck can honestly mean here.
         k /= 1.0 + luck * 2.0;
+        // ★ BIG FRACTION CALLS BIG FISH. A bed of whole grain and boilies is a table only a decent fish
+        // bothers with; dust is a cloud the small stuff swarms. It flattens the curve rather than setting
+        // a floor, so it is a better CHANCE at a good one and never a promise of it — which is exactly
+        // what coarse feed does in the real thing. Half the mix or finer changes nothing.
+        if (session.ctx != null && session.ctx.feedMix != null && session.ctx.feedFreshness > 0) {
+            double coarse = Mth.clamp((session.ctx.feedMix.fraction() - 0.5) * 2.0, 0.0, 1.0);
+            k /= 1.0 + 0.55 * coarse * Mth.clamp(session.ctx.feedFreshness, 0.0, 1.0);
+        }
         double biased = Math.pow(random.nextDouble(), k);
 
         // §livebait-2 (0.4.0): a predator that commits to a live baitfish is one that can swallow it —
@@ -2907,23 +2924,21 @@ public final class FishingManager {
         ctx.waterDepth = measureDepth(level, waterPos);
         ctx.biomeGroups = biomeGroups(level, waterPos, body);
 
-        // Groundbait: the rig's feeder/flat/grusha cage delivers feed at the spot; the hand-fed zone
-        // (right-clicking water) can be fresher. Use whichever is stronger.
+        // §feed-lands-where-the-rig-does: THE FED ZONE AT THE BOBBER IS THE ONLY ANSWER.
+        //
+        // There used to be a second one beside it: a cage with groundbait in it claimed a flat 0.5
+        // freshness of its own, and being the bigger number it usually WON — so the engine scored the
+        // swim against a phantom that had never been thrown, at fraction 0.00, which is dust. A carp
+        // angler with a cage of whole grain was quietly marked down for fishing a cloud, and no amount
+        // of feeding the actual water could beat the phantom while the cage was loaded.
+        //
+        // The cage never needed a shortcut: it really does empty into the water at this exact position
+        // on the cast, through the same feed() call a right-click makes. One thing feeds the swim, one
+        // thing reads it, and the two cannot disagree because there is only one of them.
         FeedZoneData.Query feed = FeedZoneData.get(level).query(waterPos, now);
-        double zoneFresh = feed.inZone() ? feed.freshness() : 0.0;
-        String cageCategory = rigStack.getItem() instanceof RigItem ? RigData.groundbaitCategory(rigStack) : null;
-        double cageFresh = cageCategory != null ? 0.5 : 0.0;
-        if (zoneFresh >= cageFresh) {
-            ctx.inFeedZone = feed.inZone();
-            ctx.feedFreshness = zoneFresh;
-            ctx.feedCategory = feed.category();
-            ctx.feedFraction = feed.fraction();
-            ctx.feedSatiety = feed.satiety();
-        } else {
-            ctx.inFeedZone = true;
-            ctx.feedFreshness = cageFresh;
-            ctx.feedCategory = cageCategory;
-        }
+        ctx.inFeedZone = feed.inZone();
+        ctx.feedFreshness = feed.inZone() ? feed.freshness() : 0.0;
+        ctx.feedMix = feed.mix();
 
         return ctx;
     }

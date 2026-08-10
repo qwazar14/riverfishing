@@ -40,10 +40,7 @@
       "float",
       "feeder"
     ],
-    "groundbait": [
-      "grain",
-      "cake"
-    ],
+    "groundbait": { "fraction": 0.54, "nutrition": 0.66 },
     "bait": {
       "worm": 1.0,
       "maggot": 0.8,
