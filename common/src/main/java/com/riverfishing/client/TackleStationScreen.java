@@ -25,6 +25,9 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
     private static final int TRACK_X = 116, TRACK_W = 70;
     /** §hook-pick: the well the hook SLOT used to occupy, now the size picker. */
     private static final int HOOK_X = 38;
+    /** The two arrow buttons either side of it. The material wells moved right to make room. */
+    private static final int HOOK_DOWN_X = 22, HOOK_UP_X = 59, HOOK_BTN_W = 12;
+    private static final int HOOK_Y = 149, HOOK_BTN_H = 18;
     /** Where the right-hand column starts, and how much room it has — both derived, never guessed. */
     private static final int TEXT_X = GRID_X + COLS * CELL + 10;
     private boolean predatorTab;
@@ -143,7 +146,7 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         }
 
         // Material wells + ghost hints + live requirement counts (red when short).
-        int[][] wells = {{HOOK_X, 150}, {62, 150}, {86, 150}, {110, 150}, {176, 150}};
+        int[][] wells = {{HOOK_X, 150}, {76, 150}, {100, 150}, {124, 150}, {176, 150}};
         for (int[] w : wells) {
             g.fill(x + w[0] - 1, y + w[1] - 1, x + w[0] + 17, y + w[1] + 17, 0xFF2a241c);
         }
@@ -152,13 +155,16 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
                 new ItemStack(net.minecraft.world.item.Items.STRING),
                 new ItemStack(net.minecraft.world.item.Items.RED_DYE)};
         int[] need = {menu.ironNeeded(), sel.stringNeeded(), 0};
-        // §hook-pick: the first well is no longer a slot — it is the hook PICKER, showing the size the
-        // bench will tie on. Left half steps down, right half up; the iron cost below already includes it.
+        // §hook-pick: the first well is no longer a slot — it is the hook PICKER, with an arrow button
+        // either side of it. The iron cost below already includes whatever size it is showing.
         g.fill(x + HOOK_X - 1, y + 149, x + HOOK_X + 17, y + 167, 0xFF463b2d);
         g.renderItem(new ItemStack(ModItems.HOOKS.get(menu.hookIdx()).get()), x + HOOK_X, y + 150);
-        // The same "< value >" the weight stepper wears: without it the well reads as a slot you
-        // are supposed to put something in, which is exactly what it stopped being.
-        g.drawCenteredString(font, "< #" + menu.hookSize() + " >", x + HOOK_X + 8, y + 169, 0xFFFFD97A);
+        // Dim at the ends of the ladder: a button that cannot do anything should not look
+        // like one that can — #16 is the smallest hook there is and #1 the biggest.
+        drawHookArrow(g, x + HOOK_DOWN_X, y + HOOK_Y, "◄", menu.hookIdx() > 0);
+        drawHookArrow(g, x + HOOK_UP_X, y + HOOK_Y, "►",
+                menu.hookIdx() < TackleForm.HOOK_SIZES.length - 1);
+        g.drawCenteredString(font, "#" + menu.hookSize(), x + HOOK_X + 8, y + 169, 0xFFFFD97A);
 
         for (int i = 0; i < ghosts.length; i++) {
             ItemStack in = menu.getSlot(i).getItem();
@@ -185,6 +191,12 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         for (int col = 0; col < 9; col++) {
             g.fill(x + 42 + col * 18, y + 239, x + 60 + col * 18, y + 257, 0xFF2a241c);
         }
+    }
+
+    /** One of the two hook-size buttons: same look as the balance buttons, dim when stuck. */
+    private void drawHookArrow(GuiGraphics g, int bx, int by, String glyph, boolean live) {
+        g.fill(bx, by, bx + HOOK_BTN_W, by + HOOK_BTN_H, live ? 0xFF6e5a3a : 0xFF2a241c);
+        g.drawCenteredString(font, glyph, bx + HOOK_BTN_W / 2, by + 5, live ? 0xFFFFE6B0 : 0xFF6b6257);
     }
 
     private void drawTab(GuiGraphics g, int x, int y, boolean active, String label) {
@@ -241,9 +253,11 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
             clickButton(100 + next);
             return true;
         }
-        // Hook picker (§hook-pick): the well where the hook slot used to be. Left half = smaller hook
-        // (bigger number), right half = bigger — the same left/right step as the weight above.
-        if (my >= y + 149 && my < y + 167 && mx >= x + HOOK_X - 1 && mx < x + HOOK_X + 17) {
+        // Hook picker (§hook-pick): ONE hit box over both arrows and the icon between them, split down
+        // the middle. The arrows say which side does what; aiming at the icon itself still works, which
+        // is what a player does when the thing they want to change is the thing they are looking at.
+        if (my >= y + HOOK_Y && my < y + HOOK_Y + HOOK_BTN_H
+                && mx >= x + HOOK_DOWN_X && mx < x + HOOK_UP_X + HOOK_BTN_W) {
             int cur = menu.hookIdx();
             int next = mx < x + HOOK_X + 8 ? Math.max(0, cur - 1)
                     : Math.min(TackleForm.HOOK_SIZES.length - 1, cur + 1);

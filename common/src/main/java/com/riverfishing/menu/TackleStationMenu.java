@@ -78,13 +78,13 @@ public class TackleStationMenu extends AbstractContainerMenu {
 
         // Positions unchanged: x=38 is where the hook slot was, and the hook PICKER now sits there — the
         // material row keeps its shape and the hook stays where players already look for it.
-        addSlot(new Slot(materials, C_IRON, 62, 150) {
+        addSlot(new Slot(materials, C_IRON, 76, 150) {
             @Override public boolean mayPlace(ItemStack s) { return s.is(Items.IRON_INGOT); }
         });
-        addSlot(new Slot(materials, C_STRING, 86, 150) {
+        addSlot(new Slot(materials, C_STRING, 100, 150) {
             @Override public boolean mayPlace(ItemStack s) { return s.is(Items.STRING); }
         });
-        addSlot(new Slot(materials, C_DYE, 110, 150) {
+        addSlot(new Slot(materials, C_DYE, 124, 150) {
             @Override public boolean mayPlace(ItemStack s) { return s.getItem() instanceof DyeItem; }
         });
         addSlot(new Slot(result, 0, 176, 150) {
