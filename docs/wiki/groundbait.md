@@ -23,7 +23,8 @@ on them.
 
 ## Mixing your own
 
-Put **two or more components in a crafting grid**. One item is one spoon, and the spoons decide
+Put **two or more components in a crafting grid**. One SLOT is one spoon — a stack of 64 in one slot
+is still one spoon, because one item per slot is what the craft actually consumes. The spoons decide
 everything: three corn, one breadcrumb and four soil comes out at fraction **0.53** and nutrition
 **0.35** — half of it is still particle, and it feeds barely more than a third of what pure corn would.
 The four spoons of soil are what did that.
