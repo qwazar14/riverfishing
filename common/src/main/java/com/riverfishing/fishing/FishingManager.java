@@ -876,7 +876,7 @@ public final class FishingManager {
         // crank. Detected once per cast from the rig's lure slot; everything below rides the same
         // hold-to-retrieve input — a "pop" is simply resuming the retrieve after a short pause.
         if (session.retrieveTicks == 1) {
-            ItemStack tw = sp.getItemInHand(session.hand);
+            ItemStack tw = sessionRod(sp, session);
             if (tw.getItem() instanceof RodItem) {
                 ItemStack rg = RodData.get(tw, ComponentSlot.RIG);
                 java.util.List<String> lures = rg.getItem() instanceof RigItem
@@ -992,7 +992,7 @@ public final class FishingManager {
     /** A snag near the bank (§7.1): {@code lost} = a dead (глухой) snag that costs the rig, else tug free. */
     private static void handleSnag(ServerPlayer sp, ServerLevel level, FishingSession session, boolean lost) {
         sp.stopUsingItem();
-        ItemStack rod = sp.getItemInHand(session.hand);
+        ItemStack rod = sessionRod(sp, session);
         addLineWear(rod, 3);
         level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.6f, 0.5f);
         if (!lost) {
@@ -1264,7 +1264,7 @@ public final class FishingManager {
      */
     private static void eatBait(ServerPlayer sp, FishingSession session) {
         if (!RiverFishingConfig.consumeBait()) return;
-        ItemStack rod = sp.getItemInHand(session.hand);
+        ItemStack rod = sessionRod(sp, session);
         if (!(rod.getItem() instanceof RodItem)) return;
         // §skills FRUGAL: a frugal angler sometimes re-uses the bait (the fish nibbled without stripping it).
         if (sp.level().getRandom().nextDouble() < AnglerSkills.baitSkipChance(sp)) return;
@@ -1291,7 +1291,7 @@ public final class FishingManager {
         // rig is lost, fish and all. Independent of the weight-vs-strain break in the fight (that's earned);
         // this is the rare gut-punch that keeps every strike a little tense.
         if (random.nextDouble() < TACKLE_BREAK_CHANCE) {
-            ItemStack broken = sp.getItemInHand(session.hand);
+            ItemStack broken = sessionRod(sp, session);
             if (broken.getItem() instanceof RodItem) {
                 RodData.set(broken, ComponentSlot.RIG, ItemStack.EMPTY);
             }
@@ -1307,7 +1307,7 @@ public final class FishingManager {
         }
 
         // Every strike stresses the blank (§rod-durability); at zero the rod snaps for good.
-        ItemStack rodWear = sp.getItemInHand(session.hand);
+        ItemStack rodWear = sessionRod(sp, session);
         if (rodWear.getItem() instanceof RodItem && rodWear.isDamageableItem()) {
             rodWear.hurtAndBreak(1, sp,
                     session.hand == InteractionHand.MAIN_HAND
@@ -1361,7 +1361,7 @@ public final class FishingManager {
         // §livebait-2 (0.4.0): a weighed live baitfish on the rig culls the small takers. Read the rig
         // from the session's own rod stack (pods fish with the rod OFF-hand, so not getItemInHand).
         int livebaitW = 0;
-        ItemStack rigSource = !session.rodStackRef.isEmpty() ? session.rodStackRef : sp.getItemInHand(session.hand);
+        ItemStack rigSource = sessionRod(sp, session);
         if (rigSource.getItem() instanceof RodItem) {
             ItemStack rigS = RodData.get(rigSource, ComponentSlot.RIG);
             if (rigS.getItem() instanceof RigItem) livebaitW = RigData.livebaitWeightG(rigS);
@@ -1372,7 +1372,7 @@ public final class FishingManager {
         session.rollLivebaitG = livebaitW;
         rollFish(random, profile, session, session.rollLuck, livebaitW, match);
 
-        ItemStack rod = sp.getItemInHand(session.hand);
+        ItemStack rod = sessionRod(sp, session);
         // A blunt hook can slip on the strike (§3.8) — empty set, fish gone, hook dulls a touch more.
         // (A foul-hooked fish is snagged by the body, so this doesn't apply.)
         if (!session.foulHooked && random.nextDouble() < WearData.hookEmptySetChance(session.hookWear)) {
@@ -1618,7 +1618,7 @@ public final class FishingManager {
      */
     private static void checkCatchAdvancements(ServerPlayer sp, ServerLevel level, FishingSession session) {
         String sp2 = session.species.getPath();
-        ItemStack rod = sp.getItemInHand(session.hand);
+        ItemStack rod = sessionRod(sp, session);
         RodType rodType = rod.getItem() instanceof RodItem ri ? ri.rodType() : null;
         boolean wooden = rodType == RodType.STICK || rodType == RodType.BAMBOO;
         java.util.List<String> baits = java.util.List.of();
@@ -2358,7 +2358,7 @@ public final class FishingManager {
         }
         // Surviving over the limit still costs the line — it frays a wear point every ~15 such ticks.
         if (session.overStressTicks % 15 == 0) {
-            addLineWear(sp.getItemInHand(session.hand), 1);
+            addLineWear(sessionRod(sp, session), 1);
         }
         double chance = Math.min(0.5,
                 (0.008 + 0.055 * overshoot + 0.028 * session.overStress) * RiverFishingConfig.breakSensitivity());
@@ -2371,7 +2371,7 @@ public final class FishingManager {
 
     private static void breakLine(ServerPlayer sp, ServerLevel level, FishingSession session, boolean leader) {
         // A break stresses and abrades the line (§3.8).
-        addLineWear(sp.getItemInHand(session.hand), (int) Math.round(5 * lineWearScaled()));
+        addLineWear(sessionRod(sp, session), (int) Math.round(5 * lineWearScaled()));
         double weightKg = session.weightG / 1000.0;
         double strain = Math.max(0.5, session.lineStrainKg);
         // §balance: a strong line vs a light fish nearly always just throws the hook (5% floor), while a
@@ -2379,7 +2379,7 @@ public final class FishingManager {
         double loseChance = Mth.clamp(0.30 * (weightKg * 1.5 / strain), 0.05, 0.30);
         boolean loseRig = leader || level.getRandom().nextDouble() < loseChance;
         if (loseRig) {
-            ItemStack rod = sp.getItemInHand(session.hand);
+            ItemStack rod = sessionRod(sp, session);
             if (rod.getItem() instanceof RodItem) {
                 RodData.set(rod, ComponentSlot.RIG, ItemStack.EMPTY);
             }
@@ -2584,7 +2584,11 @@ public final class FishingManager {
     }
 
     private static int hookWearAmount() {
-        return (int) Math.round(2 * RiverFishingConfig.hookWearRate() / 1.5);
+        // The amount is a whole wear point, so a rate the player merely DIMMED must not round down to
+        // "never blunts" — arcade's 0.3 gives 0.4, and dullSharpestHook ignores 0. Turning hook wear
+        // off is what a rate of exactly 0 is for.
+        double rate = RiverFishingConfig.hookWearRate();
+        return rate <= 0 ? 0 : Math.max(1, (int) Math.round(2 * rate / 1.5));
     }
 
     private static void addLineWear(ItemStack rod, int amount) {
@@ -2612,6 +2616,28 @@ public final class FishingManager {
             }
         }
         return found ? min : 0;
+    }
+
+    /**
+     * The stack this session is actually fishing with — NOT necessarily what is in the hand.
+     *
+     * <p>A rod pod fishes with the rod in the POD, so the player's hand holds whatever they picked up
+     * since the cast. Reading the hand there sent every write to the wrong item: hook wear, line wear,
+     * rod durability, eaten bait and a lost rig all went somewhere else, which is why hooks appeared to
+     * stop blunting entirely for anyone fishing from a pod.
+     *
+     * <p>The hotbar SLOT comes first because that is what "still the same rod" means — an index survives
+     * the slot being rewritten with an equal-but-different stack object, which is the trap §session-guard
+     * exists for. Pods and off-hand casts have no slot (-1), and there the session's own stack is the
+     * only handle on the real rod.
+     */
+    private static ItemStack sessionRod(ServerPlayer sp, FishingSession session) {
+        if (session.rodSlot >= 0) {
+            ItemStack slot = sp.getInventory().getItem(session.rodSlot);
+            if (slot.getItem() instanceof RodItem) return slot;
+        }
+        if (!session.rodStackRef.isEmpty()) return session.rodStackRef;
+        return sp.getItemInHand(session.hand);
     }
 
     private static void dullSharpestHook(ItemStack rod, int amount) {
