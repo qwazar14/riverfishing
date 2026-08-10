@@ -42,6 +42,30 @@ public class FeedZoneData extends SavedData {
     private static final long SATIETY_HALFLIFE_TICKS = 2400L;
 
     private static final double FEED_AMOUNT = 0.6;
+
+    /**
+     * §nutrition-earns: how much pull a mix with NO food in it can still reach.
+     *
+     * <p>Nutrition used to be pure cost — it fed satiety and nothing else — so the best groundbait in
+     * the game was always "hit the species' fraction, drive nutrition to zero", and ballast made that
+     * free. Measured before the change: 10 of the 31 species that name a category could be fed a
+     * perfect score at nutrition 0.00, and the 16 under a kilo averaged 0.989 of perfect at 0.03.
+     * One grid solved the feature forever.
+     *
+     * <p>Now the attraction a spot can reach is capped by what is actually in the bowl. A jar of wet
+     * mud still works — 0.40 of full pull — it simply cannot out-fish food.
+     */
+    private static final double FRESH_FLOOR = 0.40;
+
+    /**
+     * How much fullness one throw of a fully rich mix leaves, BEFORE the appetite divisor.
+     *
+     * <p>Was FEED_AMOUNT, which made satiety saturate at 1.0 within two throws of anything nourishing —
+     * and a saturated cost is a cost that no longer varies, so dividing it by appetite did nothing and
+     * winter fished exactly like summer. At 0.20 it stays off the ceiling long enough for the divisor
+     * to matter, which is what puts the season back into the decision.
+     */
+    private static final double SATIETY_AMOUNT = 0.20;
     private static final double EDGE_FACTOR = 0.6;     // outer ring of the 3x3 is weaker
 
     /**
@@ -90,10 +114,13 @@ public class FeedZoneData extends SavedData {
         double satiety = zone == null ? 0.0 : zone.satiety(gameTime);
 
         // Floor the divisor rather than the result: without it a frozen lake divides by nearly zero.
-        double gain = FEED_AMOUNT * mix.nutrition() / Math.max(0.15, appetite);
+        double gain = SATIETY_AMOUNT * mix.nutrition() / Math.max(0.15, appetite);
+        // §nutrition-earns: the fish answer as much feed as there is food in it. FEED_AMOUNT is still
+        // how FAST a spot builds up; the ceiling is how far it can build up at all.
+        double ceiling = FRESH_FLOOR + (1.0 - FRESH_FLOOR) * Mth.clamp(mix.nutrition(), 0.0, 1.0);
 
         zones.put(k, new Zone(center.getX(), center.getY(), center.getZ(), gameTime,
-                Math.min(1.0, freshness + FEED_AMOUNT), Math.min(1.0, satiety + gain),
+                Math.min(ceiling, freshness + FEED_AMOUNT), Math.min(1.0, satiety + gain),
                 mix.category(), mix.nutrition(), mix.fraction(), mix.rgb()));
         setDirty();
     }
@@ -123,12 +150,17 @@ public class FeedZoneData extends SavedData {
                 double freshness = zone.freshness(gameTime);
                 if (freshness <= 0.01) continue;
                 double posFactor = (dx == 0 && dz == 0) ? 1.0 : EDGE_FACTOR;
-                double effective = freshness * posFactor;
+                // §nutrition-earns: a fish that has eaten is not INTERESTED, not merely harder to hook,
+                // so fullness discounts the pull and not only the bite quality. It belongs here because
+                // this is the one place a Query is built, and everything freshness drives — the bite
+                // bonus, the wait and the bite speed — reads that single number. Put it in the three
+                // call sites instead and the fourth reader gets an undiscounted one.
+                double satiety = zone.satiety(gameTime);
+                double effective = freshness * posFactor * (1.0 - SATIETY_BITE_COST * satiety);
                 if (effective > best.freshness) {
                     // Satiety is NOT weakened at the edge of the zone: the fish are equally full
                     // wherever you cast into the patch, they are simply less interested near its rim.
-                    best = new Query(true, effective, zone.category, zone.satiety(gameTime),
-                            zone.fraction, zone.rgb);
+                    best = new Query(true, effective, zone.category, satiety, zone.fraction, zone.rgb);
                 }
             }
         }
