@@ -1,6 +1,7 @@
 package com.riverfishing.client;
 
 import com.riverfishing.menu.TackleStationMenu;
+import com.riverfishing.registry.ModItems;
 import com.riverfishing.tackle.TackleForm;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -22,6 +23,8 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
     /** Four across: ten predator forms in three rows rather than four, which is what overran the label. */
     private static final int COLS = 4;
     private static final int TRACK_X = 116, TRACK_W = 70;
+    /** §hook-pick: the well the hook SLOT used to occupy, now the size picker. */
+    private static final int HOOK_X = 38;
     /** Where the right-hand column starts, and how much room it has — both derived, never guessed. */
     private static final int TEXT_X = GRID_X + COLS * CELL + 10;
     private boolean predatorTab;
@@ -104,7 +107,7 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         ly = flow(g, I18n.get("screen.riverfishing.tackle_station.cast_hint",
                 TackleForm.castHintBlocks(grams)), rx, ly, 0xFFB8AE9A);
         ly = flow(g, I18n.get("screen.riverfishing.tackle_station.cost",
-                sel.ironFor(grams), sel.stringNeeded()), rx, ly, 0xFFB8AE9A);
+                menu.ironNeeded(), sel.stringNeeded()), rx, ly, 0xFFB8AE9A);
         if (sel.dyeable) {
             flow(g, I18n.get("screen.riverfishing.tackle_station.dye_hint"), rx, ly, 0xFF8FB08A);
         }
@@ -140,28 +143,32 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         }
 
         // Material wells + ghost hints + live requirement counts (red when short).
-        int[][] wells = {{38, 150}, {62, 150}, {86, 150}, {110, 150}, {176, 150}};
+        int[][] wells = {{HOOK_X, 150}, {62, 150}, {86, 150}, {110, 150}, {176, 150}};
         for (int[] w : wells) {
             g.fill(x + w[0] - 1, y + w[1] - 1, x + w[0] + 17, y + w[1] + 17, 0xFF2a241c);
         }
+        // §hook-pick: the first well is no longer a slot — it is the hook PICKER, showing the size the
+        // bench will tie on. Left half steps down, right half up; the iron cost below already includes it.
+        g.fill(x + HOOK_X - 1, y + 149, x + HOOK_X + 17, y + 167, 0xFF463b2d);
+        g.renderItem(new ItemStack(ModItems.HOOKS.get(menu.hookIdx()).get()), x + HOOK_X, y + 150);
+        g.drawCenteredString(font, "#" + menu.hookSize(), x + HOOK_X + 8, y + 169, 0xFFFFD97A);
+
         ItemStack[] ghosts = {
-                new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM
-                        .get(com.riverfishing.RiverFishing.id("hook_10"))),
                 new ItemStack(net.minecraft.world.item.Items.IRON_INGOT),
                 new ItemStack(net.minecraft.world.item.Items.STRING),
                 new ItemStack(net.minecraft.world.item.Items.RED_DYE)};
-        int[] need = {sel.hooksNeeded(), sel.ironFor(grams), sel.stringNeeded(), 0};
+        int[] need = {menu.ironNeeded(), sel.stringNeeded(), 0};
         for (int i = 0; i < ghosts.length; i++) {
             ItemStack in = menu.getSlot(i).getItem();
+            int wx = x + wells[i + 1][0], wy = y + wells[i + 1][1];   // well 0 is the picker, not a slot
             if (in.isEmpty()) {
-                g.renderFakeItem(ghosts[i], x + wells[i][0], y + wells[i][1]);
+                g.renderFakeItem(ghosts[i], wx, wy);
                 g.fill(net.minecraft.client.renderer.RenderType.guiGhostRecipeOverlay(),
-                        x + wells[i][0], y + wells[i][1], x + wells[i][0] + 16, y + wells[i][1] + 16, 0x8857493a);
+                        wx, wy, wx + 16, wy + 16, 0x8857493a);
             }
             if (need[i] > 0) {
                 boolean short_ = in.getCount() < need[i];
-                g.drawCenteredString(font, "×" + need[i], x + wells[i][0] + 8, y + 169,
-                        short_ ? 0xFFE06050 : 0xFF9a8d78);
+                g.drawCenteredString(font, "×" + need[i], wx + 8, y + 169, short_ ? 0xFFE06050 : 0xFF9a8d78);
             }
         }
         g.drawString(font, "→", x + 158, y + 154, 0xFFB8AE9A, false);
@@ -229,6 +236,15 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
             int cur = currentWeightIdx();
             int next = mx < rx + 45 ? Math.max(0, cur - 1) : Math.min(f.weights.length - 1, cur + 1);
             clickButton(100 + next);
+            return true;
+        }
+        // Hook picker (§hook-pick): the well where the hook slot used to be. Left half = smaller hook
+        // (bigger number), right half = bigger — the same left/right step as the weight above.
+        if (my >= y + 149 && my < y + 167 && mx >= x + HOOK_X - 1 && mx < x + HOOK_X + 17) {
+            int cur = menu.hookIdx();
+            int next = mx < x + HOOK_X + 8 ? Math.max(0, cur - 1)
+                    : Math.min(TackleForm.HOOK_SIZES.length - 1, cur + 1);
+            clickButton(500 + next);
             return true;
         }
         return super.mouseClicked(mx, my, button);

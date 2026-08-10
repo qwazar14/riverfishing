@@ -1,6 +1,6 @@
 # The Tackle Station
 
-Right-click a **Fishing Stall** with an empty hand and it becomes a tackle bench: pick a form, pick a weight, feed it hooks, iron and string, and take the finished tackle out. The block that gives the village its [fisherman](villager.md) is the same block you tie your own rigs and lures on.
+Right-click a **Fishing Stall** with an empty hand and it becomes a tackle bench: pick a form, pick a weight, pick a hook size, feed it iron and string, and take the finished tackle out. The block that gives the village its [fisherman](villager.md) is the same block you tie your own rigs and lures on.
 
 The bench and the profession share one block. Its recipe is **Barrel + 2 × String + Iron Ingot** (shapeless).
 
@@ -11,8 +11,9 @@ The flow is stonecutter-style:
 1. Choose a **tab** — *Peaceful* (bottom rigs) or *Predator* (artificial lures).
 2. Click a **form** in the 3×3 grid.
 3. Step the **weight** with the `< Weight: N g >` control. The weight is the real decision.
-4. Fill the four material wells at the bottom: **Hook**, **Iron**, **String**, **Dye**. Ghost icons and a live `×N` count under each well show what the current selection needs, in red when you are short.
-5. The result slot previews the tackle. **Taking it** consumes the materials.
+4. Click the **hook well** (the first one) to step through the sizes, 16 down to 1. You do not need to own that hook — the bench ties it on and charges you the iron for it.
+5. Fill the three material wells: **Iron**, **String**, **Dye**. Ghost icons and a live `×N` count under each well show what the current selection needs, in red when you are short.
+6. The result slot previews the tackle. **Taking it** consumes the materials.
 
 Materials **stay in the bench** when you close it, so you can walk up and tie another one. They drop if the block is broken.
 
@@ -20,12 +21,14 @@ Materials **stay in the bench** when you close it, so you can walk up and tie an
 
 ```
 iron    = max(1, round(grams / 30))          + 1 for the two feeder cages
+        + ceil(hook nuggets / 3)             the hook the bench ties on
 string  = 1 for lures, 2 for rigs, 3 for the 3-hook rig
-hooks   = 1, or 3 for the 3-hook rig
 dye     = optional, lures only, 1 dye
 ```
 
-Rigs come out of the bench with their hooks **already slotted** — ready to bait. Every piece the bench ties carries the maker's name in its tooltip (*"Tied by …"*), and a **Tackle weight: N g** line that the casting system reads.
+A hook is worth 1 nugget at size 16 and one more for every size up, to 9 at size 1 — the same ladder you would climb crafting them by hand. The bench bills that at **three nuggets to the ingot**: it has no nugget slot, and it is tying the hook on for you. On a single-hook rig that is 1 / 2 / 3 extra ingots for size 16 / 10 / 4; on the 3-hook rig, 1 / 4 / 7.
+
+Rigs come out of the bench with their hooks **already slotted** — ready to bait, and you never had to craft that hook at all. Every piece the bench ties carries the maker's name in its tooltip (*"Tied by …"*), and a **Tackle weight: N g** line that the casting system reads.
 
 ## Peaceful forms
 

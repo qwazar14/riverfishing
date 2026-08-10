@@ -44,6 +44,10 @@ public final class ModItems {
     /** Registration order = creative-tab order. */
     public static final List<RegistrySupplier<Item>> ALL = new ArrayList<>();
 
+    /** §hook-pick: the hooks in {@link com.riverfishing.tackle.TackleForm#HOOK_SIZES} order — the bench
+     *  picks one by index rather than being handed the item. */
+    public static final List<RegistrySupplier<Item>> HOOKS = new ArrayList<>();
+
     // ---- Rods ----
     public static final List<RegistrySupplier<Item>> RODS = new ArrayList<>();
     // ---- Caught fish: one item + texture per species (Module 8; ÃÂ§ecology adds habitat-bound species) ----
@@ -171,9 +175,12 @@ public final class ModItems {
         FLOAT = reg("float", () -> new Item(props()));
 
         // ----- Hooks (angling sizes; bigger number = smaller hook) -----
-        for (int size : new int[]{16, 14, 12, 10, 8, 6, 4, 2, 1}) {
+        // The size list itself lives in TackleForm, because the bench prices tackle off it (§hook-pick).
+        // Keeping the literal here too is how you end up with a size the bench can charge for and not
+        // register, or register and not be able to tie.
+        for (int size : com.riverfishing.tackle.TackleForm.HOOK_SIZES) {
             final int s = size;
-            reg("hook_" + size, () -> new HookItem(s, props()));
+            HOOKS.add(reg("hook_" + size, () -> new HookItem(s, props())));
         }
 
         // ----- Natural baits -----
