@@ -36,7 +36,6 @@ public final class LineRenderer {
         Matrix4f m = pose.last().pose();
         Matrix3f nrm = pose.last().normal();
 
-        ClientLineState.pollFightInput(); // §fight-course: WASD is the fight input, and nothing else polls it
         var it = ClientLineState.lines().entrySet().iterator();
         boolean drew = false;
         while (it.hasNext()) {
