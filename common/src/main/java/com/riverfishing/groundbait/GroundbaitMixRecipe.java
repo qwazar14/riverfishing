@@ -52,6 +52,7 @@ public class GroundbaitMixRecipe extends CustomRecipe {
         Map<String, Integer> spoons = new LinkedHashMap<>();
         List<DyeColor> dyes = new ArrayList<>();
         int filled = 0;
+        int used = 0;      // occupied non-dye slots: what the craft costs, and what it pays
 
         for (int i = 0; i < input.size(); i++) {
             ItemStack s = input.getItem(i);
@@ -65,7 +66,11 @@ public class GroundbaitMixRecipe extends CustomRecipe {
             }
             String id = pantryId(s);
             if (id == null) return null;              // anything else disqualifies the whole grid
-            spoons.merge(id, s.getCount(), Integer::sum);
+            // ONE SLOT IS ONE SPOON. A crafting grid consumes one item per occupied slot however
+            // big the stack in it is, so reading spoons off getCount() paid out for groundbait
+            // nobody spent — two stacks of 64 read as 128 spoons and cost 2 items.
+            spoons.merge(id, 1, Integer::sum);
+            used++;
         }
 
         if (spoons.isEmpty() || filled < 2) return null;
@@ -79,10 +84,10 @@ public class GroundbaitMixRecipe extends CustomRecipe {
         if (!GroundbaitMix.qualifiesAsMix(parts, !dyes.isEmpty())) return null;
         GroundbaitMix mix = GroundbaitMix.of(parts);
         if (mix == null) return null;                  // all ballast: a bucket of mud is not groundbait
-        return new Stir(mix, dyes);
+        return new Stir(mix, dyes, used);
     }
 
-    private record Stir(GroundbaitMix mix, List<DyeColor> dyes) {}
+    private record Stir(GroundbaitMix mix, List<DyeColor> dyes, int used) {}
 
     @Override
     public boolean matches(CraftingInput input, Level level) {
@@ -101,24 +106,9 @@ public class GroundbaitMixRecipe extends CustomRecipe {
 
         // The jar it comes out in is the one matching what it reads as, so a mix that fishes as grain
         // also LOOKS like grain on the hotbar. The stamped composition is what actually counts.
-        ItemStack out = new ItemStack(jarFor(mix.category()), spoonsIn(input));
+        ItemStack out = new ItemStack(jarFor(mix.category()), stirred.used());
         GroundbaitNbt.write(out, mix);
         return out;
-    }
-
-    /**
-     * One spoon in, one feed out. Mixing is not a way to make groundbait from nothing — it is a way to
-     * decide what the groundbait you already have is FOR.
-     */
-    private static int spoonsIn(CraftingInput input) {
-        int n = 0;
-        for (int i = 0; i < input.size(); i++) {
-            ItemStack s = input.getItem(i);
-            if (!s.isEmpty() && s.get(net.minecraft.core.component.DataComponents.DYE) == null) {
-                n += s.getCount();
-            }
-        }
-        return Math.max(1, Math.min(64, n));
     }
 
     private static net.minecraft.world.item.Item jarFor(String category) {
