@@ -96,6 +96,14 @@ public final class GroundbaitMix {
         put("maggot", 0.65, 0.55, "pellet", 0xEDE4C8);
         put("groundbait_soil", 0.00, 0.35, null, 0x6B5236);   // inert ballast: no calories, no identity, all volume
 
+        // ---- the natural baits, chopped into the feed the way an angler really does ----
+        // Categories were the one thing every reviewer agreed on; the numbers had to clear the
+        // coarse-lean rule asserted in selfCheck, which is what kept the sea strip honest.
+        put("worm", 0.70, 0.65, "pellet", 0x8F463E);          // chopped worm: meat, sinks, stays — the first pellet in the band pellet fish live in
+        put("bloodworm", 0.30, 0.20, "powder", 0x8D2124);     // joker: the fine LIVE additive, and lean is the whole point of it on cold water
+        put("chicken_liver", 0.80, 0.65, "cake", 0x732728);   // offal: cake had four fine components and no coarse one, and this is the fish liver is for
+        put("fish_strip", 0.75, 0.80, "pellet", 0x976661);    // chum: a pellet IS ground fish, and cut fish lies on the deck rather than smearing away
+
         // ---- vanilla, so the first mix does not wait on a farm ----
         // Reach matters more than variety here: wheat and a potato are hour-one items, corn and boilies
         // are not. Without these the whole system only opens up late, which is the wrong shape for the
@@ -305,6 +313,18 @@ public final class GroundbaitMix {
             require(c.fraction() >= 0 && c.fraction() <= 1, c.id() + " fraction out of range");
             require(c.pull() == null || PRESETS.containsKey(c.pull()), c.id() + " pulls to no category");
             require((c.rgb() & ~0xFFFFFF) == 0, c.id() + " colour is not a plain 24-bit rgb");
+        }
+
+        // §groundbait-baits: THE COARSE-LEAN RULE. Nutrition is pure cost, so a component that is coarse
+        // AND lean at the same time hands the player leanness for free and deletes soil and clay as the
+        // dial the whole feature turns on. The pantry obeyed this before anyone wrote it down; the
+        // tightest margin is minecraft:carrot at +0.05. A proposed sea strip at 0.45/0.85 broke it and
+        // fed a catfish a perfect swim at under half the satiety of anything buildable today.
+        for (Component c : PANTRY.values()) {
+            if (c.pull() == null) continue;                    // ballast is meant to be coarse and free
+            require(c.nutrition() >= c.fraction() - 0.15,
+                    c.id() + " is coarse and lean at once (" + c.nutrition() + " / " + c.fraction()
+                            + ") — that is leanness without paying for it, which is what ballast is for");
         }
 
         // Soil is the whole trick: half a mix of it halves the nutrition without changing the identity.

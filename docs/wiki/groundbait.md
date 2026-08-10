@@ -49,6 +49,7 @@ Bread + wheat stays the powder recipe, wheat + wheat seeds stays the grain recip
 | Sugar | 0.20 | 0.05 | powder |
 | Bread Crumb | 0.25 | 0.10 | powder |
 | Wheat Seeds | 0.30 | 0.15 | powder |
+| Bloodworm | 0.30 | 0.20 | powder |
 | Cocoa Beans | 0.35 | 0.25 | cake |
 | Sweet Berries | 0.35 | 0.40 | grain |
 | Dried Kelp | 0.40 | 0.30 | powder |
@@ -62,7 +63,10 @@ Bread + wheat stays the powder recipe, wheat + wheat seeds stays the grain recip
 | Potato | 0.60 | 0.50 | grain |
 | Maggot | 0.65 | 0.55 | pellet |
 | Pearl Barley | 0.70 | 0.70 | grain |
+| Worm | 0.70 | 0.65 | pellet |
+| Fish Strip | 0.75 | 0.80 | pellet |
 | Pea | 0.80 | 0.75 | grain |
+| Chicken Liver | 0.80 | 0.65 | cake |
 | Corn | 0.85 | 0.90 | grain |
 | Boilie | 0.95 | 1.00 | pellet |
 
