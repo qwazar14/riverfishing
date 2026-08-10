@@ -33,7 +33,7 @@ import java.util.Map;
  * <p>The design called for a dedicated bench form with sliders. This is the same feature through the
  * grid instead, and deliberately so: the mod already ships three CustomRecipes ({@link
  * com.riverfishing.item.LivebaitRecipe}, LureDyeRecipe, TackleBoxDyeRecipe), the four ready-made
- * groundbaits are already crafted in a grid, and "count of items" expresses whole spoons more directly
+ * groundbaits were themselves grid recipes once, and "count of items" expresses whole spoons more directly
  * than any widget would. A screen nobody could look at while building it would have been the riskiest
  * part of the release for the least gain.
  *

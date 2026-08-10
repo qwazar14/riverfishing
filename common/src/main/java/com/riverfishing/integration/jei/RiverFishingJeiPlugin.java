@@ -43,12 +43,8 @@ public class RiverFishingJeiPlugin implements IModPlugin {
     public void registerRecipes(IRecipeRegistration registration) {
         List<CraftingRecipe> recipes = new ArrayList<>();
 
-        // Oil cake: sunflower pressed by a piston (the piston survives the craft).
-        Item cake = item("groundbait_cake");
-        if (cake != Items.AIR) {
-            recipes.add(display("jei_oil_cake", new ItemStack(cake, 6),
-                    Ingredient.of(Items.SUNFLOWER), Ingredient.of(Items.PISTON)));
-        }
+        // §groundbait-base: the oil-cake craft is GONE — sunflower is a mix component now, and
+        // JEI showing a recipe nobody can perform is worse than showing none.
         // Livebait: any small caught fish (≤150 g) becomes one live bait.
         Item livebait = item("livebait");
         if (livebait != Items.AIR) {
