@@ -177,18 +177,21 @@ public final class RigData {
      * Consumes one groundbait from the rig's feeder cage (§consumables): each cast delivers a charge
      * to the spot. Returns the consumed category, or null when the cage is empty.
      */
-    public static String consumeGroundbait(ItemStack rig) {
+    public static ItemStack consumeGroundbait(ItemStack rig) {
         SlotRole[] roles = RigLayout.rolesFor(rigType(rig));
         NonNullList<ItemStack> inv = load(rig);
         for (int i = 0; i < roles.length && i < inv.size(); i++) {
             ItemStack s = inv.get(i);
-            if (roles[i] == SlotRole.GROUNDBAIT && !s.isEmpty() && s.getItem() instanceof GroundbaitItem g) {
+            if (roles[i] == SlotRole.GROUNDBAIT && !s.isEmpty() && s.getItem() instanceof GroundbaitItem) {
+                // A COPY of one, taken before the shrink: the caller needs what went into the water,
+                // and §groundbait-mix means that is a whole stack's worth of composition, not a word.
+                ItemStack fed = s.copyWithCount(1);
                 s.shrink(1);
                 save(rig, inv);
-                return g.category();
+                return fed;
             }
         }
-        return null;
+        return ItemStack.EMPTY;
     }
 
     /**

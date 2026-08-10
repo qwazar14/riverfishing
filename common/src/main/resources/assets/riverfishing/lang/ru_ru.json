@@ -933,5 +933,16 @@
   "key.riverfishing.pull_right": "Бой: тянуть ВПРАВО",
   "key.riverfishing.lift": "Бой: ПОДНЯТЬ удилище",
   "key.riverfishing.push": "Бой: удилище ВНИЗ",
-  "tooltip.riverfishing.knife_strips": "Присесть: нарезать на полоски-наживку"
+  "tooltip.riverfishing.knife_strips": "Присесть: нарезать на полоски-наживку",
+  "item.riverfishing.groundbait_soil": "Прикормочный грунт",
+  "tooltip.riverfishing.groundbait_soil": "Инертный наполнитель — объём и муть, без калорий",
+  "message.riverfishing.spot_overfed": "Точка перекормлена — рыба ест, а не клюёт",
+  "tooltip.riverfishing.gb_nutrition": "Питательность %s (%s)",
+  "tooltip.riverfishing.gb_fraction": "Фракция %s (%s)",
+  "tooltip.riverfishing.gb_rich_high": "сытная",
+  "tooltip.riverfishing.gb_rich_mid": "умеренная",
+  "tooltip.riverfishing.gb_rich_low": "постная",
+  "tooltip.riverfishing.gb_coarse_coarse": "крупная, держит крупную рыбу",
+  "tooltip.riverfishing.gb_coarse_mid": "смешанная",
+  "tooltip.riverfishing.gb_coarse_fine": "мелкая, пылит"
 }

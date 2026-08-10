@@ -21,6 +21,11 @@ public final class RiverFishing {
 
     public static void init() {
         LOGGER.info("River Fishing: common init on {}", PlatformHelper.platformName());
+        // §groundbait-mix: the pantry decides what every mix is worth, and a bad edit to it is
+        // silent — wrong numbers just fish badly. Fail on load instead.
+        com.riverfishing.groundbait.GroundbaitMix.selfCheck();
+        // §groundbait-mix: a bad edit to the pantry is silent — fail on load instead.
+        com.riverfishing.groundbait.GroundbaitMix.selfCheck();
         com.riverfishing.config.ConfigLoader.load();    // §config: before anything reads a multiplier
         ModRegistries.init();
         com.riverfishing.network.ModNetwork.register(); // Architectury NetworkManager (was SimpleChannel)

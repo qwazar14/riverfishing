@@ -79,6 +79,8 @@ public final class ModItems {
             "common_dace", "volga_zander", "white_eye_bream", "round_goby"
     };
     public static final Map<Identifier, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
+    /** category -> the ready-made jar, for §groundbait-mix. */
+    public static final Map<String, RegistrySupplier<Item>> GROUNDBAITS = new HashMap<>();
     // ---- Baits referenced by event drops ----
     public static final RegistrySupplier<Item> WORM;
     public static final RegistrySupplier<Item> CHICKEN_LIVER;
@@ -94,6 +96,7 @@ public final class ModItems {
     public static final RegistrySupplier<Item> FILLET_KNIFE;
     public static final RegistrySupplier<Item> RAW_FILLET;
     public static final RegistrySupplier<Item> FISH_STRIP;
+    public static final RegistrySupplier<Item> GROUNDBAIT_SOIL;
     public static final RegistrySupplier<Item> COOKED_FILLET;
     // ---- Maintenance (ÃÂ§3.8) ----
     public static final RegistrySupplier<Item> WHETSTONE;
@@ -195,6 +198,9 @@ public final class ModItems {
         // §sea-tackle (0.5.0): cut fish strip — the universal saltwater hook bait.
         // Held here because the filleting knife cuts them (§one-cutter) and needs the item.
         FISH_STRIP = registerBait("fish_strip", false);
+        // §groundbait-mix: inert ballast. NOT a bait — it goes in the bowl, not on a hook, and it is
+        // the only thing in the pantry that feeds nothing at all.
+        GROUNDBAIT_SOIL = reg("groundbait_soil", () -> new Item(props("groundbait_soil")));
         registerBait("maggot", false);
         WORM = registerBait("worm", false);
         registerBait("bloodworm", false);
@@ -232,7 +238,8 @@ public final class ModItems {
 
         // ----- Groundbaits -----
         for (String cat : new String[]{"powder", "grain", "pellet", "cake"}) {
-            reg("groundbait_" + cat, () -> new GroundbaitItem(cat, props("groundbait_" + cat)));
+            GROUNDBAITS.put(cat, reg("groundbait_" + cat,
+                    () -> new GroundbaitItem(cat, props("groundbait_" + cat))));
         }
 
         // ----- Bite alarms (Module 3) -----
