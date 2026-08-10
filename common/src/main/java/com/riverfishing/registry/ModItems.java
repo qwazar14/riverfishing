@@ -208,6 +208,9 @@ public final class ModItems {
         // §groundbait-mix: inert ballast. NOT a bait — it goes in the bowl, not on a hook, and it is
         // the only thing in the pantry that feeds nothing at all.
         GROUNDBAIT_SOIL = reg("groundbait_soil", () -> new Item(props("groundbait_soil")));
+        // §groundbait-base: the ONE thing you craft. Bulk and calories, no character at all —
+        // it has no category, so it cannot be thrown on its own. Everything else is what you add.
+        reg("groundbait_base", () -> new Item(props("groundbait_base")));
         registerBait("maggot", false);
         WORM = registerBait("worm", false);
         registerBait("bloodworm", false);

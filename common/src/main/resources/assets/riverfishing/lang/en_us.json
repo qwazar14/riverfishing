@@ -936,6 +936,8 @@
   "tooltip.riverfishing.knife_strips": "Crouch: cut into bait strips instead",
   "item.riverfishing.groundbait_soil": "Groundbait Soil",
   "tooltip.riverfishing.groundbait_soil": "Inert filler — bulk and cloud, no food",
+  "item.riverfishing.groundbait_base": "Groundbait Base",
+  "tooltip.riverfishing.groundbait_base": "Bulk with no character — add components to make groundbait",
   "message.riverfishing.spot_overfed": "The spot is stuffed — they are feeding, not biting",
   "tooltip.riverfishing.gb_nutrition": "Nutrition %s (%s)",
   "tooltip.riverfishing.gb_fraction": "Fraction %s (%s)",
