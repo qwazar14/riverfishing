@@ -156,7 +156,9 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         // bench will tie on. Left half steps down, right half up; the iron cost below already includes it.
         g.fill(x + HOOK_X - 1, y + 149, x + HOOK_X + 17, y + 167, 0xFF463b2d);
         g.renderItem(new ItemStack(ModItems.HOOKS.get(menu.hookIdx()).get()), x + HOOK_X, y + 150);
-        g.drawCenteredString(font, "#" + menu.hookSize(), x + HOOK_X + 8, y + 169, 0xFFFFD97A);
+        // The same "< value >" the weight stepper wears: without it the well reads as a slot you
+        // are supposed to put something in, which is exactly what it stopped being.
+        g.drawCenteredString(font, "< #" + menu.hookSize() + " >", x + HOOK_X + 8, y + 169, 0xFFFFD97A);
 
         for (int i = 0; i < ghosts.length; i++) {
             ItemStack in = menu.getSlot(i).getItem();
