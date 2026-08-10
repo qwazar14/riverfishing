@@ -78,6 +78,13 @@ public final class GroundbaitNbt {
     /** Stamp a mix onto a stack. A preset writes nothing — its numbers come from the item itself. */
     public static void write(ItemStack stack, GroundbaitMix mix) {
         if (mix == null || mix.isPreset()) return;
+        // §26.x: item tinting here is declared in assets/riverfishing/items/*.json, and the only tint
+        // source that can see a per-stack colour is minecraft:dye — which reads this component. So the
+        // jar carries its colour as well as computing it, written from the same mix at the same moment
+        // the parts are, because two colours that could disagree is exactly how this feature has been
+        // bitten before.
+        stack.set(net.minecraft.core.component.DataComponents.DYED_COLOR,
+                new net.minecraft.world.item.component.DyedItemColor(mix.rgb()));
         StackNbt.mutate(stack, tag -> {
             ListTag list = new ListTag();
             for (GroundbaitMix.Part p : mix.parts()) {
