@@ -83,7 +83,14 @@ they are how you pull fish in without filling them. On a hammered water half the
 
 ### What the numbers do
 
-**Nutrition** decides how fast the spot fills up. It is the axis that makes feeding a decision.
+**Nutrition** cuts both ways, and that is the whole decision. It is how strongly the spot PULLS — a mix
+with no food in it can only ever reach about 40% of full attraction, however much of it you throw — and
+it is also how fast the fish fill up, and a full fish is not interested.
+
+The two do not cancel, because only the filling-up half is divided by appetite. In warm water the fish
+eat what you give them and a rich mix is worth its calories; in cold water the same jar fills them for
+hours and buys almost nothing. Feeding often pushes the answer the same way as cold water: the more
+frequently you top the spot up, the leaner the mix should be.
 
 **Fraction** is matched against the size of fish you are after — dust for bleak and roach, whole grain
 for carp and bream. Each species has a preferred grind that follows from its own weight, so this is also
