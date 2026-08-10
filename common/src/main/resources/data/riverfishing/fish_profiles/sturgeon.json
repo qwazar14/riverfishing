@@ -8,7 +8,7 @@
     "rod": ["bottom", "carp"],
     "reel_size": 9000, "reel_tolerance": 3000,
     "line": { "type": "braid", "diameter_mm": 0.45, "tolerance_mm": 0.1 },
-    "rig": ["catfish", "grusha"], "groundbait": ["pellet"],
+    "rig": ["catfish", "grusha"], "groundbait": { "fraction": 0.95, "nutrition": 0.79 },
     "bait": { "chicken_liver": 1.0, "worm": 0.9, "livebait": 0.7, "boilie": 0.5 },
     "hook": { "ideal": 1, "tolerance": 2 }
   },

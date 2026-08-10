@@ -51,7 +51,18 @@ public final class ClientPlatformImpl {
                 Minecraft.getInstance().getItemColors().register(tint, r.get());
             }
         }
+        // §groundbait-tint: the jar's speckles wear the mix's own colour (layer 1). Forge on 1.20.1 has no
+        // colour-handler EVENT here — this whole method exists because it registers straight on the live
+        // ItemColors — so the neoforge form of this loop, which is what was pasted in, could never compile.
+        for (dev.architectury.registry.registries.RegistrySupplier<net.minecraft.world.item.Item> r
+                : com.riverfishing.registry.ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.GroundbaitItem) {
+                Minecraft.getInstance().getItemColors().register(
+                        com.riverfishing.item.GroundbaitItem::speckleTint, r.get());
+            }
+        }
         // §morph (0.7.0): the fish's own colour — age shading and its morph, from the shared table.
+
         net.minecraft.client.color.item.ItemColor fish = com.riverfishing.client.FishTint::itemColor;
         for (var r : com.riverfishing.registry.ModItems.FISH_ITEMS.values()) {
             Minecraft.getInstance().getItemColors().register(fish, r.get());

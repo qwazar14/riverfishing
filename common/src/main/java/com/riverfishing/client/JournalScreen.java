@@ -114,8 +114,8 @@ public class JournalScreen extends Screen {
             Item it = ro.get();
             if (it instanceof BaitItem b) {
                 baitCat.add(new Cat(new ItemStack(it), b.artificial() ? Kind.LURE : Kind.NATURAL, b.baitId()));
-            } else if (it instanceof GroundbaitItem gb) {
-                baitCat.add(new Cat(new ItemStack(it), Kind.GROUNDBAIT, gb.category()));
+            } else if (it instanceof GroundbaitItem) {
+                baitCat.add(new Cat(new ItemStack(it), Kind.GROUNDBAIT, "groundbait"));
             } else if (it instanceof RodItem) {
                 gearCat.add(new Cat(new ItemStack(it), Kind.ROD, ""));
             } else if (it instanceof ReelItem) {
@@ -148,7 +148,7 @@ public class JournalScreen extends Screen {
         // mixing and feeding are two decisions learned at two different moments — one at a bench with
         // time to read, one at the water with a rod in hand. Right after the bait page: these are the
         // other thing that goes in the water, the part that is not on the hook.
-        addGuide("groundbait", modStack("groundbait_base"));
+        addGuide("groundbait", modStack("groundbait_powder"));
         addGuide("feeding", modStack("groundbait_soil"));
         addGuide("topwater", modStack("popper"));
         addGuide("trolling", modStack("trolling_rod"));
@@ -770,9 +770,7 @@ public class JournalScreen extends Screen {
         }
 
         if (isBait(e.kind())) {
-            boolean gb = e.kind() == Kind.GROUNDBAIT;
-            g.drawString(this.font, Component.translatable(gb
-                    ? "journal.riverfishing.bait_attracts" : "journal.riverfishing.bait_catches"),
+            g.drawString(this.font, Component.translatable("journal.riverfishing.bait_catches"),
                     left + 10, y, GuiStyle.TEXT_HINT, false);
             y += 12;
             List<String> fish = fishFor(e, 12);
@@ -841,8 +839,16 @@ public class JournalScreen extends Screen {
         return y;
     }
 
+    /**
+     * §groundbait-one-jar: groundbait is NOT in here any more.
+     *
+     * <p>"This groundbait attracts bream, roach, tench" was a true sentence when there were four jars and
+     * every fish named the ones it liked. With one jar it would be a lie in either direction: the jar
+     * attracts nothing on its own, and everything once you mix. The entry shows its recipe like a piece
+     * of gear does, and the two guide pages are where the actual answer lives.
+     */
     private static boolean isBait(Kind k) {
-        return k == Kind.NATURAL || k == Kind.LURE || k == Kind.GROUNDBAIT;
+        return k == Kind.NATURAL || k == Kind.LURE;
     }
 
     private List<Component> catTooltip(Cat e) {
@@ -852,8 +858,7 @@ public class JournalScreen extends Screen {
         if (isBait(e.kind())) {
             List<String> fish = fishFor(e, 6);
             if (!fish.isEmpty()) {
-                t.add(Component.translatable(e.kind() == Kind.GROUNDBAIT
-                        ? "journal.riverfishing.bait_attracts" : "journal.riverfishing.bait_catches"));
+                t.add(Component.translatable("journal.riverfishing.bait_catches"));
                 t.add(Component.literal(String.join(", ", fish)).withStyle(ChatFormatting.DARK_GREEN));
             }
         } else {
@@ -867,13 +872,6 @@ public class JournalScreen extends Screen {
     }
 
     private static List<String> fishFor(Cat e, int limit) {
-        if (e.kind() == Kind.GROUNDBAIT) {
-            return FishProfileManager.get().all().stream()
-                    .filter(p -> p.idealGroundbaits.contains(e.id()))
-                    .limit(limit)
-                    .map(p -> Component.translatable("fish.riverfishing." + p.id.getPath()).getString())
-                    .collect(Collectors.toList());
-        }
         return FishProfileManager.get().all().stream()
                 .filter(p -> p.baitScore(e.id()) >= 0.5)
                 .sorted((a, b) -> Double.compare(b.baitScore(e.id()), a.baitScore(e.id())))
@@ -886,9 +884,9 @@ public class JournalScreen extends Screen {
     private static List<String> craftIngredients(ItemStack stack) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return List.of();
-        // §groundbait-base: the oil cake used to be a custom sunflower-and-piston recipe and had to be
-        // spelled out by hand here. That craft is gone — none of the four jars is craftable now, they
-        // are what a MIX comes out as — so the generic scan below correctly finds nothing for them.
+        // §groundbait-one-jar: the jar IS craftable again — wheat + wheat seeds — so the generic scan
+        // below finds it and prints the two ingredients, the same as for any piece of gear. The oil cake's
+        // hand-written sunflower-and-piston recipe used to live here; that item no longer exists.
         for (net.minecraft.world.item.crafting.Recipe<?> holder : mc.level.getRecipeManager().getRecipes()) {
             ItemStack res;
             try {

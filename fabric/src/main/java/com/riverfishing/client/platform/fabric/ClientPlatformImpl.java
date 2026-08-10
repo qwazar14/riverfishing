@@ -37,6 +37,14 @@ public final class ClientPlatformImpl {
             }
         }
         // §morph (0.7.0): the fish's own colour — age shading and its morph, from the shared table.
+        // §groundbait-tint: the jar's speckles wear the mix's own colour (layer 1).
+        for (RegistrySupplier<Item> r : ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.GroundbaitItem) {
+                net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register(
+                        com.riverfishing.item.GroundbaitItem::speckleTint, r.get());
+            }
+        }
+
         net.minecraft.client.color.item.ItemColor fish = com.riverfishing.client.FishTint::itemColor;
         for (RegistrySupplier<Item> r : ModItems.FISH_ITEMS.values()) {
             net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register(fish, r.get());

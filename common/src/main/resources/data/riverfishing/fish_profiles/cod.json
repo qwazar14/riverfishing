@@ -40,7 +40,7 @@
       "catfish",
       "grusha"
     ],
-    "groundbait": [],
+    "groundbait": { "fraction": 0.79, "nutrition": 0.75 },
     "bait": {
       "fish_strip": 1.0,
       "jig": 0.95,

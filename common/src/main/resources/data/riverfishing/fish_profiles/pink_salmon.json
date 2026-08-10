@@ -8,7 +8,7 @@
     "rod": ["spinning", "ultralight", "sea_spin"],
     "reel_size": 3500, "reel_tolerance": 1500,
     "line": { "type": "braid", "diameter_mm": 0.18, "tolerance_mm": 0.05 },
-    "rig": ["predator"], "groundbait": [],
+    "rig": ["predator"], "groundbait": { "fraction": 0.61, "nutrition": 0.75 },
     "bait": { "spoon": 1.0, "spinner": 0.9, "castmaster": 0.8, "fish_strip": 0.5 },
     "hook": { "ideal": 6, "tolerance": 2 }
   },

@@ -40,7 +40,7 @@
     "rig": [
       "predator"
     ],
-    "groundbait": [],
+    "groundbait": { "fraction": 0.66, "nutrition": 0.75 },
     "requires_leader": true,
     "bait": {
       "spoon": 1.2,

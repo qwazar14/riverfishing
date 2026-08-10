@@ -8,7 +8,7 @@
     "rod": ["winter", "feeder", "ultralight"],
     "reel_size": 2500, "reel_tolerance": 1500,
     "line": { "type": "fluoro", "diameter_mm": 0.18, "tolerance_mm": 0.05 },
-    "rig": ["winter", "float", "feeder"], "groundbait": [],
+    "rig": ["winter", "float", "feeder"], "groundbait": { "fraction": 0.57, "nutrition": 0.52 },
     "bait": { "bloodworm": 1.0, "mormyshka": 0.9, "maggot": 0.8, "worm": 0.6 },
     "hook": { "ideal": 10, "tolerance": 3 }
   },

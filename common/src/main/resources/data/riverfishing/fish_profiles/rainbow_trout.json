@@ -9,7 +9,7 @@
     "reel_size": 2000, "reel_tolerance": 1000,
     "line": { "type": "fluoro", "diameter_mm": 0.18, "tolerance_mm": 0.05 },
     "rig": ["predator", "float"],
-    "groundbait": [],
+    "groundbait": { "fraction": 0.58, "nutrition": 0.70 },
     "bait": { "spinner": 1.0, "castmaster": 0.95, "wobbler": 0.85, "crankbait": 0.8, "silicone": 0.7, "worm": 0.6 },
     "hook": { "ideal": 8, "tolerance": 2 }
   },

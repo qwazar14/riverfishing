@@ -41,7 +41,7 @@
       "predator",
       "ground"
     ],
-    "groundbait": [],
+    "groundbait": { "fraction": 0.74, "nutrition": 0.75 },
     "bait": {
       "livebait": 1.2,
       "fish_strip": 1.1,

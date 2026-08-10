@@ -145,7 +145,10 @@ public final class ModVillagers {
         sell(t, 2, "maggot", 1, 10, 2);
         oneOf(t, 2, sellOf("reel_2000", 4, 1, 5), sellOf("reel_3000", 6, 1, 6));
         sell(t, 2, "line_mono_018", 2, 1, 4);
-        sell(t, 2, "groundbait_grain", 1, 6, 3);
+        // §groundbait-one-jar: the second groundbait trade is BALLAST now, not a second groundbait. It is
+        // the dial the whole mixing system turns on — the way you make a blend leaner and bulkier without
+        // making it worse — and it was the one pantry item with no shop leg at all.
+        sell(t, 2, "groundbait_soil", 1, 8, 3);
         sell(t, 2, "bait_trap", 3, 1, 4);           // the trap slowly farms livebait (§livebait)
         sell(t, 2, "minecraft:oak_boat", 4, 1, 5);  // §vanilla-stock: trolling needs a boat under you
         // §internal-rig: the float rig lives INSIDE the float rods (JournalScreen.isInternalRig) and is
@@ -179,7 +182,7 @@ public final class ModVillagers {
         sell(t, 4, "maggot_farm", 5, 1, 8);          // §bait-farm
         oneOf(t, 4, sellOf("keepnet_medium", 9, 1, 10), sellOf("keepnet_large", 14, 1, 14));
         sellStack(t, 4, 21, ModVillagers::carpKit, 18);
-        sell(t, 4, "groundbait_cake", 4, 3, 6);      // жмых — теперь только торговля и квест (§groundbait-base)
+        sellStack(t, 4, 5, ModVillagers::houseBlend, 6);   // §house-blend: the stall's own mix
         // §vanilla-stock + §tackle-craft: the saltwater reels are gated on ocean drops. Selling the
         // INPUTS keeps the gate (you still pay for it) without making it hinge on guardian RNG.
         sell(t, 4, "minecraft:prismarine_shard", 5, 4, 10);
@@ -748,6 +751,26 @@ public final class ModVillagers {
         return kit("tackle_box_medium", "kit.riverfishing.carp", 0xB0863C,
                 p("boilie", 16), p("hook_6", 4), p("hook_8", 4), p("corn", 16),
                 p("line_mono_030", 1), rig("rig_flat_feeder", 40, 60));
+    }
+
+    /**
+     * §house-blend: the stall's own groundbait, already mixed.
+     *
+     * <p>Base, barley, chopped worm and a spoon of maggot — the plain river blend everybody starts from,
+     * and it is deliberately GOOD RATHER THAN RIGHT. It fishes well for the silver fish it was built for
+     * and merely adequately for anything else, so it is worth the emeralds on the day you buy it and worth
+     * beating a week later. That is the whole promise of the mixing system in one trade: a ready recipe is
+     * a floor, not a ceiling.
+     */
+    private static ItemStack houseBlend() {
+        com.riverfishing.groundbait.GroundbaitMix mix = com.riverfishing.groundbait.GroundbaitMix.of(
+                java.util.List.of(new com.riverfishing.groundbait.GroundbaitMix.Part("groundbait_powder", 3),
+                        new com.riverfishing.groundbait.GroundbaitMix.Part("pearl_barley", 2),
+                        new com.riverfishing.groundbait.GroundbaitMix.Part("worm", 2),
+                        new com.riverfishing.groundbait.GroundbaitMix.Part("maggot", 1)));
+        ItemStack out = new ItemStack(ModItems.GROUNDBAIT.get(), 8);
+        com.riverfishing.groundbait.GroundbaitNbt.write(out, mix);
+        return out;
     }
 
     /** Sea kit: the saltwater end, sold late because the rest of that ladder is late (§progression). */
