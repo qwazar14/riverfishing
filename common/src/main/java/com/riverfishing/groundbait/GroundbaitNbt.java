@@ -24,6 +24,8 @@ public final class GroundbaitNbt {
     private static final String PARTS = "Parts";
     private static final String ID = "id";
     private static final String SPOONS = "n";
+    /** The dyed colour. Stored, not derived: a dye leaves no other trace on the stack. */
+    private static final String RGB = "rgb";
 
     private GroundbaitNbt() {}
 
@@ -46,9 +48,25 @@ public final class GroundbaitNbt {
             GroundbaitMix mixed = GroundbaitMix.of(recipe);
             // A tag that no longer stirs — a component renamed out of the pantry, say — falls back to
             // the preset rather than throwing. A stale jar should fish badly, not crash a save.
-            if (mixed != null) return mixed;
+            if (mixed != null) {
+                int rgb = tag.getCompound(ROOT).getInt(RGB);
+                return rgb != 0 ? mixed.recoloured(rgb) : mixed;
+            }
         }
         return preset(stack);
+    }
+
+    /**
+     * Has a mix been stamped onto this stack — i.e. is it somebody's own groundbait rather than a
+     * ready-made jar?
+     *
+     * <p>Deliberately asks the TAG, not what the tag stirs into. {@link #read} falls back to the preset
+     * for a tag it cannot stir, so a derived test ("does this read as a preset?") would wave a
+     * hand-edited or out-of-range jar straight back through as an ingredient — through the very hole it
+     * exists to close.
+     */
+    public static boolean isStamped(ItemStack stack) {
+        return StackNbt.get(stack).contains(ROOT);
     }
 
     /** The preset behind a stack, by the item it is. */
@@ -70,6 +88,7 @@ public final class GroundbaitNbt {
             }
             CompoundTag root = new CompoundTag();
             root.put(PARTS, list);
+            root.putInt(RGB, mix.rgb());
             tag.put(ROOT, root);
         });
     }

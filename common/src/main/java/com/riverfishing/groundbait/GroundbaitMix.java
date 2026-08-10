@@ -33,10 +33,19 @@ import java.util.Map;
  */
 public final class GroundbaitMix {
 
-    /** Most spoons of one component. Five keeps the arithmetic in the head and the UI on one row. */
-    public static final int MAX_SPOONS = 5;
-    /** Most distinct components in one mix. */
-    public static final int MAX_COMPONENTS = 5;
+    /**
+     * Most spoons of one component, and most components — both NINE, which is the size of a crafting
+     * grid, because the grid is the real limit and inventing a smaller one caused a duplication bug.
+     *
+     * <p>At five the recorded composition disagreed with what the player actually put in (eight corn was
+     * written down as five), so the payout had to be counted somewhere else, and the payout and the
+     * composition then drifted apart — twice. At nine a vanilla grid cannot exceed the cap, the kept
+     * parts ARE the grid, and {@link #jars} can be read off the same list that produced every other
+     * number. A bigger modded grid still clamps; it under-counts rather than over-pays, which is the
+     * safe direction.
+     */
+    public static final int MAX_SPOONS = 9;
+    public static final int MAX_COMPONENTS = 9;
 
 
     /**
@@ -146,6 +155,17 @@ public final class GroundbaitMix {
         return new GroundbaitMix(parts, category, nutrition, fraction, blend(rgb, dyeRgb, 0.6));
     }
 
+    /**
+     * The same mix wearing a colour it would not have computed for itself.
+     *
+     * <p>Only {@link GroundbaitNbt} needs this, to put a stored dye back on a mix that has just been
+     * stirred from its parts. A dye is the one thing about a jar that cannot be re-derived from what is
+     * in it, so it is the one thing that has to be written down.
+     */
+    public GroundbaitMix recoloured(int rgb) {
+        return new GroundbaitMix(parts, category, nutrition, fraction, rgb & 0xFFFFFF);
+    }
+
     /** Weighted RGB blend. Straight per-channel: mixing powders is not light, it is paint. */
     private static int blend(int a, int b, double towardsB) {
         int r = (int) Math.round(((a >> 16) & 0xFF) * (1 - towardsB) + ((b >> 16) & 0xFF) * towardsB);
@@ -208,6 +228,31 @@ public final class GroundbaitMix {
                 | ((int) Math.round(green / totalSpoons) << 8)
                 | (int) Math.round(blue / totalSpoons);
         return new GroundbaitMix(kept, category, nutrition / totalSpoons, fraction / totalSpoons, rgb);
+    }
+
+    /**
+     * How many jars this mix pays out: ONE PER SPOON OF FOOD.
+     *
+     * <p>Ballast is what a mix is diluted WITH, not what it is made OF, so soil and clay pay nothing.
+     * They still change the nutrition, the fraction and the colour of every jar; they no longer change
+     * how many jars there are. Counting slots instead is how eight soil and one jar of pellet became
+     * nine jars of pellet for two dirt.
+     *
+     * <p>Read off the KEPT parts — the same list that decided the category, the nutrition, the fraction
+     * and the colour. One list, one read: there is no second number here that could disagree with a
+     * first one, which is the whole point, because that disagreement is this feature's recurring bug.
+     *
+     * <p>The four ready-made groundbaits are food, so a jar stirred into a mix pays for exactly one jar
+     * out. That is necessary but NOT sufficient to stop the recipe printing its own ingredient — see the
+     * stamped-jar guard in GroundbaitMixRecipe, which is what actually closes the loop.
+     */
+    public static int jars(GroundbaitMix mix) {
+        int jars = 0;
+        for (Part p : mix.parts()) {
+            Component c = PANTRY.get(p.id());
+            if (c != null && c.pull() != null) jars += p.spoons();
+        }
+        return jars;
     }
 
     /**
@@ -309,6 +354,27 @@ public final class GroundbaitMix {
         // Spoons are clamped rather than trusted: the UI limits them, the NBT does not.
         GroundbaitMix over = of(List.of(new Part("corn", 99)));
         require(over != null && over.parts().get(0).spoons() == MAX_SPOONS, "spoons must clamp");
+        // ...and the cap has to be at least a crafting grid, or the kept parts stop being what the
+        // player put in and the payout has to be counted somewhere else. That is §groundbait-value.
+        require(MAX_SPOONS >= 9 && MAX_COMPONENTS >= 9, "the cap must not be smaller than a 3x3 grid");
+
+        // §groundbait-value: ballast dilutes, it does not multiply.
+        require(jars(of(List.of(new Part("groundbait_soil", 8), new Part("groundbait_pellet", 1)))) == 1,
+                "8 soil + 1 pellet is ONE jar, not nine");
+        require(jars(of(List.of(new Part("corn", 3), new Part("groundbait_soil", 3)))) == 3,
+                "food pays a jar a spoon, ballast only makes each jar leaner");
+        require(jars(of(List.of(new Part("corn", 7), new Part("pea", 1), new Part("pearl_barley", 1)))) == 9,
+                "an honest all-food grid still pays every spoon");
+        require(jars(of(List.of(new Part("corn", 8), new Part("groundbait_soil", 1)))) == 8,
+                "eight spoons of corn must be recorded as eight and paid as eight");
+        // Anything that stirs at all has a pulling component in it, so it can never pay zero.
+        require(jars(of(List.of(new Part("minecraft:wheat", 1), new Part("groundbait_soil", 8)))) >= 1,
+                "a mix that stirs must pay at least one jar");
+        // A ready-made jar must count as food, or stirring one in would pay out more than it cost.
+        for (String cat : PRESETS.keySet()) {
+            require(PANTRY.get("groundbait_" + cat).pull() != null,
+                    cat + " jar must count as food, or a jar in the grid pays for nothing");
+        }
 
         // The presets have to stay inside the same ranges, or the compatibility path lies.
         for (Map.Entry<String, GroundbaitMix> e : PRESETS.entrySet()) {
