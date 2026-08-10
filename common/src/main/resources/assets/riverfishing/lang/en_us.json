@@ -898,7 +898,7 @@
   "message.riverfishing.bar_run": "🎣 %s — running!",
   "message.riverfishing.bar_tired": "🎣 %s — tiring",
   "guide.riverfishing.tacklebench.title": "Tackle bench",
-  "guide.riverfishing.tacklebench.text": "The fisherman's stall ties custom tackle.\n• Pick a FORM (peaceful rigs / predator lures), then the WEIGHT — heavier flies farther and costs more iron (1 ingot per 30 g), but must fit the rod's test window.\n• Materials: iron and string; dye is optional on lures. The HOOK is PICKED at the bench (No.16 down to No.1) — you never bring one, its size is billed in iron.\n• Advanced: the hook link (rigs) and the balance (lures) are written onto the tackle.\n• Rigs come with the hooks pre-slotted; every piece carries its maker's name.",
+  "guide.riverfishing.tacklebench.text": "The fisherman's stall ties custom tackle.\n• Pick a FORM (peaceful rigs / predator lures), then the WEIGHT — heavier flies farther and costs more iron (1 ingot per 30 g), but must fit the rod's test window.\n• Pick the HOOK in the FIRST WELL — click its left half for a smaller hook, its right half for a bigger one, No.16 down to No.1. You never bring one: the bench ties it on and bills the size in iron, three nuggets to the ingot. A No.16 adds one ingot, a No.4 three, and the 3-hook rig pays for all three.\n• Materials: iron and string; dye is optional on lures.\n• Advanced: the hook link (rigs) and the balance (lures) are written onto the tackle.\n• Rigs come with the hooks pre-slotted; every piece carries its maker's name.",
   "block.riverfishing.tackle_box_small": "Small Tackle Box",
   "block.riverfishing.tackle_box_medium": "Medium Tackle Box",
   "block.riverfishing.tackle_box_large": "Large Tackle Box",
