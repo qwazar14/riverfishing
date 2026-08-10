@@ -114,7 +114,7 @@ The mod tracks fish landed through the ice as its own counter, feeding quest **s
 | Quest | Goal | Reward |
 |---|---|---|
 | Catch your first fish through the ice | 1 ice catch | 2 × Ice Jig |
-| Catch a burbot | any burbot | 4 × Oil Cake Groundbait |
+| Catch a burbot | any burbot | 4 × Chicken Liver |
 | Catch a ruffe | any ruffe | 12 × Maggot |
 | Catch 10 fish through the ice | 10 ice catches | **Winter Rod** |
 | Catch 30 fish through the ice | 30 ice catches | 24 emeralds |

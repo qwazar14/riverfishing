@@ -174,8 +174,8 @@ Worm, Maggot, Bloodworm and Chicken Liver come from digging and mob drops; Corn,
 
 | Groundbait | Type | Ingredients |
 |---|---|---|
-| Groundbait Base **×2** | shapeless | Wheat + Wheat Seeds — *the only thing you craft; every groundbait is [mixed](groundbait.md) from it* |
-| Pellet Groundbait | — | **quest only** (*Catch a tench*, stage 2) |
+| Groundbait **×2** | shapeless | Wheat + Wheat Seeds — *the base; everything else is [mixed](groundbait.md) into it* |
+| Any mix | shapeless | The jar + two or more components in a grid — one slot is one spoon, one spoon of food is one jar |
 
 ---
 
@@ -229,7 +229,7 @@ A short list of everything in the mod you cannot craft:
 |---|---|
 | Hook #2, Hook #1 | Master fisherman |
 | Wobbler, Soft Plastic | Tackle Station, or the fisherman |
-| Pellet Groundbait | The *Catch a tench* quest reward |
+| Groundbait Soil | Craft, or the fisherman at Apprentice — ballast, the way you make a mix leaner |
 | Mini Aquarium | Creative / commands only |
 | Ichthyologist's Tablet | Creative / commands only |
 | Primitive / Light Float / Float / Winter / Predator rigs | Built into their rod blanks |

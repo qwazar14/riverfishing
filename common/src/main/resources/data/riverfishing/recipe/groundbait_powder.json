@@ -4,5 +4,5 @@
     { "item": "minecraft:wheat" },
     { "item": "minecraft:wheat_seeds" }
   ],
-  "result": { "id": "riverfishing:groundbait_base", "count": 2 }
+  "result": { "id": "riverfishing:groundbait_powder", "count": 2 }
 }

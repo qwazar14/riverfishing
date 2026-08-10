@@ -100,39 +100,59 @@ public final class BiteEngine {
     }
 
     /**
-     * §groundbait-mix (0.8.0): three things about the fed spot, not one.
-     *
-     * <p>The CATEGORY term is exactly what it was, so the 50 profiles naming their groundbaits keep
-     * working untouched. What is new is the pair a category string could never carry:
+     * §groundbait-one-jar (0.8.0): four questions about the bed of feed, and not one of them is "which
+     * of the four jars is it".
      *
      * <ul>
+     *   <li><b>the menu</b> — is what is in the bowl something this fish eats? Asked of the species' own
+     *       bait list, because that list already IS its diet. Chop worm into the feed and the fish that
+     *       take worm come; a swim of sweetcorn says nothing to an eel.</li>
      *   <li><b>fraction against size</b> — a cloud of dust calls up bleak and roach; whole grain on the
-     *       bottom is what a carp is looking for. This is also the honest answer to "why do I only catch
-     *       small stuff": it is a choice, not a bug.</li>
-     *   <li><b>satiety</b> — the fish over a well-fed spot are FULL. Applied to every species alike,
-     *       because being stuffed is not a preference.</li>
+     *       bottom is what a carp is looking for. <b>Big fraction calls big fish.</b> This is also the
+     *       honest answer to "why do I only catch small stuff": it is a choice, not a bug.</li>
+     *   <li><b>nutrition against appetite</b> — a carp wants a table laid; a bleak wants a cloud, and a
+     *       table put down for the carp is not what it came for.</li>
+     *   <li><b>variety</b> — the more different things are down there, the broader the crowd. A small
+     *       term, because it is a nudge in the real thing too.</li>
      * </ul>
+     *
+     * <p>Nothing here punishes feeding. Overfeeding a spot is impossible by design (see FeedZoneData);
+     * the worst a mix can do is say nothing this fish is interested in, and that lands it back where an
+     * unfed swim already was.
      */
     private static double groundbaitScore(FishProfile p, BiteContext c) {
-        if (!c.inFeedZone || c.feedFreshness <= 0 || c.feedCategory == null) {
+        if (!c.inFeedZone || c.feedFreshness <= 0 || c.feedMix == null) {
             return 0.4; // fishing an un-fed spot is fine, just not ideal
         }
-        double category = p.idealGroundbaits.contains(c.feedCategory) ? 1.0 : 0.3;
-        double fit = 1.0 - Math.min(1.0, Math.abs(c.feedFraction - preferredFraction(p)));
-        // Never below half on fraction alone: the wrong grind should cost you the edge, not the fish.
-        double fraction = 0.5 + 0.5 * fit;
-        double satiety = 1.0 - com.riverfishing.fishing.FeedZoneData.SATIETY_BITE_COST * c.feedSatiety;
-        return category * fraction * satiety;
+        com.riverfishing.groundbait.GroundbaitMix mix = c.feedMix;
+        // Never below half on either axis alone: the wrong grind should cost you the edge, not the fish.
+        double fracFit = 1.0 - Math.min(1.0, Math.abs(mix.fraction() - p.gbFraction));
+        double nutFit = 1.0 - Math.min(1.0, Math.abs(mix.nutrition() - p.gbNutrition));
+        double variety = 0.90 + 0.10 * Math.min(1.0, (mix.variety() - 1) / 4.0);
+        return Math.min(1.0, menuScore(p, mix)
+                * (0.45 + 0.55 * fracFit)
+                * (0.60 + 0.40 * nutFit)
+                * variety);
     }
 
     /**
-     * What grind this species is looking for, straight off its own weight — no new profile data.
-     * A 20 g bleak wants dust, a 1 kg bream the middle, a 20 kg carp whole grain.
+     * Does this species eat what is actually in the bowl?
+     *
+     * <p>Spoon-weighted over everything in the mix that NAMES a diet. The base and the ballast are not in
+     * that list at all, which is the difference between "there is nothing here a bream wants" and "this
+     * mix does not say" — the first should fish worse than a plain jar, the second exactly like one.
+     *
+     * <p>A perfect menu can go slightly over 1.0 on purpose: getting the fish's own food into the feed is
+     * allowed to buy back a fraction or two of the wrong grind, because in the real thing it does.
      */
-    private static double preferredFraction(FishProfile p) {
-        double kg = (p.weightMean > 0 ? p.weightMean : p.weightMax) / 1000.0;
-        // log10 over three decades of fish: 0.02 kg -> ~0.06, 1 kg -> ~0.57, 20 kg -> ~0.95.
-        return Math.max(0.0, Math.min(1.0, (Math.log10(Math.max(0.01, kg)) + 2.0) / 3.5));
+    private static double menuScore(FishProfile p, com.riverfishing.groundbait.GroundbaitMix mix) {
+        int spoons = mix.additiveSpoons();
+        if (spoons == 0) return 0.75;   // a plain jar of base: neither the right food nor the wrong food
+        double sum = 0;
+        for (java.util.Map.Entry<String, Integer> e : mix.diets().entrySet()) {
+            sum += Math.max(0.0, Math.min(1.0, p.baitScore(e.getKey()))) * e.getValue();
+        }
+        return 0.45 + 0.75 * (sum / spoons);
     }
 
     private static double lineScore(FishProfile p, BiteContext c) {

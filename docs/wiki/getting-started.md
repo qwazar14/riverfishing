@@ -131,7 +131,7 @@ Full detail: [the fight](fishing-mechanics.md#the-fight).
 |---|---|
 | Stop digging for bait | Build a **[Worm Farm](blocks.md#worm-farm)** (8 planks + dirt) and a **[Maggot Farm](blocks.md#maggot-farm)** (8 planks + rotten flesh) |
 | Catch more, faster | Upgrade to a **Bamboo Rod** (a float rig) then a **Pole Rod** (two hooks, two baits, the best pull-out curve) |
-| Pull fish to you | Throw **[groundbait](groundbait.md)** into the water — craft Wheat + Wheat Seeds into Groundbait Base, then mix it with anything else in a grid |
+| Pull fish to you | Throw **[groundbait](groundbait.md)** into the water — Wheat + Wheat Seeds makes the jar; mix anything else into it for more |
 | Cast further, catch bigger | Build your first **reel** and a **Feeder Rod** — that opens the Bottom flow and the [rod pod](blocks.md#rod-pods) |
 | Catch predators | A **Spinning Rod** and a lure. Pike and zander **bite through a bare line** — fit a leader |
 | Know what's in the water | The **[Fish Finder](tools.md#fish-finder)** lists what can bite here right now |

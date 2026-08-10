@@ -82,6 +82,13 @@ public final class ClientPlatformImpl {
                 event.register(tint, r.get());
             }
         }
+        // §groundbait-tint: the jar's speckles wear the mix's own colour (layer 1).
+        for (RegistrySupplier<Item> r : ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.GroundbaitItem) {
+                event.register(com.riverfishing.item.GroundbaitItem::speckleTint, r.get());
+            }
+        }
+
         // §morph: the fish's own colour — age shading and its morph, from the shared table.
         net.minecraft.client.color.item.ItemColor fish = com.riverfishing.client.FishTint::itemColor;
         for (RegistrySupplier<Item> r : ModItems.FISH_ITEMS.values()) {

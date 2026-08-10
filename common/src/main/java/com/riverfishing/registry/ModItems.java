@@ -84,8 +84,8 @@ public final class ModItems {
             "common_dace", "volga_zander", "white_eye_bream", "round_goby"
     };
     public static final Map<ResourceLocation, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
-    /** category -> the ready-made jar, for §groundbait-mix. */
-    public static final Map<String, RegistrySupplier<Item>> GROUNDBAITS = new HashMap<>();
+    /** §groundbait-one-jar: the one groundbait item there is. What it DOES lives in its NBT. */
+    public static final RegistrySupplier<Item> GROUNDBAIT;
     // ---- Baits referenced by event drops ----
     public static final RegistrySupplier<Item> WORM;
     public static final RegistrySupplier<Item> CHICKEN_LIVER;
@@ -192,9 +192,6 @@ public final class ModItems {
         // in the bowl, and it is the only thing in the pantry that feeds nothing at all. That is
         // the whole point: it is the dial between pulling fish in and filling them up.
         GROUNDBAIT_SOIL = reg("groundbait_soil", () -> new IngredientItem("tooltip.riverfishing.groundbait_soil", props()));
-        // §groundbait-base: the ONE thing you craft. Bulk and calories, no character at all —
-        // it has no category, so it cannot be thrown on its own. Everything else is what you add.
-        reg("groundbait_base", () -> new IngredientItem("tooltip.riverfishing.groundbait_base", props()));
         registerBait("maggot", false);
         WORM = registerBait("worm", false);
         registerBait("bloodworm", false);
@@ -230,12 +227,12 @@ public final class ModItems {
         registerBait("octopus_jig", true);
         registerBait("giant_spoon", true);
 
-        // ----- Groundbaits -----
-        // Kept by category: §groundbait-mix has to hand a stirred mix back in the jar matching what it
-        // reads as, so a grain mix also LOOKS like grain on the hotbar.
-        for (String cat : new String[]{"powder", "grain", "pellet", "cake"}) {
-            GROUNDBAITS.put(cat, reg("groundbait_" + cat, () -> new GroundbaitItem(cat, props())));
-        }
+        // ----- Groundbait -----
+        // §groundbait-one-jar: ONE. Grain, pellet and oil cake are gone, and so is the separate base —
+        // four items that between them said nothing a player could act on, because the composition
+        // stamped on the stack says all of it. This jar is that base: neutral, throwable, and the thing
+        // every mix is built on top of.
+        GROUNDBAIT = reg("groundbait_powder", () -> new GroundbaitItem(props()));
 
         // ----- Bite alarms (Module 3) -----
         BELL_ALARM = reg("bell_alarm", () -> new AlarmItem(AlarmType.BELL, props()));

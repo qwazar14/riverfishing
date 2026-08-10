@@ -43,8 +43,9 @@ public class RiverFishingJeiPlugin implements IModPlugin {
     public void registerRecipes(IRecipeRegistration registration) {
         List<RecipeHolder<CraftingRecipe>> recipes = new ArrayList<>();
 
-        // §groundbait-base: the oil-cake craft is GONE — sunflower is a mix component now, and
-        // JEI showing a recipe nobody can perform is worse than showing none.
+        // §groundbait-one-jar: no hand-written groundbait entry any more. The one jar has a plain
+        // shapeless recipe JEI finds by itself, and mixing is a CustomRecipe with a pantry of 27
+        // ingredients — a page listing every legal grid would be noise, and the journal has two.
         // Livebait: any small caught fish (≤150 g) becomes one live bait.
         Item livebait = item("livebait");
         if (livebait != Items.AIR) {

@@ -112,7 +112,7 @@ Eight stages: **51 tasks** plus one completion prize per stage, 59 entries in al
 | Catch your first fish | 8 × Worm |
 | Catch a roach | 8 × Maggot |
 | Discover 3 species | 4 × Hook No.12 |
-| Catch a crucian carp | 4 × Grain Groundbait |
+| Catch a crucian carp | 4 × Groundbait |
 | Catch 10 fish | Bait Trap |
 | Fully complete stage 1 | 12 emeralds |
 
@@ -121,13 +121,13 @@ Eight stages: **51 tasks** plus one completion prize per stage, 59 entries in al
 | Goal | Reward |
 |---|---|
 | Catch a bream | 3 × Hook No.8 |
-| Catch a rudd | 4 × Powder Groundbait |
-| Catch a tench | 4 × Pellet Groundbait |
+| Catch a rudd | 6 × Groundbait Soil |
+| Catch a tench | 6 × Boilie |
 | Catch a bream 2+ kg | 6 emeralds |
 | Discover 8 species | **Spinning Rod** |
 | Fully complete stage 2 | Reel 3000 |
 
-The tench quest is currently the **only source of Pellet Groundbait** in the game.
+The groundbait rewards teach the pantry: the jar, then the ballast that makes a mix leaner, then something coarse enough to call a decent fish.
 
 ### Stage 3 — Predators
 
@@ -178,7 +178,7 @@ Each reward hands you the exact lure the *next* quest's fish wants — the stage
 |---|---|
 | Catch a rotan — everyone started with one | Spinner |
 | Catch a nase in the current | 12 × Maggot |
-| Catch a vimba on the spring run | 4 × Grain Groundbait |
+| Catch a vimba on the spring run | 8 × Pearl Barley |
 | Catch a whitefish in a cold lake | 12 × Bloodworm |
 | Catch an Arctic char in northern water | Castmaster |
 | Catch a lenok on a taiga riffle | Wobbler |

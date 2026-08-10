@@ -10,70 +10,57 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.saveddata.SavedData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Per-level store of fed spots (§5). Each spot is a 3x3 column zone holding two separate things:
+ * Per-level store of fed spots (§5). Each spot is a 3x3 column zone holding the mix that was thrown in it
+ * and how much of it is still down there.
  *
- * <ul>
- *   <li><b>freshness</b> — how much groundbait is still down there. Feeding tops it up, time takes it
- *       away, and how long it lasts depends on what the mix is made of.</li>
- *   <li><b>satiety</b> (§groundbait-mix, 0.8.0) — how FULL the fish over it are. This is the half the
- *       spot never had, and the reason the feature exists: groundbait is food as well as an attractant,
- *       so a rich mix pulls fish in and then stops them biting.</li>
- * </ul>
+ * <p>§no-overfeeding (0.8.0): <b>a spot cannot be ruined by feeding it.</b> There is no fullness, no
+ * cooldown and no punishment for throwing another jar — more feed is more fish, which is what feeding is
+ * for and what every angler expects. What a jar cannot do is out-fish its own contents: how far a spot
+ * can build up is capped by what is in the bowl, so the decision moved from "how much" (where it was a
+ * trap) to "what of" (where it is a craft).
  *
- * <p>The two pull against each other, which is the decision the player now has. Everywhere else in this
- * mod more resource is better; here a rich mix on a cold or hammered water is worse than a lean one.
+ * <p>§last-thrown-wins: two jars of the SAME recipe add up in the water. Two different recipes do not —
+ * the swim takes on whatever went in last, and the old mix is simply gone. Feeding worm over a corn swim
+ * does not give you a worm-and-corn swim; it gives you a worm swim, which is the same thing the real
+ * water does and the reason mixing your blend before you throw it matters.
  */
 public class FeedZoneData extends SavedData {
     public static final String NAME = "riverfishing_feed_zones";
 
     /** Fine dust clouds and washes out; grain lies on the bottom. Halflife scales with the fraction. */
-    private static final long HALFLIFE_BASE_TICKS = 1800L;    // ~90 s for pure powder
+    private static final long HALFLIFE_BASE_TICKS = 1800L;    // ~90 s for pure dust
     private static final long HALFLIFE_COARSE_TICKS = 3600L;  // + up to another 3 min for pure grain
     private static final long LIFETIME_BASE_TICKS = 3600L;    // ~3 min: the old hard stop, now the floor
     private static final long LIFETIME_COARSE_TICKS = 10800L; // coarse feed keeps working for ~12 min
 
-    /**
-     * Fish fill up fast and get hungry slowly, so satiety outlives the feed that caused it. Two minutes
-     * to halve: a mistake costs a pause, not an evening — the author's call when this was designed.
-     */
-    private static final long SATIETY_HALFLIFE_TICKS = 2400L;
-
+    /** How much one throw puts down. Two throws of a good mix take a swim to its ceiling. */
     private static final double FEED_AMOUNT = 0.6;
-
-    /**
-     * §nutrition-earns: how much pull a mix with NO food in it can still reach.
-     *
-     * <p>Nutrition used to be pure cost — it fed satiety and nothing else — so the best groundbait in
-     * the game was always "hit the species' fraction, drive nutrition to zero", and ballast made that
-     * free. Measured before the change: 10 of the 31 species that name a category could be fed a
-     * perfect score at nutrition 0.00, and the 16 under a kilo averaged 0.989 of perfect at 0.03.
-     * One grid solved the feature forever.
-     *
-     * <p>Now the attraction a spot can reach is capped by what is actually in the bowl. A jar of wet
-     * mud still works — 0.40 of full pull — it simply cannot out-fish food.
-     */
-    private static final double FRESH_FLOOR = 0.40;
-
-    /**
-     * How much fullness one throw of a fully rich mix leaves, BEFORE the appetite divisor.
-     *
-     * <p>Was FEED_AMOUNT, which made satiety saturate at 1.0 within two throws of anything nourishing —
-     * and a saturated cost is a cost that no longer varies, so dividing it by appetite did nothing and
-     * winter fished exactly like summer. At 0.20 it stays off the ceiling long enough for the divisor
-     * to matter, which is what puts the season back into the decision.
-     */
-    private static final double SATIETY_AMOUNT = 0.20;
     private static final double EDGE_FACTOR = 0.6;     // outer ring of the 3x3 is weaker
 
     /**
-     * How hard a full spot bites. At satiety 1.0 the bite is cut to 30% — badly, but never to nothing,
-     * because a spot you can never recover is a spot the player just walks away from.
+     * §no-overfeeding: how strong a spot this mix can ever build, however many jars go in.
+     *
+     * <p>This is where the whole feature lives now that fullness is gone. Nutrition is the food on the
+     * table and variety is how many different things are on it — the two reasons a real swim gathers a
+     * crowd — and a bare jar off the shelf reaches under half of what a thought-out blend does. Nobody is
+     * punished for feeding; they are simply out-fished by somebody who mixed.
+     *
+     * <pre>
+     *   plain jar (0.50 nutrition, 1 part)      -> 0.475
+     *   base + worm + maggot + barley           -> ~0.80
+     *   five parts, rich                        -> 1.00
+     * </pre>
      */
-    public static final double SATIETY_BITE_COST = 0.7;
+    public static double ceiling(GroundbaitMix mix) {
+        double variety = Mth.clamp((mix.variety() - 1) / 4.0, 0.0, 1.0);
+        return Mth.clamp(0.25 + 0.45 * Mth.clamp(mix.nutrition(), 0.0, 1.0) + 0.30 * variety, 0.0, 1.0);
+    }
 
     /** §groundbait-particles: the cloud a spot leaves on the water is the colour of what went in. */
     public static DustParticleOptions particleFor(int rgb) {
@@ -94,26 +81,19 @@ public class FeedZoneData extends SavedData {
     /**
      * Throw groundbait at a spot, creating or refreshing its zone.
      *
-     * @param appetite 0..1, how much the fish here can eat right now — cold water, a hammered chunk.
-     *     Satiety is the feed DIVIDED by it, so the same jar that barely registers in a warm summer
-     *     lake stuffs the spot solid under ice. That is the whole temperature gate, and it falls out of
-     *     one division rather than a special case.
+     * <p>Same recipe as what is already down there: it adds up, towards the ceiling that recipe can
+     * reach. Different recipe: it takes the swim over outright, at one throw's worth. That is not a
+     * penalty for changing your mind — it is what a real bed of feed does, and it is why the blend is
+     * decided in the grid rather than by dribbling four different jars in one after another.
      */
-    public void feed(BlockPos center, GroundbaitMix mix, long gameTime, double appetite) {
+    public void feed(BlockPos center, GroundbaitMix mix, long gameTime) {
         long k = key(center.getX(), center.getZ());
-        Zone zone = zones.get(k);
-        double freshness = zone == null ? 0.0 : zone.freshness(gameTime);
-        double satiety = zone == null ? 0.0 : zone.satiety(gameTime);
-
-        // Floor the divisor rather than the result: without it a frozen lake divides by nearly zero.
-        double gain = SATIETY_AMOUNT * mix.nutrition() / Math.max(0.15, appetite);
-        // §nutrition-earns: the fish answer as much feed as there is food in it. FEED_AMOUNT is still
-        // how FAST a spot builds up; the ceiling is how far it can build up at all.
-        double ceiling = FRESH_FLOOR + (1.0 - FRESH_FLOOR) * Mth.clamp(mix.nutrition(), 0.0, 1.0);
+        Zone old = zones.get(k);
+        boolean sameMix = old != null && old.mix().signature().equals(mix.signature());
+        double standing = sameMix ? old.freshness(gameTime) : 0.0;
 
         zones.put(k, new Zone(center.getX(), center.getY(), center.getZ(), gameTime,
-                Math.min(ceiling, freshness + FEED_AMOUNT), Math.min(1.0, satiety + gain),
-                mix.category(), mix.nutrition(), mix.fraction(), mix.rgb()));
+                Math.min(ceiling(mix), standing + FEED_AMOUNT), mix, mix.rgb()));
         setDirty();
     }
 
@@ -142,17 +122,9 @@ public class FeedZoneData extends SavedData {
                 double freshness = zone.freshness(gameTime);
                 if (freshness <= 0.01) continue;
                 double posFactor = (dx == 0 && dz == 0) ? 1.0 : EDGE_FACTOR;
-                // §nutrition-earns: a fish that has eaten is not INTERESTED, not merely harder to hook,
-                // so fullness discounts the pull and not only the bite quality. It belongs here because
-                // this is the one place a Query is built, and everything freshness drives — the bite
-                // bonus, the wait and the bite speed — reads that single number. Put it in the three
-                // call sites instead and the fourth reader gets an undiscounted one.
-                double satiety = zone.satiety(gameTime);
-                double effective = freshness * posFactor * (1.0 - SATIETY_BITE_COST * satiety);
+                double effective = freshness * posFactor;
                 if (effective > best.freshness) {
-                    // Satiety is NOT weakened at the edge of the zone: the fish are equally full
-                    // wherever you cast into the patch, they are simply less interested near its rim.
-                    best = new Query(true, effective, zone.category, satiety, zone.fraction, zone.rgb);
+                    best = new Query(true, effective, zone.mix());
                 }
             }
         }
@@ -171,11 +143,17 @@ public class FeedZoneData extends SavedData {
             t.putInt("z", z.z);
             t.putLong("fed", z.fedTime);
             t.putDouble("potency", z.potency);
-            t.putString("category", z.category);
-            t.putDouble("satiety", z.satietyBase);
-            t.putDouble("nutrition", z.nutrition);
-            t.putDouble("fraction", z.fraction);
             t.putInt("rgb", z.rgb);
+            // The PARTS are what is written down, not the numbers they stir into. One list, one read —
+            // the same rule the jar itself follows, so a saved spot and a saved jar can never disagree.
+            ListTag parts = new ListTag();
+            for (GroundbaitMix.Part p : z.mix().parts()) {
+                CompoundTag part = new CompoundTag();
+                part.putString("id", p.id());
+                part.putInt("n", p.spoons());
+                parts.add(part);
+            }
+            t.put("parts", parts);
             list.add(t);
         }
         tag.put("zones", list);
@@ -187,50 +165,47 @@ public class FeedZoneData extends SavedData {
         ListTag list = tag.getList("zones", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
             CompoundTag t = list.getCompound(i);
-            String category = t.getString("category");
-            // A world saved before 0.8.0 has a category and nothing else. Its preset supplies the rest,
-            // so an old fed spot keeps behaving as the groundbait that made it — no reset, no surprise.
-            GroundbaitMix preset = GroundbaitMix.PRESETS.getOrDefault(category,
-                    GroundbaitMix.PRESETS.get("powder"));
+            ListTag parts = t.getList("parts", Tag.TAG_COMPOUND);
+            List<GroundbaitMix.Part> recipe = new ArrayList<>();
+            for (int j = 0; j < parts.size(); j++) {
+                CompoundTag part = parts.getCompound(j);
+                recipe.add(new GroundbaitMix.Part(part.getString("id"), part.getInt("n")));
+            }
+            GroundbaitMix mix = GroundbaitMix.of(recipe);
+            // A spot saved before 0.8.0 named a category and nothing else, and that category no longer
+            // means anything. It is DROPPED rather than guessed at: a fed spot is twelve minutes of state
+            // at the very most, so the honest cost of the wipe is one more throw of groundbait.
+            if (mix == null) continue;
             Zone z = new Zone(t.getInt("x"), t.getInt("y"), t.getInt("z"), t.getLong("fed"),
-                    t.getDouble("potency"), t.getDouble("satiety"), category,
-                    t.contains("nutrition") ? t.getDouble("nutrition") : preset.nutrition(),
-                    t.contains("fraction") ? t.getDouble("fraction") : preset.fraction(),
-                    t.contains("rgb") ? t.getInt("rgb") : preset.rgb());
+                    t.getDouble("potency"), mix, t.contains("rgb") ? t.getInt("rgb") : mix.rgb());
             data.zones.put(key(z.x, z.z), z);
         }
         return data;
     }
 
-    private record Zone(int x, int y, int z, long fedTime, double potency, double satietyBase,
-                        String category, double nutrition, double fraction, int rgb) {
+    private record Zone(int x, int y, int z, long fedTime, double potency, GroundbaitMix mix, int rgb) {
 
         /** Coarse feed lies where it landed; dust is gone in minutes. */
         long lifetime() {
-            return LIFETIME_BASE_TICKS + (long) (LIFETIME_COARSE_TICKS * Mth.clamp(fraction, 0, 1));
+            return LIFETIME_BASE_TICKS + (long) (LIFETIME_COARSE_TICKS * Mth.clamp(mix.fraction(), 0, 1));
         }
 
         double freshness(long now) {
             double elapsed = Math.max(0, now - fedTime);
             if (elapsed > lifetime()) return 0.0;
-            double halflife = HALFLIFE_BASE_TICKS + HALFLIFE_COARSE_TICKS * Mth.clamp(fraction, 0, 1);
+            double halflife = HALFLIFE_BASE_TICKS + HALFLIFE_COARSE_TICKS * Mth.clamp(mix.fraction(), 0, 1);
             return Mth.clamp(potency * Math.pow(0.5, elapsed / halflife), 0.0, 1.0);
-        }
-
-        /**
-         * Fullness outlives the feed on purpose — the fish are still digesting after the last crumb has
-         * washed away, which is exactly why dumping a rich mix and casting straight in does not work.
-         */
-        double satiety(long now) {
-            double elapsed = Math.max(0, now - fedTime);
-            return Mth.clamp(satietyBase * Math.pow(0.5, elapsed / (double) SATIETY_HALFLIFE_TICKS),
-                    0.0, 1.0);
         }
     }
 
-    /** The fed-spot result handed to the bite context. */
-    public record Query(boolean inZone, double freshness, String category, double satiety,
-                        double fraction, int rgb) {
-        public static final Query NONE = new Query(false, 0.0, null, 0.0, 0.0, 0xFFFFFF);
+    /**
+     * The fed-spot result handed to the bite context.
+     *
+     * <p>It hands over the MIX, not a handful of numbers copied out of it. Every question the bite engine
+     * asks about a fed spot — how coarse, how rich, what is on the menu, how varied — is a question about
+     * the same object, so a reader that forgets to copy one field cannot exist.
+     */
+    public record Query(boolean inZone, double freshness, GroundbaitMix mix) {
+        public static final Query NONE = new Query(false, 0.0, null);
     }
 }

@@ -1,110 +1,154 @@
 # -*- coding: utf-8 -*-
-"""§nutrition-earns: re-derive the fed-spot balance after changing any of its constants.
+"""§groundbait-one-jar: re-derive the fed-spot balance after changing any of its constants.
 
-The three numbers in FeedZoneData that decide whether groundbait has a trade-off at all —
-FRESH_FLOOR, SATIETY_AMOUNT and SATIETY_BITE_COST — cannot be checked by an assert, because the
-answer is not a value but a SHAPE: which nutrition wins, as the season and the throw cadence change.
-This is the check. Run it after touching any of them and read the table.
+The numbers that decide whether groundbait has a decision in it at all — the ceiling in FeedZoneData and
+the four terms in BiteEngine.groundbaitScore — cannot be checked by an assert, because the answer is not
+a value but a SHAPE: which mix wins, for which fish. This is that check. Run it after touching any of
+them and read the tables.
 
-What the table must show, or the feature has no decision in it:
+What they must show, or the feature is not a feature:
 
-    summer, unhurried feeding   ->  rich wins
-    winter and under the ice    ->  lean wins
-    feeding often               ->  leaner than feeding rarely, at every season
+    a plain jar          ->  clearly better than nothing, clearly worse than a blend
+    a blend built for X  ->  the best row for X, and only for X
+    a blend built for Y  ->  no better than an unfed swim when fished for X
+    coarse               ->  wins for the heavy fish, loses for the small ones
+    more components      ->  a higher ceiling than fewer, at the same richness
 
-Both failures this was written to catch are one-liners away, and both looked reasonable at the time:
-
-  * Cap the pull by nutrition and change nothing else, and RICH becomes strictly dominant instead of
-    lean. Freshness swings the bite rate by up to 3.3x; satiety lives inside groundbaitScore, which is
-    15% of matchScore, and can take at most 0.7 of it — about 10%. Whichever lever nutrition is tied
-    to simply wins. That is why satiety also discounts the pull.
-  * Leave the satiety gain at FEED_AMOUNT and it saturates at 1.0 within two throws of anything
-    nourishing. A saturated cost no longer varies, so dividing it by appetite does nothing, and winter
-    fishes exactly like summer.
+The failure this was written to catch: with fullness deleted (§no-overfeeding), nutrition stops being a
+cost and quietly becomes strictly dominant — a rich mix would beat a lean one for every fish in the game
+and the whole pantry would collapse to "use boilies". It does not, because nutrition is MATCHED against
+the species now rather than merely spent, and the second table is what proves it.
 
     python tools/sim_feed_zone.py
-    python tools/sim_feed_zone.py --floor 0.5 --satiety 0.15
+    python tools/sim_feed_zone.py --ceiling-variety 0.4
 """
 import argparse
+import json
+import math
+import os
 
-# ---- the model, transcribed from FeedZoneData + BiteEngine + FishingManager ----
-FEED_AMOUNT = 0.6            # how fast a spot builds up
-SAT_HALFLIFE = 2400.0        # ticks
-HALFLIFE_BASE, HALFLIFE_COARSE = 1800.0, 3600.0
-LIFETIME_BASE, LIFETIME_COARSE = 3600.0, 10800.0
-GROUNDBAIT_WEIGHT = 0.15     # groundbaitScore's share of matchScore
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROF = os.path.join(REPO, "common/src/main/resources/data/riverfishing/fish_profiles")
 
-
-def simulate(nutrition, appetite, period, floor, satiety_amount, bite_cost,
-             fraction=0.55, preferred=0.55, horizon=36000):
-    """Fish a spot for `horizon` ticks, re-feeding every `period`. Returns mean result per tick."""
-    ceiling = floor + (1.0 - floor) * nutrition
-    halflife = HALFLIFE_BASE + HALFLIFE_COARSE * fraction
-    lifetime = LIFETIME_BASE + LIFETIME_COARSE * fraction
-    fraction_term = 0.5 + 0.5 * (1.0 - min(1.0, abs(fraction - preferred)))
-
-    potency = satiety_base = 0.0
-    last = 0
-    total = 0.0
-    t = 0
-    while t < horizon:
-        if t % period == 0:
-            elapsed = t - last
-            potency = min(ceiling, potency * 0.5 ** (elapsed / halflife) + FEED_AMOUNT)
-            satiety_base = min(1.0, satiety_base * 0.5 ** (elapsed / SAT_HALFLIFE)
-                               + satiety_amount * nutrition / max(0.15, appetite))
-            last = t
-        elapsed = t - last
-        fresh = 0.0 if elapsed > lifetime else potency * 0.5 ** (elapsed / halflife)
-        satiety = satiety_base * 0.5 ** (elapsed / SAT_HALFLIFE)
-        satiety_term = 1.0 - bite_cost * satiety
-
-        # A full fish is not interested: fullness discounts the pull, not only the bite.
-        pull = min(1.0, fresh * satiety_term)
-        rate = (1.0 + pull) / max(0.2, 1.0 - 0.40 * pull)          # feedBonus x the two speed terms
-        quality = (1.0 - GROUNDBAIT_WEIGHT) + GROUNDBAIT_WEIGHT * fraction_term * satiety_term
-        total += rate * quality
-        t += 20
-    return total / (horizon / 20)
+# ---- the pantry, transcribed from GroundbaitMix ----
+# id -> (nutrition, fraction, diet or None)
+PANTRY = {
+    "groundbait_powder": (0.50, 0.50, None),
+    "groundbait_soil": (0.00, 0.35, None),
+    "minecraft:clay_ball": (0.00, 0.55, None),
+    "bread": (0.25, 0.10, "bread"),
+    "dough": (0.60, 0.30, "dough"),
+    "corn": (0.85, 0.90, "corn"),
+    "pea": (0.80, 0.75, "pea"),
+    "pearl_barley": (0.70, 0.70, "pearl_barley"),
+    "boilie": (0.95, 1.00, "boilie"),
+    "maggot": (0.65, 0.55, "maggot"),
+    "worm": (0.70, 0.65, "worm"),
+    "bloodworm": (0.30, 0.20, "bloodworm"),
+    "chicken_liver": (0.80, 0.65, "chicken_liver"),
+    "fish_strip": (0.75, 0.80, "fish_strip"),
+}
 
 
-def best_nutrition(appetite, period, floor, satiety_amount, bite_cost):
-    return max(((simulate(n / 20.0, appetite, period, floor, satiety_amount, bite_cost), n / 20.0)
-                for n in range(21)))[1]
+def stir(parts):
+    """GroundbaitMix.of, for the subset of the pantry this simulation uses."""
+    total = sum(n for _, n in parts)
+    nutrition = sum(PANTRY[i][0] * n for i, n in parts) / total
+    fraction = sum(PANTRY[i][1] * n for i, n in parts) / total
+    diets = {}
+    for i, n in parts:
+        d = PANTRY[i][2]
+        if d:
+            diets[d] = diets.get(d, 0) + n
+    return dict(nutrition=nutrition, fraction=fraction, variety=len(parts), diets=diets)
 
 
-SEASONS = [(1.00, "summer"), (0.75, "spring"), (0.50, "cool"),
-           (0.30, "late autumn"), (0.15, "winter"), (0.08, "under the ice")]
-PERIODS = [900, 1200, 1800, 2400]
+def ceiling(mix, variety_weight):
+    """FeedZoneData.ceiling — how strong a spot this mix can ever build."""
+    var = min(1.0, max(0.0, (mix["variety"] - 1) / 4.0))
+    return min(1.0, 0.25 + (0.75 - variety_weight) * mix["nutrition"] + variety_weight * var)
+
+
+def gb_score(mix, fish):
+    """BiteEngine.groundbaitScore."""
+    spoons = sum(mix["diets"].values())
+    if spoons == 0:
+        menu = 0.75
+    else:
+        menu = 0.45 + 0.75 * sum(min(1.0, fish["bait"].get(d, 0.0)) * n
+                                 for d, n in mix["diets"].items()) / spoons
+    frac = 1.0 - min(1.0, abs(mix["fraction"] - fish["fraction"]))
+    nutr = 1.0 - min(1.0, abs(mix["nutrition"] - fish["nutrition"]))
+    var = 0.90 + 0.10 * min(1.0, (mix["variety"] - 1) / 4.0)
+    return min(1.0, menu * (0.45 + 0.55 * frac) * (0.60 + 0.40 * nutr) * var)
+
+
+def load(name):
+    data = json.loads(open(os.path.join(PROF, name + ".json"), encoding="utf-8").read())
+    gb = data["ideal"]["groundbait"]
+    return dict(name=name, bait=data["ideal"].get("bait", {}),
+                fraction=gb["fraction"], nutrition=gb["nutrition"],
+                kg=data["weight_g"].get("mean", 0) / 1000.0)
+
+
+MIXES = [
+    ("plain jar", [("groundbait_powder", 1)]),
+    ("+ bloodworm, half soil", [("groundbait_powder", 3), ("bloodworm", 1), ("groundbait_soil", 4)]),
+    ("silver-fish blend", [("groundbait_powder", 2), ("bread", 2), ("bloodworm", 2), ("maggot", 1)]),
+    ("bream blend", [("groundbait_powder", 3), ("pearl_barley", 2), ("worm", 2), ("maggot", 1)]),
+    ("carp blend", [("groundbait_powder", 1), ("boilie", 3), ("corn", 3), ("pea", 2)]),
+    ("pure boilie", [("boilie", 4)]),
+    ("meat, for a predator", [("chicken_liver", 3), ("fish_strip", 3), ("worm", 2)]),
+]
+FISH = ["bleak", "roach", "bream", "tench", "carp", "catfish", "burbot"]
+
+UNFED = 0.4
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--floor", type=float, default=0.40, help="FRESH_FLOOR (default 0.40)")
-    ap.add_argument("--satiety", type=float, default=0.20, help="SATIETY_AMOUNT (default 0.20)")
-    ap.add_argument("--cost", type=float, default=0.70, help="SATIETY_BITE_COST (default 0.70)")
-    a = ap.parse_args()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--ceiling-variety", type=float, default=0.30,
+                    help="how much of the ceiling variety buys (rest goes to nutrition)")
+    args = ap.parse_args()
 
-    print("FRESH_FLOOR %.2f   SATIETY_AMOUNT %.2f   SATIETY_BITE_COST %.2f\n"
-          % (a.floor, a.satiety, a.cost))
-    print("%-16s %s" % ("appetite", "best nutrition, feeding every " +
-                        " / ".join("%d s" % (p // 20) for p in PERIODS)))
-    rows = []
-    for appetite, name in SEASONS:
-        row = [best_nutrition(appetite, p, a.floor, a.satiety, a.cost) for p in PERIODS]
-        rows.append(row)
-        print("  %-14s %s" % ("%.2f %s" % (appetite, name),
-                              " / ".join("%.2f" % v for v in row)))
+    mixes = [(label, stir(parts)) for label, parts in MIXES]
+    fish = [load(f) for f in FISH]
 
-    warm, cold = rows[0], rows[-1]
+    print("\nHOW STRONG A SPOT EACH MIX CAN BUILD  (FeedZoneData.ceiling)")
+    print("  %-24s %9s %9s %4s %9s" % ("mix", "nutrition", "fraction", "var", "ceiling"))
+    print("  " + "-" * 60)
+    for label, m in mixes:
+        print("  %-24s %9.2f %9.2f %4d %9.2f"
+              % (label, m["nutrition"], m["fraction"], m["variety"],
+                 ceiling(m, args.ceiling_variety)))
+
+    print("\nGROUNDBAIT SCORE  (unfed swim = %.2f)" % UNFED)
+    print("  %-24s %s" % ("mix", "".join("%9s" % f["name"][:8] for f in fish)))
+    print("  " + "-" * (24 + 9 * len(fish)))
+    for label, m in mixes:
+        print("  %-24s %s" % (label, "".join("%9.2f" % gb_score(m, f) for f in fish)))
+    print("  %-24s %s" % ("(species wants fraction)", "".join("%9.2f" % f["fraction"] for f in fish)))
+    print("  %-24s %s" % ("(species wants nutrition)", "".join("%9.2f" % f["nutrition"] for f in fish)))
+
+    # ---- the three shapes the feature depends on ----
     print()
-    if max(warm) - max(cold) < 0.3:
-        print("BROKEN: the season does not change the answer — there is no trade-off, only a dominance.")
-    elif all(rows[i][0] <= rows[i][-1] + 1e-9 for i in range(len(rows))):
-        print("OK: rich in warm water, lean in cold, and leaner the more often you feed.")
-    else:
-        print("SUSPECT: feeding more often does not push the answer leaner at every season — look again.")
+    ok = True
+    plain = dict(mixes)["plain jar"]
+    for f in fish:
+        best = max(mixes, key=lambda lm: gb_score(lm[1], f))
+        if gb_score(plain, f) >= gb_score(best[1], f) - 1e-9:
+            print("  BROKEN: nothing beats a plain jar for %s" % f["name"]); ok = False
+    # A blend built for one end of the water must not be the answer at the other end.
+    small, big = load("bleak"), load("carp")
+    if gb_score(dict(mixes)["carp blend"], small) >= gb_score(dict(mixes)["silver-fish blend"], small):
+        print("  BROKEN: the carp blend is not punished on bleak"); ok = False
+    if gb_score(dict(mixes)["silver-fish blend"], big) >= gb_score(dict(mixes)["carp blend"], big):
+        print("  BROKEN: the fine blend is not punished on carp"); ok = False
+    # Richness must not be free: the richest mix in the list must lose somewhere.
+    richest = max(mixes, key=lambda lm: lm[1]["nutrition"])
+    if all(gb_score(richest[1], f) >= max(gb_score(m, f) for _, m in mixes) - 1e-9 for f in fish):
+        print("  BROKEN: '%s' wins for every fish — nutrition is dominant again" % richest[0]); ok = False
+    print("  balance holds" if ok else "  FIX THE NUMBERS ABOVE")
 
 
-if __name__ == "__main__":
-    main()
+main()

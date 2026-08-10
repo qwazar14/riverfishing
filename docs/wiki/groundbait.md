@@ -1,147 +1,244 @@
 # Groundbait
 
-Feeding a spot is the one place in this mod where **more is not better**. Everywhere else a heavier line
-and a bigger reel beat a lighter one; here a rich mix on the wrong water is worse than a lean one, and
-on cold water it can shut a swim down entirely.
+There is **one groundbait**, and it is a **base**. Wheat + wheat seeds makes two jars; the village
+fisherman sells them. On its own it sits dead centre — neutral grind, neutral richness — and it helps a
+little. Everything after that is what you add to it.
 
-That is because groundbait does two things at once. It **pulls fish in**, and it **feeds them**. A fish
-that has eaten does not bite.
+**You cannot overfeed a spot.** Throw as much as you like: more feed is more fish, and no swim ever gets
+worse for being fed. What a jar cannot do is out-fish its own contents — how *strong* a spot can get is
+capped by what went into the bowl, never by how many jars did. The decision is not *how much*. It is
+*what of*.
 
 ---
 
-## The four ready-made ones
-
-| Groundbait | Nutrition | Fraction | What it is for |
-|---|---|---|---|
-| Powder Groundbait | 0.25 | 0.10 | A cloud. Calls up small silver fish fast, feeds almost nothing |
-| Oil Cake Groundbait | 0.55 | 0.25 | Smell and oil. The carp-family middle |
-| Grain Groundbait | 0.80 | 0.85 | Whole particle, lies on the bottom, holds big fish |
-| Pellet Groundbait | 0.90 | 0.95 | The richest and coarsest — what stocked fish are raised on |
-
-**None of the four is crafted any more.** They are what a MIX comes out as — plus the shop, which still
-sells three of them if you would rather buy than stir.
-
-What you craft is the **Groundbait Base**: wheat + wheat seeds, dead centre on both axes (0.50 / 0.50) and
-belonging to no category at all. On its own it is not groundbait and cannot be thrown — it is bulk and
-calories waiting for a character. Whatever you add decides what it becomes.
-
 ## Mixing your own
 
-Put **two or more components in a crafting grid**. One SLOT is one spoon — a stack of 64 in one slot
-is still one spoon, because one item per slot is what the craft actually consumes. The spoons decide
-everything: three corn, one breadcrumb and four soil comes out at fraction **0.53** and nutrition
-**0.35** — half of it is still particle, and it feeds barely more than a third of what pure corn would.
-The four spoons of soil are what did that.
+Put the jar and **anything else in a crafting grid**. One SLOT is one spoon — a stack of 64 in one slot
+is still one spoon, because one item per slot is what the craft actually consumes.
 
-**How many jars you get: one per spoon of food.** Ballast pays nothing — soil is what you dilute a mix
-*with*, not what it is made *of*. Three corn, one breadcrumb and four soil is four jars, and each of the
-four is the lean mix above. That is the trade: ballast buys you leanness, not volume.
+**How many jars you get: one per spoon of food.** Ballast pays nothing — soil and clay are what you
+dilute a mix *with*, not what it is made *of*. Three corn, one breadcrumb and four soil is four jars, and
+each of the four is a lean, bulky mix. That is the trade: ballast buys you leanness, not volume.
 
 **A jar you mixed yourself is finished groundbait, not an ingredient.** It will not go back into the
-grid. The four ready-made ones still will — that is what makes them a base.
+grid. A plain jar off the shelf will — that is what makes it a base.
 
 A grid counts as a mix whenever it holds **two or more components**, or **a dye**. The one exception is
-exactly one wheat and one wheat seeds — that is the base recipe. Two of each IS a mix, because the
-vanilla recipe only ever matched one of each.
+exactly one wheat and one wheat seeds — that is the jar's own recipe. Two of each IS a mix, because the
+plain recipe only ever matched one of each.
 
-### What you can put in
+### The pantry
 
-| Component | Nutrition | Fraction | Reads as |
+*Counts as* is the bait this component reads as when the engine asks whether the fish eats it. A dash
+means it makes no claim either way — it still changes the numbers, the colour and the variety.
+
+| Component | Nutrition | Fraction | Counts as |
 |---|---|---|---|
-| **Groundbait Base** | 0.50 | 0.50 | — (no category) |
+| **Groundbait** (the base) | 0.50 | 0.50 | — |
 | **Groundbait Soil** | 0.00 | 0.35 | — (ballast) |
 | Clay Ball | 0.00 | 0.55 | — (ballast) |
-| Sugar | 0.20 | 0.05 | powder |
-| Bread Crumb | 0.25 | 0.10 | powder |
-| Wheat Seeds | 0.30 | 0.15 | powder |
-| Bloodworm | 0.30 | 0.20 | powder |
-| Cocoa Beans | 0.35 | 0.25 | cake |
-| Sweet Berries | 0.35 | 0.40 | grain |
-| Dried Kelp | 0.40 | 0.30 | powder |
-| Beetroot | 0.40 | 0.45 | grain |
-| Carrot | 0.45 | 0.55 | grain |
-| Bread | 0.45 | 0.20 | powder |
-| Melon Seeds | 0.50 | 0.30 | cake |
-| Wheat | 0.55 | 0.45 | grain |
-| Pumpkin Seeds | 0.55 | 0.35 | cake |
-| Dough | 0.60 | 0.30 | powder |
-| Sunflower | 0.60 | 0.25 | cake |
-| Potato | 0.60 | 0.50 | grain |
-| Maggot | 0.65 | 0.55 | pellet |
-| Pearl Barley | 0.70 | 0.70 | grain |
-| Worm | 0.70 | 0.65 | pellet |
-| Fish Strip | 0.75 | 0.80 | pellet |
-| Pea | 0.80 | 0.75 | grain |
-| Chicken Liver | 0.80 | 0.65 | cake |
-| Corn | 0.85 | 0.90 | grain |
-| Boilie | 0.95 | 1.00 | pellet |
-
-Any of the four ready-made groundbaits can go in as a **base**, at its own numbers.
+| Sugar | 0.20 | 0.05 | — |
+| Bread Crumb | 0.25 | 0.10 | bread |
+| Wheat Seeds | 0.30 | 0.15 | — |
+| Bloodworm | 0.30 | 0.20 | bloodworm |
+| Cocoa Beans | 0.35 | 0.25 | boilie |
+| Sweet Berries | 0.35 | 0.40 | boilie |
+| Dried Kelp | 0.40 | 0.30 | fish strip |
+| Beetroot | 0.40 | 0.45 | corn |
+| Carrot | 0.45 | 0.55 | corn |
+| Bread | 0.45 | 0.20 | bread |
+| Melon Seeds | 0.50 | 0.30 | pea |
+| Wheat | 0.55 | 0.45 | pearl barley |
+| Pumpkin Seeds | 0.55 | 0.35 | pea |
+| Dough | 0.60 | 0.30 | dough |
+| Sunflower | 0.60 | 0.25 | corn |
+| Potato | 0.60 | 0.50 | dough |
+| Maggot | 0.65 | 0.55 | maggot |
+| Pearl Barley | 0.70 | 0.70 | pearl barley |
+| Worm | 0.70 | 0.65 | worm |
+| Fish Strip | 0.75 | 0.80 | fish strip |
+| Pea | 0.80 | 0.75 | pea |
+| Chicken Liver | 0.80 | 0.65 | chicken liver |
+| Corn | 0.85 | 0.90 | corn |
+| Boilie | 0.95 | 1.00 | boilie |
 
 **Ballast is the important one.** Soil and clay bring bulk, cloud and colour and no calories at all, so
-they are how you pull fish in without filling them. On a hammered water half the mix should be ballast.
+they are how you make a mix leaner and bulkier without making it worse.
 
-### What the numbers do
+---
 
-**Nutrition** cuts both ways, and that is the whole decision. It is how strongly the spot PULLS — a mix
-with no food in it can only ever reach about 40% of full attraction, however much of it you throw — and
-it is also how fast the fish fill up, and a full fish is not interested.
+## What the numbers do
 
-The two do not cancel, because only the filling-up half is divided by appetite. In warm water the fish
-eat what you give them and a rich mix is worth its calories; in cold water the same jar fills them for
-hours and buys almost nothing. Feeding often pushes the answer the same way as cold water: the more
-frequently you top the spot up, the leaner the mix should be.
+Four things about a bed of feed decide how well it fishes for a given species.
 
-**Fraction** is matched against the size of fish you are after — dust for bleak and roach, whole grain
-for carp and bream. Each species has a preferred grind that follows from its own weight, so this is also
-the answer to "why do I only catch small stuff": feed coarser.
+### ★ Fraction — a big fraction calls big fish
 
-**Category** — powder, grain, pellet or cake — is whichever component has the most spoons behind it, and
-is what each species' journal page lists as its preferred groundbait. Ballast never votes for the
-category.
+Dust clouds and calls up bleak and roach. Whole grain and boilies lie on the bottom and are what a bream
+or a carp is looking for. Every species has a grind it answers to, and it mostly follows from its own
+size.
+
+This is also the honest answer to *"why do I only catch small stuff"* — it is a choice, not a bug.
+**Feed coarser.**
+
+Coarse feed does one more thing: it flattens the size roll, so the fish that do come are more often good
+ones. It is a better chance, never a promise.
+
+### Nutrition — how much food, and how much it wants
+
+More food gathers more fish. But each species has an appetite it is looking for: a carp wants a table
+laid, a bleak wants a cloud, and a spread put down for the carp is not what the bleak came for.
+
+### The menu — what is actually in it
+
+If a fish eats worm, chopped worm in the feed works. The engine asks the species' own bait list, so the
+answer is already on its journal page. The base and the ballast say nothing either way, which is why a
+plain jar is neither the right food nor the wrong food.
+
+### Variety — how many different things
+
+The more that is down there, the wider the crowd. A plain jar reaches under half the pull a five-part
+blend does:
+
+| Mix | How strong the spot can get |
+|---|---|
+| A plain jar, nothing added | 0.48 |
+| Base + one rich component | ~0.65 |
+| Base + three, rich | ~0.85 |
+| Five parts, rich | 1.00 |
+
+Feeding more jars gets you to that ceiling faster. It never raises it.
+
+---
+
+## Feeding a spot
+
+Right-click water to feed a **3×3** spot. A fed spot bites up to **twice as fast** and cuts up to 40% off
+the wait.
+
+**The same recipe adds up. A different one takes the swim over.** The old bed does not blend into the new
+one — it is simply gone, and you are told so at the moment it happens. Decide the blend in the grid, not
+by dribbling four jars in one at a time.
+
+A **feeder, flat feeder, carp or 3-hook cage** empties one jar per cast **at the bobber** — the landing
+spot, not the water in front of your boots. It is the same fed spot a right-click makes, so a cage and a
+hand build one swim between them.
+
+### How long it lasts
+
+Between **3 and 12 minutes**, depending on the fraction. Dust clouds and washes out; whole grain lies on
+the bottom and keeps working. That difference is what carries a long bottom session.
+
+---
 
 ## Colour
 
-Every component stains the mix, and the fed spot's cloud in the water comes out that colour. A dye in
-the grid moves it most of the way to the dye's own colour without changing what the mix feeds or what it
-reads as.
+Every component stains the mix, and the fed spot's cloud in the water comes out that colour. A dye in the
+grid moves it most of the way to the dye's own colour without changing what the mix feeds or how it
+fishes — including whether it counts as the same recipe in the water.
 
-The jar's tooltip names that colour, and the pale speckles on its icon are drawn in it, so two jars in
-a hotbar are told apart at a glance and a fed spot is recognisably yours.
+The jar's tooltip names that colour, and the pale speckles on its icon are drawn in it, so two jars in a
+hotbar are told apart at a glance and a fed spot is recognisably yours.
 
-**Colour does not affect the bite.** Unlike a lure's, it is read nowhere in the bite engine — it is how
-you tell your mixes apart, and nothing more.
+**Colour does not affect the bite.** Unlike a lure's, it is read nowhere in the bite engine.
 
-## Appetite: the thing that catches people out
+---
 
-Fish eat far less in cold water than in warm. The same jar that barely registers in a summer lake
-fills a spot **about seven times faster** under the ice, so the amount that was right in July is far too
-much in January.
+## What each species wants
 
-| Water | Appetite |
-|---|---|
-| Warm biome, summer | full |
-| Temperate, spring or autumn | about half |
-| Cold biome, winter, or under ice | almost none |
+<!-- SPECIES-GB -->
 
-Feeding is divided by that appetite. Get it wrong and the spot goes **overfed**: the fish are there,
-they are eating, and they are not interested in your hook. You will be told when it happens.
+Sorted finest first, which is also smallest first — that is what the star means.
 
-An overfed spot recovers on its own in a couple of minutes. It is a pause, not a lost evening — but on
-cold water the right amount really is a handful.
+| Species | Fraction | Nutrition |
+|---|---|---|
+| Bleak | 0.14 — fine, clouds | 0.46 — moderate |
+| Gudgeon | 0.22 — fine, clouds | 0.54 — moderate |
+| Ruffe | 0.22 — fine, clouds | 0.54 — moderate |
+| Smelt | 0.22 — fine, clouds | 0.56 — moderate |
+| Rotan | 0.27 — fine, clouds | 0.60 — moderate |
+| Round goby | 0.29 — fine, clouds | 0.62 — moderate |
+| Rudd | 0.30 — mixed | 0.49 — moderate |
+| Roach | 0.31 — mixed | 0.47 — moderate |
+| Bluegill | 0.34 — mixed | 0.61 — moderate |
+| Common dace | 0.34 — mixed | 0.52 — moderate |
+| Crucian Carp | 0.40 — mixed | 0.63 — moderate |
+| Herring | 0.40 — mixed | 0.57 — moderate |
+| Perch | 0.40 — mixed | 0.70 — rich |
+| Mayan cichlid | 0.42 — mixed | 0.50 — moderate |
+| White Bream | 0.42 — mixed | 0.57 — moderate |
+| White-eye bream | 0.42 — mixed | 0.61 — moderate |
+| Blue bream | 0.44 — mixed | 0.55 — moderate |
+| Nase | 0.46 — mixed | 0.59 — moderate |
+| Sabrefish | 0.46 — mixed | 0.56 — moderate |
+| Oscar | 0.47 — mixed | 0.68 — moderate |
+| Volga zander | 0.47 — mixed | 0.70 — rich |
+| Grayling | 0.49 — mixed | 0.57 — moderate |
+| Garfish | 0.51 — mixed | 0.75 — rich |
+| Mackerel | 0.51 — mixed | 0.75 — rich |
+| Chub | 0.53 — mixed | 0.56 — moderate |
+| Vimba bream | 0.53 — mixed | 0.60 — moderate |
+| Ide | 0.54 — mixed | 0.66 — moderate |
+| Tench | 0.54 — mixed | 0.63 — moderate |
+| Bream | 0.56 — mixed | 0.68 — moderate |
+| Eel | 0.56 — mixed | 0.74 — rich |
+| Flounder | 0.56 — mixed | 0.71 — rich |
+| Trout | 0.57 — mixed | 0.70 — rich |
+| Whitefish | 0.57 — mixed | 0.52 — moderate |
+| Rainbow trout | 0.58 — mixed | 0.70 — rich |
+| Arctic char | 0.59 — mixed | 0.70 — rich |
+| Pink salmon | 0.61 — mixed | 0.75 — rich |
+| Bullseye snakehead | 0.62 — mixed | 0.70 — rich |
+| Burbot | 0.62 — mixed | 0.75 — rich |
+| Largemouth bass | 0.62 — mixed | 0.50 — moderate |
+| Lenok | 0.62 — mixed | 0.70 — rich |
+| Sea bass | 0.62 — mixed | 0.75 — rich |
+| Zander | 0.62 — mixed | 0.50 — moderate |
+| Peacock bass | 0.64 — mixed | 0.50 — moderate |
+| Asp | 0.66 — coarse, holds big fish | 0.50 — moderate |
+| Bluefish | 0.66 — coarse, holds big fish | 0.75 — rich |
+| Pike | 0.66 — coarse, holds big fish | 0.50 — moderate |
+| Koi Asagi | 0.69 — coarse, holds big fish | 0.75 — rich |
+| Koi Bekko | 0.69 — coarse, holds big fish | 0.75 — rich |
+| Koi Kohaku | 0.69 — coarse, holds big fish | 0.75 — rich |
+| Koi Showa Sanke | 0.69 — coarse, holds big fish | 0.75 — rich |
+| Koi Tancho Sanke | 0.69 — coarse, holds big fish | 0.75 — rich |
+| Saithe | 0.71 — coarse, holds big fish | 0.75 — rich |
+| Sterlet | 0.71 — coarse, holds big fish | 0.56 — moderate |
+| Mirror Carp | 0.72 — coarse, holds big fish | 0.85 — rich |
+| Carp | 0.73 — coarse, holds big fish | 0.85 — rich |
+| Channel catfish | 0.73 — coarse, holds big fish | 0.77 — rich |
+| Snook | 0.73 — coarse, holds big fish | 0.75 — rich |
+| Striped bass | 0.74 — coarse, holds big fish | 0.75 — rich |
+| Wild Carp | 0.75 — coarse, holds big fish | 0.84 — rich |
+| Jack crevalle | 0.76 — coarse, holds big fish | 0.50 — moderate |
+| Grass Carp | 0.77 — coarse, holds big fish | 0.66 — moderate |
+| Mahi-mahi | 0.77 — coarse, holds big fish | 0.75 — rich |
+| Atlantic salmon | 0.77 — coarse, holds big fish | 0.75 — rich |
+| Barracuda | 0.79 — coarse, holds big fish | 0.75 — rich |
+| Cod | 0.79 — coarse, holds big fish | 0.75 — rich |
+| Silver carp | 0.79 — coarse, holds big fish | 0.81 — rich |
+| Catfish | 0.81 — coarse, holds big fish | 0.81 — rich |
+| Ray | 0.83 — coarse, holds big fish | 0.73 — rich |
+| Conger eel | 0.84 — coarse, holds big fish | 0.74 — rich |
+| Taimen | 0.87 — coarse, holds big fish | 0.50 — moderate |
+| Wahoo | 0.88 — coarse, holds big fish | 0.50 — moderate |
+| Halibut | 0.93 — coarse, holds big fish | 0.75 — rich |
+| Sturgeon | 0.95 — coarse, holds big fish | 0.79 — rich |
+| Tarpon | 0.99 — coarse, holds big fish | 0.75 — rich |
+| Yellowfin tuna | 0.99 — coarse, holds big fish | 0.75 — rich |
+| Blue marlin | 1.00 — coarse, holds big fish | 0.75 — rich |
+| Mako shark | 1.00 — coarse, holds big fish | 0.75 — rich |
+| Sailfish | 1.00 — coarse, holds big fish | 0.50 — moderate |
+| Swordfish | 1.00 — coarse, holds big fish | 0.75 — rich |
 
-## How long a spot lasts
-
-Between **3 and 12 minutes**, depending on the fraction. Dust clouds and washes out; whole grain lies on
-the bottom and keeps working. Feeding the same place again tops it up.
-
-A **feeder cage** on a bottom rig delivers whatever groundbait you loaded into it, mix and all, every
-time you cast.
+---
 
 ## In short
 
-- Cold water, or a place you have fished hard: **lean and heavy on ballast**.
-- A stocked pond: **rich, coarse, pellet** — imitate what they were raised on.
-- Somewhere nobody fishes: **rich and coarse**, and plenty of it.
 - Catching nothing but tiddlers: **feed coarser**.
-- Fish over the spot but no bites: **you overfed**. Wait, and use less next time.
+- After a carp or a bream: **coarse and rich**.
+- After roach, bleak or a winter swim: **fine and lean** — ballast is how you get there.
+- Get the fish's own food into the feed. Its journal page lists what it eats.
+- **More different things** in the bowl beats more of one thing.
+- Fish over the spot and nothing takes? It is never the amount. It is the grind, the richness, or the
+  menu.

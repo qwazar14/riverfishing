@@ -37,7 +37,7 @@ M = 0.30 × bait
 | Component | How it scores |
 |---|---|
 | **bait** | The best-scoring bait on the rig, taken straight from the species' profile (0 … ~1.2). |
-| **groundbait** | 1.0 for the right category in a fresh fed spot, 0.3 for the wrong one, 0.4 for an unfed spot. |
+| **groundbait** | What is in the fed spot, against what this species wants: the menu (its own bait list), the fraction, the nutrition and the variety, multiplied and capped at 1.0. 0.4 for an unfed spot. |
 | **rig** | 1.0 if the rig is one of the species' ideal rigs, otherwise 0.15. |
 | **rod** | 1.0 if the blank is one of the species' ideal rods, otherwise 0.35. |
 | **line** | `typeMatch × diameterFalloff`, where typeMatch is 1.0 for the right material and 0.6 for the wrong one. |

@@ -30,7 +30,7 @@ Open a loose rig with **sneak + right-click**. A rig socketed in a rod is edited
 |---|---|
 | **Hook** | Any hook |
 | **Bait** | Any natural bait — plus the Ice Jig, which is technically artificial but is the winter rig's only tackle |
-| **Groundbait** | Any of the four groundbaits |
+| **Groundbait** | Groundbait — the one jar, plain or mixed |
 | **Float** | The Float item |
 | **Leader** | Steel, Fluorocarbon or Titanium Leader |
 | **Lure** | Any artificial lure — **or** Live Bait |
@@ -196,39 +196,51 @@ An **undyed** lure skips the colour check entirely.
 
 ## Groundbait
 
-Four categories. Right-click water while holding groundbait to feed a spot.
+One jar, and it is a base. Right-click water while holding it to feed a spot; mix your own in a
+crafting grid. The full system is on its own page: **[Groundbait](groundbait.md)**.
 
 | Groundbait | Item id | Recipe |
 |---|---|---|
-| Powder Groundbait | `groundbait_powder` | **mixed** — see [groundbait](groundbait.md); the fisherman sells it |
-| Grain Groundbait | `groundbait_grain` | **mixed**; the fisherman sells it. (Wheat + wheat seeds is the *base* now) |
-| Oil Cake Groundbait | `groundbait_cake` | **mixed** — sunflower is a pantry component now, see [groundbait](groundbait.md) |
-| Pellet Groundbait | `groundbait_pellet` | **mixed** — anything that pulls pellet (boilie, worm, maggot, cut fish). Also the *Catch a tench* reward |
-
-How many species list each category as ideal: **cake** 19, **powder** 12, **pellet** 11, **grain** 8.
+| Groundbait | `groundbait_powder` | Wheat + Wheat Seeds → **2**. The fisherman sells it, and sells his own house blend at Expert |
 
 ### The fed spot
 
-A hand-fed spot is a **3×3 column zone**:
+A fed spot is a **3×3 column zone**:
 
-- Each feed adds **0.6** freshness, stacking up to 1.0.
-- Freshness **halves every 1800 ticks** (90 seconds) and the zone is completely spent after **3600 ticks** (3 minutes).
+- Each feed adds **0.6** freshness, up to a ceiling set by the mix — **0.48** for a plain jar, **1.00**
+  for a rich five-part blend. Feeding more jars reaches the ceiling faster; it never raises it.
+- Freshness **halves every 1800-5400 ticks** and the zone is spent after **3 to 12 minutes**, both
+  depending on the fraction. Dust washes out; whole grain lies where it landed.
 - The centre column counts at full strength; the outer ring at **60 %**.
-- Coloured particle clouds mark active zones — pale for powder, golden for grain, brown for pellet, olive for cake.
+- A coloured particle cloud marks the zone, in the mix's own colour.
+
+**You cannot overfeed.** There is no fullness and no penalty for feeding — the ceiling above is the only
+limit, and it is a property of the mix, not of how much of it went in.
+
+**The same recipe adds up; a different one takes the swim over.** The old bed does not blend into the new
+one.
 
 What it does:
 
 ```
-right groundbait category for the fish : groundbait score 1.0
-wrong category                          : 0.3
-unfed spot                              : 0.4
-bite weight ×= clamp(1 + freshness, 1, 2)
-time-to-bite ×= 1 − 0.40 × freshness
+menu     = how much of the mix this fish actually eats   (its own bait list)
+fraction = 1 - |mix fraction - the species' fraction|    -> 0.45 .. 1.00
+nutrition= 1 - |mix nutrition - the species' nutrition|  -> 0.60 .. 1.00
+variety  = 0.90 .. 1.00 by how many different components
+groundbait score = menu x fraction x nutrition x variety, capped at 1.0
+unfed spot       = 0.4
+
+bite weight  x= clamp(1 + freshness, 1, 2)
+time-to-bite x= 1 - 0.40 x freshness
+size roll    flattens with a coarse mix — a better chance at a good fish, never a promise
 ```
 
-So a freshly fed spot with the right groundbait roughly doubles a fish's attractiveness *and* cuts up to 40 % off the wait.
+So a freshly fed spot with a mix built for the fish roughly doubles its attractiveness *and* cuts up to
+40 % off the wait.
 
-A **feeder cage** (the Groundbait slot on a feeder / flat feeder / 3-hook / carp rig) delivers one charge automatically on every cast, feeding the landing spot exactly as hand-feeding does. A cage counts as a fixed 0.5 freshness; if a hand-fed zone is fresher, the zone wins.
+A **feeder cage** (the Groundbait slot on a feeder / flat feeder / 3-hook / carp rig) empties one jar on
+every cast **at the bobber**, through the same call hand-feeding makes. There is no separate "cage
+freshness" any more: the cage and your hand build one fed spot between them.
 
 ## See also
 

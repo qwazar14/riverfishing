@@ -30,8 +30,8 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 |---|---|
 | [Rods](rods.md) | All 13 blanks — reel bands, cast-weight windows, reach, built-in rigs, durability, repair, recipes |
 | [Reels and lines](reels-and-lines.md) | 11 reels and the spool-diameter rule, 23 lines with breaking strains, line visibility and wear, the three leaders |
-| [Rigs and baits](rigs-and-baits.md) | 11 rigs and their slot layouts, 9 hooks, the float and its depth slider, 13 natural baits, 8 lures, 4 groundbaits |
-| [Groundbait](groundbait.md) | Mixing your own: the base, the pantry, nutrition against fraction, feeding a spot |
+| [Rigs and baits](rigs-and-baits.md) | 11 rigs and their slot layouts, 9 hooks, the float and its depth slider, 13 natural baits, 8 lures, the one groundbait |
+| [Groundbait](groundbait.md) | One jar and a pantry: fraction, nutrition, the menu, variety — and what all 79 species want |
 | [Tackle Station](tackle-station.md) | The 0.6.0 bench: forms, the weight stepper, costs, dyeing, and which knobs do nothing yet |
 | [Crafting](crafting.md) | Every recipe in the mod, in one place |
 | [Tools and processing](tools.md) | Journal, fish finder, knife, whetstone, auger, alarms, fillets, live bait, pack integrations |

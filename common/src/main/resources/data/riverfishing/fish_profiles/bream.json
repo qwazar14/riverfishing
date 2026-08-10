@@ -9,7 +9,7 @@
     "reel_size": 4000, "reel_tolerance": 1000,
     "line": { "type": "braid", "diameter_mm": 0.10, "tolerance_mm": 0.04 },
     "rig": ["feeder", "flat_feeder", "float"],
-    "groundbait": ["powder", "grain", "cake"],
+    "groundbait": { "fraction": 0.56, "nutrition": 0.68 },
     "bait": { "mormyshka": 0.7, "maggot": 1.0, "worm": 0.9, "pearl_barley": 0.8, "corn": 0.6, "bread": 0.4, "boilie": 0.3 },
     "hook": { "ideal": 10, "tolerance": 2 }
   },
