@@ -6,6 +6,7 @@ import com.riverfishing.registry.ModMenus;
 import dev.architectury.event.events.client.ClientCommandRegistrationEvent;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientPlayerEvent;
+import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.menu.MenuRegistry;
 
@@ -43,6 +44,11 @@ public final class ClientInit {
 
         // Float-timing + cast-power HUD (Forge RenderGuiEvent.Post → Architectury RENDER_HUD).
         ClientGuiEvent.RENDER_HUD.register(ClientHud::render);
+
+        // §fight-poll-tick: the fight keys are polled on the TICK, not from the renderer. A frame is not
+        // a unit of game time — polling there made the input rate the framerate, and let the final
+        // "hands off" go unsent whenever the line was not being drawn.
+        ClientTickEvent.CLIENT_POST.register(mc -> ClientLineState.pollFightInput());
 
         // Never carry a fishing line into another world (Forge ClientPlayerNetworkEvent.LoggingOut).
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> ClientLineState.clear());

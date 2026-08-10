@@ -93,7 +93,6 @@ public final class LineRenderer {
     private static boolean drawAll(Minecraft mc, VertexConsumer vc, Matrix4f m, Matrix3f nrm, float pt) {
         float frameSeconds = mc.getDeltaTracker().getGameTimeDeltaTicks() / 20f;
         long now = mc.level.getGameTime();
-        ClientLineState.pollFightInput(); // §fight-course: WASD is the fight input, and nothing else polls it
         var it = ClientLineState.lines().entrySet().iterator();
         boolean drew = false;
         while (it.hasNext()) {
