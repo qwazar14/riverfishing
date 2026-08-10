@@ -99,11 +99,40 @@ public final class BiteEngine {
                 + 0.08 * sReel;
     }
 
+    /**
+     * §groundbait-mix (0.8.0): three things about the fed spot, not one.
+     *
+     * <p>The CATEGORY term is exactly what it was, so the 50 profiles naming their groundbaits keep
+     * working untouched. What is new is the pair a category string could never carry:
+     *
+     * <ul>
+     *   <li><b>fraction against size</b> — a cloud of dust calls up bleak and roach; whole grain on the
+     *       bottom is what a carp is looking for. This is also the honest answer to "why do I only catch
+     *       small stuff": it is a choice, not a bug.</li>
+     *   <li><b>satiety</b> — the fish over a well-fed spot are FULL. Applied to every species alike,
+     *       because being stuffed is not a preference.</li>
+     * </ul>
+     */
     private static double groundbaitScore(FishProfile p, BiteContext c) {
         if (!c.inFeedZone || c.feedFreshness <= 0 || c.feedCategory == null) {
             return 0.4; // fishing an un-fed spot is fine, just not ideal
         }
-        return p.idealGroundbaits.contains(c.feedCategory) ? 1.0 : 0.3;
+        double category = p.idealGroundbaits.contains(c.feedCategory) ? 1.0 : 0.3;
+        double fit = 1.0 - Math.min(1.0, Math.abs(c.feedFraction - preferredFraction(p)));
+        // Never below half on fraction alone: the wrong grind should cost you the edge, not the fish.
+        double fraction = 0.5 + 0.5 * fit;
+        double satiety = 1.0 - com.riverfishing.fishing.FeedZoneData.SATIETY_BITE_COST * c.feedSatiety;
+        return category * fraction * satiety;
+    }
+
+    /**
+     * What grind this species is looking for, straight off its own weight — no new profile data.
+     * A 20 g bleak wants dust, a 1 kg bream the middle, a 20 kg carp whole grain.
+     */
+    private static double preferredFraction(FishProfile p) {
+        double kg = (p.weightMean > 0 ? p.weightMean : p.weightMax) / 1000.0;
+        // log10 over three decades of fish: 0.02 kg -> ~0.06, 1 kg -> ~0.57, 20 kg -> ~0.95.
+        return Math.max(0.0, Math.min(1.0, (Math.log10(Math.max(0.01, kg)) + 2.0) / 3.5));
     }
 
     private static double lineScore(FishProfile p, BiteContext c) {

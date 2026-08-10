@@ -59,7 +59,11 @@ public class BiteContext {
     // ---- Fed spot (§5) ----
     public boolean inFeedZone;
     public double feedFreshness;    // 0..1
-    public String feedCategory;     // powder / grain / pellet / cake
+    public String feedCategory;
+    /** §groundbait-mix: 0 dust, 1 whole grain. Small fish answer a cloud, big fish the bottom. */
+    public double feedFraction;
+    /** §groundbait-mix: 0..1, how FULL the fish over the spot are. The cost of feeding well. */
+    public double feedSatiety;     // powder / grain / pellet / cake
 
     /** §ice-fishing: the cast is through a hole in an ice sheet — the engine treats it as winter. */
     public boolean iceHole;
