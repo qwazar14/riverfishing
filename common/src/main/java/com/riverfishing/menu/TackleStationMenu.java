@@ -69,7 +69,8 @@ public class TackleStationMenu extends AbstractContainerMenu {
         // §hook-pick migration: the hook slot is gone, so anything still sitting in it goes back to the
         // player the first time this bench is opened. Server only — the client's copy is a mirror, and
         // handing the same stack back on both sides is how you print one.
-        if (!inv.player.level().isClientSide && !materials.getItem(C_HOOK).isEmpty()) {
+        // §26.1: Level.isClientSide the FIELD is private now — call the isClientSide() method.
+        if (!inv.player.level().isClientSide() && !materials.getItem(C_HOOK).isEmpty()) {
             inv.player.getInventory().placeItemBackInInventory(materials.removeItemNoUpdate(C_HOOK));
             materials.setChanged();
         }
