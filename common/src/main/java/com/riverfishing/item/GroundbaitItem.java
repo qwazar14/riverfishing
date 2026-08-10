@@ -39,6 +39,24 @@ public class GroundbaitItem extends Item {
 
     public String category() { return category; }
 
+    /**
+     * §groundbait-tint: what the speckle layer of the icon is painted with.
+     *
+     * <p>Layer 1 of the model is the icon's pale speckles, drawn pure white so the tint MULTIPLIES to
+     * exactly this colour (see {@code tools/gen_groundbait_tint.py}). The colour is the mix's own — the
+     * spoon-weighted blend of everything in it, dye included — so a jar shows what is in it, and a dyed
+     * jar shows the dye. A ready-made jar with no mix stamped on it gets its preset colour, which is
+     * the colour its art is already drawn in, so nothing about the shop items changes.
+     *
+     * <p>Lives here rather than in each loader's colour handler because there are six of those across
+     * three trees, and one of them getting a different answer is how these things rot.
+     */
+    public static int speckleTint(ItemStack stack, int tintIndex) {
+        return tintIndex == 1
+                ? 0xFF000000 | com.riverfishing.groundbait.GroundbaitNbt.read(stack).rgb()
+                : -1;
+    }
+
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
@@ -102,6 +120,13 @@ public class GroundbaitItem extends Item {
                         String.format(java.util.Locale.ROOT, "%.2f", mix.fraction()),
                         Component.translatable("tooltip.riverfishing.gb_coarse_" + coarseWord(mix.fraction())))
                 .withStyle(s -> s.withColor(0x8FB0C8)));
+        // §groundbait-tint: the colour, named by the same classifier a painted lure goes through, and
+        // drawn IN that colour. It claims nothing about fishing on purpose — the bite engine does not
+        // read groundbait colour, and this line must not imply that it does.
+        tooltip.add(Component.translatable("tooltip.riverfishing.gb_color",
+                        Component.translatable("tooltip.riverfishing.gb_color_"
+                                + com.riverfishing.engine.LureColor.fromRgb(mix.rgb()).name().toLowerCase()))
+                .withStyle(s -> s.withColor(mix.rgb())));
         if (!mix.isPreset()) {
             for (com.riverfishing.groundbait.GroundbaitMix.Part p : mix.parts()) {
                 tooltip.add(Component.literal("  " + p.spoons() + " x ")

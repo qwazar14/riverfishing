@@ -1,6 +1,7 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "riverfishing:item/groundbait_grain"
+    "layer0": "riverfishing:item/groundbait_grain",
+    "layer1": "riverfishing:item/groundbait_grain_tint"
   }
 }

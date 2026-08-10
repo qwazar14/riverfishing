@@ -944,5 +944,9 @@
   "tooltip.riverfishing.gb_rich_low": "lean",
   "tooltip.riverfishing.gb_coarse_coarse": "coarse, holds big fish",
   "tooltip.riverfishing.gb_coarse_mid": "mixed",
-  "tooltip.riverfishing.gb_coarse_fine": "fine, clouds"
+  "tooltip.riverfishing.gb_coarse_fine": "fine, clouds",
+  "tooltip.riverfishing.gb_color": "Colour: %s — the fed spot is marked in it",
+  "tooltip.riverfishing.gb_color_dark": "dark",
+  "tooltip.riverfishing.gb_color_bright": "bright",
+  "tooltip.riverfishing.gb_color_natural": "pale"
 }

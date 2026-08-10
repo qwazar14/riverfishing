@@ -944,5 +944,9 @@
   "tooltip.riverfishing.gb_rich_low": "постная",
   "tooltip.riverfishing.gb_coarse_coarse": "крупная, держит крупную рыбу",
   "tooltip.riverfishing.gb_coarse_mid": "смешанная",
-  "tooltip.riverfishing.gb_coarse_fine": "мелкая, пылит"
+  "tooltip.riverfishing.gb_coarse_fine": "мелкая, пылит",
+  "tooltip.riverfishing.gb_color": "Цвет: %s — им помечена прикормленная точка",
+  "tooltip.riverfishing.gb_color_dark": "тёмный",
+  "tooltip.riverfishing.gb_color_bright": "яркий",
+  "tooltip.riverfishing.gb_color_natural": "светлый"
 }
