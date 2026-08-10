@@ -11,6 +11,7 @@ import com.riverfishing.item.FilletKnifeItem;
 import com.riverfishing.item.FishItem;
 import com.riverfishing.item.GroundbaitItem;
 import com.riverfishing.item.HookItem;
+import com.riverfishing.item.IngredientItem;
 import com.riverfishing.item.JournalItem;
 import com.riverfishing.item.LeaderItem;
 import com.riverfishing.item.LineItem;
@@ -190,10 +191,10 @@ public final class ModItems {
         // §groundbait-mix: inert ballast for a mix. NOT a bait — it never goes on a hook, it goes
         // in the bowl, and it is the only thing in the pantry that feeds nothing at all. That is
         // the whole point: it is the dial between pulling fish in and filling them up.
-        GROUNDBAIT_SOIL = reg("groundbait_soil", () -> new Item(props()));
+        GROUNDBAIT_SOIL = reg("groundbait_soil", () -> new IngredientItem("tooltip.riverfishing.groundbait_soil", props()));
         // §groundbait-base: the ONE thing you craft. Bulk and calories, no character at all —
         // it has no category, so it cannot be thrown on its own. Everything else is what you add.
-        reg("groundbait_base", () -> new Item(props()));
+        reg("groundbait_base", () -> new IngredientItem("tooltip.riverfishing.groundbait_base", props()));
         registerBait("maggot", false);
         WORM = registerBait("worm", false);
         registerBait("bloodworm", false);
