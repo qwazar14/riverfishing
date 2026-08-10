@@ -149,6 +149,12 @@ public class JournalScreen extends Screen {
         addGuide("lurework", modStack("wobbler"));
         addGuide("stress", modStack("line_mono_030"));
         addGuide("livebait", modStack("livebait"));
+        // §groundbait-guide: the mod's biggest system finally has a page in its own book. Two, because
+        // mixing and feeding are two decisions learned at two different moments — one at a bench with
+        // time to read, one at the water with a rod in hand. Right after the bait page: these are the
+        // other thing that goes in the water, the part that is not on the hook.
+        addGuide("groundbait", modStack("groundbait_base"));
+        addGuide("feeding", modStack("groundbait_soil"));
         addGuide("topwater", modStack("popper"));
         addGuide("trolling", modStack("trolling_rod"));
         addGuide("biggame", modStack("yellowfin_tuna"));
@@ -894,13 +900,9 @@ public class JournalScreen extends Screen {
     private static List<String> craftIngredients(ItemStack stack) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return List.of();
-        // §oilcake-info: the oil cake is a CUSTOM recipe (no listed ingredients) — spell it out by hand.
-        Identifier itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
-        if (itemId != null && itemId.getPath().equals("groundbait_cake")) {
-            return List.of(
-                    new ItemStack(net.minecraft.world.item.Items.SUNFLOWER).getHoverName().getString(),
-                    new ItemStack(net.minecraft.world.item.Items.PISTON).getHoverName().getString());
-        }
+        // §groundbait-base: the oil cake used to be a custom sunflower-and-piston recipe and had to be
+        // spelled out by hand here. That craft is gone — none of the four jars is craftable now, they
+        // are what a MIX comes out as — so the generic scan below correctly finds nothing for them.
         // §26.1: recipes are server-side only now (the client gets display-book data, not Recipe objects).
         // In singleplayer read the integrated server's manager; on a remote server the hint is just omitted.
         var server = mc.getSingleplayerServer();
