@@ -100,7 +100,9 @@ public class GroundbaitMixRecipe extends CustomRecipe {
 
         GroundbaitMix mix = stirred.mix();
         for (DyeItem d : stirred.dyes()) {
-            mix = mix.dyed(d.getDyeColor().getTextureDiffuseColor() & 0xFFFFFF);
+            // getFireworkColor is the one dye-RGB accessor that exists unchanged on every version this
+            // mod ships to; getTextureDiffuseColor does not exist on 1.20.1.
+            mix = mix.dyed(d.getDyeColor().getFireworkColor() & 0xFFFFFF);
         }
 
         // The jar it comes out in is the one matching what it reads as, so a mix that fishes as grain

@@ -61,7 +61,7 @@ GROUP_LABELS = {
 GROUPS = [
     ("", ["README"]),
     ("Start", ["getting-started"]),
-    ("Gear", ["rods", "reels-and-lines", "rigs-and-baits", "tackle-station", "crafting",
+    ("Gear", ["rods", "reels-and-lines", "rigs-and-baits", "groundbait", "tackle-station", "crafting",
               "tools", "blocks", "keepnet", "tackle-box"]),
     ("Playing", ["fishing-mechanics", "water-and-conditions", "shoal", "ice-fishing", "sea-fishing",
                  "stocking"]),
