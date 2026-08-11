@@ -18,11 +18,12 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 
 /**
- * Client → server: remove (or put back) one species in one water (§cull).
+ * Client → server: take one species out of one water, or put one in (§cull, §stock-tool).
  *
  * <p>Re-validated from scratch: creative mode, an electrofisher actually in hand, a real species id, and
  * the water within reach. The confirmation the player clicked through lives on the client and is worth
- * exactly nothing here.
+ * exactly nothing here — including the greying-out of species the water cannot hold, which is re-asked
+ * against {@code habitatContext} below.
  */
 public class CullPacket implements ModNetwork.RfPacket {
     public static final CustomPacketPayload.Type<CullPacket> TYPE =
@@ -64,17 +65,35 @@ public class CullPacket implements ModNetwork.RfPacket {
             return;
         }
         if (sp.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(water)) > 64.0 * 64.0) return;
-        if (com.riverfishing.fish.FishProfileManager.get().byId(species) == null) return;
+        com.riverfishing.fish.FishProfile profile =
+                com.riverfishing.fish.FishProfileManager.get().byId(species);
+        if (profile == null) return;
         if (!(sp.level() instanceof ServerLevel level)) return;
 
+        Component name = Component.translatable("item.riverfishing." + species.getPath());
         StockedData data = StockedData.get(level);
-        data.setCulled(StockedData.region(water), species.getPath(), remove);
+        long region = StockedData.region(water);
+        if (remove) {
+            data.setCulled(region, species.getPath(), true);
+        } else {
+            // §stock-tool: putting a fish in has to answer to the same habitat gates a release does, or
+            // the tool would hand out a marlin in a pond that then silently never bites.
+            var body = com.riverfishing.water.WaterBodyCache.forLevel(level).get(level, water);
+            if (com.riverfishing.engine.BiteEngine.environmentScore(
+                    profile, com.riverfishing.fishing.FishingManager.habitatContext(level, water, body)) <= 0) {
+                sp.sendSystemMessage(Component.translatable("message.riverfishing.cull_unfit", name)
+                        .withStyle(ChatFormatting.RED));
+                return;
+            }
+            // One call does both halves: it settles the species here AND lifts any cull on it, so the
+            // restore and the introduction are literally the same act — which is what they are.
+            data.markStocked(region, species.getPath());
+        }
 
         // The whole ~128-block region is one water community, so say so — an operator who thinks they
         // cleared one pond and actually cleared a river system should find that out now, not later.
-        Component name = Component.translatable("item.riverfishing." + species.getPath());
         sp.sendSystemMessage(Component.translatable(
-                remove ? "message.riverfishing.cull_done" : "message.riverfishing.cull_undone", name)
+                remove ? "message.riverfishing.cull_done" : "message.riverfishing.cull_added", name)
                 .withStyle(remove ? ChatFormatting.RED : ChatFormatting.GREEN));
         level.playSound(null, water, SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS, 0.4f,
                 remove ? 1.5f : 0.9f);

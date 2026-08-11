@@ -1,5 +1,6 @@
 {
   "display": "Сиг",
+  "group": "salmonid",
   "water_bodies": { "lake": 1.3, "river": 0.5, "pond": 0.1, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 300, "max": 4000, "mean": 1000 },
   "length_cm": { "min": 25, "max": 70 },

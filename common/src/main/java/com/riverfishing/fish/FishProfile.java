@@ -20,6 +20,20 @@ import java.util.Set;
 public final class FishProfile {
     public final Identifier id;
 
+    /**
+     * §fish-groups (0.8.0): which family this species is filed under — {@code cyprinid}, {@code predator},
+     * {@code salmonid}, {@code sturgeon}, {@code koi}, {@code sea}, {@code big_game}, or {@code other}.
+     *
+     * <p>Seventy-nine species in one flat list is a list nobody reads, and the electrofisher now offers
+     * every one of them. The group is the axis a person actually thinks along ("where are the carp") —
+     * so it is written in the profile rather than guessed from weight and water, which would file a koi
+     * under carp and an asp under predator and be wrong about both.
+     *
+     * <p>Unknown or missing lands in {@code other} on purpose: a datapack species with no group is still
+     * listed and still reachable, just not silently mis-filed.
+     */
+    public final String group;
+
     // Presence / size
     public final Map<String, Double> waterBodies;
     public final double weightMin, weightMax, weightMean;
@@ -81,6 +95,7 @@ public final class FishProfile {
 
     private FishProfile(Builder b) {
         this.id = b.id;
+        this.group = b.group;
         this.waterBodies = b.waterBodies;
         this.weightMin = b.weightMin;
         this.weightMax = b.weightMax;
@@ -186,6 +201,7 @@ public final class FishProfile {
     public static FishProfile fromJson(Identifier id, JsonObject json) {
         Builder b = new Builder(id);
 
+        b.group = GsonHelper.getAsString(json, "group", FishGroup.OTHER);
         b.waterBodies = readDoubleMap(GsonHelper.getAsJsonObject(json, "water_bodies", new JsonObject()));
 
         JsonObject w = GsonHelper.getAsJsonObject(json, "weight_g", new JsonObject());
@@ -274,6 +290,7 @@ public final class FishProfile {
 
     private static final class Builder {
         final Identifier id;
+        String group = FishGroup.OTHER;
         Map<String, Double> waterBodies = new HashMap<>();
         double weightMin, weightMax, weightMean;
         boolean weightMeanSet;
