@@ -25,14 +25,35 @@ public class JournalOpenPacket implements ModNetwork.RfPacket {
         this.guide = guide == null ? "" : guide;
     }
 
+    /** The journal for this player. Every sender uses this — see {@link #payload}. */
+    public static JournalOpenPacket forPlayer(net.minecraft.server.level.ServerPlayer sp) {
+        return forPlayer(sp, "");
+    }
+
+    public static JournalOpenPacket forPlayer(net.minecraft.server.level.ServerPlayer sp, String guide) {
+        return new JournalOpenPacket(payload(sp), guide);
+    }
+
     /**
-     * §order-board: the journal tag carries the order checklist under its own key. The SERVER builds it —
-     * it is the only side that has the fish profiles, the water body and the season — and sends lang keys
-     * rather than sentences, so a client in any language draws it correctly.
+     * Everything the screen needs, assembled in ONE place.
+     *
+     * <p>There were three senders and three different payloads: the journal item sent the records, the
+     * claimed quests and the order; {@code /rffish} sent the raw records with no claimed set, so every
+     * reward looked unclaimed; and unlocking a perk re-sent the journal with no order at all, which blanked
+     * the order board of an open screen. Nothing made them agree — so now nothing has to.
+     *
+     * <p>§order-board: the SERVER builds the order checklist, because it is the only side that has the
+     * fish profiles, the water body and the season, and it sends lang keys rather than sentences so a
+     * client in any language draws it correctly.
      */
-    public static CompoundTag withOrder(CompoundTag journal, net.minecraft.server.level.ServerPlayer sp) {
-        CompoundTag copy = journal.copy();
+    private static CompoundTag payload(net.minecraft.server.level.ServerPlayer sp) {
+        CompoundTag copy = com.riverfishing.item.JournalItem.exportFor(sp);
         copy.put("order", com.riverfishing.fishing.OrderBoard.build(sp));
+        // §journal-card (0.8.0): the species facts ride along for exactly the reason above. The screen
+        // used to read FishProfileManager directly, which only has anything in singleplayer — on a
+        // dedicated server every species page lost its water, bait, tackle, season and trophy weight
+        // without saying so. One table, built once per open, and the client stops needing the profiles.
+        copy.put("cards", com.riverfishing.fish.FishCard.buildAll());
         return copy;
     }
 
