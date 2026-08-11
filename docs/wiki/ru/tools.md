@@ -168,5 +168,5 @@ fillets = max(1, fishWeightGrams / 200)
 - [Оснастки и наживки](rigs-and-baits.md) · [Блоки](blocks.md)
 - [Садок](keepnet.md) · [Рыболовный ящик](tackle-box.md) — куда идёт улов и куда снасть
 - [Прогрессия](progression.md) · [Вода и условия](water-and-conditions.md)
-- [Электроудочка](electrofisher.md) — креативный инструмент, который снастью не является
+- [Электроудочка](electrofisher.md) — креативный инструмент, который снастью не является: решает, кто живёт в водоёме
 - [Крафт](crafting.md)

@@ -1,8 +1,8 @@
 # Electrofisher
 
-The one piece of River Fishing gear that is not tackle. The **Electrofisher** removes a species from a body of water — permanently, for everyone, whether or not anyone was fishing for it. It is a tool for whoever runs the world, and a survival player will never hold one.
+The one piece of River Fishing gear that is not tackle. The **Electrofisher** changes what a body of water holds: it removes a species permanently, for everyone, whether or not anyone was fishing for it — and it puts in one that was never there. It is a tool for whoever runs the world, and a survival player will never hold one.
 
-Real electrofishing does exactly this job: a survey crew stuns a stretch of river and takes out what does not belong. The name is not a joke.
+Real electrofishing does exactly this job: a survey crew stuns a stretch of river, takes out what does not belong and releases what does. The name is not a joke.
 
 ## Getting one
 
@@ -25,29 +25,52 @@ Right-click while aiming at water. You may also aim at the bank, or at the botto
 
 | What you aimed at | What happens |
 |---|---|
-| Water with species in it | The selection screen opens |
+| Any water within 24 blocks | The selection screen opens |
 | No water within 24 blocks | *"No water to cast into"* |
-| Water where nothing can be caught | *"Nothing lives in this water"* |
 | Anything, in survival or adventure | *"The electrofisher only works in creative"* |
+
+Water with nothing living in it used to be an early exit with a *"Nothing lives in this water"* message. It is now the case the tool is most useful in, so it opens the same screen as anywhere else.
 
 ## The screen
 
-The window is titled **"Electrofisher: what to remove"**, with the coordinates of the water block it measured from underneath — *"Water at X, Y, Z"*.
+The window is titled **"Electrofisher: this water's fish"**, with the coordinates of the water block it measured from underneath — *"Water at X, Y, Z"*.
 
-The rows are **every species that can be caught in that water right now**, best environment fit first. It is the same list, in the same order, that the Fish Finder prints, because it is the same function asked the same question.
+It has two columns.
+
+**Left — the families.** Eight rows: **This water**, then Carp family, Predators, Salmon & trout, Sturgeons, Koi, Sea fish, Big game. Each shows *how many of that family live here* out of how many exist, so `3/22` on Carp family means the water holds three of the twenty-two. The first row is not a family: it is what was living here when the screen opened, best environment fit first — the same list, in the same order, that the Fish Finder prints, because it is the same function asked the same question.
+
+**Right — the fish of the selected family**, and a coloured strip on each row saying where it stands:
+
+| Strip | State | What a click does |
+|---|---|---|
+| Green | Lives here — native, settled, or a transplant still holding on | Removes it |
+| Red, struck through | An operator removed it | Puts it back |
+| Grey | Not here, but the water would suit it | Puts it in |
+| Dark, unclickable | This water cannot hold the species at all | Nothing |
 
 **Two clicks, never one.**
 
-1. The first click selects the row and turns it into a question — *click again to remove* appears on the right in yellow.
+1. The first click selects the row and turns it into a question — *click again to remove* or *click again to put in* appears on the right in yellow.
 2. The second click on that same row does it.
 
-Clicking anywhere else, or turning the page, cancels the pending confirmation. A mis-click that empties a lake is not a mistake the tool lets you make.
+Clicking anywhere else, changing family, or turning the page cancels the pending confirmation. A mis-click that empties a lake is not a mistake the tool lets you make.
 
-Long lists are paged — up to **14 rows** to a window, with arrows at either end of the list and the mouse wheel turning whole pages.
+Long families are paged — up to **14 rows** to a window, with arrows at either end of the list and the mouse wheel turning whole pages.
 
-When it fires, a thunder crack sounds at the water, forty electric-spark particles come off the surface, and chat says:
+When it fires, a thunder crack sounds at the water, forty electric-spark particles come off the surface, and chat says one of:
 
 > *Roach no longer lives in this water*
+> *Roach now lives in this water*
+
+## What you cannot put in
+
+Not every species can go into every water. Hover a dark row and it says **the water won't hold it**.
+
+The check is not a separate rule invented for the tool — it is the same habitat gate a released fish rolls its settle chance against: body of water, depth, width, climate, with the community and the hour of day taken out of it. A marlin in a pond is refused here for exactly the reason a marlin released into a pond would never settle there.
+
+That is why the dark rows are shown rather than hidden. A river being unable to keep a marlin is information; a list that quietly omitted two thirds of the fish would have looked like a broken tool.
+
+Filling the water in is the only way round it. Make it wide enough, deep enough, salt water if the species needs salt water, and the row goes grey.
 
 ## The scope is the region, not the pond
 
@@ -61,9 +84,11 @@ region = (x >> 7, z >> 7)
 
 Clear roach off one bank and they are gone from the whole region. A river with several bays is one water. A pond and the lake three hundred blocks away are two. The screen prints the coordinates the region was measured from precisely so an operator who thinks they cleared one pond can find out now, not later.
 
+The same is true in the other direction: a species you put in is in the whole region, not in the bay you clicked.
+
 ## What the ban actually does
 
-The removal is a single flag, checked in a single place: the community factor that answers *"does this species live here?"*. Everything that asks that question routes through it, so the four systems below cannot drift apart.
+The removal is a single flag, checked in a single place: the community factor that answers *"does this species live here?"*. Everything that asks that question routes through it, so the systems below cannot drift apart.
 
 | System | Effect |
 |---|---|
@@ -75,18 +100,17 @@ The removal is a single flag, checked in a single place: the community factor th
 
 Removing a species also strikes it out of that region's **residency book** — if it was a settled transplant, it is not settled there any more.
 
+Putting one in is the same book written the other way: the species becomes a **permanent resident** of the region, at the settled 150 % population floor, and any ban on it is lifted in the same act. There is deliberately no separate "un-ban" — restoring a fish you removed and introducing one that was never here are the same thing, so they are one operation.
+
 What the electrofisher does **not** touch is the per-chunk stock and [depletion](water-and-conditions.md#spot-depletion) numbers. Stock banked by earlier releases stays on the books exactly as it was.
 
 ## Undoing it
 
-**While the screen is still open**, a removed row goes struck-through and its confirmation flips to *click again to restore*. Two more clicks put the species back, and chat says *"Roach lives here again"*.
+Both directions undo in the same place they were done.
 
-**Once you close the screen, the row is gone.** The list is built from what can be caught in that water, and a banned species cannot be — so it has nothing to show. There is no row left to click.
+A removed fish stays in the list — struck through, in its family and in **This water** — and two more clicks put it back. This is the difference from 0.7.0, where the list was built only from what could be caught in that water: a banned species could not be, so its row vanished the moment you closed the screen and the undo the tool advertised was unreachable. The list is now every species, so the row is always there.
 
-The way back after that is in the world rather than in the menu: **release a fish of that species into that water**. A fish you can see swimming has to be catchable, so:
-
-- If the species is not a resident of the region, a successful [settle roll](stocking.md#settling) lifts the ban outright and makes it a permanent resident again.
-- Otherwise the release still banks stock, which is enough to make the species weakly catchable again (at the quarter-strength [stocked-survival](stocking.md#living-outside-your-element) floor) and to bring its row back into the electrofisher's list — struck through, and two clicks from being properly restored.
+The way back in the world still works too: **release a fish of that species into that water**. A fish you can see swimming has to be catchable, so a release lifts the ban outright.
 
 ## What the server re-checks
 
@@ -95,7 +119,8 @@ The confirmation you clicked through lives on the client and is worth nothing on
 - the player is in creative;
 - an Electrofisher is actually in their main or off hand;
 - the species id is a real fish profile;
-- the water is within **64 blocks** of the player.
+- the water is within **64 blocks** of the player;
+- for a fish going in, the water can actually hold it — the greying-out on the client is a courtesy, not a rule.
 
 ## Where it is stored
 
@@ -104,14 +129,15 @@ The bans live in the overworld's `riverfishing_stocked` saved data, in a `Culled
 ## An honest note on how blunt it is
 
 - It is an **on/off switch for a whole region**. There is no "reduce by half", no radius, no per-chunk version.
-- It can only take away. Putting a species into a water is [stocking](stocking.md)'s job, and no operator shortcut for it exists.
-- It gives players **no signal**. A species that has been removed simply stops appearing — the fish finder does not say *"banned"*, and nothing in the journal records it.
-- There is no list of what you have removed. The only way to see a region's bans is to point the tool at it again, and after a restart even the struck-through rows are gone (see [Undoing it](#undoing-it)).
+- A fish you put in arrives as a **settled resident**, immediately and at full strength. There is no stocking effort, no roll, no ramp — everything [stocking](stocking.md) makes you earn, this hands over. That is the point of an operator tool, and it is also why it is creative-only.
+- It gives players **no signal**. A species that has been removed simply stops appearing — the fish finder does not say *"banned"*, and nothing in the journal records it. A species that was added looks exactly like one the seed put there.
+- There is no list of what you have changed. Point the tool at the water to read the current state; that state is the only record.
 
-Used with that in mind it does the job it was asked for: take the nuisance species out of one water so it stops getting in the way.
+Used with that in mind it does the job it was asked for: decide what lives in one water.
 
 ## See also
 
-- [Stocking](stocking.md) — how species get *into* a water
+- [Stocking](stocking.md) — how species get into a water the honest way
+- [Species](species.md#families) — the seven families the screen is laid out by
 - [Water and conditions](water-and-conditions.md#every-water-is-its-own) — how the seed decides what lives where
 - [Tools](tools.md#ichthyologists-tablet) — the other operator-only tool

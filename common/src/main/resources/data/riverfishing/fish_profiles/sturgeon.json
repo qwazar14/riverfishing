@@ -1,5 +1,6 @@
 {
   "display": "Осётр",
+  "group": "sturgeon",
   "water_bodies": { "river": 1.2, "lake": 0.6, "pond": 0.0, "swamp": 0.0, "sea": 0.3, "puddle": 0.0 },
   "weight_g": { "min": 5000, "max": 150000, "mean": 22000 },
   "length_cm": { "min": 80, "max": 250 },

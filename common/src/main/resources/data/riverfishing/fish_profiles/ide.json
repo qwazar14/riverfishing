@@ -1,5 +1,6 @@
 {
   "display": "Язь",
+  "group": "cyprinid",
   "water_bodies": {
     "river": 1.2,
     "lake": 0.7,

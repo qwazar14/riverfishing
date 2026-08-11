@@ -60,7 +60,7 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 | [Villager](villager.md) | The Fisherman, the Fishing Stall, all five trade tiers, the prime-fish rule, the dynamic market |
 | [Order board](order-board.md) | The journal panel that turns the order of the day into a recipe, and the six rewards it pays out |
 | [Configuration](config.md) | `config/riverfishing.json` — the three presets and every knob, with its range |
-| [Electrofisher](electrofisher.md) | Creative only: taking a species out of a body of water for good |
+| [Electrofisher](electrofisher.md) | Creative only: deciding what lives in a body of water |
 
 ---
 

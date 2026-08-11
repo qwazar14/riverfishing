@@ -1,5 +1,6 @@
 {
   "display": "Щука",
+  "group": "predator",
   "water_bodies": {
     "river": 1.0,
     "lake": 1.1,

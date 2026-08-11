@@ -12,6 +12,26 @@ Companion page: **[Species reference](species-reference.md)** holds the habitat 
 - **Best baits** are scored 0 to ~1.2. The engine takes the single best-scoring bait on your rig. A bait not listed scores 0, and **no listed bait on the rig means the fish will not take at all**.
 - Bait ids map to items as listed in [Rigs and baits](rigs-and-baits.md#natural-baits): `pearl_barley` = Pearl Barley, `bread` = Bread Crumb, `silicone` = Soft Plastic, `jig` = Soft Jig, `mormyshka` = Ice Jig, `fish_strip` = Raw Fish Fillet, `livebait` = Live Bait.
 
+## Families
+
+Every species is filed under one of seven families. It is the `group` field in the profile, and it is
+what the [electrofisher](electrofisher.md#the-screen) lays its picker out by — seventy-nine names in one
+flat list is a list nobody reads. A datapack species that names no family is filed under **Other**, listed
+and reachable but never silently mis-filed.
+
+The family is a statement about the fish, not a shortcut derived from its numbers: an asp hunts like a
+predator and is a cyprinid, and takes cyprinid [groundbait](groundbait.md) accordingly.
+
+| Family | Species |
+|---|---|
+| **Carp family** (22) | Asp, Bleak, Blue bream, Bream, Carp, Chub, Common dace, Crucian Carp, Grass Carp, Gudgeon, Ide, Mirror Carp, Nase, Roach, Rudd, Sabrefish, Silver carp, Tench, Vimba bream, White Bream, White-eye bream, Wild Carp |
+| **Predators** (16) | Bluegill, Bullseye snakehead, Burbot, Catfish, Channel catfish, Eel, Largemouth bass, Mayan cichlid, Oscar, Peacock bass, Perch, Pike, Rotan, Ruffe, Volga zander, Zander |
+| **Salmon & trout** (10) | Arctic char, Atlantic salmon, Grayling, Lenok, Pink salmon, Rainbow trout, Smelt, Taimen, Trout, Whitefish |
+| **Sturgeons** (2) | Sterlet, Sturgeon |
+| **Koi** (5) | Koi Asagi, Koi Bekko, Koi Kohaku, Koi Showa Sanke, Koi Tancho Sanke |
+| **Sea fish** (15) | Barracuda, Bluefish, Cod, Conger eel, Flounder, Garfish, Herring, Jack crevalle, Mackerel, Ray, Round goby, Saithe, Sea bass, Snook, Striped bass |
+| **Big game** (9) | Blue marlin, Halibut, Mahi-mahi, Mako shark, Sailfish, Swordfish, Tarpon, Wahoo, Yellowfin tuna |
+
 ## All species
 
 | # | Species | Item id | Weight (min – max) | Median catch | Length | Water bodies (presence factor) | Level |

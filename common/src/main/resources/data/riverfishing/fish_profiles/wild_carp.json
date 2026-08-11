@@ -1,5 +1,6 @@
 {
   "display": "Сазан",
+  "group": "cyprinid",
   "water_bodies": { "river": 1.3, "lake": 0.9, "pond": 0.5, "swamp": 0.3, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 1500, "max": 18000, "mean": 4200 },
   "length_cm": { "min": 40, "max": 110 },

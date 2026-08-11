@@ -1,5 +1,6 @@
 {
   "display": "Бычок-кругляк",
+  "group": "sea",
   "water_bodies": { "river": 1.0, "lake": 0.6, "pond": 0.2, "swamp": 0.0, "sea": 1.1, "puddle": 0.0 },
   "weight_g": { "min": 10, "max": 380, "mean": 100 },
   "length_cm": { "min": 10, "max": 35 },

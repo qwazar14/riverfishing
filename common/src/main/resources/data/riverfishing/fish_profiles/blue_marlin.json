@@ -1,5 +1,6 @@
 {
   "display": "Голубой марлин",
+  "group": "big_game",
   "water_bodies": {
     "sea": 1.0,
     "river": 0.0,
