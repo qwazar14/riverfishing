@@ -1,14 +1,10 @@
 package com.riverfishing.network;
 
 import com.riverfishing.RiverFishing;
-import com.riverfishing.engine.BiteContext;
-import com.riverfishing.engine.BiteEngine;
 import com.riverfishing.fish.FishProfile;
 import com.riverfishing.fish.FishProfileManager;
 import com.riverfishing.fishing.FishingManager;
 import com.riverfishing.fishing.StockedData;
-import com.riverfishing.water.WaterBody;
-import com.riverfishing.water.WaterBodyCache;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -29,19 +25,22 @@ import java.util.List;
  * culled fish scores zero on the environment and therefore fell straight out of the old "what lives
  * here" list — which meant the undo the screen advertised could never be reached.
  *
- * <p>The states are computed from the same functions the rest of the mod asks: {@code speciesHere} for
- * presence (the one the fish finder uses) and {@code habitatContext} for whether the water can hold the
- * species at all (the one a release rolls against). Nothing here re-derives either.
+ * <p>Presence comes from {@code speciesHere} — the one the fish finder uses — and nothing here
+ * re-derives it.
+ *
+ * <p><b>There is no habitat check.</b> The first cut greyed out species whose water gates a release
+ * rolls against would fail, which was wrong on both counts: it is an admin item, so "any fish, any
+ * water" is the point — and the engine already supported it. §stocked-survival gives a stocked species
+ * a quarter of full activity <i>whatever</i> the natural gates say, so a marlin marked into a pond has
+ * always been catchable there. The gate blocked something that worked.
  */
 public class CullListPacket implements ModNetwork.RfPacket {
-    /** Not in this water, but the water would suit it — the electrofisher can put it there. */
+    /** Not in this water. The electrofisher can put it there — ANY of them, see the class note. */
     public static final byte ABSENT = 0;
     /** Lives here: native, settled, or a transplant still holding on. */
     public static final byte HERE = 1;
     /** An operator took it out of this water. */
     public static final byte CULLED = 2;
-    /** This water cannot hold the species at all — wrong body, depth, width or climate. */
-    public static final byte UNFIT = 3;
 
     public static final CustomPacketPayload.Type<CullListPacket> TYPE =
             new CustomPacketPayload.Type<>(RiverFishing.id("cull_list"));
@@ -78,11 +77,6 @@ public class CullListPacket implements ModNetwork.RfPacket {
         long region = StockedData.region(water);
         List<ResourceLocation> here = FishingManager.speciesHere(level, water);
 
-        WaterBody body = WaterBodyCache.forLevel(level).get(level, water);
-        // One context for all seventy-nine — the fit question is about the WATER, so the answer does not
-        // change from species to species and building it per fish would be seventy-eight wasted scans.
-        BiteContext habitat = FishingManager.habitatContext(level, water, body);
-
         List<ResourceLocation> ids = new ArrayList<>(here);
         for (FishProfile p : FishProfileManager.get().all()) {
             if (!ids.contains(p.id)) ids.add(p.id);
@@ -94,7 +88,6 @@ public class CullListPacket implements ModNetwork.RfPacket {
             FishProfile p = FishProfileManager.get().byId(id);
             if (data.isCulled(region, id.getPath())) st[i] = CULLED;
             else if (here.contains(id)) st[i] = HERE;
-            else if (p == null || BiteEngine.environmentScore(p, habitat) <= 0) st[i] = UNFIT;
             else st[i] = ABSENT;
             groups.add(com.riverfishing.fish.FishGroup.of(p));
         }

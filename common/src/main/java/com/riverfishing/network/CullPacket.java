@@ -22,8 +22,7 @@ import net.minecraft.sounds.SoundSource;
  *
  * <p>Re-validated from scratch: creative mode, an electrofisher actually in hand, a real species id, and
  * the water within reach. The confirmation the player clicked through lives on the client and is worth
- * exactly nothing here — including the greying-out of species the water cannot hold, which is re-asked
- * against {@code habitatContext} below.
+ * exactly nothing here.
  */
 public class CullPacket implements ModNetwork.RfPacket {
     public static final CustomPacketPayload.Type<CullPacket> TYPE =
@@ -76,15 +75,11 @@ public class CullPacket implements ModNetwork.RfPacket {
         if (remove) {
             data.setCulled(region, species.getPath(), true);
         } else {
-            // §stock-tool: putting a fish in has to answer to the same habitat gates a release does, or
-            // the tool would hand out a marlin in a pond that then silently never bites.
-            var body = com.riverfishing.water.WaterBodyCache.forLevel(level).get(level, water);
-            if (com.riverfishing.engine.BiteEngine.environmentScore(
-                    profile, com.riverfishing.fishing.FishingManager.habitatContext(level, water, body)) <= 0) {
-                sp.displayClientMessage(Component.translatable("message.riverfishing.cull_unfit", name)
-                        .withStyle(ChatFormatting.RED), false);
-                return;
-            }
+            // §stock-tool: ANY species into ANY water, deliberately — it is an admin item. There is no
+            // habitat check because the engine never needed one: §stocked-survival keeps a stocked
+            // species at a quarter of full activity however badly the water suits it, so the marlin in
+            // the pond bites. It just never gets comfortable there.
+            //
             // One call does both halves: it settles the species here AND lifts any cull on it, so the
             // restore and the introduction are literally the same act — which is what they are.
             data.markStocked(region, species.getPath());

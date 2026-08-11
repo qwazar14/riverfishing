@@ -45,8 +45,7 @@ It has two columns.
 |---|---|---|
 | Green | Lives here — native, settled, or a transplant still holding on | Removes it |
 | Red, struck through | An operator removed it | Puts it back |
-| Grey | Not here, but the water would suit it | Puts it in |
-| Dark, unclickable | This water cannot hold the species at all | Nothing |
+| Grey | Not here | Puts it in |
 
 **Two clicks, never one.**
 
@@ -62,15 +61,13 @@ When it fires, a thunder crack sounds at the water, forty electric-spark particl
 > *Roach no longer lives in this water*
 > *Roach now lives in this water*
 
-## What you cannot put in
+## Any fish, any water
 
-Not every species can go into every water. Hover a dark row and it says **the water won't hold it**.
+There is no habitat check. It is an admin item, so a marlin goes into a pond if that is what you want.
 
-The check is not a separate rule invented for the tool — it is the same habitat gate a released fish rolls its settle chance against: body of water, depth, width, climate, with the community and the hour of day taken out of it. A marlin in a pond is refused here for exactly the reason a marlin released into a pond would never settle there.
+The first cut greyed out species whose habitat gates a release would fail, and that was wrong twice over. Gates are not what an operator tool is for — and the engine never needed one anyway: [§stocked-survival](stocking.md#living-outside-your-element) already keeps a stocked species at **a quarter of full activity** however badly the water suits it. The marlin in the pond was always catchable. The grey-out blocked something that worked.
 
-That is why the dark rows are shown rather than hidden. A river being unable to keep a marlin is information; a list that quietly omitted two thirds of the fish would have looked like a broken tool.
-
-Filling the water in is the only way round it. Make it wide enough, deep enough, salt water if the species needs salt water, and the row goes grey.
+That quarter is the whole cost. A fish in the water it belongs in is scored on season, hour, weather and distance like any other; a fish outside its element ignores all of that and sits at 0.25 — present, catchable, never comfortable.
 
 ## The scope is the region, not the pond
 
@@ -119,8 +116,7 @@ The confirmation you clicked through lives on the client and is worth nothing on
 - the player is in creative;
 - an Electrofisher is actually in their main or off hand;
 - the species id is a real fish profile;
-- the water is within **64 blocks** of the player;
-- for a fish going in, the water can actually hold it — the greying-out on the client is a courtesy, not a rule.
+- the water is within **64 blocks** of the player.
 
 ## Where it is stored
 
