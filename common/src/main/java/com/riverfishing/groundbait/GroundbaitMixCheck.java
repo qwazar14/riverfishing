@@ -19,16 +19,22 @@ public final class GroundbaitMixCheck {
 
     private GroundbaitMixCheck() {}
 
-    /** The waters the design is built around, so a tuning change shows its effect immediately. */
+    /**
+     * The waters the design is built around, so a tuning change shows its effect immediately.
+     *
+     * <p>Every one of them starts with the BASE, because that is the rule: a mix is the base plus up to
+     * eight things. A reference list that could not be crafted would be a slow way to mislead myself.
+     */
     private static final List<Recipe> REFERENCE = List.of(
-            new Recipe("shop jar, as bought", "the base alone: neutral, helps a little",
+            new Recipe("base, as bought", "nothing added: neutral, helps a little",
                     List.of(new GroundbaitMix.Part(GroundbaitMix.BASE_ID, 1))),
             new Recipe("hammered town water", "lean and clouding, half ballast",
                     List.of(new GroundbaitMix.Part(GroundbaitMix.BASE_ID, 3),
                             new GroundbaitMix.Part("bloodworm", 1),
                             new GroundbaitMix.Part("groundbait_soil", 4))),
             new Recipe("stocked pond", "imitates the pellets they are fed",
-                    List.of(new GroundbaitMix.Part("boilie", 4),
+                    List.of(new GroundbaitMix.Part(GroundbaitMix.BASE_ID, 1),
+                            new GroundbaitMix.Part("boilie", 4),
                             new GroundbaitMix.Part("corn", 2))),
             new Recipe("bream, the classic", "grain and chopped worm over the base",
                     List.of(new GroundbaitMix.Part(GroundbaitMix.BASE_ID, 3),
@@ -36,13 +42,14 @@ public final class GroundbaitMixCheck {
                             new GroundbaitMix.Part("worm", 2),
                             new GroundbaitMix.Part("maggot", 1))),
             new Recipe("wild lake", "all particle, lies on the bottom",
-                    List.of(new GroundbaitMix.Part("corn", 5),
-                            new GroundbaitMix.Part("pea", 3),
-                            new GroundbaitMix.Part("pearl_barley", 2))),
-            new Recipe("first mix, vanilla only", "wheat and a beetroot, hour one",
-                    List.of(new GroundbaitMix.Part("minecraft:wheat", 3),
-                            new GroundbaitMix.Part("minecraft:beetroot", 2),
-                            new GroundbaitMix.Part("minecraft:wheat_seeds", 1))));
+                    List.of(new GroundbaitMix.Part(GroundbaitMix.BASE_ID, 1),
+                            new GroundbaitMix.Part("corn", 5),
+                            new GroundbaitMix.Part("pea", 3))),
+            new Recipe("first mix, hour one", "the base and what a starting farm grows",
+                    List.of(new GroundbaitMix.Part(GroundbaitMix.BASE_ID, 3),
+                            new GroundbaitMix.Part("minecraft:wheat", 2),
+                            new GroundbaitMix.Part("minecraft:bread", 3),
+                            new GroundbaitMix.Part("minecraft:potato", 1))));
 
     private record Recipe(String name, String intent, List<GroundbaitMix.Part> parts) {}
 
@@ -59,6 +66,9 @@ public final class GroundbaitMixCheck {
             GroundbaitMix m = GroundbaitMix.of(r.parts());
             if (m == null) {
                 throw new IllegalStateException("reference mix does not stir: " + r.name());
+            }
+            if (r.parts().size() > 1 && !GroundbaitMix.qualifiesAsMix(r.parts(), false)) {
+                throw new IllegalStateException("reference mix cannot be crafted: " + r.name());
             }
             System.out.printf("%-24s %9.3f %9.3f %4d  #%06X %6d   %s%n",
                     r.name(), m.nutrition(), m.fraction(), m.variety(), m.rgb(),
