@@ -116,10 +116,38 @@ of repeating §4 eight times. Each line is a place where the code actually forks
 | 26.2 both | **the Tackle Station's red-dye ghost icon** appears | `Items.RED_DYE` → `Items.DYE.red()` |
 | Fabric ×4 | **the fish finder's HUD line** shows | `options.hideGui` → `gui.hud.isHidden()` on 26.2 |
 
-## 6. Known and accepted for 0.6.0 — confirm, do not chase
+## 6. What 0.8.0 changed — test these before anything else
 
-Finding these is not a bug report; they are already decided. Confirm they behave as documented so nothing
-worse is hiding behind them.
+Everything below is new or rewritten this release. A pass here is what the release gate is actually
+waiting on.
+
+**Groundbait, which is the whole headline.** The old four jars are gone; anything that still mentions
+them is a bug.
+
+- Wheat Seeds + Bread → **2 × Base Groundbait**. The fisherman still sells it.
+- Base + up to 8 more items in the grid makes a mix. **Base alone is craftable back into a mix; a
+  finished mix is not.** One SLOT is one item — put a stack of 64 in a slot and it still counts once.
+- **Overfeeding is impossible.** Throw twenty jars at one spot and the bite never gets worse.
+- **Last mix in wins.** Feed a spot with mix A, then mix B: B takes over outright, no averaging.
+- **The ★ grind claim.** Feed pure boilies and pure dust in the same water and confirm the coarse table
+  brings bigger fish and the dust brings bleak.
+- **A loaded feeder cage no longer counts as feed.** This was the bug: a cage scored the swim at the
+  *cast surface*, flat 0.5 freshness at the finest grind, usually beating the mix actually on the bottom.
+  Fish a fed swim with a loaded feeder and confirm the mix still decides.
+
+**One fillet.** The knife makes **Raw Fish Fillet** only, 200 g a piece, no crouch modifier. Confirm it
+still smokes/smelts/campfires into Cooked Fish Fillet, still works as saltwater bait, still goes in a
+mix — and that no crafting grid turns a whole fish into anything without the knife.
+
+**The electrofisher (creative only).** Cull a species, close the screen, **reopen at the same spot** and
+confirm the fish is still listed, struck through, in **This water** — that exact round trip is what was
+broken. Then put a species in that was never there, including one the water plainly does not suit, and
+confirm it turns up. Check the family column counts.
+
+**Hook picking at the bench.** A button either side of the size, the tied hook matches the choice, and
+the iron is billed.
+
+### Still known and accepted — confirm, do not chase
 
 - **Hook link, balance and blade size do nothing.** Written to NBT and shown on the tooltip, read by
   nothing. The tooltip and the wiki both say so.
@@ -127,6 +155,8 @@ worse is hiding behind them.
   static there; on 1.20.1 and 1.21.1 they move.
 - **There is no config file.** Difficulty is fixed at the *realism* preset in code.
 - **Hand-crafted lures weigh 0 g.** Deliberate — it is what makes the bench worth using.
+- **Old worlds keep their fed spots as unfed.** Pre-0.8.0 feed zones are dropped on load rather than
+  migrated — there is no sane translation from four categories to a grind/richness pair.
 
 ## 7. Release gate
 

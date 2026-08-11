@@ -147,8 +147,9 @@ patching.
    refused with the reason written in the window.
 4. **Load the rig.** Drop a **hook** and **bait** into the rig's inline slots. Predators want artificial
    lures, not worms, and they bite through a bare line — fit a leader.
-5. **Feed the spot** (optional). Right-click water holding **groundbait**; the fed spot lasts from three minutes for fine dust to
-   twelve for coarse grain, and what you mixed decides what it pulls in — and how full they get.
+5. **Feed the spot** (optional). Mix your own groundbait in the crafting grid — a base plus up to eight
+   things — and right-click water with it. You cannot overfeed a swim; what you mixed decides who turns
+   up, and a coarse grind calls the bigger fish.
 6. **Cast.** Hold right-click to charge, release to throw. An under-loaded blank cannot reach.
 7. **Watch the float — silently.** There is no "Bite!" text. The float plunges, the line twitches, and you
    strike with a plain right-click. Lure rods put a timing bar on the strike itself.

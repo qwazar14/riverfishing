@@ -32,10 +32,13 @@ DISCORD = "discord.gg/Kk2nKvsuRh"
 TARGETS = [
     ("1.20.1 Fabric",   WT + "/rf1201/fabric/build/libs/riverfishing-fabric-%s.jar"),
     ("1.20.1 Forge",    WT + "/rf1201/forge/build/libs/riverfishing-forge-%s.jar"),
-    ("Fabric 1.21.1",   REPO + "/fabric/build/libs/riverfishing-fabric-%s.jar"),
-    ("NeoForge 1.21.1", REPO + "/neoforge/build/libs/riverfishing-neoforge-%s.jar"),
+    # Three of these read "Fabric 1.21.1" and were never a folder on disk, so the tool quietly skipped
+    # three of the eight instances and still printed a per-instance heading for each. Every name here is
+    # "<mc> <loader>", which is how PrismLauncher actually has them — checked against the folder list.
+    ("1.21.1 Fabric",   REPO + "/fabric/build/libs/riverfishing-fabric-%s.jar"),
+    ("1.21.1 NeoForge", REPO + "/neoforge/build/libs/riverfishing-neoforge-%s.jar"),
     ("26.1.2 Fabric",   WT + "/rf26/fabric/versions/26.1.2/build/libs/riverfishing-fabric-%s+26.1.2.jar"),
-    ("NeoForge 26.1.2", WT + "/rf26/neoforge/versions/26.1.2/build/libs/riverfishing-neoforge-%s+26.1.2.jar"),
+    ("26.1.2 NeoForge", WT + "/rf26/neoforge/versions/26.1.2/build/libs/riverfishing-neoforge-%s+26.1.2.jar"),
     ("26.2 Fabric",     WT + "/rf26/fabric/versions/26.2/build/libs/riverfishing-fabric-%s+26.2.jar"),
     ("26.2 NeoForge",   WT + "/rf26/neoforge/versions/26.2/build/libs/riverfishing-neoforge-%s+26.2.jar"),
 ]
