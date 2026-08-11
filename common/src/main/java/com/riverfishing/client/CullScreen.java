@@ -41,9 +41,9 @@ public class CullScreen extends Screen {
     private static final int LIST_W = 216;
     private static final int GAP = 6;
 
-    /** Row tint per state, in {@link CullListPacket}'s order: absent, here, culled, unfit. */
-    private static final int[] STRIP = {0xFF6A6A6A, 0xFF4CAF50, 0xFFC0392B, 0xFF303030};
-    private static final int[] TEXT = {0xFFA8A8A8, 0xFFFFFFFF, 0xFF8A8A8A, 0xFF585858};
+    /** Row tint per state, in {@link CullListPacket}'s order: absent, here, culled. */
+    private static final int[] STRIP = {0xFF6A6A6A, 0xFF4CAF50, 0xFFC0392B};
+    private static final int[] TEXT = {0xFFA8A8A8, 0xFFFFFFFF, 0xFF8A8A8A};
 
     private final BlockPos water;
     private final List<Identifier> species;
@@ -63,10 +63,14 @@ public class CullScreen extends Screen {
         this.species = p.species;
         this.state = p.state.clone();
 
-        // Category 0 — this water. Packet order, which is the fish finder's ranking.
+        // Category 0 — this water: what lives here AND what an operator took out of here. Culled has to
+        // be in it. Building this from HERE alone meant a fish you removed was missing from the first
+        // thing the screen shows you the next time you opened it, which is exactly the "I removed it and
+        // now it is gone" the whole change was supposed to end — the row was only findable by knowing
+        // which family to click.
         List<Integer> here = new ArrayList<>();
         for (int i = 0; i < species.size(); i++) {
-            if (state[i] == CullListPacket.HERE) here.add(i);
+            if (state[i] == CullListPacket.HERE || state[i] == CullListPacket.CULLED) here.add(i);
         }
         cats.add(null);
         rows.add(here);
@@ -194,8 +198,7 @@ public class CullScreen extends Screen {
             int idx = view().get(i + first());
             int y = top + i * ROW;
             byte st = state[idx];
-            boolean live = st != CullListPacket.UNFIT;
-            boolean hover = live && mouseX >= x && mouseX < x + LIST_W && mouseY >= y && mouseY < y + ROW;
+            boolean hover = mouseX >= x && mouseX < x + LIST_W && mouseY >= y && mouseY < y + ROW;
             boolean sel = i + first() == selected;
             if (sel) {
                 g.fill(x, y, x + LIST_W, y + ROW, st == CullListPacket.HERE ? 0x80C03020 : 0x8020A040);
@@ -212,10 +215,6 @@ public class CullScreen extends Screen {
                         ? "gui.riverfishing.cull_confirm" : "gui.riverfishing.cull_confirm_add");
                 g.text(font, ask.copy().withStyle(ChatFormatting.YELLOW),
                         x + LIST_W - font.width(ask) - 6, y + 3, 0xFFFFFF55, false);
-            } else if (hover && st == CullListPacket.UNFIT) {
-                Component no = Component.translatable("gui.riverfishing.cull_unfit_row");
-                g.text(font, no.copy().withStyle(ChatFormatting.DARK_RED),
-                        x + LIST_W - font.width(no) - 6, y + 3, 0xFF803030, false);
             }
         }
         // Pager: arrows either side of "page / of", greyed at the ends. Only drawn when there IS a
@@ -271,12 +270,6 @@ public class CullScreen extends Screen {
             if (mx < x || mx >= x + LIST_W || my < y || my >= y + ROW) continue;
             int row = i + first();
             int idx = view().get(row);
-            // Water that cannot hold the species does not answer a click at all. Refusing it here rather
-            // than letting the server do it silently is the difference between a rule and a dead button.
-            if (state[idx] == CullListPacket.UNFIT) {
-                selected = -1;
-                return true;
-            }
             if (selected == row) {
                 // Second click on the same row: do it.
                 boolean remove = state[idx] == CullListPacket.HERE;

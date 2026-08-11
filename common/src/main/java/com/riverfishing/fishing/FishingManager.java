@@ -2810,9 +2810,10 @@ public final class FishingManager {
      * the act of joining a community the species isn't in yet) and with the time/weather noise flattened:
      * viability is about the WATER, not the hour of day.
      *
-     * <p>Scored once per water, not once per fish. A release rolls its settle chance against this, and
-     * the electrofisher greys out what the water cannot hold against the same thing — so the tool can
-     * never offer to put in a fish that a release would refuse to settle.
+     * <p>This prices a RELEASE — how likely a fish thrown back is to settle. It is deliberately not
+     * asked by the electrofisher: that is an admin item and puts any species into any water, and the
+     * engine backs it up anyway, because §stocked-survival keeps a stocked fish at a quarter of full
+     * activity whatever the natural gates say.
      */
     public static BiteContext habitatContext(ServerLevel level, BlockPos pos, WaterBody body) {
         BiteContext env = environmentAt(level, pos, body);
