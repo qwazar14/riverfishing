@@ -10,7 +10,7 @@ Companion page: **[Species reference](species-reference.md)** holds the habitat 
 - **Water bodies** lists every type the species lives in with its presence factor. A type not listed has a factor of 0 and the fish is **never** there.
 - **Level** is `min_angler_level`. It is a soft gate: each level you are short multiplies the fish's bite weight by 0.6, floored at 3 %. A novice can fluke a trophy with the right kit in the right place — just rarely.
 - **Best baits** are scored 0 to ~1.2. The engine takes the single best-scoring bait on your rig. A bait not listed scores 0, and **no listed bait on the rig means the fish will not take at all**.
-- Bait ids map to items as listed in [Rigs and baits](rigs-and-baits.md#natural-baits): `pearl_barley` = Pearl Barley, `bread` = Bread Crumb, `silicone` = Soft Plastic, `jig` = Soft Jig, `mormyshka` = Ice Jig, `fish_strip` = Fish strip, `livebait` = Live Bait.
+- Bait ids map to items as listed in [Rigs and baits](rigs-and-baits.md#natural-baits): `pearl_barley` = Pearl Barley, `bread` = Bread Crumb, `silicone` = Soft Plastic, `jig` = Soft Jig, `mormyshka` = Ice Jig, `fish_strip` = Raw Fish Fillet, `livebait` = Live Bait.
 
 ## All species
 

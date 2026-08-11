@@ -60,7 +60,7 @@ means it makes no claim either way — it still changes the numbers, the colour 
 | Bloodworm | 0.30 | 0.20 | bloodworm |
 | Cocoa Beans | 0.35 | 0.25 | boilie |
 | Sweet Berries | 0.35 | 0.40 | boilie |
-| Dried Kelp | 0.40 | 0.30 | fish strip |
+| Dried Kelp | 0.40 | 0.30 | raw fish fillet |
 | Beetroot | 0.40 | 0.45 | corn |
 | Carrot | 0.45 | 0.55 | corn |
 | Bread | 0.45 | 0.20 | bread |
@@ -73,7 +73,7 @@ means it makes no claim either way — it still changes the numbers, the colour 
 | Maggot | 0.65 | 0.55 | maggot |
 | Pearl Barley | 0.70 | 0.70 | pearl barley |
 | Worm | 0.70 | 0.65 | worm |
-| Fish strip | 0.75 | 0.80 | fish strip |
+| Raw Fish Fillet | 0.75 | 0.80 | raw fish fillet |
 | Pea | 0.80 | 0.75 | pea |
 | Chicken Liver | 0.80 | 0.65 | chicken liver |
 | Corn | 0.85 | 0.90 | corn |
@@ -245,7 +245,7 @@ fish named; *ceil* is how strong the swim can build.
 | **Catfish, eel, burbot** | Base ×2, Boilie ×1, Worm ×3, Chicken Liver ×3 | 0.72 / 0.66 | 0.80 | 9 | catfish 0.91, eel 0.91, burbot 0.97 |
 | **Sturgeon, channel catfish** | Base ×1, Boilie ×1, Worm ×1, Chicken Liver ×3 | 0.76 / 0.68 | 0.82 | 6 | sturgeon 0.91, channel cat 1.00 |
 | **Sterlet, nase — the plain worm swim** | Base ×1, Clay Ball ×1, Worm ×3 | 0.52 / 0.60 | 0.63 | 4 | sterlet 1.00, burbot 0.96, nase 0.89 |
-| **Cod, flounder, conger, saithe** | Base ×1, Fish strip ×3, Dried Kelp ×1 | 0.63 / 0.64 | 0.68 | 5 | cod 1.00, flounder 1.00, conger 0.97 |
+| **Cod, flounder, conger, saithe** | Base ×1, Raw Fish Fillet ×3, Dried Kelp ×1 | 0.63 / 0.64 | 0.68 | 5 | cod 1.00, flounder 1.00, conger 0.97 |
 
 Two things to notice. The **bream** mix scores a perfect 1.00 on five different species — because their
 grind, their appetite and their bait lists agree, and one blend covers a whole bream swim. The **sterlet**

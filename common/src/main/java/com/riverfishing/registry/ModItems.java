@@ -99,7 +99,7 @@ public final class ModItems {
     public static final RegistrySupplier<Item> DIGITAL_ALARM;
     // ---- Processing (ÃÂ§11) ----
     public static final RegistrySupplier<Item> FILLET_KNIFE;
-    public static final RegistrySupplier<Item> RAW_FILLET;
+    /** §one-fillet: what the knife cuts. Bait, groundbait component and food, all one item. */
     public static final RegistrySupplier<Item> FISH_STRIP;
     public static final RegistrySupplier<Item> GROUNDBAIT_SOIL;
     public static final RegistrySupplier<Item> COOKED_FILLET;
@@ -187,7 +187,16 @@ public final class ModItems {
         // ----- Natural baits -----
         // §sea-tackle (0.5.0): cut fish strip — the universal saltwater hook bait. Held here because
         // the filleting knife cuts them (§one-cutter) and needs the item, not just its id.
-        FISH_STRIP = registerBait("fish_strip", false);
+        // §one-fillet: cut fish is ONE item. A piece off a caught fish goes on a hook, into a groundbait
+        // mix, or in a furnace — that is three USES, and it was three items' worth of confusion for no
+        // reason: the same knife on the same fish made "fish strip" standing up and "raw fillet"
+        // crouching, and nothing but the yield told them apart.
+        //
+        // The id stays `fish_strip` because 24 fish profiles, the groundbait pantry and its diet mapping
+        // all point at it, and a rename that misses one of those fails SILENTLY — the fish simply stops
+        // wanting the bait. The NAME is Raw Fish Fillet, which is what pairs with Cooked Fish Fillet.
+        FISH_STRIP = reg("fish_strip", () -> new BaitItem("fish_strip", false, props().food(
+                new FoodProperties.Builder().nutrition(2).saturationModifier(0.2f).build())));
         // §groundbait-mix: inert ballast for a mix. NOT a bait — it never goes on a hook, it goes
         // in the bowl, and it is the only thing in the pantry that feeds nothing at all. That is
         // the whole point: it is the dial between pulling fish in and filling them up.
@@ -240,8 +249,6 @@ public final class ModItems {
 
         // ----- Processing: knife + fillets (ÃÂ§11) -----
         FILLET_KNIFE = reg("fillet_knife", () -> new FilletKnifeItem(new Item.Properties().durability(128)));
-        RAW_FILLET = reg("raw_fillet", () -> new Item(props().food(
-                new FoodProperties.Builder().nutrition(2).saturationModifier(0.2f).build())));
         COOKED_FILLET = reg("cooked_fillet", () -> new Item(props().food(
                 new FoodProperties.Builder().nutrition(5).saturationModifier(0.6f).build())));
 

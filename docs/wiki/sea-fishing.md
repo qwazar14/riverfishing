@@ -19,7 +19,7 @@ The four saltwater reels (8000, 10000, 12000, 14000) need ocean loot: prismarine
 
 For line, the heavy tier exists precisely for these reels: mono up to 0.80 mm (64 kg) and braid up to 0.60 mm (108 kg). A 400 kg marlin needs it.
 
-The universal saltwater hook bait is **Fish strip** — crouch and right-click a caught fish with the Filleting Knife, one strip per 100 g of it. Nineteen species rate it, nine of them at 0.9 or better.
+The universal saltwater hook bait is **Raw Fish Fillet** — right-click a caught fish with the Filleting Knife, one per 200 g of it. Nineteen species rate it, nine of them at 0.9 or better.
 
 Four sea species are toothy enough to demand a leader: **Conger eel, Wahoo, Barracuda** and **Mako shark**.
 
@@ -60,15 +60,15 @@ And a `width_min` gate, running from 10 blocks (herring) to 24 (blue marlin, swo
 
 | Species | Weight | Level | Take it on |
 |---|---|---|---|
-| Herring | 100 g – 600 g | 4 | Fish strip, small lures; light sea tackle |
+| Herring | 100 g – 600 g | 4 | Raw Fish Fillet, small lures; light sea tackle |
 | Mackerel | 300 g – 2 kg | 4 | Castmaster and small lures, fast retrieve |
-| Garfish | 300 g – 1.5 kg | 4 | Fish strip near the surface; sea spinning only |
-| Flounder | 300 g – 4 kg | 4 | Bottom rigs, fish strip and worm — a shy, pressing bite |
+| Garfish | 300 g – 1.5 kg | 4 | Raw Fish Fillet near the surface; sea spinning only |
+| Flounder | 300 g – 4 kg | 4 | Bottom rigs, raw fish fillet and worm — a shy, pressing bite |
 | Sea bass | 500 g – 8 kg | 5 | Wobblers and soft plastics in the surf, at dusk |
 | Saithe | 1 kg – 15 kg | 5 | Soft jigs mid-water over the drop-offs |
-| Cod | 2 kg – 40 kg | 6 | Fish strip and jigs on the bottom over depth |
+| Cod | 2 kg – 40 kg | 6 | Raw Fish Fillet and jigs on the bottom over depth |
 | Ray | 2 kg – 50 kg | 6 | Heavy bottom rig with cut bait |
-| Conger eel | 3 kg – 60 kg | 7 | Bottom rig, fish strip or live bait — **leader mandatory** |
+| Conger eel | 3 kg – 60 kg | 7 | Bottom rig, raw fish fillet or live bait — **leader mandatory** |
 
 **Round goby** also lives in the sea (factor 1.1), and **Smelt** is primarily a sea fish (1.2) — both ungated or nearly so, and both good first saltwater catches.
 
@@ -142,7 +142,7 @@ Quest **stage 8 — The sea and big game** is the sea chain. Its ten goals, in o
 | Quest | Reward |
 |---|---|
 | Catch a sea bass in the surf | Castmaster |
-| Net 5 herring | 8 × Fish strip |
+| Net 5 herring | 8 × Raw Fish Fillet |
 | Haul a cod up from the deep | 8 emeralds |
 | Discover 40 fish species | **Trolling rod** |
 | Take a mahi-mahi on the troll | 10 emeralds |

@@ -73,7 +73,7 @@ Right-clicking a **Fishing Stall** with the tablet instead reports that block's 
 Hold the knife, put a **caught fish in your other hand**, and right-click.
 
 ```
-fillets = max(1, fishWeightGrams / 300)
+fillets = max(1, fishWeightGrams / 200)
 ```
 
 The fish is consumed, the knife loses 1 durability (of 128), and you get that many **Raw Fish Fillets** — stackable food, unlike the unique catch.
