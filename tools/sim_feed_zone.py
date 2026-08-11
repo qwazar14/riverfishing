@@ -47,6 +47,21 @@ PANTRY = {
     "bloodworm": (0.30, 0.20, "bloodworm"),
     "chicken_liver": (0.80, 0.65, "chicken_liver"),
     "fish_strip": (0.75, 0.80, "fish_strip"),
+    # The vanilla half of the pantry. It is here because a player's FIRST mix is made entirely of it —
+    # leaving it out meant the one recipe most people will ever build could not be checked.
+    "minecraft:wheat": (0.55, 0.45, "pearl_barley"),
+    "minecraft:wheat_seeds": (0.30, 0.15, None),
+    "minecraft:bread": (0.45, 0.20, "bread"),
+    "minecraft:potato": (0.60, 0.50, "dough"),
+    "minecraft:carrot": (0.45, 0.55, "corn"),
+    "minecraft:beetroot": (0.40, 0.45, "corn"),
+    "minecraft:sweet_berries": (0.35, 0.40, "boilie"),
+    "minecraft:sugar": (0.20, 0.05, None),
+    "minecraft:cocoa_beans": (0.35, 0.25, "boilie"),
+    "minecraft:sunflower": (0.60, 0.25, "corn"),
+    "minecraft:pumpkin_seeds": (0.55, 0.35, "pea"),
+    "minecraft:melon_seeds": (0.50, 0.30, "pea"),
+    "minecraft:dried_kelp": (0.40, 0.30, "fish_strip"),
 }
 
 
