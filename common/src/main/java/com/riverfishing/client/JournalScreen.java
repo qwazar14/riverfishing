@@ -153,8 +153,14 @@ public class JournalScreen extends Screen {
         // mixing and feeding are two decisions learned at two different moments — one at a bench with
         // time to read, one at the water with a rod in hand. Right after the bait page: these are the
         // other thing that goes in the water, the part that is not on the hook.
+        // FOUR pages, because feeding is four separate decisions a player makes at four different
+        // moments: what the jar IS, what the numbers mean, how to put it in the water, and — for anyone
+        // who would rather copy than derive — what to actually mix. Splitting them is what lets each one
+        // be short enough to read standing at the water.
         addGuide("groundbait", modStack("groundbait_powder"));
+        addGuide("gbnumbers", modStack("corn"));
         addGuide("feeding", modStack("groundbait_soil"));
+        addGuide("gbrecipes", modStack("boilie"));
         addGuide("topwater", modStack("popper"));
         addGuide("trolling", modStack("trolling_rod"));
         addGuide("biggame", modStack("yellowfin_tuna"));
