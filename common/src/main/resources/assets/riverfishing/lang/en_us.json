@@ -454,8 +454,8 @@
   "journal.riverfishing.empty": "Nothing caught yet",
   "journal.riverfishing.total": "Total caught: %s | Species: %s",
   "journal.riverfishing.tab_fish": "Fish",
-  "journal.riverfishing.tab_bait": "Baits & Lures",
-  "journal.riverfishing.tab_bait_hint": "Baits & lures — what they catch",
+  "journal.riverfishing.tab_bait": "Bait & feed",
+  "journal.riverfishing.tab_bait_hint": "Hook baits, lures, and what goes into a mix",
   "journal.riverfishing.tab_guide": "Guides",
   "journal.riverfishing.kind_guide": "Guide",
   "guide.riverfishing.waiting.title": "The wait: float & bottom",
@@ -990,5 +990,9 @@
   "fightpattern.riverfishing.sounding": "Sounds — dives deep",
   "fightpattern.riverfishing.greyhounding": "Greyhounds — leaps",
   "biomegroup.riverfishing.cherry": "Cherry grove",
-  "biomegroup.riverfishing.deep": "Deep water"
+  "biomegroup.riverfishing.deep": "Deep water",
+  "journal.riverfishing.sec_gbpart": "Mix components",
+  "journal.riverfishing.kind_gbpart": "Groundbait component",
+  "journal.riverfishing.gb_reads_as": "Reads as",
+  "journal.riverfishing.gb_ballast": "nothing — ballast"
 }

@@ -454,8 +454,8 @@
   "journal.riverfishing.empty": "Пока ничего не поймано",
   "journal.riverfishing.total": "Всего поймано: %s | Видов: %s",
   "journal.riverfishing.tab_fish": "Рыбы",
-  "journal.riverfishing.tab_bait": "Наживки",
-  "journal.riverfishing.tab_bait_hint": "Наживки и приманки — на кого работают",
+  "journal.riverfishing.tab_bait": "Наживки и прикормка",
+  "journal.riverfishing.tab_bait_hint": "Наживки, приманки и то, что идёт в смесь",
   "journal.riverfishing.tab_guide": "Гайды",
   "journal.riverfishing.kind_guide": "Гайд",
   "guide.riverfishing.waiting.title": "Ожидание: поплавок и донка",
@@ -990,5 +990,9 @@
   "fightpattern.riverfishing.sounding": "Уходит в глубину",
   "fightpattern.riverfishing.greyhounding": "Свечи и прыжки",
   "biomegroup.riverfishing.cherry": "Сакуровая роща",
-  "biomegroup.riverfishing.deep": "Глубокая вода"
+  "biomegroup.riverfishing.deep": "Глубокая вода",
+  "journal.riverfishing.sec_gbpart": "Компоненты смеси",
+  "journal.riverfishing.kind_gbpart": "Компонент прикормки",
+  "journal.riverfishing.gb_reads_as": "Читается как",
+  "journal.riverfishing.gb_ballast": "никак — балласт"
 }

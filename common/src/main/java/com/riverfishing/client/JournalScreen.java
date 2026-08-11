@@ -84,7 +84,12 @@ public class JournalScreen extends Screen {
             "journal.riverfishing.tab_skill", "journal.riverfishing.tab_record",
             "journal.riverfishing.tab_guide"};
 
-    private enum Kind { NATURAL, LURE, GROUNDBAIT, ROD, REEL, LINE, RIG, GUIDE }
+    /**
+     * §gb-pantry (0.8.0): GB_PART is the shelf of things that only ever go INTO a mix — the ballast and
+     * the vanilla crops. They are not hook baits, so nothing in the journal listed them, and after the
+     * groundbait rework they are half of what the tab is about.
+     */
+    private enum Kind { NATURAL, LURE, GROUNDBAIT, GB_PART, ROD, REEL, LINE, RIG, GUIDE }
 
     private final List<Cat> guideCat = new ArrayList<>();
 
@@ -97,6 +102,14 @@ public class JournalScreen extends Screen {
     }
 
     private record Cat(ItemStack stack, Kind kind, String id) {}
+
+    /** A pantry id → its item. Bare ids are this mod's; the rest name their namespace, as vanilla's do. */
+    private static ItemStack pantryStack(String id) {
+        ResourceLocation rl = ResourceLocation.tryParse(id.contains(":") ? id : RiverFishing.MODID + ":" + id);
+        if (rl == null) return ItemStack.EMPTY;
+        Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(rl);
+        return item == net.minecraft.world.item.Items.AIR ? ItemStack.EMPTY : new ItemStack(item);
+    }
 
     private final CompoundTag data;
     private final List<Cat> baitCat = new ArrayList<>();
@@ -127,6 +140,17 @@ public class JournalScreen extends Screen {
     private final List<String> families = new ArrayList<>();
     /** The species the list is showing right now — rebuilt every frame, and what a click indexes into. */
     private final List<String> shown = new ArrayList<>();
+    /**
+     * §fish-order: every species by the angler level it wants, then by name.
+     *
+     * <p>Registry order is the order they were ADDED to the mod over six releases, which is a fact about
+     * the changelog and not about fishing. Level ascending is the ladder the player is actually climbing:
+     * what you can catch now sits at the top, what you are working towards sits below it.
+     *
+     * <p>Sorted once, not per frame — the name comparator translates, and doing seventy-nine lookups
+     * times log seventy-nine on every frame is a cost for nothing.
+     */
+    private final List<String> ordered = new ArrayList<>();
 
     public JournalScreen(CompoundTag data) {
         super(Component.translatable("journal.riverfishing.header"));
@@ -147,6 +171,21 @@ public class JournalScreen extends Screen {
                 gearCat.add(new Cat(new ItemStack(it), Kind.RIG, ""));
             }
         }
+        // §gb-pantry: the mix-only shelf, read straight off GroundbaitMix.PANTRY so the journal and the
+        // engine cannot disagree about what goes in a mix or what it weighs. Anything already on the
+        // shelf as a hook bait is skipped — it is one thing, and it gets its numbers on its own page.
+        java.util.Set<String> already = new java.util.HashSet<>();
+        for (Cat e : baitCat) already.add(e.id());
+        for (com.riverfishing.groundbait.GroundbaitMix.Component comp
+                : com.riverfishing.groundbait.GroundbaitMix.PANTRY.values()) {
+            if (already.contains(comp.id())
+                    || com.riverfishing.groundbait.GroundbaitMix.BASE_ID.equals(comp.id())) {
+                continue;
+            }
+            ItemStack stack = pantryStack(comp.id());
+            if (!stack.isEmpty()) baitCat.add(new Cat(stack, Kind.GB_PART, comp.id()));
+        }
+
         Comparator<Cat> byKindThenName = Comparator.comparingInt((Cat e) -> e.kind().ordinal())
                 .thenComparing(e -> e.stack().getHoverName().getString());
         baitCat.sort(byKindThenName);
@@ -386,6 +425,12 @@ public class JournalScreen extends Screen {
 
     /** The families any species is filed under, plus the "everything" row at index 0. */
     private void buildFamilies() {
+        ordered.clear();
+        for (String sp : SPECIES) ordered.add(sp);
+        ordered.sort(Comparator
+                .comparingInt((String sp) -> card(sp).minLevel())
+                .thenComparing(sp -> Component.translatable("fish.riverfishing." + sp).getString(),
+                        String.CASE_INSENSITIVE_ORDER));
         families.clear();
         for (String gname : com.riverfishing.fish.FishGroup.ORDER) {
             for (String sp : SPECIES) {
@@ -480,7 +525,7 @@ public class JournalScreen extends Screen {
 
     private void renderSpeciesList(GuiGraphics g, int mouseX, int mouseY) {
         shown.clear();
-        for (String sp : SPECIES) if (inFilter(sp)) shown.add(sp);
+        for (String sp : ordered) if (inFilter(sp)) shown.add(sp);
 
         int x = left + FAM_W + 16, y0 = top + LIST_TOP, w = COL_W - 8;
         int rows = listRows();
@@ -509,10 +554,18 @@ public class JournalScreen extends Screen {
             com.riverfishing.fish.FishCard c = card(sp);
             boolean trophy = c.present() && best >= c.trophyG() && c.trophyG() > 0;
 
+            // The level the species wants, ahead of the name — the list is sorted by it, so saying it
+            // out loud is what turns an order into a reason.
+            String lvl = c.present() && c.minLevel() > 0 ? c.minLevel() + " " : "";
+            if (!lvl.isEmpty()) {
+                g.drawString(this.font, lvl, x + 20, y + 4, 0xFFB05A00, false);
+            }
             String right = "x" + rec.getInt("count") + "   " + weight(best);
             int rw = this.font.width(right) + (trophy ? 10 : 0);
+            int nameX = x + 20 + this.font.width(lvl);
             g.drawString(this.font, fitName(Component.translatable("fish.riverfishing." + sp).getString(),
-                    w - rw - 26), x + 20, y + 4, hov ? 0xFF8A5A00 : GuiStyle.TEXT, false);
+                    w - rw - 26 - this.font.width(lvl)), nameX, y + 4,
+                    hov ? 0xFF8A5A00 : GuiStyle.TEXT, false);
             g.drawString(this.font, right, x + w - rw - 2, y + 4, GuiStyle.TEXT_HINT, false);
             if (trophy) {
                 g.drawString(this.font, "★", x + w - 10, y + 4, 0xFFC89C4A, false);
@@ -1072,6 +1125,25 @@ public class JournalScreen extends Screen {
         g.drawString(this.font, Component.translatable(kindKey(e.kind())), left + 10, top + 44,
                 GuiStyle.TEXT_HINT, false);
 
+        // §gb-pantry: anything that can go in a mix says what it does to one, right here. It is the same
+        // pantry the engine averages, so a bait that is ALSO a component gets its numbers on its own page
+        // rather than in a second copy of itself further down the list.
+        com.riverfishing.groundbait.GroundbaitMix.Component comp =
+                com.riverfishing.groundbait.GroundbaitMix.PANTRY.get(e.id());
+        if (comp != null && e.kind() != Kind.GUIDE) {
+            int rx = left + W - 176, ry = top + 22;
+            ry = railHead(g, "journal.riverfishing.stat_groundbait", rx, ry, 166);
+            ry = gauge(g, "journal.riverfishing.stat_grind", (float) comp.fraction(), rx, ry, 166, 0xFF8A6E3C);
+            ry = gauge(g, "journal.riverfishing.stat_richness", (float) comp.nutrition(), rx, ry, 166, 0xFF6E8A3C);
+            // The diet is what the engine ASKS the fish about — a component with none is pure ballast or
+            // pure flavour, and saying so is the difference between "no data" and "no opinion".
+            railLine(g, "journal.riverfishing.gb_reads_as",
+                    comp.diet() == null
+                            ? Component.translatable("journal.riverfishing.gb_ballast").getString()
+                            : Component.translatable("item.riverfishing." + comp.diet()).getString(),
+                    rx, ry, 166);
+        }
+
         // §guide-page (0.5.0): a guide is a TEXT page — no giant icon, no "how to craft" of whatever
         // item happens to illustrate it. Just the how-to, scrollable, with breathing room per line.
         if (e.kind() == Kind.GUIDE) {
@@ -1276,6 +1348,7 @@ public class JournalScreen extends Screen {
             case NATURAL -> "journal.riverfishing.sec_natural";
             case LURE -> "journal.riverfishing.sec_lure";
             case GROUNDBAIT -> "journal.riverfishing.sec_groundbait";
+            case GB_PART -> "journal.riverfishing.sec_gbpart";
             case ROD -> "journal.riverfishing.sec_rod";
             case REEL -> "journal.riverfishing.sec_reel";
             case LINE -> "journal.riverfishing.sec_line";
@@ -1289,6 +1362,7 @@ public class JournalScreen extends Screen {
             case NATURAL -> "journal.riverfishing.bait_natural";
             case LURE -> "journal.riverfishing.bait_artificial";
             case GROUNDBAIT -> "journal.riverfishing.bait_groundbait";
+            case GB_PART -> "journal.riverfishing.kind_gbpart";
             case GUIDE -> "journal.riverfishing.kind_guide";
             default -> sectionKey(k); // gear: use the section name as the category label
         };

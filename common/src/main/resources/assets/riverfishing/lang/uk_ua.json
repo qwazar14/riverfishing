@@ -454,8 +454,8 @@
   "journal.riverfishing.empty": "Ще нічого не спіймано",
   "journal.riverfishing.total": "Усього спіймано: %s | Видів: %s",
   "journal.riverfishing.tab_fish": "Риби",
-  "journal.riverfishing.tab_bait": "Наживки",
-  "journal.riverfishing.tab_bait_hint": "Наживки й приманки — на кого працюють",
+  "journal.riverfishing.tab_bait": "Наживки та прикормка",
+  "journal.riverfishing.tab_bait_hint": "Наживки, принади та те, що йде в суміш",
   "journal.riverfishing.tab_guide": "Гайди",
   "journal.riverfishing.kind_guide": "Гайд",
   "guide.riverfishing.waiting.title": "Очікування: поплавок і донка",
@@ -990,5 +990,9 @@
   "fightpattern.riverfishing.sounding": "Іде в глибину",
   "fightpattern.riverfishing.greyhounding": "Свічки та стрибки",
   "biomegroup.riverfishing.cherry": "Сакуровий гай",
-  "biomegroup.riverfishing.deep": "Глибока вода"
+  "biomegroup.riverfishing.deep": "Глибока вода",
+  "journal.riverfishing.sec_gbpart": "Компоненти суміші",
+  "journal.riverfishing.kind_gbpart": "Компонент прикормки",
+  "journal.riverfishing.gb_reads_as": "Читається як",
+  "journal.riverfishing.gb_ballast": "ніяк — баласт"
 }
