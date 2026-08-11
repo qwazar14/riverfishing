@@ -30,7 +30,7 @@ Open a loose rig with **sneak + right-click**. A rig socketed in a rod is edited
 |---|---|
 | **Hook** | Any hook |
 | **Bait** | Any natural bait — plus the Ice Jig, which is technically artificial but is the winter rig's only tackle |
-| **Groundbait** | Groundbait — the one jar, plain or mixed |
+| **Groundbait** | Base Groundbait, plain or mixed |
 | **Float** | The Float item |
 | **Leader** | Steel, Fluorocarbon or Titanium Leader |
 | **Lure** | Any artificial lure — **or** Live Bait |
@@ -196,19 +196,19 @@ An **undyed** lure skips the colour check entirely.
 
 ## Groundbait
 
-One jar, and it is a base. Right-click water while holding it to feed a spot; mix your own in a
-crafting grid. The full system is on its own page: **[Groundbait](groundbait.md)**.
+One groundbait, and it is a base. Right-click water while holding it to feed a spot; mix your own by
+putting the base in a crafting grid with up to 8 other things. The full system is on its own page: **[Groundbait](groundbait.md)**.
 
 | Groundbait | Item id | Recipe |
 |---|---|---|
-| Groundbait | `groundbait_powder` | Wheat + Wheat Seeds → **2**. The fisherman sells it, and sells his own house blend at Expert |
+| Base Groundbait | `groundbait_powder` | Wheat Seeds + Bread → **2**. The fisherman sells it, and his own house blend at Expert |
 
 ### The fed spot
 
 A fed spot is a **3×3 column zone**:
 
-- Each feed adds **0.6** freshness, up to a ceiling set by the mix — **0.48** for a plain jar, **1.00**
-  for a rich five-part blend. Feeding more jars reaches the ceiling faster; it never raises it.
+- Each feed adds **0.6** freshness, up to a ceiling set by the mix — **0.48** for plain base, **1.00**
+  for the base plus four rich things. Feeding more reaches the ceiling faster; it never raises it.
 - Freshness **halves every 1800-5400 ticks** and the zone is spent after **3 to 12 minutes**, both
   depending on the fraction. Dust washes out; whole grain lies where it landed.
 - The centre column counts at full strength; the outer ring at **60 %**.
@@ -238,7 +238,7 @@ size roll    flattens with a coarse mix — a better chance at a good fish, neve
 So a freshly fed spot with a mix built for the fish roughly doubles its attractiveness *and* cuts up to
 40 % off the wait.
 
-A **feeder cage** (the Groundbait slot on a feeder / flat feeder / 3-hook / carp rig) empties one jar on
+A **feeder cage** (the Groundbait slot on a feeder / flat feeder / 3-hook / carp rig) empties one on
 every cast **at the bobber**, through the same call hand-feeding makes. There is no separate "cage
 freshness" any more: the cage and your hand build one fed spot between them.
 

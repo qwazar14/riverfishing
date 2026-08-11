@@ -27,8 +27,10 @@ import java.util.Map;
  *       mixed shoal than a single ingredient ever can.</li>
  * </ul>
  *
- * <p>Composition is in SPOONS: each component gets a whole 1-9, and the share is that over the total.
- * Whole numbers read at a glance, survive three translations, and cannot drift into "0.3333".
+ * <p>Composition is counted in ITEMS: one slot of the grid is one item of that component, and its share
+ * is that over the total. The field is still called {@code spoons} internally — renaming it would touch
+ * the NBT key and twenty call sites for no player-visible gain — but nothing a player reads says "spoon"
+ * or "jar" any more. Those words were invented here and they sent people looking for a measuring spoon.
  *
  * <p>Nothing here touches the world OR Minecraft. Feeding and decay live in FeedZoneData, reading and
  * writing a stack lives in {@link GroundbaitNbt}, and this class only answers "given these spoons, what
@@ -39,8 +41,9 @@ import java.util.Map;
 public final class GroundbaitMix {
 
     /**
-     * Most spoons of one component, and most components — both NINE, which is the size of a crafting
-     * grid, because the grid is the real limit and inventing a smaller one caused a duplication bug.
+     * Most of one component, and most components — both NINE, which is the size of a crafting grid: the
+     * BASE plus up to EIGHT additives. The grid is the real limit, and inventing a smaller one caused a
+     * duplication bug.
      *
      * <p>At five the recorded composition disagreed with what the player actually put in (eight corn was
      * written down as five), so the payout had to be counted somewhere else, and the payout and the
@@ -51,8 +54,16 @@ public final class GroundbaitMix {
      */
     public static final int MAX_SPOONS = 9;
     public static final int MAX_COMPONENTS = 9;
+    /** The base takes one of the nine, so eight is what is left for what you add to it. */
+    public static final int MAX_ADDITIVES = 8;
 
-    /** The one craftable groundbait: the loose base mix. Everything else is something you add to it. */
+    /**
+     * The one craftable groundbait, and the thing every mix is built on.
+     *
+     * <p>Crafted from <b>wheat seeds + bread</b>. Neither of those is the base itself, so no mix can ever
+     * collide with the recipe that makes it — which is what lets {@link #qualifiesAsMix} be as simple as
+     * "does it contain the base".
+     */
     public static final String BASE_ID = "groundbait_powder";
 
     /**
@@ -292,24 +303,27 @@ public final class GroundbaitMix {
     }
 
     /**
-     * Is this a MIX, or is it the one plain recipe?
+     * Is this a MIX?
      *
-     * <p>There is exactly one craftable groundbait — the base, from wheat and wheat seeds — so a grid is
-     * a mix unless it IS that pair. Two spoons each of wheat and seeds is a mix, and correctly so: the
-     * shapeless base recipe matches one of each and nothing else, so there is nothing left to collide
-     * with.
+     * <p><b>A mix is THE BASE plus something.</b> Not "any two things from the pantry" — the base is what
+     * you build on, and requiring it is what makes everything else an ADDITIVE rather than a second way
+     * of making groundbait from scratch. Up to eight additives fit beside it, which is what a crafting
+     * grid holds anyway once the base has taken its slot.
+     *
+     * <p>The base's own recipe is wheat seeds + bread, and neither of those is the base, so a mix can
+     * never swallow it. The old "three or more components" rule existed only to dodge that collision;
+     * with the base required, the collision cannot happen at all.
      */
     public static boolean qualifiesAsMix(List<Part> recipe, boolean dyed) {
-        if (dyed) return true;
-        int distinct = 0, wheat = 0, seeds = 0;
+        boolean hasBase = false;
+        int additives = 0;
         for (Part p : recipe) {
             if (!PANTRY.containsKey(p.id()) || p.spoons() <= 0) continue;
-            distinct++;
-            if ("minecraft:wheat".equals(p.id())) wheat = p.spoons();
-            else if ("minecraft:wheat_seeds".equals(p.id())) seeds = p.spoons();
+            if (BASE_ID.equals(p.id())) hasBase = true;
+            else additives += p.spoons();
         }
-        if (distinct == 2 && wheat == 1 && seeds == 1) return false;   // that is the BASE recipe
-        return distinct >= 2;
+        // A dye counts as something added: staining a base is a legal, if pointless, mix.
+        return hasBase && (additives > 0 || dyed);
     }
 
     /**
@@ -407,20 +421,23 @@ public final class GroundbaitMix {
         // Vanilla components have to be reachable by their full id, or the first mix waits on a farm.
         require(of(List.of(new Part("minecraft:wheat", 3))) != null, "vanilla wheat must stir");
 
-        // ONE craftable groundbait is left, so the mix rule has exactly one recipe to avoid swallowing —
-        // and everything else with two or more components is fair game.
-        require(!qualifiesAsMix(List.of(new Part("minecraft:wheat", 1), new Part("minecraft:wheat_seeds", 1)), false),
-                "wheat + seeds is the BASE recipe, not a mix");
-        require(qualifiesAsMix(List.of(new Part("minecraft:wheat", 2), new Part("minecraft:wheat_seeds", 2)), false),
-                "TWO each is a mix — the base recipe only matches one of each");
-        require(qualifiesAsMix(List.of(new Part("minecraft:bread", 1), new Part("minecraft:wheat", 1)), false),
-                "bread + wheat is a mix: nothing craftable collides with it");
+        // A MIX IS THE BASE PLUS SOMETHING. Everything below is that one rule seen from every side.
         require(qualifiesAsMix(List.of(new Part(BASE_ID, 3), new Part("corn", 2)), false),
-                "a jar of base as the bottom of a mix is a mix");
-        require(qualifiesAsMix(List.of(new Part("corn", 3), new Part("groundbait_soil", 4)), false),
-                "anything with ballast in it is a mix");
-        require(qualifiesAsMix(List.of(new Part("minecraft:bread", 1), new Part("minecraft:wheat", 1)), true),
-                "a dye makes anything a mix");
+                "base + corn is a mix");
+        require(qualifiesAsMix(List.of(new Part(BASE_ID, 1), new Part("groundbait_soil", 4)), false),
+                "base + ballast is a mix — that is how you make it leaner");
+        require(!qualifiesAsMix(List.of(new Part("corn", 3), new Part("pea", 2)), false),
+                "corn and peas without the base is NOT groundbait — the base is what you build on");
+        require(!qualifiesAsMix(List.of(new Part(BASE_ID, 5)), false),
+                "the base alone is already groundbait, so stirring it with itself makes nothing new");
+        require(!qualifiesAsMix(List.of(new Part("minecraft:wheat_seeds", 1), new Part("minecraft:bread", 1)), false),
+                "seeds + bread is the recipe that MAKES the base, and must never read as a mix");
+        require(qualifiesAsMix(List.of(new Part(BASE_ID, 1)), true),
+                "a dye on the base is a mix — pointless, but legal");
+        require(!qualifiesAsMix(List.of(new Part("corn", 3)), true),
+                "a dye does not turn corn into groundbait either");
+        require(MAX_COMPONENTS == MAX_ADDITIVES + 1,
+                "the base takes one of the nine slots, so eight is what is left to add");
 
         // Two jars of the same recipe are the same groundbait; a different recipe is a different one.
         require(of(List.of(new Part("corn", 2), new Part("bread", 1))).signature()

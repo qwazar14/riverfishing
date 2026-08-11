@@ -127,7 +127,7 @@ Eight stages: **51 tasks** plus one completion prize per stage, 59 entries in al
 | Discover 8 species | **Spinning Rod** |
 | Fully complete stage 2 | Reel 3000 |
 
-The groundbait rewards teach the pantry: the jar, then the ballast that makes a mix leaner, then something coarse enough to call a decent fish.
+The groundbait rewards teach the pantry: the base, then the ballast that makes a mix leaner, then something coarse enough to call a decent fish.
 
 ### Stage 3 — Predators
 

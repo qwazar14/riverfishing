@@ -174,8 +174,8 @@ Worm, Maggot, Bloodworm and Chicken Liver come from digging and mob drops; Corn,
 
 | Groundbait | Type | Ingredients |
 |---|---|---|
-| Groundbait **×2** | shapeless | Wheat + Wheat Seeds — *the base; everything else is [mixed](groundbait.md) into it* |
-| Any mix | shapeless | The jar + two or more components in a grid — one slot is one spoon, one spoon of food is one jar |
+| Base Groundbait **×2** | shapeless | Wheat Seeds + Bread — *the base; everything else is [mixed](groundbait.md) into it* |
+| Any mix | shapeless | Base Groundbait + up to 8 other things in a grid — one slot is one item, and one edible item in is one groundbait out |
 
 ---
 

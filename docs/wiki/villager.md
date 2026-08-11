@@ -53,7 +53,7 @@ Each table below is one tier's **gear** entries, one row per pool slot. Add that
 | 12 × Worm | 1 emerald |
 | 8 × Bloodworm | 1 emerald |
 | 2 × Float | 1 emerald |
-| 6 × Powder Groundbait | 1 emerald |
+| 6 × Base Groundbait | 1 emerald |
 | 3 × Corn / Pea / Barley Seeds **(rotating)** | 1 emerald |
 | Mono Line 0.14 | 2 emeralds |
 | Worm Farm | 4 emeralds |

@@ -106,14 +106,19 @@ def load(name):
                 kg=data["weight_g"].get("mean", 0) / 1000.0)
 
 
+BASE = "groundbait_powder"
+
+# Every one of these must be CRAFTABLE, which since §base-groundbait means every one of them starts with
+# the base. A reference list you could not actually make would be a slow way to mislead yourself, so the
+# assertion below checks it rather than trusting the table.
 MIXES = [
-    ("plain jar", [("groundbait_powder", 1)]),
-    ("+ bloodworm, half soil", [("groundbait_powder", 3), ("bloodworm", 1), ("groundbait_soil", 4)]),
-    ("silver-fish blend", [("groundbait_powder", 2), ("bread", 2), ("bloodworm", 2), ("maggot", 1)]),
-    ("bream blend", [("groundbait_powder", 3), ("pearl_barley", 2), ("worm", 2), ("maggot", 1)]),
-    ("carp blend", [("groundbait_powder", 1), ("boilie", 3), ("corn", 3), ("pea", 2)]),
-    ("pure boilie", [("boilie", 4)]),
-    ("meat, for a predator", [("chicken_liver", 3), ("fish_strip", 3), ("worm", 2)]),
+    ("plain base", [(BASE, 1)]),
+    ("+ bloodworm, half soil", [(BASE, 3), ("bloodworm", 1), ("groundbait_soil", 4)]),
+    ("silver-fish blend", [(BASE, 2), ("bread", 2), ("bloodworm", 2), ("maggot", 1)]),
+    ("bream blend", [(BASE, 3), ("pearl_barley", 2), ("worm", 2), ("maggot", 1)]),
+    ("carp blend", [(BASE, 1), ("boilie", 3), ("corn", 3), ("pea", 2)]),
+    ("base + boilie only", [(BASE, 1), ("boilie", 4)]),
+    ("meat, for a predator", [(BASE, 1), ("chicken_liver", 3), ("fish_strip", 3), ("worm", 2)]),
 ]
 FISH = ["bleak", "roach", "bream", "tench", "carp", "catfish", "burbot"]
 
@@ -125,6 +130,13 @@ def main():
     ap.add_argument("--ceiling-variety", type=float, default=0.30,
                     help="how much of the ceiling variety buys (rest goes to nutrition)")
     args = ap.parse_args()
+
+    for label, parts in MIXES:
+        ids = [i for i, _ in parts]
+        assert BASE in ids, "%s has no base — it could not be crafted" % label
+        adds = sum(n for i, n in parts if i != BASE)
+        assert adds <= 8, "%s has %d additives; the grid leaves room for 8" % (label, adds)
+        assert sum(n for _, n in parts) <= 9, "%s does not fit a 3x3 grid" % label
 
     mixes = [(label, stir(parts)) for label, parts in MIXES]
     fish = [load(f) for f in FISH]
@@ -148,7 +160,7 @@ def main():
     # ---- the three shapes the feature depends on ----
     print()
     ok = True
-    plain = dict(mixes)["plain jar"]
+    plain = dict(mixes)["plain base"]
     for f in fish:
         best = max(mixes, key=lambda lm: gb_score(lm[1], f))
         if gb_score(plain, f) >= gb_score(best[1], f) - 1e-9:
