@@ -1,5 +1,6 @@
 {
   "display": "Цихлазома майя",
+  "group": "predator",
   "water_bodies": {
     "lake": 1.2,
     "pond": 1.1,

@@ -1,5 +1,6 @@
 {
   "display": "Налим",
+  "group": "predator",
   "water_bodies": {
     "river": 1.1,
     "lake": 0.9,

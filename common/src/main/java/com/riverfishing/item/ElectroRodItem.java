@@ -1,12 +1,10 @@
 package com.riverfishing.item;
 
-import com.riverfishing.fishing.FishingManager;
 import com.riverfishing.network.CullListPacket;
 import com.riverfishing.network.ModNetwork;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -33,8 +31,15 @@ import java.util.List;
  * gate: this permanently changes what a water can hold, and there is no survival cost that would make
  * that a fair trade. Craftable by nobody; it exists in the creative menu and refuses to fire in survival.
  *
- * <p>Right-click water → the list of what actually lives there → pick one → confirm. Nothing happens on
- * the first click, because a mis-click that empties a lake is not a mistake anyone should be able to make.
+ * <p>Right-click water → every species, laid out by family, each marked with where it stands in this
+ * water → pick one → confirm. Nothing happens on the first click, because a mis-click that empties a
+ * lake is not a mistake anyone should be able to make.
+ *
+ * <p>§stock-tool (0.8.0): it PUTS FISH IN as well. The same click on a species that is not here settles
+ * it, and that is also the only way back for one that was culled — a culled fish scores zero on the
+ * environment, so it fell out of the old "what lives here" list and the undo the screen promised could
+ * never actually be reached. What the water cannot hold is greyed out rather than hidden: a river being
+ * unable to keep a marlin is information, and an empty list would have looked like a broken tool.
  */
 public class ElectroRodItem extends Item {
     public ElectroRodItem(Properties properties) {
@@ -69,13 +74,9 @@ public class ElectroRodItem extends Item {
                         .withStyle(ChatFormatting.RED), true);
                 return false;
             }
-            List<ResourceLocation> here = FishingManager.speciesHere(sl, water);
-            if (here.isEmpty()) {
-                sp.displayClientMessage(Component.translatable("message.riverfishing.cull_empty")
-                        .withStyle(ChatFormatting.YELLOW), true);
-                return true;
-            }
-            ModNetwork.toPlayer(sp, CullListPacket.of(sl, water, here));
+            // Water with nothing living in it used to be an early exit. It is now the case the tool is
+            // most useful in, so it opens the same screen as anywhere else.
+            ModNetwork.toPlayer(sp, CullListPacket.of(sl, water));
         }
         return water != null || !level.isClientSide;
     }

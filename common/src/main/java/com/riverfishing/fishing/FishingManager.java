@@ -2732,14 +2732,7 @@ public final class FishingManager {
         long chunk = new ChunkPos(pos).toLong();
         long now = level.getGameTime();
 
-        // Habitat fit — the same environment gates and factors the bite engine lives by, WITHOUT the
-        // community (settling is exactly the act of joining a community the species isn't in yet) and
-        // with the time/weather noise flattened: viability is about the WATER, not the hour of day.
-        BiteContext env = environmentAt(level, pos, body);
-        env.communityFactor = null;
-        env.time = TimeOfDay.DAY;
-        env.weather = Weather.CLEAR;
-        double fit = BiteEngine.environmentScore(p, env);
+        double fit = BiteEngine.environmentScore(p, habitatContext(level, pos, body));
 
         // §residency-guard: the community hash alone can roll "native" for a shark in a river (it
         // never looks at habitat) — native/present status flows from fit. But §settle-anything:
@@ -2799,6 +2792,24 @@ public final class FishingManager {
                     name, pressure.stockPercent(chunk, species.getPath(), now))
                     .withStyle(ChatFormatting.AQUA), true);
         }
+    }
+
+    /**
+     * §stocking: the context to ask "can this species live in this water at all" against — the same
+     * environment gates and factors the bite engine lives by, WITHOUT the community (settling is exactly
+     * the act of joining a community the species isn't in yet) and with the time/weather noise flattened:
+     * viability is about the WATER, not the hour of day.
+     *
+     * <p>Scored once per water, not once per fish. A release rolls its settle chance against this, and
+     * the electrofisher greys out what the water cannot hold against the same thing — so the tool can
+     * never offer to put in a fish that a release would refuse to settle.
+     */
+    public static BiteContext habitatContext(ServerLevel level, BlockPos pos, WaterBody body) {
+        BiteContext env = environmentAt(level, pos, body);
+        env.communityFactor = null;
+        env.time = TimeOfDay.DAY;
+        env.weather = Weather.CLEAR;
+        return env;
     }
 
     /** §residency: does the seed's community (or the commons rule) place this species here natively? */
