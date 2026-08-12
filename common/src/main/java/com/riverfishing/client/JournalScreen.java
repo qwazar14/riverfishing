@@ -115,6 +115,127 @@ public class JournalScreen extends Screen {
     }
 
     /** A pantry id → its item. Bare ids are this mod's; the rest name their namespace, as vanilla's do. */
+    // ---- LURES: how to work them, and what the light wants ----
+
+    /** §lure-work: which cadence rule the retrieve applies to this lure — the engine's own three cases. */
+    private static String retrieveKey(String lureId) {
+        if ("popper".equals(lureId)) return "journal.riverfishing.lw_topwater";
+        if ("wobbler".equals(lureId) || "crankbait".equals(lureId)) return "journal.riverfishing.lw_strict";
+        if ("mormyshka".equals(lureId)) return "journal.riverfishing.lw_jig";
+        return "journal.riverfishing.lw_free";
+    }
+
+    /**
+     * §lure-light: what the water looks like to a fish RIGHT NOW, 0 dark/murky … 1 bright/clear.
+     *
+     * <p>The same shape as {@code LureColor.conditionLight}, fed from what the CLIENT can see: the hour,
+     * the sky, the biome. It cannot know the depth you are about to cast into, so it uses 3 — the one
+     * depth that contributes nothing either way in the real formula, which makes this an honest
+     * "before you cast" reading rather than a guess dressed up as an answer.
+     */
+    private float lightNow() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) return 0.5f;
+        double v = 0.5;
+        long t = mc.level.getDayTime() % 24000L;
+        if (t >= 13500) v -= 0.32;                                  // night
+        else if (t < 1000 || (t > 12500 && t < 13500)) v -= 0.08;   // dawn / dusk
+        else v += 0.28;                                             // day
+        if (mc.level.isThundering()) v -= 0.20;
+        else if (mc.level.isRaining()) v -= 0.14;
+        else v += 0.10;
+        if (mc.player != null) {
+            var biome = mc.level.getBiome(mc.player.blockPosition());
+            if (biome.is(net.minecraft.tags.BiomeTags.IS_RIVER)) v += 0.04;
+        }
+        return (float) Mth.clamp(v, 0.0, 1.0);
+    }
+
+    /** The colour class the current light suits best, by the engine's own closeness rule. */
+    private static com.riverfishing.engine.LureColor bestColour(float light) {
+        com.riverfishing.engine.LureColor best = com.riverfishing.engine.LureColor.NATURAL;
+        double top = -1;
+        for (com.riverfishing.engine.LureColor lc : com.riverfishing.engine.LureColor.values()) {
+            double closeness = 1.0 - Math.min(1.0, Math.abs(light - lc.idealLight()) * 2.0);
+            if (closeness > top) {
+                top = closeness;
+                best = lc;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * §lure-tab (0.8.0): the lure page, on the three axes a lure actually has.
+     *
+     * <p>Not the bait table's axes — a spinner has no grind and no richness, and copying those columns
+     * here would have printed a dash in every one of them. A lure is WORKED, it wears a COLOUR the light
+     * either suits or does not, and it swims in a LAYER. None of that was anywhere in the game.
+     */
+    private void renderLureTable(GuiGraphics g, int mouseX, int mouseY) {
+        int x = left + 10, wAll = W - 26;
+        g.drawString(this.font, Component.translatable("journal.riverfishing.note_lure"),
+                x, top + 22, GuiStyle.TEXT_HINT, false);
+
+        // The live advisor: what the water looks like now, and which colour class that calls for.
+        float light = lightNow();
+        com.riverfishing.engine.LureColor best = bestColour(light);
+        g.fill(x, top + 34, x + wAll, top + 56, 0x18000000);
+        g.drawString(this.font, Component.translatable("journal.riverfishing.lw_now"),
+                x + 5, top + 38, GuiStyle.TEXT_HINT, false);
+        bar(g, x + 5, top + 50, 90, 3, light, lerpColour(0xFF2A3550, 0xFFE8D89A, light));
+        g.drawString(this.font, Component.translatable("journal.riverfishing.lw_wants",
+                        Component.translatable("lurecolor.riverfishing."
+                                + best.name().toLowerCase(java.util.Locale.ROOT))),
+                x + 105, top + 41, 0xFF8A5A00, false);
+
+        int nameW = wAll - 96 - 74 - 116;
+        int head = top + 62;
+        g.drawString(this.font, Component.translatable("journal.riverfishing.bt_item"), x, head, 0xFFB0842C, false);
+        g.drawString(this.font, Component.translatable("journal.riverfishing.lw_colour"),
+                x + nameW, head, 0xFFB0842C, false);
+        g.drawString(this.font, Component.translatable("journal.riverfishing.lw_layer"),
+                x + nameW + 96, head, 0xFFB0842C, false);
+        g.drawString(this.font, Component.translatable("journal.riverfishing.lw_retrieve"),
+                x + nameW + 96 + 74, head, 0xFFB0842C, false);
+        g.fill(x, head + 10, x + wAll, head + 11, 0x33000000);
+
+        int contentTop = head + 14, contentBottom = top + H - 14;
+        scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - (contentBottom - contentTop)));
+        scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
+        int y = contentTop - scroll;
+        List<Component> tooltip = null;
+        for (int i = 0; i < lureCat.size(); i++) {
+            Cat e = lureCat.get(i);
+            boolean hov = mouseX >= x && mouseX < x + wAll && mouseY >= y && mouseY < y + 17
+                    && mouseY >= contentTop && mouseY < contentBottom;
+            if (hov) {
+                g.fill(x, y - 1, x + wAll, y + 16, 0x22000000);
+                tooltip = catTooltip(e);
+            }
+            catRects[i][0] = x;
+            catRects[i][1] = y;
+            g.renderItem(e.stack(), x, y);
+            g.drawString(this.font, fitName(e.stack().getHoverName().getString(), nameW - 24),
+                    x + 20, y + 4, hov ? 0xFF8A5A00 : GuiStyle.TEXT, false);
+            // Colour belongs to the DYE on a particular lure, not to the type, so the column says so
+            // rather than pretending every spinner is born one colour.
+            g.drawString(this.font, Component.translatable("journal.riverfishing.lw_any"),
+                    x + nameW, y + 4, GuiStyle.GHOST, false);
+            boolean surface = "popper".equals(e.id());
+            g.drawString(this.font, Component.translatable(surface
+                            ? "journal.riverfishing.lw_surface" : "journal.riverfishing.lw_depth"),
+                    x + nameW + 96, y + 4, surface ? 0xFF2E7D32 : GuiStyle.TEXT_HINT, false);
+            g.drawString(this.font, fitName(Component.translatable(retrieveKey(e.id())).getString(), 114),
+                    x + nameW + 96 + 74, y + 4, GuiStyle.TEXT, false);
+            y += 17;
+        }
+        lastCatH = (y + scroll) - contentTop;
+        g.disableScissor();
+        renderScrollbar(g, contentTop, contentBottom);
+        if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
+    }
+
     // ---- BAIT & FEED: one table ----
 
     /** Which column the bait table is sorted on, and which way. 0 = the shelf's own order. */
@@ -587,11 +708,9 @@ public class JournalScreen extends Screen {
                 renderCatDetail(g, list.get(catDetail), mouseX, mouseY);
             } else if (tab == TAB_BAIT) {
                 renderBaitTable(g, mouseX, mouseY);
+            } else if (tab == TAB_LURE) {
+                renderLureTable(g, mouseX, mouseY);
             } else {
-                if (tab == TAB_LURE) {
-                    g.drawString(this.font, Component.translatable("journal.riverfishing.note_lure"),
-                            left + 10, top + 24, GuiStyle.TEXT_HINT, false);
-                }
                 renderCatalog(g, list, mouseX, mouseY);
             }
         }
@@ -1441,6 +1560,27 @@ public class JournalScreen extends Screen {
             return;
         }
 
+        // §lure-size: the one number that decides what takes a lure, and the trap that it is usually 0.
+        if (e.kind() == Kind.LURE) {
+            int rx = left + W - 176, ry = top + 22;
+            ry = railHead(g, "journal.riverfishing.lw_size_head", rx, ry, 166);
+            for (int grams : new int[]{10, 20, 50, 100, 200}) {
+                // opt(kg) = 0.5 * sqrt(g) — BiteEngine's own §round-6 curve, not a table I typed.
+                String kg = String.format(java.util.Locale.ROOT, "%.1f", 0.5 * Math.sqrt(grams));
+                g.drawString(this.font, grams + " g", rx, ry, GuiStyle.TEXT_HINT, false);
+                drawRight(g, Component.literal("~" + kg + " kg"), rx + 166, ry, GuiStyle.TEXT);
+                ry += 11;
+            }
+            ry += 4;
+            for (net.minecraft.util.FormattedCharSequence seq : this.font.split(
+                    Component.translatable("journal.riverfishing.lw_size_note"), 166)) {
+                g.drawString(this.font, seq, rx, ry, 0xFFB05A00, false);
+                ry += 10;
+            }
+            g.drawString(this.font, Component.translatable(retrieveKey(e.id())),
+                    left + 10, top + 58, 0xFF8A5A00, false);
+        }
+
         int y = top + 148;
         y = obtainRender(g, y, e.stack()) + 4;
 
@@ -2007,8 +2147,9 @@ public class JournalScreen extends Screen {
                         return true;
                     }
                 }
-                int rowH = tab == TAB_BAIT ? 17 : ROW_H - 1;
-                int rowW = tab == TAB_BAIT ? W - 26 : catColW - 8;
+                boolean table = tab == TAB_BAIT || tab == TAB_LURE;
+                int rowH = table ? 17 : ROW_H - 1;
+                int rowW = table ? W - 26 : catColW - 8;
                 int contentTop = top + 38, contentBottom = top + H - 6;
                 for (int i = 0; i < list.size(); i++) {
                     int x = catRects[i][0], y = catRects[i][1];
