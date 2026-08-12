@@ -168,9 +168,11 @@ public class JournalScreen extends Screen {
         String[] heads = switch (kind) {
             case ROD -> new String[]{"journal.riverfishing.gt_item", "journal.riverfishing.gt_test",
                     "journal.riverfishing.gt_reel", "journal.riverfishing.gt_range"};
-            case REEL -> new String[]{"journal.riverfishing.gt_item", "journal.riverfishing.gt_size",
+            // §gear-width: no column may restate the name. "Катушка 4000" does not need a Size column
+            // and "Монолеска" does not need a Type one — they cost width the name was starving for.
+            case REEL -> new String[]{"journal.riverfishing.gt_item",
                     "journal.riverfishing.gt_drag", "journal.riverfishing.gt_maxline"};
-            case LINE -> new String[]{"journal.riverfishing.gt_item", "journal.riverfishing.gt_type",
+            case LINE -> new String[]{"journal.riverfishing.gt_item",
                     "journal.riverfishing.gt_dia", "journal.riverfishing.gt_strain",
                     "journal.riverfishing.gt_seen"};
             default -> new String[]{"journal.riverfishing.gt_item", "journal.riverfishing.gt_hooks",
@@ -257,17 +259,16 @@ public class JournalScreen extends Screen {
                 return new String[]{(int) rt.castWeightMin() + "–" + (int) rt.castWeightMax(), reel, range};
             }
             case REEL -> {
-                if (!(it instanceof ReelItem reel)) return new String[]{"—", "—", "—"};
-                return new String[]{Integer.toString(reel.size()),
+                if (!(it instanceof ReelItem reel)) return new String[]{"—", "—"};
+                return new String[]{
                         String.format(java.util.Locale.ROOT, "%.0f", reel.maxDragKg()),
                         String.format(java.util.Locale.ROOT, "%.2f",
                                 com.riverfishing.component.TackleCompat.maxLineDiameter(reel.size()))};
             }
             case LINE -> {
-                if (!(it instanceof LineItem ln)) return new String[]{"—", "—", "—", "—"};
+                if (!(it instanceof LineItem ln)) return new String[]{"—", "—", "—"};
                 // §line-visibility: 1.0 is plain mono; below is stealthier, above is easier to see.
                 return new String[]{
-                        Component.translatable("linetype.riverfishing." + ln.lineType().jsonKey()).getString(),
                         String.format(java.util.Locale.ROOT, "%.2f", ln.diameterMm()),
                         String.format(java.util.Locale.ROOT, "%.1f", ln.breakingStrainKg()),
                         String.format(java.util.Locale.ROOT, "%.2f", ln.lineType().visibilityFactor())};
