@@ -1015,7 +1015,6 @@
   "journal.riverfishing.lw_free": "любой темп, не останавливая",
   "journal.riverfishing.lw_topwater": "рывок — пауза — рывок",
   "journal.riverfishing.lw_jig": "игра в лунке",
-  "journal.riverfishing.lw_size": "Какой рыбы зовёт",
   "journal.riverfishing.lw_size_note": "Граммы у приманки есть, только если она СВЯЗАНА НА СТАНЦИИ или куплена у рыбака. Скрафченная вручную весит 0 г, и фильтр размера не работает вообще — клюёт что угодно.",
   "journal.riverfishing.lw_size_head": "Вес приманки → кого зовёт",
   "lurecolor.riverfishing.natural": "натуральный",

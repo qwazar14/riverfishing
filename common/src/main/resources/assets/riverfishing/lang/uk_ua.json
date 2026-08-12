@@ -1015,7 +1015,6 @@
   "journal.riverfishing.lw_free": "будь-який темп, не зупиняючи",
   "journal.riverfishing.lw_topwater": "ривок — пауза — ривок",
   "journal.riverfishing.lw_jig": "гра в лунці",
-  "journal.riverfishing.lw_size": "Яку рибу кличе",
   "journal.riverfishing.lw_size_note": "Грами в принади є, лише якщо вона ЗВ’ЯЗАНА НА СТАНЦІЇ або куплена в рибалки. Зроблена вручну важить 0 г, і фільтр розміру не працює зовсім — клює що завгодно.",
   "journal.riverfishing.lw_size_head": "Вага принади → кого кличе",
   "lurecolor.riverfishing.natural": "натуральний",

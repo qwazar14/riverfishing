@@ -197,7 +197,15 @@ public class JournalScreen extends Screen {
         List<Component> tooltip = null;
         for (int i = 0; i < gearCatalog.size(); i++) {
             Cat e = gearCatalog.get(i);
-            if (e.kind() != kind) continue;
+            if (e.kind() != kind) {
+                // §gear-table: a row that is not drawn must not stay CLICKABLE where it used to be.
+                // The click handler walks the whole catalog against catRects, so leaving last frame's
+                // coordinates on the categories you are not looking at meant clicking a reel opened
+                // the rod that happened to sort into that slot. Park them where nothing can hit them.
+                catRects[i][0] = Integer.MIN_VALUE / 2;
+                catRects[i][1] = Integer.MIN_VALUE / 2;
+                continue;
+            }
             boolean hov = mouseX >= tableX && mouseX < tableX + wAll && mouseY >= y && mouseY < y + 17
                     && mouseY >= contentTop && mouseY < contentBottom;
             if (hov) {
@@ -471,6 +479,7 @@ public class JournalScreen extends Screen {
         List<Component> tooltip = null;
         for (int i = 0; i < rows.size(); i++) {
             Cat e = rows.get(i);
+            int slot = baitCat.indexOf(e);
             boolean hov = mouseX >= x && mouseX < x + wAll && mouseY >= y && mouseY < y + 17
                     && mouseY >= contentTop && mouseY < contentBottom;
             if (hov) {
@@ -478,8 +487,8 @@ public class JournalScreen extends Screen {
                 tooltip = catTooltip(e);
             }
             // The click list is the SORTED list, so remember what each drawn row actually is.
-            catRects[baitCat.indexOf(e)][0] = x;
-            catRects[baitCat.indexOf(e)][1] = y;
+            catRects[slot][0] = x;
+            catRects[slot][1] = y;
             g.renderItem(e.stack(), x, y);
             g.drawString(this.font, fitName(e.stack().getHoverName().getString(), nameW - 24),
                     x + 20, y + 4, hov ? 0xFF8A5A00 : GuiStyle.TEXT, false);
@@ -812,7 +821,10 @@ public class JournalScreen extends Screen {
         addGuide("cull", modStack("electro_rod"));
         addGuide("discord", new ItemStack(net.minecraft.world.item.Items.PLAYER_HEAD));
 
-        catRects = new int[Math.max(guideCat.size(), Math.max(baitCat.size(), gearCatalog.size()))][2];
+        // Every catalog indexes into this, so it has to fit the LONGEST of them — lureCat was missing,
+        // which is a crash waiting for the release that adds a twelfth lure.
+        catRects = new int[Math.max(Math.max(guideCat.size(), lureCat.size()),
+                Math.max(baitCat.size(), gearCatalog.size()))][2];
     }
 
     private static ItemStack modStack(String path) {
@@ -2023,7 +2035,9 @@ public class JournalScreen extends Screen {
             case NATURAL -> "journal.riverfishing.sec_natural";
             case LURE -> "journal.riverfishing.sec_lure";
             case GROUNDBAIT -> "journal.riverfishing.sec_groundbait";
-            case GB_PART -> "journal.riverfishing.sec_gbpart";
+            // The bait shelf is a table now, so this heading is never drawn — but the switch has to be
+            // total, and pointing it at a string I deleted is how a missing key gets shipped.
+            case GB_PART -> "journal.riverfishing.kind_gbpart";
 
             case ROD -> "journal.riverfishing.sec_rod";
             case REEL -> "journal.riverfishing.sec_reel";
