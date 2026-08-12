@@ -71,18 +71,19 @@ public class JournalScreen extends Screen {
 
     private static final int TAB_FISH = 0;
     private static final int TAB_BAIT = 1;
-    private static final int TAB_GEAR = 2;
-    private static final int TAB_QUEST = 3;
-    private static final int TAB_SKILL = 4;
-    private static final int TAB_RECORD = 5;
-    private static final int TAB_GUIDE = 6;
+    private static final int TAB_LURE = 2;
+    private static final int TAB_GEAR = 3;
+    private static final int TAB_QUEST = 4;
+    private static final int TAB_SKILL = 5;
+    private static final int TAB_RECORD = 6;
+    private static final int TAB_GUIDE = 7;
     /** §discord: same invite as the mod metadata and the wiki — one place for the community. */
     private static final String DISCORD_URL = "https://discord.gg/Kk2nKvsuRh";
     private static final String[] TAB_KEYS = {
             "journal.riverfishing.tab_fish", "journal.riverfishing.tab_bait",
-            "journal.riverfishing.tab_gear", "journal.riverfishing.tab_quest",
-            "journal.riverfishing.tab_skill", "journal.riverfishing.tab_record",
-            "journal.riverfishing.tab_guide"};
+            "journal.riverfishing.tab_lure", "journal.riverfishing.tab_gear",
+            "journal.riverfishing.tab_quest", "journal.riverfishing.tab_skill",
+            "journal.riverfishing.tab_record", "journal.riverfishing.tab_guide"};
 
     /**
      * §gb-pantry (0.8.0): GB_PART is the shelf of things that only ever go INTO a mix — the ballast and
@@ -103,16 +104,144 @@ public class JournalScreen extends Screen {
 
     private record Cat(ItemStack stack, Kind kind, String id) {}
 
-    /** A pantry id → its item. Bare ids are this mod's; the rest name their namespace, as vanilla's do. */
-    /** The line under a section heading saying what that whole shelf is for. Null where it needs none. */
-    private static String sectionNote(Kind k) {
-        return switch (k) {
-            case NATURAL -> "journal.riverfishing.note_natural";
-            case LURE -> "journal.riverfishing.note_lure";
-            case GROUNDBAIT -> "journal.riverfishing.note_groundbait";
-            case GB_PART -> "journal.riverfishing.note_gbpart";
-            default -> null;
+    /** The catalog the current tab shows. One place decides, so the render and the click cannot differ. */
+    private List<Cat> tabList() {
+        return switch (tab) {
+            case TAB_BAIT -> baitCat;
+            case TAB_LURE -> lureCat;
+            case TAB_GUIDE -> guideCat;
+            default -> gearCat;
         };
+    }
+
+    /** A pantry id → its item. Bare ids are this mod's; the rest name their namespace, as vanilla's do. */
+    // ---- BAIT & FEED: one table ----
+
+    /** Which column the bait table is sorted on, and which way. 0 = the shelf's own order. */
+    private int baitSort;
+    private boolean baitSortDesc = true;
+    /** Column x offsets, filled by the header render so the rows and the hit-test cannot drift. */
+    private final int[] baitCols = new int[6];
+
+    /** The sortable value behind a column, or NaN when this row has nothing to say there. */
+    private float baitCell(Cat e, int col) {
+        com.riverfishing.groundbait.GroundbaitMix.Component c =
+                com.riverfishing.groundbait.GroundbaitMix.PANTRY.get(e.id());
+        return switch (col) {
+            case 1 -> e.kind() == Kind.NATURAL ? 1f : 0f;                     // goes on a hook
+            case 2 -> c != null ? 1f : 0f;                                    // goes in a mix
+            case 3 -> c == null ? Float.NaN : (float) c.nutrition();
+            case 4 -> c == null ? Float.NaN : (float) c.fraction();
+            case 5 -> c == null ? Float.NaN : predatorPull(c.diet());
+            default -> 0f;
+        };
+    }
+
+    /**
+     * §bait-table (0.8.0): baits and feed as ONE table a newcomer can read.
+     *
+     * <p>The tab used to be three headed shelves of names, and the two facts a beginner most needs —
+     * whether a thing goes on the hook, in the mix, or both — were a sentence under a heading rather than
+     * something you could see down a column. They are columns now, and the numbers that decide a mix sit
+     * beside them instead of being one click away each.
+     *
+     * <p>Click a heading to sort by it. Rows with nothing to say in that column sink to the bottom rather
+     * than pretending to be zero, because "not a mix component" and "worth nought in a mix" are different
+     * statements and only one of them is true of a spinner.
+     */
+    private void renderBaitTable(GuiGraphics g, int mouseX, int mouseY) {
+        int x = left + 10, wAll = W - 26;
+        g.drawString(this.font, Component.translatable("journal.riverfishing.tab_bait_hint"),
+                x, top + 22, GuiStyle.TEXT_HINT, false);
+
+        int nameW = wAll - 42 - 42 - 46 - 46 - 62;
+        baitCols[0] = x;
+        baitCols[1] = x + nameW;
+        baitCols[2] = baitCols[1] + 42;
+        baitCols[3] = baitCols[2] + 42;
+        baitCols[4] = baitCols[3] + 46;
+        baitCols[5] = baitCols[4] + 46;
+
+        int head = top + 38;
+        String[] keys = {"journal.riverfishing.bt_item", "journal.riverfishing.bt_hook",
+                "journal.riverfishing.bt_mix", "journal.riverfishing.gb_col_rich",
+                "journal.riverfishing.gb_col_grind", "journal.riverfishing.gb_col_pull"};
+        for (int i = 0; i < 6; i++) {
+            Component label = Component.translatable(keys[i]);
+            String arrow = baitSort == i ? (baitSortDesc ? " ▼" : " ▲") : "";
+            int cw = i == 0 ? nameW : (i == 5 ? 62 : (i < 3 ? 42 : 46));
+            boolean hov = mouseX >= baitCols[i] && mouseX < baitCols[i] + cw
+                    && mouseY >= head && mouseY < head + 10;
+            int colour = baitSort == i ? 0xFFD8A93C : (hov ? 0xFFD8C88C : 0xFFB0842C);
+            if (i == 0) {
+                g.drawString(this.font, label.getString() + arrow, baitCols[i], head, colour, false);
+            } else {
+                String s = label.getString() + arrow;
+                g.drawString(this.font, s, baitCols[i] + cw - this.font.width(s), head, colour, false);
+            }
+        }
+        g.fill(x, head + 10, x + wAll, head + 11, 0x33000000);
+
+        List<Cat> rows = new ArrayList<>(baitCat);
+        if (baitSort > 0) {
+            int col = baitSort;
+            rows.sort((a, b) -> {
+                float va = baitCell(a, col), vb = baitCell(b, col);
+                boolean na = Float.isNaN(va), nb = Float.isNaN(vb);
+                if (na || nb) return na && nb ? 0 : (na ? 1 : -1);   // blanks always sink
+                return baitSortDesc ? Float.compare(vb, va) : Float.compare(va, vb);
+            });
+        }
+
+        int contentTop = head + 14, contentBottom = top + H - 14;
+        scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - (contentBottom - contentTop)));
+        scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
+        int y = contentTop - scroll;
+        List<Component> tooltip = null;
+        for (int i = 0; i < rows.size(); i++) {
+            Cat e = rows.get(i);
+            boolean hov = mouseX >= x && mouseX < x + wAll && mouseY >= y && mouseY < y + 17
+                    && mouseY >= contentTop && mouseY < contentBottom;
+            if (hov) {
+                g.fill(x, y - 1, x + wAll, y + 16, 0x22000000);
+                tooltip = catTooltip(e);
+            }
+            // The click list is the SORTED list, so remember what each drawn row actually is.
+            catRects[baitCat.indexOf(e)][0] = x;
+            catRects[baitCat.indexOf(e)][1] = y;
+            g.renderItem(e.stack(), x, y);
+            g.drawString(this.font, fitName(e.stack().getHoverName().getString(), nameW - 24),
+                    x + 20, y + 4, hov ? 0xFF8A5A00 : GuiStyle.TEXT, false);
+            tick(g, baitCols[1] + 42, y + 4, baitCell(e, 1) > 0);
+            tick(g, baitCols[2] + 42, y + 4, baitCell(e, 2) > 0);
+            num(g, baitCols[3] + 46, y + 4, baitCell(e, 3), GuiStyle.TEXT_HINT);
+            num(g, baitCols[4] + 46, y + 4, baitCell(e, 4), GuiStyle.TEXT_HINT);
+            float pull = baitCell(e, 5);
+            if (Float.isNaN(pull)) {
+                drawRight(g, Component.literal("—"), baitCols[5] + 62, y + 4, GuiStyle.GHOST);
+            } else {
+                bar(g, baitCols[5], y + 6, 30, 4, pull, pullColour(pull));
+                drawRight(g, Component.literal(String.format(java.util.Locale.ROOT, "%.2f", pull)),
+                        baitCols[5] + 62, y + 4, GuiStyle.TEXT);
+            }
+            y += 17;
+        }
+        lastCatH = (y + scroll) - contentTop;
+        g.disableScissor();
+        renderScrollbar(g, contentTop, contentBottom);
+        if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
+    }
+
+    /** A yes/no column: a tick when it is true, a quiet dash when it is not. */
+    private void tick(GuiGraphics g, int rightX, int y, boolean on) {
+        Component c = Component.literal(on ? "✔" : "—");
+        g.drawString(this.font, c, rightX - this.font.width(c), y, on ? 0xFF2E7D32 : GuiStyle.GHOST, false);
+    }
+
+    private void num(GuiGraphics g, int rightX, int y, float v, int colour) {
+        String s = Float.isNaN(v) ? "—" : String.format(java.util.Locale.ROOT, "%.2f", v);
+        g.drawString(this.font, s, rightX - this.font.width(s), y,
+                Float.isNaN(v) ? GuiStyle.GHOST : colour, false);
     }
 
     /**
@@ -210,6 +339,8 @@ public class JournalScreen extends Screen {
     private final CompoundTag data;
     private final List<Cat> baitCat = new ArrayList<>();
     private final List<Cat> gearCat = new ArrayList<>();
+    /** §lure-tab: lures live on their own page now — they are the only bait that never goes in a mix. */
+    private final List<Cat> lureCat = new ArrayList<>();
     private final int[][] catRects;
     /** Quest rows' {x,y} from the last render (§quest-claim) + optimistic locally-claimed ids. */
     private final int[][] questRects = new int[Quests.ALL.size()][2];
@@ -254,7 +385,8 @@ public class JournalScreen extends Screen {
         for (RegistrySupplier<Item> ro : ModItems.ALL) {
             Item it = ro.get();
             if (it instanceof BaitItem b) {
-                baitCat.add(new Cat(new ItemStack(it), b.artificial() ? Kind.LURE : Kind.NATURAL, b.baitId()));
+                (b.artificial() ? lureCat : baitCat)
+                        .add(new Cat(new ItemStack(it), b.artificial() ? Kind.LURE : Kind.NATURAL, b.baitId()));
             } else if (it instanceof GroundbaitItem) {
                 baitCat.add(new Cat(new ItemStack(it), Kind.GROUNDBAIT, "groundbait"));
             } else if (it instanceof RodItem) {
@@ -285,6 +417,7 @@ public class JournalScreen extends Screen {
         Comparator<Cat> byKindThenName = Comparator.comparingInt((Cat e) -> e.kind().ordinal())
                 .thenComparing(e -> e.stack().getHoverName().getString());
         baitCat.sort(byKindThenName);
+        lureCat.sort(byKindThenName);
         // §gear-sort: reels by SIZE, lines by type+diameter, rods by tier — alphabetical put 10000
         // between 1000 and 2000.
         gearCat.sort(Comparator.comparingInt((Cat e) -> e.kind().ordinal())
@@ -449,12 +582,14 @@ public class JournalScreen extends Screen {
         } else if (tab == TAB_RECORD) {
             renderRecords(g, mouseX, mouseY);
         } else {
-            List<Cat> list = tab == TAB_BAIT ? baitCat : tab == TAB_GUIDE ? guideCat : gearCat;
+            List<Cat> list = tabList();
             if (catDetail >= 0 && catDetail < list.size()) {
                 renderCatDetail(g, list.get(catDetail), mouseX, mouseY);
+            } else if (tab == TAB_BAIT) {
+                renderBaitTable(g, mouseX, mouseY);
             } else {
-                if (tab == TAB_BAIT) {
-                    g.drawString(this.font, Component.translatable("journal.riverfishing.tab_bait_hint"),
+                if (tab == TAB_LURE) {
+                    g.drawString(this.font, Component.translatable("journal.riverfishing.note_lure"),
                             left + 10, top + 24, GuiStyle.TEXT_HINT, false);
                 }
                 renderCatalog(g, list, mouseX, mouseY);
@@ -943,7 +1078,6 @@ public class JournalScreen extends Screen {
         return y;
     }
 
-
     /** "3–8", "4+" or "up to 40" — an open end is stated as open rather than as 999. */
     private static String range(int min, int max, int unbounded) {
         if (max >= unbounded) return min <= 0 ? "—" : min + "+";
@@ -1179,15 +1313,7 @@ public class JournalScreen extends Screen {
                 if (i != 0) y += 3;
                 section = e.kind();
                 g.drawString(this.font, Component.translatable(sectionKey(section)), left + 10, y, 0xFFB0842C, false);
-                y += 10;
-                // §section-note: what the whole shelf is FOR. "Natural bait" does not tell a player that
-                // the same worm goes on the hook and into the mix, and nothing else on the page did either.
-                String note = sectionNote(section);
-                if (note != null && I18n.exists(note)) {
-                    g.drawString(this.font, Component.translatable(note), left + 10, y, GuiStyle.GHOST, false);
-                    y += 10;
-                }
-                y += 2;
+                y += 12;
             }
             int x = left + 10 + col * catColW;
             catRects[i][0] = x;
@@ -1524,7 +1650,7 @@ public class JournalScreen extends Screen {
             case LURE -> "journal.riverfishing.sec_lure";
             case GROUNDBAIT -> "journal.riverfishing.sec_groundbait";
             case GB_PART -> "journal.riverfishing.sec_gbpart";
-            // (notes for these live in sectionNote below)
+
             case ROD -> "journal.riverfishing.sec_rod";
             case REEL -> "journal.riverfishing.sec_reel";
             case LINE -> "journal.riverfishing.sec_line";
@@ -1861,11 +1987,32 @@ public class JournalScreen extends Screen {
                     return true;
                 }
                 if (catDetail >= 0) { catDetail = -1; scroll = 0; return true; }
-                List<Cat> list = tab == TAB_BAIT ? baitCat : tab == TAB_GUIDE ? guideCat : gearCat;
+                List<Cat> list = tabList();
+                // §bait-table: the headings sort. Clicking the one already sorted flips the direction,
+                // and the third click on it goes back to the shelf's own order — no state you cannot undo.
+                if (tab == TAB_BAIT && mouseY >= top + 38 && mouseY < top + 48) {
+                    for (int i = 0; i < baitCols.length; i++) {
+                        int cw = i == 0 ? baitCols[1] - baitCols[0]
+                                : (i == 5 ? 62 : (i < 3 ? 42 : 46));
+                        if (mouseX < baitCols[i] || mouseX >= baitCols[i] + cw) continue;
+                        if (baitSort != i) {
+                            baitSort = i;
+                            baitSortDesc = true;
+                        } else if (baitSortDesc) {
+                            baitSortDesc = false;
+                        } else {
+                            baitSort = 0;
+                        }
+                        scroll = 0;
+                        return true;
+                    }
+                }
+                int rowH = tab == TAB_BAIT ? 17 : ROW_H - 1;
+                int rowW = tab == TAB_BAIT ? W - 26 : catColW - 8;
                 int contentTop = top + 38, contentBottom = top + H - 6;
                 for (int i = 0; i < list.size(); i++) {
                     int x = catRects[i][0], y = catRects[i][1];
-                    if (mouseX >= x && mouseX < x + catColW - 8 && mouseY >= y && mouseY < y + ROW_H - 1
+                    if (mouseX >= x && mouseX < x + rowW && mouseY >= y && mouseY < y + rowH
                             && mouseY >= contentTop && mouseY < contentBottom) {
                         catDetail = i;
                         scroll = 0;
