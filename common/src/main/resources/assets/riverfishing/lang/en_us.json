@@ -1027,10 +1027,14 @@
   "guidegroup.riverfishing.2": "Predators",
   "guidegroup.riverfishing.3": "The bench",
   "guidegroup.riverfishing.4": "Reading the water",
-  "guidegroup.riverfishing.5": "The sea",
-  "guidegroup.riverfishing.6": "Whoever runs the world",
+  "guidegroup.riverfishing.5": "Under the ice",
+  "guidegroup.riverfishing.6": "The sea",
   "guide.riverfishing.lurework.table": "Lure|Cadence|Window\nWobbler, crankbait|steady|0.4-0.9 s\nSpinner, spoon, jig, soft plastic|any|0.25-1.5 s\nPopper|pop - pause|its own\nHeld right-click|too fast|no takes",
   "guide.riverfishing.gbnumbers.table": "Mix|Ceiling\nPlain base, no additives|0.48\nBase + one rich component|0.65\nBase + three, rich|0.85\nBase + four, rich|1.00",
   "guide.riverfishing.gbnumbers.bars": "Bleak wants a grind of|0.14\nRoach|0.31\nBream|0.56\nCarp|0.73\nBoilies are|1.00",
-  "guide.riverfishing.topwater.table": "|Popper|Anything else\nWhere it works|the surface|in the water\nHook-set window|35 ticks|60 ticks\nRetrieve|pop - pause - pop|keep it moving"
+  "guide.riverfishing.topwater.table": "|Popper|Anything else\nWhere it works|the surface|in the water\nHook-set window|35 ticks|60 ticks\nRetrieve|pop - pause - pop|keep it moving",
+  "guide.riverfishing.icefishing.title": "Ice fishing",
+  "guide.riverfishing.icefishing.text": "A winter rod is not cast. At all. Point it at open water and it tells you so — it fishes straight down, through a hole, and nowhere else.\n\nTHE AUGER. Right-click ice with it: ordinary, packed, blue or frosted, as long as there is WATER UNDERNEATH. That gives you a hole, and costs the auger one point of its 64.\n\nA hole is as slippery as the ice it was cut in, it MELTS IN BRIGHT LIGHT the way ice does, and breaking it leaves water behind, never ice. Cut it where it will last.\n\nA HOLE IS WINTER. While you fish one, the engine treats the season as winter whatever the calendar says. Find ice in July and the fish under it behave as if it were January — which is the whole reason the burbot and the smelt below are worth walking to.\n\nWORKING IT. The first right-click drops the mormyshka in. Every one after that jigs it. A STEADY rhythm — one jig every 0.4 to 1.0 s — pulls the bite 34 ticks closer. Ragged or lazy jigging pulls it 8. Four times the difference, and while you are waiting it is the only thing you control.\n\nTHE NOD. There is no bite sound and no \"Bite!\" text. The nod twitches, and that is the cue. Strike as you would on any other rod.\n\nAlmost nothing snags. A line hanging straight down in a hole has far less to catch on than one thrown across a lake.",
+  "guide.riverfishing.icefishing.table": "Species|Mormyshka|Winter\nRuffe|1.0|1.0\nWhitefish|0.9|1.2\nSmelt|0.9|1.5\nRoach|0.9|—\nPerch|0.9|—\nGudgeon|0.9|—\nBleak|0.8|—\nBream|0.7|—\nBurbot|—|1.6",
+  "guidegroup.riverfishing.7": "Whoever runs the world"
 }

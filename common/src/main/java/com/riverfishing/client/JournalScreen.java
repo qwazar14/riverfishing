@@ -660,12 +660,15 @@ public class JournalScreen extends Screen {
         addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
         addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
 
-        guideGroupNow = 5;   // the sea, and the fish that need a boat
+        guideGroupNow = 5;   // under the ice — quest stage 6, and until now the only mode with no page
+        addGuide("icefishing", modStack("ice_auger"));
+
+        guideGroupNow = 6;   // the sea, and the fish that need a boat
         addGuide("trolling", modStack("trolling_rod"));
         addGuide("biggame", modStack("yellowfin_tuna"));
         addGuide("legendary", modStack("blue_marlin"));
 
-        guideGroupNow = 6;   // not for anglers: whoever runs the world, and where to shout
+        guideGroupNow = 7;   // not for anglers: whoever runs the world, and where to shout
         addGuide("cull", modStack("electro_rod"));
         addGuide("discord", new ItemStack(net.minecraft.world.item.Items.PLAYER_HEAD));
 
