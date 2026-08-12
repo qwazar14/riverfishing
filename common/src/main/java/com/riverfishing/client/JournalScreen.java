@@ -119,11 +119,151 @@ public class JournalScreen extends Screen {
             case TAB_BAIT -> baitCat;
             case TAB_LURE -> lureCat;
             case TAB_GUIDE -> guideCat;
-            default -> gearCat;
+            default -> gearCatalog;
         };
     }
 
     /** A pantry id → its item. Bare ids are this mod's; the rest name their namespace, as vanilla's do. */
+    // ---- GEAR: four different things, four sets of columns ----
+
+    /** Which category rail row the gear tab is on: 0 rods, 1 reels, 2 lines, 3 rigs. */
+    private int gearCat;
+    private static final Kind[] GEAR_KINDS = {Kind.ROD, Kind.REEL, Kind.LINE, Kind.RIG};
+
+    /**
+     * §gear-table (0.8.0): the gear shelf as four tables, not one.
+     *
+     * <p>A rod has a test window, a reel has a drag, a line has a diameter and a rig has hooks. Putting
+     * all four in one table would print a dash in three cells of every row — the same mistake the lure
+     * page made with its Colour column, and it is worse here because there are four kinds, not one.
+     * So the categories get a rail, exactly like the fish tab's families, and each one gets the columns
+     * that mean something for it.
+     *
+     * <p>Everything is read off the item's own type — RodType, ReelItem, LineItem, RigType — so the table
+     * cannot disagree with the tackle it describes.
+     */
+    private void renderGearTable(GuiGraphics g, int mouseX, int mouseY) {
+        int railW = 96;
+        int x = left + 10, railX = left + 10, tableX = railX + railW + 8;
+        int wAll = W - 28 - railW - 8;
+
+        g.drawString(this.font, Component.translatable("journal.riverfishing.gt_hint"),
+                x, top + 22, GuiStyle.TEXT_HINT, false);
+
+        int y0 = top + 40;
+        g.fill(railX - 2, y0 - 2, railX + railW + 2, y0 + 4 * LIST_ROW + 2, 0x22000000);
+        for (int i = 0; i < GEAR_KINDS.length; i++) {
+            int ry = y0 + i * LIST_ROW;
+            boolean hov = mouseX >= railX && mouseX < railX + railW && mouseY >= ry && mouseY < ry + LIST_ROW;
+            if (i == gearCat) {
+                g.fill(railX, ry, railX + railW, ry + LIST_ROW, 0x55B08D3C);
+            } else if (hov) {
+                g.fill(railX, ry, railX + railW, ry + LIST_ROW, 0x22000000);
+            }
+            g.drawString(this.font, Component.translatable(sectionKey(GEAR_KINDS[i])), railX + 4, ry + 4,
+                    i == gearCat ? GuiStyle.TEXT : GuiStyle.TEXT_HINT, false);
+        }
+
+        Kind kind = GEAR_KINDS[gearCat];
+        String[] heads = switch (kind) {
+            case ROD -> new String[]{"journal.riverfishing.gt_item", "journal.riverfishing.gt_test",
+                    "journal.riverfishing.gt_reel", "journal.riverfishing.gt_range"};
+            case REEL -> new String[]{"journal.riverfishing.gt_item", "journal.riverfishing.gt_size",
+                    "journal.riverfishing.gt_drag", "journal.riverfishing.gt_maxline"};
+            case LINE -> new String[]{"journal.riverfishing.gt_item", "journal.riverfishing.gt_type",
+                    "journal.riverfishing.gt_dia", "journal.riverfishing.gt_strain",
+                    "journal.riverfishing.gt_seen"};
+            default -> new String[]{"journal.riverfishing.gt_item", "journal.riverfishing.gt_hooks",
+                    "journal.riverfishing.gt_mass", "journal.riverfishing.gt_leader"};
+        };
+        int cols = heads.length;
+        int nameW = wAll - (cols - 1) * 62;
+        int head = top + 40;
+        for (int c = 0; c < cols; c++) {
+            Component label = Component.translatable(heads[c]);
+            if (c == 0) {
+                g.drawString(this.font, label, tableX, head, 0xFFB0842C, false);
+            } else {
+                int cx = tableX + nameW + c * 62;
+                g.drawString(this.font, label, cx - this.font.width(label), head, 0xFFB0842C, false);
+            }
+        }
+        g.fill(tableX, head + 10, tableX + wAll, head + 11, 0x33000000);
+
+        int contentTop = head + 14, contentBottom = top + H - 14;
+        scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - (contentBottom - contentTop)));
+        scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
+        int y = contentTop - scroll;
+        List<Component> tooltip = null;
+        for (int i = 0; i < gearCatalog.size(); i++) {
+            Cat e = gearCatalog.get(i);
+            if (e.kind() != kind) continue;
+            boolean hov = mouseX >= tableX && mouseX < tableX + wAll && mouseY >= y && mouseY < y + 17
+                    && mouseY >= contentTop && mouseY < contentBottom;
+            if (hov) {
+                g.fill(tableX, y - 1, tableX + wAll, y + 16, 0x22000000);
+                tooltip = catTooltip(e);
+            }
+            catRects[i][0] = tableX;
+            catRects[i][1] = y;
+            g.renderItem(e.stack(), tableX, y);
+            g.drawString(this.font, fitName(e.stack().getHoverName().getString(), nameW - 24),
+                    tableX + 20, y + 4, hov ? 0xFF8A5A00 : GuiStyle.TEXT, false);
+            String[] cells = gearCells(e, kind);
+            for (int c = 0; c < cells.length; c++) {
+                int cx = tableX + nameW + (c + 1) * 62;
+                g.drawString(this.font, cells[c], cx - this.font.width(cells[c]), y + 4,
+                        GuiStyle.TEXT_HINT, false);
+            }
+            y += 17;
+        }
+        lastCatH = (y + scroll) - contentTop;
+        g.disableScissor();
+        renderScrollbar(g, contentTop, contentBottom);
+        if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
+    }
+
+    /** The numbers for one row, in the order its category's headings promise. */
+    private String[] gearCells(Cat e, Kind kind) {
+        Item it = e.stack().getItem();
+        switch (kind) {
+            case ROD -> {
+                if (!(it instanceof RodItem rod)) return new String[]{"—", "—", "—"};
+                var rt = rod.rodType();
+                String reel = rt.takesReel() ? (rt.minReel() / 1000) + "–" + (rt.maxReel() / 1000) + "k"
+                        : Component.translatable("journal.riverfishing.gt_noreel").getString();
+                String range = rt.takesReel()
+                        ? (rt.longRange() ? "32" : (rt == com.riverfishing.component.RodType.SPINNING ? "16" : "18"))
+                        : "6";
+                return new String[]{(int) rt.castWeightMin() + "–" + (int) rt.castWeightMax(), reel, range};
+            }
+            case REEL -> {
+                if (!(it instanceof ReelItem reel)) return new String[]{"—", "—", "—"};
+                return new String[]{Integer.toString(reel.size()),
+                        String.format(java.util.Locale.ROOT, "%.0f", reel.maxDragKg()),
+                        String.format(java.util.Locale.ROOT, "%.2f",
+                                com.riverfishing.component.TackleCompat.maxLineDiameter(reel.size()))};
+            }
+            case LINE -> {
+                if (!(it instanceof LineItem ln)) return new String[]{"—", "—", "—", "—"};
+                // §line-visibility: 1.0 is plain mono; below is stealthier, above is easier to see.
+                return new String[]{
+                        Component.translatable("linetype.riverfishing." + ln.lineType().jsonKey()).getString(),
+                        String.format(java.util.Locale.ROOT, "%.2f", ln.diameterMm()),
+                        String.format(java.util.Locale.ROOT, "%.1f", ln.breakingStrainKg()),
+                        String.format(java.util.Locale.ROOT, "%.2f", ln.lineType().visibilityFactor())};
+            }
+            default -> {
+                if (!(it instanceof RigItem rig)) return new String[]{"—", "—", "—"};
+                var rt = rig.rigType();
+                return new String[]{Integer.toString(rt.hookCount()),
+                        String.format(java.util.Locale.ROOT, "%.0f", rt.massGrams()),
+                        Component.translatable(rt.hasLeader()
+                                ? "journal.riverfishing.gt_yes" : "journal.riverfishing.gt_no").getString()};
+            }
+        }
+    }
+
     // ---- LURES: how to work them, and what the light wants ----
 
     /** §lure-work: which cadence rule the retrieve applies to this lure — the engine's own three cases. */
@@ -540,7 +680,7 @@ public class JournalScreen extends Screen {
 
     private final CompoundTag data;
     private final List<Cat> baitCat = new ArrayList<>();
-    private final List<Cat> gearCat = new ArrayList<>();
+    private final List<Cat> gearCatalog = new ArrayList<>();
     /** §lure-tab: lures live on their own page now — they are the only bait that never goes in a mix. */
     private final List<Cat> lureCat = new ArrayList<>();
     private final int[][] catRects;
@@ -592,13 +732,13 @@ public class JournalScreen extends Screen {
             } else if (it instanceof GroundbaitItem) {
                 baitCat.add(new Cat(new ItemStack(it), Kind.GROUNDBAIT, "groundbait"));
             } else if (it instanceof RodItem) {
-                gearCat.add(new Cat(new ItemStack(it), Kind.ROD, ""));
+                gearCatalog.add(new Cat(new ItemStack(it), Kind.ROD, ""));
             } else if (it instanceof ReelItem) {
-                gearCat.add(new Cat(new ItemStack(it), Kind.REEL, ""));
+                gearCatalog.add(new Cat(new ItemStack(it), Kind.REEL, ""));
             } else if (it instanceof LineItem) {
-                gearCat.add(new Cat(new ItemStack(it), Kind.LINE, ""));
+                gearCatalog.add(new Cat(new ItemStack(it), Kind.LINE, ""));
             } else if (it instanceof RigItem ri && !isInternalRig(ri.rigType())) {
-                gearCat.add(new Cat(new ItemStack(it), Kind.RIG, ""));
+                gearCatalog.add(new Cat(new ItemStack(it), Kind.RIG, ""));
             }
         }
         // §gb-pantry: the mix-only shelf, read straight off GroundbaitMix.PANTRY so the journal and the
@@ -622,7 +762,7 @@ public class JournalScreen extends Screen {
         lureCat.sort(byKindThenName);
         // §gear-sort: reels by SIZE, lines by type+diameter, rods by tier — alphabetical put 10000
         // between 1000 and 2000.
-        gearCat.sort(Comparator.comparingInt((Cat e) -> e.kind().ordinal())
+        gearCatalog.sort(Comparator.comparingInt((Cat e) -> e.kind().ordinal())
                 .thenComparingDouble(JournalScreen::gearSortKey)
                 .thenComparing(e -> e.stack().getHoverName().getString()));
 
@@ -672,7 +812,7 @@ public class JournalScreen extends Screen {
         addGuide("cull", modStack("electro_rod"));
         addGuide("discord", new ItemStack(net.minecraft.world.item.Items.PLAYER_HEAD));
 
-        catRects = new int[Math.max(guideCat.size(), Math.max(baitCat.size(), gearCat.size()))][2];
+        catRects = new int[Math.max(guideCat.size(), Math.max(baitCat.size(), gearCatalog.size()))][2];
     }
 
     private static ItemStack modStack(String path) {
@@ -791,6 +931,8 @@ public class JournalScreen extends Screen {
                 renderBaitTable(g, mouseX, mouseY);
             } else if (tab == TAB_LURE) {
                 renderLureTable(g, mouseX, mouseY);
+            } else if (tab == TAB_GEAR) {
+                renderGearTable(g, mouseX, mouseY);
             } else {
                 renderCatalog(g, list, mouseX, mouseY);
             }
@@ -2239,9 +2381,21 @@ public class JournalScreen extends Screen {
                         return true;
                     }
                 }
-                boolean table = tab == TAB_BAIT || tab == TAB_LURE;
+                // §gear-table: the category rail on the left, same shape as the fish tab's families.
+                if (tab == TAB_GEAR) {
+                    for (int i = 0; i < GEAR_KINDS.length; i++) {
+                        int ry = top + 40 + i * LIST_ROW;
+                        if (mouseX >= left + 10 && mouseX < left + 106
+                                && mouseY >= ry && mouseY < ry + LIST_ROW) {
+                            gearCat = i;
+                            scroll = 0;
+                            return true;
+                        }
+                    }
+                }
+                boolean table = tab == TAB_BAIT || tab == TAB_LURE || tab == TAB_GEAR;
                 int rowH = table ? 17 : ROW_H - 1;
-                int rowW = table ? W - 26 : catColW - 8;
+                int rowW = table ? (tab == TAB_GEAR ? W - 132 : W - 26) : catColW - 8;
                 int contentTop = top + 38, contentBottom = top + H - 6;
                 for (int i = 0; i < list.size(); i++) {
                     int x = catRects[i][0], y = catRects[i][1];
