@@ -1007,10 +1007,8 @@
   "journal.riverfishing.bt_mix": "Смесь",
   "journal.riverfishing.lw_now": "Вода сейчас",
   "journal.riverfishing.lw_wants": "просит %s",
-  "journal.riverfishing.lw_colour": "Цвет",
   "journal.riverfishing.lw_layer": "Слой",
   "journal.riverfishing.lw_retrieve": "Проводка",
-  "journal.riverfishing.lw_any": "любой — красьте",
   "journal.riverfishing.lw_surface": "поверхность",
   "journal.riverfishing.lw_depth": "в толще",
   "journal.riverfishing.lw_strict": "РОВНО, 0.4–0.9 с",
@@ -1022,5 +1020,6 @@
   "journal.riverfishing.lw_size_head": "Вес приманки → кого зовёт",
   "lurecolor.riverfishing.natural": "натуральный",
   "lurecolor.riverfishing.bright": "яркий",
-  "lurecolor.riverfishing.dark": "тёмный"
+  "lurecolor.riverfishing.dark": "тёмный",
+  "journal.riverfishing.lw_colour_note": "Цвет — это краситель на приманке, а не сама приманка: красится любая в любой"
 }

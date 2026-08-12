@@ -177,10 +177,12 @@ public class JournalScreen extends Screen {
         g.drawString(this.font, Component.translatable("journal.riverfishing.note_lure"),
                 x, top + 22, GuiStyle.TEXT_HINT, false);
 
-        // The live advisor: what the water looks like now, and which colour class that calls for.
+        // §lure-colour-note: colour was a COLUMN, and it printed "any — dye it" on every single row —
+        // ninety-six pixels of the same sentence eleven times, which is exactly the width the retrieve
+        // column needed and did not have. It is a fact about all lures, so it is said once, up here.
         float light = lightNow();
         com.riverfishing.engine.LureColor best = bestColour(light);
-        g.fill(x, top + 34, x + wAll, top + 56, 0x18000000);
+        g.fill(x, top + 34, x + wAll, top + 68, 0x18000000);
         g.drawString(this.font, Component.translatable("journal.riverfishing.lw_now"),
                 x + 5, top + 38, GuiStyle.TEXT_HINT, false);
         bar(g, x + 5, top + 50, 90, 3, light, lerpColour(0xFF2A3550, 0xFFE8D89A, light));
@@ -188,16 +190,18 @@ public class JournalScreen extends Screen {
                         Component.translatable("lurecolor.riverfishing."
                                 + best.name().toLowerCase(java.util.Locale.ROOT))),
                 x + 105, top + 41, 0xFF8A5A00, false);
+        g.drawString(this.font, fitName(
+                        Component.translatable("journal.riverfishing.lw_colour_note").getString(), wAll - 10),
+                x + 5, top + 58, GuiStyle.GHOST, false);
 
-        int nameW = wAll - 96 - 74 - 116;
-        int head = top + 62;
+        int layerW = 74, retrieveW = 190;
+        int nameW = wAll - layerW - retrieveW;
+        int head = top + 74;
         g.drawString(this.font, Component.translatable("journal.riverfishing.bt_item"), x, head, 0xFFB0842C, false);
-        g.drawString(this.font, Component.translatable("journal.riverfishing.lw_colour"),
-                x + nameW, head, 0xFFB0842C, false);
         g.drawString(this.font, Component.translatable("journal.riverfishing.lw_layer"),
-                x + nameW + 96, head, 0xFFB0842C, false);
+                x + nameW, head, 0xFFB0842C, false);
         g.drawString(this.font, Component.translatable("journal.riverfishing.lw_retrieve"),
-                x + nameW + 96 + 74, head, 0xFFB0842C, false);
+                x + nameW + layerW, head, 0xFFB0842C, false);
         g.fill(x, head + 10, x + wAll, head + 11, 0x33000000);
 
         int contentTop = head + 14, contentBottom = top + H - 14;
@@ -218,16 +222,13 @@ public class JournalScreen extends Screen {
             g.renderItem(e.stack(), x, y);
             g.drawString(this.font, fitName(e.stack().getHoverName().getString(), nameW - 24),
                     x + 20, y + 4, hov ? 0xFF8A5A00 : GuiStyle.TEXT, false);
-            // Colour belongs to the DYE on a particular lure, not to the type, so the column says so
-            // rather than pretending every spinner is born one colour.
-            g.drawString(this.font, Component.translatable("journal.riverfishing.lw_any"),
-                    x + nameW, y + 4, GuiStyle.GHOST, false);
             boolean surface = "popper".equals(e.id());
             g.drawString(this.font, Component.translatable(surface
                             ? "journal.riverfishing.lw_surface" : "journal.riverfishing.lw_depth"),
-                    x + nameW + 96, y + 4, surface ? 0xFF2E7D32 : GuiStyle.TEXT_HINT, false);
-            g.drawString(this.font, fitName(Component.translatable(retrieveKey(e.id())).getString(), 114),
-                    x + nameW + 96 + 74, y + 4, GuiStyle.TEXT, false);
+                    x + nameW, y + 4, surface ? 0xFF2E7D32 : GuiStyle.TEXT_HINT, false);
+            g.drawString(this.font, fitName(
+                            Component.translatable(retrieveKey(e.id())).getString(), retrieveW - 4),
+                    x + nameW + layerW, y + 4, GuiStyle.TEXT, false);
             y += 17;
         }
         lastCatH = (y + scroll) - contentTop;

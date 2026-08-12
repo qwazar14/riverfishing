@@ -1007,10 +1007,8 @@
   "journal.riverfishing.bt_mix": "Mix",
   "journal.riverfishing.lw_now": "Water right now",
   "journal.riverfishing.lw_wants": "calls for %s",
-  "journal.riverfishing.lw_colour": "Colour",
   "journal.riverfishing.lw_layer": "Layer",
   "journal.riverfishing.lw_retrieve": "Retrieve",
-  "journal.riverfishing.lw_any": "any — dye it",
   "journal.riverfishing.lw_surface": "surface",
   "journal.riverfishing.lw_depth": "in the water",
   "journal.riverfishing.lw_strict": "STEADY, 0.4–0.9 s",
@@ -1022,5 +1020,6 @@
   "journal.riverfishing.lw_size_head": "Lure → the fish it calls",
   "lurecolor.riverfishing.natural": "natural",
   "lurecolor.riverfishing.bright": "bright",
-  "lurecolor.riverfishing.dark": "dark"
+  "lurecolor.riverfishing.dark": "dark",
+  "journal.riverfishing.lw_colour_note": "Colour is the dye on a lure, not the lure — any of these takes any colour"
 }

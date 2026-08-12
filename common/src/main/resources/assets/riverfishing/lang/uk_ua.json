@@ -1007,10 +1007,8 @@
   "journal.riverfishing.bt_mix": "Суміш",
   "journal.riverfishing.lw_now": "Вода зараз",
   "journal.riverfishing.lw_wants": "просить %s",
-  "journal.riverfishing.lw_colour": "Колір",
   "journal.riverfishing.lw_layer": "Шар",
   "journal.riverfishing.lw_retrieve": "Проводка",
-  "journal.riverfishing.lw_any": "будь-який — фарбуйте",
   "journal.riverfishing.lw_surface": "поверхня",
   "journal.riverfishing.lw_depth": "у товщі",
   "journal.riverfishing.lw_strict": "РІВНО, 0.4–0.9 с",
@@ -1022,5 +1020,6 @@
   "journal.riverfishing.lw_size_head": "Вага принади → кого кличе",
   "lurecolor.riverfishing.natural": "натуральний",
   "lurecolor.riverfishing.bright": "яскравий",
-  "lurecolor.riverfishing.dark": "темний"
+  "lurecolor.riverfishing.dark": "темний",
+  "journal.riverfishing.lw_colour_note": "Колір — це барвник на принаді, а не сама принада: фарбується будь-яка в будь-який"
 }
