@@ -176,17 +176,27 @@ public class JournalScreen extends Screen {
             default -> new String[]{"journal.riverfishing.gt_item", "journal.riverfishing.gt_hooks",
                     "journal.riverfishing.gt_mass", "journal.riverfishing.gt_leader"};
         };
+        // §gear-width: the columns are measured from their OWN headings, not given a flat 62 px. At 62
+        // the Russian "Заметность" was wider than its column and ran into "Тест, кг", and what was left
+        // for the name was 66 px — every line read "Монолеска ...". Each column takes the width of its
+        // heading, the name gets what remains, and nothing has to be guessed per language.
         int cols = heads.length;
-        int nameW = wAll - (cols - 1) * 62;
+        int[] colW = new int[cols];
+        int used = 0;
+        for (int c = 1; c < cols; c++) {
+            colW[c] = Math.max(42, this.font.width(Component.translatable(heads[c])) + 10);
+            used += colW[c];
+        }
+        int nameW = Math.max(70, wAll - used);
         int head = top + 40;
-        for (int c = 0; c < cols; c++) {
+        g.drawString(this.font, Component.translatable(heads[0]), tableX, head, 0xFFB0842C, false);
+        int[] colRight = new int[cols];
+        int cx = tableX + nameW;
+        for (int c = 1; c < cols; c++) {
+            cx += colW[c];
+            colRight[c] = cx;
             Component label = Component.translatable(heads[c]);
-            if (c == 0) {
-                g.drawString(this.font, label, tableX, head, 0xFFB0842C, false);
-            } else {
-                int cx = tableX + nameW + c * 62;
-                g.drawString(this.font, label, cx - this.font.width(label), head, 0xFFB0842C, false);
-            }
+            g.drawString(this.font, label, cx - this.font.width(label), head, 0xFFB0842C, false);
         }
         g.fill(tableX, head + 10, tableX + wAll, head + 11, 0x33000000);
 
@@ -218,14 +228,15 @@ public class JournalScreen extends Screen {
             g.drawString(this.font, fitName(e.stack().getHoverName().getString(), nameW - 24),
                     tableX + 20, y + 4, hov ? 0xFF8A5A00 : GuiStyle.TEXT, false);
             String[] cells = gearCells(e, kind);
-            for (int c = 0; c < cells.length; c++) {
-                int cx = tableX + nameW + (c + 1) * 62;
-                g.drawString(this.font, cells[c], cx - this.font.width(cells[c]), y + 4,
+            for (int c = 0; c < cells.length && c + 1 < cols; c++) {
+                String cell = fitName(cells[c], colW[c + 1] - 4);
+                g.drawString(this.font, cell, colRight[c + 1] - this.font.width(cell), y + 4,
                         GuiStyle.TEXT_HINT, false);
             }
             y += 17;
         }
         lastCatH = (y + scroll) - contentTop;
+        lastViewH = contentBottom - contentTop;
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
         if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
@@ -389,6 +400,7 @@ public class JournalScreen extends Screen {
             y += 17;
         }
         lastCatH = (y + scroll) - contentTop;
+        lastViewH = contentBottom - contentTop;
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
         if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
@@ -507,6 +519,7 @@ public class JournalScreen extends Screen {
             y += 17;
         }
         lastCatH = (y + scroll) - contentTop;
+        lastViewH = contentBottom - contentTop;
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
         if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
@@ -709,6 +722,8 @@ public class JournalScreen extends Screen {
     private int catDetail = -1; // opened bait/gear entry index (in the current tab's list), or -1
     private int scroll;
     private int lastCatH;       // measured content height of the last catalog render (for scroll clamp)
+    /** Visible height of whatever the last render scrolled, so the wheel clamps to the RIGHT viewport. */
+    private int lastViewH = 1;
     /** §fish-list: which family column row is selected — 0 is "everything", the rest index {@link #families}. */
     private int family;
     /** §fish-search: what has been typed into the filter box, and whether it has the keyboard. */
@@ -1345,6 +1360,7 @@ public class JournalScreen extends Screen {
         }
         y = morphRow(g, sp, id, y);
         lastCatH = (y + scroll) - contentTop;
+        lastViewH = contentBottom - contentTop;
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
 
@@ -1527,6 +1543,7 @@ public class JournalScreen extends Screen {
             y += 15;
         }
         lastCatH = (y + scroll) - contentTop;
+        lastViewH = contentBottom - contentTop;
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
         if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
@@ -1616,6 +1633,7 @@ public class JournalScreen extends Screen {
             y += 8;
         }
         lastCatH = (y + scroll) - contentTop;
+        lastViewH = contentBottom - contentTop;
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
         if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
@@ -1691,6 +1709,7 @@ public class JournalScreen extends Screen {
         }
         if (col != 0) y += ROW_H;
         lastCatH = (y + scroll) - contentTop;
+        lastViewH = contentBottom - contentTop;
         g.disableScissor();
 
         int maxScroll = Math.max(0, lastCatH - visibleH);
@@ -1758,6 +1777,7 @@ public class JournalScreen extends Screen {
             dy = guideBars(g, e.id(), dy + 4);
             dy = guideTable(g, e.id(), dy + 4);
             lastCatH = (dy + scroll) - contentTop;
+            lastViewH = contentBottom - contentTop;
             g.disableScissor();
             renderScrollbar(g, contentTop, contentBottom);
             // §discord: a real button, pinned outside the scrolled area — a call to action that scrolls
@@ -1898,6 +1918,7 @@ public class JournalScreen extends Screen {
             y += 17;
         }
         lastCatH = (y + scroll) - contentTop;
+        lastViewH = contentBottom - contentTop;
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
     }
@@ -2257,12 +2278,19 @@ public class JournalScreen extends Screen {
                     Math.max(0, shown.size() - listRows()));
             return true;
         }
-        boolean scrollView = (tab != TAB_FISH && catDetail < 0) || (tab == TAB_FISH && detail != null);
-        if (scrollView) {
-            scroll = Mth.clamp(scroll - (int) (scrollY * 18), 0, Math.max(0, lastCatH - (H - 44)));
-            return true;
-        }
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        // §journal-scroll: everything except the fish list scrolls in pixels — INCLUDING a detail page.
+        //
+        // It used to read `catDetail < 0`, which excluded exactly the pages that need it most: every
+        // guide, every bait page, every gear page. They each measured their content and drew a
+        // scrollbar, and then the wheel refused to move them, so anything past the bottom of the
+        // parchment was simply unreachable. A page that renders a scrollbar and will not scroll is the
+        // clearest possible statement that the two halves were never asked to agree.
+        //
+        // The clamp uses the viewport the LAST RENDER actually measured rather than a hardcoded H-44:
+        // the guide page, the catalog and the species page each start at a different y, so one constant
+        // was wrong for at least two of them — cutting some pages short and letting others overscroll.
+        scroll = Mth.clamp(scroll - (int) (scrollY * 18), 0, Math.max(0, lastCatH - lastViewH));
+        return true;
     }
 
     /** §fish-search: characters go to the filter box while it holds the keyboard, and nowhere else. */
