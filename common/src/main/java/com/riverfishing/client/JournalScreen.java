@@ -104,6 +104,65 @@ public class JournalScreen extends Screen {
     private record Cat(ItemStack stack, Kind kind, String id) {}
 
     /** A pantry id → its item. Bare ids are this mod's; the rest name their namespace, as vanilla's do. */
+    /** The line under a section heading saying what that whole shelf is for. Null where it needs none. */
+    private static String sectionNote(Kind k) {
+        return switch (k) {
+            case NATURAL -> "journal.riverfishing.note_natural";
+            case LURE -> "journal.riverfishing.note_lure";
+            case GROUNDBAIT -> "journal.riverfishing.note_groundbait";
+            case GB_PART -> "journal.riverfishing.note_gbpart";
+            default -> null;
+        };
+    }
+
+    /**
+     * §gb-pull: of all the fish that answer to this ingredient, how much of that pull is predatory.
+     *
+     * <p>Weighted by how strongly each species wants it, so an ingredient one pike loves and six roach
+     * merely tolerate reads as predatory, which is what it is. Peaceful here means the cyprinids, the koi
+     * and the sturgeons; everything else hunts. Returns -1 when no fish answers to it at all — ballast.
+     */
+    private float predatorPull(String diet) {
+        if (diet == null) return -1f;
+        double total = 0, predator = 0;
+        for (String sp : SPECIES) {
+            Float score = card(sp).baits().get(diet);
+            if (score == null || score <= 0) continue;
+            total += score;
+            if (!PEACEFUL.contains(card(sp).group())) predator += score;
+        }
+        return total <= 0 ? -1f : (float) (predator / total);
+    }
+
+    private static final java.util.Set<String> PEACEFUL = java.util.Set.of(
+            com.riverfishing.fish.FishGroup.CYPRINID,
+            com.riverfishing.fish.FishGroup.KOI,
+            com.riverfishing.fish.FishGroup.STURGEON);
+
+    /** The species that want this ingredient, keenest first — the honest answer to "who is this for". */
+    private List<String> fishForDiet(String diet, int limit) {
+        if (diet == null) return List.of();
+        List<String> out = new ArrayList<>();
+        for (String sp : SPECIES) {
+            Float score = card(sp).baits().get(diet);
+            if (score != null && score >= 0.5f) out.add(sp);
+        }
+        out.sort((a, b) -> Float.compare(card(b).baits().getOrDefault(diet, 0f),
+                card(a).baits().getOrDefault(diet, 0f)));
+        return out.subList(0, Math.min(limit, out.size())).stream()
+                .map(sp -> Component.translatable("fish.riverfishing." + sp).getString())
+                .collect(Collectors.toList());
+    }
+
+    /** A peaceful ◄──► predatory needle. Drawn, not worded, because it is a position on a line. */
+    private void pullBar(GuiGraphics g, int x, int y, int w, float pull) {
+        g.fill(x, y, x + w, y + 4, 0xFF1E1610);
+        g.fill(x, y, x + w / 2, y + 4, 0xFF3F5E2E);          // peaceful half, green
+        g.fill(x + w / 2, y, x + w, y + 4, 0xFF5E2E2E);      // predatory half, red
+        int nx = x + (int) (w * Mth.clamp(pull, 0f, 1f));
+        g.fill(Math.min(nx, x + w - 2), y - 2, Math.min(nx, x + w - 2) + 2, y + 6, 0xFFF0E6CD);
+    }
+
     private static ItemStack pantryStack(String id) {
         ResourceLocation rl = ResourceLocation.tryParse(id.contains(":") ? id : RiverFishing.MODID + ":" + id);
         if (rl == null) return ItemStack.EMPTY;
@@ -1091,7 +1150,15 @@ public class JournalScreen extends Screen {
                 if (i != 0) y += 3;
                 section = e.kind();
                 g.drawString(this.font, Component.translatable(sectionKey(section)), left + 10, y, 0xFFB0842C, false);
-                y += 12;
+                y += 10;
+                // §section-note: what the whole shelf is FOR. "Natural bait" does not tell a player that
+                // the same worm goes on the hook and into the mix, and nothing else on the page did either.
+                String note = sectionNote(section);
+                if (note != null && I18n.exists(note)) {
+                    g.drawString(this.font, Component.translatable(note), left + 10, y, GuiStyle.GHOST, false);
+                    y += 10;
+                }
+                y += 2;
             }
             int x = left + 10 + col * catColW;
             catRects[i][0] = x;
@@ -1135,13 +1202,34 @@ public class JournalScreen extends Screen {
             ry = railHead(g, "journal.riverfishing.stat_groundbait", rx, ry, 166);
             ry = gauge(g, "journal.riverfishing.stat_grind", (float) comp.fraction(), rx, ry, 166, 0xFF8A6E3C);
             ry = gauge(g, "journal.riverfishing.stat_richness", (float) comp.nutrition(), rx, ry, 166, 0xFF6E8A3C);
-            // The diet is what the engine ASKS the fish about — a component with none is pure ballast or
-            // pure flavour, and saying so is the difference between "no data" and "no opinion".
-            railLine(g, "journal.riverfishing.gb_reads_as",
-                    comp.diet() == null
-                            ? Component.translatable("journal.riverfishing.gb_ballast").getString()
-                            : Component.translatable("item.riverfishing." + comp.diet()).getString(),
-                    rx, ry, 166);
+            // §gb-attracts: this used to print "reads as dough", which is the engine's internal wiring
+            // said out loud — a player reads it as "potato IS dough" and is right to be baffled. What
+            // they actually want to know is who turns up, so name the fish.
+            float pull = predatorPull(comp.diet());
+            if (pull < 0) {
+                railLine(g, "journal.riverfishing.gb_appeal",
+                        Component.translatable("journal.riverfishing.gb_ballast").getString(), rx, ry, 166);
+            } else {
+                g.drawString(this.font, Component.translatable("journal.riverfishing.gb_pull"),
+                        rx, ry, GuiStyle.TEXT_HINT, false);
+                ry += 11;
+                pullBar(g, rx, ry + 2, 166, pull);
+                ry += 12;
+                g.drawString(this.font, Component.translatable("journal.riverfishing.gb_peaceful"),
+                        rx, ry, GuiStyle.GHOST, false);
+                Component pr = Component.translatable("journal.riverfishing.gb_predatory");
+                g.drawString(this.font, pr, rx + 166 - this.font.width(pr), ry, GuiStyle.GHOST, false);
+                ry += 14;
+                g.drawString(this.font, Component.translatable("journal.riverfishing.gb_attracts"),
+                        rx, ry, GuiStyle.TEXT_HINT, false);
+                ry += 11;
+                String who = String.join(", ", fishForDiet(comp.diet(), 8));
+                for (net.minecraft.util.FormattedCharSequence seq
+                        : this.font.split(Component.literal(who.isEmpty() ? "—" : who), 166)) {
+                    g.drawString(this.font, seq, rx, ry, GuiStyle.TEXT, false);
+                    ry += 10;
+                }
+            }
         }
 
         // §guide-page (0.5.0): a guide is a TEXT page — no giant icon, no "how to craft" of whatever
@@ -1197,6 +1285,15 @@ public class JournalScreen extends Screen {
             }
         }
 
+        // §gb-table: the base's own page carries the whole pantry, because "what can I put in this"
+        // is the only question anyone opens the base to ask. Scrollable — it is twenty-six rows.
+        if (e.kind() == Kind.GROUNDBAIT) {
+            renderPantryTable(g);
+            g.drawString(this.font, Component.translatable("guide.riverfishing.back"),
+                    left + 10, top + H - 14, GuiStyle.GHOST, false);
+            return;
+        }
+
         int y = top + 148;
         y = obtainRender(g, y, e.stack()) + 4;
 
@@ -1217,6 +1314,60 @@ public class JournalScreen extends Screen {
         }
         g.drawString(this.font, Component.translatable("guide.riverfishing.back"),
                 left + 10, top + H - 14, GuiStyle.GHOST, false);
+    }
+
+    /**
+     * §gb-table: every component of a mix, with what it does to one.
+     *
+     * <p>Four columns, because four things decide whether an ingredient belongs in your jar: how rich it
+     * is, how coarse it is, and which way it pulls the swim. The numbers are the pantry's own — the same
+     * map the engine averages when it scores a fed spot — so this table cannot drift from the game.
+     */
+    private void renderPantryTable(GuiGraphics g) {
+        int x = left + 10, wAll = W - 26;
+        int nameW = wAll - 40 - 40 - 96;
+        int nutX = x + nameW, fracX = nutX + 40, pullX = fracX + 40;
+
+        int head = top + 62;
+        g.drawString(this.font, Component.translatable("journal.riverfishing.gb_col_part"), x, head,
+                0xFFB0842C, false);
+        drawRight(g, Component.translatable("journal.riverfishing.gb_col_rich"), nutX + 34, head, 0xFFB0842C);
+        drawRight(g, Component.translatable("journal.riverfishing.gb_col_grind"), fracX + 34, head, 0xFFB0842C);
+        g.drawString(this.font, Component.translatable("journal.riverfishing.gb_col_pull"), pullX, head,
+                0xFFB0842C, false);
+        g.fill(x, head + 10, x + wAll, head + 11, 0x33000000);
+
+        int contentTop = head + 14, contentBottom = top + H - 18;
+        scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - (contentBottom - contentTop)));
+        scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
+        int y = contentTop - scroll;
+        for (com.riverfishing.groundbait.GroundbaitMix.Component c
+                : com.riverfishing.groundbait.GroundbaitMix.PANTRY.values()) {
+            ItemStack stack = pantryStack(c.id());
+            if (stack.isEmpty()) continue;
+            g.renderItem(stack, x, y - 1);
+            g.drawString(this.font, fitName(stack.getHoverName().getString(), nameW - 22), x + 20, y + 3,
+                    GuiStyle.TEXT, false);
+            drawRight(g, Component.literal(String.format(java.util.Locale.ROOT, "%.2f", c.nutrition())),
+                    nutX + 34, y + 3, GuiStyle.TEXT_HINT);
+            drawRight(g, Component.literal(String.format(java.util.Locale.ROOT, "%.2f", c.fraction())),
+                    fracX + 34, y + 3, GuiStyle.TEXT_HINT);
+            float pull = predatorPull(c.diet());
+            if (pull < 0) {
+                g.drawString(this.font, Component.translatable("journal.riverfishing.gb_ballast_short"),
+                        pullX, y + 3, GuiStyle.GHOST, false);
+            } else {
+                pullBar(g, pullX, y + 5, 90, pull);
+            }
+            y += 17;
+        }
+        lastCatH = (y + scroll) - contentTop;
+        g.disableScissor();
+        renderScrollbar(g, contentTop, contentBottom);
+    }
+
+    private void drawRight(GuiGraphics g, Component text, int rightX, int y, int colour) {
+        g.drawString(this.font, text, rightX - this.font.width(text), y, colour, false);
     }
 
     /**
@@ -1349,6 +1500,7 @@ public class JournalScreen extends Screen {
             case LURE -> "journal.riverfishing.sec_lure";
             case GROUNDBAIT -> "journal.riverfishing.sec_groundbait";
             case GB_PART -> "journal.riverfishing.sec_gbpart";
+            // (notes for these live in sectionNote below)
             case ROD -> "journal.riverfishing.sec_rod";
             case REEL -> "journal.riverfishing.sec_reel";
             case LINE -> "journal.riverfishing.sec_line";
