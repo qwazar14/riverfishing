@@ -95,7 +95,16 @@ public class JournalScreen extends Screen {
     private final List<Cat> guideCat = new ArrayList<>();
 
     /** §guide (0.5.0): a how-to entry — an icon carrying the guide title, text from guide.riverfishing.<id>. */
+    /**
+     * §guide-order (0.8.0): which progression group a page sits under. The groups follow the mod's OWN
+     * quest stages, so the words a player reads on the quest tab and on the guide shelf are the same
+     * words — an order invented here would have been a second opinion about the same journey.
+     */
+    private final java.util.Map<String, Integer> guideGroup = new java.util.HashMap<>();
+    private int guideGroupNow;
+
     private void addGuide(String id, ItemStack icon) {
+        guideGroup.put(id, guideGroupNow);
         icon.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
                 Component.translatable("guide.riverfishing." + id + ".title")
                         .withStyle(s -> s.withItalic(false)));
@@ -354,6 +363,77 @@ public class JournalScreen extends Screen {
         if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
     }
 
+    /**
+     * §guide-visual (0.8.0): a guide page may carry a TABLE and a set of BARS, and both are written in
+     * the lang file rather than in code.
+     *
+     * <p>{@code guide.riverfishing.<id>.table} is rows separated by newlines and cells by "|", the first
+     * row being the heading. {@code .bars} is "label|0.0-1.0" per line. Neither key has to exist.
+     *
+     * <p>Doing it this way is the whole point: adding a table to a page is then a TRANSLATION job, done
+     * once in three languages, instead of a new render method per page that only English would ever get.
+     */
+    private int guideTable(GuiGraphics g, String id, int y) {
+        String key = "guide.riverfishing." + id + ".table";
+        if (!I18n.exists(key)) return y;
+        String[] rows = I18n.get(key).split("\n");
+        int cols = 0;
+        for (String r : rows) cols = Math.max(cols, r.split("\\|").length);
+        if (cols == 0) return y;
+        int wAll = W - 24, colW = wAll / cols;
+        for (int r = 0; r < rows.length; r++) {
+            String[] cells = rows[r].split("\\|");
+            boolean head = r == 0;
+            for (int c = 0; c < cells.length; c++) {
+                String cell = fitName(cells[c].trim(), colW - 6);
+                int cx = left + 10 + c * colW;
+                // First column left, the rest right — numbers line up, names stay readable.
+                if (c > 0) cx += colW - this.font.width(cell) - 6;
+                g.drawString(this.font, cell, cx, y, head ? 0xFFB0842C : GuiStyle.TEXT, false);
+            }
+            y += 11;
+            if (head) {
+                g.fill(left + 10, y - 1, left + 10 + wAll, y, 0x33000000);
+                y += 2;
+            }
+        }
+        return y;
+    }
+
+    private int guideBars(GuiGraphics g, String id, int y) {
+        String key = "guide.riverfishing." + id + ".bars";
+        if (!I18n.exists(key)) return y;
+        List<Param> rows = new ArrayList<>();
+        for (String line : I18n.get(key).split("\n")) {
+            String[] kv = line.split("\\|");
+            if (kv.length < 2) continue;
+            float v;
+            try {
+                v = Float.parseFloat(kv[1].trim());
+            } catch (NumberFormatException ignored) {
+                continue;   // a mistranslated number must not take the page down with it
+            }
+            rows.add(new Param(kv[0].trim(), v, lerpColour(0xFF6E8A3C, 0xFF9A4A3C, v)));
+        }
+        return rows.isEmpty() ? y : paramTableLiteral(g, left + 10, y, W - 24, rows);
+    }
+
+    /** {@link #paramTable} for rows whose labels are already text, not lang keys. */
+    private int paramTableLiteral(GuiGraphics g, int x, int y, int w, List<Param> rows) {
+        int labelW = 0;
+        for (Param p : rows) labelW = Math.max(labelW, this.font.width(p.key()));
+        labelW = Math.min(labelW + 8, w - 80);
+        int barX = x + labelW, barW = w - labelW - 34;
+        for (Param p : rows) {
+            g.drawString(this.font, p.key(), x, y, GuiStyle.TEXT_HINT, false);
+            bar(g, barX, y + 2, barW, 4, p.value(), p.colour());
+            String num = String.format(java.util.Locale.ROOT, "%.2f", p.value());
+            g.drawString(this.font, num, x + w - this.font.width(num), y, GuiStyle.TEXT, false);
+            y += 12;
+        }
+        return y;
+    }
+
     /** A yes/no column: a tick when it is true, a quiet dash when it is not. */
     private void tick(GuiGraphics g, int rightX, int y, boolean on) {
         Component c = Component.literal(on ? "✔" : "—");
@@ -546,50 +626,47 @@ public class JournalScreen extends Screen {
                 .thenComparingDouble(JournalScreen::gearSortKey)
                 .thenComparing(e -> e.stack().getHoverName().getString()));
 
-        // §guide (0.5.0): the how-to shelf — mechanics that deserve a page, newest first.
-        // §wait-guide: FIRST on purpose. The drag page below defines RMB as "crank" with no
-        // rod-class qualifier, and three pages teach cranking — a float/bottom angler has to meet
-        // "do not crank this rod" before any of that.
+        // §guide-order (0.8.0): the shelf follows the mod's OWN quest stages. It used to be "newest
+        // first", which is an order about the changelog: a player on their first evening met the drag,
+        // trolling and big game before they had a rod that could do any of it. Each block below is a
+        // moment in the same journey the quests already describe.
+
+        guideGroupNow = 0;   // first casts
+        // §wait-guide: FIRST on purpose. Three pages teach cranking, and a float/bottom angler has to
+        // meet "do not crank this rod" before any of them.
         addGuide("waiting", modStack("bottom_rod"));
-        addGuide("drag", modStack("reel_7000"));
-        addGuide("lurework", modStack("wobbler"));
+        addGuide("spook", new ItemStack(net.minecraft.world.item.Items.LEATHER_BOOTS));
         addGuide("stress", modStack("line_mono_030"));
-        addGuide("livebait", modStack("livebait"));
-        // §groundbait-guide: the mod's biggest system finally has a page in its own book. Two, because
-        // mixing and feeding are two decisions learned at two different moments — one at a bench with
-        // time to read, one at the water with a rod in hand. Right after the bait page: these are the
-        // other thing that goes in the water, the part that is not on the hook.
-        // FOUR pages, because feeding is four separate decisions a player makes at four different
-        // moments: what the jar IS, what the numbers mean, how to put it in the water, and — for anyone
-        // who would rather copy than derive — what to actually mix. Splitting them is what lets each one
-        // be short enough to read standing at the water.
+        addGuide("drag", modStack("reel_7000"));
+
+        guideGroupNow = 1;   // float and feeder — where groundbait is learned
         addGuide("groundbait", modStack("groundbait_powder"));
         addGuide("gbnumbers", modStack("corn"));
         addGuide("feeding", modStack("groundbait_soil"));
         addGuide("gbrecipes", modStack("boilie"));
+        addGuide("keepnet", modStack("keepnet_medium"));
+
+        guideGroupNow = 2;   // predators
+        addGuide("lurework", modStack("wobbler"));
         addGuide("topwater", modStack("popper"));
+        addGuide("livebait", modStack("livebait"));
+
+        guideGroupNow = 3;   // the bench, and where the tackle lives
+        addGuide("tacklebench", modStack("fishing_stall"));
+        addGuide("tacklebox", modStack("tackle_box_medium"));
+
+        guideGroupNow = 4;   // reading the water, and what to do with a catch
+        addGuide("community", modStack("fish_finder"));
+        addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
+        addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
+
+        guideGroupNow = 5;   // the sea, and the fish that need a boat
         addGuide("trolling", modStack("trolling_rod"));
         addGuide("biggame", modStack("yellowfin_tuna"));
         addGuide("legendary", modStack("blue_marlin"));
-        addGuide("community", modStack("fish_finder"));
-        // §spook: right after the population page — one says what lives here, the other says why it will
-        // not come near you. Boots, because the whole mechanic is about how you walk up to the water.
-        addGuide("spook", new ItemStack(net.minecraft.world.item.Items.LEATHER_BOOTS));
-        // §keepnet: the catch, then §tackle-box: the tackle. Two boxes, two pages, side by side.
-        addGuide("keepnet", modStack("keepnet_medium"));
-        addGuide("tacklebench", modStack("fishing_stall"));
-        // §tackle-box: next to the bench, because they are the same subject — one ties the tackle, the
-        // other is where it lives afterwards.
-        addGuide("tacklebox", modStack("tackle_box_medium"));
-        addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
-        addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
-        // §cull: after every page that teaches fishing, because this one is not for anglers — it is the
-        // operator's tool, and a survival player will never hold it. Still documented here rather than
-        // nowhere: the person who needs it is reading this book on a server they run.
+
+        guideGroupNow = 6;   // not for anglers: whoever runs the world, and where to shout
         addGuide("cull", modStack("electro_rod"));
-        // §discord: last on the shelf on purpose — every other page teaches a mechanic, this one is where
-        // to go when one of them misbehaves. Note the id is NOT "community": that is taken by the guide
-        // about a water's own fish population.
         addGuide("discord", new ItemStack(net.minecraft.world.item.Items.PLAYER_HEAD));
 
         catRects = new int[Math.max(guideCat.size(), Math.max(baitCat.size(), gearCat.size()))][2];
@@ -1425,14 +1502,23 @@ public class JournalScreen extends Screen {
         int y = contentTop - scroll;
         int col = 0;
         Kind section = null;
+        // §guide-order: the guide shelf is all one Kind, so it breaks on its PROGRESSION GROUP instead.
+        // Everything else still breaks on kind; one variable, two meanings of "a new heading is due".
+        int gsection = -1;
         List<Component> tooltip = null;
         for (int i = 0; i < list.size(); i++) {
             Cat e = list.get(i);
-            if (e.kind() != section) {
+            int gnow = guideGroup.getOrDefault(e.id(), -1);
+            boolean newSection = tab == TAB_GUIDE ? gnow != gsection : e.kind() != section;
+            if (newSection) {
                 if (col != 0) { y += ROW_H; col = 0; }
                 if (i != 0) y += 3;
                 section = e.kind();
-                g.drawString(this.font, Component.translatable(sectionKey(section)), left + 10, y, 0xFFB0842C, false);
+                gsection = gnow;
+                Component headText = tab == TAB_GUIDE
+                        ? Component.translatable("guidegroup.riverfishing." + gnow)
+                        : Component.translatable(sectionKey(section));
+                g.drawString(this.font, headText, left + 10, y, 0xFFB0842C, false);
                 y += 12;
             }
             int x = left + 10 + col * catColW;
@@ -1512,6 +1598,8 @@ public class JournalScreen extends Screen {
                 g.drawString(this.font, seq, left + 10, dy, GuiStyle.TEXT, false);
                 dy += 12;
             }
+            dy = guideBars(g, e.id(), dy + 4);
+            dy = guideTable(g, e.id(), dy + 4);
             lastCatH = (dy + scroll) - contentTop;
             g.disableScissor();
             renderScrollbar(g, contentTop, contentBottom);

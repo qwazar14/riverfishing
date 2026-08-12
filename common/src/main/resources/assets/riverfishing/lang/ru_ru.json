@@ -1021,5 +1021,16 @@
   "lurecolor.riverfishing.natural": "натуральный",
   "lurecolor.riverfishing.bright": "яркий",
   "lurecolor.riverfishing.dark": "тёмный",
-  "journal.riverfishing.lw_colour_note": "Цвет — это краситель на приманке, а не сама приманка: красится любая в любой"
+  "journal.riverfishing.lw_colour_note": "Цвет — это краситель на приманке, а не сама приманка: красится любая в любой",
+  "guidegroup.riverfishing.0": "Первые забросы",
+  "guidegroup.riverfishing.1": "Поплавок и фидер",
+  "guidegroup.riverfishing.2": "Хищник",
+  "guidegroup.riverfishing.3": "Верстак",
+  "guidegroup.riverfishing.4": "Читать воду",
+  "guidegroup.riverfishing.5": "Море",
+  "guidegroup.riverfishing.6": "Тому, кто держит мир",
+  "guide.riverfishing.lurework.table": "Приманка|Темп|Окно\nВоблер, кренк|ровно|0.4-0.9 с\nБлесна, колебалка, джиг, силикон|любой|0.25-1.5 с\nПоппер|рывок - пауза|своё\nЗажать ПКМ|слишком быстро|поклёвок нет",
+  "guide.riverfishing.gbnumbers.table": "Смесь|Потолок\nЧистая базовая|0.48\nБаза + один сытный|0.65\nБаза + три, сытная|0.85\nБаза + четыре, сытная|1.00",
+  "guide.riverfishing.gbnumbers.bars": "Уклейке нужен помол|0.14\nПлотва|0.31\nЛещ|0.56\nКарп|0.73\nБойлы это|1.00",
+  "guide.riverfishing.topwater.table": "|Поппер|Всё остальное\nГде работает|поверхность|в толще\nОкно на подсечку|35 тиков|60 тиков\nПроводка|рывок - пауза|не останавливая"
 }

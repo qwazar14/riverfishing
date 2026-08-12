@@ -1021,5 +1021,16 @@
   "lurecolor.riverfishing.natural": "natural",
   "lurecolor.riverfishing.bright": "bright",
   "lurecolor.riverfishing.dark": "dark",
-  "journal.riverfishing.lw_colour_note": "Colour is the dye on a lure, not the lure — any of these takes any colour"
+  "journal.riverfishing.lw_colour_note": "Colour is the dye on a lure, not the lure — any of these takes any colour",
+  "guidegroup.riverfishing.0": "First casts",
+  "guidegroup.riverfishing.1": "Float & feeder",
+  "guidegroup.riverfishing.2": "Predators",
+  "guidegroup.riverfishing.3": "The bench",
+  "guidegroup.riverfishing.4": "Reading the water",
+  "guidegroup.riverfishing.5": "The sea",
+  "guidegroup.riverfishing.6": "Whoever runs the world",
+  "guide.riverfishing.lurework.table": "Lure|Cadence|Window\nWobbler, crankbait|steady|0.4-0.9 s\nSpinner, spoon, jig, soft plastic|any|0.25-1.5 s\nPopper|pop - pause|its own\nHeld right-click|too fast|no takes",
+  "guide.riverfishing.gbnumbers.table": "Mix|Ceiling\nPlain base, no additives|0.48\nBase + one rich component|0.65\nBase + three, rich|0.85\nBase + four, rich|1.00",
+  "guide.riverfishing.gbnumbers.bars": "Bleak wants a grind of|0.14\nRoach|0.31\nBream|0.56\nCarp|0.73\nBoilies are|1.00",
+  "guide.riverfishing.topwater.table": "|Popper|Anything else\nWhere it works|the surface|in the water\nHook-set window|35 ticks|60 ticks\nRetrieve|pop - pause - pop|keep it moving"
 }

@@ -1021,5 +1021,16 @@
   "lurecolor.riverfishing.natural": "натуральний",
   "lurecolor.riverfishing.bright": "яскравий",
   "lurecolor.riverfishing.dark": "темний",
-  "journal.riverfishing.lw_colour_note": "Колір — це барвник на принаді, а не сама принада: фарбується будь-яка в будь-який"
+  "journal.riverfishing.lw_colour_note": "Колір — це барвник на принаді, а не сама принада: фарбується будь-яка в будь-який",
+  "guidegroup.riverfishing.0": "Перші закиди",
+  "guidegroup.riverfishing.1": "Поплавок і фідер",
+  "guidegroup.riverfishing.2": "Хижак",
+  "guidegroup.riverfishing.3": "Верстат",
+  "guidegroup.riverfishing.4": "Читати воду",
+  "guidegroup.riverfishing.5": "Море",
+  "guidegroup.riverfishing.6": "Тому, хто тримає світ",
+  "guide.riverfishing.lurework.table": "Принада|Темп|Вікно\nВоблер, кренк|рівно|0.4-0.9 с\nБлешня, коливалка, джиґ, силікон|будь-який|0.25-1.5 с\nПоппер|ривок - пауза|своє\nЗатиснути ПКМ|занадто швидко|поклювок немає",
+  "guide.riverfishing.gbnumbers.table": "Суміш|Стеля\nЧиста базова|0.48\nБаза + один ситний|0.65\nБаза + три, ситна|0.85\nБаза + чотири, ситна|1.00",
+  "guide.riverfishing.gbnumbers.bars": "Верховодці потрібен помел|0.14\nПлітка|0.31\nЛящ|0.56\nКороп|0.73\nБойли це|1.00",
+  "guide.riverfishing.topwater.table": "|Поппер|Усе інше\nДе працює|поверхня|у товщі\nВікно на підсікання|35 тиків|60 тиків\nПроводка|ривок - пауза|не зупиняючи"
 }
