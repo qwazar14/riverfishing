@@ -998,14 +998,11 @@
   "journal.riverfishing.note_lure": "Только для АКТИВНЫХ удилищ: спиннинг, ультралайт, морской спиннинг, троллинг",
   "journal.riverfishing.note_groundbait": "Основа любой смеси. Откройте — внутри вся таблица компонентов",
   "journal.riverfishing.note_gbpart": "Только в смесь — на крючок не идут",
-  "journal.riverfishing.gb_appeal": "Привлекает",
-  "journal.riverfishing.gb_pull": "Тянет к",
-  "journal.riverfishing.gb_peaceful": "мирной",
-  "journal.riverfishing.gb_predatory": "хищной",
-  "journal.riverfishing.gb_attracts": "Кого собирает",
+  "journal.riverfishing.gb_attracts": "Кого привлекает",
   "journal.riverfishing.gb_ballast_short": "балласт",
   "journal.riverfishing.gb_col_part": "Компонент",
   "journal.riverfishing.gb_col_rich": "Питат.",
   "journal.riverfishing.gb_col_grind": "Фракц.",
-  "journal.riverfishing.gb_col_pull": "Тянет к"
+  "journal.riverfishing.gb_col_pull": "Хищн.",
+  "journal.riverfishing.gb_predation": "Хищность"
 }

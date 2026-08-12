@@ -154,13 +154,50 @@ public class JournalScreen extends Screen {
                 .collect(Collectors.toList());
     }
 
-    /** A peaceful ◄──► predatory needle. Drawn, not worded, because it is a position on a line. */
-    private void pullBar(GuiGraphics g, int x, int y, int w, float pull) {
-        g.fill(x, y, x + w, y + 4, 0xFF1E1610);
-        g.fill(x, y, x + w / 2, y + 4, 0xFF3F5E2E);          // peaceful half, green
-        g.fill(x + w / 2, y, x + w, y + 4, 0xFF5E2E2E);      // predatory half, red
-        int nx = x + (int) (w * Mth.clamp(pull, 0f, 1f));
-        g.fill(Math.min(nx, x + w - 2), y - 2, Math.min(nx, x + w - 2) + 2, y + 6, 0xFFF0E6CD);
+    /**
+     * §gb-pull: peaceful at 0, predatory at 1, and the bar carries that in its COLOUR.
+     *
+     * <p>The first cut drew a split green/red track with a needle on it and a caption at each end. It
+     * needed three rows and a legend to say one number, and it did not look like the two rows above it —
+     * which is the whole reason it read badly. It is one value between nought and one, so it gets the
+     * same row every other value gets.
+     */
+    private static int pullColour(float pull) {
+        return lerpColour(0xFF3F7E2E, 0xFF9A3C2E, Mth.clamp(pull, 0f, 1f));
+    }
+
+    private static int lerpColour(int a, int b, float t) {
+        int r = (int) (((a >> 16) & 0xFF) + (((b >> 16) & 0xFF) - ((a >> 16) & 0xFF)) * t);
+        int g2 = (int) (((a >> 8) & 0xFF) + (((b >> 8) & 0xFF) - ((a >> 8) & 0xFF)) * t);
+        int bl = (int) ((a & 0xFF) + ((b & 0xFF) - (a & 0xFF)) * t);
+        return 0xFF000000 | (r << 16) | (g2 << 8) | bl;
+    }
+
+    /** One row of a parameter table: {@code label ──[bar]── value}, all three on the same line. */
+    private record Param(String key, float value, int colour) {}
+
+    /**
+     * A block of parameters as an actual TABLE — labels in one column, bars in the next, numbers
+     * right-aligned in the last, every row on one line and every column the same width down the block.
+     *
+     * <p>Each parameter used to take two lines: label and number on one, a full-width bar under it. Three
+     * of those in a row is six lines of drifting left edges, which is what "unstructured" looked like.
+     * The label column is measured from the strings themselves, so Russian and English both line up.
+     */
+    private int paramTable(GuiGraphics g, int x, int y, int w, List<Param> rows) {
+        int labelW = 0;
+        for (Param p : rows) labelW = Math.max(labelW, this.font.width(Component.translatable(p.key())));
+        labelW = Math.min(labelW + 6, w - 70);
+        int numW = 26;
+        int barX = x + labelW, barW = w - labelW - numW - 4;
+        for (Param p : rows) {
+            g.drawString(this.font, Component.translatable(p.key()), x, y, GuiStyle.TEXT_HINT, false);
+            bar(g, barX, y + 2, barW, 4, p.value(), p.colour());
+            String num = String.format(java.util.Locale.ROOT, "%.2f", p.value());
+            g.drawString(this.font, num, x + w - this.font.width(num), y, GuiStyle.TEXT, false);
+            y += 12;
+        }
+        return y;
     }
 
     private static ItemStack pantryStack(String id) {
@@ -854,9 +891,9 @@ public class JournalScreen extends Screen {
         y += 14;
 
         y = railHead(g, "journal.riverfishing.stat_groundbait", x, y, w);
-        y = gauge(g, "journal.riverfishing.stat_grind", c.grind(), x, y, w, 0xFF8A6E3C);
-        y = gauge(g, "journal.riverfishing.stat_richness", c.richness(), x, y, w, 0xFF6E8A3C);
-        y += 4;
+        y = paramTable(g, x, y, w, List.of(
+                new Param("journal.riverfishing.stat_grind", c.grind(), 0xFF8A6E3C),
+                new Param("journal.riverfishing.stat_richness", c.richness(), 0xFF6E8A3C))) + 4;
 
         y = railHead(g, "journal.riverfishing.stat_habitat", x, y, w);
         y = railLine(g, "journal.riverfishing.stat_depth", range(c.depthMin(), c.depthMax(), 999), x, y, w);
@@ -873,8 +910,9 @@ public class JournalScreen extends Screen {
         y += 4;
 
         y = railHead(g, "journal.riverfishing.stat_fight", x, y, w);
-        y = gauge(g, "journal.riverfishing.stat_strength", c.fightStrength(), x, y, w, 0xFF9A4A3C);
-        y = gauge(g, "journal.riverfishing.stat_stamina", c.fightStamina(), x, y, w, 0xFF3C6E9A);
+        y = paramTable(g, x, y, w, List.of(
+                new Param("journal.riverfishing.stat_strength", c.fightStrength(), 0xFF9A4A3C),
+                new Param("journal.riverfishing.stat_stamina", c.fightStamina(), 0xFF3C6E9A))) + 2;
         y = railLine(g, "journal.riverfishing.stat_runs", Integer.toString(c.fightRuns()), x, y, w);
         y = railLine(g, "journal.riverfishing.stat_pattern",
                 Component.translatable("fightpattern.riverfishing." + c.fightPattern()).getString(), x, y, w);
@@ -905,15 +943,6 @@ public class JournalScreen extends Screen {
         return y;
     }
 
-    /** A 0..1 trait as a named bar with the number beside it — grind, richness, strength, stamina. */
-    private int gauge(GuiGraphics g, String key, float v, int x, int y, int w, int colour) {
-        Component label = Component.translatable(key);
-        g.drawString(this.font, label, x, y, GuiStyle.TEXT_HINT, false);
-        String num = String.format(java.util.Locale.ROOT, "%.2f", v);
-        g.drawString(this.font, num, x + w - this.font.width(num), y, GuiStyle.TEXT, false);
-        bar(g, x, y + 10, w, 3, v, colour);
-        return y + 16;
-    }
 
     /** "3–8", "4+" or "up to 40" — an open end is stated as open rather than as 999. */
     private static String range(int min, int max, int unbounded) {
@@ -1200,35 +1229,27 @@ public class JournalScreen extends Screen {
         if (comp != null && e.kind() != Kind.GUIDE) {
             int rx = left + W - 176, ry = top + 22;
             ry = railHead(g, "journal.riverfishing.stat_groundbait", rx, ry, 166);
-            ry = gauge(g, "journal.riverfishing.stat_grind", (float) comp.fraction(), rx, ry, 166, 0xFF8A6E3C);
-            ry = gauge(g, "journal.riverfishing.stat_richness", (float) comp.nutrition(), rx, ry, 166, 0xFF6E8A3C);
+            float pullOf = predatorPull(comp.diet());
+            List<Param> rows = new ArrayList<>();
+            rows.add(new Param("journal.riverfishing.stat_grind", (float) comp.fraction(), 0xFF8A6E3C));
+            rows.add(new Param("journal.riverfishing.stat_richness", (float) comp.nutrition(), 0xFF6E8A3C));
+            if (pullOf >= 0) {
+                rows.add(new Param("journal.riverfishing.gb_predation", pullOf, pullColour(pullOf)));
+            }
+            ry = paramTable(g, rx, ry, 166, rows) + 4;
             // §gb-attracts: this used to print "reads as dough", which is the engine's internal wiring
             // said out loud — a player reads it as "potato IS dough" and is right to be baffled. What
             // they actually want to know is who turns up, so name the fish.
-            float pull = predatorPull(comp.diet());
-            if (pull < 0) {
-                railLine(g, "journal.riverfishing.gb_appeal",
-                        Component.translatable("journal.riverfishing.gb_ballast").getString(), rx, ry, 166);
-            } else {
-                g.drawString(this.font, Component.translatable("journal.riverfishing.gb_pull"),
-                        rx, ry, GuiStyle.TEXT_HINT, false);
-                ry += 11;
-                pullBar(g, rx, ry + 2, 166, pull);
-                ry += 12;
-                g.drawString(this.font, Component.translatable("journal.riverfishing.gb_peaceful"),
-                        rx, ry, GuiStyle.GHOST, false);
-                Component pr = Component.translatable("journal.riverfishing.gb_predatory");
-                g.drawString(this.font, pr, rx + 166 - this.font.width(pr), ry, GuiStyle.GHOST, false);
-                ry += 14;
-                g.drawString(this.font, Component.translatable("journal.riverfishing.gb_attracts"),
-                        rx, ry, GuiStyle.TEXT_HINT, false);
-                ry += 11;
-                String who = String.join(", ", fishForDiet(comp.diet(), 8));
-                for (net.minecraft.util.FormattedCharSequence seq
-                        : this.font.split(Component.literal(who.isEmpty() ? "—" : who), 166)) {
-                    g.drawString(this.font, seq, rx, ry, GuiStyle.TEXT, false);
-                    ry += 10;
-                }
+            String who = pullOf < 0
+                    ? Component.translatable("journal.riverfishing.gb_ballast").getString()
+                    : String.join(", ", fishForDiet(comp.diet(), 8));
+            g.drawString(this.font, Component.translatable("journal.riverfishing.gb_attracts"),
+                    rx, ry, GuiStyle.TEXT_HINT, false);
+            ry += 11;
+            for (net.minecraft.util.FormattedCharSequence seq
+                    : this.font.split(Component.literal(who.isEmpty() ? "—" : who), 166)) {
+                g.drawString(this.font, seq, rx, ry, GuiStyle.TEXT, false);
+                ry += 10;
             }
         }
 
@@ -1333,8 +1354,7 @@ public class JournalScreen extends Screen {
                 0xFFB0842C, false);
         drawRight(g, Component.translatable("journal.riverfishing.gb_col_rich"), nutX + 34, head, 0xFFB0842C);
         drawRight(g, Component.translatable("journal.riverfishing.gb_col_grind"), fracX + 34, head, 0xFFB0842C);
-        g.drawString(this.font, Component.translatable("journal.riverfishing.gb_col_pull"), pullX, head,
-                0xFFB0842C, false);
+        drawRight(g, Component.translatable("journal.riverfishing.gb_col_pull"), pullX + 90, head, 0xFFB0842C);
         g.fill(x, head + 10, x + wAll, head + 11, 0x33000000);
 
         int contentTop = head + 14, contentBottom = top + H - 18;
@@ -1354,10 +1374,14 @@ public class JournalScreen extends Screen {
                     fracX + 34, y + 3, GuiStyle.TEXT_HINT);
             float pull = predatorPull(c.diet());
             if (pull < 0) {
-                g.drawString(this.font, Component.translatable("journal.riverfishing.gb_ballast_short"),
-                        pullX, y + 3, GuiStyle.GHOST, false);
+                drawRight(g, Component.translatable("journal.riverfishing.gb_ballast_short"),
+                        pullX + 90, y + 3, GuiStyle.GHOST);
             } else {
-                pullBar(g, pullX, y + 5, 90, pull);
+                // Bar then number, the same shape as every other row in the journal — and the bar's
+                // colour walks green→red, so the column reads at a glance without a legend.
+                bar(g, pullX, y + 5, 54, 4, pull, pullColour(pull));
+                drawRight(g, Component.literal(String.format(java.util.Locale.ROOT, "%.2f", pull)),
+                        pullX + 90, y + 3, GuiStyle.TEXT);
             }
             y += 17;
         }

@@ -998,14 +998,11 @@
   "journal.riverfishing.note_lure": "Лише для АКТИВНИХ вудилищ: спінінг, ультралайт, морський спінінг, тролінг",
   "journal.riverfishing.note_groundbait": "Основа будь-якої суміші. Відкрийте — всередині вся таблиця компонентів",
   "journal.riverfishing.note_gbpart": "Лише в суміш — на гачок не йдуть",
-  "journal.riverfishing.gb_appeal": "Приваблює",
-  "journal.riverfishing.gb_pull": "Тягне до",
-  "journal.riverfishing.gb_peaceful": "мирної",
-  "journal.riverfishing.gb_predatory": "хижої",
-  "journal.riverfishing.gb_attracts": "Кого збирає",
+  "journal.riverfishing.gb_attracts": "Кого приваблює",
   "journal.riverfishing.gb_ballast_short": "баласт",
   "journal.riverfishing.gb_col_part": "Компонент",
   "journal.riverfishing.gb_col_rich": "Пожив.",
   "journal.riverfishing.gb_col_grind": "Фракц.",
-  "journal.riverfishing.gb_col_pull": "Тягне до"
+  "journal.riverfishing.gb_col_pull": "Хиж.",
+  "journal.riverfishing.gb_predation": "Хижаків"
 }

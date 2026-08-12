@@ -998,14 +998,11 @@
   "journal.riverfishing.note_lure": "For ACTIVE rods only: spinning, ultralight, sea-spinning, trolling",
   "journal.riverfishing.note_groundbait": "The base of every mix. Open it for the full component table",
   "journal.riverfishing.note_gbpart": "Mix only — these never go on a hook",
-  "journal.riverfishing.gb_appeal": "Appeals to",
-  "journal.riverfishing.gb_pull": "Pulls towards",
-  "journal.riverfishing.gb_peaceful": "peaceful",
-  "journal.riverfishing.gb_predatory": "predators",
-  "journal.riverfishing.gb_attracts": "Brings in",
+  "journal.riverfishing.gb_attracts": "Attracts",
   "journal.riverfishing.gb_ballast_short": "ballast",
   "journal.riverfishing.gb_col_part": "Component",
   "journal.riverfishing.gb_col_rich": "Rich",
   "journal.riverfishing.gb_col_grind": "Grind",
-  "journal.riverfishing.gb_col_pull": "Pulls towards"
+  "journal.riverfishing.gb_col_pull": "Pred.",
+  "journal.riverfishing.gb_predation": "Predatory"
 }
