@@ -5,7 +5,7 @@ Full patchnotes. The short three-bullet form the in-game update checker shows li
 
 ---
 
-## 0.8.0 — groundbait you mix yourself
+## 0.8.0 — groundbait you mix yourself, and a journal worth reading
 
 **Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.
 
