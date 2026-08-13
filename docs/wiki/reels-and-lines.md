@@ -115,10 +115,10 @@ spool ceiling reaches that diameter, by the [spool-diameter rule](#the-spool-dia
 | Mono Line 0.25 | `line_mono_025` | **6.3 kg** | 2000 |
 | Mono Line 0.30 | `line_mono_030` | **9.0 kg** | 3000 |
 | Mono Line 0.40 | `line_mono_040` | **16.0 kg** | 5000 |
-| Mono line 0.50 | `line_mono_050` | **25.0 kg** | 7000 |
-| Mono line 0.60 | `line_mono_060` | **36.0 kg** | 10000 |
-| Mono line 0.70 | `line_mono_070` | **49.0 kg** | 12000 |
-| Mono line 0.80 | `line_mono_080` | **64.0 kg** | 14000 |
+| Mono Line 0.50 | `line_mono_050` | **25.0 kg** | 7000 |
+| Mono Line 0.60 | `line_mono_060` | **36.0 kg** | 10000 |
+| Mono Line 0.70 | `line_mono_070` | **49.0 kg** | 12000 |
+| Mono Line 0.80 | `line_mono_080` | **64.0 kg** | 14000 |
 
 #### Braid — 7 diameters
 
@@ -128,9 +128,9 @@ spool ceiling reaches that diameter, by the [spool-diameter rule](#the-spool-dia
 | Braided Line 0.20 | `line_braid_020` | **12.0 kg** | 1000 |
 | Braided Line 0.25 | `line_braid_025` | **18.8 kg** | 2000 |
 | Braided Line 0.30 | `line_braid_030` | **27.0 kg** | 3000 |
-| Braid line 0.40 | `line_braid_040` | **48.0 kg** | 5000 |
-| Braid line 0.50 | `line_braid_050` | **75.0 kg** | 7000 |
-| Braid line 0.60 | `line_braid_060` | **108.0 kg** | 10000 |
+| Braided Line 0.40 | `line_braid_040` | **48.0 kg** | 5000 |
+| Braided Line 0.50 | `line_braid_050` | **75.0 kg** | 7000 |
+| Braided Line 0.60 | `line_braid_060` | **108.0 kg** | 10000 |
 
 #### Fluorocarbon — 6 diameters
 
@@ -146,8 +146,6 @@ spool ceiling reaches that diameter, by the [spool-diameter rule](#the-spool-dia
 Thick fluorocarbon does not exist in the mod (impractical in reality). Braid stops at 0.60 mm, mono runs all the way to 0.80 mm. At any shared diameter braid is exactly 3× mono and fluorocarbon 1.1× mono — that is the whole of the material factor.
 
 There is **no 9000 reel item**, so 0.60 mm needs a 10000: the 8000's spool tops out at 0.55 mm.
-
-Their in-game names are not perfectly consistent, as the tables show — the thin end of each ladder was added before the heavy tier, so the capital letter and the word *Braided* were quietly dropped at 0.50 and 0.40 respectively. Same items, same behaviour.
 
 ### Line visibility
 

@@ -117,8 +117,8 @@ The prestige tier, and the only source of several items.
 | Titanium Leader | 8 emeralds |
 | Nautilus Shell | 10 emeralds |
 | Reel 7000 / 8000 / 10000 / 12000 / 14000 **(rotating)** | 16 / 18 / 22 / 26 / 30 emeralds |
-| Mono line 0.50 / 0.60 / 0.70 / 0.80 **(rotating)** | 8 / 10 / 12 / 14 emeralds |
-| Braided Line 0.30 / Braid line 0.40 / 0.50 / 0.60 / Fluorocarbon 0.40 **(rotating)** | 10 / 14 / 16 / 18 / 12 emeralds |
+| Mono Line 0.50 / 0.60 / 0.70 / 0.80 **(rotating)** | 8 / 10 / 12 / 14 emeralds |
+| Braided Line 0.30 / Braided Line 0.40 / 0.50 / 0.60 / Fluorocarbon 0.40 **(rotating)** | 10 / 14 / 16 / 18 / 12 emeralds |
 | 3 × Hook #2 / 3 × Hook #1 **(rotating)** | 3 / 4 emeralds |
 | **Carp Rod, assembled** — Reel 6000 + Braid 0.30 + Carp Rig (No.4 hook) | 30 emeralds |
 | **Bottom Rod, assembled** — Reel 7000 + Braid 0.30 + Catfish Rig (steel leader, No.2 hook) | 28 emeralds |

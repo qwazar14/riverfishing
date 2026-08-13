@@ -147,7 +147,7 @@ Quest **stage 8 — The sea and big game** is the sea chain. Its ten goals, in o
 | Discover 40 fish species | **Trolling rod** |
 | Take a mahi-mahi on the troll | 10 emeralds |
 | Pump up a tuna of 60 kg or more | 24 emeralds |
-| Raise a halibut — like an anchor off the bottom | Braid line 0.60 |
+| Raise a halibut — like an anchor off the bottom | Braided Line 0.60 |
 | Catch any billfish: marlin, sailfish or swordfish | 40 emeralds |
 | Discover 60 fish species | **Reel 14000** |
 | Fully complete stage 8 | 64 emeralds |

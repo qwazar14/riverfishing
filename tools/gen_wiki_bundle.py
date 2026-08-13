@@ -729,8 +729,11 @@ def main():
             # but have no texture of their own, so GEAR_NAMES — which exists to find an icon — omits
             # exactly the three rows whose grids are hardest to read as letters.
             ALL_NAMES = wiki_art.all_names(code)
-            # Case-insensitive fallback: the lang file itself is inconsistent — "Mono Line 0.10" but
-            # "Mono line 0.50" — and the wiki copied both, so exact matching alone drops half the lines.
+            # Case-insensitive fallback. It was added because the lang file disagreed with itself —
+            # "Mono Line 0.10" against "Mono line 0.50" — and the wiki had copied both, so exact
+            # matching dropped half the line rows. §line-names has since made the ladders speak one
+            # way, so nothing is known to need this today; it stays as a net under any page whose
+            # capitalisation drifts from lang again, because the failure is a silently missing icon.
             FISH_CI = {k.lower(): v for k, v in FISH_NAMES.items()}
             GEAR_CI = {k.lower(): v for k, v in GEAR_NAMES.items()}
             # The grids are the same art in every language, but their headings and captions are prose.

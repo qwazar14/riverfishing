@@ -83,7 +83,7 @@ The [fisherman](villager.md) sells four ready-made boxes, each already named, dy
 | Kit: Float Fishing | Small | 3 Journeyman | 7 emeralds | 2 × Float, 4 × Hook No.10, 4 × Hook No.12, 8 × Worm, 8 × Maggot |
 | Kit: Pike | Medium | 3 Journeyman | 18 emeralds | 2 × Steel Leader, Spinner, Spoon Lure, Wobbler — 3–35 g each, random colours |
 | Kit: Carp | Medium | 4 Expert | 21 emeralds | 16 × Boilie, 4 × Hook No.6, 4 × Hook No.8, 16 × Corn, Mono Line 0.30, Flat Feeder Rig 40–60 g |
-| Kit: Saltwater | Large | 5 Master | 51 emeralds | 2 × Titanium Leader, Skirted Octopus Jig and Giant Spoon 100–200 g, Ledger Rig 100–200 g, 3 × Hook No.2, 3 × Hook No.4, Braid line 0.40, 4 × Live Bait |
+| Kit: Saltwater | Large | 5 Master | 51 emeralds | 2 × Titanium Leader, Skirted Octopus Jig and Giant Spoon 100–200 g, Ledger Rig 100–200 g, 3 × Hook No.2, 3 × Hook No.4, Braided Line 0.40, 4 × Live Bait |
 
 The float and pike kits share **one** journeyman slot: a stall offers one of the two, not both. A kit is the answer to *"what do I need for pike"* in a form you can carry.
 
