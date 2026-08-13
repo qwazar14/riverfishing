@@ -280,7 +280,7 @@ public final class BiteEngine {
         // §line-visibility: a thick, opaque line spooks fish and slows the bite — but a SMALL wary fish
         // fears a visible line far more than a big fish does. Fluoro (low visibility) and thin diameters
         // stay near-invisible; thick braid on a roach swim is a real handicap. Reference: 0.20 mm mono = 1.
-        double visibility = c.lineType.visibilityFactor() * (c.lineDiameterMm / 0.20);
+        double visibility = c.lineType.visibility(c.lineDiameterMm);
         if (visibility > 1.0) {
             double sensitivity = Math.max(0.1, Math.min(1.5, 1.5 - meanKg * 0.5)); // small fish = fussy
             w *= Math.max(0.4, 1.0 - 0.25 * (visibility - 1.0) * sensitivity);

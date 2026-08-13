@@ -131,6 +131,39 @@ public class JournalScreen extends Screen {
     private static final Kind[] GEAR_KINDS = {Kind.ROD, Kind.REEL, Kind.LINE, Kind.RIG};
 
     /**
+     * §gear-sort-head: which column the shelf is sorted by, or -1 for the catalogue's own order.
+     *
+     * <p>-1 rather than the bait table's 0, because there the name column IS the natural order and here
+     * it is not: gear is ordered by tier and size on purpose (§gear-sort), so "sorted by name" has to be
+     * a state you can ask for and then leave.
+     */
+    private int gearSort = -1;
+    private boolean gearSortDesc = true;
+    private final int[] gearColX = new int[5];
+    private final int[] gearColW = new int[5];
+    private int gearColCount;
+
+    /**
+     * The number a cell sorts by: its leading figure, or NaN when it has none.
+     *
+     * <p>Cells are the strings the table prints, and some of them are ranges ("10–40", "4–6k") or words
+     * ("нет"). Sorting a range by where it starts is what a reader means by sorting it, and a word has no
+     * number at all, so it sinks — the same rule the bait table already uses for its blanks.
+     */
+    private static double cellKey(String cell) {
+        int i = 0, n = cell.length();
+        while (i < n && (cell.charAt(i) == '-' || cell.charAt(i) == '+')) i++;
+        int start = i;
+        while (i < n && (Character.isDigit(cell.charAt(i)) || cell.charAt(i) == '.' || cell.charAt(i) == ',')) i++;
+        if (i == start) return Double.NaN;
+        try {
+            return Double.parseDouble(cell.substring(0, i).replace(',', '.'));
+        } catch (NumberFormatException e) {
+            return Double.NaN;
+        }
+    }
+
+    /**
      * §gear-table (0.8.0): the gear shelf as four tables, not one.
      *
      * <p>A rod has a test window, a reel has a drag, a line has a diameter and a rig has hooks. Putting
@@ -172,9 +205,11 @@ public class JournalScreen extends Screen {
             // and "Монолеска" does not need a Type one — they cost width the name was starving for.
             case REEL -> new String[]{"journal.riverfishing.gt_item",
                     "journal.riverfishing.gt_drag", "journal.riverfishing.gt_maxline"};
+            // §gear-width, again: every line is named for its diameter ("Монолеска 0.30"), so an Ø
+            // column restated the name in the same way the Type column did before it — and now that
+            // Seen is computed FROM the diameter, the number is on the row twice over.
             case LINE -> new String[]{"journal.riverfishing.gt_item",
-                    "journal.riverfishing.gt_dia", "journal.riverfishing.gt_strain",
-                    "journal.riverfishing.gt_seen"};
+                    "journal.riverfishing.gt_strain", "journal.riverfishing.gt_seen"};
             default -> new String[]{"journal.riverfishing.gt_item", "journal.riverfishing.gt_hooks",
                     "journal.riverfishing.gt_mass", "journal.riverfishing.gt_leader"};
         };
@@ -191,14 +226,28 @@ public class JournalScreen extends Screen {
         }
         int nameW = Math.max(70, wAll - used);
         int head = top + 40;
-        g.text(this.font, Component.translatable(heads[0]), tableX, head, 0xFFB0842C, false);
+        // §gear-sort-head: the headings sort, the same three-state click the bait table uses — a column,
+        // then the other direction, then back to the shelf's own order. The rects are remembered because
+        // the click handler runs in a different frame from the one that measured them.
+        gearColCount = cols;
+        gearColX[0] = tableX;
+        gearColW[0] = nameW;
         int[] colRight = new int[cols];
         int cx = tableX + nameW;
         for (int c = 1; c < cols; c++) {
+            gearColX[c] = cx;
+            gearColW[c] = colW[c];
             cx += colW[c];
             colRight[c] = cx;
-            Component label = Component.translatable(heads[c]);
-            g.text(this.font, label, cx - this.font.width(label), head, 0xFFB0842C, false);
+        }
+        for (int c = 0; c < cols; c++) {
+            String label = Component.translatable(heads[c]).getString()
+                    + (gearSort == c ? (gearSortDesc ? " ▼" : " ▲") : "");
+            boolean hov = mouseX >= gearColX[c] && mouseX < gearColX[c] + gearColW[c]
+                    && mouseY >= head && mouseY < head + 10;
+            int colour = gearSort == c ? 0xFFD8A93C : (hov ? 0xFFD8C88C : 0xFFB0842C);
+            g.text(this.font, label,
+                    c == 0 ? tableX : colRight[c] - this.font.width(label), head, colour, false);
         }
         g.fill(tableX, head + 10, tableX + wAll, head + 11, 0x33000000);
 
@@ -207,25 +256,44 @@ public class JournalScreen extends Screen {
         scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
         int y = contentTop - scroll;
         List<Component> tooltip = null;
+        // §gear-table: a row that is not drawn must not stay CLICKABLE where it used to be. The click
+        // handler walks the whole catalog against catRects, so leaving last frame's coordinates on the
+        // categories you are not looking at meant clicking a reel opened the rod that happened to sort
+        // into that slot. Park every row of every other category where nothing can hit it.
+        List<Cat> rows = new ArrayList<>();
         for (int i = 0; i < gearCatalog.size(); i++) {
-            Cat e = gearCatalog.get(i);
-            if (e.kind() != kind) {
-                // §gear-table: a row that is not drawn must not stay CLICKABLE where it used to be.
-                // The click handler walks the whole catalog against catRects, so leaving last frame's
-                // coordinates on the categories you are not looking at meant clicking a reel opened
-                // the rod that happened to sort into that slot. Park them where nothing can hit them.
+            if (gearCatalog.get(i).kind() == kind) {
+                rows.add(gearCatalog.get(i));
+            } else {
                 catRects[i][0] = Integer.MIN_VALUE / 2;
                 catRects[i][1] = Integer.MIN_VALUE / 2;
-                continue;
             }
+        }
+        if (gearSort == 0) {
+            rows.sort(Comparator.comparing(e -> e.stack().getHoverName().getString()));
+            if (gearSortDesc) java.util.Collections.reverse(rows);
+        } else if (gearSort > 0) {
+            int col = gearSort;
+            rows.sort((a, b) -> {
+                String[] ca = gearCells(a, kind), cb = gearCells(b, kind);
+                double va = col - 1 < ca.length ? cellKey(ca[col - 1]) : Double.NaN;
+                double vb = col - 1 < cb.length ? cellKey(cb[col - 1]) : Double.NaN;
+                boolean na = Double.isNaN(va), nb = Double.isNaN(vb);
+                if (na || nb) return na && nb ? 0 : (na ? 1 : -1);   // wordy cells always sink
+                return gearSortDesc ? Double.compare(vb, va) : Double.compare(va, vb);
+            });
+        }
+        for (Cat e : rows) {
+            int slot = gearCatalog.indexOf(e);
             boolean hov = mouseX >= tableX && mouseX < tableX + wAll && mouseY >= y && mouseY < y + 17
                     && mouseY >= contentTop && mouseY < contentBottom;
             if (hov) {
                 g.fill(tableX, y - 1, tableX + wAll, y + 16, 0x22000000);
                 tooltip = catTooltip(e);
             }
-            catRects[i][0] = tableX;
-            catRects[i][1] = y;
+            // The drawn order is the SORTED order, so each rect has to go to the row it actually is.
+            catRects[slot][0] = tableX;
+            catRects[slot][1] = y;
             g.item(e.stack(), tableX, y);
             g.text(this.font, fitName(e.stack().getHoverName().getString(), nameW - 24),
                     tableX + 20, y + 4, hov ? 0xFF8A5A00 : GuiStyle.TEXT, false);
@@ -266,12 +334,14 @@ public class JournalScreen extends Screen {
                                 com.riverfishing.component.TackleCompat.maxLineDiameter(reel.size()))};
             }
             case LINE -> {
-                if (!(it instanceof LineItem ln)) return new String[]{"—", "—", "—"};
-                // §line-visibility: 1.0 is plain mono; below is stealthier, above is easier to see.
+                if (!(it instanceof LineItem ln)) return new String[]{"—", "—"};
+                // §line-visibility: the ENGINE's own number — material times diameter, 0.20 mm mono = 1.
+                // This column used to print the material factor alone, so 0.10 and 0.80 mono both read
+                // 1.00 while the bite engine treated the thick one as eight times as easy to see.
                 return new String[]{
-                        String.format(java.util.Locale.ROOT, "%.2f", ln.diameterMm()),
                         String.format(java.util.Locale.ROOT, "%.1f", ln.breakingStrainKg()),
-                        String.format(java.util.Locale.ROOT, "%.2f", ln.lineType().visibilityFactor())};
+                        String.format(java.util.Locale.ROOT, "%.2f",
+                                ln.lineType().visibility(ln.diameterMm()))};
             }
             default -> {
                 if (!(it instanceof RigItem rig)) return new String[]{"—", "—", "—"};
@@ -2454,6 +2524,25 @@ public class JournalScreen extends Screen {
                         return true;
                     }
                 }
+                // §gear-sort-head: the headings sort here too. First click takes a column's natural
+                // direction — biggest first for a number, A first for the name — the second flips it,
+                // and the third gives the shelf's own tier-and-size order back.
+                if (tab == TAB_GEAR && mouseY >= top + 40 && mouseY < top + 50) {
+                    for (int i = 0; i < gearColCount; i++) {
+                        if (mouseX < gearColX[i] || mouseX >= gearColX[i] + gearColW[i]) continue;
+                        boolean natural = i > 0;
+                        if (gearSort != i) {
+                            gearSort = i;
+                            gearSortDesc = natural;
+                        } else if (gearSortDesc == natural) {
+                            gearSortDesc = !natural;
+                        } else {
+                            gearSort = -1;
+                        }
+                        scroll = 0;
+                        return true;
+                    }
+                }
                 // §gear-table: the category rail on the left, same shape as the fish tab's families.
                 if (tab == TAB_GEAR) {
                     for (int i = 0; i < GEAR_KINDS.length; i++) {
@@ -2461,6 +2550,10 @@ public class JournalScreen extends Screen {
                         if (mouseX >= left + 10 && mouseX < left + 106
                                 && mouseY >= ry && mouseY < ry + LIST_ROW) {
                             gearCat = i;
+                            // The categories do not share a column count — rods have four headings and
+                            // reels three — so a sort held across the switch would point at a column
+                            // that is not there. Drop it; the new shelf opens in its own order.
+                            gearSort = -1;
                             scroll = 0;
                             return true;
                         }
