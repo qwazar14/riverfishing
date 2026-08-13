@@ -28,7 +28,7 @@ public class JournalItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
         if (!level.isClientSide() && player instanceof ServerPlayer sp) {
             // §order-board: the day's order and its checklist ride along with the journal.
-            ModNetwork.toPlayer(sp, new JournalOpenPacket(JournalOpenPacket.withOrder(exportFor(sp), sp)));
+            ModNetwork.toPlayer(sp, JournalOpenPacket.forPlayer(sp));
         }
         return InteractionResult.SUCCESS;
     }

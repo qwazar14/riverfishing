@@ -50,8 +50,7 @@ public final class JournalCommand {
         if (!com.riverfishing.fishing.GuideNudge.isOfferable(page)) return 0;
         com.riverfishing.fishing.GuideNudge.accepted(sp);
         com.riverfishing.network.ModNetwork.toPlayer(sp,
-                new com.riverfishing.network.JournalOpenPacket(
-                        com.riverfishing.network.JournalOpenPacket.withOrder(JournalData.get(sp), sp), page));
+                com.riverfishing.network.JournalOpenPacket.forPlayer(sp, page));
         return 1;
     }
 
