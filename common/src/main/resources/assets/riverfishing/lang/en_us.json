@@ -1045,7 +1045,6 @@
   "journal.riverfishing.gt_noreel": "none",
   "journal.riverfishing.gt_drag": "Drag, kg",
   "journal.riverfishing.gt_maxline": "Line to, mm",
-  "journal.riverfishing.gt_dia": "Ø mm",
   "journal.riverfishing.gt_strain": "Test, kg",
   "journal.riverfishing.gt_seen": "Seen",
   "journal.riverfishing.gt_hooks": "Hooks",
