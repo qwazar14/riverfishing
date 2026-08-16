@@ -58,7 +58,7 @@ public final class RodModelLayers {
      * rotation at load, so a live chain can only live in the renderer. Rods without segment models
      * keep the sprite buckets.
      */
-    public static final int BLANK_SEGMENTS = 5;
+    public static final int BLANK_SEGMENTS = 6; // bamboo carries the most pieces: grip + 5 culm joints
 
     public static ResourceLocation segment(String rodKey, int index) {
         return loc("blank_" + rodKey + "_s" + index);
@@ -66,6 +66,25 @@ public final class RodModelLayers {
 
     public static ResourceLocation reel(int size) {
         return loc("reel_" + size);
+    }
+
+    /**
+     * §reel-3d: the solid reel drawn on a 3D blank — authored in the FEEDER's coordinate space
+     * (foot docked into its seat), shifted per rod by {@link RodItemRenderer}. All eleven sizes are
+     * scaled from one master and share one texture sheet; see tools/gen_reels.js.
+     */
+    public static ResourceLocation reel3d(int size) {
+        return loc("reel_" + size + "_3d");
+    }
+
+    /** §reel-crank: the crank lever alone — split out so the renderer can sweep it while reeling. */
+    public static ResourceLocation reel3dHandle(int size) {
+        return loc("reel_" + size + "_handle_3d");
+    }
+
+    /** §reel-crank: the knob alone — it orbits WITH the lever but counter-rotates to stay level. */
+    public static ResourceLocation reel3dKnob(int size) {
+        return loc("reel_" + size + "_knob_3d");
     }
 
     public static ResourceLocation reelGeneric() {
@@ -100,7 +119,9 @@ public final class RodModelLayers {
             for (int s = 0; s < BLANK_SEGMENTS; s++) normal.add(segment(k, s)); // §rod-bend-3d chain
         }
         normal.add(reelGeneric());
-        for (int s : REEL_SIZES) normal.add(reel(s));
+        for (int s : REEL_SIZES) { // §reel-3d + §reel-crank
+            normal.add(reel(s)); normal.add(reel3d(s)); normal.add(reel3dHandle(s)); normal.add(reel3dKnob(s));
+        }
         normal.add(lineGeneric());
         for (LineType t : LineType.values()) normal.add(line(t));
         normal.add(rigGeneric());

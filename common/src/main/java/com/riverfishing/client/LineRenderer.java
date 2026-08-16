@@ -48,17 +48,18 @@ public final class LineRenderer {
             }
             if (!(mc.level.getEntity(entry.getKey()) instanceof Player player)) continue;
             state.tickSmoothing(frameSeconds);
-            renderLine(mc, vc, m, nrm, player, state, pt);
+            renderLine(mc, buffers, vc, m, nrm, player, state, pt);
             drew = true;
         }
 
         if (drew) {
-            buffers.endBatch(RenderType.lines());
+            buffers.endBatch();   // flushes lines() AND every per-material strand type
         }
         pose.popPose();
     }
 
-    private static void renderLine(Minecraft mc, VertexConsumer vc, Matrix4f m, Matrix3f nrm,
+    private static void renderLine(Minecraft mc, MultiBufferSource buffers, VertexConsumer vc,
+                                   Matrix4f m, Matrix3f nrm,
                                    Player player, ClientLineState.Line state, float pt) {
         // Rod-tip anchor: exact vanilla FishingHookRenderer math (§vanilla-line).
         Vec3 tip = rodTipAnchor(mc, player, pt);
@@ -84,6 +85,21 @@ public final class LineRenderer {
         int color = state.color;
         int cr = (color >> 16) & 0xFF, cg = (color >> 8) & 0xFF, cb = color & 0xFF;
 
+        // §line-strand: material and diameter come off the angler's HELD ROD — vanilla already syncs
+        // held items to every client, so nothing needed adding to the packet. Alpha and width follow
+        // the fitted line (fluoro nearly vanishes, thick carp mono draws heavy); the synced colour
+        // keeps carrying the hue. No rod readable → vanilla-thin opaque, as before.
+        float[] style = null;
+        var held = player.getMainHandItem().getItem() instanceof com.riverfishing.item.RodItem
+                ? player.getMainHandItem() : player.getOffhandItem();
+        if (held.getItem() instanceof com.riverfishing.item.RodItem
+                && com.riverfishing.item.RodData.get(held, com.riverfishing.component.ComponentSlot.LINE)
+                        .getItem() instanceof com.riverfishing.item.LineItem li) {
+            style = RodRenderTypes.strandStyle(li.lineType(), li.diameterMm());
+        }
+        VertexConsumer sv = style == null ? vc : buffers.getBuffer(RodRenderTypes.lineStrand(style[4]));
+        int alpha = style == null ? 255 : (int) style[3];
+
         // Vanilla string shape (FishingHookRenderer.stringVertex): 16 segments from the water end
         // up to the rod tip, y following (f² + f)/2 — the line hangs toward the water exactly like
         // the vanilla rod's, plus the classic 0.25 lift where it leaves the float.
@@ -94,7 +110,7 @@ public final class LineRenderer {
             Vec3 p = new Vec3(end.x + dx * f,
                     end.y + dy * (f * f + f) * 0.5 + 0.25 * (1.0 - f),
                     end.z + dz * f);
-            line(vc, m, nrm, prev, p, cr, cg, cb);
+            line(sv, m, nrm, prev, p, cr, cg, cb, alpha);
             prev = p;
         }
 
@@ -185,19 +201,26 @@ public final class LineRenderer {
             double zoomFix = fovMod == 1.0f ? 1.0
                     : Math.tan(Math.toRadians(fovDeg * fovMod * 0.5))
                             / Math.tan(Math.toRadians(fovDeg * 0.5));
-            // §rod-bend-tip: the bent blank's tip sits lower/closer than the straight sprite's — shift
-            // the line anchor with the current bend bucket so the line stays ON the tip (/rfrod tip tunes).
-            int bend = RodItemRenderer.liveBend();
-            float tipDx = RodItemRenderer.TIP_BEND_OFFSET[bend][0];
-            float tipDy = RodItemRenderer.TIP_BEND_OFFSET[bend][1];
-            // §fight-course: a run drags the tip over, so the anchor has to travel with it or the line
-            // visibly leaves the rod. Added OUTSIDE the arm multiplier because a lean is a direction on
-            // screen, not a distance out along the hand.
-            float[] lean = ClientLineState.ownLean();
-            float leanX = lean[0] * RodHandTransform.COURSE_TIP_X;
-            float leanY = lean[1] * RodHandTransform.COURSE_TIP_Y;
+            float px, py;
+            if (RodItemRenderer.tipNdcFresh()) {
+                // §rod-tip-3d: the tip the renderer actually drew, projected to screen. Nothing is
+                // added on top of it — bend, lean and the cast swing all moved the pose this was
+                // read from, so the anchor already carries them. getPointOnPlane's first argument
+                // scales the LEFT vector, so screen-right has to be negated.
+                px = -RodItemRenderer.TIP_NDC[0];
+                py = RodItemRenderer.TIP_NDC[1];
+            } else {
+                // Sprite blanks: one 16-unit icon for every rod, so the tip is a constant found in
+                // game, nudged per bend bucket (/rfrod tip) and per lean (§fight-course).
+                int bend = RodItemRenderer.liveBend();
+                float[] lean = ClientLineState.ownLean();
+                px = arm * (0.525f + RodItemRenderer.TIP_BEND_OFFSET[bend][0])
+                        + lean[0] * RodHandTransform.COURSE_TIP_X;
+                py = -0.1f + RodItemRenderer.TIP_BEND_OFFSET[bend][1]
+                        + lean[1] * RodHandTransform.COURSE_TIP_Y;
+            }
             Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane()
-                    .getPointOnPlane(arm * (0.525f + tipDx) + leanX, -0.1f + tipDy + leanY)
+                    .getPointOnPlane(px, py)
                     .scale(fovScale * zoomFix)
                     .yRot(swing * 0.5f)
                     .xRot(-swing * 0.7f);
@@ -220,11 +243,16 @@ public final class LineRenderer {
 
     private static void line(VertexConsumer vc, Matrix4f m, Matrix3f nrm, Vec3 a, Vec3 b,
                              int r, int g, int bl) {
+        line(vc, m, nrm, a, b, r, g, bl, 255);
+    }
+
+    private static void line(VertexConsumer vc, Matrix4f m, Matrix3f nrm, Vec3 a, Vec3 b,
+                             int r, int g, int bl, int alpha) {
         float dx = (float) (b.x - a.x), dy = (float) (b.y - a.y), dz = (float) (b.z - a.z);
         float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (len <= 1e-4f) return;
         dx /= len; dy /= len; dz /= len;
-        vc.addVertex(m, (float) a.x, (float) a.y, (float) a.z).setColor(r, g, bl, 255).setNormal(dx, dy, dz);
-        vc.addVertex(m, (float) b.x, (float) b.y, (float) b.z).setColor(r, g, bl, 255).setNormal(dx, dy, dz);
+        vc.addVertex(m, (float) a.x, (float) a.y, (float) a.z).setColor(r, g, bl, alpha).setNormal(dx, dy, dz);
+        vc.addVertex(m, (float) b.x, (float) b.y, (float) b.z).setColor(r, g, bl, alpha).setNormal(dx, dy, dz);
     }
 }

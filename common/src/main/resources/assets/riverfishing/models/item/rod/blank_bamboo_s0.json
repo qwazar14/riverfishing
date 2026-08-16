@@ -1,0 +1,81 @@
+{
+	"texture_size": [128, 128],
+	"textures": {
+		"0": "riverfishing:item/rod/blank_bamboo_3d",
+		"particle": "riverfishing:item/rod/blank_bamboo_3d"
+	},
+	"elements": [
+		{
+			"name": "grip",
+			"from": [26, 9.32, 7.32],
+			"to": [32, 11.68, 9.68],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [26, 10.5, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [2.36, 2.36, 4.76, 4.72],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [0, 2.36, 2.36, 4.72],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [7.12, 2.36, 9.52, 4.72],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [4.76, 2.36, 7.12, 4.72],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [2.36, 0, 4.76, 2.36],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [4.76, 0, 7.16, 2.36],
+					"texture": "#0"
+				}
+			}
+		},
+		{
+			"name": "section_1",
+			"from": [19.667, 9.609, 7.609],
+			"to": [26, 11.391, 9.391],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [19.667, 10.5, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [1.782, 6.502, 4.315, 8.284],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [0, 6.502, 1.782, 8.284],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [6.097, 6.502, 8.63, 8.284],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [4.315, 6.502, 6.097, 8.284],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [1.782, 4.72, 4.315, 6.502],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [4.315, 4.72, 6.848, 6.502],
+					"texture": "#0"
+				}
+			}
+		}
+	]
+}
