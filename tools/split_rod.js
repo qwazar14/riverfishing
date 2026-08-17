@@ -66,6 +66,19 @@ const RODS = {
       { name: 's4', members: ['quivertip'], joint: -4.1 },
     ],
   },
+  // §surf-3d: five sections, blank_1 rides the handle piece; joints at the section boundaries,
+  // 0.025u overlaps sleeving them.
+  surf: {
+    src: '3D/rods/surf/blank_surf.json',
+    texRef: 'riverfishing:item/rod/blank_surf_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip', 'blank_1'] },
+      { name: 's1', members: ['blank_2'], joint: 12.9 },
+      { name: 's2', members: ['blank_3'], joint: 5.3 },
+      { name: 's3', members: ['blank_4'], joint: -2.3 },
+      { name: 's4', members: ['blank_5', 'tip_top'], joint: -9.9 },
+    ],
+  },
   bamboo: {
     src: '3D/rods/bamboo/blank_bamboo.json',
     texRef: 'riverfishing:item/rod/blank_bamboo_3d',

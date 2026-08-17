@@ -10,7 +10,7 @@ const fs = require('fs');
 
 const RODS = ['stick', 'bamboo', 'pole', 'winter', 'ultralight', 'spinning', 'feeder',
               'bottom', 'carp', 'surf', 'sea_spin', 'boat', 'trolling'];
-const SEGMENTED = { feeder: 5, pole: 5, bamboo: 6, spinning: 5, ultralight: 5 };          // kind -> piece count
+const SEGMENTED = { feeder: 5, pole: 5, bamboo: 6, spinning: 5, ultralight: 5, surf: 5 };          // kind -> piece count
 const ASSETS = 'common/src/main/resources/assets/riverfishing';
 const RENDERER = 'common/src/main/java/com/riverfishing/client/RodItemRenderer.java';
 const LAYERS = 'common/src/main/java/com/riverfishing/client/RodModelLayers.java';
@@ -243,6 +243,25 @@ console.log('\nreels');
   fs.existsSync(`${ASSETS}/textures/item/rod/reel_3d.png`)
       ? ok('shared reel sheet installed') : fail('reel_3d.png missing');
 
+  // §seat-sync: for every 3D reel rod, the seat offsets must MATCH the model's actual seat — the
+  // reel is authored at the feeder's seat (centre 19.5, underside 9.45) and shifted by these numbers,
+  // so a moved seat with a stale offset parks the reel in the air. Bit us twice before this check.
+  {
+    const dxBlock2 = java.match(/REEL_SEAT_DX = java.util.Map.of(([sS]*?));/);
+    const seatMap = {};
+    if (dxBlock2) for (const [, k, a, b] of dxBlock2[1].matchAll(/"(w+)", new float[]{(-?[d.]+)f, (-?[d.]+)f}/g)) seatMap[k] = [parseFloat(a), parseFloat(b)];
+    for (const kind of Object.keys(seatMap)) {
+      const srcP = '3D/rods/' + kind + '/blank_' + kind + '.json';
+      if (!fs.existsSync(srcP)) continue;
+      const seat = read(srcP).elements.find(e => e.name === 'reel_seat');
+      if (!seat) { fail(kind + ' has a seat offset but no reel_seat element'); continue; }
+      const wantDx = r3((seat.from[0] + seat.to[0]) / 2 - 19.5), wantDy = r3(seat.from[1] - 9.45);
+      if (Math.abs(wantDx - seatMap[kind][0]) > 0.01 || Math.abs(wantDy - seatMap[kind][1]) > 0.01) {
+        fail(kind + ': REEL_SEAT_DX {' + seatMap[kind] + '} but the model seat wants {' + wantDx + ', ' + wantDy + '}');
+      }
+    }
+    ok('seat offsets match every 3D model seat');
+  }
   // the renderer's seat map must agree with gameplay: exactly the takesReel rods carry a seat
   const rodType = fs.readFileSync('common/src/main/java/com/riverfishing/component/RodType.java', 'utf8');
   const takesReel = new Set();

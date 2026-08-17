@@ -155,26 +155,23 @@ public final class LineRenderer {
      * Shared by the world pass and the first-person hand pass, so every observer sees one line.
      */
     static double hangOffset(ClientLineState.Line state, double dy, double f, double time) {
-        // Taut is NOT tension-proportional: smoothTension measures load against the line's BREAKING
-        // strain, so strong gear on a modest fish idles near 0.1 and the string never straightened.
-        // Physically ANY real pull straightens a line — sag needs slack, not a weak fish — so taut
-        // saturates almost immediately, a RUN is taut unconditionally (the drag is screaming), and
-        // the belly appears only when the pull actually dies: the fish is coming AT the angler.
-        float taut = 0f, slack = 0f;
-        if (state != null && state.fighting) {
-            float t = state.smoothTension;
-            taut = state.running ? 1f : Mth.clamp((t - 0.02f) / 0.10f, 0f, 1f);
-            slack = state.running ? 0f : Mth.clamp((0.06f - t) / 0.06f, 0f, 1f);
-        }
+        // §line-taut-eased: the hang reads the DISPLAYED taut/slack, which tickSmoothing chases
+        // asymmetrically (snaps tight, relaxes at cable speed) over a wide tension band — so between
+        // the dead string and the deep belly lives a continuous scale of partial droop, and every
+        // transition is a movement, not a switch.
+        float taut = state != null ? state.dispTaut : 0f;
+        float slack = state != null ? state.dispSlack : 0f;
         double sag = dy * (f * f + f) * 0.5 + 0.25 * (1.0 - f);   // the vanilla hang, lift included
         double straight = dy * f;
-        double y = straight + (sag - straight) * (1.0 - taut);
+        // even a string under full load keeps a few percent of catenary — a laser line reads fake
+        double y = straight + (sag - straight) * (1.0 - taut * 0.96);
         if (slack > 0f) {
             y -= slack * 0.6 * 4.0 * f * (1.0 - f);               // deepest mid-span, zero at both ends
         }
-        if (taut > 0.9f) {
-            // a loaded string trembles — amplitude grows with how NEAR BREAKING it actually is
-            double amp = 0.008 + 0.025 * (state != null ? state.smoothTension : 0f);
+        if (taut > 0.7f) {
+            // a loaded string trembles — fading in with taut, growing with real nearness to breaking
+            double gate = (taut - 0.7) / 0.3;
+            double amp = (0.008 + 0.025 * (state != null ? state.smoothTension : 0f)) * gate * gate;
             y += Math.sin(time * 2.1 + f * 31.0) * amp * Math.sin(Math.PI * f);
         }
         return y;

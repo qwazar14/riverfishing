@@ -1926,9 +1926,21 @@ public final class FishingManager {
             actionbar(sp, Component.translatable("message.riverfishing.fish_jumps").withStyle(ChatFormatting.RED));
         }
 
-        // The classic last dash at the bank: one guaranteed surge just before landing — ease off or snap.
+        // The classic last dash at the bank — ROLLED, not scripted (§final-surge-roll): a guaranteed
+        // surge became a ritual the player waited out, and a ritual carries no fear. The odds follow
+        // what is actually on the hook: a trophy nearly always makes that dash, a hard pattern often,
+        // a modest fish usually comes in quiet — and a boot never fights the net. Rolled exactly once,
+        // at the moment the bank is reached; a failed roll is a quiet landing, not a retry.
         if (!session.finalSurgeDone && session.landProgress >= 0.85) {
             session.finalSurgeDone = true;
+            double odds = 0.35;
+            if (session.trophy) odds += 0.35;
+            String fp = session.fightPattern == null ? "" : session.fightPattern;
+            if (fp.equals("aggressive") || fp.equals("relentless") || fp.equals("burst")) odds += 0.15;
+            if (session.bycatch != 0) odds = 0;
+            if (random.nextDouble() >= odds) {
+                // it gave up at the net — this time
+            } else {
             session.runTicksLeft = Math.max(session.runTicksLeft, (session.trophy ? 38 : 28) + random.nextInt(14));
             // It is the fight's last real run, so it gets a course like every other one — otherwise the
             // dash at the net was the ONLY run in the fight with nothing to answer.
@@ -1941,6 +1953,7 @@ public final class FishingManager {
             level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
                     session.target.getZ() + 0.5, 20, 0.3, 0.15, 0.3, 0.3);
             actionbar(sp, Component.translatable("message.riverfishing.final_surge").withStyle(ChatFormatting.RED));
+            }
         }
 
         // §tackle-stress (0.4.0): the probabilistic break — rolled once per tick, after every tension

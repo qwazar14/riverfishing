@@ -37,6 +37,14 @@ public final class ClientLineState {
         /** Eased lean of the rod tip, in degrees: x = sideways, y = up/down. */
         public float leanYaw;
         public float leanPitch;
+        /**
+         * §line-taut-eased: the DISPLAYED string state, 0..1 each — what the renderer hangs the line
+         * by. Targets are shaped from tension/running, then chased with asymmetric easing: a line
+         * SNAPS tight (the jerk is instantaneous) but relaxes at cable speed, so between the string
+         * and the belly there is a whole readable middle of partial droop instead of a flick.
+         */
+        public float dispTaut;
+        public float dispSlack;
         public long lastUpdate;        // client game time of the last packet (staleness check)
 
         /** Eases the rendered progress toward the server value; call once per frame. */
@@ -53,6 +61,23 @@ public final class ClientLineState {
             float k = Math.min(1f, frameSeconds * 5f);
             leanYaw = Mth.lerp(k, leanYaw, ty * RodHandTransform.COURSE_YAW);
             leanPitch = Mth.lerp(k, leanPitch, tp * RodHandTransform.COURSE_PITCH);
+
+            // §line-taut-eased: shape the targets over a WIDE band (0.02..0.35 tension covers the
+            // whole straightening arc), then chase them — tightening 3x faster than relaxing.
+            float tautTarget = 0f, slackTarget = 0f;
+            if (fighting) {
+                tautTarget = running ? 1f
+                        : smoothstep(Mth.clamp((smoothTension - 0.02f) / 0.33f, 0f, 1f));
+                slackTarget = running ? 0f : Mth.clamp((0.10f - smoothTension) / 0.10f, 0f, 1f);
+            }
+            float kUp = Math.min(1f, frameSeconds * 12f);   // a jerk snaps the line tight
+            float kDown = Math.min(1f, frameSeconds * 3f);  // slack develops at cable speed
+            dispTaut = Mth.lerp(tautTarget > dispTaut ? kUp : kDown, dispTaut, tautTarget);
+            dispSlack = Mth.lerp(slackTarget > dispSlack ? kDown : kUp, dispSlack, slackTarget);
+        }
+
+        private static float smoothstep(float s) {
+            return s * s * (3f - 2f * s);
         }
     }
 

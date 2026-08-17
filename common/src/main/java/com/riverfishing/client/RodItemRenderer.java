@@ -85,6 +85,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
                     "pole", new float[]{15.2f, 7.4f, -0.4f, -8.2f},
                     "spinning", new float[]{14f, 3f, -5f, -10f}, // rebuilt on the feeder skeleton
                     "ultralight", new float[]{14.8f, 5.5f, -0.8f, -4.1f},
+                    "surf", new float[]{12.9f, 5.3f, -2.3f, -9.9f},
                     "bamboo", new float[]{19.667f, 13.333f, 7f, 0.667f, -5.667f});
 
     /** A 3D blank with no joints listed: one rigid piece, drawn but never bent. */
@@ -100,7 +101,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             java.util.Map.entry("bamboo", -12.1f), java.util.Map.entry("stick", 2.5f),
             java.util.Map.entry("spinning", -16f), java.util.Map.entry("ultralight", -8.5f),
             java.util.Map.entry("winter", 21.9f), java.util.Map.entry("sea_spin", -2f),
-            java.util.Map.entry("bottom", -10.7f), java.util.Map.entry("carp", -14f),
+            java.util.Map.entry("bottom", -16f), java.util.Map.entry("carp", -14f),
             java.util.Map.entry("surf", -16f), java.util.Map.entry("boat", 6f),
             java.util.Map.entry("trolling", 8f));
 
@@ -194,8 +195,8 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final java.util.Map<String, float[]> REEL_SEAT_DX = java.util.Map.of(
             "feeder", new float[]{0f, 0f}, "spinning", new float[]{0f, 0f},
             "ultralight", new float[]{0.8f, 0.4f},   // its seat rides 0.4u higher than the 9.45 docking line
-            "sea_spin", new float[]{7.75f, 0f}, "bottom", new float[]{7f, 0f},
-            "carp", new float[]{7.25f, 0f}, "surf", new float[]{5.5f, 0f},
+            "sea_spin", new float[]{7.75f, 0f}, "bottom", new float[]{4f, 0.6f},
+            "carp", new float[]{7.25f, 0f}, "surf", new float[]{4f, 0.6f},   // surf seat rides 0.6u high
             "boat", new float[]{2.75f, 0f}, "trolling", new float[]{2.25f, 0f});
 
     // ===== §line-thru-guides: the line runs from the spool through every ring to the tip =====
@@ -513,6 +514,31 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         return l == null ? 0f : net.minecraft.util.Mth.clamp(l.smoothTension, 0f, 1f);
     }
 
+    /**
+     * §bend-plane: where the line's pull sits relative to the angler's view, -1 = hard left,
+     * +1 = hard right, 0 = straight ahead. The cast point off-centre tilts the whole bend toward it
+     * (the line leaves the tip TOWARD the fish, so that is where the blank is loaded), and a
+     * directed run drags it further the way the fish is going. This is what turns "the rod bends"
+     * into "the rod bends AT the fish".
+     */
+    private static float fightLateral() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return 0f;
+        ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
+        if (own == null) return 0f;
+        var d = net.minecraft.world.phys.Vec3.atCenterOf(own.target).subtract(mc.player.position());
+        float yawTo = (float) Math.toDegrees(net.minecraft.util.Mth.atan2(-d.x, d.z));
+        float off = net.minecraft.util.Mth.degreesDifference(mc.player.getYRot(), yawTo);
+        // saturates by 45° off-view: countering a run (fish left, camera swung right) should put the
+        // blank FLAT on its side, not politely diagonal
+        float lat = net.minecraft.util.Mth.clamp(off / 45f, -1f, 1f);
+        if (own.fighting) {
+            // fish running LEFT drags the tip further left — same sign language the lean spoke
+            lat += own.course == 1 ? -0.5f : own.course == 2 ? 0.5f : 0f;
+        }
+        return net.minecraft.util.Mth.clamp(lat, -1f, 1f);
+    }
+
     /** §rod-bend: the LOCAL player's current bend bucket (0 = straight), from smoothed fight stress. */
     public static int liveBend() {
         if (FORCE_BEND >= 0) return Math.min(FORCE_BEND, BEND_BUCKETS);
@@ -705,6 +731,16 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         org.joml.Vector3f[] thread = lp == null ? null : new org.joml.Vector3f[lp.length];
         captureLineStage(thread, lp, pose, jointsX, 0);
         float jy = BLANK_AXIS_Y / 16f - 0.5f, jz = BLANK_AXIS_Z / 16f - 0.5f;
+        // §bend-plane: the chain bends TOWARD the pull. The lateral fraction tilts the bend plane —
+        // the vertical share never drops below 0.35 (a hooked fish always drags down-and-away), and
+        // the yaw sign flips because a positive Y rotation swings the tip screen-LEFT while the
+        // lateral is positive to the RIGHT.
+        float lat = tension > 0f ? fightLateral() : 0f;
+        // The hand pose's rz tilt leans the model's Y axis, so an on-axis yaw rotation loses part of
+        // its on-screen width — the 1.4 gain buys it back, and the vertical floor drops to 0.2:
+        // a fish pulling hard sideways should lay the blank over, not keep it half-bowed down.
+        float bendVert = Math.max(0.2f, (float) Math.sqrt(Math.max(0f, 1f - lat * lat)));
+        float bendYaw = -lat * 1.4f;
         for (int i = 0; i < jointsX.length; i++) {
             float share = jointShare(i, jointsX.length);
             float jx = jointsX[i] / 16f - 0.5f;
@@ -715,9 +751,11 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             float whipGain = RodPhysics.profileFor(rodKey)[2];
             float whipPitch = RodPhysics.pitch() * whipGain * share;
             float whipYaw = RodPhysics.yaw() * whipGain * share;
+            float bendDeg = tension * MAX_BEND_DEG * share;
             pose.translate(jx, jy, jz);
-            pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(tension * MAX_BEND_DEG * share + whipPitch));
-            if (whipYaw != 0f) pose.mulPose(com.mojang.math.Axis.YP.rotationDegrees(whipYaw));
+            pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(bendDeg * bendVert + whipPitch));
+            float yawDeg = bendDeg * bendYaw + whipYaw;
+            if (yawDeg != 0f) pose.mulPose(com.mojang.math.Axis.YP.rotationDegrees(yawDeg));
             pose.translate(-jx, -jy, -jz);
             BakedModel seg = resolve(mm, missing, mir, RodModelLayers.segment(rodKey, i + 1));
             if (seg != null) {
