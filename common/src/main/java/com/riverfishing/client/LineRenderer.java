@@ -97,15 +97,15 @@ public final class LineRenderer {
         boolean handDrawn = player == mc.player && mc.options.getCameraType().isFirstPerson()
                 && RodItemRenderer.handLineFresh();
         if (!handDrawn) {
-            // Vanilla string shape (FishingHookRenderer.stringVertex): 16 segments from the water end
-            // up to the rod tip, y following (f² + f)/2 — the line hangs toward the water exactly like
-            // the vanilla rod's, plus the classic 0.25 lift where it leaves the float.
+            // Vanilla string SHAPE (FishingHookRenderer.stringVertex), hang replaced by §line-taut —
+            // tension straightens the string, a fish running at the angler bellies it.
+            double time = mc.level.getGameTime() + pt;
             double dx = tip.x - end.x, dy = tip.y - end.y, dz = tip.z - end.z;
-            Vec3 prev = end.add(0, 0.25, 0);
+            Vec3 prev = end.add(0, hangOffset(state, dy, 0.0, time), 0);
             for (int k = 1; k <= 16; k++) {
                 double f = k / 16.0;
                 Vec3 p = new Vec3(end.x + dx * f,
-                        end.y + dy * (f * f + f) * 0.5 + 0.25 * (1.0 - f),
+                        end.y + hangOffset(state, dy, f, time),
                         end.z + dz * f);
                 line(sv, m, nrm, prev, p, cr, cg, cb, alpha);
                 prev = p;
@@ -141,6 +141,43 @@ public final class LineRenderer {
         Vec3 water = new Vec3(t.getX() + 0.5, t.getY() + 0.95 + bob, t.getZ() + 0.5);
         Vec3 bank = player.position().add(player.getViewVector(pt).scale(1.2)).add(0, 0.1, 0);
         return water.lerp(bank, Mth.clamp(state.smoothProgress * 0.85f, 0f, 0.9f));
+    }
+
+    /**
+     * §line-taut: the vertical hang of the string at parameter {@code f} (0 = water end, 1 = tip),
+     * replacing the fixed vanilla catenary. The line is a physical readout of the fight:
+     * <ul>
+     *   <li>idle / waiting — the vanilla hang, lazy and heavy;</li>
+     *   <li>under tension — pulled STRAIGHT like a string, with a fine tremble once it is loaded;</li>
+     *   <li>fish coming AT the angler — the pull is gone and the line bellies well below the chord,
+     *       which is the classic "reel, reel, it is running at you" read.</li>
+     * </ul>
+     * Shared by the world pass and the first-person hand pass, so every observer sees one line.
+     */
+    static double hangOffset(ClientLineState.Line state, double dy, double f, double time) {
+        // Taut is NOT tension-proportional: smoothTension measures load against the line's BREAKING
+        // strain, so strong gear on a modest fish idles near 0.1 and the string never straightened.
+        // Physically ANY real pull straightens a line — sag needs slack, not a weak fish — so taut
+        // saturates almost immediately, a RUN is taut unconditionally (the drag is screaming), and
+        // the belly appears only when the pull actually dies: the fish is coming AT the angler.
+        float taut = 0f, slack = 0f;
+        if (state != null && state.fighting) {
+            float t = state.smoothTension;
+            taut = state.running ? 1f : Mth.clamp((t - 0.02f) / 0.10f, 0f, 1f);
+            slack = state.running ? 0f : Mth.clamp((0.06f - t) / 0.06f, 0f, 1f);
+        }
+        double sag = dy * (f * f + f) * 0.5 + 0.25 * (1.0 - f);   // the vanilla hang, lift included
+        double straight = dy * f;
+        double y = straight + (sag - straight) * (1.0 - taut);
+        if (slack > 0f) {
+            y -= slack * 0.6 * 4.0 * f * (1.0 - f);               // deepest mid-span, zero at both ends
+        }
+        if (taut > 0.9f) {
+            // a loaded string trembles — amplitude grows with how NEAR BREAKING it actually is
+            double amp = 0.008 + 0.025 * (state != null ? state.smoothTension : 0f);
+            y += Math.sin(time * 2.1 + f * 31.0) * amp * Math.sin(Math.PI * f);
+        }
+        return y;
     }
 
     /**

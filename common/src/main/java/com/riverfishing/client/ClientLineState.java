@@ -88,25 +88,48 @@ public final class ClientLineState {
     }
 
     /**
-     * §fight-course: poll the movement keys during our own fight and tell the server when they change.
+     * §fight-camera (0.8.0): the PRIMARY fight input is the camera — hold your view AGAINST the run,
+     * like steering the rod in a fishing simulator. The read is the ROTATION DELTA from an anchor
+     * stored at each course change (the input FightCourse's design notes blessed when the analogue
+     * fight was shelved): a lean relative to where you were, so countering never means facing away
+     * from the water, and a controller right-stick works for free. Yaw right of the anchor = pulling
+     * right; pitch above = lifting; below = laying the rod down.
      *
-     * <p>Polled rather than hooked because this version of MC only ships raw movement input to the server
-     * for players riding a vehicle. Only edges are sent, so a whole fight is a handful of bytes; leaving the
-     * fight sends one final "hands off".
+     * <p>§fight-keys stays as the QUIET secondary input — the four bindings still override the camera
+     * while held, but nothing advertises them any more; the rod, the line and the boss bar all speak
+     * in rod terms that fit both devices.
+     *
+     * <p>Polled on the tick; only edges are sent, so a whole fight is a handful of bytes.
      */
     public static void pollFightInput() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
         Line own = LINES.get(mc.player.getId());
         byte dir = FightInputPacket.NONE;
-        // §fight-keys: the rod's own bindings, NOT the movement keys. Reading WASD here is what walked
-        // people off piers while they answered the boss bar — the course never needed the movement, only
-        // the keypress. WASD now means feet and nothing else (§fight-footwork).
         if (own != null && own.fighting && mc.screen == null) {
+            if (own.course != anchorCourse) {
+                // every new run re-anchors: gestures are relative, and the view never drifts away
+                anchorCourse = own.course;
+                anchorYaw = mc.player.getYRot();
+                anchorPitch = mc.player.getXRot();
+            }
             if (FightKeys.PULL_LEFT.isDown()) dir = FightInputPacket.PULL_LEFT;
             else if (FightKeys.PULL_RIGHT.isDown()) dir = FightInputPacket.PULL_RIGHT;
             else if (FightKeys.PUSH.isDown()) dir = FightInputPacket.PUSH;
             else if (FightKeys.LIFT.isDown()) dir = FightInputPacket.LIFT;
+            else {
+                float dYaw = Mth.degreesDifference(anchorYaw, mc.player.getYRot());
+                float dPitch = mc.player.getXRot() - anchorPitch;   // MC pitch grows looking DOWN
+                if (Math.abs(dYaw) >= CAMERA_DEAD_DEG || Math.abs(dPitch) >= CAMERA_DEAD_DEG) {
+                    if (Math.abs(dYaw) >= Math.abs(dPitch)) {
+                        dir = dYaw < 0 ? FightInputPacket.PULL_LEFT : FightInputPacket.PULL_RIGHT;
+                    } else {
+                        dir = dPitch < 0 ? FightInputPacket.LIFT : FightInputPacket.PUSH;
+                    }
+                }
+            }
+        } else {
+            anchorCourse = -1;
         }
         if (dir != sentDir) {
             sentDir = dir;
@@ -114,7 +137,11 @@ public final class ClientLineState {
         }
     }
 
+    /** §fight-camera: how far the view must lean off its anchor before it counts as pulling. */
+    private static final float CAMERA_DEAD_DEG = 6f;
     private static byte sentDir;
+    private static byte anchorCourse = -1;
+    private static float anchorYaw, anchorPitch;
 
     /**
      * §fight-course: the local angler's rod lean, {yaw, pitch} in degrees. Zero when nothing is running.

@@ -359,12 +359,14 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         float dtx = tipV.x() - tipWarped.x(), dty = tipV.y() - tipWarped.y(), dtz = tipV.z() - tipWarped.z();
 
         org.joml.Matrix4f id = new org.joml.Matrix4f();
-        org.joml.Vector3f prev = toViewWarped(end.add(0, 0.25, 0), cp, q, warp);
+        double time = mc.level.getGameTime() + pt;
+        org.joml.Vector3f prev = toViewWarped(
+                end.add(0, LineRenderer.hangOffset(own, dy, 0.0, time), 0), cp, q, warp);
         for (int k = 1; k <= 16; k++) {
             double f = k / 16.0;
             org.joml.Vector3f p = toViewWarped(new net.minecraft.world.phys.Vec3(
                     end.x + dx * f,
-                    end.y + dy * (f * f + f) * 0.5 + 0.25 * (1.0 - f),
+                    end.y + LineRenderer.hangOffset(own, dy, f, time),   // §line-taut
                     end.z + dz * f), cp, q, warp)
                     .add((float) (dtx * f), (float) (dty * f), (float) (dtz * f));
             float sx = p.x() - prev.x(), sy = p.y() - prev.y(), sz = p.z() - prev.z();
