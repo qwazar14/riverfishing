@@ -40,6 +40,32 @@ const RODS = {
       { name: 's4', members: ['ferrule_4', 'section_5'], jointAt: 'ferrule_4' },
     ],
   },
+  // §spinning-3d: the artist rebuilt spinning ON the feeder's skeleton — same section names, same
+  // joints — so it splits with the feeder's own config and bends identically.
+  spinning: {
+    src: '3D/rods/spinning/blank_spinning.json',
+    texRef: 'riverfishing:item/rod/blank_spinning_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip'] },
+      { name: 's1', members: ['blank_butt'], joint: 14 },
+      { name: 's2', members: ['blank_mid'], joint: 3 },
+      { name: 's3', members: ['blank_tip'], joint: -5 },
+      { name: 's4', members: ['quivertip'], joint: -10 },
+    ],
+  },
+  // §ultralight-3d: feeder skeleton again, but with its own joints and 0.1u section overlaps that
+  // sleeve the hinges without collars.
+  ultralight: {
+    src: '3D/rods/ultralight/blank_ultralight.json',
+    texRef: 'riverfishing:item/rod/blank_ultralight_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip'] },
+      { name: 's1', members: ['blank_butt'], joint: 14.8 },
+      { name: 's2', members: ['blank_mid'], joint: 5.5 },
+      { name: 's3', members: ['blank_tip'], joint: -0.8 },
+      { name: 's4', members: ['quivertip'], joint: -4.1 },
+    ],
+  },
   bamboo: {
     src: '3D/rods/bamboo/blank_bamboo.json',
     texRef: 'riverfishing:item/rod/blank_bamboo_3d',

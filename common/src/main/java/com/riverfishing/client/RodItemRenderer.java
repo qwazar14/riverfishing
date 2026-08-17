@@ -83,6 +83,8 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
                     // tip-side segment, so it sleeves its joint when the chain bends, like a real
                     // telescopic pole. Values come from tools/split_rod.js, which prints them.
                     "pole", new float[]{15.2f, 7.4f, -0.4f, -8.2f},
+                    "spinning", new float[]{14f, 3f, -5f, -10f}, // rebuilt on the feeder skeleton
+                    "ultralight", new float[]{14.8f, 5.5f, -0.8f, -4.1f},
                     "bamboo", new float[]{19.667f, 13.333f, 7f, 0.667f, -5.667f});
 
     /** A 3D blank with no joints listed: one rigid piece, drawn but never bent. */
@@ -96,9 +98,9 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final java.util.Map<String, Float> BLANK_TIP_X = java.util.Map.ofEntries(
             java.util.Map.entry("feeder", -16f), java.util.Map.entry("pole", -16f),
             java.util.Map.entry("bamboo", -12.1f), java.util.Map.entry("stick", 2.5f),
-            java.util.Map.entry("spinning", 2f), java.util.Map.entry("ultralight", 7f),
+            java.util.Map.entry("spinning", -16f), java.util.Map.entry("ultralight", -8.5f),
             java.util.Map.entry("winter", 21.9f), java.util.Map.entry("sea_spin", -2f),
-            java.util.Map.entry("bottom", -10f), java.util.Map.entry("carp", -14f),
+            java.util.Map.entry("bottom", -10.7f), java.util.Map.entry("carp", -14f),
             java.util.Map.entry("surf", -16f), java.util.Map.entry("boat", 6f),
             java.util.Map.entry("trolling", 8f));
 
@@ -189,9 +191,12 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      * another rod is one translate along the blank. Values are seat centres from tools/gen_spin_rod.js
      * minus 19.5. A rod absent here takes no reel (RodType.takesReel is false).
      */
-    private static final java.util.Map<String, Float> REEL_SEAT_DX = java.util.Map.of(
-            "feeder", 0f, "spinning", 7.25f, "ultralight", 7.75f, "sea_spin", 7.75f,
-            "bottom", 7f, "carp", 7.25f, "surf", 5.5f, "boat", 2.75f, "trolling", 2.25f);
+    private static final java.util.Map<String, float[]> REEL_SEAT_DX = java.util.Map.of(
+            "feeder", new float[]{0f, 0f}, "spinning", new float[]{0f, 0f},
+            "ultralight", new float[]{0.8f, 0.4f},   // its seat rides 0.4u higher than the 9.45 docking line
+            "sea_spin", new float[]{7.75f, 0f}, "bottom", new float[]{7f, 0f},
+            "carp", new float[]{7.25f, 0f}, "surf", new float[]{5.5f, 0f},
+            "boat", new float[]{2.75f, 0f}, "trolling", new float[]{2.25f, 0f});
 
     // ===== §line-thru-guides: the line runs from the spool through every ring to the tip =====
     /**
@@ -235,15 +240,15 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      * bare blank carries nothing to thread.
      */
     private static float[][] guideLinePoints(ItemStack stack, String rodKey) {
-        Float dx = REEL_SEAT_DX.get(rodKey);
-        if (dx == null) return null;
+        float[] off = REEL_SEAT_DX.get(rodKey);
+        if (off == null) return null;
         if (!(RodData.get(stack, ComponentSlot.LINE).getItem() instanceof LineItem)) return null;
         if (!(RodData.get(stack, ComponentSlot.REEL).getItem() instanceof ReelItem ri)) return null;
         float[][] path = linePath(rodKey);
         if (path == null) return null;
         float s = (float) Math.cbrt(ri.size() / 4000.0);
         float[][] pts = new float[path.length + 1][];
-        pts[0] = new float[]{19.3f - 3.75f * s + dx, 9.55f - 1.5f * s};  // the spool's front lip
+        pts[0] = new float[]{19.3f - 3.75f * s + off[0], 9.55f - 1.5f * s + off[1]};  // the spool's front lip
         System.arraycopy(path, 0, pts, 1, path.length);
         return pts;
     }
@@ -424,14 +429,14 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static void drawReel3d(ItemStack stack, String rodKey, float tension, ItemRenderer ir,
                                    ModelManager mm, BakedModel missing, PoseStack pose,
                                    MultiBufferSource buffers, int light, int overlay) {
-        Float dx = REEL_SEAT_DX.get(rodKey);
-        if (dx == null) return;
+        float[] off = REEL_SEAT_DX.get(rodKey);
+        if (off == null) return;
         ItemStack reel = RodData.get(stack, ComponentSlot.REEL);
         if (!(reel.getItem() instanceof ReelItem ri)) return;
         BakedModel body = resolve(mm, missing, false, RodModelLayers.reel3d(ri.size()));
         if (body == null) return;
         pose.pushPose();
-        pose.translate(dx / 16f, 0, 0);
+        pose.translate(off[0] / 16f, off[1] / 16f, 0);
         ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, body);
         BakedModel handle = resolve(mm, missing, false, RodModelLayers.reel3dHandle(ri.size()));
         if (handle != null) {

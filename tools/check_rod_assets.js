@@ -10,7 +10,7 @@ const fs = require('fs');
 
 const RODS = ['stick', 'bamboo', 'pole', 'winter', 'ultralight', 'spinning', 'feeder',
               'bottom', 'carp', 'surf', 'sea_spin', 'boat', 'trolling'];
-const SEGMENTED = { feeder: 5, pole: 5, bamboo: 6 };          // kind -> piece count
+const SEGMENTED = { feeder: 5, pole: 5, bamboo: 6, spinning: 5, ultralight: 5 };          // kind -> piece count
 const ASSETS = 'common/src/main/resources/assets/riverfishing';
 const RENDERER = 'common/src/main/java/com/riverfishing/client/RodItemRenderer.java';
 const LAYERS = 'common/src/main/java/com/riverfishing/client/RodModelLayers.java';
