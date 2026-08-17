@@ -22,6 +22,13 @@ import org.joml.Matrix4f;
 public final class LineRenderer {
     private LineRenderer() {}
 
+    /**
+     * §tip3d-trim: manual trim on the computed first-person anchor, near-plane units — shaderpacks
+     * (Iris et al.) are free to render the hand with their own projection, and no vanilla maths can
+     * predict that. Tuned live with /rfrod tip3d <dx> <dy>, persisted client-side.
+     */
+    public static final float[] TIP3D_OFFSET = {0f, 0f};
+
     public static void render(PoseStack pose, Vec3 cam, float pt) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null || ClientLineState.lines().isEmpty()) return;
@@ -64,23 +71,7 @@ public final class LineRenderer {
         // Rod-tip anchor: exact vanilla FishingHookRenderer math (§vanilla-line).
         Vec3 tip = rodTipAnchor(mc, player, pt);
 
-        // Line end: the cast target riding the waves, pulled toward the angler as reel-in progress
-        // rises. The float and the line END move together — like the vanilla bobber on water.
-        float bobT = mc.level.getGameTime() + pt;
-        double bob;
-        if (state.floatKind == 0) {
-            bob = 0.0;
-        } else if (state.biting) {
-            // §bite-visual: the float PLUNGES under and twitches hard — the classic "подсекай!" cue.
-            bob = -0.22 + Math.sin(bobT * 1.6) * 0.08 + Math.sin(bobT * 0.53) * 0.04;
-        } else {
-            // Idle wave imitation: two slow overlapping swells, like the vanilla hook on water.
-            bob = Math.sin(bobT * 0.13) * 0.05 + Math.sin(bobT * 0.047) * 0.03;
-        }
-        BlockPos t = state.target;
-        Vec3 water = new Vec3(t.getX() + 0.5, t.getY() + 0.95 + bob, t.getZ() + 0.5);
-        Vec3 bank = player.position().add(player.getViewVector(pt).scale(1.2)).add(0, 0.1, 0);
-        Vec3 end = water.lerp(bank, Mth.clamp(state.smoothProgress * 0.85f, 0f, 0.9f));
+        Vec3 end = lineEnd(mc, player, state, pt);
 
         int color = state.color;
         int cr = (color >> 16) & 0xFF, cg = (color >> 8) & 0xFF, cb = color & 0xFF;
@@ -100,18 +91,25 @@ public final class LineRenderer {
         VertexConsumer sv = style == null ? vc : buffers.getBuffer(RodRenderTypes.lineStrand(style[4]));
         int alpha = style == null ? 255 : (int) style[3];
 
-        // Vanilla string shape (FishingHookRenderer.stringVertex): 16 segments from the water end
-        // up to the rod tip, y following (f² + f)/2 — the line hangs toward the water exactly like
-        // the vanilla rod's, plus the classic 0.25 lift where it leaves the float.
-        double dx = tip.x - end.x, dy = tip.y - end.y, dz = tip.z - end.z;
-        Vec3 prev = end.add(0, 0.25, 0);
-        for (int k = 1; k <= 16; k++) {
-            double f = k / 16.0;
-            Vec3 p = new Vec3(end.x + dx * f,
-                    end.y + dy * (f * f + f) * 0.5 + 0.25 * (1.0 - f),
-                    end.z + dz * f);
-            line(sv, m, nrm, prev, p, cr, cg, cb, alpha);
-            prev = p;
+        // §hand-line: the LOCAL first-person string is drawn by the hand pass, welded to the tip's
+        // own matrix — drawing it here too would double it, one frame behind. Everyone else's lines
+        // (and our own in third person) still belong to this pass.
+        boolean handDrawn = player == mc.player && mc.options.getCameraType().isFirstPerson()
+                && RodItemRenderer.handLineFresh();
+        if (!handDrawn) {
+            // Vanilla string shape (FishingHookRenderer.stringVertex): 16 segments from the water end
+            // up to the rod tip, y following (f² + f)/2 — the line hangs toward the water exactly like
+            // the vanilla rod's, plus the classic 0.25 lift where it leaves the float.
+            double dx = tip.x - end.x, dy = tip.y - end.y, dz = tip.z - end.z;
+            Vec3 prev = end.add(0, 0.25, 0);
+            for (int k = 1; k <= 16; k++) {
+                double f = k / 16.0;
+                Vec3 p = new Vec3(end.x + dx * f,
+                        end.y + dy * (f * f + f) * 0.5 + 0.25 * (1.0 - f),
+                        end.z + dz * f);
+                line(sv, m, nrm, prev, p, cr, cg, cb, alpha);
+                prev = p;
+            }
         }
 
         // The bobber (§bobber-render): only float rigs show one — a red antenna over a white body.
@@ -120,6 +118,29 @@ public final class LineRenderer {
         if (state.floatKind != 0) {
             drawFloat(vc, m, nrm, end, state.floatKind == 2);
         }
+    }
+
+    /**
+     * §hand-line: where this angler's line meets the water THIS frame — the cast target riding the
+     * waves, pulled toward the angler as reel-in progress rises. Shared by the world pass and the
+     * first-person hand pass ({@link RodItemRenderer}), so the two can never disagree on the far end.
+     */
+    static Vec3 lineEnd(Minecraft mc, Player player, ClientLineState.Line state, float pt) {
+        float bobT = mc.level.getGameTime() + pt;
+        double bob;
+        if (state.floatKind == 0) {
+            bob = 0.0;
+        } else if (state.biting) {
+            // §bite-visual: the float PLUNGES under and twitches hard — the classic "подсекай!" cue.
+            bob = -0.22 + Math.sin(bobT * 1.6) * 0.08 + Math.sin(bobT * 0.53) * 0.04;
+        } else {
+            // Idle wave imitation: two slow overlapping swells, like the vanilla hook on water.
+            bob = Math.sin(bobT * 0.13) * 0.05 + Math.sin(bobT * 0.047) * 0.03;
+        }
+        BlockPos t = state.target;
+        Vec3 water = new Vec3(t.getX() + 0.5, t.getY() + 0.95 + bob, t.getZ() + 0.5);
+        Vec3 bank = player.position().add(player.getViewVector(pt).scale(1.2)).add(0, 0.1, 0);
+        return water.lerp(bank, Mth.clamp(state.smoothProgress * 0.85f, 0f, 0.9f));
     }
 
     /**
@@ -207,8 +228,8 @@ public final class LineRenderer {
                 // added on top of it — bend, lean and the cast swing all moved the pose this was
                 // read from, so the anchor already carries them. getPointOnPlane's first argument
                 // scales the LEFT vector, so screen-right has to be negated.
-                px = -RodItemRenderer.TIP_NDC[0];
-                py = RodItemRenderer.TIP_NDC[1];
+                px = -RodItemRenderer.TIP_NDC[0] + TIP3D_OFFSET[0];
+                py = RodItemRenderer.TIP_NDC[1] + TIP3D_OFFSET[1];
             } else {
                 // Sprite blanks: one 16-unit icon for every rod, so the tip is a constant found in
                 // game, nudged per bend bucket (/rfrod tip) and per lean (§fight-course).
@@ -228,6 +249,17 @@ public final class LineRenderer {
                     Mth.lerp(pt, player.xo, player.getX()) + v.x,
                     Mth.lerp(pt, player.yo, player.getY()) + v.y + player.getEyeHeight(),
                     Mth.lerp(pt, player.zo, player.getZ()) + v.z);
+        }
+
+        // §rod-tip-3d third person: the local player's tip was captured in view space while the rod
+        // drew — rotate it back to world with the camera quaternion and the line starts ON the bent
+        // 3D tip instead of at the body-model shoulder guess below.
+        if (player == mc.player && RodItemRenderer.tipViewFresh()) {
+            var cam3 = mc.gameRenderer.getMainCamera();
+            org.joml.Vector3f w = cam3.rotation().transform(new org.joml.Vector3f(
+                    RodItemRenderer.TIP_VIEW[0], RodItemRenderer.TIP_VIEW[1], RodItemRenderer.TIP_VIEW[2]));
+            Vec3 cp = cam3.getPosition();
+            return new Vec3(cp.x + w.x(), cp.y + w.y(), cp.z + w.z());
         }
 
         float bodyYaw = Mth.lerp(pt, player.yBodyRotO, player.yBodyRot) * ((float) Math.PI / 180f);

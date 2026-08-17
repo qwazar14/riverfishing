@@ -95,9 +95,9 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      */
     private static final java.util.Map<String, Float> BLANK_TIP_X = java.util.Map.ofEntries(
             java.util.Map.entry("feeder", -16f), java.util.Map.entry("pole", -16f),
-            java.util.Map.entry("bamboo", -12f), java.util.Map.entry("stick", 2.5f),
+            java.util.Map.entry("bamboo", -12.1f), java.util.Map.entry("stick", 2.5f),
             java.util.Map.entry("spinning", 2f), java.util.Map.entry("ultralight", 7f),
-            java.util.Map.entry("winter", 22f), java.util.Map.entry("sea_spin", -2f),
+            java.util.Map.entry("winter", 21.9f), java.util.Map.entry("sea_spin", -2f),
             java.util.Map.entry("bottom", -10f), java.util.Map.entry("carp", -14f),
             java.util.Map.entry("surf", -16f), java.util.Map.entry("boat", 6f),
             java.util.Map.entry("trolling", 8f));
@@ -118,6 +118,40 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
     public static boolean tipNdcFresh() {
         Minecraft mc = Minecraft.getInstance();
         return mc.level != null && tipNdcFrame >= mc.level.getGameTime() - 1;
+    }
+
+    /**
+     * §rod-tip-3d third person: the local player's drawn tip in VIEW space — entity rendering poses
+     * are camera-rotated, so this is what pose.last() naturally yields; {@link LineRenderer} rotates
+     * it back to world with the camera quaternion. Without this, an F5 fight ran the line from the
+     * old shoulder anchor while the bent 3D tip waved two blocks away.
+     */
+    public static final float[] TIP_VIEW = new float[3];
+    public static long tipViewFrame = Long.MIN_VALUE;
+
+    public static boolean tipViewFresh() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc.level != null && tipViewFrame >= mc.level.getGameTime() - 1;
+    }
+
+    private static void captureTipView(PoseStack pose, String rodKey, ItemDisplayContext ctx,
+                                       ItemStack stack) {
+        Float tipX = BLANK_TIP_X.get(rodKey);
+        if (tipX == null) return;
+        if (ctx != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+                && ctx != ItemDisplayContext.THIRD_PERSON_LEFT_HAND
+                && !ctx.firstPerson()) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) return;
+        // only the LOCAL player's own held rod — this renderer also runs for everyone else's
+        if (stack != mc.player.getMainHandItem() && stack != mc.player.getOffhandItem()) return;
+        org.joml.Vector4f p = new org.joml.Vector4f(
+                tipX / 16f - 0.5f, BLANK_AXIS_Y / 16f - 0.5f, BLANK_AXIS_Z / 16f - 0.5f, 1f);
+        p.mul(pose.last().pose());
+        TIP_VIEW[0] = p.x();
+        TIP_VIEW[1] = p.y();
+        TIP_VIEW[2] = p.z();
+        tipViewFrame = mc.level.getGameTime();
     }
 
     /** Both joints and blank sit on this axis in model units; the chain hinges about Z through it. */
@@ -239,7 +273,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      * the same identity LineType's visibility factors encode); width comes from the item's actual
      * diameter, so 0.8 mm carp mono visibly outweighs 0.1 mm ultralight braid.
      */
-    private static float[] lineStyle(ItemStack stack) {
+    static float[] lineStyle(ItemStack stack) {
         if (!(RodData.get(stack, ComponentSlot.LINE).getItem() instanceof LineItem li)) return null;
         return RodRenderTypes.strandStyle(li.lineType(), li.diameterMm());
     }
@@ -261,6 +295,99 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             vc.addVertex(id, p.x, p.y, p.z).setColor(r, g, b, a).setNormal(dx, dy, dz);
             vc.addVertex(id, q.x, q.y, q.z).setColor(r, g, b, a).setNormal(dx, dy, dz);
         }
+    }
+
+    // ===== §hand-line: the first-person water line draws WITH the rod, not a pass later =====
+    /**
+     * Vanilla renders the world (where {@link LineRenderer} lives) BEFORE the hand, so any anchor
+     * captured during the hand pass is a FRAME OLD by the time the world line reads it — and with
+     * live springs the tip visibly outruns its own line. The only exact attachment is to draw the
+     * first-person line IN the hand pass, from the same matrix that just drew the tip: zero lag by
+     * construction, for every rod length, through bend, whip and jerk alike. The world pass then
+     * skips the local player's string (it still draws the float — that is a world object).
+     */
+    public static long handLineFrame = Long.MIN_VALUE;
+
+    public static boolean handLineFresh() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc.level != null && handLineFrame >= mc.level.getGameTime() - 1;
+    }
+
+    private static void drawHandLine(ItemStack stack, ItemDisplayContext ctx, MultiBufferSource buffers) {
+        if (!ctx.firstPerson()) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null || !tipViewFresh()) return;
+        if (stack != mc.player.getMainHandItem() && stack != mc.player.getOffhandItem()) return;
+        ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
+        if (own == null) return;
+
+        float pt = mc.getTimer().getGameTimeDeltaPartialTick(false);
+        net.minecraft.world.phys.Vec3 end = LineRenderer.lineEnd(mc, mc.player, own, pt);
+        var cam = mc.gameRenderer.getMainCamera();
+        net.minecraft.world.phys.Vec3 cp = cam.getPosition();
+        org.joml.Quaternionf q = new org.joml.Quaternionf(cam.rotation());
+
+        // The hand pass projects at a fixed 70° while the world projects at fov x modifier. A world
+        // point pushed through the hand projection lands on the wrong pixel, so world-derived points
+        // get their view-space x/y scaled by the tangent ratio — after that both projections agree
+        // on the screen, and the line meets the float where the world actually drew it.
+        double worldFov = mc.options.fov().get() * mc.player.getFieldOfViewModifier();
+        float warp = (float) (Math.tan(Math.toRadians(70.0) / 2.0)
+                / Math.tan(Math.toRadians(worldFov) / 2.0));
+
+        float[] style = lineStyle(stack);
+        var vc = buffers.getBuffer(style != null ? RodRenderTypes.lineStrand(style[4])
+                : net.minecraft.client.renderer.RenderType.lines());
+        int cr = (own.color >> 16) & 0xFF, cg = (own.color >> 8) & 0xFF, cb = own.color & 0xFF;
+        int alpha = style != null ? (int) style[3] : 255;
+
+        org.joml.Vector3f tipV = new org.joml.Vector3f(TIP_VIEW[0], TIP_VIEW[1], TIP_VIEW[2]);
+        // the sag SHAPE is computed in world space (gravity hangs in world-down, not camera-down),
+        // anchored on the tip's approximate world position; the on-screen TIP endpoint stays the
+        // captured hand-space point exactly
+        org.joml.Vector3f tipW3 = q.transform(new org.joml.Vector3f(tipV));
+        net.minecraft.world.phys.Vec3 tipW = new net.minecraft.world.phys.Vec3(
+                cp.x + tipW3.x(), cp.y + tipW3.y(), cp.z + tipW3.z());
+        double dx = tipW.x - end.x, dy = tipW.y - end.y, dz = tipW.z - end.z;
+
+        // The hand and world projections genuinely disagree about where the tip is on screen, so the
+        // correction between them is RAMPED along the whole line instead of switched at the last
+        // segment — a hard switch put a visible kink right under the tip. delta is exactly what the
+        // hand projection adds at the tip; each point takes f of it, so the water end stays
+        // world-correct and the tip end lands on the drawn tip precisely.
+        org.joml.Vector3f tipWarped = toViewWarped(tipW, cp, q, warp);
+        float dtx = tipV.x() - tipWarped.x(), dty = tipV.y() - tipWarped.y(), dtz = tipV.z() - tipWarped.z();
+
+        org.joml.Matrix4f id = new org.joml.Matrix4f();
+        org.joml.Vector3f prev = toViewWarped(end.add(0, 0.25, 0), cp, q, warp);
+        for (int k = 1; k <= 16; k++) {
+            double f = k / 16.0;
+            org.joml.Vector3f p = toViewWarped(new net.minecraft.world.phys.Vec3(
+                    end.x + dx * f,
+                    end.y + dy * (f * f + f) * 0.5 + 0.25 * (1.0 - f),
+                    end.z + dz * f), cp, q, warp)
+                    .add((float) (dtx * f), (float) (dty * f), (float) (dtz * f));
+            float sx = p.x() - prev.x(), sy = p.y() - prev.y(), sz = p.z() - prev.z();
+            float len = (float) Math.sqrt(sx * sx + sy * sy + sz * sz);
+            if (len > 1.0e-5f) {
+                sx /= len; sy /= len; sz /= len;
+                vc.addVertex(id, prev.x(), prev.y(), prev.z()).setColor(cr, cg, cb, alpha).setNormal(sx, sy, sz);
+                vc.addVertex(id, p.x(), p.y(), p.z()).setColor(cr, cg, cb, alpha).setNormal(sx, sy, sz);
+            }
+            prev = p;
+        }
+        handLineFrame = mc.level.getGameTime();
+    }
+
+    private static org.joml.Vector3f toViewWarped(net.minecraft.world.phys.Vec3 w,
+                                                  net.minecraft.world.phys.Vec3 cp,
+                                                  org.joml.Quaternionf q, float warp) {
+        org.joml.Vector3f v = new org.joml.Vector3f(
+                (float) (w.x - cp.x), (float) (w.y - cp.y), (float) (w.z - cp.z));
+        q.transformInverse(v);
+        v.x *= warp;
+        v.y *= warp;
+        return v;
     }
 
     // ===== §reel-crank: the handle spins while the fight is being reeled =====
@@ -448,6 +575,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             layer = drawBentBlank(ir, chainRoot, joints, tension, rodKey, stack, ctx, pose, buffers,
                     light, overlay, layer, mm, missing, mir);
             drawReel3d(stack, rodKey, tension, ir, mm, missing, pose, buffers, light, overlay); // §reel-3d
+            drawHandLine(stack, ctx, buffers); // §hand-line: same pass, same frame, same physics
         } else {
             // bent blank falls back to the straight one if the sprite is absent
             layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.blank(rodKey, bend), RodModelLayers.blank(rodKey)),
@@ -576,8 +704,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             // §rod-physics: the whip. The rigid lag is already in the hand pose; this spreads more of
             // it down the joints with the same tip-heavy weights the bend uses, so the tip trails the
             // butt instead of the whole rod swinging as one board. Z is the bend plane, Y is sideways.
-            float whipPitch = RodPhysics.pitch() * WHIP_GAIN * share;
-            float whipYaw = RodPhysics.yaw() * WHIP_GAIN * share;
+            // §rod-physics-per-rod: how much a blank whips is the blank's own number.
+            float whipGain = RodPhysics.profileFor(rodKey)[2];
+            float whipPitch = RodPhysics.pitch() * whipGain * share;
+            float whipYaw = RodPhysics.yaw() * whipGain * share;
             pose.translate(jx, jy, jz);
             pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(tension * MAX_BEND_DEG * share + whipPitch));
             if (whipYaw != 0f) pose.mulPose(com.mojang.math.Axis.YP.rotationDegrees(whipYaw));
@@ -592,6 +722,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // Captured HERE, inside the chain: every joint rotation is still applied, which is the frame
         // the tip segment was just drawn in. After popPose it would be the straight rod's tip again.
         captureTipNdc(pose, rodKey, ctx);
+        captureTipView(pose, rodKey, ctx, stack);
         pose.popPose();
         return layer + 1;
     }
@@ -616,7 +747,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
                 tipX / 16f - 0.5f, BLANK_AXIS_Y / 16f - 0.5f, BLANK_AXIS_Z / 16f - 0.5f, 1f);
         p.mul(pose.last().pose());
         if (p.z >= -1.0e-4f) return;                      // behind the camera; nothing to report
-        double fovDeg = mc.options.fov().get();           // the hand pass uses the setting, unmodified
+        // Vanilla renders the in-hand pass with getFov(camera, pt, false) — a CONSTANT 70°, not the
+        // fov option. Projecting with the option here made the anchor drift radially for anyone not
+        // playing at exactly 70, worst mid-fight with the bent tip near screen centre.
+        double fovDeg = 70.0;
         float t = (float) Math.tan(Math.toRadians(fovDeg) / 2.0);
         float aspect = (float) mc.getWindow().getWidth() / Math.max(1, mc.getWindow().getHeight());
         TIP_NDC[0] = p.x / (-p.z * t * aspect);

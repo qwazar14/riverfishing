@@ -142,6 +142,13 @@ function checkTexture(kind, model) {
     const png = `${ASSETS}/textures/item/rod/blank_${kind}_3d.png`;
     if (!fs.existsSync(png)) { fail(`texture ${png} missing — model would render checkerboard`); return; }
     const b = fs.readFileSync(png);
+    // staleness bites silently: the artist repaints 3D/rods/<kind>/texture.png, nothing reinstalls
+    // it, and the game keeps last week's paint — byte-compare the source against the installed copy
+    const src = `3D/rods/${kind}/texture.png`;
+    if (fs.existsSync(src) && !fs.readFileSync(src).equals(b)) {
+      fail(`installed texture is STALE — re-run the installer/splitter for ${kind}`);
+      return;
+    }
     ok(`texture installed (${b.readUInt32BE(16)}x${b.readUInt32BE(20)})`);
   } else if (ref.startsWith('minecraft:')) {
     // vanilla stand-in: renders fine, just not painted yet — the install pipeline's declared state
@@ -172,6 +179,21 @@ console.log('\nline paths');
     if (Math.abs(asset[kind].tip[0] - tipEl.from[0]) > 0.01) { fail(`${kind}: path tip diverges from the model`); bad++; }
   }
   if (!bad) ok(`${Object.keys(asset).length} threaded rods in sync with their models`);
+}
+
+// ---- §rod-physics-per-rod: every rod must have a spring of its own ----
+console.log('\nphysics profiles');
+{
+  const phys = read(`${ASSETS}/rod_physics.json`);
+  let bad = 0;
+  for (const kind of RODS) {
+    const p = phys[kind];
+    if (!p) { fail(`${kind} has no physics profile — it would run on the global spring silently`); bad++; continue; }
+    for (const f of ['stiffness', 'damping', 'whip']) {
+      if (!(p[f] > 0) && !(f === 'whip' && p[f] === 0)) { fail(`${kind}.${f} = ${p[f]} — not a usable value`); bad++; }
+    }
+  }
+  if (!bad) ok(`${RODS.length} rods sprung individually`);
 }
 
 // ---- §reel-3d: the reel catalogue ----

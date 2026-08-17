@@ -62,6 +62,50 @@ public final class RodPhysics {
     private static long lastNanos;
     private static boolean primed;
 
+    // ===== §rod-physics-per-rod: every blank has its own spring =====
+    /**
+     * Per-rod {stiffness, damping, whip}, loaded from {@code assets/riverfishing/rod_physics.json} —
+     * a 60 cm winter stub and a 3 m pole are not the same spring, and the data file is where that
+     * difference lives. Arrays are live-editable ({@code /rfrod phys rod <field> <v>} pokes the held
+     * rod's entry); a rod absent from the file falls back to the global tunables above.
+     */
+    private static java.util.Map<String, float[]> profiles;
+
+    public static float[] profileFor(String rodKey) {
+        if (profiles == null) {
+            profiles = new java.util.HashMap<>();
+            try {
+                var res = Minecraft.getInstance().getResourceManager()
+                        .getResourceOrThrow(com.riverfishing.RiverFishing.id("rod_physics.json"));
+                try (var reader = new java.io.InputStreamReader(res.open(), java.nio.charset.StandardCharsets.UTF_8)) {
+                    var root = com.google.gson.JsonParser.parseReader(reader).getAsJsonObject();
+                    for (var e : root.entrySet()) {
+                        if (!e.getValue().isJsonObject()) continue;   // skips the __comment string
+                        var o = e.getValue().getAsJsonObject();
+                        profiles.put(e.getKey(), new float[]{
+                                o.get("stiffness").getAsFloat(), o.get("damping").getAsFloat(),
+                                o.get("whip").getAsFloat()});
+                    }
+                }
+            } catch (Exception ignored) {
+                // asset absent or malformed: every rod runs on the global spring
+            }
+        }
+        return profiles.computeIfAbsent(rodKey,
+                k -> new float[]{STIFFNESS, DAMPING, RodItemRenderer.WHIP_GAIN});
+    }
+
+    /** The rod key currently in the player's hands, or null — the spring the fight is played on. */
+    public static String heldRodKey() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return null;
+        var main = mc.player.getMainHandItem();
+        var off = mc.player.getOffhandItem();
+        if (main.getItem() instanceof com.riverfishing.item.RodItem r) return r.rodType().jsonKey();
+        if (off.getItem() instanceof com.riverfishing.item.RodItem r) return r.rodType().jsonKey();
+        return null;
+    }
+
     /**
      * Advances the springs. Safe to call more than once a frame: the second call sees dt≈0 and no
      * angle change, so it neither integrates nor kicks.
@@ -86,8 +130,13 @@ public final class RodPhysics {
 
         if (!ENABLED) { swingYaw = swingPitch = velYaw = velPitch = 0f; lastTension = 0f; return; }
 
-        velYaw += (-STIFFNESS * swingYaw - DAMPING * velYaw) * dt - dYaw * DRIVE;
-        velPitch += (-STIFFNESS * swingPitch - DAMPING * velPitch) * dt - dPitch * DRIVE;
+        // §rod-physics-per-rod: the spring constants are the HELD rod's own — resolved here rather
+        // than passed in, because update() is reached from every render context (hotbar icons
+        // included) and only the rod in the hands is the one being waved around.
+        String held = heldRodKey();
+        float[] prof = held != null ? profileFor(held) : new float[]{STIFFNESS, DAMPING, 0f};
+        velYaw += (-prof[0] * swingYaw - prof[1] * velYaw) * dt - dYaw * DRIVE;
+        velPitch += (-prof[0] * swingPitch - prof[1] * velPitch) * dt - dPitch * DRIVE;
 
         // §fight-jerk: the fish is the second hand on the rod. Course picks the direction the fish
         // is going (the rod is DRAGGED that way — same sign convention the old lean display used);
@@ -97,11 +146,18 @@ public final class RodPhysics {
         if (own != null && own.fighting) {
             float dirYaw = own.course == 1 ? 1f : own.course == 2 ? -1f : 0f;
             float dirPitch = own.course == 3 ? 1f : own.course == 4 ? -1f : dirYaw == 0f ? 1f : 0f;
+            // The fight syncs every FIVE ticks, so tension arrives in small steps — the original
+            // 0.03 threshold sat above most of them and the fight read as dead. Any real step kicks
+            // now; the gain scales it, so small steps give small knocks and a slam still slams.
             float dT = own.tension - lastTension;
-            if (dT > 0.03f) {
+            if (dT > 0.005f) {
                 velYaw += dirYaw * dT * JERK_GAIN;
                 velPitch += dirPitch * dT * JERK_GAIN;
             }
+            // The fish never stops pulling: a steady down-and-away drag all fight long, doubled and
+            // aimed down the course while it RUNS. This is the baseline that makes a hooked rod feel
+            // loaded even between runs.
+            velPitch += own.tension * PULL_GAIN * 0.5f * dt;
             if (own.running) {
                 velYaw += dirYaw * own.tension * PULL_GAIN * dt;
                 velPitch += dirPitch * own.tension * PULL_GAIN * dt;

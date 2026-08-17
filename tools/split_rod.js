@@ -128,5 +128,17 @@ for (const { seg, elements } of out) {
   console.log(`${path.basename(file)}  ${elements.map(e => e.name).join(', ')}`);
 }
 
-console.log(`\njoints (butt -> tip), model units: [${joints.join(', ')}]`);
+// The texture ships with the split, same as install_rod_model.js does for rigid rods — a re-split
+// after the artist repainted must carry the new sheet, or the game keeps rendering last week's.
+const texSrc = path.join(path.dirname(cfg.src), 'texture.png');
+if (fs.existsSync(texSrc)) {
+  const texOut = `common/src/main/resources/assets/riverfishing/textures/item/rod/blank_${kind}_3d.png`;
+  fs.copyFileSync(texSrc, texOut);
+  if (!fs.readFileSync(texOut).equals(fs.readFileSync(texSrc))) throw new Error('texture copy mismatch');
+  console.log(`\ntexture -> ${texOut}`);
+} else {
+  console.log(`\nno ${texSrc} — texture left as installed`);
+}
+
+console.log(`joints (butt -> tip), model units: [${joints.join(', ')}]`);
 console.log(`paste into RodItemRenderer.BLANK_JOINTS_X as "${kind}"`);

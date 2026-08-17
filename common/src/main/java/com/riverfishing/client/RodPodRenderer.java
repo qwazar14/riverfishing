@@ -69,25 +69,30 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
             ItemStack rod = rods.get(i);
             if (rod.isEmpty()) continue;
             float x = slotX(i, n);
+            // ONE matrix serves both the drawn rod and the line anchor, so they can never disagree.
+            // Order matters and bit us once: matrices apply right-to-left, so rotateY must sit LAST
+            // in the chain (= applied to the model first, turning the blank onto +Z) and the pitch
+            // before it (= applied in the turned frame, lifting the tip). The other way round the
+            // pitch hit the model frame, where the rod lies ALONG x — it ROLLED the blank about its
+            // own length and the rod stayed flat while the hand-derived tip climbed the slope.
+            // The 0.03125 translate compensates the blank axis sitting off-centre in model z.
+            org.joml.Matrix4f rodM = new org.joml.Matrix4f()
+                    .translate(x - 0.03125f, rod3dY, rod3dZ)
+                    .rotateX((float) Math.toRadians(-rod3dPitch))  // lift the tip by the saddle slope
+                    .rotateY((float) Math.toRadians(90f));         // model -X (tip) -> +Z, guides down
             pose.pushPose();
-            // the blank's model axis sits 0.03125 blocks off-centre in z, which lands as an x offset
-            // after the turn — compensated so the rod drops into the middle of its saddle
-            pose.translate(x - 0.03125f, rod3dY, rod3dZ);
-            pose.mulPose(Axis.YP.rotationDegrees(90f));           // model -X (tip) -> +Z, guides stay down
-            pose.mulPose(Axis.XP.rotationDegrees(-rod3dPitch));   // lift the tip by the saddle slope
+            pose.mulPose(rodM);
             boolean drew3d = RodItemRenderer.drawPodBlank(rod, pose, buffers, light, overlay);
             pose.popPose();
             if (drew3d) {
-                // the line must leave the REAL tip of this rod, wherever its length puts it
+                // the line must leave the REAL tip of this rod: the same matrix that drew the blank
+                // transforms the same model-space tip the threaded line ends at
                 Float tipX = rod.getItem() instanceof com.riverfishing.item.RodItem r
                         ? RodItemRenderer.blankTipX(r.rodType().jsonKey()) : null;
                 if (tipX != null) {
-                    double p = Math.toRadians(rod3dPitch);
-                    float zt = 0.5f - tipX / 16f;                 // distance butt-anchor -> tip, blocks
-                    float cy = 10.5f / 16f - 0.5f;                // the blank axis height in its frame
-                    tips3d[i] = new float[]{x,
-                            rod3dY + (float) (cy * Math.cos(p) + zt * Math.sin(p)),
-                            rod3dZ + (float) (zt * Math.cos(p) - cy * Math.sin(p))};
+                    org.joml.Vector3f tip = rodM.transformPosition(new org.joml.Vector3f(
+                            tipX / 16f - 0.5f, 10.5f / 16f - 0.5f, 8.5f / 16f - 0.5f));
+                    tips3d[i] = new float[]{tip.x, tip.y, tip.z};
                 }
                 continue;
             }
@@ -131,7 +136,19 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
             int state = be.lineStateAt(i);
             if (state == 0) continue;
             float x = slotX(i, n);
-            // 3D rods computed their true tip; sprites keep the tier constant
+            // §line-strand: the water line IS the line threaded along the blank — one material, one
+            // look. Style off the podded rod's own LineItem: colour + alpha + diameter width; a rod
+            // with no readable line keeps the old thin dark string.
+            float[] style = i < rods.size() && !rods.get(i).isEmpty()
+                    ? RodItemRenderer.lineStyle(rods.get(i)) : null;
+            VertexConsumer lv = style != null ? buffers.getBuffer(RodRenderTypes.lineStrand(style[4])) : vc;
+            int lr = style != null ? (int) style[0] : 25;
+            int lg = style != null ? (int) style[1] : 25;
+            int lb = style != null ? (int) style[2] : 25;
+            int la = style != null ? (int) style[3] : 255;
+            // 3D rods captured their true tip — start the line EXACTLY there; sprites keep the tier
+            // constants. The water end stays on the slot axis: line converges from tip to cast.
+            float tipX = tips3d[i] != null ? tips3d[i][0] : x;
             float tipY = tips3d[i] != null ? tips3d[i][1] : (bars ? 0.90f : 0.88f);
             float tipZ = tips3d[i] != null ? tips3d[i][2] : (bars ? 1.02f : 1.16f);
             // the water end sits ahead of the tip, wherever this rod's length put the tip
@@ -140,16 +157,16 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
                 // Slack: the bait is gone and the line hangs limp, well below the straight pull.
                 float midY = (tipY + endY) * 0.5f - 0.42f;
                 float midZ = (tipZ + endZ) * 0.5f - 0.15f;
-                drawLine(vc, m, nrm, x, tipY, tipZ, x, midY, midZ);
-                drawLine(vc, m, nrm, x, midY, midZ, x, endY, endZ - 0.35f);
+                drawLine(lv, m, nrm, tipX, tipY, tipZ, x, midY, midZ, lr, lg, lb, la);
+                drawLine(lv, m, nrm, x, midY, midZ, x, endY, endZ - 0.35f, lr, lg, lb, la);
             } else if (state == 2) {
                 // Bite: taut line yanked about at the water end.
                 float twY = (float) Math.sin(time * 1.4 + i) * 0.07f;
                 float twX = (float) Math.sin(time * 0.9 + i * 2) * 0.05f;
-                drawLine(vc, m, nrm, x, tipY, tipZ, x + twX, endY + twY, endZ);
+                drawLine(lv, m, nrm, tipX, tipY, tipZ, x + twX, endY + twY, endZ, lr, lg, lb, la);
             } else {
                 // Waiting: dead straight from tip to water.
-                drawLine(vc, m, nrm, x, tipY, tipZ, x, endY, endZ);
+                drawLine(lv, m, nrm, tipX, tipY, tipZ, x, endY, endZ, lr, lg, lb, la);
             }
         }
 
@@ -164,12 +181,13 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
     }
 
     private static void drawLine(VertexConsumer vc, Matrix4f m, Matrix3f nrm,
-                                 float x1, float y1, float z1, float x2, float y2, float z2) {
+                                 float x1, float y1, float z1, float x2, float y2, float z2,
+                                 int r, int g, int b, int a) {
         float dx = x2 - x1, dy = y2 - y1, dz = z2 - z1;
         float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (len <= 0) return;
         dx /= len; dy /= len; dz /= len;
-        vc.addVertex(m, x1, y1, z1).setColor(25, 25, 25, 255).setNormal(dx, dy, dz);
-        vc.addVertex(m, x2, y2, z2).setColor(25, 25, 25, 255).setNormal(dx, dy, dz);
+        vc.addVertex(m, x1, y1, z1).setColor(r, g, b, a).setNormal(dx, dy, dz);
+        vc.addVertex(m, x2, y2, z2).setColor(r, g, b, a).setNormal(dx, dy, dz);
     }
 }

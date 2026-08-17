@@ -114,7 +114,14 @@ public final class RodDebugCommand {
                         // logs a warning per collision at startup.
                         .then(physField("stiffness")).then(physField("damping"))
                         .then(physField("drive")).then(physField("max"))
-                        .then(physField("jerk")).then(physField("pull")))   // §fight-jerk
+                        .then(physField("jerk")).then(physField("pull"))    // §fight-jerk
+                        // §rod-physics-per-rod: tune the HELD rod's own spring; numbers print in a
+                        // form ready to paste back into assets/riverfishing/rod_physics.json.
+                        .then(ClientCommandRegistrationEvent.literal("rod")
+                                .executes(c -> { say(c, physRodDescribe()); return 1; })
+                                .then(physRodField("stiffness", 0))
+                                .then(physRodField("damping", 1))
+                                .then(physRodField("whip", 2))))
                 // §rod-bend-3d: the switch for the bone chain, plus its one look-at-it number — total
                 // tip deflection at full tension. Turning it on also swaps /rfrod onto the 3D pose set
                 // (TP3/TPL3/FP3/FPL3), so tp/tpl/fp/fpl keep tuning whatever is actually on screen.
@@ -140,6 +147,23 @@ public final class RodDebugCommand {
                                         .executes(c -> {
                                             RodItemRenderer.MAX_BEND_DEG = FloatArgumentType.getFloat(c, "v");
                                             say(c, String.format("§ebend deg = %.1f", RodItemRenderer.MAX_BEND_DEG));
+                                            return 1;
+                                        }))))
+                // §tip3d-trim: manual trim for the COMPUTED 3D anchor (shaderpacks bend the hand
+                // projection beyond what the fov-70 maths can know). Near-plane units, signed.
+                .then(ClientCommandRegistrationEvent.literal("tip3d")
+                        .executes(c -> {
+                            say(c, String.format("§etip3d trim = (%.4f, %.4f) §7(/rfrod tip3d <dx> <dy>)",
+                                    LineRenderer.TIP3D_OFFSET[0], LineRenderer.TIP3D_OFFSET[1]));
+                            return 1;
+                        })
+                        .then(ClientCommandRegistrationEvent.argument("dx", FloatArgumentType.floatArg(-1f, 1f))
+                                .then(ClientCommandRegistrationEvent.argument("dy", FloatArgumentType.floatArg(-1f, 1f))
+                                        .executes(c -> {
+                                            LineRenderer.TIP3D_OFFSET[0] = FloatArgumentType.getFloat(c, "dx");
+                                            LineRenderer.TIP3D_OFFSET[1] = FloatArgumentType.getFloat(c, "dy");
+                                            say(c, String.format("§etip3d trim = (%.4f, %.4f)",
+                                                    LineRenderer.TIP3D_OFFSET[0], LineRenderer.TIP3D_OFFSET[1]));
                                             return 1;
                                         }))))
                 // §rod-bend-tip: tune the line-anchor offset per bend bucket. Force the bucket with
@@ -213,6 +237,32 @@ public final class RodDebugCommand {
         return 1;
     }
 
+    /** §rod-physics-per-rod: the held rod's spring, printed paste-ready for rod_physics.json. */
+    private static String physRodDescribe() {
+        String key = RodPhysics.heldRodKey();
+        if (key == null) return "§chold a rod to tune its spring";
+        float[] p = RodPhysics.profileFor(key);
+        return String.format("§e%s §f\"%s\": { \"stiffness\": %.1f, \"damping\": %.1f, \"whip\": %.2f }"
+                + " §7(/rfrod phys rod stiffness|damping|whip <v>)", key, key, p[0], p[1], p[2]);
+    }
+
+    /** §rod-physics-per-rod: one {@code /rfrod phys rod <field> <v>} branch editing the held rod. */
+    private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ClientCommandSourceStack> physRodField(
+            String name, int index) {
+        return ClientCommandRegistrationEvent.literal(name)
+                .then(ClientCommandRegistrationEvent.argument("v", FloatArgumentType.floatArg(0f, 500f))
+                        .executes(c -> {
+                            String key = RodPhysics.heldRodKey();
+                            if (key == null) {
+                                say(c, "§chold a rod to tune its spring");
+                                return 0;
+                            }
+                            RodPhysics.profileFor(key)[index] = FloatArgumentType.getFloat(c, "v");
+                            say(c, physRodDescribe());
+                            return 1;
+                        }));
+    }
+
     /** §rod-physics: one {@code /rfrod phys <name> <value>} branch, built per tunable. */
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ClientCommandSourceStack> physField(String name) {
         return ClientCommandRegistrationEvent.literal(name)
@@ -232,6 +282,7 @@ public final class RodDebugCommand {
     }
 
     private static void say(CommandContext<ClientCommandSourceStack> c, String text) {
+        RodClientSettings.save();   // §rod-client-settings: every /rfrod touch persists the knobs
         c.getSource().arch$sendSuccess(() -> Component.literal(text), false);
     }
 }
