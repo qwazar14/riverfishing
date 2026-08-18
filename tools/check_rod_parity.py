@@ -42,20 +42,31 @@ NORM = [
     (r"org\.joml\.Matrix3f nid = new org\.joml\.Matrix3f\(\);", ""),
 ]
 
-# The ONE deliberate divergence, named so the check stays trustworthy. §hand-line computes its points
-# in VIEW space and canon submits them with an identity matrix, which only lands where the buffer is
-# drawn with the view matrix live — 1.21.1 does that, 1.20.1 does not, and the far end went behind the
-# camera. 1.20.1 pushes each point through the inverse of pose.last().pose() and submits it with that
-# matrix instead: the same point, riding the matrix the blank itself is drawn with. Disabling the whole
-# path was tried first and was wrong — the rods are different lengths, and §hand-line is what makes
-# length stop mattering. Anything ELSE differing is still a failure.
-EXPECTED = {"RodItemRenderer.java": ["toLocal", "org.joml.Matrix4f m = new org.joml.Matrix4f(pose.last().pose())",
-                                    "org.joml.Matrix4f id = new org.joml.Matrix4f();",
-                                    "m.determinant()", "Vector3f l0", "Vector3f l1",
-                                    ".V(m, l0", ".V(m, l1", "drawHandLine(ItemStack stack,",
-                                    "MultiBufferSource buffers) {", "drawHandLine(stack, ctx, pose, buffers)",
-                                    ".V(id, prev", ".V(id, p.x()", "drawHandLine(stack, ctx, buffers)",
-                                    "Matrix4f id = new Matrix4f();"]}
+# The deliberate divergences, each named so the check stays trustworthy rather than becoming a list of
+# things to ignore. Anything NOT here is still a failure.
+#
+# 1. §view-yaw — MEASURED, not assumed. /rfrod tipinfo on a 1.20.1 client returned dist 2.87 with
+#    forward-dot -0.89: the tip is found at the right distance and pointing behind the angler. Right
+#    length, wrong direction is a half turn, so this version's camera rotation and the hand pose
+#    disagree about which axis is forward, and the two are reconciled with a rotateY(PI).
+# 2. §hand-line — same file, the line is submitted through the pose it draws the blank with rather than
+#    with an identity matrix. See the port's own comment.
+# 3. /rfrod tipinfo — the diagnostic that produced (1). It has no canon counterpart and should not.
+# RodDebugCommand carries /rfrod tipinfo, which has no canon counterpart and should not have one. The
+# rule for it is not a list of strings to ignore but the thing that is actually true: this port may hold
+# MORE than canon there, and must not hold less. An added line is fine; a removed one is still a failure.
+ADD_ONLY = {"RodDebugCommand.java"}
+
+EXPECTED = {
+    "RodItemRenderer.java": ["rotateY((float) Math.PI)", "org.joml.Quaternionf q = new org.joml.Quaternionf(cam.rotation())",
+                             "toLocal", "org.joml.Matrix4f m = new org.joml.Matrix4f(pose.last().pose())",
+                             "org.joml.Matrix4f id = new org.joml.Matrix4f();", "m.determinant()",
+                             "Vector3f l0", "Vector3f l1", ".V(m, l0", ".V(m, l1",
+                             ".V(id, prev", ".V(id, p.x()", "drawHandLine(ItemStack stack,",
+                             "MultiBufferSource buffers) {", "drawHandLine(stack, ctx, pose, buffers)",
+                             "drawHandLine(stack, ctx, buffers)"],
+    "LineRenderer.java": ["rotateY((float) Math.PI)", "cam3.rotation()", ".transform(new org.joml.Vector3f("],
+}
 
 
 def norm(text):
@@ -77,6 +88,8 @@ for name in FILES:
     diff = [d for d in difflib.unified_diff(norm(a), norm(b), lineterm="", n=0)
             if d.startswith(("+", "-")) and not d.startswith(("+++", "---"))]
     diff = [d for d in diff if not any(e in d for e in EXPECTED.get(name, []))]
+    if name in ADD_ONLY:
+        diff = [d for d in diff if d.startswith("-")]
     if diff:
         bad += 1
         print("  %-24s %d line(s) differ beyond dialect:" % (name, len(diff)))
