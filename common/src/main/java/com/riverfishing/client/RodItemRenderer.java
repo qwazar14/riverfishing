@@ -330,6 +330,14 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
     }
 
     private static void drawHandLine(ItemStack stack, ItemDisplayContext ctx, MultiBufferSource buffers) {
+        // §hand-line is DISABLED on 1.20.1. The body below submits its vertices with an identity
+        // matrix — view space — and depends on which matrix is live when the buffer flushes. 1.20.1
+        // does not agree with 1.21.1 about that, and the far end of the line came out behind the
+        // camera: the tackle end flew over the angler's shoulder on both loaders. Leaving early keeps
+        // handLineFresh() false, so LineRenderer's world pass draws the string as it did before
+        // §hand-line existed — a frame behind a whipping tip, and attached to the water.
+        if (true) return;
+        //noinspection ConstantValue
         if (!ctx.firstPerson()) return;
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null || !tipViewFresh()) return;
