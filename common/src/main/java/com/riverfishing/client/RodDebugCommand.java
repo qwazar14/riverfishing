@@ -151,6 +151,31 @@ public final class RodDebugCommand {
                                         }))))
                 // §tip3d-trim: manual trim for the COMPUTED 3D anchor (shaderpacks bend the hand
                 // projection beyond what the fov-70 maths can know). Near-plane units, signed.
+                // §tip-space: is pose.last().pose() view space here, as the tip capture assumes?
+                // Prints the captured tip, the world point the camera rotation turns it into, and how
+                // far that is from the eye. Under the assumption it is a rod's length in front of you;
+                // if 1.20.1's hand pass leaves the camera out of the PoseStack, it is anywhere else.
+                .then(ClientCommandRegistrationEvent.literal("tipinfo").executes(c -> {
+                    net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+                    if (mc.player == null) { say(c, "§cno player"); return 0; }
+                    if (!RodItemRenderer.tipViewFresh()) { say(c, "§cno fresh tip — hold a 3D rod in first person"); return 0; }
+                    var cam = mc.gameRenderer.getMainCamera();
+                    org.joml.Vector3f v = new org.joml.Vector3f(RodItemRenderer.TIP_VIEW[0],
+                            RodItemRenderer.TIP_VIEW[1], RodItemRenderer.TIP_VIEW[2]);
+                    org.joml.Vector3f w = cam.rotation().transform(new org.joml.Vector3f(v));
+                    net.minecraft.world.phys.Vec3 cp = cam.getPosition();
+                    net.minecraft.world.phys.Vec3 tipW = new net.minecraft.world.phys.Vec3(
+                            cp.x + w.x(), cp.y + w.y(), cp.z + w.z());
+                    net.minecraft.world.phys.Vec3 eye = mc.player.getEyePosition();
+                    net.minecraft.world.phys.Vec3 look = mc.player.getLookAngle();
+                    net.minecraft.world.phys.Vec3 d = tipW.subtract(eye);
+                    say(c, String.format("§eTIP_VIEW  %.3f %.3f %.3f", v.x(), v.y(), v.z()));
+                    say(c, String.format("§etip world %.2f %.2f %.2f §7(eye %.2f %.2f %.2f)",
+                            tipW.x, tipW.y, tipW.z, eye.x, eye.y, eye.z));
+                    say(c, String.format("§edist from eye %.2f  §7forward-dot %.2f §8(want ~0.5-4 and dot > 0)",
+                            d.length(), d.normalize().dot(look)));
+                    return 1;
+                }))
                 .then(ClientCommandRegistrationEvent.literal("tip3d")
                         .executes(c -> {
                             say(c, String.format("§etip3d trim = (%.4f, %.4f) §7(/rfrod tip3d <dx> <dy>)",
