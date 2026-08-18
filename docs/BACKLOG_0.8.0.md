@@ -402,3 +402,43 @@ light does not reach — under a roof, under an overhang, in a cave». Расх�
 **Механика, которая продаёт релиз:** рыба утаскивает в воду. Половина кода уже написана под 0.7.0,
 и это единственная заявка, про которую игрок сказал «сделает бой интереснее» — то есть про
 ощущения, а не про количество.
+
+---
+
+## §hand-line: a per-frame decision made with a per-tick clock  `S` — analysed, not fixed
+
+**Symptom (1.20.1, reported):** now and then an extra line appears, or the string straightens at an
+angle that makes no sense. Intermittent, cosmetic, hard to catch.
+
+**Mechanism.** Two passes can draw the local player's string and they agree by a timestamp:
+
+```java
+// RodItemRenderer
+public static boolean handLineFresh() {
+    return mc.level != null && handLineFrame >= mc.level.getGameTime() - 1;
+}
+// LineRenderer
+boolean handDrawn = player == mc.player && camera.isFirstPerson() && RodItemRenderer.handLineFresh();
+if (!handDrawn) { ...draw the string... }
+```
+
+`getGameTime()` counts **ticks**; the decision is taken **every frame**. At 20 TPS and any sane frame
+rate that window is tens of frames wide, so:
+
+- for up to two ticks after the hand pass stops drawing (item switch, inventory, F5), the world pass
+  still skips — the string is missing;
+- on the first frame after it starts, the world pass has not seen the stamp yet and draws too — the
+  string is doubled.
+
+Either reads as "sometimes there is an extra line".
+
+**The fix is to stop using a clock.** Both passes can ask the same question from state alone — is this
+the local player, in first person, with BLANK_3D on, holding a rod whose segment-0 model resolves — and
+then they agree by construction, with no ordering and no window. The care needed is that the predicate
+must match the hand pass's real condition exactly, including the mirrored-context gate: drift there
+turns a one-frame flicker into a permanently missing or permanently doubled line, which is worse.
+
+**Why it is written down rather than done.** It is a rendering change that cannot be verified except by
+playing, and three rendering fixes in a row today were shipped on unverified hypotheses and had to be
+walked back. This one is small, well understood, and belongs in a cycle where someone is watching the
+screen.
