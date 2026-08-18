@@ -116,6 +116,7 @@ public final class RodModelLayers {
         for (String k : ROD_KEYS) {
             normal.add(blank(k));
             for (int b = 1; b <= 6; b++) normal.add(blank(k, b)); // §rod-bend buckets
+            for (int s = 0; s < BLANK_SEGMENTS; s++) normal.add(segment(k, s)); // §rod-bend-3d chain
         }
         normal.add(reelGeneric());
         for (int s : REEL_SIZES) { // §reel-3d + §reel-crank

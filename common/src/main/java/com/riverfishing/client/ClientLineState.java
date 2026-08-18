@@ -30,10 +30,9 @@ public final class ClientLineState {
         public float rodLoad;          // §rod-load: how loaded the BLANK is 0..1 — the bend reads this
         public float smoothRodLoad;    // eased for the in-hand bend and the springs
         public boolean fighting;       // §pump-reel: the fight is on
-        // §pump-reel: DO NOT REEL right now — the fish is taking line, or it is in the air
-        // on a breach (§jump-cue). Both answer the same question for the player, so they are
-        // one flag: a second one would be a second place for the HUD to disagree with the
-        // server about whether to crank.
+        // §pump-reel: DO NOT REEL right now — the fish is taking line, or it is in the air on a breach
+        // (§jump-cue). Both answer the same question for the player, so they are one flag: a second one
+        // would be a second place for the HUD to disagree with the server about whether to crank.
         public boolean running;
         /** §fight-course: FightCourse.ordinal() of the current run, 0 when it is not running. */
         public byte course;
