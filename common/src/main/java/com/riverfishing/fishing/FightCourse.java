@@ -80,11 +80,6 @@ public enum FightCourse {
         return this != NONE;
     }
 
-    /** The lang key for the boss bar, so the player is told the course rather than left to infer it. */
-    public String key() {
-        return "message.riverfishing.course_" + name().toLowerCase();
-    }
-
     /** The key that answers this course — {@link FightInputPacket}'s constants. */
     public byte counter() {
         return switch (this) {

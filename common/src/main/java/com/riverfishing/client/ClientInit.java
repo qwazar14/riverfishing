@@ -26,6 +26,7 @@ public final class ClientInit {
 
     /** Fabric client entry: everything at once — registry objects are already bound by init time. */
     public static void init() {
+        RodClientSettings.load();   // §rod-client-settings: /rfrod toggles survive relaunches
         registerEvents();
         registerRenderers();
     }

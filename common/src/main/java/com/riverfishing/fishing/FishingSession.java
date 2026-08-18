@@ -118,6 +118,8 @@ public class FishingSession {
     // Â§tackle-stress (0.4.0): crossing the limit no longer snaps instantly â a per-tick break chance
     // grows with the overshoot and with how long the line has been held over it.
     public double requiredKg;     // the fish's pull in kg (drives the break-load message)
+    /** §rod-load: the fish's pull over the BLANK's own power (RodType.fightPowerKg) — the bend gauge. */
+    public double rodPull01;
     public double overStress;     // accumulated time-over-the-limit (0..2), decays when eased off
     public int overStressTicks;   // total ticks over the limit this fight (drives extra line wear)
     public boolean overstressWarned; // one "ease off!" warning per overstress episode

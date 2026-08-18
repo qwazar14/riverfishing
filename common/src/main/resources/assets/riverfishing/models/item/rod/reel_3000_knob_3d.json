@@ -1,0 +1,45 @@
+{
+	"texture_size": [64, 64],
+	"textures": {
+		"0": "riverfishing:item/rod/reel_3d",
+		"particle": "riverfishing:item/rod/reel_3d"
+	},
+	"elements": [
+		{
+			"name": "handle_knob",
+			"from": [18.891, 5.552, 9.999],
+			"to": [19.981, 6.643, 10.817],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [18.8, 10.5, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [0.9, 12.05, 2.2, 13.45],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [0, 12.05, 0.9, 13.45],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [3.1, 12.05, 4.4, 13.45],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [2.2, 12.05, 3.1, 13.45],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [0.9, 11.15, 2.2, 12.05],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [2.2, 11.15, 3.5, 12.05],
+					"texture": "#0"
+				}
+			}
+		}
+	]
+}

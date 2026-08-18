@@ -82,8 +82,21 @@ public final class RodHandTransform {
     public static float COURSE_TIP_X = -0.005f;
     public static float COURSE_TIP_Y = 0.005f;
 
-    /** Applies the hand transform for a hand context (no-op otherwise). Each hand uses its own array. */
-    public static void apply(PoseStack pose, ItemDisplayContext ctx) {
+    /**
+     * §rod-physics: the point the rod swings about, in 1/16 blocks from the hand — {0,0,0} is the
+     * fist itself. A rod is held in a grip, so it should turn there and throw its tip; pivoting
+     * anywhere else sweeps the whole rod round like a boom. Live-tunable with
+     * {@code /rfrod phys pivot <x> <y> <z>}.
+     */
+    public static final float[] PIVOT = {0f, 0f, 0f};
+
+    private static final float[] NO_LEAN = {0f, 0f};
+
+    /**
+     * Applies the hand transform for a hand context (no-op otherwise). Each hand uses its own array;
+     * {@code blank3d} picks the true-scale set used when the rod is drawn as a segmented 3D chain.
+     */
+    public static void apply(PoseStack pose, ItemDisplayContext ctx, boolean blank3d) {
         float[] a = switch (ctx) {
             case THIRD_PERSON_RIGHT_HAND -> TP;
             case THIRD_PERSON_LEFT_HAND -> TPL;
@@ -95,10 +108,23 @@ public final class RodHandTransform {
         // §fight-course: a run drags the tip the way the fish is going. The boss bar names the course,
         // but the rod is where a player actually reads a fight, and without this the direction did not
         // land at all.
-        float[] lean = ClientLineState.ownLean();
+        // §fight-jerk: with physics on, the fish drives the springs (RodPhysics) and the eased
+        // course-lean would double the cue on top of it — the lean display is the physics-off path.
+        float[] lean = RodPhysics.ENABLED ? NO_LEAN : ClientLineState.ownLean();
+        // §rod-physics: the swing pivots at the HAND, which is this frame's origin. Riding along with
+        // the base rotation put the pivot AFTER translate(0, 17/16, ...) — a block above the fist, so
+        // the rod swept round a point in mid-air instead of turning in the grip. PIVOT nudges it.
+        float swingYaw = RodPhysics.yaw(), swingPitch = RodPhysics.pitch();
+        if (swingYaw != 0f || swingPitch != 0f) {
+            pose.translate(PIVOT[0] / 16f, PIVOT[1] / 16f, PIVOT[2] / 16f);
+            pose.mulPose(new Quaternionf().rotationXYZ(
+                    (float) Math.toRadians(swingPitch), (float) Math.toRadians(swingYaw), 0f));
+            pose.translate(-PIVOT[0] / 16f, -PIVOT[1] / 16f, -PIVOT[2] / 16f);
+        }
         pose.translate(a[0] / 16f, a[1] / 16f, a[2] / 16f);
         pose.mulPose(new Quaternionf().rotationXYZ(
-                (float) Math.toRadians(a[3] + lean[1]), (float) Math.toRadians(a[4] + lean[0]),
+                (float) Math.toRadians(a[3] + lean[1]),
+                (float) Math.toRadians(a[4] + lean[0]),
                 (float) Math.toRadians(a[5])));
         pose.scale(a[6], a[6], a[6]);
     }

@@ -23,8 +23,10 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
     /** §float-kind: 0 none / 1 plain peg / 2 proper float — see FishingSession.floatKind. */
     public final byte floatKind;
     public final boolean biting;
-    /** §rod-bend: live line tension 0..1 — drives the in-hand rod bend on the client. */
+    /** §rod-bend: live line tension 0..1 — the line's BREAK-RISK (drives bar colour, taut, creaks). */
     public final float tension;
+    /** §rod-load: how loaded the BLANK is 0..1 — pull vs the rod's power class; the bend reads THIS. */
+    public final float rodLoad;
     /** §pump-reel HUD: the fight is on / the fish is currently running. */
     public final boolean fighting;
     public final boolean running;
@@ -49,13 +51,13 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
                           byte floatKind, boolean biting, float tension, boolean fighting,
                           boolean running) {
-        this(playerId, active, target, progress, color, floatKind, biting, tension, fighting, running,
-                (byte) 0);
+        this(playerId, active, target, progress, color, floatKind, biting, tension, 0f, fighting,
+                running, (byte) 0);
     }
 
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
-                          byte floatKind, boolean biting, float tension, boolean fighting,
-                          boolean running, byte course) {
+                          byte floatKind, boolean biting, float tension, float rodLoad,
+                          boolean fighting, boolean running, byte course) {
         this.playerId = playerId;
         this.active = active;
         this.target = target == null ? BlockPos.ZERO : target;
@@ -64,6 +66,7 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
         this.floatKind = floatKind;
         this.biting = biting;
         this.tension = tension;
+        this.rodLoad = rodLoad;
         this.fighting = fighting;
         this.running = running;
         this.course = course;
@@ -84,6 +87,7 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
         buf.writeByte(floatKind);
         buf.writeBoolean(biting);
         buf.writeFloat(tension);
+        buf.writeFloat(rodLoad);
         buf.writeBoolean(fighting);
         buf.writeBoolean(running);
         buf.writeByte(course);
@@ -92,7 +96,7 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
     public static LineSyncPacket decode(FriendlyByteBuf buf) {
         return new LineSyncPacket(buf.readVarInt(), buf.readBoolean(), buf.readBlockPos(),
                 buf.readFloat(), buf.readInt(), buf.readByte(), buf.readBoolean(), buf.readFloat(),
-                buf.readBoolean(), buf.readBoolean(), buf.readByte());
+                buf.readFloat(), buf.readBoolean(), buf.readBoolean(), buf.readByte());
     }
 
     public void handleClient() {
