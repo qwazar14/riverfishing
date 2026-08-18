@@ -329,15 +329,8 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         return mc.level != null && handLineFrame >= mc.level.getGameTime() - 1;
     }
 
-    private static void drawHandLine(ItemStack stack, ItemDisplayContext ctx, MultiBufferSource buffers) {
-        // §hand-line is DISABLED on 1.20.1. The body below submits its vertices with an identity
-        // matrix — view space — and depends on which matrix is live when the buffer flushes. 1.20.1
-        // does not agree with 1.21.1 about that, and the far end of the line came out behind the
-        // camera: the tackle end flew over the angler's shoulder on both loaders. Leaving early keeps
-        // handLineFresh() false, so LineRenderer's world pass draws the string as it did before
-        // §hand-line existed — a frame behind a whipping tip, and attached to the water.
-        if (true) return;
-        //noinspection ConstantValue
+    private static void drawHandLine(ItemStack stack, ItemDisplayContext ctx, PoseStack pose,
+                                     MultiBufferSource buffers) {
         if (!ctx.firstPerson()) return;
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null || !tipViewFresh()) return;
@@ -382,7 +375,14 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         org.joml.Vector3f tipWarped = toViewWarped(tipW, cp, q, warp);
         float dtx = tipV.x() - tipWarped.x(), dty = tipV.y() - tipWarped.y(), dtz = tipV.z() - tipWarped.z();
 
-        org.joml.Matrix4f id = new org.joml.Matrix4f();
+        // §hand-line on 1.20.1: canon submits these with an IDENTITY matrix, which lands correctly
+        // only if the buffer is drawn with the view matrix live. 1.21.1 does that, 1.20.1 does not, and
+        // the far end came out behind the camera. pose.last().pose() is the local->view matrix the
+        // blank is drawn with and TIP_VIEW was captured through, so every point goes back through its
+        // inverse and is submitted with it — the same point, now travelling the rod's own road.
+        org.joml.Matrix4f m = new org.joml.Matrix4f(pose.last().pose());
+        if (Math.abs(m.determinant()) < 1.0e-9f) return;   // degenerate pose: nothing to hang a line on
+        org.joml.Matrix4f toLocal = new org.joml.Matrix4f(m).invert();
         org.joml.Matrix3f nid = new org.joml.Matrix3f();   // §1.20.1: normal() wants a matrix too
         double time = mc.level.getGameTime() + pt;
         org.joml.Vector3f prev = toViewWarped(
@@ -398,8 +398,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             float len = (float) Math.sqrt(sx * sx + sy * sy + sz * sz);
             if (len > 1.0e-5f) {
                 sx /= len; sy /= len; sz /= len;
-                vc.vertex(id, prev.x(), prev.y(), prev.z()).color(cr, cg, cb, alpha).normal(nid, sx, sy, sz).endVertex();
-                vc.vertex(id, p.x(), p.y(), p.z()).color(cr, cg, cb, alpha).normal(nid, sx, sy, sz).endVertex();
+                org.joml.Vector3f l0 = toLocal.transformPosition(new org.joml.Vector3f(prev));
+                org.joml.Vector3f l1 = toLocal.transformPosition(new org.joml.Vector3f(p));
+                vc.vertex(m, l0.x(), l0.y(), l0.z()).color(cr, cg, cb, alpha).normal(nid, sx, sy, sz).endVertex();
+                vc.vertex(m, l1.x(), l1.y(), l1.z()).color(cr, cg, cb, alpha).normal(nid, sx, sy, sz).endVertex();
             }
             prev = p;
         }
@@ -672,7 +674,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             layer = drawBentBlank(ir, chainRoot, joints, rodLoad, rodKey, stack, ctx, pose, buffers,
                     light, overlay, layer, mm, missing, mir);
             drawReel3d(stack, rodKey, tension, ir, mm, missing, pose, buffers, light, overlay); // §reel-3d
-            drawHandLine(stack, ctx, buffers); // §hand-line: same pass, same frame, same physics
+            drawHandLine(stack, ctx, pose, buffers); // §hand-line: same pass, same frame, same physics
         } else {
             // bent blank falls back to the straight one if the sprite is absent
             layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.blank(rodKey, bend), RodModelLayers.blank(rodKey)),
