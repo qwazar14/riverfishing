@@ -342,7 +342,9 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         net.minecraft.world.phys.Vec3 end = LineRenderer.lineEnd(mc, mc.player, own, pt);
         var cam = mc.gameRenderer.getMainCamera();
         net.minecraft.world.phys.Vec3 cp = cam.getPosition();
-        org.joml.Quaternionf q = new org.joml.Quaternionf(cam.rotation());
+        // §1.20.1 §view-yaw: the hand pose calls -Z forward and this version's camera rotation
+        // does not, so world points converted with it alone come out astern. Half turn about Y first.
+        org.joml.Quaternionf q = new org.joml.Quaternionf(cam.rotation()).rotateY((float) Math.PI);
 
         // The hand pass projects at a fixed 70° while the world projects at fov x modifier. A world
         // point pushed through the hand projection lands on the wrong pixel, so world-derived points

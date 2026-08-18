@@ -290,7 +290,9 @@ public final class LineRenderer {
         // 3D tip instead of at the body-model shoulder guess below.
         if (player == mc.player && RodItemRenderer.tipViewFresh()) {
             var cam3 = mc.gameRenderer.getMainCamera();
-            org.joml.Vector3f w = cam3.rotation().transform(new org.joml.Vector3f(
+            // §1.20.1 §view-yaw: same half turn as the hand pass — TIP_VIEW is -Z forward.
+            org.joml.Vector3f w = new org.joml.Quaternionf(cam3.rotation()).rotateY((float) Math.PI)
+                    .transform(new org.joml.Vector3f(
                     RodItemRenderer.TIP_VIEW[0], RodItemRenderer.TIP_VIEW[1], RodItemRenderer.TIP_VIEW[2]));
             Vec3 cp = cam3.getPosition();
             return new Vec3(cp.x + w.x(), cp.y + w.y(), cp.z + w.z());

@@ -162,7 +162,16 @@ public final class RodDebugCommand {
                     var cam = mc.gameRenderer.getMainCamera();
                     org.joml.Vector3f v = new org.joml.Vector3f(RodItemRenderer.TIP_VIEW[0],
                             RodItemRenderer.TIP_VIEW[1], RodItemRenderer.TIP_VIEW[2]);
-                    org.joml.Vector3f w = cam.rotation().transform(new org.joml.Vector3f(v));
+                    org.joml.Vector3f w = new org.joml.Quaternionf(cam.rotation())
+                            .rotateY((float) Math.PI).transform(new org.joml.Vector3f(v));
+                    // and prove the convention rather than assert it: whichever of these matches the
+                    // camera's own look vector is the axis this version calls forward.
+                    org.joml.Vector3f fwdNeg = cam.rotation().transform(new org.joml.Vector3f(0f, 0f, -1f));
+                    org.joml.Vector3f fwdPos = cam.rotation().transform(new org.joml.Vector3f(0f, 0f, 1f));
+                    net.minecraft.world.phys.Vec3 lv = mc.player.getLookAngle();
+                    say(c, String.format("§7rot(-Z).look %.2f   rot(+Z).look %.2f §8(1.00 = that is forward)",
+                            fwdNeg.x() * lv.x + fwdNeg.y() * lv.y + fwdNeg.z() * lv.z,
+                            fwdPos.x() * lv.x + fwdPos.y() * lv.y + fwdPos.z() * lv.z));
                     net.minecraft.world.phys.Vec3 cp = cam.getPosition();
                     net.minecraft.world.phys.Vec3 tipW = new net.minecraft.world.phys.Vec3(
                             cp.x + w.x(), cp.y + w.y(), cp.z + w.z());
