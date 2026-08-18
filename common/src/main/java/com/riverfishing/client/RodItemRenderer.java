@@ -78,15 +78,24 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      * which prints the array it just cut the geometry along.
      */
     private static final java.util.Map<String, float[]> BLANK_JOINTS_X =
-            java.util.Map.of("feeder", new float[]{14f, 3f, -5f, -10f},
+            java.util.Map.ofEntries( // ofEntries: Map.of tops out at 10 pairs
+                    java.util.Map.entry("feeder", new float[]{14f, 3f, -5f, -10f}),
                     // §pole / §bamboo: hinged at the ferrules / culm nodes — each collar rides the
                     // tip-side segment, so it sleeves its joint when the chain bends, like a real
                     // telescopic pole. Values come from tools/split_rod.js, which prints them.
-                    "pole", new float[]{15.2f, 7.4f, -0.4f, -8.2f},
-                    "spinning", new float[]{14f, 3f, -5f, -10f}, // rebuilt on the feeder skeleton
-                    "ultralight", new float[]{14.8f, 5.5f, -0.8f, -4.1f},
-                    "surf", new float[]{12.9f, 5.3f, -2.3f, -9.9f},
-                    "bamboo", new float[]{19.667f, 13.333f, 7f, 0.667f, -5.667f});
+                    java.util.Map.entry("pole", new float[]{15.2f, 7.4f, -0.4f, -8.2f}),
+                    // rebuilt on the feeder skeleton
+                    java.util.Map.entry("spinning", new float[]{14f, 3f, -5f, -10f}),
+                    java.util.Map.entry("ultralight", new float[]{14.8f, 5.5f, -0.8f, -4.1f}),
+                    java.util.Map.entry("surf", new float[]{12.9f, 5.3f, -2.3f, -9.9f}),
+                    java.util.Map.entry("carp", new float[]{13.8f, 6.46f, -0.88f, -8.21f}),
+                    java.util.Map.entry("boat", new float[]{10.94f, 5.39f, -0.16f, -5.66f, -11.16f}),
+                    java.util.Map.entry("bottom", new float[]{12.99f, 5.59f, -1.81f, -9.21f}),
+                    java.util.Map.entry("trolling", new float[]{10.31f, 2.21f, -2.54f}),
+                    // §sea-spin-3d: EIGHT sections, the deepest chain in the fleet
+                    java.util.Map.entry("sea_spin",
+                            new float[]{9.15f, 3.15f, -3.15f, -7.95f, -10.95f, -12.95f, -14.58f}),
+                    java.util.Map.entry("bamboo", new float[]{19.667f, 13.333f, 7f, 0.667f, -5.667f}));
 
     /** A 3D blank with no joints listed: one rigid piece, drawn but never bent. */
     private static final float[] NO_JOINTS = new float[0];
@@ -100,10 +109,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             java.util.Map.entry("feeder", -16f), java.util.Map.entry("pole", -16f),
             java.util.Map.entry("bamboo", -12.1f), java.util.Map.entry("stick", 2.5f),
             java.util.Map.entry("spinning", -16f), java.util.Map.entry("ultralight", -8.5f),
-            java.util.Map.entry("winter", 21.9f), java.util.Map.entry("sea_spin", -2f),
-            java.util.Map.entry("bottom", -16f), java.util.Map.entry("carp", -14f),
-            java.util.Map.entry("surf", -16f), java.util.Map.entry("boat", 6f),
-            java.util.Map.entry("trolling", 8f));
+            java.util.Map.entry("winter", 21.9f), java.util.Map.entry("sea_spin", -16f),
+            java.util.Map.entry("bottom", -16f), java.util.Map.entry("carp", -16f),
+            java.util.Map.entry("surf", -16f), java.util.Map.entry("boat", -15.7f),
+            java.util.Map.entry("trolling", -5.7f));
 
     /**
      * §rod-tip-3d: where the drawn tip landed ON SCREEN, in normalised device coords, captured while
@@ -195,9 +204,9 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final java.util.Map<String, float[]> REEL_SEAT_DX = java.util.Map.of(
             "feeder", new float[]{0f, 0f}, "spinning", new float[]{0f, 0f},
             "ultralight", new float[]{0.8f, 0.4f},   // its seat rides 0.4u higher than the 9.45 docking line
-            "sea_spin", new float[]{7.75f, 0f}, "bottom", new float[]{4f, 0.6f},
-            "carp", new float[]{7.25f, 0f}, "surf", new float[]{4f, 0.6f},   // surf seat rides 0.6u high
-            "boat", new float[]{2.75f, 0f}, "trolling", new float[]{2.25f, 0f});
+            "sea_spin", new float[]{1.25f, 0f}, "bottom", new float[]{3f, 0.52f},
+            "carp", new float[]{4.25f, 0.4f}, "surf", new float[]{4f, 0.6f},   // surf seat rides 0.6u high
+            "boat", new float[]{2.75f, 0.8f}, "trolling", new float[]{4.15f, 0f});
 
     // ===== §line-thru-guides: the line runs from the spool through every ring to the tip =====
     /**

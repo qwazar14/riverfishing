@@ -79,6 +79,71 @@ const RODS = {
       { name: 's4', members: ['blank_5', 'tip_top'], joint: -9.9 },
     ],
   },
+  // §carp-3d: five sections; the authored pivots drift off the boundaries, so the joints sit at
+  // the section-overlap centres instead.
+  carp: {
+    src: '3D/rods/carp/blank_carp.json',
+    texRef: 'riverfishing:item/rod/blank_carp_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip', 'blank_1'] },
+      { name: 's1', members: ['blank_2'], joint: 13.8 },
+      { name: 's2', members: ['blank_3'], joint: 6.46 },
+      { name: 's3', members: ['blank_4'], joint: -0.88 },
+      { name: 's4', members: ['blank_5', 'tip_top'], joint: -8.21 },
+    ],
+  },
+  // §boat-3d: six sections, joints at the overlap centres.
+  boat: {
+    src: '3D/rods/boat/blank_boat.json',
+    texRef: 'riverfishing:item/rod/blank_boat_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip', 'blank_1'] },
+      { name: 's1', members: ['blank_2'], joint: 10.94 },
+      { name: 's2', members: ['blank_3'], joint: 5.39 },
+      { name: 's3', members: ['blank_4'], joint: -0.16 },
+      { name: 's4', members: ['blank_5'], joint: -5.66 },
+      { name: 's5', members: ['blank_6', 'tip_top'], joint: -11.16 },
+    ],
+  },
+  // §bottom-3d: reworked from rigid to five sections, same school as surf/carp.
+  bottom: {
+    src: '3D/rods/bottom/blank_bottom.json',
+    texRef: 'riverfishing:item/rod/blank_bottom_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip', 'blank_1'] },
+      { name: 's1', members: ['blank_2'], joint: 12.99 },
+      { name: 's2', members: ['blank_3'], joint: 5.59 },
+      { name: 's3', members: ['blank_4'], joint: -1.81 },
+      { name: 's4', members: ['blank_5', 'tip_top'], joint: -9.21 },
+    ],
+  },
+  // §trolling-3d: short and stout — four sections, the shallowest chain of the takes-reel rods.
+  trolling: {
+    src: '3D/rods/trolling/blank_trolling.json',
+    texRef: 'riverfishing:item/rod/blank_trolling_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip', 'blank_1'] },
+      { name: 's1', members: ['blank_2'], joint: 10.31 },
+      { name: 's2', members: ['blank_3'], joint: 2.21 },
+      { name: 's3', members: ['blank_4', 'tip_top'], joint: -2.54 },
+    ],
+  },
+  // §sea-spin-3d: EIGHT sections — the deepest chain in the fleet (BLANK_SEGMENTS was raised to 8
+  // for it); joints at the overlap centres.
+  sea_spin: {
+    src: '3D/rods/sea_spin/blank_sea_spin.json',
+    texRef: 'riverfishing:item/rod/blank_sea_spin_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip', 'blank_1'] },
+      { name: 's1', members: ['blank_2'], joint: 9.15 },
+      { name: 's2', members: ['blank_3'], joint: 3.15 },
+      { name: 's3', members: ['blank_4'], joint: -3.15 },
+      { name: 's4', members: ['blank_5'], joint: -7.95 },
+      { name: 's5', members: ['blank_6'], joint: -10.95 },
+      { name: 's6', members: ['blank_7'], joint: -12.95 },
+      { name: 's7', members: ['blank_8', 'tip_top'], joint: -14.58 },
+    ],
+  },
   bamboo: {
     src: '3D/rods/bamboo/blank_bamboo.json',
     texRef: 'riverfishing:item/rod/blank_bamboo_3d',

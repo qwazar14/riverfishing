@@ -10,7 +10,7 @@ const fs = require('fs');
 
 const RODS = ['stick', 'bamboo', 'pole', 'winter', 'ultralight', 'spinning', 'feeder',
               'bottom', 'carp', 'surf', 'sea_spin', 'boat', 'trolling'];
-const SEGMENTED = { feeder: 5, pole: 5, bamboo: 6, spinning: 5, ultralight: 5, surf: 5 };          // kind -> piece count
+const SEGMENTED = { feeder: 5, pole: 5, bamboo: 6, spinning: 5, ultralight: 5, surf: 5, carp: 5, boat: 6, bottom: 5, trolling: 4, sea_spin: 8 };          // kind -> piece count
 const ASSETS = 'common/src/main/resources/assets/riverfishing';
 const RENDERER = 'common/src/main/java/com/riverfishing/client/RodItemRenderer.java';
 const LAYERS = 'common/src/main/java/com/riverfishing/client/RodModelLayers.java';
@@ -34,7 +34,7 @@ const tipBlock = java.match(/BLANK_TIP_X = java\.util\.Map\.of(?:Entries)?\(([\s
 if (!tipBlock) throw new Error('cannot find BLANK_TIP_X in ' + RENDERER);
 Object.keys(tipX).forEach(k => delete tipX[k]);
 for (const [, k, v] of tipBlock[1].matchAll(/"(\w+)",\s*(-?[\d.]+)f/g)) tipX[k] = parseFloat(v);
-const jointsBlock = java.match(/BLANK_JOINTS_X =[\s\S]*?java\.util\.Map\.of\(([\s\S]*?)\);/);
+const jointsBlock = java.match(/BLANK_JOINTS_X =[\s\S]*?java\.util\.Map\.of(?:Entries)?\(([\s\S]*?)\);/);
 if (!jointsBlock) throw new Error('cannot find BLANK_JOINTS_X in ' + RENDERER);
 const javaJoints = {};
 for (const [, k, arr] of jointsBlock[1].matchAll(/"(\w+)",\s*new float\[\]\{([^}]*)\}/g)) {

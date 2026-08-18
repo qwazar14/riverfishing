@@ -58,7 +58,7 @@ public final class RodModelLayers {
      * rotation at load, so a live chain can only live in the renderer. Rods without segment models
      * keep the sprite buckets.
      */
-    public static final int BLANK_SEGMENTS = 6; // bamboo carries the most pieces: grip + 5 culm joints
+    public static final int BLANK_SEGMENTS = 8; // sea_spin carries the most pieces: handle + 7 joints
 
     public static ResourceLocation segment(String rodKey, int index) {
         return loc("blank_" + rodKey + "_s" + index);
