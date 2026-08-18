@@ -42,12 +42,20 @@ NORM = [
     (r"org\.joml\.Matrix3f nid = new org\.joml\.Matrix3f\(\);", ""),
 ]
 
-# The ONE deliberate divergence, named so the check stays trustworthy. §hand-line submits its vertices
-# with an identity matrix — view space — and depends on which matrix is live when the buffer flushes.
-# 1.20.1 does not agree with 1.21.1 about that, and the far end of the line came out behind the camera:
-# the tackle end flew over the angler's shoulder, on Fabric and Forge alike. 1.20.1 leaves the hand pass
-# early so LineRenderer's world pass draws the string instead. Anything ELSE differing is still a fail.
-EXPECTED = {"RodItemRenderer.java": ["if (true) return;"]}
+# The ONE deliberate divergence, named so the check stays trustworthy. §hand-line computes its points
+# in VIEW space and canon submits them with an identity matrix, which only lands where the buffer is
+# drawn with the view matrix live — 1.21.1 does that, 1.20.1 does not, and the far end went behind the
+# camera. 1.20.1 pushes each point through the inverse of pose.last().pose() and submits it with that
+# matrix instead: the same point, riding the matrix the blank itself is drawn with. Disabling the whole
+# path was tried first and was wrong — the rods are different lengths, and §hand-line is what makes
+# length stop mattering. Anything ELSE differing is still a failure.
+EXPECTED = {"RodItemRenderer.java": ["toLocal", "org.joml.Matrix4f m = new org.joml.Matrix4f(pose.last().pose())",
+                                    "org.joml.Matrix4f id = new org.joml.Matrix4f();",
+                                    "m.determinant()", "Vector3f l0", "Vector3f l1",
+                                    ".V(m, l0", ".V(m, l1", "drawHandLine(ItemStack stack,",
+                                    "MultiBufferSource buffers) {", "drawHandLine(stack, ctx, pose, buffers)",
+                                    ".V(id, prev", ".V(id, p.x()", "drawHandLine(stack, ctx, buffers)",
+                                    "Matrix4f id = new Matrix4f();"]}
 
 
 def norm(text):
