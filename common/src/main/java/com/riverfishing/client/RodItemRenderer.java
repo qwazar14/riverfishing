@@ -514,13 +514,27 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         return true;
     }
 
-    /** §rod-bend-3d: continuous fight stress 0..1 for the chain — {@code /rfrod bend N} forces a step. */
+    /** §rod-bend: the line's break-risk 0..1 — the crank strain and the sprite buckets read this. */
     public static float liveTension() {
         if (FORCE_BEND >= 0) return Math.min(FORCE_BEND, BEND_BUCKETS) / (float) BEND_BUCKETS;
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return 0f;
         ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
         return l == null ? 0f : net.minecraft.util.Mth.clamp(l.smoothTension, 0f, 1f);
+    }
+
+    /**
+     * §rod-load: how loaded the BLANK is 0..1 — the chain bends off THIS, not off break-risk.
+     * Break-risk is normalised to the line and §tackle-margin starves it on over-gunned gear, which
+     * left a trolling blank arrow-straight over a 2 kg bass; the load is the pull against the rod's
+     * own power class, so the same fish bows an ultralight flat and honestly nods the trolling rod.
+     */
+    public static float liveRodLoad() {
+        if (FORCE_BEND >= 0) return Math.min(FORCE_BEND, BEND_BUCKETS) / (float) BEND_BUCKETS;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return 0f;
+        ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
+        return l == null ? 0f : net.minecraft.util.Mth.clamp(l.smoothRodLoad, 0f, 1f);
     }
 
     /**
@@ -546,6 +560,35 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             lat += own.course == 1 ? -0.5f : own.course == 2 ? 0.5f : 0f;
         }
         return net.minecraft.util.Mth.clamp(lat, -1f, 1f);
+    }
+
+    /**
+     * §bend-plane vertical: where the line's pull sits against the view PITCH, +1 = clearly below
+     * (the normal stance — bend down, the classic arc), -1 = above the view axis (the camera dragged
+     * DOWN past the line). Without the sign, pulling the camera down while the rod also bent down
+     * folded the two into one ugly crumple at the bottom of the screen; signed, the blank rolls over
+     * and bows UP toward the line, which is where the pull genuinely is.
+     */
+    private static float fightVertical() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return 1f;
+        ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
+        if (own == null) return 1f;
+        var d = net.minecraft.world.phys.Vec3.atCenterOf(own.target).subtract(mc.player.getEyePosition());
+        // MC pitch runs positive-DOWN; so does this, so "pull below view" comes out positive.
+        float pitchTo = (float) Math.toDegrees(net.minecraft.util.Mth.atan2(-d.y,
+                Math.sqrt(d.x * d.x + d.z * d.z)));
+        float off = pitchTo - mc.player.getXRot();
+        // The hand pose carries the blank ~25° above the view axis, so the pull is still below the
+        // ROD well after it crosses the view line — the +25 bias keeps the flip where the rod is,
+        // not where the crosshair is. Saturates over 40°, same spirit as the lateral's 45.
+        float vert = net.minecraft.util.Mth.clamp((off + 25f) / 40f, -1f, 1f);
+        if (own.fighting) {
+            // a sounding fish drags the tip deeper, one coming up to jump lifts it — same sign
+            // language the course lean speaks
+            vert += own.course == 3 ? 0.4f : own.course == 4 ? -0.4f : 0f;
+        }
+        return net.minecraft.util.Mth.clamp(vert, -1f, 1f);
     }
 
     /** §rod-bend: the LOCAL player's current bend bucket (0 = straight), from smoothed fight stress. */
@@ -603,18 +646,20 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // 26.x builds carry the bend in the stack instead and show it to everyone).
         int bend = 0;
         float tension = 0f;
+        float rodLoad = 0f;
         if (FORCE_BEND >= 0 || (mir && mc.player != null
                 && (ctx.firstPerson()
                     || stack == mc.player.getMainHandItem() || stack == mc.player.getOffhandItem()))) {
             bend = liveBend();
             tension = liveTension();
+            rodLoad = liveRodLoad(); // §rod-load: the chain bends off the blank's load, not break-risk
         }
 
         int layer = 0;
         // 1) The bare rod — always. A segmented rod is drawn as a bone chain that loads CONTINUOUSLY
         // with tension (§rod-bend-3d); every other rod keeps the pre-drawn bend buckets.
         if (chainRoot != null) {
-            layer = drawBentBlank(ir, chainRoot, joints, tension, rodKey, stack, ctx, pose, buffers,
+            layer = drawBentBlank(ir, chainRoot, joints, rodLoad, rodKey, stack, ctx, pose, buffers,
                     light, overlay, layer, mm, missing, mir);
             drawReel3d(stack, rodKey, tension, ir, mm, missing, pose, buffers, light, overlay); // §reel-3d
             drawHandLine(stack, ctx, buffers); // §hand-line: same pass, same frame, same physics
@@ -745,10 +790,13 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // the yaw sign flips because a positive Y rotation swings the tip screen-LEFT while the
         // lateral is positive to the RIGHT.
         float lat = tension > 0f ? fightLateral() : 0f;
+        // §bend-plane vertical: SIGNED by where the pull sits against the view pitch — camera dragged
+        // down past the line and the blank bows UP toward it instead of crumpling into the water.
+        float vert = tension > 0f ? fightVertical() : 1f;
         // The hand pose's rz tilt leans the model's Y axis, so an on-axis yaw rotation loses part of
         // its on-screen width — the 1.4 gain buys it back, and the vertical floor drops to 0.2:
         // a fish pulling hard sideways should lay the blank over, not keep it half-bowed down.
-        float bendVert = Math.max(0.2f, (float) Math.sqrt(Math.max(0f, 1f - lat * lat)));
+        float bendVert = Math.max(0.2f, (float) Math.sqrt(Math.max(0f, 1f - lat * lat))) * vert;
         float bendYaw = -lat * 1.4f;
         for (int i = 0; i < jointsX.length; i++) {
             float share = jointShare(i, jointsX.length);

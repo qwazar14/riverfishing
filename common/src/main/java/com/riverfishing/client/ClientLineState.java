@@ -25,8 +25,10 @@ public final class ClientLineState {
         public int color = 0xFFE8E4D0;
         public byte floatKind;         // §float-kind: 0 none / 1 plain peg / 2 proper float
         public boolean biting;         // bite in progress: bobber plunges / line twitches
-        public float tension;          // §rod-bend: authoritative fight tension 0..1
-        public float smoothTension;    // eased for the in-hand bend
+        public float tension;          // §rod-bend: the line's break-risk 0..1 (taut, colour, creaks)
+        public float smoothTension;    // eased break-risk
+        public float rodLoad;          // §rod-load: how loaded the BLANK is 0..1 — the bend reads this
+        public float smoothRodLoad;    // eased for the in-hand bend and the springs
         public boolean fighting;       // §pump-reel: the fight is on
         // §pump-reel: DO NOT REEL right now — the fish is taking line, or it is in the air on a breach
         // (§jump-cue). Both answer the same question for the player, so they are one flag: a second one
@@ -51,6 +53,7 @@ public final class ClientLineState {
         public void tickSmoothing(float frameSeconds) {
             smoothProgress = Mth.lerp(Math.min(1f, frameSeconds * 6f), smoothProgress, progress);
             smoothTension = Mth.lerp(Math.min(1f, frameSeconds * 8f), smoothTension, tension);
+            smoothRodLoad = Mth.lerp(Math.min(1f, frameSeconds * 8f), smoothRodLoad, rodLoad);
             // §fight-course: the tip is DRAGGED the way the fish is going — that is the read, and it is
             // also what physically happens. Eased hard enough to be unmistakable but not snappy, so a
             // run reads as the rod being pulled over rather than as the item teleporting.
@@ -105,6 +108,7 @@ public final class ClientLineState {
         line.floatKind = p.floatKind;
         line.biting = p.biting;
         line.tension = p.tension;
+        line.rodLoad = p.rodLoad;
         line.fighting = p.fighting;
         line.running = p.running;
         line.course = p.course;

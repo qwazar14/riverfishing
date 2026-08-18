@@ -146,10 +146,12 @@ public final class RodPhysics {
         if (own != null && own.fighting) {
             float dirYaw = own.course == 1 ? 1f : own.course == 2 ? -1f : 0f;
             float dirPitch = own.course == 3 ? 1f : own.course == 4 ? -1f : dirYaw == 0f ? 1f : 0f;
-            // The fight syncs every FIVE ticks, so tension arrives in small steps — the original
-            // 0.03 threshold sat above most of them and the fight read as dead. Any real step kicks
-            // now; the gain scales it, so small steps give small knocks and a slam still slams.
-            float dT = own.tension - lastTension;
+            // §rod-load: the springs work off the BLANK's load, not the line's break-risk — over-gunned
+            // gear keeps break-risk near zero all fight (§tackle-margin), which left the trolling rod
+            // limp over a hooked bass. The fight syncs every FIVE ticks, so the load arrives in small
+            // steps — any real step kicks; the gain scales it, so small steps give small knocks and a
+            // slam still slams.
+            float dT = own.rodLoad - lastTension;
             if (dT > 0.005f) {
                 velYaw += dirYaw * dT * JERK_GAIN;
                 velPitch += dirPitch * dT * JERK_GAIN;
@@ -157,12 +159,12 @@ public final class RodPhysics {
             // The fish never stops pulling: a steady down-and-away drag all fight long, doubled and
             // aimed down the course while it RUNS. This is the baseline that makes a hooked rod feel
             // loaded even between runs.
-            velPitch += own.tension * PULL_GAIN * 0.5f * dt;
+            velPitch += own.rodLoad * PULL_GAIN * 0.5f * dt;
             if (own.running) {
-                velYaw += dirYaw * own.tension * PULL_GAIN * dt;
-                velPitch += dirPitch * own.tension * PULL_GAIN * dt;
+                velYaw += dirYaw * own.rodLoad * PULL_GAIN * dt;
+                velPitch += dirPitch * own.rodLoad * PULL_GAIN * dt;
             }
-            lastTension = own.tension;
+            lastTension = own.rodLoad;
         } else {
             lastTension = 0f;
         }

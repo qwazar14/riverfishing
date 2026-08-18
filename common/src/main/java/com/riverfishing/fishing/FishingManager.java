@@ -213,6 +213,17 @@ public final class FishingManager {
         return (float) Mth.clamp(session.tension / Math.max(0.05, session.breakTension), 0.0, 1.0);
     }
 
+    /**
+     * §rod-load: how loaded the BLANK is 0..1 — the fish's pull against the rod's own power class,
+     * eased with ^0.75 because a real blank shows half its bend well before half its rating. A run
+     * is full pull (fading with fatigue); between runs the fish hangs on the line at about a third.
+     */
+    private static float rodLoad(FishingSession session) {
+        if (!session.fighting) return 0f;
+        double activity = session.runTicksLeft > 0 ? 1.0 - 0.35 * session.fatigue : 0.3;
+        return (float) Math.pow(Mth.clamp(session.rodPull01 * activity, 0.0, 1.0), 0.75);
+    }
+
     public static void trollingTick(ServerPlayer sp) {
         ItemStack trollRod = sp.getMainHandItem();
         boolean capable = trollRod.getItem() instanceof RodItem ri
@@ -1400,6 +1411,13 @@ public final class FishingManager {
                 baseTolerance / RiverFishingConfig.breakSensitivity() * session.overloadPenalty
                         * AnglerSkills.lineToleranceMult(sp), 0.1, 1.0);
         session.requiredKg = requiredKg; // §tackle-stress: for the break-load message
+        // §rod-load: how hard THIS fish loads THIS blank. Tension above is the line's break-risk, and
+        // §tackle-margin deliberately starves it on over-gunned gear — which left a trolling blank
+        // arrow-straight over a 2 kg bass. The rod must read the fight even with the line nowhere
+        // near breaking, so the bend gets its own gauge: pull vs the blank's power class.
+        if (rod.getItem() instanceof RodItem loadedRod) {
+            session.rodPull01 = requiredKg / loadedRod.rodType().fightPowerKg();
+        }
 
         // A leaderless line is bitten through; a fluorocarbon leader only partly protects (#4).
         if (profile.requiresLeader
@@ -1566,6 +1584,7 @@ public final class FishingManager {
     private static void startBycatchFight(ServerPlayer sp, ServerLevel level, FishingSession session, long now,
                                           boolean treasure) {
         session.bycatch = treasure ? 2 : 1;
+        session.rodPull01 = 0.25;       // §rod-load: a dragged boot still bows any blank a little
 
         // §bycatch-intrigue on a pole: a reel-less float rod has no tension fight — it uses the
         // float pull-out timing, exactly like a hooked fish, so junk feels the same until it surfaces.
@@ -1997,14 +2016,12 @@ public final class FishingManager {
         int barState = session.runTicksLeft > 0 ? 1 : session.fatigue > 0.7 ? 2 : 0;
         if (barState != session.barState) {
             session.barState = barState;
-            // §fight-course: while it runs, the bar says WHICH WAY — the course is the instruction, and
-            // an instruction the player has to infer is not one. Between runs it goes back to the state.
-            Component name = barState == 1 && session.course.isRun()
-                    ? Component.translatable("message.riverfishing.bar_course",
-                            sp.getDisplayName(), Component.translatable(session.course.key()))
-                    : Component.translatable(barState == 2 ? "message.riverfishing.bar_tired"
-                            : "message.riverfishing.bar_fight", sp.getDisplayName());
-            session.bossBar.setName(name);
+            // §rod-load: the bar no longer SPELLS the course out ("goes LEFT — pull RIGHT") — the rod
+            // itself is the instrument now: the blank bends toward the fish (§bend-plane) and loads
+            // with the pull, so the text would only repeat what the tackle already shows.
+            session.bossBar.setName(Component.translatable(barState == 2
+                    ? "message.riverfishing.bar_tired"
+                    : "message.riverfishing.bar_fight", sp.getDisplayName()));
         }
         session.bossBar.setColor(session.tension >= session.breakTension ? BossEvent.BossBarColor.RED
                 : inRun ? BossEvent.BossBarColor.RED
@@ -2044,7 +2061,7 @@ public final class FishingManager {
         if (now % 5 == 0 || now <= session.jumpWindowEnd) {
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     (float) Mth.clamp(session.landProgress, 0.0, 1.0), session.lineColor,
-                    session.floatKind, false, fightStress(session),
+                    session.floatKind, false, fightStress(session), rodLoad(session),
                     // §pump-reel + §jump-cue: "do not reel right now" — a run OR a breach. The HUD cue
                     // used to read the run alone, so during a jump it showed a green "reel" directly
                     // under the red "do not reel", and the mod contradicted itself on one screen.
