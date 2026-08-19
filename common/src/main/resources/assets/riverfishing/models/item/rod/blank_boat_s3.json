@@ -1,0 +1,117 @@
+{
+	"texture_size": [128, 128],
+	"textures": {
+		"0": "riverfishing:item/rod/blank_boat_3d",
+		"particle": "riverfishing:item/rod/blank_boat_3d"
+	},
+	"elements": [
+		{
+			"name": "blank_4",
+			"from": [-5.725, 9.995, 7.995],
+			"to": [-0.1, 11.005, 9.005],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [-2.725, 10.5, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [0, 0, 3.875, 0.75],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [4, 7, 4.75, 7.75],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [0, 1, 3.875, 1.75],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [5, 7, 5.75, 7.75],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [3.875, 2.75, 0, 2],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [3.875, 3, 0, 3.75],
+					"texture": "#0"
+				}
+			}
+		},
+		{
+			"name": "guide_7",
+			"from": [-2.925, 8.653, 7.81],
+			"to": [-2.925, 10.033, 9.19],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [-3.425, 10.15, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [0, 0, 0, 1.625],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [0, 4, 1.625, 5.625],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [0, 0, 0, 1.625],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [4, 0, 5.625, 1.625],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [0, 1.625, 0, 0],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [0, 0, 0, 1.625],
+					"texture": "#0"
+				}
+			}
+		},
+		{
+			"name": "guide_8",
+			"from": [-5.525, 8.828, 7.91],
+			"to": [-5.525, 10.008, 9.09],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [-6.025, 10.225, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [0, 0, 0, 1.625],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [0, 4, 1.625, 5.625],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [0, 0, 0, 1.625],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [4, 0, 5.625, 1.625],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [0, 1.625, 0, 0],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [0, 0, 0, 1.625],
+					"texture": "#0"
+				}
+			}
+		}
+	]
+}

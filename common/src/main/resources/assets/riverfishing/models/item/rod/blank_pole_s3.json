@@ -1,0 +1,81 @@
+{
+	"texture_size": [32, 32],
+	"textures": {
+		"1": "riverfishing:item/rod/blank_pole_3d",
+		"particle": "riverfishing:item/rod/blank_pole_3d"
+	},
+	"elements": [
+		{
+			"name": "ferrule_3",
+			"from": [-0.75, 9.982, 7.982],
+			"to": [-0.05, 11.018, 9.018],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [-0.75, 10.5, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [0.5, 9, 0.875, 9.5],
+					"texture": "#1"
+				},
+				"east": {
+					"uv": [6.5, 8.5, 7, 9],
+					"texture": "#1"
+				},
+				"south": {
+					"uv": [1, 9, 1.375, 9.5],
+					"texture": "#1"
+				},
+				"west": {
+					"uv": [7, 8.5, 7.5, 9],
+					"texture": "#1"
+				},
+				"up": {
+					"uv": [1.875, 9.5, 1.5, 9],
+					"texture": "#1"
+				},
+				"down": {
+					"uv": [2.375, 9, 2, 9.5],
+					"texture": "#1"
+				}
+			}
+		},
+		{
+			"name": "section_4",
+			"from": [-8.2, 10.173, 8.173],
+			"to": [-0.4, 10.827, 8.827],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [-8.2, 10.5, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [0, 7, 3.875, 7.375],
+					"texture": "#1"
+				},
+				"east": {
+					"uv": [2.5, 9, 2.875, 9.375],
+					"texture": "#1"
+				},
+				"south": {
+					"uv": [4, 7, 7.875, 7.375],
+					"texture": "#1"
+				},
+				"west": {
+					"uv": [3, 9, 3.375, 9.375],
+					"texture": "#1"
+				},
+				"up": {
+					"uv": [3.875, 7.875, 0, 7.5],
+					"texture": "#1"
+				},
+				"down": {
+					"uv": [7.875, 7.5, 4, 7.875],
+					"texture": "#1"
+				}
+			}
+		}
+	]
+}
