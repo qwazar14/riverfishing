@@ -32,10 +32,15 @@ public final class RodHandTransform {
     // A 3D blank is modelled at true length — the feeder is 48 units, 3 blocks, 3.9 m — so it is worn
     // at scale 1 and needs its own set. These came straight out of Blockbench's display tab, which
     // maps 1:1 onto these arrays: both apply translate, then rotationXYZ, then scale, in that order.
-    public static final float[] TP3  = {0.75f,  17f,   -0.5f, 5f, -90f, -90f, 1f}; // third person, right
-    public static final float[] TPL3 = {-0.75f, 17f,   -0.5f, 5f,  90f,  90f, 1f}; // third person, left
-    public static final float[] FP3  = {7.5f,   3.75f, -14f,  0f, -90f, -45f, 1f}; // first person, right
-    public static final float[] FPL3 = {7.5f,   3.75f, -14f,  0f,  90f,  45f, 1f}; // first person, left
+    // Seeded from the SPRITE set above, not from 1.21.1's numbers. Those were measured against a
+    // BEWLR that ran inside the item render, after vanilla's display transforms; this line hooks the
+    // HEAD of renderItem, before them, so the same values put the rod in the sky. Starting from the
+    // pose that demonstrably works here leaves only the scale to find — and a 3D blank is modelled at
+    // true length, so it wants far less than the sprite's 0.68. Tune with /rfrod fp/tp and paste back.
+    public static final float[] TP3  = {0f, 3f,   3.5f, 0f,  -90f, -48f, 0.30f}; // third person, right
+    public static final float[] TPL3 = {0f, 3f,   3.5f, 90f, -90f,  40f, 0.30f}; // third person, left
+    public static final float[] FP3  = {2.7f, 3.2f, 0.8f, 0f, -90f, 10f, 0.24f}; // first person, right
+    public static final float[] FPL3 = {-2.7f, 3.2f, 0.8f, 0f, -90f, 10f, 0.24f}; // first person, left
     // =================================================================
     // ==============================================================================
 
@@ -94,6 +99,14 @@ public final class RodHandTransform {
     public static float COURSE_TIP_Y = 0.005f;
 
     /** Applies the hand transform for a hand context (no-op otherwise). Each hand uses its own array. */
+    /**
+     * The set /rfrod edits: whichever is actually on screen. With the chain drawing, the sprite
+     * poses move nothing, so tuning them would read as a broken command.
+     */
+    private static boolean editing3d() {
+        return RodChain.ENABLED;
+    }
+
     public static void apply(PoseStack pose, ItemDisplayContext ctx) {
         apply(pose, ctx, false);
     }
@@ -123,10 +136,10 @@ public final class RodHandTransform {
 
     private static float[] array(String ctx) {
         return switch (ctx.toLowerCase()) {
-            case "tp" -> TP;
-            case "tpl" -> TPL;
-            case "fp" -> FP;
-            case "fpl" -> FPL;
+            case "tp" -> editing3d() ? TP3 : TP;
+            case "tpl" -> editing3d() ? TPL3 : TPL;
+            case "fp" -> editing3d() ? FP3 : FP;
+            case "fpl" -> editing3d() ? FPL3 : FPL;
             default -> null;
         };
     }
@@ -168,11 +181,15 @@ public final class RodHandTransform {
     /** Human-readable current values, ready to paste back into the DEFAULT arrays above. */
     public static java.util.List<String> showLines() {
         return java.util.List.of(
-                "§e/rfrod §7— rod hand transform (1/16 units, degrees; tx ty tz rx ry rz s):",
-                fmt("TP ", TP),
-                fmt("TPL", TPL),
-                fmt("FP ", FP),
-                fmt("FPL", FPL),
+                "§e/rfrod §7— rod hand transform, §f"
+
+                        + (editing3d() ? "3D" : "sprite")
+
+                        + " §7set (1/16 units, degrees; tx ty tz rx ry rz s):",
+                fmt("TP ", editing3d() ? TP3 : TP),
+                fmt("TPL", editing3d() ? TPL3 : TPL),
+                fmt("FP ", editing3d() ? FP3 : FP),
+                fmt("FPL", editing3d() ? FPL3 : FPL),
                 String.format("§bCAST §fload=%s whip=%s §7(/rfrod cast load|whip <deg>)", n(CAST_LOAD), n(CAST_WHIP)),
                 "§8paste over TP/TPL/FP/FPL (and CAST_LOAD/CAST_WHIP) in RodHandTransform.java, then rebuild");
     }
