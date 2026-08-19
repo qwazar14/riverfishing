@@ -70,9 +70,16 @@ public final class RodChain {
         return 2f * (i + 1) / (n * (n + 1));
     }
 
-    /** Does this rod have a chain to draw at all? Cheap, and free of any render state. */
+    /** A 3D blank with no joints listed: one rigid piece, drawn but never bent (stick, winter). */
+    private static final float[] NO_JOINTS = new float[0];
+
+    /**
+     * Does this rod have a chain to draw at all? Every rod with a handle model does — a rod absent
+     * from {@link #JOINTS} is a one-piece blank, which is a chain of zero joints, not a sprite.
+     * Asking containsKey here is how the stick and the winter rod quietly stayed 2D.
+     */
     public static boolean has(String rodKey) {
-        return ENABLED && JOINTS.containsKey(rodKey);
+        return ENABLED;
     }
 
     /**
@@ -85,8 +92,8 @@ public final class RodChain {
      */
     public static boolean submit(ItemStack stack, String rodKey, float load, ItemDisplayContext ctx,
                                  PoseStack pose, SubmitNodeCollector collector, int light, int overlay) {
-        float[] joints = JOINTS.get(rodKey);
-        if (!ENABLED || joints == null) return false;
+        float[] joints = JOINTS.getOrDefault(rodKey, NO_JOINTS);
+        if (!ENABLED) return false;
         if (!segment(stack, ctx, RodModelLayers.segmentItemModel(rodKey, 0), pose, collector, light, overlay)) {
             return false;   // no handle model — this rod is not really segmented; do not half-draw it
         }

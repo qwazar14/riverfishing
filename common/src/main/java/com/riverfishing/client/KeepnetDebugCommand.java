@@ -34,6 +34,9 @@ public final class KeepnetDebugCommand {
         @SuppressWarnings("unchecked")
         CommandDispatcher<Object> d = (CommandDispatcher<Object>) dispatcher;
         d.register(lit("rfnet")
+                // bare root RUNS: "/rfrod" alone printing "Unknown or incomplete command" is
+                // indistinguishable from the command not existing, and was reported as exactly that
+                .executes(KeepnetDebugCommand::show)
                 .then(lit("show").executes(KeepnetDebugCommand::show))
                 .then(lit("reset").executes(c -> {
                     KeepnetScreen.iconScale = 1.0f;

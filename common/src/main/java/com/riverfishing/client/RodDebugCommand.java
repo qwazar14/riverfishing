@@ -34,6 +34,9 @@ public final class RodDebugCommand {
         @SuppressWarnings("unchecked")
         CommandDispatcher<Object> d = (CommandDispatcher<Object>) dispatcher;
         d.register(lit("rfrod")
+                // bare root RUNS: "/rfrod" alone printing "Unknown or incomplete command" is
+                // indistinguishable from the command not existing, and was reported as exactly that
+                .executes(RodDebugCommand::show)
                 .then(lit("show").executes(RodDebugCommand::show))
                 // §fight-course: how hard a running fish drags the tip over. Look at it mid-run and
                 // dial it until the direction reads without the boss bar.
