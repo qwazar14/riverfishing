@@ -198,6 +198,17 @@ public final class ClientLineState {
     }
 
     /** Whether OUR OWN line is out — drives rod hold behaviour and the cast-power HUD. */
+    /**
+     * How loaded THIS player's blank is, 0..1, eased. Zero when nothing is on — a rod at rest is
+     * a straight rod, and the bend has to fall to nothing rather than hold its last value.
+     */
+    public static float ownRodLoad() {
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.player == null) return 0f;
+        Line own = lines().get(mc.player.getId());
+        return own == null ? 0f : own.smoothRodLoad;
+    }
+
     public static boolean active() {
         var mc = Minecraft.getInstance();
         return mc.player != null && LINES.containsKey(mc.player.getId());

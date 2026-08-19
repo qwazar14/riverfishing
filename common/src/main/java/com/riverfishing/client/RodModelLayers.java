@@ -41,6 +41,15 @@ public final class RodModelLayers {
         return Identifier.fromNamespaceAndPath(normal.getNamespace(), normal.getPath().replace("item/rod/", "item/rod_m/"));
     }
 
+    /**
+     * The model key for a rod stack, or null when the stack is not a rod. Every id in this class
+     * is built from it, so the one place that knows how to derive it is this one.
+     */
+    public static String rodKey(net.minecraft.world.item.ItemStack stack) {
+        return stack.getItem() instanceof com.riverfishing.item.RodItem r
+                ? r.rodType().jsonKey() : null;
+    }
+
     public static Identifier blank(String rodKey) {
         return loc("blank_" + rodKey);
     }

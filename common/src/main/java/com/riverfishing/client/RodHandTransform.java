@@ -26,6 +26,17 @@ public final class RodHandTransform {
     public static final float[] TPL = {0f, 3f,   3.5f, 90f, -90f,  40f, 0.85f}; // third person, left
     public static final float[] FP  = {2.7f, 3.2f, 0.8f, 0f, -90f, 10f, 0.68f}; // first person, right
     public static final float[] FPL = {-2.7f, 3.2f, 0.8f, 0f, -90f, 10f, 0.68f}; // first person, left
+
+    // ===== §rod-bend-3d: the SAME poses for a segmented 3D blank =====
+    // The sprite poses above shrink the rod (s=0.85/0.68) because a sprite blank is 16 units wide.
+    // A 3D blank is modelled at true length — the feeder is 48 units, 3 blocks, 3.9 m — so it is worn
+    // at scale 1 and needs its own set. These came straight out of Blockbench's display tab, which
+    // maps 1:1 onto these arrays: both apply translate, then rotationXYZ, then scale, in that order.
+    public static final float[] TP3  = {0.75f,  17f,   -0.5f, 5f, -90f, -90f, 1f}; // third person, right
+    public static final float[] TPL3 = {-0.75f, 17f,   -0.5f, 5f,  90f,  90f, 1f}; // third person, left
+    public static final float[] FP3  = {7.5f,   3.75f, -14f,  0f, -90f, -45f, 1f}; // first person, right
+    public static final float[] FPL3 = {7.5f,   3.75f, -14f,  0f,  90f,  45f, 1f}; // first person, left
+    // =================================================================
     // ==============================================================================
 
     private static final float[] TP_DEFAULT = TP.clone();
@@ -84,11 +95,16 @@ public final class RodHandTransform {
 
     /** Applies the hand transform for a hand context (no-op otherwise). Each hand uses its own array. */
     public static void apply(PoseStack pose, ItemDisplayContext ctx) {
+        apply(pose, ctx, false);
+    }
+
+    /** {@code blank3d} picks the true-scale set used when the rod is drawn as a bone chain. */
+    public static void apply(PoseStack pose, ItemDisplayContext ctx, boolean blank3d) {
         float[] a = switch (ctx) {
-            case THIRD_PERSON_RIGHT_HAND -> TP;
-            case THIRD_PERSON_LEFT_HAND -> TPL;
-            case FIRST_PERSON_RIGHT_HAND -> FP;
-            case FIRST_PERSON_LEFT_HAND -> FPL;
+            case THIRD_PERSON_RIGHT_HAND -> blank3d ? TP3 : TP;
+            case THIRD_PERSON_LEFT_HAND -> blank3d ? TPL3 : TPL;
+            case FIRST_PERSON_RIGHT_HAND -> blank3d ? FP3 : FP;
+            case FIRST_PERSON_LEFT_HAND -> blank3d ? FPL3 : FPL;
             default -> null;
         };
         if (a == null) return;
