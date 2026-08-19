@@ -53,9 +53,13 @@ public class ItemInHandRendererMixin {
         // the rod because a sprite blank is 16 units wide, and these blanks are modelled at full length.
         String rodKey = com.riverfishing.client.RodModelLayers.rodKey(stack);
         if (rodKey != null && com.riverfishing.client.RodChain.has(rodKey)) {
+            // push BEFORE the 3D pose: when submit() refuses, the pop leaves the pose exactly as it
+            // was, and the sprite fallback below applies its own. The first cut pushed after, so the
+            // fallback stacked the sprite pose ON TOP of the 3D one and drew the flat rod off-screen.
+            // Popping before cancel is safe: retained submission snapshots the matrices per node.
+            pose.pushPose();
             RodHandTransform.apply(pose, ctx, true);
             float load = ClientLineState.ownRodLoad();
-            pose.pushPose();
             boolean drew = com.riverfishing.client.RodChain.submit(
                     stack, rodKey, load, ctx, pose, collector, light, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY);
             pose.popPose();
@@ -63,8 +67,6 @@ public class ItemInHandRendererMixin {
                 ci.cancel();   // the chain IS the rod now
                 return;
             }
-            // submit() refused — no segments, or a model failed to load. Undo the 3D pose and let
-            // vanilla draw the flat rod, because half a rod on screen is worse than the old one.
         }
         // §rod-debug: the whole first-person hand pose lives in code so /rfrod tunes it LIVE —
         // the model's hand display only carries the per-layer depth lift.

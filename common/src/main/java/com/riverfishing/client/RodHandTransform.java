@@ -32,15 +32,19 @@ public final class RodHandTransform {
     // A 3D blank is modelled at true length — the feeder is 48 units, 3 blocks, 3.9 m — so it is worn
     // at scale 1 and needs its own set. These came straight out of Blockbench's display tab, which
     // maps 1:1 onto these arrays: both apply translate, then rotationXYZ, then scale, in that order.
-    // Seeded from the SPRITE set above, not from 1.21.1's numbers. Those were measured against a
-    // BEWLR that ran inside the item render, after vanilla's display transforms; this line hooks the
-    // HEAD of renderItem, before them, so the same values put the rod in the sky. Starting from the
-    // pose that demonstrably works here leaves only the scale to find — and a 3D blank is modelled at
-    // true length, so it wants far less than the sprite's 0.68. Tune with /rfrod fp/tp and paste back.
+    // COMPUTED, not tuned — tools-side matrix fold with a built-in proof (scratchpad fold.py).
+    // The sprite rod is drawn as code_pose THEN minecraft:item/generated's firstperson display
+    // (rotation [0,-90,25], translation [1.13,3.2,1.13]/16, scale 0.68); the chain's segments carry
+    // no display block, so they get code_pose alone — the missing quarter turn laid the blank along
+    // the view axis, end-on: a sliver, mostly behind the near plane. Both transforms are
+    // translate→rotationXYZ→uniform-scale, which is closed under composition
+    // (t = t1 + s1·R1·t2, R = R1·R2, s = s1·s2), so the display is folded into these numbers
+    // EXACTLY, then the translation shifted so the blank's grip (model x≈29) lands where the sprite's
+    // grip pixel sat — the fist. First person only: third person still draws the flat rod.
     public static final float[] TP3  = {0f, 3f,   3.5f, 0f,  -90f, -48f, 0.30f}; // third person, right
     public static final float[] TPL3 = {0f, 3f,   3.5f, 90f, -90f,  40f, 0.30f}; // third person, left
-    public static final float[] FP3  = {2.7f, 3.2f, 0.8f, 0f, -90f, 10f, 0.24f}; // first person, right
-    public static final float[] FPL3 = {-2.7f, 3.2f, 0.8f, 0f, -90f, 10f, 0.24f}; // first person, left
+    public static final float[] FP3  = {11.47f, -2.89f, 2.89f, 170f, 0f, -155f, 0.462f}; // first person, right
+    public static final float[] FPL3 = {-16.14f, 6.97f, -0.88f, -10f, 0f, -25f, 0.462f}; // first person, left
     // =================================================================
     // ==============================================================================
 

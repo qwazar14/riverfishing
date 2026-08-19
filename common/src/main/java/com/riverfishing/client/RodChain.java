@@ -131,7 +131,10 @@ public final class RodChain {
         ItemModel model = mc.getModelManager().getItemModel(id);
         if (model == null) return false;
         STATE.clear();
-        model.update(STATE, stack, mc.getItemModelResolver(), ctx, mc.level, mc.player, 0);
+        // NONE, not the real ctx — canon's contract. A display block on a segment would be applied
+        // per-piece INSIDE the chain's own pose and bend the maths; NONE pins the transform to
+        // identity whatever the jsons grow later, and sidesteps the left-hand mirror entirely.
+        model.update(STATE, stack, mc.getItemModelResolver(), ItemDisplayContext.NONE, mc.level, mc.player, 0);
         if (STATE.isEmpty()) return false;
         STATE.submit(pose, collector, light, overlay, 0);
         return true;
