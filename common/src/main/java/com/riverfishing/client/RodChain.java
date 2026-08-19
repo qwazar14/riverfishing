@@ -87,7 +87,7 @@ public final class RodChain {
                                  PoseStack pose, SubmitNodeCollector collector, int light, int overlay) {
         float[] joints = JOINTS.get(rodKey);
         if (!ENABLED || joints == null) return false;
-        if (!segment(stack, ctx, RodModelLayers.segment(rodKey, 0), pose, collector, light, overlay)) {
+        if (!segment(stack, ctx, RodModelLayers.segmentItemModel(rodKey, 0), pose, collector, light, overlay)) {
             return false;   // no handle model — this rod is not really segmented; do not half-draw it
         }
         float jy = AXIS_Y / 16f - 0.5f, jz = AXIS_Z / 16f - 0.5f;
@@ -99,7 +99,7 @@ public final class RodChain {
             pose.translate(jx, jy, jz);
             pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(bendDeg));
             pose.translate(-jx, -jy, -jz);
-            segment(stack, ctx, RodModelLayers.segment(rodKey, i + 1), pose, collector, light, overlay);
+            segment(stack, ctx, RodModelLayers.segmentItemModel(rodKey, i + 1), pose, collector, light, overlay);
         }
         return true;
     }
@@ -114,13 +114,17 @@ public final class RodChain {
                                    PoseStack pose, SubmitNodeCollector collector, int light, int overlay) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return false;
+        // ASK FIRST. getItemModel answers a miss with the MISSING model, which is a real model with real
+        // geometry — that is what it is for — so there is nothing about the value it returns that says
+        // "this did not resolve". isEmpty() is false for it, which is how the purple cube got drawn.
+        // The definition's json is either in the pack or it is not, and that is knowable without asking
+        // the resolver anything.
+        Identifier json = Identifier.fromNamespaceAndPath(id.getNamespace(), "items/" + id.getPath() + ".json");
+        if (mc.getResourceManager().getResource(json).isEmpty()) return false;
         ItemModel model = mc.getModelManager().getItemModel(id);
         if (model == null) return false;
         STATE.clear();
         model.update(STATE, stack, mc.getItemModelResolver(), ctx, mc.level, mc.player, 0);
-        // A model that failed to load resolves to the MISSING one, which reports itself empty. That is
-        // the difference between "this rod has no such segment" and "the pack is broken", and both
-        // should stop the chain rather than stamp a purple cube into the middle of a blank.
         if (STATE.isEmpty()) return false;
         STATE.submit(pose, collector, light, overlay, 0);
         return true;

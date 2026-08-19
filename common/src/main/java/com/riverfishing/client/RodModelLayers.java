@@ -69,6 +69,19 @@ public final class RodModelLayers {
      */
     public static final int BLANK_SEGMENTS = 8; // sea_spin carries the most pieces: handle + 7 joints
 
+    /**
+     * The ITEM-MODEL address of a segment, which is not its model path.
+     *
+     * <p>{@link #segment} names the model: riverfishing:item/rod/blank_feeder_s0, resolving to
+     * assets/riverfishing/models/item/rod/blank_feeder_s0.json. 26.x reaches geometry through
+     * ModelManager.getItemModel, which resolves assets/riverfishing/items/&lt;path&gt;.json instead —
+     * so the address it wants has no "item/" in it. Passing the model path there asks for
+     * items/item/rod/... , gets nothing, and is answered with the missing model.
+     */
+    public static Identifier segmentItemModel(String rodKey, int index) {
+        return com.riverfishing.RiverFishing.id("rod/blank_" + rodKey + "_s" + index);
+    }
+
     public static Identifier segment(String rodKey, int index) {
         return loc("blank_" + rodKey + "_s" + index);
     }
