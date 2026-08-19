@@ -3,7 +3,6 @@ package com.riverfishing.client;
 import com.riverfishing.client.platform.ClientPlatform;
 import com.riverfishing.registry.ModBlockEntities;
 import com.riverfishing.registry.ModMenus;
-import dev.architectury.event.events.client.ClientCommandRegistrationEvent;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
@@ -56,10 +55,10 @@ public final class ClientInit {
         // update-check (0.4.0): one quiet version digest per game launch, on first world join.
         ClientPlayerEvent.CLIENT_PLAYER_JOIN.register(player -> UpdateChecker.onJoin());
 
-        // /rfrod live pose debugger (Forge RegisterClientCommandsEvent → Architectury client command).
-        ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> RodDebugCommand.register(dispatcher));
-        // §keepnet-tune: live sizing for the fish in the grid, dialled in with the box open.
-        ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> KeepnetDebugCommand.register(dispatcher));
+        // /rfrod + /rfnet, per loader. These used to ride Architectury's client-command event, which
+        // never fires on this line — everything after it in this method ran, and the commands did not
+        // exist in game. Each loader's own registration path does fire, so that is what they use now.
+        ClientPlatform.registerClientCommands();
 
         // Platform-only event hook (in-world line render) — no registry objects. §26.1: the extra-model
         // bake is gone with the BEWLR icons; item models are data-driven client items now.

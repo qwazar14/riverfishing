@@ -43,6 +43,15 @@ public final class ClientPlatformImpl {
     }
 
     /** §26.1: no-op — layers are data-driven (force_translucent in the model; cutout is automatic). */
+    /** /rfrod + /rfnet on NeoForge's own client-command event — Architectury's never fires here. */
+    public static void registerClientCommands() {
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
+                (net.neoforged.neoforge.client.event.RegisterClientCommandsEvent e) -> {
+                    com.riverfishing.client.RodDebugCommand.register(e.getDispatcher());
+                    com.riverfishing.client.KeepnetDebugCommand.register(e.getDispatcher());
+                });
+    }
+
     public static void registerRenderTypes() {
     }
 

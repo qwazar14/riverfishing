@@ -43,6 +43,17 @@ public final class ClientPlatform {
     }
 
     /** Draw the in-world fishing lines (NeoForge {@code RenderLevelStageEvent} / Fabric {@code WorldRenderEvents}). */
+    /**
+     * Client commands (/rfrod, /rfnet), on each loader's OWN path — fabric-command-api-v2 and
+     * NeoForge's RegisterClientCommandsEvent. Architectury's client-command event is what these
+     * used to ride, and on this line it never fires: init ran (the shoal renderer registered in
+     * the same method works) and the commands simply never appeared.
+     */
+    @ExpectPlatform
+    public static void registerClientCommands() {
+        throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
+    }
+
     @ExpectPlatform
     public static void registerLevelRenderer() {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");

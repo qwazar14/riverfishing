@@ -1,12 +1,13 @@
 package com.riverfishing.client;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.riverfishing.item.RodData;
-import dev.architectury.event.events.client.ClientCommandRegistrationEvent;
-import dev.architectury.event.events.client.ClientCommandRegistrationEvent.ClientCommandSourceStack;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -25,14 +26,20 @@ import net.minecraft.network.chat.Component;
 public final class RodDebugCommand {
     private RodDebugCommand() {}
 
-    public static void register(CommandDispatcher<ClientCommandSourceStack> dispatcher) {
-        dispatcher.register(ClientCommandRegistrationEvent.literal("rfrod")
-                .then(ClientCommandRegistrationEvent.literal("show").executes(RodDebugCommand::show))
+    public static <S> void register(CommandDispatcher<S> dispatcher) {
+        // The tree is typed to Object because the source is never touched: no getSource(), no
+        // suggestions off it, nothing. Under erasure the loader's real source objects pass through
+        // unchanged, so this cast cannot be wrong at runtime — it only tells javac to stop asking
+        // for <S> witnesses at every receiver-position lit()/arg(), where inference cannot reach.
+        @SuppressWarnings("unchecked")
+        CommandDispatcher<Object> d = (CommandDispatcher<Object>) dispatcher;
+        d.register(lit("rfrod")
+                .then(lit("show").executes(RodDebugCommand::show))
                 // §fight-course: how hard a running fish drags the tip over. Look at it mid-run and
                 // dial it until the direction reads without the boss bar.
-                .then(ClientCommandRegistrationEvent.literal("coursetip")
-                        .then(ClientCommandRegistrationEvent.argument("x", FloatArgumentType.floatArg(-0.2f, 0.2f))
-                                .then(ClientCommandRegistrationEvent.argument("y", FloatArgumentType.floatArg(-0.2f, 0.2f))
+                .then(lit("coursetip")
+                        .then(arg("x", FloatArgumentType.floatArg(-0.2f, 0.2f))
+                                .then(arg("y", FloatArgumentType.floatArg(-0.2f, 0.2f))
                                         .executes(c -> {
                                             RodHandTransform.COURSE_TIP_X = FloatArgumentType.getFloat(c, "x");
                                             RodHandTransform.COURSE_TIP_Y = FloatArgumentType.getFloat(c, "y");
@@ -40,9 +47,9 @@ public final class RodDebugCommand {
                                                     RodHandTransform.COURSE_TIP_X, RodHandTransform.COURSE_TIP_Y));
                                             return 1;
                                         }))))
-                .then(ClientCommandRegistrationEvent.literal("course")
-                        .then(ClientCommandRegistrationEvent.argument("yaw", FloatArgumentType.floatArg(0f, 60f))
-                                .then(ClientCommandRegistrationEvent.argument("pitch", FloatArgumentType.floatArg(0f, 60f))
+                .then(lit("course")
+                        .then(arg("yaw", FloatArgumentType.floatArg(0f, 60f))
+                                .then(arg("pitch", FloatArgumentType.floatArg(0f, 60f))
                                         .executes(c -> {
                                             RodHandTransform.COURSE_YAW = FloatArgumentType.getFloat(c, "yaw");
                                             RodHandTransform.COURSE_PITCH = FloatArgumentType.getFloat(c, "pitch");
@@ -50,14 +57,14 @@ public final class RodDebugCommand {
                                                     RodHandTransform.COURSE_YAW, RodHandTransform.COURSE_PITCH));
                                             return 1;
                                         }))))
-                .then(ClientCommandRegistrationEvent.literal("reset").executes(c -> {
+                .then(lit("reset").executes(c -> {
                     RodHandTransform.reset();
                     say(c, "§ereset to defaults");
                     return show(c);
                 }))
                 // §rod-bend debug: force a bend bucket on the held rod (-1 = back to the server's live
                 // value); no argument = print the live bend state (run it mid-fight).
-                .then(ClientCommandRegistrationEvent.literal("bend")
+                .then(lit("bend")
                         .executes(c -> {
                             var mc = net.minecraft.client.Minecraft.getInstance();
                             var l = mc.player == null ? null
@@ -70,12 +77,12 @@ public final class RodDebugCommand {
                                     : String.format("§etension=%.3f smooth=%.3f", l.tension, l.smoothTension));
                             return 1;
                         })
-                        .then(ClientCommandRegistrationEvent.argument("bucket",
+                        .then(arg("bucket",
                                 com.mojang.brigadier.arguments.IntegerArgumentType.integer(-1, RodData.BEND_BUCKETS))
                                 .executes(RodDebugCommand::forceBend)))
                 // §rod-bend-tip: tune the line-anchor offset per bend bucket. Force the bucket with
                 // /rfrod bend N first, then nudge dx/dy until the line sits on the bent tip.
-                .then(ClientCommandRegistrationEvent.literal("tip")
+                .then(lit("tip")
                         .executes(c -> {
                             StringBuilder sb = new StringBuilder("§etip offsets:");
                             for (int b = 1; b <= RodData.BEND_BUCKETS; b++) {
@@ -85,10 +92,10 @@ public final class RodDebugCommand {
                             say(c, sb.toString());
                             return 1;
                         })
-                        .then(ClientCommandRegistrationEvent.argument("bucket",
+                        .then(arg("bucket",
                                 com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, RodData.BEND_BUCKETS))
-                                .then(ClientCommandRegistrationEvent.argument("dx", FloatArgumentType.floatArg(-1f, 1f))
-                                        .then(ClientCommandRegistrationEvent.argument("dy", FloatArgumentType.floatArg(-1f, 1f))
+                                .then(arg("dx", FloatArgumentType.floatArg(-1f, 1f))
+                                        .then(arg("dy", FloatArgumentType.floatArg(-1f, 1f))
                                                 .executes(c -> {
                                                     int b = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "bucket");
                                                     LineRenderer.TIP_BEND_OFFSET[b][0] = FloatArgumentType.getFloat(c, "dx");
@@ -97,19 +104,19 @@ public final class RodDebugCommand {
                                                             LineRenderer.TIP_BEND_OFFSET[b][0], LineRenderer.TIP_BEND_OFFSET[b][1]));
                                                     return 1;
                                                 })))))
-                .then(ClientCommandRegistrationEvent.literal("set")
-                        .then(ClientCommandRegistrationEvent.argument("ctx", StringArgumentType.word())
-                                .then(ClientCommandRegistrationEvent.argument("field", StringArgumentType.word())
-                                        .then(ClientCommandRegistrationEvent.argument("value", FloatArgumentType.floatArg())
+                .then(lit("set")
+                        .then(arg("ctx", StringArgumentType.word())
+                                .then(arg("field", StringArgumentType.word())
+                                        .then(arg("value", FloatArgumentType.floatArg())
                                                 .executes(c -> edit(c, false))))))
-                .then(ClientCommandRegistrationEvent.literal("add")
-                        .then(ClientCommandRegistrationEvent.argument("ctx", StringArgumentType.word())
-                                .then(ClientCommandRegistrationEvent.argument("field", StringArgumentType.word())
-                                        .then(ClientCommandRegistrationEvent.argument("value", FloatArgumentType.floatArg())
+                .then(lit("add")
+                        .then(arg("ctx", StringArgumentType.word())
+                                .then(arg("field", StringArgumentType.word())
+                                        .then(arg("value", FloatArgumentType.floatArg())
                                                 .executes(c -> edit(c, true))))))
-                .then(ClientCommandRegistrationEvent.literal("cast")
-                        .then(ClientCommandRegistrationEvent.argument("field", StringArgumentType.word())
-                                .then(ClientCommandRegistrationEvent.argument("value", FloatArgumentType.floatArg())
+                .then(lit("cast")
+                        .then(arg("field", StringArgumentType.word())
+                                .then(arg("value", FloatArgumentType.floatArg())
                                         .executes(RodDebugCommand::castEdit)))));
     }
 
@@ -120,7 +127,7 @@ public final class RodDebugCommand {
      * path is fine and any missing bend is the server write; doesn't show = model/sprite problem.
      * The server overwrites it on the next inventory sync, and -1 clears it.
      */
-    private static int forceBend(CommandContext<ClientCommandSourceStack> c) {
+    private static int forceBend(CommandContext<Object> c) {
         int bucket = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "bucket");
         LineRenderer.FORCE_BEND = bucket;
         var player = net.minecraft.client.Minecraft.getInstance().player;
@@ -137,7 +144,7 @@ public final class RodDebugCommand {
         return 1;
     }
 
-    private static int castEdit(CommandContext<ClientCommandSourceStack> c) {
+    private static int castEdit(CommandContext<Object> c) {
         String field = StringArgumentType.getString(c, "field");
         float value = FloatArgumentType.getFloat(c, "value");
         float result = RodHandTransform.castEdit(field, value, false);
@@ -149,7 +156,7 @@ public final class RodDebugCommand {
         return 1;
     }
 
-    private static int edit(CommandContext<ClientCommandSourceStack> c, boolean add) {
+    private static int edit(CommandContext<Object> c, boolean add) {
         String ctx = StringArgumentType.getString(c, "ctx");
         String field = StringArgumentType.getString(c, "field");
         float value = FloatArgumentType.getFloat(c, "value");
@@ -162,14 +169,24 @@ public final class RodDebugCommand {
         return 1;
     }
 
-    private static int show(CommandContext<ClientCommandSourceStack> c) {
+    private static int show(CommandContext<Object> c) {
         for (String line : RodHandTransform.showLines()) {
             say(c, line);
         }
         return 1;
     }
 
-    private static void say(CommandContext<ClientCommandSourceStack> c, String text) {
-        c.getSource().arch$sendSuccess(() -> Component.literal(text), false);
+    /** The context is unused: the source only ever existed to reach chat, and chat is right here. */
+    private static void say(Object ignoredCtx, String text) {
+        var mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.player != null) mc.player.sendSystemMessage(Component.literal(text));
+    }
+
+    private static LiteralArgumentBuilder<Object> lit(String name) {
+        return LiteralArgumentBuilder.literal(name);
+    }
+
+    private static <T> RequiredArgumentBuilder<Object, T> arg(String name, ArgumentType<T> type) {
+        return RequiredArgumentBuilder.argument(name, type);
     }
 }
