@@ -478,9 +478,13 @@ POOL = {
 # and join here. The five koi stay uncommercial on purpose. Each tier shares FISH_SLOTS_PER_TIER slots.
 FISH = {
     1: [("bleak", 1, 1), ("gudgeon", 1, 1), ("roach", 1, 1), ("bluegill", 1, 1),
-        ("round_goby", 1, 1), ("common_dace", 1, 1), ("rotan", 1, 2), ("smelt", 1, 3)],
+        ("round_goby", 1, 1), ("common_dace", 1, 1), ("rotan", 1, 2), ("smelt", 1, 3),
+        # §giants-and-minnows (0.8.0)
+        ("gorchak", 1, 1), ("verkhovka", 1, 1), ("sculpin", 1, 2), ("tubenose_goby", 1, 1)],
     2: [("crucian_carp", 2, 2), ("perch", 2, 2), ("ruffe", 1, 2), ("rudd", 2, 2), ("sabrefish", 2, 2),
-        ("white_eye_bream", 2, 3), ("nase", 2, 4), ("vimba", 3, 5), ("white_bream", 2, 2)],
+        ("white_eye_bream", 2, 3), ("nase", 2, 4), ("vimba", 3, 5), ("white_bream", 2, 2),
+        # §giants-and-minnows (0.8.0)
+        ("golden_crucian", 2, 3)],
     3: [("bream", 3, 4), ("ide", 3, 5), ("chub", 3, 5), ("tench", 4, 5), ("blue_bream", 2, 3),
         ("pike", 5, 8), ("volga_zander", 4, 6), ("pink_salmon", 4, 8), ("whitefish", 4, 8),
         ("asp", 6, 9),
@@ -499,7 +503,9 @@ FISH = {
         ("conger", 13, 24), ("ray", 12, 22), ("mahi", 10, 20), ("wahoo", 14, 26),
         ("yellowfin_tuna", 20, 34), ("barracuda", 8, 16), ("blue_marlin", 28, 40),
         ("sailfish", 18, 30), ("swordfish", 24, 36), ("mako", 22, 34), ("wild_carp", 14, 28),
-        ("taimen", 24, 36), ("sturgeon", 26, 38), ("halibut", 22, 34)],
+        ("taimen", 24, 36), ("sturgeon", 26, 38), ("halibut", 22, 34),
+        # §giants-and-minnows (0.8.0)
+        ("arapaima", 26, 38), ("beluga", 30, 44), ("piraiba", 22, 34), ("goliath_grouper", 24, 36), ("bull_shark", 24, 36), ("frilled_shark", 26, 38), ("golden_dorado", 12, 22)],
 }
 
 

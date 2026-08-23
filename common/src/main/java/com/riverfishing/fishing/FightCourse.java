@@ -76,17 +76,6 @@ public enum FightCourse {
      */
     private static final float IDLE = 0.4f;
 
-    /**
-     * The lang key for the boss bar, so the player is told the course rather than left to infer it.
-     *
-     * <p>1.21.1 deleted this with §rod-load — there the blank bends toward the fish and loads with
-     * the pull, so naming the course in words only repeated the tackle. 26.x has no 3D blank, so the
-     * bar is still the only instrument, and the words stay until there is something to read instead.
-     */
-    public String key() {
-        return "message.riverfishing.course_" + name().toLowerCase();
-    }
-
     public boolean isRun() {
         return this != NONE;
     }

@@ -120,7 +120,98 @@ public final class RodDebugCommand {
                 .then(lit("cast")
                         .then(arg("field", StringArgumentType.word())
                                 .then(arg("value", FloatArgumentType.floatArg())
-                                        .executes(RodDebugCommand::castEdit)))));
+                                        .executes(RodDebugCommand::castEdit))))
+                // §rod-bend-3d: the chain's own switches — the 3D blank on/off and the full-load bend.
+                .then(lit("blank")
+                        .executes(c -> {
+                            say(c, String.format("§eblank3d %s §fdeg=%.0f",
+                                    RodChain.ENABLED ? "§aON" : "§cOFF", RodChain.MAX_BEND_DEG));
+                            return 1;
+                        })
+                        .then(lit("on").executes(c -> { RodChain.ENABLED = true; say(c, "§ablank3d ON"); return 1; }))
+                        .then(lit("off").executes(c -> { RodChain.ENABLED = false; say(c, "§cblank3d OFF"); return 1; }))
+                        .then(lit("deg").then(arg("value", FloatArgumentType.floatArg(0f, 180f))
+                                .executes(c -> {
+                                    RodChain.MAX_BEND_DEG = FloatArgumentType.getFloat(c, "value");
+                                    say(c, "§ablank deg = " + RodChain.MAX_BEND_DEG);
+                                    return 1;
+                                }))))
+                // §rod-physics: the springs — status, switch, tunables, whip and the swing pivot.
+                .then(lit("phys")
+                        .executes(c -> { say(c, RodPhysics.describe()); return 1; })
+                        .then(lit("on").executes(c -> { RodPhysics.ENABLED = true; say(c, "§aphys ON"); return 1; }))
+                        .then(lit("off").executes(c -> { RodPhysics.ENABLED = false; say(c, "§cphys OFF"); return 1; }))
+                        .then(lit("whip").then(arg("value", FloatArgumentType.floatArg(0f, 10f))
+                                .executes(c -> {
+                                    RodChain.WHIP_GAIN = FloatArgumentType.getFloat(c, "value");
+                                    say(c, "§aphys whip = " + RodChain.WHIP_GAIN);
+                                    return 1;
+                                })))
+                        .then(lit("pivot")
+                                .then(arg("x", FloatArgumentType.floatArg(-32f, 32f))
+                                        .then(arg("y", FloatArgumentType.floatArg(-32f, 32f))
+                                                .then(arg("z", FloatArgumentType.floatArg(-32f, 32f))
+                                                        .executes(c -> {
+                                                            RodHandTransform.PIVOT[0] = FloatArgumentType.getFloat(c, "x");
+                                                            RodHandTransform.PIVOT[1] = FloatArgumentType.getFloat(c, "y");
+                                                            RodHandTransform.PIVOT[2] = FloatArgumentType.getFloat(c, "z");
+                                                            say(c, String.format("§aphys pivot = {%.1f, %.1f, %.1f}",
+                                                                    RodHandTransform.PIVOT[0], RodHandTransform.PIVOT[1], RodHandTransform.PIVOT[2]));
+                                                            return 1;
+                                                        })))))
+                        .then(arg("field", StringArgumentType.word())
+                                .then(arg("value", FloatArgumentType.floatArg())
+                                        .executes(c -> {
+                                            float v = RodPhysics.edit(StringArgumentType.getString(c, "field"),
+                                                    FloatArgumentType.getFloat(c, "value"));
+                                            if (Float.isNaN(v)) {
+                                                say(c, "§cunknown field — stiffness damping drive max jerk pull");
+                                                return 0;
+                                            }
+                                            say(c, "§aphys " + StringArgumentType.getString(c, "field") + " = " + v);
+                                            return 1;
+                                        }))))
+                // §rod-tip-3d: constant trim for the captured FP tip anchor (the hand line needs none).
+                .then(lit("tip3d")
+                        .then(arg("dx", FloatArgumentType.floatArg(-1f, 1f))
+                                .then(arg("dy", FloatArgumentType.floatArg(-1f, 1f))
+                                        .executes(c -> {
+                                            LineRenderer.TIP3D_OFFSET[0] = FloatArgumentType.getFloat(c, "dx");
+                                            LineRenderer.TIP3D_OFFSET[1] = FloatArgumentType.getFloat(c, "dy");
+                                            say(c, String.format("§atip3d = (%.3f, %.3f)",
+                                                    LineRenderer.TIP3D_OFFSET[0], LineRenderer.TIP3D_OFFSET[1]));
+                                            return 1;
+                                        }))))
+                // §hand-line: what fov the hand pass projects at (0 = same as the world, warp off).
+                .then(lit("handfov")
+                        .then(arg("deg", FloatArgumentType.floatArg(0f, 130f))
+                                .executes(c -> {
+                                    RodChain.HAND_FOV = FloatArgumentType.getFloat(c, "deg");
+                                    say(c, "§ahand fov = " + RodChain.HAND_FOV + (RodChain.HAND_FOV <= 0f ? " §7(warp off)" : ""));
+                                    return 1;
+                                })))
+                // §hand-space: pin the reading if the automatic measurement ever picks wrong.
+                .then(lit("handspace")
+                        .then(lit("auto").executes(c -> { RodChain.HAND_SPACE = -1; RodChain.resetHandSpace(); say(c, "§ahand space AUTO — measuring again, turn your head"); return 1; }))
+                        .then(lit("view").executes(c -> { RodChain.HAND_SPACE = 0; say(c, "§ahand space VIEW (pinned)"); return 1; }))
+                        .then(lit("world").executes(c -> { RodChain.HAND_SPACE = 1; say(c, "§ahand space WORLD (pinned)"); return 1; })))
+                // §rod-tip-3d: the diagnostic that settles pose questions by MEASURING (the 1.20.1
+                // port cost three rounds to a question this answers in one look).
+                .then(lit("tipinfo").executes(RodDebugCommand::tipInfo)));
+    }
+
+    private static int tipInfo(CommandContext<Object> c) {
+        var mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.player == null) { say(c, "§cno player"); return 0; }
+        say(c, String.format("§etip NDC %s (%.3f, %.3f)  VIEW %s (%.2f, %.2f, %.2f)",
+                RodChain.tipNdcFresh() ? "§afresh§e" : "§cstale§e", RodChain.TIP_NDC[0], RodChain.TIP_NDC[1],
+                RodChain.tipViewFresh() ? "§afresh§e" : "§cstale§e",
+                RodChain.TIP_VIEW[0], RodChain.TIP_VIEW[1], RodChain.TIP_VIEW[2]));
+        say(c, "§e" + RodChain.handSpaceReport());
+        say(c, String.format("§ehandline %s  handfov %.0f  load %.2f",
+                RodChain.handLineFresh() ? "§afresh" : "§cstale",
+                RodChain.HAND_FOV, ClientLineState.ownRodLoad()));
+        return 1;
     }
 
     /**
@@ -179,10 +270,13 @@ public final class RodDebugCommand {
         return 1;
     }
 
-    /** The context is unused: the source only ever existed to reach chat, and chat is right here. */
+    /** The context is unused: the source only ever existed to reach chat, and chat is right here.
+     *  Every command speaks, so this is also where the toggles get persisted (§rod-client-settings) —
+     *  cheap, and the command is the settings file's only writer. */
     private static void say(Object ignoredCtx, String text) {
         var mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player != null) mc.player.sendSystemMessage(Component.literal(text));
+        RodClientSettings.save();
     }
 
     private static LiteralArgumentBuilder<Object> lit(String name) {

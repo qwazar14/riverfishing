@@ -30,21 +30,15 @@ public final class RodHandTransform {
     // ===== §rod-bend-3d: the SAME poses for a segmented 3D blank =====
     // The sprite poses above shrink the rod (s=0.85/0.68) because a sprite blank is 16 units wide.
     // A 3D blank is modelled at true length — the feeder is 48 units, 3 blocks, 3.9 m — so it is worn
-    // at scale 1 and needs its own set. These came straight out of Blockbench's display tab, which
-    // maps 1:1 onto these arrays: both apply translate, then rotationXYZ, then scale, in that order.
-    // COMPUTED, not tuned — tools-side matrix fold with a built-in proof (scratchpad fold.py).
-    // The sprite rod is drawn as code_pose THEN minecraft:item/generated's firstperson display
-    // (rotation [0,-90,25], translation [1.13,3.2,1.13]/16, scale 0.68); the chain's segments carry
-    // no display block, so they get code_pose alone — the missing quarter turn laid the blank along
-    // the view axis, end-on: a sliver, mostly behind the near plane. Both transforms are
-    // translate→rotationXYZ→uniform-scale, which is closed under composition
-    // (t = t1 + s1·R1·t2, R = R1·R2, s = s1·s2), so the display is folded into these numbers
-    // EXACTLY, then the translation shifted so the blank's grip (model x≈29) lands where the sprite's
-    // grip pixel sat — the fist. First person only: third person still draws the flat rod.
-    public static final float[] TP3  = {0f, 3f,   3.5f, 0f,  -90f, -48f, 0.30f}; // third person, right
-    public static final float[] TPL3 = {0f, 3f,   3.5f, 90f, -90f,  40f, 0.30f}; // third person, left
-    public static final float[] FP3  = {11.47f, -2.89f, 2.89f, 170f, 0f, -155f, 0.462f}; // first person, right
-    public static final float[] FPL3 = {-16.14f, 6.97f, -0.88f, -10f, 0f, -25f, 0.462f}; // first person, left
+    // at scale 1 and needs its own set. These are 1.21.1's TUNED values, transplanted verbatim: the
+    // mixin frames here sit at the same point in the pipeline the old BEWLR did (arm attach applied,
+    // display transform identity), so the numbers that look right there are the starting truth here.
+    // The earlier matrix-folded set is gone — it solved for where the SPRITE's pixels sat, which is
+    // not where a true-scale blank belongs, and the pose read as wrong the moment it was compared.
+    public static final float[] TP3  = {0.75f,  17f,   -0.5f, 5f, -90f, -90f, 1f}; // third person, right
+    public static final float[] TPL3 = {-0.75f, 17f,   -0.5f, 5f,  90f,  90f, 1f}; // third person, left
+    public static final float[] FP3  = {7.5f,   3.75f, -14f,  0f, -90f, -45f, 1f}; // first person, right
+    public static final float[] FPL3 = {7.5f,   3.75f, -14f,  0f,  90f,  45f, 1f}; // first person, left
     // =================================================================
     // ==============================================================================
 
@@ -111,6 +105,16 @@ public final class RodHandTransform {
         return RodChain.ENABLED;
     }
 
+    /**
+     * §rod-physics: the point the rod swings about, in 1/16 blocks from the hand — {0,0,0} is the
+     * fist itself. A rod is held in a grip, so it should turn there and throw its tip; pivoting
+     * anywhere else sweeps the whole rod round like a boom. Live-tunable with
+     * {@code /rfrod phys pivot <x> <y> <z>}.
+     */
+    public static final float[] PIVOT = {0f, 0f, 0f};
+
+    private static final float[] NO_LEAN = {0f, 0f};
+
     public static void apply(PoseStack pose, ItemDisplayContext ctx) {
         apply(pose, ctx, false);
     }
@@ -128,7 +132,19 @@ public final class RodHandTransform {
         // §fight-course: a run drags the tip the way the fish is going. The boss bar names the course,
         // but the rod is where a player actually reads a fight, and without this the direction did not
         // land at all.
-        float[] lean = ClientLineState.ownLean();
+        // §fight-jerk: with physics on, the fish drives the springs (RodPhysics) and the eased
+        // course-lean would double the cue on top of it — the lean display is the physics-off path.
+        float[] lean = RodPhysics.ENABLED ? NO_LEAN : ClientLineState.ownLean();
+        // §rod-physics: the swing pivots at the HAND, which is this frame's origin. Riding along with
+        // the base rotation would put the pivot at the pose's translated origin — a spot in mid-air —
+        // so the rod would sweep round a boom point instead of turning in the grip. PIVOT nudges it.
+        float swingYaw = RodPhysics.yaw(), swingPitch = RodPhysics.pitch();
+        if (swingYaw != 0f || swingPitch != 0f) {
+            pose.translate(PIVOT[0] / 16f, PIVOT[1] / 16f, PIVOT[2] / 16f);
+            pose.mulPose(new Quaternionf().rotationXYZ(
+                    (float) Math.toRadians(swingPitch), (float) Math.toRadians(swingYaw), 0f));
+            pose.translate(-PIVOT[0] / 16f, -PIVOT[1] / 16f, -PIVOT[2] / 16f);
+        }
         pose.translate(a[0] / 16f, a[1] / 16f, a[2] / 16f);
         pose.mulPose(new Quaternionf().rotationXYZ(
                 (float) Math.toRadians(a[3] + lean[1]), (float) Math.toRadians(a[4] + lean[0]),

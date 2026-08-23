@@ -2018,18 +2018,14 @@ public final class FishingManager {
         int barState = session.runTicksLeft > 0 ? 1 : session.fatigue > 0.7 ? 2 : 0;
         if (barState != session.barState) {
             session.barState = barState;
-            // §fight-course on 26.x: the bar KEEPS spelling the course out. On 1.21.1 §rod-load took
-            // these words away because the blank itself became the instrument — it bends toward the
-            // fish and loads with the pull, so the text only repeated the tackle. This line has no 3D
-            // blank and no renderer to grow one, so taking the words away here would delete the
-            // instruction and leave nothing behind it. Flip this to the 1.21.1 form the day a rod on
-            // 26.x can be read instead.
-            Component name = barState == 1 && session.course.isRun()
-                    ? Component.translatable("message.riverfishing.bar_course",
-                            sp.getDisplayName(), Component.translatable(session.course.key()))
-                    : Component.translatable(barState == 2 ? "message.riverfishing.bar_tired"
-                            : "message.riverfishing.bar_fight", sp.getDisplayName());
-            session.bossBar.setName(name);
+            // §rod-load: the bar no longer SPELLS the course out ("goes LEFT — pull RIGHT") — the rod
+            // itself is the instrument now: the blank bends toward the fish (§bend-plane) and loads
+            // with the pull, so the text would only repeat what the tackle already shows. (The note
+            // that used to live here said to flip this the day the 26.x rod could be read — that day
+            // came with the §rod3d-26x chain gaining the bend plane and the springs.)
+            session.bossBar.setName(Component.translatable(barState == 2
+                    ? "message.riverfishing.bar_tired"
+                    : "message.riverfishing.bar_fight", sp.getDisplayName()));
         }
         session.bossBar.setColor(session.tension >= session.breakTension ? BossEvent.BossBarColor.RED
                 : inRun ? BossEvent.BossBarColor.RED

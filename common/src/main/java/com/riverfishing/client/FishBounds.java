@@ -30,22 +30,25 @@ public final class FishBounds {
     private static final float[] FULL = {1f, 1f};
 
     static {
+        put("arapaima", 0.945f, 0.223f);
         put("asp", 0.934f, 0.445f);
         put("barracuda", 0.984f, 0.289f);
+        put("beluga", 0.945f, 0.246f);
         put("bleak", 0.957f, 0.418f);
         put("blue_bream", 0.973f, 0.465f);
         put("blue_marlin", 0.961f, 0.344f);
         put("bluefish", 0.977f, 0.348f);
         put("bluegill", 0.926f, 0.594f);
         put("bream", 0.984f, 0.555f);
+        put("bull_shark", 0.945f, 0.387f);
         put("bullseye_snakehead", 0.93f, 0.32f);
         put("burbot", 0.961f, 0.266f);
-        put("carp", 0.949f, 0.625f);
-        put("carp_koi_asagi", 0.961f, 0.637f);
-        put("carp_koi_bekko", 0.949f, 0.625f);
-        put("carp_koi_kohaku", 0.949f, 0.625f);
-        put("carp_koi_showa_sanke", 0.957f, 0.625f);
-        put("carp_koi_tancho_sanke", 0.953f, 0.625f);
+        put("carp", 0.938f, 0.488f);
+        put("carp_koi_asagi", 0.938f, 0.496f);
+        put("carp_koi_bekko", 0.938f, 0.48f);
+        put("carp_koi_kohaku", 0.938f, 0.5f);
+        put("carp_koi_showa_sanke", 0.938f, 0.484f);
+        put("carp_koi_tancho_sanke", 0.938f, 0.5f);
         put("catfish", 0.98f, 0.238f);
         put("channel_catfish", 0.965f, 0.312f);
         put("char", 0.977f, 0.324f);
@@ -56,7 +59,12 @@ public final class FishBounds {
         put("crucian_carp", 0.973f, 0.676f);
         put("eel", 0.98f, 0.141f);
         put("flounder", 0.984f, 0.488f);
+        put("frilled_shark", 0.945f, 0.191f);
         put("garfish", 0.93f, 0.141f);
+        put("golden_crucian", 0.945f, 0.465f);
+        put("golden_dorado", 0.945f, 0.391f);
+        put("goliath_grouper", 0.938f, 0.414f);
+        put("gorchak", 0.906f, 0.508f);
         put("grass_carp", 0.984f, 0.441f);
         put("grayling", 0.938f, 0.445f);
         put("gudgeon", 0.891f, 0.363f);
@@ -77,6 +85,7 @@ public final class FishBounds {
         put("perch", 0.953f, 0.398f);
         put("pike", 0.965f, 0.258f);
         put("pink_salmon", 0.961f, 0.402f);
+        put("piraiba", 0.945f, 0.289f);
         put("rainbow_trout", 0.941f, 0.352f);
         put("ray", 0.863f, 0.742f);
         put("roach", 0.984f, 0.477f);
@@ -88,6 +97,7 @@ public final class FishBounds {
         put("sailfish", 0.949f, 0.445f);
         put("saithe", 0.973f, 0.305f);
         put("salmon", 0.977f, 0.359f);
+        put("sculpin", 0.938f, 0.371f);
         put("seabass", 0.957f, 0.43f);
         put("silver_carp", 0.953f, 0.438f);
         put("smelt", 0.977f, 0.312f);
@@ -100,13 +110,15 @@ public final class FishBounds {
         put("tarpon", 0.977f, 0.383f);
         put("tench", 0.98f, 0.406f);
         put("trout", 0.953f, 0.367f);
+        put("tubenose_goby", 0.938f, 0.383f);
+        put("verkhovka", 0.945f, 0.398f);
         put("vimba", 0.965f, 0.398f);
         put("volga_zander", 0.977f, 0.348f);
         put("wahoo", 0.973f, 0.223f);
         put("white_bream", 0.961f, 0.465f);
         put("white_eye_bream", 0.949f, 0.512f);
         put("whitefish", 0.984f, 0.406f);
-        put("wild_carp", 0.949f, 0.625f);
+        put("wild_carp", 0.938f, 0.469f);
         put("yellowfin_tuna", 0.965f, 0.414f);
         put("zander", 0.977f, 0.391f);
     }

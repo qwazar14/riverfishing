@@ -17,7 +17,7 @@
     {
       "function": "minecraft:set_components",
       "components": {
-        "minecraft:dyed_color": 1908001
+        "minecraft:dyed_color": 11255178
       }
     }
   ],
