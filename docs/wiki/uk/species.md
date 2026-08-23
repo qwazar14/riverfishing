@@ -1,6 +1,6 @@
 # Види риб
 
-Сімдесят дев’ять видів. Кожне число на цій сторінці взяте з профілю цього виду в `data/riverfishing/fish_profiles/`, а профіль повністю перевизначається датапаком — схему описано в [`docs/FISH_PROFILES.md`](../../FISH_PROFILES.md).
+Дев’яносто один вид. Кожне число на цій сторінці взяте з профілю цього виду в `data/riverfishing/fish_profiles/`, а профіль повністю перевизначається датапаком — схему описано в [`docs/FISH_PROFILES.md`](../../FISH_PROFILES.md).
 
 Парна сторінка: **[Довідник видів](species-reference.md)** — там жорсткі умови проживання, таблиці сезону / часу / погоди і статистика виважування.
 
@@ -24,13 +24,13 @@
 
 | Родина | Види |
 |---|---|
-| **Коропові** (22) | Білизна, Білий амур, В'язь, Верховодка, Головень, Дзеркальний короп, Карась, Клепець, Короп, Краснопірка, Лин, Лящ, Підуст, Пічкур, Плітка, Плоскирка, Рибець, Сазан, Синець, Товстолобик, Чехоня, Ялець |
-| **Хижаки** (16) | Астронотус, Берш, Блюгіл, Великоротий бас, Вугор, Йорж, Канальний сомик, Минь, Окунь, Павлиній окунь, Плямистий змієголов, Ротань, Сом, Судак, Цихлазома майя, Щука |
+| **Коропові** (25) | Білизна, Білий амур, В'язь, Верхівка, Верховодка, Гірчак, Головень, Дзеркальний короп, Золотий карась, Карась, Клепець, Короп, Краснопірка, Лин, Лящ, Підуст, Пічкур, Плітка, Плоскирка, Рибець, Сазан, Синець, Товстолобик, Чехоня, Ялець |
+| **Хижаки** (19) | Астронотус, Бабець, Берш, Блюгіл, Великоротий бас, Вугор, Золотий дорадо, Йорж, Канальний сомик, Минь, Окунь, Павлиній окунь, Пірайба, Плямистий змієголов, Ротань, Сом, Судак, Цихлазома майя, Щука |
 | **Лососеві** (10) | Атлантичний лосось, Горбуша, Корюшка, Ленок, Палія арктична, Райдужна форель, Сиг, Таймень, Форель, Харіус |
-| **Осетрові** (2) | Осетер, Стерлядь |
+| **Осетрові** (3) | Білуга, Осетер, Стерлядь |
 | **Кої** (5) | Кої Асагі, Кої Бекко, Кої Кохаку, Кої Сьова Санке, Кої Танчо Санке |
-| **Морські** (15) | Барракуда, Бичок-кругляк, Камбала, Каранкс, Лаврак, Луфар, Морський вугор, Оселедець, Сайда, Сарган, Скат, Скумбрія, Смугастий лаврак, Снук, Тріска |
-| **Велика гра** (9) | Акула-мако, Ваху, Вітрильник, Жовтоперий тунець, Махі-махі, Палтус, Риба-меч, Синій марлін, Тарпон |
+| **Морські** (16) | Барракуда, Бичок-кругляк, Бичок-цуцик, Камбала, Каранкс, Лаврак, Луфар, Морський вугор, Оселедець, Сайда, Сарган, Скат, Скумбрія, Смугастий лаврак, Снук, Тріска |
+| **Велика гра** (13) | Акула-мако, Арапайма, Ваху, Вітрильник, Голіафовий групер, Жовтоперий тунець, Махі-махі, Палтус, Плащоносна акула, Риба-меч, Синій марлін, Тарпон, Тупорила акула |
 
 ## Усі види
 
@@ -115,6 +115,18 @@
 | 77 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/snook.png" width="28" alt=""> Снук | `snook` | 700 г – 25 кг | 3.5 кг | 35–140 см | море 1.2, річка 0.5, болото 0.3 | 7 |
 | 78 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/striped_bass.png" width="28" alt=""> Смугастий лаврак | `striped_bass` | 500 г – 35 кг | 4 кг | 30–130 см | море 1.2, річка 0.5, болото 0.3 | 6 |
 | 79 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/tarpon.png" width="28" alt=""> Тарпон | `tarpon` | 5 кг – 130 кг | 30 кг | 90–250 см | море 1.2, річка 0.5, болото 0.3 | 9 |
+| 80 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/arapaima.png" width="28" alt=""> Арапайма | `arapaima` | 20 кг – 180 кг | 45 кг | 120–300 см | річка 1.2, озеро 1.0, болото 0.9, став 0.3 | 10 |
+| 81 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/beluga.png" width="28" alt=""> Білуга | `beluga` | 40 кг – 600 кг | 90 кг | 150–500 см | річка 1.0, море 1.0, озеро 0.3 | 12 |
+| 82 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/piraiba.png" width="28" alt=""> Пірайба | `piraiba` | 15 кг – 160 кг | 32 кг | 100–280 см | річка 1.3, озеро 0.5, болото 0.4, став 0.1 | 10 |
+| 83 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/goliath_grouper.png" width="28" alt=""> Голіафовий групер | `goliath_grouper` | 20 кг – 320 кг | 55 кг | 100–250 см | море 1.2 | 10 |
+| 84 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/bull_shark.png" width="28" alt=""> Тупорила акула | `bull_shark` | 30 кг – 230 кг | 65 кг | 150–350 см | море 1.1, річка 0.6, озеро 0.25 | 9 |
+| 85 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/frilled_shark.png" width="28" alt=""> Плащоносна акула | `frilled_shark` | 8 кг – 50 кг | 16 кг | 90–200 см | море 1.0 | 11 |
+| 86 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/golden_dorado.png" width="28" alt=""> Золотий дорадо | `golden_dorado` | 1.5 кг – 30 кг | 5.5 кг | 40–120 см | річка 1.3, озеро 0.6, болото 0.3, став 0.2 | 6 |
+| 87 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/golden_crucian.png" width="28" alt=""> Золотий карась | `golden_crucian` | 60 г – 3 кг | 350 г | 12–45 см | став 1.4, болото 1.3, озеро 0.9, калюжа 0.5, річка 0.3 | 2 |
+| 88 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/gorchak.png" width="28" alt=""> Гірчак | `gorchak` | 3 г – 30 г | 9 г | 3–9 см | став 1.2, озеро 1.0, річка 0.9, болото 0.8, калюжа 0.4 | — |
+| 89 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/verkhovka.png" width="28" alt=""> Верхівка | `verkhovka` | 2 г – 18 г | 6 г | 3–8 см | став 1.4, озеро 1.0, болото 0.9, калюжа 0.9, річка 0.4 | — |
+| 90 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/sculpin.png" width="28" alt=""> Бабець | `sculpin` | 5 г – 90 г | 25 г | 5–16 см | річка 1.3, озеро 0.4, став 0.1 | — |
+| 91 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/tubenose_goby.png" width="28" alt=""> Бичок-цуцик | `tubenose_goby` | 3 г – 30 г | 10 г | 4–11 см | річка 1.1, озеро 0.7, став 0.5, море 0.5, болото 0.4 | — |
 
 ## Ідеальна снасть
 
@@ -201,6 +213,18 @@
 | Каранкс | popper 1.25, castmaster 1.1, spoon 1.1, livebait 1, silicone 1, wobbler 0.95 | boat, sea_spin, surf | predator | №1 ±2 | 8000 ±2000 | braid 0.35 ±0.08 | — | — |
 | Тарпон | livebait 1.3, fish_strip 1.1, popper 1, silicone 1, jig 0.9 | boat, sea_spin, surf | catfish, predator | №1 ±2 | 10000 ±3000 | braid 0.45 ±0.1 | — | — |
 | Снук | livebait 1.25, silicone 1.1, wobbler 1.05, popper 1, jig 0.9, fish_strip 0.85 | sea_spin, spinning, surf | predator | №2 ±2 | 6000 ±2000 | braid 0.3 ±0.08 | — | — |
+| Арапайма | livebait 1.0, fish_strip 0.9, giant_spoon 0.85, wobbler 0.75, silicone 0.6 | boat, sea_spin | predator, catfish | №1 ±2 | 10000 ±2000 | braid 0.45 ±0.08 | 0.95 / 0.8 | + |
+| Білуга | livebait 1.0, fish_strip 0.9, chicken_liver 0.85, worm 0.5 | boat, bottom | catfish, grusha | №1 ±1 | 14000 ±2000 | braid 0.55 ±0.1 | 0.98 / 0.82 | + |
+| Пірайба | livebait 1.0, fish_strip 0.95, chicken_liver 0.85, worm 0.5 | bottom, carp, boat | catfish, grusha | №1 ±2 | 10000 ±2000 | braid 0.5 ±0.08 | 0.96 / 0.8 | + |
+| Голіафовий групер | livebait 1.0, fish_strip 0.95, octopus_jig 0.8, giant_spoon 0.5 | boat, surf | catfish, predator | №1 ±1 | 12000 ±2000 | braid 0.55 ±0.1 | 0.97 / 0.78 | + |
+| Тупорила акула | livebait 1.0, fish_strip 1.0, octopus_jig 0.75, giant_spoon 0.7 | boat, surf, trolling | predator, catfish | №1 ±1 | 12000 ±2000 | braid 0.5 ±0.08 | 1.0 / 0.76 | + |
+| Плащоносна акула | fish_strip 1.0, octopus_jig 0.95, livebait 0.85 | boat | catfish, predator | №1 ±2 | 10000 ±2000 | braid 0.4 ±0.08 | 0.9 / 0.7 | + |
+| Золотий дорадо | wobbler 1.0, spoon 0.9, spinner 0.9, popper 0.85, crankbait 0.8, silicone 0.8, livebait 0.7 | spinning, sea_spin | predator | №2 ±2 | 4000 ±1000 | braid 0.28 ±0.06 | 0.6 / 0.7 | + |
+| Золотий карась | worm 1.0, bread 0.9, dough 0.9, maggot 0.85, corn 0.7, pearl_barley 0.6 | pole, stick, bamboo, feeder | float, primitive, feeder | №12 ±2 | 2000 ±1000 | mono 0.18 ±0.05 | 0.35 / 0.6 | — |
+| Гірчак | bloodworm 1.0, maggot 1.0, bread 0.8, dough 0.7 | pole, stick, ultralight | float, primitive | №16 ±1 | 1000 ±1000 | mono 0.1 ±0.03 | 0.1 / 0.4 | — |
+| Верхівка | maggot 1.0, bread 0.95, bloodworm 0.85, dough 0.8 | pole, stick, ultralight | float, primitive | №16 ±1 | 1000 ±1000 | mono 0.1 ±0.03 | 0.08 / 0.38 | — |
+| Бабець | worm 1.0, bloodworm 0.9, maggot 0.8, livebait 0.3 | ultralight, pole, stick | primitive, float | №14 ±2 | 1000 ±1000 | mono 0.14 ±0.04 | 0.12 / 0.5 | — |
+| Бичок-цуцик | worm 1.0, bloodworm 0.95, maggot 0.9, fish_strip 0.4 | ultralight, pole, stick | primitive, float | №16 ±2 | 1000 ±1000 | mono 0.12 ±0.04 | 0.12 / 0.5 | — |
 
 ## Нотатки за видами
 

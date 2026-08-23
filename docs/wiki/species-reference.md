@@ -1,6 +1,6 @@
 # Species reference
 
-The rest of the profile data for all 79 species: habitat gates, the environmental multiplier tables, and fight statistics. The player-facing tables (size, water, bait, tackle) are on [Species](species.md).
+The rest of the profile data for all 91 species: habitat gates, the environmental multiplier tables, and fight statistics. The player-facing tables (size, water, bait, tackle) are on [Species](species.md).
 
 ## Habitat gates
 
@@ -92,6 +92,18 @@ These four columns are **hard gates** — outside them the fish is simply absent
 | Snook | 2+ | 8+ | warm 1.4, beach 1.2, swamp 1, ocean_biome 0.9 | mid | 5–35 |
 | Striped bass | 2+ | 12+ | beach 1.3, temperate 1.2, cold 1, ocean_biome 1 | mid | 10–45 |
 | Tarpon | 3+ | 16+ | warm 1.5, beach 1.2, ocean_biome 1 | mid | 15–60 |
+| Arapaima | 3+ | 14+ | warm 1.4, swamp 1.0 | surface | 10–35 |
+| Beluga sturgeon | 6+ | 26+ | temperate 1.0, cold 1.0, ocean_biome 0.9, deep 0.8 | bottom | 20–60 |
+| Piraiba | 5+ | 18+ | warm 1.4, swamp 0.8 | bottom | 15–45 |
+| Goliath grouper | 5+ | 20+ | warm 1.4, ocean_biome 1.0, beach 0.9 | bottom | 10–35 |
+| Bull shark | 4+ | 18+ | warm 1.3, ocean_biome 1.0, beach 1.0 | mid | 15–40 |
+| Frilled shark | 14+ | 28+ | deep 1.6, cold 1.0, ocean_biome 0.7 | bottom | 25–60 |
+| Golden dorado | 2+ | 10+ | warm 1.4, swamp 0.6 | mid | 8–30 |
+| Golden crucian | 1+ | 5+ | swamp 1.3, warm 1.1, temperate 1.0 | bottom | 3–15 |
+| Bitterling | 1–3 | 4+ | warm 1.1, temperate 1.0, swamp 0.9 | mid | 2–10 |
+| Sunbleak | 1–2 | 3+ | temperate 1.0, warm 1.0, swamp 1.0 | surface | 1–8 |
+| Sculpin | 1–4 | 3+ | cold 1.3, mountain 1.3, taiga 1.1, temperate 0.9 | bottom | 1–8 |
+| Tubenose goby | 1+ | 4+ | warm 1.1, temperate 1.0, beach 1.0 | bottom | 1–10 |
 
 ## Season, time and weather
 
@@ -180,6 +192,18 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Snook | 1.1 | 1.3 | 1.1 | 0.2 | 1.4 | 0.7 | 1.4 | 1.3 | 1 | 1.1 | 1 |
 | Striped bass | 1.2 | 0.9 | 1.3 | 0.7 | 1.3 | 0.7 | 1.4 | 1.1 | 0.9 | 1.2 | 1.2 |
 | Tarpon | 1.2 | 1.3 | 1 | 0.2 | 1.4 | 0.7 | 1.4 | 1.2 | 1 | 1.1 | 0.9 |
+| Arapaima | 1.1 | 1.2 | 1.0 | 0.3 | 1.2 | 0.9 | 1.2 | 0.8 | 1.0 | 1.2 | 0.9 |
+| Beluga sturgeon | 1.2 | 0.9 | 1.2 | 0.5 | 1.1 | 0.6 | 1.2 | 1.4 | 1.0 | 1.1 | 1.0 |
+| Piraiba | 1.1 | 1.2 | 1.0 | 0.3 | 1.0 | 0.4 | 1.3 | 1.6 | 0.9 | 1.3 | 1.1 |
+| Goliath grouper | 1.0 | 1.2 | 1.1 | 0.7 | 1.2 | 1.0 | 1.2 | 1.1 | 1.0 | 1.0 | 1.0 |
+| Bull shark | 1.0 | 1.3 | 1.1 | 0.5 | 1.3 | 0.9 | 1.3 | 1.1 | 1.0 | 1.1 | 1.0 |
+| Frilled shark | 1.0 | 0.8 | 1.0 | 1.1 | 1.0 | 0.25 | 1.2 | 1.6 | 1.0 | 1.0 | 1.0 |
+| Golden dorado | 1.2 | 1.3 | 1.0 | 0.2 | 1.4 | 0.9 | 1.4 | 0.5 | 1.0 | 1.2 | 0.9 |
+| Golden crucian | 1.0 | 1.4 | 0.8 | 0.05 | 1.3 | 0.9 | 1.3 | 0.6 | 1.0 | 1.2 | 0.7 |
+| Bitterling | 1.1 | 1.3 | 0.7 | 0.0 | 1.0 | 1.2 | 1.0 | 0.0 | 1.2 | 0.9 | 0.6 |
+| Sunbleak | 1.1 | 1.4 | 0.6 | 0.0 | 1.1 | 1.3 | 1.1 | 0.0 | 1.2 | 0.8 | 0.5 |
+| Sculpin | 1.1 | 1.0 | 1.1 | 0.5 | 1.0 | 0.6 | 1.2 | 1.4 | 1.0 | 1.1 | 0.9 |
+| Tubenose goby | 1.1 | 1.2 | 1.0 | 0.3 | 1.1 | 1.0 | 1.1 | 0.8 | 1.0 | 1.1 | 0.8 |
 
 ## Fight statistics
 
@@ -271,6 +295,18 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Snook | burst | 0.9 | 3 | 0.85 | 0.55 | — |
 | Striped bass | relentless | 0.85 | 4 | 0.7 | 0.6 | — |
 | Tarpon | greyhounding | 1 | 5 | 0.75 | 0.35 | — |
+| Arapaima | greyhounding | 0.95 | 4 | 0.8 | 0.22 | 175 kg |
+| Beluga sturgeon | sounding | 1.0 | 6 | 0.5 | 0.1 | 580 kg |
+| Piraiba | relentless | 0.95 | 5 | 0.85 | 0.18 | 155 kg |
+| Goliath grouper | sounding | 1.0 | 3 | 0.9 | 0.2 | 310 kg |
+| Bull shark | aggressive | 1.0 | 5 | 1.0 | 0.24 | 225 kg |
+| Frilled shark | sounding | 0.7 | 3 | 0.55 | 0.06 | 48 kg |
+| Golden dorado | greyhounding | 0.9 | 5 | 1.0 | 0.38 | — |
+| Golden crucian | steady | 0.4 | 2 | 0.3 | 0.85 | — |
+| Bitterling | steady | 0.03 | 1 | — | 1.0 | — |
+| Sunbleak | steady | 0.02 | 1 | — | 1.0 | — |
+| Sculpin | steady | 0.08 | 1 | — | 0.7 | — |
+| Tubenose goby | steady | 0.06 | 1 | — | 0.9 | — |
 
 ## See also
 

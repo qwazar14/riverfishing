@@ -6,7 +6,7 @@ From an empty inventory to your first fish in about five minutes. Vanilla fishin
 
 Take a **shovel** to dirt, a grass block, coarse dirt, podzol, rooted dirt, farmland, a dirt path or mud. Each block you break has a **10 % chance** to pop a **Worm**.
 
-Worm is the single most widely liked bait in the game — 38 of the 79 species rate it, 21 of them at 0.9 or better. Six or seven will get you started.
+Worm is the single most widely liked bait in the game — 38 of the 91 species rate it, 21 of them at 0.9 or better. Six or seven will get you started.
 
 Other easy sources: **Maggots** from zombies (33 %), **Bloodworms** from drowned (33 %), **Chicken Liver** from chickens (25 %).
 

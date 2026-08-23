@@ -66,7 +66,7 @@ each of eight directions, out to 32 blocks, skipping any water it crosses on the
 cold *and* temperate, and since the best listed group wins, the taimen can live there without evicting the
 roach. Lakes, ponds and the sea are unchanged — they already sat inside the biome they belong to.
 
-How many of the 79 species reference each group: **temperate** 55, **cold** 34, **warm** 32, **ocean_biome** 15, **deep** 12, **mountain** 8, **taiga** 7, **beach** 5, **swamp** 5, **cherry** 5. The `river_biome`, `forest`, `jungle` and `dry` groups are recognised but **no shipped species currently uses them** — they exist for datapacks.
+How many of the 91 species reference each group: **temperate** 55, **cold** 34, **warm** 32, **ocean_biome** 15, **deep** 12, **mountain** 8, **taiga** 7, **beach** 5, **swamp** 5, **cherry** 5. The `river_biome`, `forest`, `jungle` and `dry` groups are recognised but **no shipped species currently uses them** — they exist for datapacks.
 
 Note that Biomes O' Plenty biomes carry the vanilla tags, so the habitat model works across it without any extra data.
 
