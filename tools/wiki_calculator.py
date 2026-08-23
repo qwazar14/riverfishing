@@ -8,7 +8,8 @@ is the honest split: markdown cannot run anything.
 Every number the widget shows or computes is read from the fish profiles and the same constants the
 game uses, so the calculator cannot answer differently from the engine:
 
-  * required pull   max(0.5, fight.strength x (1 + kg) x 2)      — FishingManager
+  * required pull   max(0.5, fight.strength x (1 + taper(kg)) x 2)  — FishingManager
+  * §giant-taper    taper(kg) = kg up to 20, then 20 x (kg/20)^0.55   — FishingManager
   * line strain     100 x d^2 x factor (mono 1.0, fluoro 1.1, braid 3.0)  — LineType
   * livebait floor  the size roll floors at 6x the bait's weight — FishingManager
   * lure floor      the same at 8x                                — FishingManager
@@ -199,7 +200,8 @@ JS = r"""
   function render(){
     var s=D[+sel.value], g=+rng.value;
     num.textContent=wt(g);
-    var kg=g/1000, pull=Math.max(0.5, s.str*(1+kg)*2);
+    // §giant-taper: the mass the tackle feels - identity to 20 kg, compressed above it
+    var kg=g/1000, fm=kg<=20?kg:20*Math.pow(kg/20,0.55), pull=Math.max(0.5, s.str*(1+fm)*2);
     var need=pickLine(pull), comfy=pickLine(pull*1.5);
     var span=s.w[1]-s.w[0], where=span>0?(g-s.w[0])/span:0;
     var baits=Object.keys(s.bait).sort(function(a,b){return s.bait[b]-s.bait[a];});
