@@ -150,24 +150,31 @@ def species_data(profiles, roster, names_by_lang):
 
 
 CSS = """
-.rfcalc{--c-line:var(--rule,#d8d2c4);--c-dim:var(--dim,#6b6558);border:1px solid var(--c-line);
- border-radius:6px;padding:18px 20px;margin:20px 0;background:var(--raise,#fbf9f4)}
+/* §calculator styling: every colour comes from the BUNDLE's own tokens (--ink, --dim, --paper,
+   --raise, --rule, --brass) and every element states its colour outright. The first cut invented
+   --bg, which exists nowhere, so the cards asked for white on a dark page and the values inherited
+   whatever they landed on — unreadable in the dark theme. Nothing here inherits a colour now. */
+.rfcalc{border:1px solid var(--rule,#d6dbd5);border-radius:6px;padding:18px 20px;margin:20px 0;
+ background:var(--raise,#fbfcfa);color:var(--ink,#171c1a);font-family:var(--sans,system-ui)}
 .rfcalc .row{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin-bottom:6px}
 .rfcalc label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
- color:var(--c-dim);margin-bottom:6px}
-.rfcalc select,.rfcalc input[type=range]{font:inherit;padding:6px 8px;border:1px solid var(--c-line);
- border-radius:4px;background:var(--bg,#fff);color:inherit}
-.rfcalc select{min-width:230px}
+ color:var(--dim,#5c6660);margin-bottom:6px}
+.rfcalc select{font:inherit;font-size:15px;padding:7px 9px;border:1px solid var(--rule,#d6dbd5);
+ border-radius:4px;background:var(--paper,#f2f4f1);color:var(--ink,#171c1a);min-width:240px}
+.rfcalc input[type=range]{width:100%;accent-color:var(--brass,#8a5e1e)}
 .rfcalc .wbox{flex:1 1 260px;min-width:220px}
-.rfcalc input[type=range]{width:100%;padding:0}
-.rfcalc .wnum{font-variant-numeric:tabular-nums;font-weight:600;margin-left:8px}
-.rfcalc .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:16px}
-.rfcalc .card{border:1px solid var(--c-line);border-radius:5px;padding:12px 14px;background:var(--bg,#fff)}
-.rfcalc .card h4{margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-dim)}
-.rfcalc .card p{margin:0 0 5px;font-size:14px;line-height:1.45}
-.rfcalc .card p b{font-weight:600}
-.rfcalc .k{color:var(--c-dim)}
-.rfcalc .note{margin-top:14px;font-size:13.5px;line-height:1.5;padding:10px 12px;border-left:3px solid var(--c-line)}
+.rfcalc .wnum{font-variant-numeric:tabular-nums;font-weight:700;margin-left:8px;
+ color:var(--brass-lift,#b0812f);text-transform:none;letter-spacing:0}
+.rfcalc .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:16px}
+.rfcalc .card{border:1px solid var(--rule,#d6dbd5);border-radius:5px;padding:12px 14px;
+ background:var(--paper,#f2f4f1);color:var(--ink,#171c1a)}
+.rfcalc .card h4{margin:0 0 9px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+ color:var(--brass,#8a5e1e);font-weight:700}
+.rfcalc .card p{margin:0 0 6px;font-size:14.5px;line-height:1.45;color:var(--ink,#171c1a)}
+.rfcalc .card p b{font-weight:700;color:var(--ink,#171c1a)}
+.rfcalc .card p .k{color:var(--dim,#5c6660);font-weight:400}
+.rfcalc .note{margin-top:14px;font-size:14px;line-height:1.5;padding:10px 12px;
+ border-left:3px solid var(--brass,#8a5e1e);color:var(--ink,#171c1a)}
 .rfcalc .warn{border-left-color:#b0392b}
 """
 
