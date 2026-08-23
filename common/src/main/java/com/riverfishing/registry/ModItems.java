@@ -53,6 +53,11 @@ public final class ModItems {
     public static final List<RegistrySupplier<Item>> RODS = new ArrayList<>();
     // ---- Caught fish: one item + texture per species (Module 8; ÃÂ§ecology adds habitat-bound species) ----
     public static final String[] FISH_SPECIES = {
+            // §giants-and-minnows (0.8.0): the top of the ladder and the bottom of it — six fish that outgrow
+            // every rod in the shop, and five you can catch with a stick and a maggot.
+            "arapaima", "beluga", "piraiba", "goliath_grouper",
+            "bull_shark", "frilled_shark", "golden_dorado", "golden_crucian",
+            "gorchak", "verkhovka", "sculpin", "tubenose_goby",
             // §florida-nine (0.7.0): the US/Florida wave, from a player who also
             // found the §session-guard bug that 0.6.1 fixes.
             "peacock_bass", "bullseye_snakehead", "mayan_cichlid", "oscar",

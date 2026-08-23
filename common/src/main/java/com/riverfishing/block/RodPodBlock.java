@@ -33,7 +33,10 @@ import javax.annotation.Nullable;
  */
 public class RodPodBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
-    private static final VoxelShape SHAPE = Block.box(2, 0, 6, 14, 8, 10);
+    // §pod-hitbox: the box used to be the crossbar alone (2..14 x, 6..10 z, 8 high) while the rods
+    // lying on it reach the full block and stand a head taller — so half the clicks aimed at a pod
+    // went straight through it. It now covers what you can see.
+    private static final VoxelShape SHAPE = Block.box(1, 0, 2, 15, 13, 14);
 
     private final int slotCount;
 

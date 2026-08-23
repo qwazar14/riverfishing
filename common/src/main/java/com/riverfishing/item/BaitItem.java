@@ -45,7 +45,12 @@ public class BaitItem extends Item {
         if ("livebait".equals(baitId)) {
             int bw = StackNbt.get(stack).getInt(FishItem.TAG_BAIT_WEIGHT);
             if (bw > 0) {
-                tooltip.add(Component.translatable("tooltip.riverfishing.livebait_weight", FishItem.weightText(bw))
+                // §livebait-truth: the line used to promise "culls the small ones" for ANY weight, but the
+                // size floor is 6x the bait and then clamped to the species' own minimum — so a 5 g
+                // minnow culls exactly nothing off a pike. Name the weight it actually calls from
+                // and let the reader do the arithmetic the game does.
+                tooltip.add(Component.translatable("tooltip.riverfishing.livebait_weight",
+                        FishItem.weightText(bw), FishItem.weightText(bw * 6))
                         .withStyle(s -> s.withColor(0x88C8E6)));
             }
         }

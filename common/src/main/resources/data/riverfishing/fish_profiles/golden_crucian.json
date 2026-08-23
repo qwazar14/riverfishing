@@ -1,0 +1,97 @@
+{
+  "display": "Золотой карась",
+  "group": "cyprinid",
+  "water_bodies": {
+    "river": 0.3,
+    "lake": 0.9,
+    "pond": 1.4,
+    "swamp": 1.3,
+    "sea": 0.0,
+    "puddle": 0.5
+  },
+  "weight_g": {
+    "min": 60,
+    "max": 3000,
+    "mean": 350
+  },
+  "length_cm": {
+    "min": 12,
+    "max": 45
+  },
+  "fight": {
+    "strength": 0.4,
+    "stamina": 0.55,
+    "runs": 2,
+    "pattern": "steady",
+    "aggression": 0.3
+  },
+  "ideal": {
+    "rod": [
+      "pole",
+      "stick",
+      "bamboo",
+      "feeder"
+    ],
+    "reel_size": 2000,
+    "reel_tolerance": 1000,
+    "line": {
+      "type": "mono",
+      "diameter_mm": 0.18,
+      "tolerance_mm": 0.05
+    },
+    "rig": [
+      "float",
+      "primitive",
+      "feeder"
+    ],
+    "groundbait": {
+      "fraction": 0.35,
+      "nutrition": 0.6
+    },
+    "bait": {
+      "worm": 1.0,
+      "bread": 0.9,
+      "dough": 0.9,
+      "maggot": 0.85,
+      "corn": 0.7,
+      "pearl_barley": 0.6
+    },
+    "hook": {
+      "ideal": 12,
+      "tolerance": 2
+    }
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 1.4,
+    "autumn": 0.8,
+    "winter": 0.05
+  },
+  "time": {
+    "dawn": 1.3,
+    "day": 0.9,
+    "dusk": 1.3,
+    "night": 0.6
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.2,
+    "thunder": 0.7
+  },
+  "depth_pref": "bottom",
+  "distance_pref": {
+    "min": 3,
+    "max": 15
+  },
+  "habitat": {
+    "depth_min": 1,
+    "width_min": 5
+  },
+  "biomes": {
+    "temperate": 1.0,
+    "warm": 1.1,
+    "swamp": 1.3
+  },
+  "base": 0.85,
+  "min_angler_level": 2
+}
