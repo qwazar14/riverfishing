@@ -36,7 +36,7 @@ public class RodPodBlock extends BaseEntityBlock {
     // §pod-hitbox: the box used to be the crossbar alone (2..14 x, 6..10 z, 8 high) while the rods
     // lying on it reach the full block and stand a head taller — so half the clicks aimed at a pod
     // went straight through it. It now covers what you can see.
-    private static final VoxelShape SHAPE = Block.box(1, 0, 2, 15, 13, 14);
+    private static final VoxelShape SHAPE = Block.box(2, 0, 2, 14, 15.5, 14);
 
     private final int slotCount;
 
