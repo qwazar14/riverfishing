@@ -185,6 +185,30 @@ public final class RodDebugCommand {
                             d.length(), d.normalize().dot(look)));
                     return 1;
                 }))
+                .then(ClientCommandRegistrationEvent.literal("handspace")
+                        .executes(c -> {
+                            say(c, "\u00a7e" + RodItemRenderer.handSpaceReport());
+                            return 1;
+                        })
+                        .then(ClientCommandRegistrationEvent.literal("auto").executes(c -> {
+                            RodItemRenderer.HAND_SPACE = -1;
+                            RodItemRenderer.resetHandSpace();
+                            RodClientSettings.save();
+                            say(c, "\u00a7ahand space AUTO \u2014 measuring again, turn your head");
+                            return 1;
+                        }))
+                        .then(ClientCommandRegistrationEvent.literal("view").executes(c -> {
+                            RodItemRenderer.HAND_SPACE = 0;
+                            RodClientSettings.save();
+                            say(c, "\u00a7ahand space VIEW (pinned)");
+                            return 1;
+                        }))
+                        .then(ClientCommandRegistrationEvent.literal("world").executes(c -> {
+                            RodItemRenderer.HAND_SPACE = 1;
+                            RodClientSettings.save();
+                            say(c, "\u00a7ahand space WORLD (pinned)");
+                            return 1;
+                        })))
                 .then(ClientCommandRegistrationEvent.literal("tip3d")
                         .executes(c -> {
                             say(c, String.format("§etip3d trim = (%.4f, %.4f) §7(/rfrod tip3d <dx> <dy>)",
