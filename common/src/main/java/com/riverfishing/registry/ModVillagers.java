@@ -286,6 +286,21 @@ public final class ModVillagers {
         buyPrime(fish, 5, "sturgeon", 26, 38);
         buyPrime(fish, 5, "halibut", 22, 34);
 
+        // §giants-and-minnows (0.8.0): the giants pay like the taimen tier they sit beside,
+        // the minnows like the bleak they swim with.
+        buyPrime(fish, 5, "arapaima", 26, 38);
+        buyPrime(fish, 5, "beluga", 30, 44);
+        buyPrime(fish, 5, "piraiba", 22, 34);
+        buyPrime(fish, 5, "goliath_grouper", 24, 36);
+        buyPrime(fish, 5, "bull_shark", 24, 36);
+        buyPrime(fish, 5, "frilled_shark", 26, 38);
+        buyPrime(fish, 5, "golden_dorado", 12, 22);
+        buyPrime(fish, 2, "golden_crucian", 2, 3);
+        buyPrime(fish, 1, "gorchak", 1, 1);
+        buyPrime(fish, 1, "verkhovka", 1, 1);
+        buyPrime(fish, 1, "sculpin", 1, 2);
+        buyPrime(fish, 1, "tubenose_goby", 1, 1);
+
         // §florida-nine: these nine shipped catchable in 0.7.0 and were never given a buyer here —
         // you could land a tarpon and have nowhere on earth to sell it. Levels, prices and xp are
         // copied from the 26.x datapack rather than invented, so the two branches cannot disagree
