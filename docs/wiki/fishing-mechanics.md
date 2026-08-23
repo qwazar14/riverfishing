@@ -375,7 +375,19 @@ An **Ultralight** rod stacks on top: run pulse ×1.15, break tolerance ×0.92, l
 
 ### The final surge
 
-The moment progress reaches **85 %**, one guaranteed run fires — 28–41 ticks, or 38–51 for a trophy — announced as *"A last dash at the bank!"* with a drag scream. Ease off or snap.
+Reaching **85 %** progress **rolls** for one last run — 28–41 ticks, or 38–51 for a trophy — announced as *"A last dash at the bank!"* with a drag scream, and steered by a course like every other run. Ease off or snap.
+
+It is a roll, not a rule. A guaranteed surge became a ritual the player waited out, and a ritual carries no fear:
+
+| On the hook | Odds of the dash |
+| --- | --- |
+| An ordinary fish | **35 %** |
+| … fighting *aggressive*, *relentless* or *burst* | **50 %** |
+| A trophy | **70 %** |
+| A trophy on one of those three patterns | **85 %** |
+| A boot, a can, a bundle of weed | **never** — rubbish does not fight the net |
+
+Rolled exactly **once**, at the moment the bank is reached. A failed roll is a quiet landing, not a retry — nothing rolls again at 90 %.
 
 ### Timeout
 
@@ -420,7 +432,7 @@ Species: **Yellowfin tuna, Swordfish, Sturgeon, Halibut**.
 
 ### Greyhounding (jump series)
 
-Between runs, once progress is past 5 %, a **1.2 % chance per tick** of a full-body breach. *"It jumps — give slack, do not reel!"* opens a **15-tick** window. Crank inside that window and there is a **35 % chance the hook rips straight out**: *"Thrown the hook on the jump..."*. The answer to a jump is the open drag.
+Between runs, once progress is past 5 %, a **0.8 % chance per tick** of a full-body breach — and it falls as the fish tires, down to **0.2 %** at full fatigue, so a fight you are winning visibly calms down. *"It jumps — give slack, do not reel!"* opens a **15-tick** window whose first **4 ticks are grace**: the crank already on its way when the fish leaves the water is human reaction time, not a mistake. Crank inside the remaining 11 and there is a **35 % chance the hook rips straight out**: *"Thrown the hook on the jump..."*. The answer to a jump is the open drag.
 
 Species: **Mahi-mahi, Blue marlin, Sailfish, Mako shark, Atlantic salmon**.
 

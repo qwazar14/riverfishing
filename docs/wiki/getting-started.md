@@ -119,7 +119,7 @@ The rules that matter:
 1. **When it runs, stop cranking.** Cranking into a run spikes tension and gains almost nothing.
 2. **When it jumps, crouch.** Reeling through a jump rips the hook out 35 % of the time.
 3. **You only gain standing up.** Crouching forever is safe but goes nowhere.
-4. At 85 % there is one **guaranteed last dash at the bank**. Ease off through it.
+4. At 85 % the fish **rolls for one last dash at the bank** — 35 % for an ordinary fish, 85 % for a trophy on a hard pattern. Ease off through it; if it does not come, that is a quiet landing, not a trick.
 
 Over-tension does not snap instantly — every tick past the limit rolls a chance that grows the longer you hold it. Brief spikes are survivable; cranking through a whole run is not. When it does break, the message names the load in kilograms, which tells you exactly what tackle you needed.
 
