@@ -10,8 +10,12 @@ a minigame beside it. Fishing here is a process, not a click on the water: you a
 blank, a reel, a line and a rig; you match bait, hook size, groundbait and leader to the fish you actually
 want; you read the water, the season, the hour and the barometer; and then you fight what takes.
 
-Nothing bites by luck. A data-driven bite engine weighs your whole setup against every one of **79
+Nothing bites by luck. A data-driven bite engine weighs your whole setup against every one of **91
 species** under the current conditions and decides both *what* takes and *how long you wait*.
+
+And the rod is a real object. All **13 blanks are modelled and hand-built**, drawn at true length, bending
+as a jointed chain toward the fish that is pulling — each with its own spring, its line threaded through
+every guide ring, and a reel whose handle actually turns.
 
 ## Versions
 
@@ -62,11 +66,14 @@ over, and a spooked fish does not bite. Move up quietly, or wait for it to settl
 
 ## The fight asks you questions
 
-Every run has a **course**, and you answer it on the **arrow keys** — rebindable in Minecraft's own
-controls, so WASD stays your feet. The fish tracks left, you lean on it from the right; it goes deep, you
-lift the rod; it comes up to jump, you put the rod down. The boss bar names the course *and* the key, and
-the rod tip is dragged the way the fish is going, so you can read the fight off the rod as well as off the
-bar.
+Every run has a **course**, and you answer it **with the camera** — hold your view against the run, the
+way you would steer a rod in a simulator. The fish tracks left, you lean on it from the right; it goes
+deep, you lift; it comes up to jump, you put the rod down. (Four key bindings do the same job if you
+prefer them.)
+
+**Nothing tells you which way it went.** The rod does: the blank bends *toward* the fish, loads with the
+pull and yanks when it hits, and the line goes string-tight or bellies slack depending on what the fish is
+doing. That is the instrument — reading it is the skill.
 
 Answering right is not a tax — it is what lets you work. The fish tires nearly three times as fast and the
 run loads your tackle at half rate. Pull the same way it is going and you get none of that.
@@ -77,7 +84,8 @@ run loads your tackle at half rate. Pull the same way it is going and you get no
 - **The angler runs out.** Holding a rod against a running fish costs *you*, and pointing it the wrong way
   costs more. It comes back only when you stop pulling, so the answer to tired arms is to stop rather
   than to click faster — and the rod tells you when you are spent.
-- **The rod bends under tension**, in six steps driven by the real stress on your tackle.
+- **The bend reads your rod, not your line.** The pull is measured against the blank's own power class,
+  so the same fish bows an ultralight flat and makes a trolling rod nod.
 - **Over-pull and the line snaps.** A real breaking-strain model means big fish demand the right line and
   a drag you know how to use — and a heavier line genuinely buys you time.
 - **Every species tires differently**, and small fry stop fighting like monsters.
@@ -118,8 +126,9 @@ run loads your tackle at half rate. Pull the same way it is going and you get no
 
 ## Progression
 
-A bestiary **journal** with a page for every one of the 79 species, 29 of them hand-illustrated so far and
-more each update. **Angler levels** through four ranks, a **six-perk skill tree**, an **eight-stage quest
+A bestiary **journal** with a page for every one of the 91 species, all of them hand-illustrated, and a
+book that explains the mod: baits, lures, gear and 23 guide pages with tables computed from the game's own
+constants. **Angler levels** through four ranks, a **six-perk skill tree**, an **eight-stage quest
 chain** that ends at the sea, and **22 hand-crafted advancements** including some tricky and some funny
 ones. Plus bait farms, a live-bait trap, an aquarium
 and a mini aquarium, cooking and fillets.

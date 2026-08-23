@@ -1,0 +1,785 @@
+<title>Тест-лист 0.8.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+:root {
+  --ground:   #EEF2F1;
+  --surface:  #FFFFFF;
+  --sunken:   #E4EAE8;
+  --ink:      #10221F;
+  --muted:    #5C6F6B;
+  --faint:    #8496921f;
+  --line:     #C9D5D1;
+  --accent:   #9A6413;
+  --accent-b: #B8791F;
+  --ok:       #1B6B50;
+  --ok-bg:    #1b6b501a;
+  --bad:      #A8342A;
+  --bad-bg:   #a8342a14;
+  --shadow:   0 1px 2px rgba(16,34,31,.06), 0 8px 24px -16px rgba(16,34,31,.30);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:   #0B1417;
+    --surface:  #111E22;
+    --sunken:   #0E191D;
+    --ink:      #E4EEEB;
+    --muted:    #8CA39E;
+    --faint:    #8ca39e1a;
+    --line:     #1E3037;
+    --accent:   #D9973A;
+    --accent-b: #E8AC55;
+    --ok:       #46B58C;
+    --ok-bg:    #46b58c1a;
+    --bad:      #E0685A;
+    --bad-bg:   #e0685a14;
+    --shadow:   0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"] {
+  --ground:   #0B1417;
+  --surface:  #111E22;
+  --sunken:   #0E191D;
+  --ink:      #E4EEEB;
+  --muted:    #8CA39E;
+  --faint:    #8ca39e1a;
+  --line:     #1E3037;
+  --accent:   #D9973A;
+  --accent-b: #E8AC55;
+  --ok:       #46B58C;
+  --ok-bg:    #46b58c1a;
+  --bad:      #E0685A;
+  --bad-bg:   #e0685a14;
+  --shadow:   0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.8);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 96px; }
+
+/* ---------- header ---------- */
+.top {
+  padding: 40px 0 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.eyebrow {
+  font: 600 11px/1 "IBM Plex Mono", ui-monospace, monospace;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 10px;
+}
+h1 {
+  font: 700 clamp(30px, 4.4vw, 44px)/1.04 "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+  letter-spacing: -.015em;
+  margin: 0;
+  text-wrap: balance;
+}
+.sub { color: var(--muted); margin: 10px 0 0; max-width: 56ch; font-size: 14.5px; }
+
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+#who {
+  font: 400 13px/1 "IBM Plex Sans", sans-serif;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 9px 11px;
+  width: 150px;
+}
+#who:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button {
+  font: 500 13px/1 "IBM Plex Sans", sans-serif;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 9px 13px;
+  cursor: pointer;
+  transition: border-color .12s, color .12s;
+}
+button:hover { border-color: var(--accent); color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--faint); }
+
+/* ---------- depth gauge ---------- */
+.gauge {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 18px 20px;
+  display: flex;
+  gap: 26px;
+  align-items: center;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow);
+}
+.gauge-num {
+  font: 600 34px/1 "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+.gauge-num small { font-size: 15px; color: var(--muted); font-weight: 500; }
+.gauge-meta { font-size: 13px; color: var(--muted); }
+.bar-holder { flex: 1 1 260px; min-width: 200px; }
+.bar {
+  height: 10px;
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.bar span { display: block; height: 100%; width: 0; background: var(--ok); transition: width .25s ease; }
+.ticks {
+  display: flex; justify-content: space-between;
+  font: 500 10px/1 "IBM Plex Mono", monospace;
+  color: var(--muted); margin-top: 6px; letter-spacing: .08em;
+}
+
+/* ---------- section nav ---------- */
+nav {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--ground) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  margin: 26px -20px 0;
+  padding: 9px 20px;
+  display: flex; gap: 6px; overflow-x: auto;
+}
+nav a {
+  flex: 0 0 auto;
+  display: flex; align-items: baseline; gap: 7px;
+  text-decoration: none;
+  color: var(--muted);
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 6px 10px;
+  font: 500 13px/1 "IBM Plex Sans", sans-serif;
+  white-space: nowrap;
+}
+nav a:hover { color: var(--ink); border-color: var(--line); }
+nav a .n { font: 600 11px/1 "IBM Plex Mono", monospace; color: var(--accent); }
+nav a .c { font: 500 11px/1 "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
+nav a.done { color: var(--ok); }
+nav a.done .n { color: var(--ok); }
+
+/* ---------- sections ---------- */
+section { margin-top: 34px; scroll-margin-top: 62px; }
+.sec-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.sec-head h2 {
+  font: 700 21px/1.2 "IBM Plex Sans Condensed", sans-serif;
+  margin: 0; letter-spacing: -.01em;
+}
+.sec-head .n {
+  font: 600 12px/1 "IBM Plex Mono", monospace;
+  color: var(--accent);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 4px 6px;
+}
+.sec-head .count {
+  margin-left: auto;
+  font: 500 12px/1 "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.sec-note { color: var(--muted); font-size: 14px; margin: 0 0 14px; max-width: 74ch; }
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.group-label {
+  font: 600 11px/1 "IBM Plex Mono", monospace;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--sunken);
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.group-label + .group-label { border-top: 1px solid var(--line); }
+
+/* ---------- check rows ---------- */
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: start;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.row:last-child { border-bottom: 0; }
+.row.is-ok { background: var(--ok-bg); }
+.row.is-bad { background: var(--bad-bg); }
+body.hide-done .row.is-ok { display: none; }
+body.hide-done .matrix-wrap .row { display: grid; }
+
+.row input[type="checkbox"] {
+  appearance: none;
+  width: 17px; height: 17px;
+  margin: 3px 0 0;
+  border: 1.5px solid var(--line);
+  border-radius: 2px;
+  background: var(--surface);
+  cursor: pointer;
+  display: grid; place-content: center;
+  flex: 0 0 auto;
+}
+.row input[type="checkbox"]:hover { border-color: var(--ok); }
+.row input[type="checkbox"]:checked { background: var(--ok); border-color: var(--ok); }
+.row input[type="checkbox"]:checked::after {
+  content: "";
+  width: 9px; height: 5px;
+  border: 2px solid var(--surface);
+  border-top: 0; border-right: 0;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+input[type="checkbox"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.row label { cursor: pointer; }
+.row .txt { font-size: 14.5px; }
+.row .txt b { font-weight: 600; }
+.row .why {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 3px;
+}
+.row.is-ok .txt { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+code, .mono {
+  font: 500 12.5px/1.4 "IBM Plex Mono", ui-monospace, monospace;
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 1px 5px;
+}
+
+.flag {
+  font: 600 11px/1 "IBM Plex Mono", monospace;
+  padding: 6px 8px;
+  border-radius: 2px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+}
+.flag:hover { border-color: var(--bad); color: var(--bad); }
+.flag[aria-pressed="true"] { border-color: var(--bad); color: var(--bad); background: var(--bad-bg); }
+
+.note {
+  grid-column: 2 / -1;
+  width: 100%;
+  margin-top: 8px;
+  font: 400 13.5px/1.5 "IBM Plex Sans", sans-serif;
+  color: var(--ink);
+  background: var(--sunken);
+  border: 1px solid var(--bad);
+  border-radius: 3px;
+  padding: 8px 10px;
+  resize: vertical;
+  min-height: 60px;
+}
+.note:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ---------- smoke matrix ---------- */
+.matrix-wrap { overflow-x: auto; }
+table.matrix { border-collapse: collapse; width: 100%; min-width: 760px; }
+table.matrix th, table.matrix td { border-bottom: 1px solid var(--line); padding: 0; }
+table.matrix thead th {
+  position: sticky; top: 0;
+  background: var(--sunken);
+  font: 600 11px/1.3 "IBM Plex Mono", monospace;
+  letter-spacing: .04em;
+  color: var(--muted);
+  text-align: center;
+  padding: 10px 6px;
+  vertical-align: bottom;
+  border-bottom: 1px solid var(--line);
+}
+table.matrix thead th:first-child { text-align: left; padding-left: 16px; }
+table.matrix tbody th {
+  text-align: left;
+  padding: 10px 10px 10px 16px;
+  font: 600 13.5px/1.2 "IBM Plex Sans Condensed", sans-serif;
+  white-space: nowrap;
+}
+table.matrix tbody th .loader { display: block; font: 500 11px/1.4 "IBM Plex Mono", monospace; color: var(--muted); }
+table.matrix tbody tr.full th { color: var(--ok); }
+table.matrix td { text-align: center; padding: 6px; }
+table.matrix td input[type="checkbox"] {
+  appearance: none;
+  width: 17px; height: 17px;
+  border: 1.5px solid var(--line);
+  border-radius: 2px;
+  background: var(--surface);
+  cursor: pointer;
+  display: inline-grid; place-content: center;
+  vertical-align: middle;
+}
+table.matrix td input[type="checkbox"]:hover { border-color: var(--ok); }
+table.matrix td input[type="checkbox"]:checked { background: var(--ok); border-color: var(--ok); }
+table.matrix td input[type="checkbox"]:checked::after {
+  content: "";
+  width: 9px; height: 5px;
+  border: 2px solid var(--surface);
+  border-top: 0; border-right: 0;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+.primary-mark { color: var(--accent); font: 600 10px/1 "IBM Plex Mono", monospace; }
+
+/* ---------- dialect table ---------- */
+.dial { border-bottom: 1px solid var(--line); padding: 12px 16px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; }
+.dial:last-child { border-bottom: 0; }
+.dial.is-ok { background: var(--ok-bg); }
+.dial.is-bad { background: var(--bad-bg); }
+body.hide-done .dial.is-ok { display: none; }
+.dial .where {
+  font: 600 11px/1.35 "IBM Plex Mono", monospace;
+  color: var(--accent);
+  letter-spacing: .03em;
+}
+
+/* ---------- footer / report ---------- */
+.foot { margin-top: 40px; color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(8px);
+  background: var(--ink); color: var(--ground);
+  font: 500 13px/1 "IBM Plex Sans", sans-serif;
+  padding: 11px 16px; border-radius: 3px;
+  opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s;
+  z-index: 50;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+@media (max-width: 620px) {
+  .row { grid-template-columns: auto 1fr; }
+  .row .flag { grid-column: 2; justify-self: start; margin-top: 4px; }
+  .dial { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="eyebrow">River Fishing · перед релизом</p>
+      <h1>Тест-лист 0.8.0</h1>
+      <p class="sub">Сначала быстрый смоук на всех восьми сборках, потом один глубокий проход в выживании —
+        и только после него то, что различается от версии к версии. В конце нажмите
+        «Скопировать отчёт» и пришлите его.</p>
+    </div>
+    <div class="actions">
+      <input id="who" type="text" placeholder="Кто тестирует" aria-label="Кто тестирует">
+      <button id="filter" aria-pressed="false">Только незакрытые</button>
+      <button id="copy">Скопировать отчёт</button>
+      <button id="reset">Сбросить</button>
+    </div>
+  </header>
+
+  <div class="gauge">
+    <div>
+      <div class="gauge-num"><span id="pct">0</span><small>%</small></div>
+      <div class="gauge-meta"><span id="done">0</span> из <span id="total">0</span> проверок</div>
+    </div>
+    <div class="bar-holder">
+      <div class="bar"><span id="fill"></span></div>
+      <div class="ticks"><span>старт</span><span>смоук</span><span>глубокий</span><span>шлюз</span></div>
+    </div>
+    <div class="gauge-meta" id="issues">проблем нет</div>
+  </div>
+
+  <nav id="nav"></nav>
+  <main id="main"></main>
+
+  <div class="foot">
+    <span>Прогресс хранится в этом браузере — вкладку можно закрыть и вернуться позже.</span>
+    <span class="mono" id="stamp"></span>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const INSTANCES = [
+  { id: "f1201",  mc: "1.20.1",  loader: "Fabric" },
+  { id: "g1201",  mc: "1.20.1",  loader: "Forge" },
+  { id: "f1211",  mc: "1.21.1",  loader: "Fabric", primary: true },
+  { id: "n1211",  mc: "1.21.1",  loader: "NeoForge" },
+  { id: "f2612",  mc: "26.1.2",  loader: "Fabric" },
+  { id: "n2612",  mc: "26.1.2",  loader: "NeoForge" },
+  { id: "f262",   mc: "26.2",    loader: "Fabric" },
+  { id: "n262",   mc: "26.2",    loader: "NeoForge" }
+];
+
+const SMOKE = [
+  { id: "launch", short: "Запуск",   full: "Запускается: ни краша, ни duplicate mods, ни недостающих зависимостей" },
+  { id: "log",    short: "Лог",      full: "В latest.log по слову riverfishing нет ERROR, Exception, Unknown recipe и потерянных текстур" },
+  { id: "tab",    short: "Креатив",  full: "Одна вкладка River Fishing, у каждого предмета иконка, нет сырых ключей" },
+  { id: "lang",   short: "Языки",    full: "Русский и Українська: вкладка, удилища, рыбы переведены" },
+  { id: "journal",short: "Журнал",   full: "Все шесть вкладок рисуются, на полке гайдов 25 записей, последняя — Благодарности" },
+  { id: "jei",    short: "JEI",      full: "Поиск rod показывает 13 бланков с рецептами" },
+  { id: "quit",   short: "Выход",    full: "Выход без зависания на сохранении мира" }
+];
+
+const DATA = [
+  {
+    id: "s3", n: "§3", title: "Смоук на всех восьми",
+    note: "Примерно 5 минут каждый. Цель одна: доказать, что сборка грузится и содержимое зарегистрировалось. Креатив, суперплоский мир. Провал здесь останавливает релиз только для этой версии — это проблема сборки, а не баланса.",
+    matrix: true
+  },
+  {
+    id: "s4", n: "§4", title: "Глубокий проход",
+    note: "Один раз, на 1.21.1 Fabric. Выживание, свежий мир, настоящая река. Правду этот проход говорит только в выживании — и провал здесь блокирует весь релиз, потому что код тут не зависит от загрузчика.",
+    items: [
+      { id: "first", t: "Наживка и первое удилище: накопать червей, скрафтить палку, леску, крючок, забросить, поймать" },
+      { id: "hint", t: "Подсказка сборки называет <b>недостающую</b> часть", w: "Без лески; потом с леской без оснастки; потом катушечный бланк без катушки — должно сказать катушка, а не леска" },
+      { id: "live", t: "Смена снасти в руке переживает закрытие экрана", w: "Баг §live-rod: экран раньше писал в оторванную копию" },
+      { id: "fight", t: "Вываживание: изгиб следует за нагрузкой, а не за часами", w: "Рыба больше 1 кг. Дать походить, не подматывая — снасть всё равно грузится. Потом мелочь: она не должна драться как монстр" },
+      { id: "break", t: "Леска рвётся специально и сообщение об этом говорит", w: "Крупная рыба на моно 0.10" },
+      { id: "bench", t: "Столик: оснастка на каждом шаге веса, приманка, покраска", w: "В подсказке имя изготовителя и граммы, материалы списались" },
+      { id: "weight", t: "Вес действительно важен — доказать тремя способами", w: "Легче окна — короткий заброс и долгое ожидание; 2.5× сверх окна ломает бланк; от 160 г мелочь перестаёт клевать" },
+      { id: "villager", t: "Торговец: 3 сделки на каждом уровне, простая рыба на 1-м, удилища собранные", w: "Купленное удилище должно забрасываться прямо из покупки" },
+      { id: "progress", t: "Уровень, перк, квест, награда, достижение" },
+      { id: "blocks", t: "Блоки: род-под с сигнализатором, малявочник, червятник, аквариум с рыбой" },
+      { id: "seaice", t: "Море и лёд: морская рыба на морском бланке, лунка и рыба из-подо льда" },
+      { id: "reload", t: "Перезапуск мира: записи, уровень, навыки, зарыбление, NBT снастей — всё выжило" }
+    ]
+  },
+  {
+    id: "s6", n: "§6", title: "Что изменила 0.8.0",
+    note: "Всё здесь новое или переписанное. Именно прохождение этого раздела ждёт релизный шлюз — поэтому начинать стоит отсюда.",
+    groups: [
+      { label: "Удилище — самое заметное изменение", items: [
+        { id: "hand", t: "В руке от первого лица: целое удилище в кулаке, направлено от вас", w: "Не полоска, не сбоку, не одинокий тюльпан. Сделать для всех тринадцати — самая быстрая проверка в списке" },
+        { id: "tip", t: "Леска выходит из тюльпана и остаётся на нём, пока водишь взглядом" },
+        { id: "cast", t: "Заброс: приманка падает куда целились, леска идёт вперёд" },
+        { id: "bend", t: "Бланк гнётся <b>в сторону рыбы</b>", w: "Рывок влево кладёт удилище влево, вправо — вправо" },
+        { id: "vert", t: "Камера ниже лески — бланк переваливается и гнётся <b>вверх</b>", w: "А не сминается в нижнюю кромку экрана" },
+        { id: "load", t: "§rod-load: ультралайт гнётся дугой, троллинговое кивает", w: "Зарыбить один водоём одним видом дважды и вывести обоими. До релиза троллинговое стояло колом — это и был баг" },
+        { id: "phys", t: "Физика: тюльпан отстаёт и качается", w: "<code>/rfrod phys off</code> выключает начисто, <code>on</code> возвращает" },
+        { id: "reel", t: "Катушка: ручка вращается, кноб остаётся ровным", w: "Попробовать 1000 и 14000 — обе сидят в седле своего удилища" },
+        { id: "line", t: "Леска по кольцам различается: плетёнка, флюорокарбон, моно 0.8", w: "Тёмная и плотная, почти невидимая, заметно толстая — шпуля → кольца → тюльпан" },
+        { id: "tp", t: "Третье лицо (F5) и род-под: настоящие бланки, леска от настоящего кончика", w: "Проверить под на одно удилище и на три" },
+        { id: "silent", t: "Никто не подсказывает: нет текста курса и значка <code>[ ← ]</code>", w: "Если что-то из этого видно — джарник старый" },
+        { id: "surge", t: "Рывок у берега случается иногда, а не всегда", w: "Вывести шесть-семь рыб. На прилове — никогда" },
+        { id: "fallback", t: "<code>/rfrod blank off</code> возвращает спрайты и переживает перезапуск клиента" }
+      ]},
+      { label: "Двенадцать новых видов", items: [
+        { id: "catch", t: "Каждый ловится, иконка — рыба, а не шашечки", w: "arapaima, beluga, piraiba, goliath_grouper, bull_shark, frilled_shark, golden_dorado, golden_crucian, gorchak, verkhovka, sculpin, tubenose_goby" },
+        { id: "gate", t: "Уровневый гейт гейтит: белуга не клюёт до <code>/rffish unlockall</code>", w: "На чистом журнале (<code>/rffish reset</code>). Первая рыба выше 9-го уровня за всю историю мода" },
+        { id: "journal", t: "Журнал: карточка, иллюстрация, описание на трёх языках", w: "Список отсортирован по уровню — шестёрка гигантов внизу" },
+        { id: "trade", t: "Торговец покупает: мелочь на 1-м тире, гиганты на 5-м", w: "На 26.x сделки приходят из датапака, а не из Java — проверить там отдельно" },
+        { id: "aqua", t: "Мини-аквариум берёт четырёх мелких и отказывает гигантам", w: "Порог 150 г" },
+        { id: "knife", t: "Филейный нож режет их как любую другую рыбу" }
+      ]},
+      { label: "Арты пережаты", items: [
+        { id: "art", t: "Пролистать список рыб: нет полос на градиентах и потерянных цветов", w: "12 новых и 7 перерисованных карпов/кои сведены к палитре остальных семидесяти. Оригиналы сохранены" }
+      ]},
+      { label: "Прикормка", items: [
+        { id: "base", t: "Семена + хлеб → 2 × базовая прикормка, торговец её продаёт" },
+        { id: "mix", t: "База + до 8 предметов = замес; готовый замес обратно не крафтится", w: "Один СЛОТ — один предмет: стак из 64 считается один раз" },
+        { id: "overfeed", t: "Перекормить невозможно: двадцать банок в одну точку не ухудшают клёв" },
+        { id: "last", t: "Побеждает последний замес, без усреднения" },
+        { id: "grind", t: "★ помол: бойлы приносят крупнее, пыль — уклейку" },
+        { id: "cage", t: "Забитая кормушка больше не считается кормом", w: "Раньше она оценивала точку по поверхности заброса и перебивала замес на дне" }
+      ]},
+      { label: "Остальное новое", items: [
+        { id: "fillet", t: "Одно филе: 200 г, без модификатора приседа, коптится и идёт в замес", w: "Никакая сетка крафта не превращает рыбу во что-либо без ножа" },
+        { id: "electro", t: "Электролов: выбить вид, закрыть, <b>открыть заново на том же месте</b> — вид в списке, зачёркнут", w: "Сломан был именно этот круг. Потом посадить вид, которого там не было" },
+        { id: "hook", t: "Выбор крючка на столике: кнопки по сторонам размера, железо списывается" }
+      ]},
+      { label: "Известно и принято — подтвердить, а не чинить", items: [
+        { id: "k1", t: "Ушко, баланс и лепесток ни на что не влияют", w: "Пишутся в NBT и показываются, но не читаются ничем" },
+        { id: "k2", t: "Динамического рынка нет на 26.x", w: "Потерян при порте 0.5.0; там цены статичные" },
+        { id: "k3", t: "Файла конфигурации нет — сложность зафиксирована на пресете реализм" },
+        { id: "k4", t: "Приманки ручной работы весят 0 г — намеренно" },
+        { id: "k5", t: "Старые миры теряют закормленные точки", w: "Осмысленного перевода четырёх категорий в помол/питательность не существует" }
+      ]}
+    ]
+  },
+  {
+    id: "s5", n: "§5", title: "Точечные проверки диалектов",
+    note: "Только там, где код реально ветвится. Всё остальное не зависит от загрузчика — иначе пришлось бы повторять глубокий проход восемь раз.",
+    dialects: [
+      { id: "icon", where: "Forge 1.20.1 · NeoForge 1.21.1/26.x", t: "Слоёная иконка собранного удилища показывает катушку/леску/оснастку", w: "Forge использует BEWLR-миксин, NeoForge — событие: две разные реализации" },
+      { id: "bendfork", where: "все Forge/NeoForge", t: "Удилище гнётся во время вываживания", w: "Та же развилка" },
+      { id: "render", where: "26.1.2 против 26.2", t: "Леска заброса рисуется у вас и у второго игрока", w: "26.1 рисует немедленно, 26.2 — через submit/collect: единственная архитектурная разница между ними" },
+      { id: "handspace", where: "26.x, все четыре", t: "Леска выходит из нарисованного тюльпана, заброс уходит вперёд, поворот на 90° её не сдвигает", w: "Проход руки оставляет матрицу в одном из двух пространств; код измеряет, в каком, следя за кончиком. <code>/rfrod tipinfo</code> печатает вердикт" },
+      { id: "tp26", where: "26.x, все четыре", t: "Поза от третьего лица (F5) и бланки на род-поде", w: "На 26.x нет BEWLR: удилище позируют два миксина, рисуется поданными узлами" },
+      { id: "yaw", where: "1.20.1, оба", t: "Якорь лески от первого лица", w: "§view-yaw: здесь камера и поза руки расходятся на полоборота — единственная версия, которой нужна поправка" },
+      { id: "dye", where: "1.20.1, оба", t: "Крашеная приманка сохраняет цвет после перезахода", w: "1.20.1 хранит краску в NBT display.color, остальные — в компоненте" },
+      { id: "nbt", where: "1.20.1, оба", t: "NBT снасти переживает перезагрузку мира", w: "Весь шов «компоненты → NBT» существует только здесь" },
+      { id: "drop", where: "26.x, все четыре", t: "Сломанный блок по-прежнему роняет наживку", w: "Architectury убрала параметр xp из BlockEvent.BREAK в 21.x" },
+      { id: "tabs", where: "26.2, оба", t: "Журнал переоткрывается при переключении вкладок", w: "setScreen → setScreenAndShow" },
+      { id: "ghost", where: "26.2, оба", t: "Призрачная иконка красного красителя на столике появляется", w: "Items.RED_DYE → Items.DYE.red()" },
+      { id: "hud", where: "Fabric ×4", t: "Строка эхолота в HUD показывается", w: "options.hideGui → gui.hud.isHidden() на 26.2" }
+    ]
+  },
+  {
+    id: "s7", n: "§7", title: "Релизный шлюз",
+    note: "Выпускать только когда выполнено всё.",
+    items: [
+      { id: "g1", t: "Все восемь джарников собраны из <b>запушенного</b> коммита" },
+      { id: "g2", t: "§3 смоук зелёный на всех восьми инстансах" },
+      { id: "g3", t: "§4 глубокий проход зелёный на основном" },
+      { id: "g4", t: "§5 точечные проверки зелёные" },
+      { id: "g5", t: "§6 подтверждён как описано, ничего нового не прячется" },
+      { id: "g6", t: "Патчнот в <code>docs/CHANGELOG.md</code> соответствует тому, что реально вышло" },
+      { id: "g7", t: "<code>updates.json</code>: <b>latest бампить последним</b>", w: "С ним сверяется внутриигровой чекер — бамп объявляет релиз каждому игроку. Только после того, как файлы выложены. Плюс ключ 26.2 при первом выходе 26.2" },
+      { id: "g8", t: "Пост в Discord со ссылкой на вики" }
+    ]
+  }
+];
+
+const KEY = "rf-testplan-0.8.0";
+let state = load();
+const whoBox = document.getElementById("who");
+whoBox.value = state.who || "";
+whoBox.addEventListener("input", () => {
+  state.who = whoBox.value;
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+});
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || { ok: {}, bad: {}, notes: {} }; }
+  catch (e) { return { ok: {}, bad: {}, notes: {} }; }
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  paint();
+}
+
+/* ---------- build ---------- */
+const main = document.getElementById("main");
+const nav = document.getElementById("nav");
+const order = ["s3", "s4", "s6", "s5", "s7"];
+
+function rowHTML(secId, it) {
+  const id = secId + "." + it.id;
+  return `<div class="row" data-id="${id}">
+    <input type="checkbox" id="cb-${id}" ${state.ok[id] ? "checked" : ""}>
+    <label class="txt" for="cb-${id}">${it.t}${it.w ? `<span class="why">${it.w}</span>` : ""}</label>
+    <button class="flag" data-flag="${id}" aria-pressed="${state.bad[id] ? "true" : "false"}" title="Отметить проблему">✕</button>
+    ${state.bad[id] ? `<textarea class="note" data-note="${id}" placeholder="Что именно пошло не так">${state.notes[id] || ""}</textarea>` : ""}
+  </div>`;
+}
+
+function sectionHTML(sec) {
+  let body = "";
+  if (sec.matrix) {
+    body = `<div class="matrix-wrap"><table class="matrix">
+      <thead><tr><th>Инстанс</th>${SMOKE.map(s => `<th title="${s.full}">${s.short}</th>`).join("")}</tr></thead>
+      <tbody>${INSTANCES.map(inst => {
+        const cells = SMOKE.map(s => {
+          const id = "s3." + inst.id + "." + s.id;
+          return `<td><input type="checkbox" data-id="${id}" ${state.ok[id] ? "checked" : ""} title="${s.full}" aria-label="${inst.mc} ${inst.loader}: ${s.full}"></td>`;
+        }).join("");
+        const full = SMOKE.every(s => state.ok["s3." + inst.id + "." + s.id]);
+        return `<tr class="${full ? "full" : ""}"><th>${inst.mc}${inst.primary ? ' <span class="primary-mark">осн.</span>' : ""}<span class="loader">${inst.loader}</span></th>${cells}</tr>`;
+      }).join("")}</tbody></table></div>`;
+  } else if (sec.dialects) {
+    body = sec.dialects.map(d => {
+      const id = "s5." + d.id;
+      return `<div class="dial" data-id="${id}">
+        <input type="checkbox" id="cb-${id}" ${state.ok[id] ? "checked" : ""}>
+        <label for="cb-${id}"><span class="where">${d.where}</span><span class="txt" style="display:block;margin-top:2px">${d.t}</span><span class="why">${d.w}</span></label>
+        <button class="flag" data-flag="${id}" aria-pressed="${state.bad[id] ? "true" : "false"}" title="Отметить проблему">✕</button>
+        ${state.bad[id] ? `<textarea class="note" data-note="${id}" placeholder="Что именно пошло не так">${state.notes[id] || ""}</textarea>` : ""}
+      </div>`;
+    }).join("");
+  } else if (sec.groups) {
+    body = sec.groups.map(g =>
+      `<div class="group-label">${g.label}</div>` + g.items.map(it => rowHTML(sec.id, it)).join("")
+    ).join("");
+  } else {
+    body = sec.items.map(it => rowHTML(sec.id, it)).join("");
+  }
+  return `<section id="${sec.id}">
+    <div class="sec-head"><span class="n">${sec.n}</span><h2>${sec.title}</h2><span class="count" data-count="${sec.id}"></span></div>
+    <p class="sec-note">${sec.note}</p>
+    <div class="panel">${body}</div>
+  </section>`;
+}
+
+function idsOf(sec) {
+  if (sec.matrix) return INSTANCES.flatMap(i => SMOKE.map(s => "s3." + i.id + "." + s.id));
+  if (sec.dialects) return sec.dialects.map(d => "s5." + d.id);
+  if (sec.groups) return sec.groups.flatMap(g => g.items.map(it => sec.id + "." + it.id));
+  return sec.items.map(it => sec.id + "." + it.id);
+}
+
+function render() {
+  const secs = order.map(id => DATA.find(s => s.id === id));
+  main.innerHTML = secs.map(sectionHTML).join("");
+  nav.innerHTML = secs.map(s =>
+    `<a href="#${s.id}" data-nav="${s.id}"><span class="n">${s.n}</span>${s.title}<span class="c" data-navcount="${s.id}"></span></a>`
+  ).join("");
+  paint();
+}
+
+function paint() {
+  const secs = order.map(id => DATA.find(s => s.id === id));
+  let done = 0, total = 0, bad = 0;
+  secs.forEach(sec => {
+    const ids = idsOf(sec);
+    const d = ids.filter(i => state.ok[i]).length;
+    done += d; total += ids.length;
+    bad += ids.filter(i => state.bad[i]).length;
+    const c = main.querySelector(`[data-count="${sec.id}"]`);
+    if (c) c.textContent = d + " / " + ids.length;
+    const nc = nav.querySelector(`[data-navcount="${sec.id}"]`);
+    if (nc) nc.textContent = d + "/" + ids.length;
+    const na = nav.querySelector(`[data-nav="${sec.id}"]`);
+    if (na) na.classList.toggle("done", d === ids.length);
+  });
+  document.getElementById("done").textContent = done;
+  document.getElementById("total").textContent = total;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById("pct").textContent = pct;
+  document.getElementById("fill").style.width = pct + "%";
+  document.getElementById("issues").textContent = bad ? (bad + (bad === 1 ? " проблема" : bad < 5 ? " проблемы" : " проблем")) : "проблем нет";
+  document.getElementById("issues").style.color = bad ? "var(--bad)" : "";
+
+  main.querySelectorAll(".row, .dial").forEach(el => {
+    const id = el.dataset.id;
+    el.classList.toggle("is-ok", !!state.ok[id]);
+    el.classList.toggle("is-bad", !!state.bad[id]);
+  });
+  main.querySelectorAll("table.matrix tbody tr").forEach((tr, i) => {
+    const inst = INSTANCES[i];
+    tr.classList.toggle("full", SMOKE.every(s => state.ok["s3." + inst.id + "." + s.id]));
+  });
+}
+
+/* ---------- events ---------- */
+main.addEventListener("change", e => {
+  const cb = e.target;
+  if (cb.type !== "checkbox") return;
+  const id = cb.dataset.id || (cb.id || "").replace(/^cb-/, "");
+  if (!id) return;
+  if (cb.checked) { state.ok[id] = 1; delete state.bad[id]; } else { delete state.ok[id]; }
+  save();
+  const row = cb.closest(".row, .dial");
+  if (row && state.ok[id]) {
+    const flag = row.querySelector(".flag");
+    if (flag) flag.setAttribute("aria-pressed", "false");
+    const note = row.querySelector(".note");
+    if (note) note.remove();
+  }
+});
+
+main.addEventListener("click", e => {
+  const btn = e.target.closest("[data-flag]");
+  if (!btn) return;
+  const id = btn.dataset.flag;
+  const row = btn.closest(".row, .dial");
+  if (state.bad[id]) {
+    delete state.bad[id];
+    btn.setAttribute("aria-pressed", "false");
+    const note = row.querySelector(".note");
+    if (note) note.remove();
+  } else {
+    state.bad[id] = 1;
+    delete state.ok[id];
+    btn.setAttribute("aria-pressed", "true");
+    const cb = row.querySelector('input[type="checkbox"]');
+    if (cb) cb.checked = false;
+    const ta = document.createElement("textarea");
+    ta.className = "note";
+    ta.dataset.note = id;
+    ta.placeholder = "Что именно пошло не так";
+    ta.value = state.notes[id] || "";
+    row.appendChild(ta);
+    ta.focus();
+  }
+  save();
+});
+
+main.addEventListener("input", e => {
+  const ta = e.target.closest("[data-note]");
+  if (!ta) return;
+  state.notes[ta.dataset.note] = ta.value;
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (err) {}
+});
+
+document.getElementById("filter").addEventListener("click", e => {
+  const on = document.body.classList.toggle("hide-done");
+  e.currentTarget.setAttribute("aria-pressed", on ? "true" : "false");
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+  if (!confirm("Сбросить все отметки и заметки?")) return;
+  state = { ok: {}, bad: {}, notes: {} };
+  try { localStorage.removeItem(KEY); } catch (e) {}
+  render();
+  toast("Сброшено");
+});
+
+document.getElementById("copy").addEventListener("click", () => {
+  const secs = order.map(id => DATA.find(s => s.id === id));
+  const who = (document.getElementById("who").value || "").trim();
+  const lines = ["# Тест 0.8.0 — " + new Date().toLocaleString("ru-RU") + (who ? " — " + who : ""), ""];
+  let bads = [];
+  secs.forEach(sec => {
+    const ids = idsOf(sec);
+    const d = ids.filter(i => state.ok[i]).length;
+    lines.push(`${sec.n} ${sec.title}: ${d}/${ids.length}`);
+    ids.filter(i => state.bad[i]).forEach(i => {
+      bads.push("- " + label(i) + (state.notes[i] ? " — " + state.notes[i] : ""));
+    });
+  });
+  if (bads.length) { lines.push("", "## Проблемы", ...bads); }
+  else { lines.push("", "Проблем не отмечено."); }
+  const text = lines.join("\n");
+  navigator.clipboard.writeText(text).then(
+    () => toast("Отчёт в буфере обмена"),
+    () => toast("Не вышло скопировать")
+  );
+});
+
+function label(id) {
+  const parts = id.split(".");
+  if (parts[0] === "s3") {
+    const inst = INSTANCES.find(i => i.id === parts[1]);
+    const chk = SMOKE.find(s => s.id === parts[2]);
+    return `${inst.mc} ${inst.loader}: ${chk.short}`;
+  }
+  const sec = DATA.find(s => s.id === parts[0]);
+  const strip = h => h.replace(/<[^>]+>/g, "");
+  if (sec.dialects) { const d = sec.dialects.find(x => "s5." + x.id === id); return d ? strip(d.where + " — " + d.t) : id; }
+  const pool = sec.groups ? sec.groups.flatMap(g => g.items) : sec.items;
+  const it = pool.find(x => sec.id + "." + x.id === id);
+  return it ? strip(it.t) : id;
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+document.getElementById("stamp").textContent = "0.8.0 · 8 инстансов";
+render();
+</script>

@@ -906,6 +906,7 @@ public class JournalScreen extends Screen {
         guideGroupNow = 7;   // not for anglers: whoever runs the world, and where to shout
         addGuide("cull", modStack("electro_rod"));
         addGuide("discord", new ItemStack(net.minecraft.world.item.Items.PLAYER_HEAD));
+        addGuide("thanks", new ItemStack(net.minecraft.world.item.Items.HEART_OF_THE_SEA));
 
         // Every catalog indexes into this, so it has to fit the LONGEST of them — lureCat was missing,
         // which is a crash waiting for the release that adds a twelfth lure.
