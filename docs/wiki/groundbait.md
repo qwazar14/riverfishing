@@ -344,6 +344,110 @@ Sorted finest first, which is also smallest first — that is what the star mean
 
 ---
 
+## How much groundbait actually decides
+
+Worth knowing the price of the question, so you do not feed a swim that needed a different bait.
+
+A bite is a weighted sum, and the feed is **one seventh** of it:
+
+```
+bait           30%
+groundbait     15%
+rig            13%
+rod            12%
+line           12%
+hook           10%
+reel            8%
+```
+
+An unfed swim is not zero, it is **0.40** — fishing without groundbait is fine, just not ideal. A
+perfect mix scores 1.00. So the whole distance between "did not feed" and "fed flawlessly" is
+`0.15 × 0.60 = 0.09` of the bite weight, about nine per cent. Feed will not rescue a session with the
+wrong bait on the hook: bait weighs twice as much and costs less.
+
+**What feed really buys is the second lever — time.** A fresh swim speeds bites up by as much as
+**double** (the multiplier is `1 + freshness`, capped at 2.0). That is why feeding feels like far more
+than nine per cent: the fish do not so much bite more often as **arrive sooner**.
+
+And the third — size. A coarse table flattens the size curve: the roll's exponent is divided by
+`1 + 0.55 × coarseness × freshness`, where coarseness is the fraction above 0.5 stretched to one. In
+practice: **half fraction and finer changes nothing**, and whole grain on a fresh swim visibly lifts
+the average fish.
+
+---
+
+## Predators: the ones there is nothing to feed
+
+A mix is judged against the **species' own bait list** — against what the fish actually eats. Which
+leads to something no tooltip says: **pike, zander and asp eat nothing in the pantry.** Not a grain,
+not a worm, not liver.
+
+In numbers, for pike (its pair is fraction 0.66, nutrition 0.50):
+
+| Swim | Groundbait score |
+|---|---|
+| Not fed | **0.40** |
+| Plain base, no additives | **0.62** |
+| A carp mix: sweetcorn, boilies | **0.29** |
+
+Read that as: a sweet carp mix on a pike swim works **against** you — it is worse than not feeding at
+all. Plain base helps, because it claims to be no particular food: the engine scores it "neither the
+right food nor the wrong food" (0.75 on menu) and then only looks at fraction and nutrition.
+
+**Some predators do feed, though.** Catfish, eel, perch and trout all have pantry items in their diet,
+and for them groundbait works at full strength:
+
+| Species | What it takes from the pantry | Mix |
+|---|---|---|
+| Catfish | chicken liver 1.0, worm 0.7, boilie 0.6 | liver + chopped worm → **0.90** |
+| Eel | worm 1.0, liver 0.7 | worm and liver, mid grind |
+| Perch | worm 0.6 | worm and bloodworm, fine grind |
+| Trout | worm 0.6 | worm, fine grind, not rich |
+
+The rule is simple: **if you catch it on a spinning rod, there is nothing to feed it.** If it takes
+natural bait off the bottom, feed it — and feed it the very thing you are fishing with.
+
+---
+
+## Tactics: how much to throw, and when to top up
+
+**One throw puts down 0.60 of freshness**, but every mix has its own **ceiling**:
+
+```
+ceiling = 0.25 + 0.45 × nutrition + 0.30 × variety
+```
+
+where variety counts components: one gives 0, five or more gives 1. Which means:
+
+| Mix | Ceiling | Throws to reach it |
+|---|---|---|
+| Plain base | 0.475 | one and a bit |
+| Base + worm + maggot + barley | ~0.80 | two |
+| Five parts, rich | 1.00 | two |
+
+**More than two throws in a row is pointless** — the swim hits its ceiling and further jars do
+nothing. You cannot spoil it either: there is no overfeeding in this mod, by design.
+
+**When to top up.** Freshness halves every half-life: **90 seconds** for pure dust, up to **four and a
+half minutes** for whole grain. A swim lives between three and twelve minutes, again by fraction. In
+practice:
+
+- a fine mix on the feeder — top up every **2–3 minutes**, or by the third cast you are fishing a bare
+  patch of river;
+- grain and boilies — they carry a session; top up every **8–10 minutes**;
+- top up with **the same mix**: an identical recipe adds towards the ceiling, a different one
+  **displaces** the swim outright and resets it to a single throw's worth.
+
+**Geometry.** A throw covers **3×3 blocks**. The centre column counts at full strength, the eight
+neighbours at **0.6**. So casting accuracy is worth about forty per cent of what your feed does —
+landing in the middle is meaningfully better than "somewhere near it".
+
+**What feed does not fix.** It does not restore a depleted population: if a spot has been fished out
+(or you left a bait trap in it), feed will gather what is left but adds no fish. Recovery runs on its
+own clock, and groundbait does not touch it.
+
+---
+
 ## Common mistakes
 
 **"I fed a lot and it got worse."** It did not — you cannot overfeed. What happened is that the last
