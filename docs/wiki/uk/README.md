@@ -12,6 +12,7 @@
 - **Потрібно:** [Architectury API](https://www.curseforge.com/minecraft/mc-mods/architectury-api); на Fabric ще й Fabric API
 - **Рекомендовано:** Serene Seasons (відкриває сезонне клювання), Biomes O' Plenty (багатша модель місць проживання)
 - **Також дружить з:** Farmer's Delight, Jade, JEI
+- **Точні перевірені версії всього переліченого:** [Сумісність](compatibility.md)
 - **Discord:** [discord.gg/Kk2nKvsuRh](https://discord.gg/Kk2nKvsuRh) — питання, баг-репорти, улови
 - **Ця вікі також:** [English](../README.md) · [русском](../ru/README.md)
 - **Онлайн, три мови однією сторінкою:** [qwazar14.github.io/riverfishing](https://qwazar14.github.io/riverfishing/)
@@ -23,6 +24,7 @@
 | Сторінка | Що всередині |
 |---|---|
 | **[Перші кроки](getting-started.md)** | Наживка, перша вудка, перший закид, перша риба і як читати HUD |
+| [Сумісність](compatibility.md) | Точні версії завантажувача, Architectury, Biomes O' Plenty і Serene Seasons, з якими перевірена кожна збірка |
 
 ## Снасті
 

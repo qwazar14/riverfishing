@@ -12,6 +12,7 @@
 - **Требуется:** [Architectury API](https://www.curseforge.com/minecraft/mc-mods/architectury-api); на Fabric ещё и Fabric API
 - **Рекомендуется:** Serene Seasons (открывает сезонный клёв), Biomes O' Plenty (богаче модель местообитаний)
 - **Также дружит с:** Farmer's Delight, Jade, JEI
+- **Точные проверенные версии всего перечисленного:** [Совместимость](compatibility.md)
 - **Discord:** [discord.gg/Kk2nKvsuRh](https://discord.gg/Kk2nKvsuRh) — вопросы, баг-репорты, уловы
 - **Эта вики также на:** [English](../README.md) · [українською](../uk/README.md)
 - **Онлайн, три языка одной страницей:** [qwazar14.github.io/riverfishing](https://qwazar14.github.io/riverfishing/)
@@ -23,6 +24,7 @@
 | Страница | Что внутри |
 |---|---|
 | **[Первые шаги](getting-started.md)** | Наживка, первая удочка, первый заброс, первая рыба и как читать HUD |
+| [Совместимость](compatibility.md) | Точные версии загрузчика, Architectury, Biomes O' Plenty и Serene Seasons, с которыми проверена каждая сборка |
 
 ## Снаряжение
 
