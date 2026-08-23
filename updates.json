@@ -1,28 +1,28 @@
 {
   "_comment": "River Fishing update feed (§update-check). Served raw from the mc-1.21.1 branch; the in-game checker compares 'latest' for the running MC version and prints up to 3 bullets per missed release. Bump 'latest' ONLY when a release is actually published.",
   "latest": {
-    "1.20.1": "0.7.1",
-    "1.21.1": "0.7.1",
-    "26.1.2": "0.7.1",
-    "26.2": "0.7.1"
+    "1.20.1": "0.8.0",
+    "1.21.1": "0.8.0",
+    "26.1.2": "0.8.0",
+    "26.2": "0.8.0"
   },
   "changelog": [
     {
       "version": "0.8.0",
       "ru": [
-        "Прикормка одна — базовая, и вы смешиваете свою в сетке крафта; перекормить точку нельзя",
-        "У всех 79 видов свои помол и питательность: крупная фракция приманивает крупную рыбу",
-        "Дневник — теперь энциклопедия: семейства, поиск, таблицы по наживкам, приманкам и снастям и 23 гайда"
+        "Удилища стали настоящими: 13 моделей, бланк гнётся к рыбе, вываживание камерой",
+        "Одна прикормка-база — замешивайте свою; у каждого из 91 вида свои помол и питательность",
+        "12 новых рыб, от верховки до полутонной белуги; дневник стал энциклопедией"
       ],
       "uk": [
-        "Прикормка одна — базова, і ви змішуєте свою в сітці крафту; перегодувати точку неможливо",
-        "У всіх 79 видів свій помел і поживність: велика фракція приманює велику рибу",
-        "Щоденник — тепер енциклопедія: родини, пошук, таблиці по насадках, принадах і снастях та 23 гайди"
+        "Вудлища стали справжніми: 13 моделей, бланк гнеться до риби, виважування камерою",
+        "Одна прикормка-база — замішуйте свою; у кожного з 91 виду свій помел і поживність",
+        "12 нових риб, від верхівки до півтонної білуги; щоденник став енциклопедією"
       ],
       "en": [
-        "One groundbait — a base you mix your own blends into in the crafting grid; a spot cannot be overfed",
-        "All 79 species have their own grind and richness: a big grind calls big fish",
-        "The journal is an encyclopedia now: families, search, tables for bait, lures and gear, and 23 guides"
+        "The rods are real: 13 modelled blanks that bend toward the fish, and the fight is played with the camera",
+        "One groundbait base you mix your own into; all 91 species have their own grind and richness",
+        "Twelve new fish, from a two-gram sunbleak to a half-tonne beluga; the journal is an encyclopedia now"
       ]
     },
     {
