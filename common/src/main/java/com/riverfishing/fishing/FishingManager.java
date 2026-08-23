@@ -1291,6 +1291,26 @@ public final class FishingManager {
         }
     }
 
+    /**
+     * §giant-taper: the mass a fight is actually fought against. Below the knee it IS the mass, so
+     * every fish the mod was balanced around keeps the numbers it shipped with. Above it the curve
+     * compresses - because the linear law asked 802 kg of line for a 400 kg marlin while the
+     * strongest braid in the game carries 108, and a 600 kg beluga asked 1202. Those fish were not
+     * hard, they were impossible, and a player who buys the best tackle in the mod deserves to find
+     * out that it is the best tackle in the mod. Reported on Discord after 0.8.0: "he bites, but
+     * there is no way on earth to land him".
+     *
+     * <p>Sub-linear is also the honest physics: a fish's pull does not scale with its mass, which is
+     * why real crews land a 400 kg marlin on 60 kg line - with drag and time, not dead lift.
+     */
+    private static final double GIANT_KNEE_KG = 20.0, GIANT_TAPER = 0.55;
+
+    /** §giant-taper: mass as the tackle feels it. Identity below the knee, compressed above it. */
+    public static double fightMassKg(double kg) {
+        return kg <= GIANT_KNEE_KG ? kg
+                : GIANT_KNEE_KG * Math.pow(kg / GIANT_KNEE_KG, GIANT_TAPER);
+    }
+
     private static void hookUp(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
         sp.stopUsingItem(); // stop any retrieve animation
         clearFloatTiming(sp); // hide the timing HUD if it was up
@@ -1399,7 +1419,8 @@ public final class FishingManager {
 
         double weightKg = session.weightG / 1000.0;
         double drag = session.dragKg;                                  // 0 for a reel-less float rod
-        double requiredKg = Math.max(0.5, profile.fightStrength * (1.0 + weightKg) * 2.0);
+        double requiredKg = Math.max(0.5,
+                profile.fightStrength * (1.0 + fightMassKg(weightKg)) * 2.0);
         double effectiveStrain = session.lineStrainKg + 0.5 * drag;    // lineStrain already wear-reduced (§3.8)
         // §tackle-margin (0.7.0): how far the tackle OUT-GUNS this fish, uncapped. Reported as a bug and
         // it was one: baseTolerance below is clamped at 1, so every line from "just enough" upward gave
@@ -1773,7 +1794,11 @@ public final class FishingManager {
 
         // §big-game greyhounding (0.5.0): cranking against a jumping fish rips the hook straight out —
         // the answer to the breach is SLACK, not the reel.
+        // §jump-pace: the first 4 ticks are GRACE. The window punishes cranking through a breach,
+        // and a crank already on its way when the fish leaves the water is not a mistake - it is human
+        // reaction time, which no player can beat and every player was being charged for.
         if (level.getGameTime() < session.jumpWindowEnd
+                && level.getGameTime() >= session.jumpWindowEnd - 11
                 && level.getRandom().nextDouble() < 0.35) {
             level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.7f, 0.5f);
             endSession(sp, session);
@@ -1939,7 +1964,10 @@ public final class FishingManager {
         }
         if ("greyhounding".equals(session.fightPattern) && session.runTicksLeft == 0
                 && now >= session.jumpWindowEnd && session.landProgress > 0.05
-                && random.nextDouble() < 0.012) {
+                // §jump-pace: a breach every ~4 s of a long fight was not drama, it was a
+                // metronome the player could only lose to. Rarer, and rarer still as the
+                // fish tires - so a fight that is being won visibly calms down.
+                && random.nextDouble() < 0.008 * (1.0 - 0.75 * session.fatigue)) {
             // The jump: a full-body breach — SLACK OFF for the window or the hook rips out (reelPulse).
             session.jumpWindowEnd = now + 15;
             level.playSound(null, session.target, SoundEvents.DOLPHIN_JUMP, SoundSource.PLAYERS, 1.0f, 0.8f);
