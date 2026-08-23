@@ -29,6 +29,7 @@ import argparse, glob, io, os, re, html, json, shutil, subprocess, sys, tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wiki_art
+import wiki_calculator
 
 SRC = "docs/wiki"
 def _mod_version():
@@ -65,8 +66,8 @@ GROUPS = [
               "tools", "blocks", "keepnet", "tackle-box"]),
     ("Playing", ["fishing-mechanics", "water-and-conditions", "shoal", "ice-fishing", "sea-fishing",
                  "stocking"]),
-    ("Reference", ["species", "species-reference", "progression", "villager", "order-board",
-                   "config", "electrofisher"]),
+    ("Reference", ["species", "species-reference", "calculator", "progression", "villager",
+                   "order-board", "config", "electrofisher"]),
 ]
 GITHUB = "https://github.com/qwazar14/riverfishing/blob/dev-0.7.0/docs/"
 
@@ -296,6 +297,21 @@ def fence_grid(pid, nth, text):
     return ('<div class="fg">%s</div>'
             % '<span class="ar">&rarr;</span>'.join(
                 wiki_art.grid_html(wiki_art.recipes()[i]) for i in idents))
+
+
+def calculator_inputs():
+    """Profiles, roster order and the three name tables the calculator widget needs."""
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    pdir = os.path.join(base, "common/src/main/resources/data/riverfishing/fish_profiles")
+    profiles = {f[:-5]: json.load(io.open(os.path.join(pdir, f), encoding="utf-8"))
+                for f in os.listdir(pdir)}
+    mi = io.open(os.path.join(base, "common/src/main/java/com/riverfishing/registry/ModItems.java"),
+                 encoding="utf-8").read()
+    roster = re.findall(r'"([a-z_]+)"', re.search(r"FISH_SPECIES = \{(.*?)\};", mi, re.S).group(1))
+    ldir = os.path.join(base, "common/src/main/resources/assets/riverfishing/lang")
+    names = {code: json.load(io.open(os.path.join(ldir, f + ".json"), encoding="utf-8"))
+             for code, f in (("en", "en_us"), ("ru", "ru_ru"), ("uk", "uk_ua"))}
+    return profiles, roster, names
 
 
 def convert(page):
@@ -738,6 +754,7 @@ def main():
             GEAR_CI = {k.lower(): v for k, v in GEAR_NAMES.items()}
             # The grids are the same art in every language, but their headings and captions are prose.
             craft_grids, craft_count = wiki_art.craft_html(code)
+            calc_profiles, calc_roster, calc_names = calculator_inputs()
 
             pages, order = {}, []
             for _, ids in GROUPS:
@@ -752,6 +769,16 @@ def main():
                 # The recipe grids and the item sprites are generated from the game's own files, so
                 # they are identical in every language — only the surrounding prose is translated.
                 body = illustrate(convert(p))
+                # §calculator: the only interactive page in the wiki. Markdown cannot carry it, so the
+                # page ships a marker and the widget is generated here — data straight from the fish
+                # profiles, so it answers with the game's numbers rather than a copy of them.
+                if "<!-- CALCULATOR -->" in p.raw:
+                    first_calc = not globals().get("_CALC_EMITTED")
+                    globals()["_CALC_EMITTED"] = True
+                    body = body.replace("&lt;!-- CALCULATOR --&gt;",
+                                        wiki_calculator.widget(code, calc_profiles, calc_roster, calc_names, first_calc))
+                    body = body.replace("<!-- CALCULATOR -->",
+                                        wiki_calculator.widget(code, calc_profiles, calc_roster, calc_names, first_calc))
                 if pid == "crafting":
                     body += "\n" + craft_grids
                     p.headings.append((2, wiki_art.GRID_LABELS.get(
