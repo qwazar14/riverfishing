@@ -1,6 +1,5 @@
 package com.riverfishing.client;
 
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.entity.player.Player;
@@ -51,23 +50,10 @@ public final class ClientHud {
         g.fill(cx - w / 2 - 4, y - 3, cx + w / 2 + 4, y + 11, 0x66000000);
         g.drawCenteredString(font, text, cx, y, color);
 
-        // §fight-keys: which key to hold, as it is bound RIGHT NOW. The boss bar used to end in a
-        // hardcoded "[W]" — a string the server writes, which cannot know what this client has bound, and
-        // which was already wrong for anyone who had rebound movement. The bar keeps the instruction in
-        // words; the key belongs here, where the binding can actually be asked.
-        KeyMapping counter = switch (l.course) {
-            case 1 -> FightKeys.PULL_RIGHT;   // it goes LEFT
-            case 2 -> FightKeys.PULL_LEFT;
-            case 3 -> FightKeys.LIFT;         // it has gone DEEP
-            case 4 -> FightKeys.PUSH;         // it is coming UP
-            default -> null;
-        };
-        if (counter != null) {
-            String cue = "[ " + FightKeys.label(counter) + " ]";
-            int cw = font.width(cue);
-            g.fill(cx - cw / 2 - 4, y + 11, cx + cw / 2 + 4, y + 24, 0x66000000);
-            g.drawCenteredString(font, cue, cx, y + 13, 0xFFE8E8E8);
-        }
+        // §rod-load: the key cue is GONE — no more [ arrow ] under the crosshair naming the binding to
+        // hold. The rod is the instrument: the blank bends toward the fish and loads with the pull, so a
+        // glyph spelling the answer only repeated what the tackle already shows, and reading a keycap is
+        // not fishing. The bindings still work (§fight-keys, the quiet override) — nothing advertises them.
     }
 
     /** Cast power bar (§cast-minigame): shown while charging a cast (holding RMB with no line out). */
