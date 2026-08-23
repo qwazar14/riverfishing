@@ -146,6 +146,25 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         return mc.level != null && tipViewFrame >= mc.level.getGameTime() - 1;
     }
 
+    /**
+     * §hand-space: WHICH space the first-person hand pass leaves in {@code pose.last()}. The line is
+     * submitted with an identity matrix, so it lands in whatever space the model-view holds when the
+     * batch flushes - either eye space (0) or world-relative-to-camera (1). Vanilla leaves eye space;
+     * a loader or a shaderpack that flushes the hand batch under the world matrix leaves the other,
+     * and the far end of the line then swings around the angler as the camera turns. Reported on
+     * NeoForge 1.21.1 in exactly those words: you cast at one spot and the line ends up anywhere.
+     *
+     * <p>So it is MEASURED, not assumed - see {@link #sampleHandSpace}. -1 = measure and latch;
+     * 0 or 1 pins it ({@code /rfrod handspace view|world|auto}).
+     */
+    public static int HAND_SPACE = -1;
+    private static int handSpaceLatch = 0;
+    private static boolean spaceDecided, spaceHasPrev;
+    private static final org.joml.Vector3f spaceTipPrev = new org.joml.Vector3f();
+    private static final org.joml.Quaternionf spaceCamPrev = new org.joml.Quaternionf();
+    /** What the deciding turn saw, for /rfrod tipinfo to show its work. */
+    private static float spaceEvidenceView, spaceEvidenceWorld;
+
     private static void captureTipView(PoseStack pose, String rodKey, ItemDisplayContext ctx,
                                        ItemStack stack) {
         Float tipX = BLANK_TIP_X.get(rodKey);
@@ -333,6 +352,16 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null || !tipViewFresh()) return;
         if (stack != mc.player.getMainHandItem() && stack != mc.player.getOffhandItem()) return;
+        var cam0 = mc.gameRenderer.getMainCamera();
+        // §hand-space: while the space is still being measured, ANY line drawn here is drawn on a
+        // guess, and the frame the verdict lands on is a visible jump across the screen. Draw nothing
+        // until it is known: handLineFrame stays stale meanwhile, so the world pass keeps the line on
+        // screen and the switch never shows.
+        if (HAND_SPACE < 0 && !spaceDecided) {
+            sampleHandSpace(new org.joml.Vector3f(TIP_VIEW[0], TIP_VIEW[1], TIP_VIEW[2]),
+                    new org.joml.Quaternionf(cam0.rotation()));
+            return;
+        }
         ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
         if (own == null) return;
 
@@ -360,9 +389,12 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // the sag SHAPE is computed in world space (gravity hangs in world-down, not camera-down),
         // anchored on the tip's approximate world position; the on-screen TIP endpoint stays the
         // captured hand-space point exactly
-        org.joml.Vector3f tipW3 = q.transform(new org.joml.Vector3f(tipV));
-        net.minecraft.world.phys.Vec3 tipW = new net.minecraft.world.phys.Vec3(
-                cp.x + tipW3.x(), cp.y + tipW3.y(), cp.z + tipW3.z());
+        // §hand-space: TIP_VIEW is by definition already in the pass's own space - whatever that
+        // space is. Only the WORLD points need converting into it, so the whole question reduces to
+        // this one number, and it is measured rather than believed.
+        sampleHandSpace(tipV, q);
+        int space = effectiveHandSpace();
+        net.minecraft.world.phys.Vec3 tipW = tipWorld(tipV, cp, q, space);
         double dx = tipW.x - end.x, dy = tipW.y - end.y, dz = tipW.z - end.z;
 
         // The hand and world projections genuinely disagree about where the tip is on screen, so the
@@ -370,19 +402,19 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // segment — a hard switch put a visible kink right under the tip. delta is exactly what the
         // hand projection adds at the tip; each point takes f of it, so the water end stays
         // world-correct and the tip end lands on the drawn tip precisely.
-        org.joml.Vector3f tipWarped = toViewWarped(tipW, cp, q, warp);
+        org.joml.Vector3f tipWarped = toNode(tipW, cp, q, warp, space);
         float dtx = tipV.x() - tipWarped.x(), dty = tipV.y() - tipWarped.y(), dtz = tipV.z() - tipWarped.z();
 
         org.joml.Matrix4f id = new org.joml.Matrix4f();
         double time = mc.level.getGameTime() + pt;
-        org.joml.Vector3f prev = toViewWarped(
-                end.add(0, LineRenderer.hangOffset(own, dy, 0.0, time), 0), cp, q, warp);
+        org.joml.Vector3f prev = toNode(
+                end.add(0, LineRenderer.hangOffset(own, dy, 0.0, time), 0), cp, q, warp, space);
         for (int k = 1; k <= 16; k++) {
             double f = k / 16.0;
-            org.joml.Vector3f p = toViewWarped(new net.minecraft.world.phys.Vec3(
+            org.joml.Vector3f p = toNode(new net.minecraft.world.phys.Vec3(
                     end.x + dx * f,
                     end.y + LineRenderer.hangOffset(own, dy, f, time),   // §line-taut
-                    end.z + dz * f), cp, q, warp)
+                    end.z + dz * f), cp, q, warp, space)
                     .add((float) (dtx * f), (float) (dty * f), (float) (dtz * f));
             float sx = p.x() - prev.x(), sy = p.y() - prev.y(), sz = p.z() - prev.z();
             float len = (float) Math.sqrt(sx * sx + sy * sy + sz * sz);
@@ -396,15 +428,86 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         handLineFrame = mc.level.getGameTime();
     }
 
-    private static org.joml.Vector3f toViewWarped(net.minecraft.world.phys.Vec3 w,
-                                                  net.minecraft.world.phys.Vec3 cp,
-                                                  org.joml.Quaternionf q, float warp) {
+    /**
+     * A world point in the space the hand pass draws in. Both readings start the same way -
+     * camera-relative, un-rotated into eye space, then scaled by the fov warp (an eye-space scale,
+     * so it belongs here either way). Space 1 rotates the result back out to world-relative.
+     */
+    private static org.joml.Vector3f toNode(net.minecraft.world.phys.Vec3 w,
+                                            net.minecraft.world.phys.Vec3 cp,
+                                            org.joml.Quaternionf q, float warp, int space) {
         org.joml.Vector3f v = new org.joml.Vector3f(
                 (float) (w.x - cp.x), (float) (w.y - cp.y), (float) (w.z - cp.z));
         q.transformInverse(v);
         v.x *= warp;
         v.y *= warp;
+        if (space == 1) q.transform(v);
         return v;
+    }
+
+    /** §hand-space: the captured tip as a WORLD point, under the given reading of the pass's space. */
+    private static net.minecraft.world.phys.Vec3 tipWorld(org.joml.Vector3f tipV,
+                                                          net.minecraft.world.phys.Vec3 cp,
+                                                          org.joml.Quaternionf q, int space) {
+        org.joml.Vector3f w = space == 0 ? q.transform(new org.joml.Vector3f(tipV))
+                                         : new org.joml.Vector3f(tipV);
+        return new net.minecraft.world.phys.Vec3(cp.x + w.x(), cp.y + w.y(), cp.z + w.z());
+    }
+
+    /**
+     * §hand-space: decides the reading by MEASURING what the camera does to the captured tip - and
+     * decides it ONCE. The two spaces differ in exactly one way: turn the head, and a tip held in eye
+     * space does not move (the hand is pinned to the screen), while a tip in world-relative space
+     * swings with the camera. So sample the tip and the camera, wait for a real turn, and ask which
+     * of the two the tip actually did. Either it followed the camera or it did not; once answered it
+     * is latched, so the line can never flip between two places mid-fight.
+     */
+    private static void sampleHandSpace(org.joml.Vector3f tipV, org.joml.Quaternionf q) {
+        if (spaceDecided || HAND_SPACE >= 0) return;
+        if (!spaceHasPrev) {
+            spaceTipPrev.set(tipV);
+            spaceCamPrev.set(q);
+            spaceHasPrev = true;
+            return;
+        }
+        org.joml.Quaternionf turn = new org.joml.Quaternionf(q)
+                .mul(new org.joml.Quaternionf(spaceCamPrev).invert());
+        float turnDeg = (float) Math.toDegrees(2.0 * Math.acos(Math.min(1f, Math.abs(turn.w()))));
+        // Under ~12 degrees the two predictions sit inside the noise the springs alone put on the tip.
+        if (turnDeg < 12f) return;
+        float dView = spaceTipPrev.distance(tipV);                                    // tip stayed put
+        float dWorld = turn.transform(new org.joml.Vector3f(spaceTipPrev)).distance(tipV); // tip turned
+        spaceTipPrev.set(tipV);
+        spaceCamPrev.set(q);
+        // Only a CLEAR answer counts; a close call means the turn was not telling, so wait for a better one.
+        if (Math.min(dView, dWorld) * 2f > Math.max(dView, dWorld)) return;
+        handSpaceLatch = dWorld < dView ? 1 : 0;
+        spaceDecided = true;
+        spaceEvidenceView = dView;
+        spaceEvidenceWorld = dWorld;
+        // Persist it: the answer cannot change for a given install, so measuring it once per launch
+        // only buys one avoidable wobble per launch.
+        HAND_SPACE = handSpaceLatch;
+        RodClientSettings.save();
+    }
+
+    /** §hand-space: re-open the question - /rfrod handspace auto starts the measurement over. */
+    public static void resetHandSpace() {
+        spaceDecided = false;
+        spaceHasPrev = false;
+    }
+
+    /** §hand-space: the reading in force right now - pinned value, else the latched measurement. */
+    public static int effectiveHandSpace() {
+        return HAND_SPACE >= 0 ? HAND_SPACE : handSpaceLatch;
+    }
+
+    /** §hand-space: what the last measurement saw - /rfrod tipinfo prints it. */
+    public static String handSpaceReport() {
+        return String.format("space=%s %s  turn moved the tip by: stay %.2f / follow %.2f",
+                effectiveHandSpace() == 0 ? "view" : "world",
+                HAND_SPACE >= 0 ? "(pinned)" : spaceDecided ? "(measured)" : "(still watching)",
+                spaceEvidenceView, spaceEvidenceWorld);
     }
 
     // ===== §reel-crank: the handle spins while the fight is being reeled =====

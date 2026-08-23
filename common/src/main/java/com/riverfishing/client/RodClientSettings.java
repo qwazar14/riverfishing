@@ -41,6 +41,7 @@ public final class RodClientSettings {
             if (o.has("max")) RodPhysics.MAX_DEG = o.get("max").getAsFloat();
             if (o.has("jerk")) RodPhysics.JERK_GAIN = o.get("jerk").getAsFloat();
             if (o.has("pull")) RodPhysics.PULL_GAIN = o.get("pull").getAsFloat();
+            if (o.has("handSpace")) RodItemRenderer.HAND_SPACE = o.get("handSpace").getAsInt();
             readVec(o, "pivot", RodHandTransform.PIVOT);
             readVec(o, "tip3d", LineRenderer.TIP3D_OFFSET);
         } catch (Exception ignored) {
@@ -61,6 +62,7 @@ public final class RodClientSettings {
             o.addProperty("max", RodPhysics.MAX_DEG);
             o.addProperty("jerk", RodPhysics.JERK_GAIN);
             o.addProperty("pull", RodPhysics.PULL_GAIN);
+            o.addProperty("handSpace", RodItemRenderer.HAND_SPACE);
             o.add("pivot", vec(RodHandTransform.PIVOT));
             o.add("tip3d", vec(LineRenderer.TIP3D_OFFSET));
             Files.writeString(file(), o.toString(), StandardCharsets.UTF_8);
