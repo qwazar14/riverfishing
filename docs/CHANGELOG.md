@@ -5,13 +5,24 @@ Full patchnotes. The short three-bullet form the in-game update checker shows li
 
 ---
 
+## 0.8.1 — the line goes where you cast it, and the giants can be landed
+
+**Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.
+
+Full patchnote: [`docs/patchnotes/0.8.1.md`](patchnotes/0.8.1.md).
+
+A repair release built from Discord reports. The first-person line stopped guessing which space it is
+drawn in; the required pull now tapers above 20 kg, so the fish that no tackle in the mod could land
+can be landed; breaches are rarer and their window has grace ticks. Two more of the carp family — kutum
+and the naked carp — bring the roster to 93, and the crucian and mirror carp were repainted.
+
+---
+
 ## 0.8.0 — groundbait you mix yourself, and a journal worth reading
 
 **Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.
 
 Full patchnote: [`docs/patchnotes/0.8.0.md`](patchnotes/0.8.0.md).
-
-*Prepared, not published.*
 
 ---
 
