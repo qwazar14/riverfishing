@@ -53,6 +53,9 @@ public final class ModItems {
     public static final List<RegistrySupplier<Item>> RODS = new ArrayList<>();
     // ---- Caught fish: one item + texture per species (Module 8; ÃÂ§ecology adds habitat-bound species) ----
     public static final String[] FISH_SPECIES = {
+            // §carp-kin (0.8.1): two more of the family — a Caspian roach that grew up, and a carp
+            // that forgot to put its scales on.
+            "kutum", "naked_carp",
             // §giants-and-minnows (0.8.0): the top of the ladder and the bottom of it — six fish that outgrow
             // every rod in the shop, and five you can catch with a stick and a maggot.
             "arapaima", "beluga", "piraiba", "goliath_grouper",

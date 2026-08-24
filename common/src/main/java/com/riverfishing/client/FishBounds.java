@@ -56,7 +56,7 @@ public final class FishBounds {
         put("cod", 0.961f, 0.371f);
         put("common_dace", 0.969f, 0.391f);
         put("conger", 0.941f, 0.148f);
-        put("crucian_carp", 0.973f, 0.676f);
+        put("crucian_carp", 0.938f, 0.5f);
         put("eel", 0.98f, 0.141f);
         put("flounder", 0.984f, 0.488f);
         put("frilled_shark", 0.945f, 0.191f);
@@ -72,13 +72,15 @@ public final class FishBounds {
         put("herring", 0.945f, 0.293f);
         put("ide", 0.973f, 0.438f);
         put("jack_crevalle", 0.945f, 0.449f);
+        put("kutum", 0.938f, 0.445f);
         put("largemouth_bass", 0.949f, 0.484f);
         put("lenok", 0.98f, 0.375f);
         put("mackerel", 0.957f, 0.309f);
         put("mahi", 0.965f, 0.496f);
         put("mako", 0.969f, 0.434f);
         put("mayan_cichlid", 0.871f, 0.477f);
-        put("mirror_carp", 0.949f, 0.625f);
+        put("mirror_carp", 0.938f, 0.5f);
+        put("naked_carp", 0.938f, 0.5f);
         put("nase", 0.961f, 0.383f);
         put("oscar", 0.941f, 0.613f);
         put("peacock_bass", 0.945f, 0.441f);

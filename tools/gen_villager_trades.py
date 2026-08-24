@@ -489,13 +489,17 @@ FISH = {
         ("pike", 5, 8), ("volga_zander", 4, 6), ("pink_salmon", 4, 8), ("whitefish", 4, 8),
         ("asp", 6, 9),
         # §florida-nine: the two small cichlids sit with the pan-fish of their weight.
-        ("oscar", 2, 4), ("mayan_cichlid", 2, 3)],
+        ("oscar", 2, 4), ("mayan_cichlid", 2, 3),
+        # §giants-and-minnows (0.8.0)
+        ("kutum", 5, 9)],
     4: [("carp", 6, 12), ("mirror_carp", 7, 13), ("grass_carp", 9, 14), ("zander", 6, 10),
         # §florida-nine: the mid-weight predators, priced against largemouth bass and trout.
         ("peacock_bass", 7, 13), ("bullseye_snakehead", 6, 11), ("bluefish", 6, 12),
         ("trout", 6, 12), ("largemouth_bass", 7, 12), ("rainbow_trout", 7, 12), ("grayling", 7, 12),
         ("burbot", 5, 10), ("mackerel", 3, 6), ("herring", 2, 4), ("garfish", 3, 6),
-        ("flounder", 4, 8), ("char", 6, 12), ("lenok", 6, 12), ("salmon", 10, 18)],
+        ("flounder", 4, 8), ("char", 6, 12), ("lenok", 6, 12), ("salmon", 10, 18),
+        # §giants-and-minnows (0.8.0)
+        ("naked_carp", 8, 14)],
     5: [("catfish", 12, 25), ("eel", 8, 15), ("channel_catfish", 10, 20), ("sterlet", 16, 30),
         # §florida-nine: the big saltwater four, against the mahi/wahoo/barracuda band.
         ("tarpon", 20, 32), ("snook", 11, 21), ("jack_crevalle", 12, 22), ("striped_bass", 12, 23),

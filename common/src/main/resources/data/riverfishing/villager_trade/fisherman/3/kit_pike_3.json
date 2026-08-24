@@ -9,7 +9,7 @@
   "given_item_modifiers": [
     {
       "function": "minecraft:set_custom_data",
-      "tag": "{Box:[{s:0,i:{id:\"riverfishing:leader\",count:2}},{s:1,i:{id:\"riverfishing:spinner\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:14,BalancePos:1,BladeSize:1},\"minecraft:dyed_color\":13145248}}},{s:2,i:{id:\"riverfishing:spoon\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:31,BalancePos:1,BladeSize:3},\"minecraft:dyed_color\":1481884}}},{s:3,i:{id:\"riverfishing:wobbler\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:26,BalancePos:1},\"minecraft:dyed_color\":11567192}}}]}"
+      "tag": "{Box:[{s:0,i:{id:\"riverfishing:leader\",count:2}},{s:1,i:{id:\"riverfishing:spinner\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:14,BalancePos:1,BladeSize:1},\"minecraft:dyed_color\":13986246}}},{s:2,i:{id:\"riverfishing:spoon\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:25,BalancePos:1,BladeSize:2},\"minecraft:dyed_color\":7249857}}},{s:3,i:{id:\"riverfishing:wobbler\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:14,BalancePos:1},\"minecraft:dyed_color\":12483976}}}]}"
     },
     {
       "function": "minecraft:set_components",
