@@ -288,6 +288,11 @@ public final class ModVillagers {
 
         // §giants-and-minnows (0.8.0): the giants pay like the taimen tier they sit beside,
         // the minnows like the bleak they swim with.
+        buyPrime(fish, 3, "kutum", 5, 9);
+        buyPrime(fish, 4, "naked_carp", 8, 14);
+
+        // §giants-and-minnows (0.8.0): the giants pay like the taimen tier they sit beside,
+        // the minnows like the bleak they swim with.
         buyPrime(fish, 5, "arapaima", 26, 38);
         buyPrime(fish, 5, "beluga", 30, 44);
         buyPrime(fish, 5, "piraiba", 22, 34);
