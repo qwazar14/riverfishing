@@ -24,323 +24,72 @@ TREES = [MAIN, r"C:/Users/Qwazar/wt/rf1201", r"C:/Users/Qwazar/wt/rf26"]
 A = "common/src/main/resources/assets/riverfishing"
 D = "common/src/main/resources/data/riverfishing"
 
-WAVE = ("§giants-and-minnows (0.8.0): the top of the ladder and the bottom of it — six fish that outgrow\n"
-        "            // every rod in the shop, and five you can catch with a stick and a maggot.")
+WAVE = ("§carp-kin (0.8.1): two more of the family — a Caspian roach that grew up, and a carp\n"
+        "            // that forgot to put its scales on.")
 
 # id: (donor, profile patch, (en, ru, uk) name, (en, ru, uk) journal description, (trade tier, emeralds, xp))
 SPECIES = {
- "arapaima": ("tarpon", {
-    "display": "Арапайма", "group": "big_game",
-    "water_bodies": {"river": 1.2, "lake": 1.0, "swamp": 0.9, "pond": 0.3, "sea": 0.0, "puddle": 0.0},
-    "weight_g": {"min": 20000, "max": 180000, "mean": 45000}, "length_cm": {"min": 120, "max": 300},
-    "fight": {"strength": 0.95, "stamina": 0.85, "runs": 4, "pattern": "greyhounding", "aggression": 0.8},
-    "ideal": {"rod": ["boat", "sea_spin"], "reel_size": 10000, "reel_tolerance": 2000,
-              "line": {"type": "braid", "diameter_mm": 0.45, "tolerance_mm": 0.08},
-              "rig": ["predator", "catfish"], "groundbait": {"fraction": 0.95, "nutrition": 0.80},
-              "bait": {"livebait": 1.0, "fish_strip": 0.9, "giant_spoon": 0.85, "wobbler": 0.75, "silicone": 0.6},
-              "hook": {"ideal": 1, "tolerance": 2}, "requires_leader": True},
-    "season": {"spring": 1.1, "summer": 1.2, "autumn": 1.0, "winter": 0.3},
-    "time": {"dawn": 1.2, "day": 0.9, "dusk": 1.2, "night": 0.8},
-    "weather": {"clear": 1.0, "rain": 1.2, "thunder": 0.9},
-    "depth_pref": "surface", "distance_pref": {"min": 10, "max": 35},
-    "habitat": {"depth_min": 3, "width_min": 14}, "biomes": {"warm": 1.4, "swamp": 1.0},
-    "base": 0.22, "min_angler_level": 10, "legendary": {"weight_g": 175000, "chance": 0.004}},
-   ("Arapaima", "Арапайма", "Арапайма"),
-   ("Three metres of armour-plated Amazon that has to surface for air — watch for the roll, then put the "
-    "bait where it went down. Livebait and the heaviest gear you own; it jumps like a tarpon and weighs four times more.",
-    "Три метра бронированной амазонской чешуи, которой нужно всплывать за воздухом — заметьте всплеск и "
-    "кладите приманку туда. Живец и самая тяжёлая снасть; свечит как тарпон, а весит вчетверо больше.",
-    "Три метри броньованої амазонської луски, якій треба спливати по повітря — помітьте сплеск і кладіть "
-    "приманку туди. Живець і найважча снасть; свічкує як тарпон, а важить учетверо більше."),
-   (5, 26, 38)),
-
- "beluga": ("sturgeon", {
-    "display": "Белуга", "group": "sturgeon",
-    "water_bodies": {"river": 1.0, "lake": 0.3, "pond": 0.0, "swamp": 0.0, "sea": 1.0, "puddle": 0.0},
-    "weight_g": {"min": 40000, "max": 600000, "mean": 90000}, "length_cm": {"min": 150, "max": 500},
-    "fight": {"strength": 1.0, "stamina": 1.0, "runs": 6, "pattern": "sounding", "aggression": 0.5},
-    "ideal": {"rod": ["boat", "bottom"], "reel_size": 14000, "reel_tolerance": 2000,
-              "line": {"type": "braid", "diameter_mm": 0.55, "tolerance_mm": 0.10},
-              "rig": ["catfish", "grusha"], "groundbait": {"fraction": 0.98, "nutrition": 0.82},
-              "bait": {"livebait": 1.0, "fish_strip": 0.9, "chicken_liver": 0.85, "worm": 0.5},
-              "hook": {"ideal": 1, "tolerance": 1}, "requires_leader": True},
-    "season": {"spring": 1.2, "summer": 0.9, "autumn": 1.2, "winter": 0.5},
-    "time": {"dawn": 1.1, "day": 0.6, "dusk": 1.2, "night": 1.4},
-    "weather": {"clear": 1.0, "rain": 1.1, "thunder": 1.0},
-    "depth_pref": "bottom", "distance_pref": {"min": 20, "max": 60},
-    "habitat": {"depth_min": 6, "width_min": 26},
-    "biomes": {"temperate": 1.0, "cold": 1.0, "ocean_biome": 0.9, "deep": 0.8},
-    "base": 0.10, "min_angler_level": 12, "legendary": {"weight_g": 580000, "chance": 0.003}},
-   ("Beluga sturgeon", "Белуга", "Білуга"),
-   ("The Tsar-Fish herself: half a tonne of sturgeon that runs the sea and climbs the big rivers to spawn. "
-    "Bottom tackle rated for a boat anchor, livebait, and a night with nothing else planned.",
-    "Та самая царь-рыба: полтонны осетровой породы, что ходит морем и поднимается на нерест в большие "
-    "реки. Донка под якорную нагрузку, живец и ночь, на которую больше ничего не планируйте.",
-    "Та сама цар-риба: пів тонни осетрової породи, що ходить морем і підіймається на нерест у великі "
-    "річки. Донка під якірне навантаження, живець і ніч, на яку більше нічого не плануйте."),
-   (5, 30, 44)),
-
- "piraiba": ("catfish", {
-    "display": "Пирайба", "group": "predator",
-    "water_bodies": {"river": 1.3, "lake": 0.5, "swamp": 0.4, "pond": 0.1, "sea": 0.0, "puddle": 0.0},
-    "weight_g": {"min": 15000, "max": 160000, "mean": 32000}, "length_cm": {"min": 100, "max": 280},
-    "fight": {"strength": 0.95, "stamina": 1.0, "runs": 5, "pattern": "relentless", "aggression": 0.85},
-    "ideal": {"rod": ["bottom", "carp", "boat"], "reel_size": 10000, "reel_tolerance": 2000,
-              "line": {"type": "braid", "diameter_mm": 0.50, "tolerance_mm": 0.08},
-              "rig": ["catfish", "grusha"], "groundbait": {"fraction": 0.96, "nutrition": 0.80},
-              "bait": {"livebait": 1.0, "fish_strip": 0.95, "chicken_liver": 0.85, "worm": 0.5},
-              "hook": {"ideal": 1, "tolerance": 2}, "requires_leader": True},
-    "season": {"spring": 1.1, "summer": 1.2, "autumn": 1.0, "winter": 0.3},
-    "time": {"dawn": 1.0, "day": 0.4, "dusk": 1.3, "night": 1.6},
-    "weather": {"clear": 0.9, "rain": 1.3, "thunder": 1.1},
-    "depth_pref": "bottom", "distance_pref": {"min": 15, "max": 45},
-    "habitat": {"depth_min": 5, "width_min": 18}, "biomes": {"warm": 1.4, "swamp": 0.8},
-    "base": 0.18, "min_angler_level": 10, "legendary": {"weight_g": 155000, "chance": 0.004}},
-   ("Piraiba", "Пирайба", "Пірайба"),
-   ("The Amazon's own catfish, and the one the river stories are about — it hunts the deep channel after "
-    "dark. Heavy ledger, livebait or a cut strip, and a leader, because it swallows.",
-    "Амазонский сом — тот самый, про которого рассказывают на реке. Охотится в глубоком русле после "
-    "заката. Тяжёлая донка, живец или резка, и обязательно поводок: заглатывает.",
-    "Амазонський сом — той самий, про якого розповідають на річці. Полює в глибокому руслі після заходу "
-    "сонця. Важка донка, живець або різка, і обов'язково повідець: заковтує."),
-   (5, 22, 34)),
-
- "goliath_grouper": ("halibut", {
-    "display": "Голиафовый групер", "group": "big_game",
-    "water_bodies": {"river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "sea": 1.2, "puddle": 0.0},
-    "weight_g": {"min": 20000, "max": 320000, "mean": 55000}, "length_cm": {"min": 100, "max": 250},
-    "fight": {"strength": 1.0, "stamina": 0.75, "runs": 3, "pattern": "sounding", "aggression": 0.9},
-    "ideal": {"rod": ["boat", "surf"], "reel_size": 12000, "reel_tolerance": 2000,
-              "line": {"type": "braid", "diameter_mm": 0.55, "tolerance_mm": 0.10},
-              "rig": ["catfish", "predator"], "groundbait": {"fraction": 0.97, "nutrition": 0.78},
-              "bait": {"livebait": 1.0, "fish_strip": 0.95, "octopus_jig": 0.8, "giant_spoon": 0.5},
-              "hook": {"ideal": 1, "tolerance": 1}, "requires_leader": True},
-    "season": {"spring": 1.0, "summer": 1.2, "autumn": 1.1, "winter": 0.7},
-    "time": {"dawn": 1.2, "day": 1.0, "dusk": 1.2, "night": 1.1},
-    "weather": {"clear": 1.0, "rain": 1.0, "thunder": 1.0},
-    "depth_pref": "bottom", "distance_pref": {"min": 10, "max": 35},
-    "habitat": {"depth_min": 5, "width_min": 20},
-    "biomes": {"warm": 1.4, "ocean_biome": 1.0, "beach": 0.9},
-    "base": 0.20, "min_angler_level": 10, "legendary": {"weight_g": 310000, "chance": 0.004}},
-   ("Goliath grouper", "Голиафовый групер", "Голіафовий групер"),
-   ("A third of a tonne of reef that decided to eat your bait. The whole fight is the first ten seconds: "
-    "stop it reaching the hole it lives in, or you are pulling on a rock with your line inside it.",
-    "Треть тонны рифа, решившая съесть вашу наживку. Весь бой — первые десять секунд: не пустите его в "
-    "нору, иначе будете тянуть камень, внутри которого ваша леска.",
-    "Третина тонни рифу, що вирішила з'їсти вашу наживку. Увесь бій — перші десять секунд: не пустіть "
-    "його в нору, інакше тягтимете камінь, усередині якого ваша волосінь."),
-   (5, 24, 36)),
-
- "bull_shark": ("mako", {
-    "display": "Тупорылая акула", "group": "big_game",
-    "water_bodies": {"river": 0.6, "lake": 0.25, "pond": 0.0, "swamp": 0.0, "sea": 1.1, "puddle": 0.0},
-    "weight_g": {"min": 30000, "max": 230000, "mean": 65000}, "length_cm": {"min": 150, "max": 350},
-    "fight": {"strength": 1.0, "stamina": 0.95, "runs": 5, "pattern": "aggressive", "aggression": 1.0},
-    "ideal": {"rod": ["boat", "surf", "trolling"], "reel_size": 12000, "reel_tolerance": 2000,
-              "line": {"type": "braid", "diameter_mm": 0.50, "tolerance_mm": 0.08},
-              "rig": ["predator", "catfish"], "groundbait": {"fraction": 1.00, "nutrition": 0.76},
-              "bait": {"livebait": 1.0, "fish_strip": 1.0, "octopus_jig": 0.75, "giant_spoon": 0.7},
-              "hook": {"ideal": 1, "tolerance": 1}, "requires_leader": True},
-    "season": {"spring": 1.0, "summer": 1.3, "autumn": 1.1, "winter": 0.5},
-    "time": {"dawn": 1.3, "day": 0.9, "dusk": 1.3, "night": 1.1},
-    "weather": {"clear": 1.0, "rain": 1.1, "thunder": 1.0},
-    "depth_pref": "mid", "distance_pref": {"min": 15, "max": 40},
-    "habitat": {"depth_min": 4, "width_min": 18},
-    "biomes": {"warm": 1.3, "ocean_biome": 1.0, "beach": 1.0},
-    "base": 0.24, "min_angler_level": 9, "legendary": {"weight_g": 225000, "chance": 0.004}},
-   ("Bull shark", "Тупорылая акула", "Тупорила акула"),
-   ("The one shark that swims UP the river — brackish, fresh, it does not care, which is why it turns up "
-    "where no shark should be. Wire trace, the heaviest drag you own, and no hands in the water.",
-    "Единственная акула, которая поднимается ВВЕРХ по реке — солоноватая вода, пресная, ей всё равно; "
-    "потому и появляется там, где акул быть не должно. Поводок, максимальный фрикцион, руки из воды.",
-    "Єдина акула, яка підіймається ВГОРУ по річці — солонувата вода, прісна, їй байдуже; тому й "
-    "з'являється там, де акул бути не повинно. Повідець, максимальний фрикціон, руки з води."),
-   (5, 24, 36)),
-
- "frilled_shark": ("conger", {
-    "display": "Плащеносная акула", "group": "big_game",
-    "water_bodies": {"river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "sea": 1.0, "puddle": 0.0},
-    "weight_g": {"min": 8000, "max": 50000, "mean": 16000}, "length_cm": {"min": 90, "max": 200},
-    "fight": {"strength": 0.7, "stamina": 0.95, "runs": 3, "pattern": "sounding", "aggression": 0.55},
-    "ideal": {"rod": ["boat"], "reel_size": 10000, "reel_tolerance": 2000,
-              "line": {"type": "braid", "diameter_mm": 0.40, "tolerance_mm": 0.08},
-              "rig": ["catfish", "predator"], "groundbait": {"fraction": 0.90, "nutrition": 0.70},
-              "bait": {"fish_strip": 1.0, "octopus_jig": 0.95, "livebait": 0.85},
-              "hook": {"ideal": 1, "tolerance": 2}, "requires_leader": True},
-    "season": {"spring": 1.0, "summer": 0.8, "autumn": 1.0, "winter": 1.1},
-    "time": {"dawn": 1.0, "day": 0.25, "dusk": 1.2, "night": 1.6},
-    "weather": {"clear": 1.0, "rain": 1.0, "thunder": 1.0},
-    "depth_pref": "bottom", "distance_pref": {"min": 25, "max": 60},
-    "habitat": {"depth_min": 14, "width_min": 28},
-    "biomes": {"deep": 1.6, "cold": 1.0, "ocean_biome": 0.7},
-    "base": 0.06, "min_angler_level": 11, "legendary": {"weight_g": 48000, "chance": 0.003}},
-   ("Frilled shark", "Плащеносная акула", "Плащоносна акула"),
-   ("A living fossil with three hundred backward-curving teeth, hauled up out of water that never sees the "
-    "sun. Deep drops at night off a boat; most anglers never see one.",
-    "Живое ископаемое с тремя сотнями загнутых внутрь зубов, поднятое из воды, куда не доходит солнце. "
-    "Глубокий отвес ночью с лодки; большинство рыбаков не видят её никогда.",
-    "Жива копалина з трьома сотнями загнутих усередину зубів, піднята з води, куди не сягає сонце. "
-    "Глибокий відвіс уночі з човна; більшість рибалок не бачать її ніколи."),
-   (5, 26, 38)),
-
- "golden_dorado": ("taimen", {
-    "display": "Золотой дорадо", "group": "predator",
-    "water_bodies": {"river": 1.3, "lake": 0.6, "swamp": 0.3, "pond": 0.2, "sea": 0.0, "puddle": 0.0},
-    "weight_g": {"min": 1500, "max": 30000, "mean": 5500}, "length_cm": {"min": 40, "max": 120},
-    "fight": {"strength": 0.9, "stamina": 0.8, "runs": 5, "pattern": "greyhounding", "aggression": 1.0},
-    "ideal": {"rod": ["spinning", "sea_spin"], "reel_size": 4000, "reel_tolerance": 1000,
-              "line": {"type": "braid", "diameter_mm": 0.28, "tolerance_mm": 0.06},
-              "rig": ["predator"], "groundbait": {"fraction": 0.60, "nutrition": 0.70},
-              "bait": {"wobbler": 1.0, "spoon": 0.9, "spinner": 0.9, "popper": 0.85, "crankbait": 0.8,
-                       "silicone": 0.8, "livebait": 0.7},
-              "hook": {"ideal": 2, "tolerance": 2}, "requires_leader": True},
-    "season": {"spring": 1.2, "summer": 1.3, "autumn": 1.0, "winter": 0.2},
-    "time": {"dawn": 1.4, "day": 0.9, "dusk": 1.4, "night": 0.5},
-    "weather": {"clear": 1.0, "rain": 1.2, "thunder": 0.9},
-    "depth_pref": "mid", "distance_pref": {"min": 8, "max": 30},
-    "habitat": {"depth_min": 2, "width_min": 10}, "biomes": {"warm": 1.4, "swamp": 0.6},
-    "base": 0.38, "min_angler_level": 6},
-   ("Golden dorado", "Золотой дорадо", "Золотий дорадо"),
-   ("The river tiger of South America: gold scales, a bulldog jaw and a habit of clearing the water three "
-    "times per fight. Wobblers and spoons on a wire trace — it bites through everything else.",
-    "Речной тигр Южной Америки: золотая чешуя, бульдожья челюсть и привычка трижды за бой выходить "
-    "свечкой. Воблеры и колебалки на поводке — всё остальное перекусывает.",
-    "Річковий тигр Південної Америки: золота луска, бульдожа щелепа і звичка тричі за бій виходити "
-    "свічкою. Воблери й коливалки на повідці — усе інше перекушує."),
-   (5, 12, 22)),
-
- "golden_crucian": ("crucian_carp", {
-    "display": "Золотой карась", "group": "cyprinid",
-    "water_bodies": {"river": 0.3, "lake": 0.9, "pond": 1.4, "swamp": 1.3, "sea": 0.0, "puddle": 0.5},
-    "weight_g": {"min": 60, "max": 3000, "mean": 350}, "length_cm": {"min": 12, "max": 45},
-    "fight": {"strength": 0.4, "stamina": 0.55, "runs": 2, "pattern": "steady", "aggression": 0.3},
-    "ideal": {"rod": ["pole", "stick", "bamboo", "feeder"], "reel_size": 2000, "reel_tolerance": 1000,
-              "line": {"type": "mono", "diameter_mm": 0.18, "tolerance_mm": 0.05},
-              "rig": ["float", "primitive", "feeder"], "groundbait": {"fraction": 0.35, "nutrition": 0.60},
-              "bait": {"worm": 1.0, "bread": 0.9, "dough": 0.9, "maggot": 0.85, "corn": 0.7, "pearl_barley": 0.6},
-              "hook": {"ideal": 12, "tolerance": 2}},
-    "season": {"spring": 1.0, "summer": 1.4, "autumn": 0.8, "winter": 0.05},
-    "time": {"dawn": 1.3, "day": 0.9, "dusk": 1.3, "night": 0.6},
-    "weather": {"clear": 1.0, "rain": 1.2, "thunder": 0.7},
-    "depth_pref": "bottom", "distance_pref": {"min": 3, "max": 15},
-    "habitat": {"depth_min": 1, "width_min": 5},
-    "biomes": {"temperate": 1.0, "warm": 1.1, "swamp": 1.3},
-    "base": 0.85, "min_angler_level": 2},
-   ("Golden crucian", "Золотой карась", "Золотий карась"),
-   ("The round bronze crucian of farm ponds — it survives water that kills everything else, freezing "
-    "included. Float rod, worm or bread, and patience for the fussiest bite in the pond.",
-    "Круглый бронзовый карась деревенских прудов — выживает там, где гибнет всё остальное, даже "
-    "промерзая насквозь. Поплавок, червь или хлеб и терпение к самой капризной поклёвке пруда.",
-    "Круглий бронзовий карась сільських ставків — виживає там, де гине все інше, навіть промерзаючи "
-    "наскрізь. Поплавець, черв'як чи хліб і терпіння до найвередливішого клювання ставка."),
-   (2, 2, 3)),
-
- "gorchak": ("bleak", {
-    "display": "Горчак", "group": "cyprinid",
-    "water_bodies": {"river": 0.9, "lake": 1.0, "pond": 1.2, "swamp": 0.8, "sea": 0.0, "puddle": 0.4},
-    "weight_g": {"min": 3, "max": 30, "mean": 9}, "length_cm": {"min": 3, "max": 9},
-    "fight": {"strength": 0.03, "stamina": 0.1, "runs": 1},
-    "ideal": {"rod": ["pole", "stick", "ultralight"], "reel_size": 1000, "reel_tolerance": 1000,
-              "line": {"type": "mono", "diameter_mm": 0.10, "tolerance_mm": 0.03},
-              "rig": ["float", "primitive"], "groundbait": {"fraction": 0.10, "nutrition": 0.40},
-              "bait": {"bloodworm": 1.0, "maggot": 1.0, "bread": 0.8, "dough": 0.7},
-              "hook": {"ideal": 16, "tolerance": 1}},
-    "season": {"spring": 1.1, "summer": 1.3, "autumn": 0.7, "winter": 0.0},
-    "time": {"dawn": 1.0, "day": 1.2, "dusk": 1.0, "night": 0.0},
-    "weather": {"clear": 1.2, "rain": 0.9, "thunder": 0.6},
-    "depth_pref": "mid", "distance_pref": {"min": 2, "max": 10},
-    "habitat": {"depth_min": 1, "depth_max": 3, "width_min": 4},
-    "biomes": {"temperate": 1.0, "warm": 1.1, "swamp": 0.9},
-    "base": 1.0},
-   ("Bitterling", "Горчак", "Гірчак"),
-   ("A thumb-length carp cousin that lays its eggs inside living mussels. Bitter enough that nobody eats "
-    "it — smallest hook you own, one bloodworm, shallow water.",
-    "Карповая мелочь с палец длиной, которая мечет икру внутрь живых ракушек. Горчит так, что никто его "
-    "не ест — самый мелкий крючок, один мотыль и мелководье.",
-    "Коропова дрібнота з палець завдовжки, що відкладає ікру всередину живих скойок. Гірчить так, що "
-    "ніхто його не їсть — найдрібніший гачок, один мотиль і мілина."),
-   (1, 1, 1)),
-
- "verkhovka": ("bleak", {
-    "display": "Верховка", "group": "cyprinid",
-    "water_bodies": {"river": 0.4, "lake": 1.0, "pond": 1.4, "swamp": 0.9, "sea": 0.0, "puddle": 0.9},
-    "weight_g": {"min": 2, "max": 18, "mean": 6}, "length_cm": {"min": 3, "max": 8},
-    "fight": {"strength": 0.02, "stamina": 0.1, "runs": 1},
-    "ideal": {"rod": ["pole", "stick", "ultralight"], "reel_size": 1000, "reel_tolerance": 1000,
-              "line": {"type": "mono", "diameter_mm": 0.10, "tolerance_mm": 0.03},
-              "rig": ["float", "primitive"], "groundbait": {"fraction": 0.08, "nutrition": 0.38},
-              "bait": {"maggot": 1.0, "bread": 0.95, "bloodworm": 0.85, "dough": 0.8},
-              "hook": {"ideal": 16, "tolerance": 1}},
-    "season": {"spring": 1.1, "summer": 1.4, "autumn": 0.6, "winter": 0.0},
-    "time": {"dawn": 1.1, "day": 1.3, "dusk": 1.1, "night": 0.0},
-    "weather": {"clear": 1.2, "rain": 0.8, "thunder": 0.5},
-    "depth_pref": "surface", "distance_pref": {"min": 1, "max": 8},
-    "habitat": {"depth_min": 1, "depth_max": 2, "width_min": 3},
-    "biomes": {"temperate": 1.0, "warm": 1.0, "swamp": 1.0},
-    "base": 1.0},
-   ("Sunbleak", "Верховка", "Верхівка"),
-   ("A silver sliver living in the top foot of any pond, puddle or ditch — the first fish most anglers "
-    "ever caught. A crumb of bread on the smallest hook, right under the surface.",
-    "Серебряная щепка, живущая в верхнем слое любого пруда, лужи или канавы — первая рыба в жизни "
-    "большинства рыбаков. Крошка хлеба на мелком крючке, у самой поверхности.",
-    "Срібна тріска, що живе у верхньому шарі будь-якого ставка, калюжі чи канави — перша риба в житті "
-    "більшості рибалок. Крихта хліба на дрібному гачку, біля самої поверхні."),
-   (1, 1, 1)),
-
- "sculpin": ("gudgeon", {
-    "display": "Подкаменщик", "group": "predator",
-    "water_bodies": {"river": 1.3, "lake": 0.4, "pond": 0.1, "swamp": 0.0, "sea": 0.0, "puddle": 0.0},
-    "weight_g": {"min": 5, "max": 90, "mean": 25}, "length_cm": {"min": 5, "max": 16},
-    "fight": {"strength": 0.08, "stamina": 0.2, "runs": 1},
-    "ideal": {"rod": ["ultralight", "pole", "stick"], "reel_size": 1000, "reel_tolerance": 1000,
-              "line": {"type": "mono", "diameter_mm": 0.14, "tolerance_mm": 0.04},
-              "rig": ["primitive", "float"], "groundbait": {"fraction": 0.12, "nutrition": 0.50},
-              "bait": {"worm": 1.0, "bloodworm": 0.9, "maggot": 0.8, "livebait": 0.3},
-              "hook": {"ideal": 14, "tolerance": 2}},
-    "season": {"spring": 1.1, "summer": 1.0, "autumn": 1.1, "winter": 0.5},
-    "time": {"dawn": 1.0, "day": 0.6, "dusk": 1.2, "night": 1.4},
+ "kutum": ("vimba", {
+    "display": "Кутум", "group": "cyprinid",
+    "water_bodies": {"river": 1.1, "lake": 0.4, "pond": 0.0, "swamp": 0.0, "sea": 1.0, "puddle": 0.0},
+    "weight_g": {"min": 500, "max": 8000, "mean": 1400}, "length_cm": {"min": 30, "max": 70},
+    "fight": {"strength": 0.6, "stamina": 0.7, "runs": 3, "pattern": "burst", "aggression": 0.6},
+    "ideal": {"rod": ["feeder", "bottom"],
+              "reel_size": 4000, "reel_tolerance": 1500,
+              "line": {"type": "mono", "diameter_mm": 0.25, "tolerance_mm": 0.06},
+              "rig": ["feeder", "float"], "groundbait": {"fraction": 0.60, "nutrition": 0.70},
+              "bait": {"worm": 1.0, "bloodworm": 0.9, "maggot": 0.8, "fish_strip": 0.5, "pea": 0.4},
+              "hook": {"ideal": 8, "tolerance": 3}},
+    "season": {"spring": 1.4, "summer": 0.9, "autumn": 1.1, "winter": 0.4},
+    "time": {"dawn": 1.3, "day": 0.8, "dusk": 1.3, "night": 0.7},
     "weather": {"clear": 1.0, "rain": 1.1, "thunder": 0.9},
-    "depth_pref": "bottom", "distance_pref": {"min": 1, "max": 8},
-    "habitat": {"depth_min": 1, "depth_max": 4, "width_min": 3},
-    "biomes": {"cold": 1.3, "mountain": 1.3, "taiga": 1.1, "temperate": 0.9},
-    "base": 0.7},
-   ("Sculpin", "Подкаменщик", "Бабець"),
-   ("A flat-headed bottom-sitter that hides under stones in cold clean streams — find one and the water is "
-    "healthy. Worm on the gravel at dusk; it does not chase, it ambushes.",
-    "Плоскоголовый донный сиделец, прячущийся под камнями в холодных чистых ручьях — если он есть, вода "
-    "живая. Червь по гальке в сумерках: он не гонится, он караулит.",
-    "Плоскоголовий донний сидень, що ховається під камінням у холодних чистих струмках — якщо він є, вода "
-    "жива. Черв'як по гальці в сутінках: він не жене, він чатує."),
-   (1, 1, 2)),
+    "depth_pref": "bottom", "distance_pref": {"min": 10, "max": 40},
+    "habitat": {"depth_min": 2, "depth_max": 12, "width_min": 10},
+    "biomes": {"temperate": 1.1, "warm": 1.0, "beach": 0.9},
+    "base": 0.45, "min_angler_level": 4},
+   ("Kutum", "Кутум", "Кутум"),
+   ("A Caspian roach that grew up: brackish water, a spring run into the rivers, and a mouth built for "
+    "shellfish. Fish it on the bottom with worm or bloodworm where the river meets the sea — and give it "
+    "more line than a roach deserves, because eight kilos of one does not fight like a roach.",
+    "Каспийская плотва, которая выросла: солоноватая вода, весенний ход в реки и рот, устроенный под "
+    "моллюсков. Ловите со дна на червя или мотыля там, где река встречает море, — и ставьте леску толще, "
+    "чем заслуживает плотва: восемь килограммов дерутся совсем не по-плотвиному.",
+    "Каспійська плітка, яка виросла: солонувата вода, весняний хід у річки й рот, влаштований під "
+    "молюсків. Ловіть із дна на черв'яка або мотиля там, де річка зустрічає море, — і ставте волосінь "
+    "товщу, ніж заслуговує плітка: вісім кілограмів б'ються геть не по-пліточиному."),
+   (3, 5, 9)),
 
- "tubenose_goby": ("round_goby", {
-    "display": "Бычок-цуцик", "group": "sea",
-    "water_bodies": {"river": 1.1, "lake": 0.7, "pond": 0.5, "swamp": 0.4, "sea": 0.5, "puddle": 0.0},
-    "weight_g": {"min": 3, "max": 30, "mean": 10}, "length_cm": {"min": 4, "max": 11},
-    "fight": {"strength": 0.06, "stamina": 0.2, "runs": 1},
-    "ideal": {"rod": ["ultralight", "pole", "stick"], "reel_size": 1000, "reel_tolerance": 1000,
-              "line": {"type": "mono", "diameter_mm": 0.12, "tolerance_mm": 0.04},
-              "rig": ["primitive", "float"], "groundbait": {"fraction": 0.12, "nutrition": 0.50},
-              "bait": {"worm": 1.0, "bloodworm": 0.95, "maggot": 0.9, "fish_strip": 0.4},
-              "hook": {"ideal": 16, "tolerance": 2}},
-    "season": {"spring": 1.1, "summer": 1.2, "autumn": 1.0, "winter": 0.3},
-    "time": {"dawn": 1.1, "day": 1.0, "dusk": 1.1, "night": 0.8},
-    "weather": {"clear": 1.0, "rain": 1.1, "thunder": 0.8},
-    "depth_pref": "bottom", "distance_pref": {"min": 1, "max": 10},
-    "habitat": {"depth_min": 1, "width_min": 4},
-    "biomes": {"temperate": 1.0, "warm": 1.1, "beach": 1.0},
-    "base": 0.9},
-   ("Tubenose goby", "Бычок-цуцик", "Бичок-цуцик"),
-   ("The little goby with nostrils like two short tubes, at home anywhere from a river mouth to brackish "
-    "shallows. Worm on the bottom, tiny hook, and it hooks itself.",
-    "Мелкий бычок с ноздрями-трубочками, которому одинаково годятся устье реки и солоноватая отмель. "
-    "Червь по дну, мелкий крючок — засечётся сам.",
-    "Дрібний бичок із ніздрями-трубочками, якому однаково годяться гирло річки й солонувата мілина. "
-    "Черв'як по дну, дрібний гачок — засічеться сам."),
-   (1, 1, 1)),
+ "naked_carp": ("mirror_carp", {
+    "display": "Голый карп", "group": "cyprinid",
+    "water_bodies": {"lake": 1.2, "pond": 1.1, "river": 0.6, "swamp": 0.4, "sea": 0.0, "puddle": 0.0},
+    "weight_g": {"min": 2000, "max": 20000, "mean": 4500}, "length_cm": {"min": 40, "max": 105},
+    "fight": {"strength": 0.85, "stamina": 0.85, "runs": 4, "pattern": "burst", "aggression": 0.8},
+    "ideal": {"rod": ["carp"],
+              "reel_size": 7000, "reel_tolerance": 1000,
+              "line": {"type": "mono", "diameter_mm": 0.35, "tolerance_mm": 0.08},
+              "rig": ["carp", "flat_feeder"], "groundbait": {"fraction": 0.75, "nutrition": 0.88},
+              "bait": {"boilie": 1.0, "corn": 0.85, "pea": 0.6, "pearl_barley": 0.55, "dough": 0.5},
+              "hook": {"ideal": 4, "tolerance": 2}},
+    "season": {"spring": 0.8, "summer": 1.4, "autumn": 0.95, "winter": 0.03},
+    "time": {"dawn": 1.2, "day": 0.85, "dusk": 1.2, "night": 1.05},
+    "weather": {"clear": 0.9, "rain": 1.2, "thunder": 0.8},
+    "depth_pref": "bottom", "distance_pref": {"min": 14, "max": 45},
+    "habitat": {"depth_min": 2, "width_min": 12},
+    "biomes": {"temperate": 1.0, "warm": 1.2},
+    "base": 0.35, "min_angler_level": 5},
+   ("Naked Carp", "Голый карп", "Голий короп"),
+   ("A carp that never put its scales on — bare skin end to end, and the same appetite as the rest of the "
+    "family. Boilies on the bottom, a carp rod, and patience: it grows past twenty kilos and uses every "
+    "one of them.",
+    "Карп, который так и не надел чешую, — голая кожа от головы до хвоста и тот же аппетит, что у всей "
+    "родни. Бойлы со дна, карповое удилище и терпение: он перерастает двадцать килограммов и пользуется "
+    "каждым из них.",
+    "Короп, який так і не вдягнув луску, — гола шкіра від голови до хвоста і той самий апетит, що в усієї "
+    "рідні. Бойли з дна, коропова вудка й терпіння: він переростає двадцять кілограмів і користується "
+    "кожним із них."),
+   (4, 8, 14)),
 }
 
-# Swapped whole, not merged: these are statements about the fish, not deltas on the donor.
 REPLACE = {"water_bodies", "weight_g", "length_cm", "fight", "season", "time", "weather",
            "distance_pref", "habitat", "biomes", "rod", "rig", "bait", "hook", "line", "groundbait",
            "legendary"}
