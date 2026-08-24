@@ -437,6 +437,7 @@
   "message.riverfishing.caught_multi": "Caught: %s ×%s!",
   "message.riverfishing.fed_spot": "Spot fed",
   "message.riverfishing.hooked": "Hooked! Reel — but don't over-pull!",
+  "message.riverfishing.line_break_gone": "Snap! Fish and rig gone.",
   "message.riverfishing.line_break": "Snap! Fish and rig lost — around %s of it",
   "message.riverfishing.line_break_load": "Snapped under ~%s kg! Fish and rig lost",
   "message.riverfishing.tackle_limit": "Tackle at its limit — ease off!",
