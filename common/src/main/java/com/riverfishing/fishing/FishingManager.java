@@ -1327,7 +1327,7 @@ public final class FishingManager {
         }
         RandomSource random = level.getRandom();
 
-        // §tackle-break (§10): a flat 0.8% catastrophic failure — the line parts on the take and the whole
+        // §tackle-break (§10): a flat 0.3% catastrophic failure — the line parts on the take and the whole
         // rig is lost, fish and all. Independent of the weight-vs-strain break in the fight (that's earned);
         // this is the rare gut-punch that keeps every strike a little tense.
         if (random.nextDouble() < TACKLE_BREAK_CHANCE) {
@@ -1338,8 +1338,8 @@ public final class FishingManager {
             addLineWear(broken, 5);
             level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.LINE_BREAK.get(),
                     SoundSource.PLAYERS, 0.9f, 1.0f);
-            sp.sendSystemMessage(Component.translatable("message.riverfishing.line_break",
-                    FishItem.approxWeightText(session.weightG)).withStyle(ChatFormatting.RED));
+            sp.sendSystemMessage(Component.translatable("message.riverfishing.line_break_gone")
+                    .withStyle(ChatFormatting.RED));
             GuideNudge.failure(sp, session.rodClass, GuideNudge.BREAK);
             com.riverfishing.quest.AnglerAdvancements.grant(sp, "snapped"); // §joke: the 0.3% gut-punch
             endSession(sp, session);
