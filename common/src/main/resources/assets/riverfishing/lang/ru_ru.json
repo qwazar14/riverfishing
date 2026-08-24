@@ -437,6 +437,7 @@
   "message.riverfishing.caught_multi": "Поймано: %s ×%s!",
   "message.riverfishing.fed_spot": "Точка закормлена",
   "message.riverfishing.hooked": "На крючке! Тяни — но не перетяни!",
+  "message.riverfishing.line_break_gone": "Обрыв! Рыба и оснастка ушли.",
   "message.riverfishing.line_break": "Обрыв! Рыба и оснастка ушли — там было около %s",
   "message.riverfishing.line_break_load": "Обрыв под нагрузкой ~%s кг! Рыба и оснастка потеряны",
   "message.riverfishing.tackle_limit": "Снасть на пределе — ослабь натяжение!",
