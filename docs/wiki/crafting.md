@@ -175,6 +175,7 @@ Worm, Maggot, Bloodworm and Chicken Liver come from digging and mob drops; Corn,
 | Groundbait | Type | Ingredients |
 |---|---|---|
 | Base Groundbait **×2** | shapeless | Wheat Seeds + Bread — *the base; everything else is [mixed](groundbait.md) into it* |
+| Groundbait Soil **×4** | shapeless | Dirt — *ballast, the way you make a mix leaner* |
 | Any mix | shapeless | Base Groundbait + up to 8 other things in a grid — one slot is one item, and one edible item in is one groundbait out |
 
 ---
@@ -229,9 +230,10 @@ A short list of everything in the mod you cannot craft:
 |---|---|
 | Hook #2, Hook #1 | Master fisherman |
 | Wobbler, Soft Plastic | Tackle Station, or the fisherman |
-| Groundbait Soil | Craft, or the fisherman at Apprentice — ballast, the way you make a mix leaner |
+| Skirted Octopus Jig, Giant Spoon | Tackle Station, or the fisherman's saltwater kit |
 | Mini Aquarium | Creative / commands only |
 | Ichthyologist's Tablet | Creative / commands only |
+| Electrofisher | Creative / commands only |
 | Primitive / Light Float / Float / Winter / Predator rigs | Built into their rod blanks |
 | Every fish | Catch it |
 

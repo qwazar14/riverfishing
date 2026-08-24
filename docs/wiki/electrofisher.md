@@ -37,7 +37,7 @@ The window is titled **"Electrofisher: this water's fish"**, with the coordinate
 
 It has two columns.
 
-**Left — the families.** Eight rows: **This water**, then Carp family, Predators, Salmon & trout, Sturgeons, Koi, Sea fish, Big game. Each shows *how many of that family live here* out of how many exist, so `3/22` on Carp family means the water holds three of the twenty-two. The first row is not a family: it is what was living here when the screen opened, best environment fit first — the same list, in the same order, that the Fish Finder prints, because it is the same function asked the same question.
+**Left — the families.** Eight rows: **This water**, then Carp family, Predators, Salmon & trout, Sturgeons, Koi, Sea fish, Big game. Each shows *how many of that family live here* out of how many exist, so `3/25` on Carp family means the water holds three of the twenty-five. The first row is not a family: it is what was living here when the screen opened, best environment fit first — the same list, in the same order, that the Fish Finder prints, because it is the same function asked the same question.
 
 **Right — the fish of the selected family**, and a coloured strip on each row saying where it stands:
 

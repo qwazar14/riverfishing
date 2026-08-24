@@ -9,7 +9,7 @@ The bench and the profession share one block. Its recipe is **Barrel + 2 × Stri
 The flow is stonecutter-style:
 
 1. Choose a **tab** — *Peaceful* (bottom rigs) or *Predator* (artificial lures).
-2. Click a **form** in the 3×3 grid.
+2. Click a **form** in the four-column grid — two rows of them on the peaceful tab, three on the predator one.
 3. Step the **weight** with the `< Weight: N g >` control. The weight is the real decision.
 4. Step the **hook** in the first well — it works like the weight stepper above it: click its **left half** for a smaller hook, its **right half** for a bigger one, No.16 down to No.1. You never need to own that hook; the bench ties it on and bills the size in iron.
 5. Fill the three material wells: **Iron**, **String**, **Dye**. Ghost icons and a live `×N` count under each well show what the current selection needs, in red when you are short.
@@ -45,7 +45,7 @@ The float, predator and winter rigs are **not** on the list — they live perman
 
 ## Predator forms
 
-All eight lures take an optional dye.
+All ten lures take an optional dye.
 
 | Form | Weight steps (g) | Iron per step |
 |---|---|---|

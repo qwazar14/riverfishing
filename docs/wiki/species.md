@@ -9,13 +9,13 @@ Companion page: **[Species reference](species-reference.md)** holds the habitat 
 - **Weight (min – max)** is the species' whole possible range. **Median catch** is the profile's `mean`, and it really is the median — half your fish of that species come in under it. See [the weight roll](fishing-mechanics.md#weight).
 - **Water bodies** lists every type the species lives in with its presence factor. A type not listed has a factor of 0 and the fish is **never** there.
 - **Level** is `min_angler_level`. It is a soft gate: each level you are short multiplies the fish's bite weight by 0.6, floored at 3 %. A novice can fluke a trophy with the right kit in the right place — just rarely.
-- **Best baits** are scored 0 to ~1.2. The engine takes the single best-scoring bait on your rig. A bait not listed scores 0, and **no listed bait on the rig means the fish will not take at all**.
+- **Best baits** are scored 0 to 1.3. The engine takes the single best-scoring bait on your rig. A bait not listed scores 0, and **no listed bait on the rig means the fish will not take at all**.
 - Bait ids map to items as listed in [Rigs and baits](rigs-and-baits.md#natural-baits): `pearl_barley` = Pearl Barley, `bread` = Bread Crumb, `silicone` = Soft Plastic, `jig` = Soft Jig, `mormyshka` = Ice Jig, `fish_strip` = Raw Fish Fillet, `livebait` = Live Bait.
 
 ## Families
 
 Every species is filed under one of seven families. It is the `group` field in the profile, and it is
-what the [electrofisher](electrofisher.md#the-screen) lays its picker out by — seventy-nine names in one
+what the [electrofisher](electrofisher.md#the-screen) lays its picker out by — ninety-one names in one
 flat list is a list nobody reads. A datapack species that names no family is filed under **Other**, listed
 and reachable but never silently mis-filed.
 
@@ -24,7 +24,7 @@ predator and is a cyprinid, and takes cyprinid [groundbait](groundbait.md) accor
 
 | Family | Species |
 |---|---|
-| **Carp family** (25) | Asp, Bitterling, Bleak, Blue bream, Bream, Carp, Chub, Common dace, Crucian Carp, Golden crucian, Grass Carp, Gudgeon, Ide, Mirror Carp, Nase, Roach, Rudd, Sabrefish, Silver carp, Sunbleak, Tench, Vimba bream, White Bream, White-eye bream, Wild Carp |
+| **Carp family** (27) | Asp, Bitterling, Bleak, Blue bream, Bream, Carp, Chub, Common dace, Crucian Carp, Golden crucian, Grass Carp, Gudgeon, Ide, Kutum, Mirror Carp, Naked Carp, Nase, Roach, Rudd, Sabrefish, Silver carp, Sunbleak, Tench, Vimba bream, White Bream, White-eye bream, Wild Carp |
 | **Predators** (19) | Bluegill, Bullseye snakehead, Burbot, Catfish, Channel catfish, Eel, Golden dorado, Largemouth bass, Mayan cichlid, Oscar, Peacock bass, Perch, Pike, Piraiba, Rotan, Ruffe, Sculpin, Volga zander, Zander |
 | **Salmon & trout** (10) | Arctic char, Atlantic salmon, Grayling, Lenok, Pink salmon, Rainbow trout, Smelt, Taimen, Trout, Whitefish |
 | **Sturgeons** (3) | Beluga sturgeon, Sterlet, Sturgeon |
@@ -127,92 +127,94 @@ predator and is a cyprinid, and takes cyprinid [groundbait](groundbait.md) accor
 | 89 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/verkhovka.png" width="28" alt=""> Sunbleak | `verkhovka` | 2 g – 18 g | 6 g | 3–8 cm | pond 1.4, lake 1.0, swamp 0.9, puddle 0.9, river 0.4 | — |
 | 90 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/sculpin.png" width="28" alt=""> Sculpin | `sculpin` | 5 g – 90 g | 25 g | 5–16 cm | river 1.3, lake 0.4, pond 0.1 | — |
 | 91 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/tubenose_goby.png" width="28" alt=""> Tubenose goby | `tubenose_goby` | 3 g – 30 g | 10 g | 4–11 cm | river 1.1, lake 0.7, pond 0.5, sea 0.5, swamp 0.4 | — |
+| 92 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/kutum.png" width="28" alt=""> Kutum | `kutum` | 500 g – 8 kg | 1.4 kg | 30–70 cm | river 1.1, sea 1.0, lake 0.4 | 4 |
+| 93 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/naked_carp.png" width="28" alt=""> Naked Carp | `naked_carp` | 2 kg – 20 kg | 4.5 kg | 40–105 cm | lake 1.2, pond 1.1, river 0.6, swamp 0.4 | 5 |
 
 ## Ideal tackle
 
 Match these and the fish's bite weight climbs sharply — and the bigger the fish, the more sharply. See [the match coefficient](fishing-mechanics.md#match-coefficient-m--your-tackle).
 
-| Species | Best baits (score) | Ideal rods | Ideal rigs | Hook | Reel | Line | Groundbait | Leader |
+| Species | Best baits (score) | Ideal rods | Ideal rigs | Hook | Reel | Line | Groundbait (fraction / nutrition) | Leader |
 |---|---|---|---|---|---|---|---|---|
-| Bream | maggot 1.0, worm 0.9, pearl_barley 0.8, mormyshka 0.7, corn 0.6, bread 0.4, boilie 0.3 | bottom, feeder | feeder, flat_feeder, float | No.10 ±2 | 4000 ±1000 | braid 0.1 ±0.04 | cake, grain, powder | — |
-| Crucian Carp | worm 1.0, dough 0.9, maggot 0.8, corn 0.6, bread 0.5 | feeder, pole | feeder, float | No.12 ±2 | 2000 ±1000 | mono 0.18 ±0.06 | cake, grain | — |
-| Roach | maggot 1.0, mormyshka 0.9, bloodworm 0.9, dough 0.7, bread 0.5 | pole, ultralight | float | No.14 ±2 | 2000 ±1000 | mono 0.14 ±0.04 | cake, powder | — |
-| Rudd | bread 1.0, dough 0.9, maggot 0.8 | pole | float | No.14 ±2 | 1000 ±1000 | mono 0.14 ±0.04 | cake, powder | — |
-| White Bream | maggot 1.0, worm 0.9, bloodworm 0.7 | feeder | feeder, float | No.12 ±2 | 3000 ±1000 | braid 0.1 ±0.04 | cake, powder | — |
-| Carp | boilie 1.0, corn 0.8, pea 0.6, pearl_barley 0.5 | carp | carp, flat_feeder | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | cake, pellet | — |
-| Catfish | livebait 1.0, chicken_liver 1.0, jig 0.85, worm 0.7, boilie 0.6 | bottom | catfish, grusha | No.4 ±2 | 7000 ±1000 | braid 0.18 ±0.04 | cake | — |
-| Perch | crankbait 1.0, silicone 0.95, mormyshka 0.9, livebait 0.9, spinner 0.9, jig 0.8, popper 0.7, worm 0.6 | spinning, ultralight | predator | No.8 ±3 | 3000 ±1000 | braid 0.1 ±0.04 | — | — |
-| Pike | wobbler 1.0, spoon 0.95, livebait 0.9, crankbait 0.9, spinner 0.9, jig 0.85, popper 0.7 | spinning | predator | No.4 ±2 | 3000 ±1000 | braid 0.14 ±0.04 | — | **yes** |
-| Zander | silicone 1.0, livebait 0.95, jig 0.95, crankbait 0.85, wobbler 0.8 | spinning | predator | No.4 ±2 | 3000 ±1000 | braid 0.12 ±0.04 | — | **yes** |
-| Gudgeon | bloodworm 1.0, mormyshka 0.9, worm 0.9, maggot 0.8 | pole, stick, ultralight | float, primitive | No.16 ±2 | 1000 ±1000 | mono 0.14 ±0.04 | powder | — |
-| Ruffe | mormyshka 1.0, worm 1.0, bloodworm 1.0, maggot 0.7 | feeder, pole | feeder, float | No.14 ±2 | 2000 ±1000 | mono 0.14 ±0.04 | powder | — |
-| Bleak | maggot 1.0, bread 0.9, mormyshka 0.8, dough 0.8, bloodworm 0.7 | pole, stick, ultralight | float, primitive | No.16 ±2 | 1000 ±1000 | mono 0.14 ±0.04 | powder | — |
-| Ide | worm 1.0, popper 0.9, maggot 0.8, corn 0.8, bread 0.7, crankbait 0.7, pea 0.6 | feeder, pole, ultralight | feeder, float | No.10 ±2 | 3000 ±1000 | mono 0.18 ±0.05 | cake, grain | — |
-| Chub | popper 1.0, wobbler 0.9, bread 0.8, spinner 0.8, crankbait 0.75, worm 0.7, castmaster 0.7, corn 0.5 | pole, spinning, ultralight | float, predator | No.8 ±3 | 2000 ±1000 | mono 0.16 ±0.05 | cake | — |
-| Asp | spoon 1.0, castmaster 0.9, wobbler 0.9, popper 0.85, spinner 0.8, crankbait 0.7 | spinning | predator | No.6 ±2 | 4000 ±1000 | braid 0.12 ±0.04 | — | — |
-| Tench | worm 1.0, dough 0.8, corn 0.7, bread 0.6, maggot 0.6 | feeder, pole | feeder, float | No.10 ±2 | 3000 ±1000 | mono 0.2 ±0.05 | cake, grain | — |
-| Burbot | livebait 1.0, worm 0.9, chicken_liver 0.9, jig 0.75 | bottom, feeder | feeder, ground | No.6 ±2 | 4000 ±1000 | mono 0.3 ±0.08 | — | — |
-| Eel | worm 1.0, livebait 0.8, chicken_liver 0.7, jig 0.7 | bottom, feeder | feeder, ground | No.8 ±2 | 4000 ±1000 | mono 0.25 ±0.06 | — | — |
-| Grayling | spinner 0.95, worm 0.9, maggot 0.8, castmaster 0.8, bloodworm 0.7, crankbait 0.6 | ultralight | float, predator | No.12 ±2 | 2000 ±1000 | mono 0.16 ±0.04 | — | — |
-| Trout | castmaster 1.0, spinner 0.95, wobbler 0.9, crankbait 0.85, silicone 0.7, worm 0.6 | spinning, ultralight | float, predator | No.8 ±2 | 2000 ±1000 | fluoro 0.2 ±0.05 | — | — |
-| Sterlet | worm 1.0, bloodworm 0.7, maggot 0.5 | bottom, carp | catfish, ground | No.6 ±2 | 6000 ±1000 | braid 0.14 ±0.04 | cake | — |
-| Wild Carp | boilie 1.0, corn 0.85, pea 0.7, pearl_barley 0.55 | bottom, carp | carp, flat_feeder | No.4 ±2 | 6000 ±1000 | mono 0.3 ±0.07 | cake, pellet | — |
-| Mirror Carp | boilie 1.0, corn 0.8, pea 0.6, pearl_barley 0.5 | carp | carp, flat_feeder | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | cake, pellet | — |
-| Grass Carp | corn 1.0, bread 0.9, dough 0.8, pea 0.7, boilie 0.5 | carp, feeder | carp, flat_feeder | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | cake, pellet | — |
-| Koi Kohaku | boilie 1.0, corn 0.8, pea 0.6, bread 0.6 | carp | carp | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | cake, pellet | — |
-| Koi Tancho Sanke | boilie 1.0, corn 0.8, pea 0.6, bread 0.6 | carp | carp | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | cake, pellet | — |
-| Koi Showa Sanke | boilie 1.0, corn 0.8, pea 0.6, bread 0.6 | carp | carp | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | cake, pellet | — |
-| Koi Asagi | boilie 1.0, corn 0.8, pea 0.6, bread 0.6 | carp | carp | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | cake, pellet | — |
-| Koi Bekko | boilie 1.0, corn 0.8, pea 0.6, bread 0.6 | carp | carp | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | cake, pellet | — |
-| Bluegill | worm 1.0, maggot 0.9, bloodworm 0.8, corn 0.5 | bamboo, pole, stick, ultralight | float | No.12 ±3 | 1000 ±1000 | mono 0.12 ±0.05 | grain | — |
-| Largemouth bass | popper 1.2, wobbler 1.0, silicone 0.95, jig 0.9, crankbait 0.9, livebait 0.8, spinner 0.7 | spinning, ultralight | predator | No.4 ±3 | 3000 ±1000 | braid 0.16 ±0.05 | — | — |
-| Rainbow trout | spinner 1.0, castmaster 0.95, wobbler 0.85, crankbait 0.8, silicone 0.7, worm 0.6 | spinning, ultralight | float, predator | No.8 ±2 | 2000 ±1000 | fluoro 0.18 ±0.05 | — | — |
-| Channel catfish | livebait 1.1, chicken_liver 1.0, worm 0.8, maggot 0.6, boilie 0.5 | bottom, carp, feeder | catfish, grusha | No.2 ±2 | 5000 ±1000 | mono 0.35 ±0.08 | pellet | — |
-| Silver carp | pearl_barley 0.5, corn 0.4, boilie 0.3 | bottom, carp | carp, flat_feeder | No.6 ±2 | 6000 ±1000 | mono 0.4 ±0.08 | powder | — |
-| Sabrefish | castmaster 1.0, maggot 0.9, worm 0.8, spinner 0.8, bloodworm 0.7, silicone 0.6 | feeder, spinning, ultralight | float, predator | No.10 ±3 | 3000 ±1000 | mono 0.16 ±0.05 | — | — |
-| Blue bream | bloodworm 1.0, maggot 0.85, worm 0.7, pearl_barley 0.5 | bamboo, feeder, pole | flat_feeder, float | No.12 ±3 | 3000 ±1000 | mono 0.14 ±0.05 | grain, powder | — |
-| Mackerel | castmaster 1.0, spinner 0.9, silicone 0.8, fish_strip 0.6 | sea_spin, spinning | predator | No.6 ±3 | 5000 ±2000 | braid 0.2 ±0.06 | — | — |
-| Herring | fish_strip 0.8, bloodworm 0.7, maggot 0.6, castmaster 0.5 | sea_spin, spinning, surf | float, predator | No.10 ±3 | 5000 ±2000 | mono 0.18 ±0.06 | — | — |
-| Garfish | fish_strip 1.0, spinner 0.7, castmaster 0.7, silicone 0.5 | sea_spin | predator | No.8 ±3 | 5000 ±2000 | mono 0.2 ±0.06 | — | — |
-| Sea bass | wobbler 1.0, silicone 0.95, livebait 0.9, popper 0.8, fish_strip 0.7 | sea_spin, surf | predator | No.4 ±2 | 6000 ±2000 | braid 0.25 ±0.06 | — | — |
-| Flounder | fish_strip 1.0, worm 0.9, maggot 0.5 | boat, bottom, surf | catfish, grusha | No.6 ±2 | 8000 ±2000 | mono 0.3 ±0.08 | — | — |
-| Cod | fish_strip 1.0, jig 0.95, livebait 0.9, silicone 0.7 | boat, surf | catfish, grusha | No.2 ±2 | 10000 ±2000 | braid 0.3 ±0.08 | — | — |
-| Saithe | jig 1.0, silicone 0.8, fish_strip 0.7, castmaster 0.7 | boat, sea_spin | predator | No.4 ±2 | 10000 ±2000 | braid 0.25 ±0.06 | — | — |
-| Conger eel | fish_strip 1.0, livebait 1.0, worm 0.4 | boat, surf | catfish | No.1 ±2 | 12000 ±2000 | mono 0.5 ±0.1 | — | **yes** |
-| Ray | fish_strip 1.0, worm 0.7, livebait 0.6 | boat, surf | catfish, grusha | No.2 ±2 | 12000 ±2000 | mono 0.5 ±0.1 | — | — |
-| Mahi-mahi | wobbler 1.0, popper 0.9, silicone 0.8, fish_strip 0.6 | sea_spin, trolling | predator | No.2 ±2 | 10000 ±2000 | braid 0.3 ±0.08 | — | — |
-| Wahoo | wobbler 1.0, castmaster 0.8, silicone 0.7 | trolling | predator | No.1 ±2 | 12000 ±2000 | braid 0.4 ±0.08 | — | **yes** |
-| Yellowfin tuna | wobbler 0.9, livebait 0.9, fish_strip 0.8, silicone 0.7 | boat, trolling | predator | No.1 ±1 | 14000 ±2000 | braid 0.4 ±0.08 | — | — |
-| Barracuda | wobbler 1.0, silicone 0.9, spinner 0.7, fish_strip 0.6 | sea_spin, trolling | predator | No.2 ±2 | 9000 ±2000 | braid 0.3 ±0.08 | — | **yes** |
-| Blue marlin | wobbler 1.0, silicone 0.6 | trolling | predator | No.1 ±1 | 14000 ±1000 | braid 0.4 ±0.06 | — | — |
-| Sailfish | wobbler 1.0, popper 0.8, silicone 0.7 | sea_spin, trolling | predator | No.1 ±2 | 12000 ±2000 | braid 0.3 ±0.08 | — | — |
-| Swordfish | livebait 1.0, fish_strip 0.9, wobbler 0.6 | boat, trolling | catfish, predator | No.1 ±1 | 14000 ±1000 | mono 0.5 ±0.08 | — | — |
-| Mako shark | livebait 1.0, fish_strip 0.9, wobbler 0.7 | boat, trolling | catfish, predator | No.1 ±1 | 14000 ±1000 | braid 0.4 ±0.06 | — | **yes** |
-| Rotan | worm 1.0, bloodworm 0.9, maggot 0.8, livebait 0.7, silicone 0.6, chicken_liver 0.6 | pole, stick, ultralight | float, primitive | No.12 ±4 | none | mono 0.18 ±0.08 | — | — |
-| Nase | maggot 1.0, worm 0.8, bloodworm 0.8, pearl_barley 0.7 | feeder, pole | feeder, float | No.12 ±3 | 2500 ±1500 | mono 0.16 ±0.05 | powder | — |
-| Vimba bream | worm 1.0, maggot 0.9, bloodworm 0.8, pea 0.5 | bottom, feeder | feeder, float | No.10 ±3 | 3500 ±1500 | mono 0.2 ±0.05 | grain | — |
-| Smelt | bloodworm 1.0, mormyshka 0.9, fish_strip 0.8, worm 0.7 | pole, ultralight, winter | float, winter | No.16 ±4 | none | mono 0.12 ±0.05 | — | — |
-| Whitefish | bloodworm 1.0, mormyshka 0.9, maggot 0.8, worm 0.6 | feeder, ultralight, winter | feeder, float, winter | No.10 ±3 | 2500 ±1500 | fluoro 0.18 ±0.05 | — | — |
-| Arctic char | spinner 1.0, spoon 0.9, castmaster 0.9, wobbler 0.7, worm 0.6 | spinning, ultralight | predator | No.8 ±2 | 2500 ±1000 | fluoro 0.2 ±0.05 | — | — |
-| Lenok | wobbler 1.0, spinner 0.9, spoon 0.9, crankbait 0.8, worm 0.5 | spinning, ultralight | predator | No.6 ±2 | 3000 ±1000 | braid 0.14 ±0.05 | — | — |
-| Taimen | wobbler 1.0, spoon 0.9, popper 0.85, livebait 0.8, crankbait 0.8 | spinning, trolling | predator | No.2 ±2 | 6000 ±2000 | braid 0.35 ±0.08 | — | **yes** |
-| Atlantic salmon | spoon 1.0, wobbler 0.9, spinner 0.8, fish_strip 0.5 | sea_spin, spinning | predator | No.4 ±2 | 5000 ±2000 | braid 0.25 ±0.06 | — | — |
-| Pink salmon | spoon 1.0, spinner 0.9, castmaster 0.8, fish_strip 0.5 | sea_spin, spinning, ultralight | predator | No.6 ±2 | 3500 ±1500 | braid 0.18 ±0.05 | — | — |
-| Sturgeon | chicken_liver 1.0, worm 0.9, livebait 0.7, boilie 0.5 | bottom, carp | catfish, grusha | No.1 ±2 | 9000 ±3000 | braid 0.45 ±0.1 | pellet | — |
-| Halibut | fish_strip 1.0, livebait 0.9, silicone 0.8, jig 0.7 | boat, surf | catfish, predator | No.1 ±3 | 11000 ±3000 | braid 0.5 ±0.1 | — | — |
-| Common dace | maggot 1.0, worm 0.9, bread 0.7, bloodworm 0.65, dough 0.6, spinner 0.4 | pole, stick, ultralight | float, primitive | No.14 ±2 | 1000 ±1000 | mono 0.14 ±0.04 | powder | — |
-| Volga zander | silicone 1.0, jig 0.95, livebait 0.9, worm 0.7, crankbait 0.6, wobbler 0.55 | spinning, ultralight | predator | No.6 ±2 | 2000 ±1000 | braid 0.1 ±0.04 | — | — |
-| White-eye bream | worm 1.0, maggot 0.95, bloodworm 0.85, pearl_barley 0.5, corn 0.4 | bottom, feeder | feeder, float | No.12 ±3 | 3500 ±1500 | mono 0.18 ±0.05 | grain, powder | — |
-| Round goby | worm 1.0, fish_strip 0.9, bloodworm 0.7, maggot 0.6, silicone 0.5 | bottom, feeder, ultralight | feeder, primitive | No.8 ±3 | 3000 ±2000 | mono 0.2 ±0.06 | — | — |
-| Peacock bass | wobbler 1.2, popper 1.15, crankbait 1, silicone 0.95, spinner 0.9, livebait 0.85, jig 0.8 | spinning, ultralight | predator | No.4 ±3 | 3000 ±1000 | braid 0.2 ±0.05 | — | — |
-| Bullseye snakehead | livebait 1.2, silicone 1.05, popper 1, wobbler 0.95, jig 0.85, worm 0.6 | spinning | predator | No.2 ±3 | 3000 ±1000 | braid 0.22 ±0.06 | — | — |
-| Mayan cichlid | worm 1.2, bloodworm 1, maggot 1, silicone 0.8, bread 0.7 | pole, ultralight | float, predator | No.10 ±3 | 1500 ±1000 | mono 0.14 ±0.04 | — | — |
-| Oscar | worm 1.2, livebait 1.1, maggot 0.9, silicone 0.9, jig 0.8 | spinning, ultralight | float, predator | No.8 ±3 | 2000 ±1000 | mono 0.16 ±0.04 | — | — |
-| Striped bass | livebait 1.2, fish_strip 1.1, wobbler 1, silicone 0.95, spoon 0.9, jig 0.85 | boat, sea_spin, surf | ground, predator | No.2 ±2 | 7000 ±2000 | braid 0.3 ±0.08 | — | — |
-| Bluefish | spoon 1.2, castmaster 1.15, fish_strip 1.1, wobbler 1, livebait 0.9, silicone 0.9 | boat, sea_spin, surf | predator | No.2 ±2 | 6000 ±2000 | braid 0.28 ±0.07 | — | **yes** |
-| Jack crevalle | popper 1.25, castmaster 1.1, spoon 1.1, livebait 1, silicone 1, wobbler 0.95 | boat, sea_spin, surf | predator | No.1 ±2 | 8000 ±2000 | braid 0.35 ±0.08 | — | — |
-| Tarpon | livebait 1.3, fish_strip 1.1, popper 1, silicone 1, jig 0.9 | boat, sea_spin, surf | catfish, predator | No.1 ±2 | 10000 ±3000 | braid 0.45 ±0.1 | — | — |
-| Snook | livebait 1.25, silicone 1.1, wobbler 1.05, popper 1, jig 0.9, fish_strip 0.85 | sea_spin, spinning, surf | predator | No.2 ±2 | 6000 ±2000 | braid 0.3 ±0.08 | — | — |
+| Bream | maggot 1.0, worm 0.9, pearl_barley 0.8, mormyshka 0.7, corn 0.6, bread 0.4, boilie 0.3 | bottom, feeder | feeder, flat_feeder, float | No.10 ±2 | 4000 ±1000 | braid 0.1 ±0.04 | 0.56 / 0.68 | — |
+| Crucian Carp | worm 1.0, dough 0.9, maggot 0.8, corn 0.6, bread 0.5 | feeder, pole | feeder, float | No.12 ±2 | 2000 ±1000 | mono 0.18 ±0.06 | 0.4 / 0.63 | — |
+| Roach | maggot 1.0, mormyshka 0.9, bloodworm 0.9, dough 0.7, bread 0.5 | pole, ultralight | float | No.14 ±2 | 2000 ±1000 | mono 0.14 ±0.04 | 0.31 / 0.47 | — |
+| Rudd | bread 1.0, dough 0.9, maggot 0.8 | pole | float | No.14 ±2 | 1000 ±1000 | mono 0.14 ±0.04 | 0.3 / 0.49 | — |
+| White Bream | maggot 1.0, worm 0.9, bloodworm 0.7 | feeder | feeder, float | No.12 ±2 | 3000 ±1000 | braid 0.1 ±0.04 | 0.42 / 0.57 | — |
+| Carp | boilie 1.0, corn 0.8, pea 0.6, pearl_barley 0.5 | carp | carp, flat_feeder | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | 0.73 / 0.85 | — |
+| Catfish | livebait 1.0, chicken_liver 1.0, jig 0.85, worm 0.7, boilie 0.6 | bottom | catfish, grusha | No.4 ±2 | 7000 ±1000 | braid 0.18 ±0.04 | 0.81 / 0.81 | — |
+| Perch | crankbait 1.0, silicone 0.95, mormyshka 0.9, livebait 0.9, spinner 0.9, jig 0.8, popper 0.7, worm 0.6 | spinning, ultralight | predator | No.8 ±3 | 3000 ±1000 | braid 0.1 ±0.04 | 0.4 / 0.7 | — |
+| Pike | wobbler 1.0, spoon 0.95, livebait 0.9, crankbait 0.9, spinner 0.9, jig 0.85, popper 0.7 | spinning | predator | No.4 ±2 | 3000 ±1000 | braid 0.14 ±0.04 | 0.66 / 0.5 | **yes** |
+| Zander | silicone 1.0, livebait 0.95, jig 0.95, crankbait 0.85, wobbler 0.8 | spinning | predator | No.4 ±2 | 3000 ±1000 | braid 0.12 ±0.04 | 0.62 / 0.5 | **yes** |
+| Gudgeon | bloodworm 1.0, mormyshka 0.9, worm 0.9, maggot 0.8 | pole, stick, ultralight | float, primitive | No.16 ±2 | 1000 ±1000 | mono 0.14 ±0.04 | 0.22 / 0.54 | — |
+| Ruffe | mormyshka 1.0, worm 1.0, bloodworm 1.0, maggot 0.7 | feeder, pole | feeder, float | No.14 ±2 | 2000 ±1000 | mono 0.14 ±0.04 | 0.22 / 0.54 | — |
+| Bleak | maggot 1.0, bread 0.9, mormyshka 0.8, dough 0.8, bloodworm 0.7 | pole, stick, ultralight | float, primitive | No.16 ±2 | 1000 ±1000 | mono 0.14 ±0.04 | 0.14 / 0.46 | — |
+| Ide | worm 1.0, popper 0.9, maggot 0.8, corn 0.8, bread 0.7, crankbait 0.7, pea 0.6 | feeder, pole, ultralight | feeder, float | No.10 ±2 | 3000 ±1000 | mono 0.18 ±0.05 | 0.54 / 0.66 | — |
+| Chub | popper 1.0, wobbler 0.9, bread 0.8, spinner 0.8, crankbait 0.75, worm 0.7, castmaster 0.7, corn 0.5 | pole, spinning, ultralight | float, predator | No.8 ±3 | 2000 ±1000 | mono 0.16 ±0.05 | 0.53 / 0.56 | — |
+| Asp | spoon 1.0, castmaster 0.9, wobbler 0.9, popper 0.85, spinner 0.8, crankbait 0.7 | spinning | predator | No.6 ±2 | 4000 ±1000 | braid 0.12 ±0.04 | 0.66 / 0.5 | — |
+| Tench | worm 1.0, dough 0.8, corn 0.7, bread 0.6, maggot 0.6 | feeder, pole | feeder, float | No.10 ±2 | 3000 ±1000 | mono 0.2 ±0.05 | 0.54 / 0.63 | — |
+| Burbot | livebait 1.0, worm 0.9, chicken_liver 0.9, jig 0.75 | bottom, feeder | feeder, ground | No.6 ±2 | 4000 ±1000 | mono 0.3 ±0.08 | 0.62 / 0.75 | — |
+| Eel | worm 1.0, livebait 0.8, chicken_liver 0.7, jig 0.7 | bottom, feeder | feeder, ground | No.8 ±2 | 4000 ±1000 | mono 0.25 ±0.06 | 0.56 / 0.74 | — |
+| Grayling | spinner 0.95, worm 0.9, maggot 0.8, castmaster 0.8, bloodworm 0.7, crankbait 0.6 | ultralight | float, predator | No.12 ±2 | 2000 ±1000 | mono 0.16 ±0.04 | 0.49 / 0.57 | — |
+| Trout | castmaster 1.0, spinner 0.95, wobbler 0.9, crankbait 0.85, silicone 0.7, worm 0.6 | spinning, ultralight | float, predator | No.8 ±2 | 2000 ±1000 | fluoro 0.2 ±0.05 | 0.57 / 0.7 | — |
+| Sterlet | worm 1.0, bloodworm 0.7, maggot 0.5 | bottom, carp | catfish, ground | No.6 ±2 | 6000 ±1000 | braid 0.14 ±0.04 | 0.71 / 0.56 | — |
+| Wild Carp | boilie 1.0, corn 0.85, pea 0.7, pearl_barley 0.55 | bottom, carp | carp, flat_feeder | No.4 ±2 | 6000 ±1000 | mono 0.3 ±0.07 | 0.75 / 0.84 | — |
+| Mirror Carp | boilie 1.0, corn 0.8, pea 0.6, pearl_barley 0.5 | carp | carp, flat_feeder | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | 0.72 / 0.85 | — |
+| Grass Carp | corn 1.0, bread 0.9, dough 0.8, pea 0.7, boilie 0.5 | carp, feeder | carp, flat_feeder | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | 0.77 / 0.66 | — |
+| Koi Kohaku | boilie 1.0, corn 0.8, pea 0.6, bread 0.6 | carp | carp | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
+| Koi Tancho Sanke | boilie 1.0, corn 0.8, pea 0.6, bread 0.6 | carp | carp | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
+| Koi Showa Sanke | boilie 1.0, corn 0.8, pea 0.6, bread 0.6 | carp | carp | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
+| Koi Asagi | boilie 1.0, corn 0.8, pea 0.6, bread 0.6 | carp | carp | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
+| Koi Bekko | boilie 1.0, corn 0.8, pea 0.6, bread 0.6 | carp | carp | No.6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
+| Bluegill | worm 1.0, maggot 0.9, bloodworm 0.8, corn 0.5 | bamboo, pole, stick, ultralight | float | No.12 ±3 | 1000 ±1000 | mono 0.12 ±0.05 | 0.34 / 0.61 | — |
+| Largemouth bass | popper 1.2, wobbler 1.0, silicone 0.95, jig 0.9, crankbait 0.9, livebait 0.8, spinner 0.7 | spinning, ultralight | predator | No.4 ±3 | 3000 ±1000 | braid 0.16 ±0.05 | 0.62 / 0.5 | — |
+| Rainbow trout | spinner 1.0, castmaster 0.95, wobbler 0.85, crankbait 0.8, silicone 0.7, worm 0.6 | spinning, ultralight | float, predator | No.8 ±2 | 2000 ±1000 | fluoro 0.18 ±0.05 | 0.58 / 0.7 | — |
+| Channel catfish | livebait 1.1, chicken_liver 1.0, worm 0.8, maggot 0.6, boilie 0.5 | bottom, carp, feeder | catfish, grusha | No.2 ±2 | 5000 ±1000 | mono 0.35 ±0.08 | 0.73 / 0.77 | — |
+| Silver carp | pearl_barley 0.5, corn 0.4, boilie 0.3 | bottom, carp | carp, flat_feeder | No.6 ±2 | 6000 ±1000 | mono 0.4 ±0.08 | 0.79 / 0.81 | — |
+| Sabrefish | castmaster 1.0, maggot 0.9, worm 0.8, spinner 0.8, bloodworm 0.7, silicone 0.6 | feeder, spinning, ultralight | float, predator | No.10 ±3 | 3000 ±1000 | mono 0.16 ±0.05 | 0.46 / 0.56 | — |
+| Blue bream | bloodworm 1.0, maggot 0.85, worm 0.7, pearl_barley 0.5 | bamboo, feeder, pole | flat_feeder, float | No.12 ±3 | 3000 ±1000 | mono 0.14 ±0.05 | 0.44 / 0.55 | — |
+| Mackerel | castmaster 1.0, spinner 0.9, silicone 0.8, fish_strip 0.6 | sea_spin, spinning | predator | No.6 ±3 | 5000 ±2000 | braid 0.2 ±0.06 | 0.51 / 0.75 | — |
+| Herring | fish_strip 0.8, bloodworm 0.7, maggot 0.6, castmaster 0.5 | sea_spin, spinning, surf | float, predator | No.10 ±3 | 5000 ±2000 | mono 0.18 ±0.06 | 0.4 / 0.57 | — |
+| Garfish | fish_strip 1.0, spinner 0.7, castmaster 0.7, silicone 0.5 | sea_spin | predator | No.8 ±3 | 5000 ±2000 | mono 0.2 ±0.06 | 0.51 / 0.75 | — |
+| Sea bass | wobbler 1.0, silicone 0.95, livebait 0.9, popper 0.8, fish_strip 0.7 | sea_spin, surf | predator | No.4 ±2 | 6000 ±2000 | braid 0.25 ±0.06 | 0.62 / 0.75 | — |
+| Flounder | fish_strip 1.0, worm 0.9, maggot 0.5 | boat, bottom, surf | catfish, grusha | No.6 ±2 | 8000 ±2000 | mono 0.3 ±0.08 | 0.56 / 0.71 | — |
+| Cod | fish_strip 1.0, octopus_jig 1.0, jig 0.95, livebait 0.9, giant_spoon 0.8, silicone 0.7 | boat, surf | catfish, grusha | No.2 ±2 | 10000 ±2000 | braid 0.3 ±0.08 | 0.79 / 0.75 | — |
+| Saithe | jig 1.0, octopus_jig 0.95, giant_spoon 0.9, silicone 0.8, fish_strip 0.7, castmaster 0.7 | boat, sea_spin | predator | No.4 ±2 | 10000 ±2000 | braid 0.25 ±0.06 | 0.71 / 0.75 | — |
+| Conger eel | fish_strip 1.0, livebait 1.0, worm 0.4 | boat, surf | catfish | No.1 ±2 | 12000 ±2000 | mono 0.5 ±0.1 | 0.84 / 0.74 | **yes** |
+| Ray | fish_strip 1.0, worm 0.7, livebait 0.6 | boat, surf | catfish, grusha | No.2 ±2 | 12000 ±2000 | mono 0.5 ±0.1 | 0.83 / 0.73 | — |
+| Mahi-mahi | livebait 1.05, wobbler 1.0, octopus_jig 1.0, giant_spoon 1.0, popper 0.9, silicone 0.8, fish_strip 0.6 | sea_spin, trolling | predator | No.2 ±2 | 10000 ±2000 | braid 0.3 ±0.08 | 0.77 / 0.75 | — |
+| Wahoo | giant_spoon 1.15, wobbler 1.0, octopus_jig 1.0, castmaster 0.8, silicone 0.7 | trolling | predator | No.1 ±2 | 12000 ±2000 | braid 0.4 ±0.08 | 0.88 / 0.5 | **yes** |
+| Yellowfin tuna | giant_spoon 1.05, octopus_jig 1.0, wobbler 0.9, livebait 0.9, fish_strip 0.8, silicone 0.7 | boat, trolling | predator | No.1 ±1 | 14000 ±2000 | braid 0.4 ±0.08 | 0.99 / 0.75 | — |
+| Barracuda | giant_spoon 1.1, wobbler 1.0, silicone 0.9, octopus_jig 0.9, spinner 0.7, fish_strip 0.6 | sea_spin, trolling | predator | No.2 ±2 | 9000 ±2000 | braid 0.3 ±0.08 | 0.79 / 0.75 | **yes** |
+| Blue marlin | fish_strip 1.1, wobbler 1.0, octopus_jig 1.0, giant_spoon 0.95, silicone 0.6 | trolling | predator | No.1 ±1 | 14000 ±1000 | braid 0.4 ±0.06 | 1.0 / 0.75 | — |
+| Sailfish | livebait 1.1, wobbler 1.0, octopus_jig 1.0, giant_spoon 0.95, popper 0.8, silicone 0.7 | sea_spin, trolling | predator | No.1 ±2 | 12000 ±2000 | braid 0.3 ±0.08 | 1.0 / 0.5 | — |
+| Swordfish | livebait 1.0, octopus_jig 1.0, fish_strip 0.9, giant_spoon 0.85, wobbler 0.6 | boat, trolling | catfish, predator | No.1 ±1 | 14000 ±1000 | braid 0.45 ±0.08 | 1.0 / 0.75 | — |
+| Mako shark | livebait 1.0, giant_spoon 1.0, octopus_jig 0.95, fish_strip 0.9, wobbler 0.7 | boat, trolling | catfish, predator | No.1 ±1 | 14000 ±1000 | braid 0.4 ±0.06 | 1.0 / 0.75 | **yes** |
+| Rotan | worm 1.0, bloodworm 0.9, maggot 0.8, livebait 0.7, silicone 0.6, chicken_liver 0.6 | pole, stick, ultralight | float, primitive | No.12 ±4 | none | mono 0.18 ±0.08 | 0.27 / 0.6 | — |
+| Nase | maggot 1.0, worm 0.8, bloodworm 0.8, pearl_barley 0.7 | feeder, pole | feeder, float | No.12 ±3 | 2500 ±1500 | mono 0.16 ±0.05 | 0.46 / 0.59 | — |
+| Vimba bream | worm 1.0, maggot 0.9, bloodworm 0.8, pea 0.5 | bottom, feeder | feeder, float | No.10 ±3 | 3500 ±1500 | mono 0.2 ±0.05 | 0.53 / 0.6 | — |
+| Smelt | bloodworm 1.0, mormyshka 0.9, fish_strip 0.8, worm 0.7 | pole, ultralight, winter | float, winter | No.16 ±4 | none | mono 0.12 ±0.05 | 0.22 / 0.56 | — |
+| Whitefish | bloodworm 1.0, mormyshka 0.9, maggot 0.8, worm 0.6 | feeder, ultralight, winter | feeder, float, winter | No.10 ±3 | 2500 ±1500 | fluoro 0.18 ±0.05 | 0.57 / 0.52 | — |
+| Arctic char | spinner 1.0, spoon 0.9, castmaster 0.9, wobbler 0.7, worm 0.6 | spinning, ultralight | predator | No.8 ±2 | 2500 ±1000 | fluoro 0.2 ±0.05 | 0.59 / 0.7 | — |
+| Lenok | wobbler 1.0, spinner 0.9, spoon 0.9, crankbait 0.8, worm 0.5 | spinning, ultralight | predator | No.6 ±2 | 3000 ±1000 | braid 0.14 ±0.05 | 0.62 / 0.7 | — |
+| Taimen | wobbler 1.0, spoon 0.9, popper 0.85, livebait 0.8, crankbait 0.8 | spinning, trolling | predator | No.2 ±2 | 6000 ±2000 | braid 0.35 ±0.08 | 0.87 / 0.5 | **yes** |
+| Atlantic salmon | spoon 1.0, wobbler 0.9, spinner 0.8, fish_strip 0.5 | sea_spin, spinning | predator | No.4 ±2 | 5000 ±2000 | braid 0.25 ±0.06 | 0.77 / 0.75 | — |
+| Pink salmon | spoon 1.0, spinner 0.9, castmaster 0.8, fish_strip 0.5 | sea_spin, spinning, ultralight | predator | No.6 ±2 | 3500 ±1500 | braid 0.18 ±0.05 | 0.61 / 0.75 | — |
+| Sturgeon | chicken_liver 1.0, worm 0.9, livebait 0.7, boilie 0.5 | bottom, carp | catfish, grusha | No.1 ±2 | 9000 ±3000 | braid 0.45 ±0.1 | 0.95 / 0.79 | — |
+| Halibut | fish_strip 1.0, octopus_jig 1.0, livebait 0.9, silicone 0.8, jig 0.7, giant_spoon 0.7 | boat, surf | catfish, predator | No.1 ±3 | 11000 ±3000 | braid 0.5 ±0.1 | 0.93 / 0.75 | — |
+| Common dace | maggot 1.0, worm 0.9, bread 0.7, bloodworm 0.65, dough 0.6, spinner 0.4 | pole, stick, ultralight | float, primitive | No.14 ±2 | 1000 ±1000 | mono 0.14 ±0.04 | 0.34 / 0.52 | — |
+| Volga zander | silicone 1.0, jig 0.95, livebait 0.9, worm 0.7, crankbait 0.6, wobbler 0.55 | spinning, ultralight | predator | No.6 ±2 | 2000 ±1000 | braid 0.1 ±0.04 | 0.47 / 0.7 | — |
+| White-eye bream | worm 1.0, maggot 0.95, bloodworm 0.85, pearl_barley 0.5, corn 0.4 | bottom, feeder | feeder, float | No.12 ±3 | 3500 ±1500 | mono 0.18 ±0.05 | 0.42 / 0.61 | — |
+| Round goby | worm 1.0, fish_strip 0.9, bloodworm 0.7, maggot 0.6, silicone 0.5 | bottom, feeder, ultralight | feeder, primitive | No.8 ±3 | 3000 ±2000 | mono 0.2 ±0.06 | 0.29 / 0.62 | — |
+| Peacock bass | wobbler 1.2, popper 1.15, crankbait 1, silicone 0.95, spinner 0.9, livebait 0.85, jig 0.8 | spinning, ultralight | predator | No.4 ±3 | 3000 ±1000 | braid 0.2 ±0.05 | 0.64 / 0.5 | — |
+| Bullseye snakehead | livebait 1.2, silicone 1.05, popper 1, wobbler 0.95, jig 0.85, worm 0.6 | spinning | predator | No.2 ±3 | 3000 ±1000 | braid 0.22 ±0.06 | 0.62 / 0.7 | — |
+| Mayan cichlid | worm 1.2, bloodworm 1, maggot 1, silicone 0.8, bread 0.7 | pole, ultralight | float, predator | No.10 ±3 | 1500 ±1000 | mono 0.14 ±0.04 | 0.42 / 0.5 | — |
+| Oscar | worm 1.2, livebait 1.1, maggot 0.9, silicone 0.9, jig 0.8 | spinning, ultralight | float, predator | No.8 ±3 | 2000 ±1000 | mono 0.16 ±0.04 | 0.47 / 0.68 | — |
+| Striped bass | livebait 1.2, fish_strip 1.1, giant_spoon 1.05, wobbler 1, silicone 0.95, spoon 0.9, jig 0.85 | boat, sea_spin, surf | ground, predator | No.2 ±2 | 7000 ±2000 | braid 0.3 ±0.08 | 0.74 / 0.75 | — |
+| Bluefish | spoon 1.2, giant_spoon 1.2, castmaster 1.15, fish_strip 1.1, wobbler 1, livebait 0.9, silicone 0.9 | boat, sea_spin, surf | predator | No.2 ±2 | 6000 ±2000 | braid 0.28 ±0.07 | 0.66 / 0.75 | **yes** |
+| Jack crevalle | popper 1.25, giant_spoon 1.15, castmaster 1.1, spoon 1.1, livebait 1, silicone 1, wobbler 0.95 | boat, sea_spin, surf | predator | No.1 ±2 | 8000 ±2000 | braid 0.35 ±0.08 | 0.76 / 0.5 | — |
+| Tarpon | livebait 1.3, fish_strip 1.1, popper 1, silicone 1, jig 0.9, giant_spoon 0.85 | boat, sea_spin, surf | catfish, predator | No.1 ±2 | 10000 ±3000 | braid 0.45 ±0.1 | 0.99 / 0.75 | — |
+| Snook | livebait 1.25, silicone 1.1, wobbler 1.05, popper 1, jig 0.9, fish_strip 0.85 | sea_spin, spinning, surf | predator | No.2 ±2 | 6000 ±2000 | braid 0.3 ±0.08 | 0.73 / 0.75 | — |
 | Arapaima | livebait 1.0, fish_strip 0.9, giant_spoon 0.85, wobbler 0.75, silicone 0.6 | boat, sea_spin | predator, catfish | №1 ±2 | 10000 ±2000 | braid 0.45 ±0.08 | 0.95 / 0.8 | + |
 | Beluga sturgeon | livebait 1.0, fish_strip 0.9, chicken_liver 0.85, worm 0.5 | boat, bottom | catfish, grusha | №1 ±1 | 14000 ±2000 | braid 0.55 ±0.1 | 0.98 / 0.82 | + |
 | Piraiba | livebait 1.0, fish_strip 0.95, chicken_liver 0.85, worm 0.5 | bottom, carp, boat | catfish, grusha | №1 ±2 | 10000 ±2000 | braid 0.5 ±0.08 | 0.96 / 0.8 | + |
@@ -225,6 +227,8 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Sunbleak | maggot 1.0, bread 0.95, bloodworm 0.85, dough 0.8 | pole, stick, ultralight | float, primitive | №16 ±1 | 1000 ±1000 | mono 0.1 ±0.03 | 0.08 / 0.38 | — |
 | Sculpin | worm 1.0, bloodworm 0.9, maggot 0.8, livebait 0.3 | ultralight, pole, stick | primitive, float | №14 ±2 | 1000 ±1000 | mono 0.14 ±0.04 | 0.12 / 0.5 | — |
 | Tubenose goby | worm 1.0, bloodworm 0.95, maggot 0.9, fish_strip 0.4 | ultralight, pole, stick | primitive, float | №16 ±2 | 1000 ±1000 | mono 0.12 ±0.04 | 0.12 / 0.5 | — |
+| Kutum | worm 1.0, bloodworm 0.9, maggot 0.8, fish_strip 0.5, pea 0.4 | feeder, bottom | feeder, float | №8 ±3 | 4000 ±1500 | mono 0.25 ±0.06 | 0.6 / 0.7 | — |
+| Naked Carp | boilie 1.0, corn 0.85, pea 0.6, pearl_barley 0.55, dough 0.5 | carp | carp, flat_feeder | №4 ±2 | 7000 ±1000 | mono 0.35 ±0.08 | 0.75 / 0.88 | — |
 
 ## Per-species notes
 
@@ -243,7 +247,7 @@ Koi are **excluded from the species count** used by the tiered "N species" advan
 
 ### Legendary specimens
 
-Seven species hide one named, one-per-server specimen. Full mechanics in [Fishing mechanics](fishing-mechanics.md#legendary-fish).
+Fourteen species hide one named, one-per-server specimen. Full mechanics in [Fishing mechanics](fishing-mechanics.md#legendary-fish).
 
 | Species | Name | Weight | Chance |
 |---|---|---|---|
@@ -255,6 +259,12 @@ Seven species hide one named, one-per-server specimen. Full mechanics in [Fishin
 | Sturgeon | The Tsar-Fish | 145 kg | 0.4 % |
 | Mako shark | The Megalodon | 390 kg | 0.4 % |
 | Halibut | The Abyssal Demon | 250 kg | 0.4 % |
+| Arapaima | — | 175 kg | 0.4 % |
+| Beluga sturgeon | — | 580 kg | 0.3 % |
+| Piraiba | — | 155 kg | 0.4 % |
+| Goliath grouper | — | 310 kg | 0.4 % |
+| Bull shark | — | 225 kg | 0.4 % |
+| Frilled shark | — | 48 kg | 0.3 % |
 
 Four of these are **heavier than their species' normal maximum**: the pike (14 kg vs a 10 kg ceiling), the catfish (150 kg vs 120 kg), the halibut (250 kg vs 200 kg) and especially the mako (390 kg vs 200 kg). A legendary is genuinely outside the size range you can otherwise reach.
 
@@ -268,23 +278,23 @@ Four of these are **heavier than their species' normal maximum**: the pike (14 k
 
 **Bleak** and **Gudgeon** — `night: 0.0`. They stop biting completely after dark.
 
-**Ray** — a single run, the `steady` pattern, and aggression 0.2, but strength 0.95 across a 2–50 kg range. It doesn't fight; it is simply heavy. The profile describes it as lifting a slab of the seabed.
+**Ray** — two runs, the `active_then_passive` pattern, and aggression 0.2, but strength 0.95 across a 2–50 kg range. It doesn't fight; it is simply heavy. The profile describes it as lifting a slab of the seabed.
 
-**Largemouth bass** (popper 1.2) and **Channel catfish** (livebait 1.1) are the only species with a bait score above 1.0 — a favourite bait earns a small bonus beyond a perfect match.
+**Seventeen species** have a bait score above 1.0 — a favourite bait earns a small bonus beyond a perfect match, and the engine caps that bonus at 1.3. **Tarpon** (livebait 1.3) sits at the ceiling, then **Jack crevalle** (popper 1.25) and **Snook** (livebait 1.25).
 
 **Chub, Asp, Sterlet** live in **rivers only** (`river` 1.2 and every other water at 0). Nothing you do in a lake will produce one.
 
 **Round goby** is the only species equally at home in salt and fresh water — `sea` 1.1 and `river` 1.0, plus lake 0.6 and pond 0.2.
 
-**Brackish and migratory** — six species carry a non-zero `sea` factor alongside fresh water: Vimba bream (0.2), Smelt (1.2 sea / 0.3 river), Arctic char (0.2), Atlantic salmon (1.1 river / 1.0 sea), Pink salmon (1.1 sea / 1.0 river) and Sturgeon (0.3). Salmon and pink salmon are the true run fish — salmon peaks in autumn (1.4), pink salmon in summer (1.5).
+**Brackish and migratory** — fourteen species carry a non-zero `sea` factor alongside fresh water: Vimba bream (0.2), Smelt (1.2 sea / 0.3 river), Arctic char (0.2), Atlantic salmon (1.1 river / 1.0 sea), Pink salmon (1.1 sea / 1.0 river), Sturgeon (0.3), Beluga sturgeon (1.0 sea / 1.0 river), Bull shark (1.1 sea / 0.6 river), Jack crevalle (1.2 sea / 0.5 river), Round goby (1.1 sea / 1.0 river), Snook (1.2 sea / 0.5 river), Striped bass (1.2 sea / 0.5 river), Tarpon (1.2 sea / 0.5 river) and Tubenose goby (0.5 sea / 1.1 river). Salmon and pink salmon are the true run fish — salmon peaks in autumn (1.4), pink salmon in summer (1.5).
 
 **Grass Carp** — a vegetarian giant: corn 1.0, bread 0.9, dough 0.8, and the only "carp" that is `mid`-water rather than bottom. `relentless` pattern, so it fights just as hard at the net as at the strike.
 
 **Winter-rod species** — only **Smelt** and **Whitefish** list the winter rod as ideal tackle, and only they list the winter rig. Everything else caught through the ice is caught on a rod it doesn't strictly want.
 
-**Stick-rod species** — Gudgeon, Bleak, Rotan, Common dace and Bluegill are the five fish that list the humblest blank as ideal. **Bamboo** appears for only two, Bluegill and Blue bream.
+**Stick-rod species** — Gudgeon, Bleak, Rotan, Common dace, Bluegill, Bitterling, Golden crucian, Sculpin, Sunbleak and Tubenose goby are the ten fish that list the humblest blank as ideal. **Bamboo** appears for only three, Bluegill, Blue bream and Golden crucian.
 
-**Zero-winter species** — Crucian Carp, Rudd, Bleak, Chub, Tench, Catfish, Eel and Grass Carp all have `winter: 0.0`; Carp, Mirror Carp, Wild Carp and Silver carp are effectively shut down too (0.02–0.05). Winter is a genuinely different game.
+**Zero-winter species** — Crucian Carp, Rudd, Bleak, Chub, Tench, Catfish, Eel, Bitterling and Sunbleak all have `winter: 0.0`; Grass Carp, Carp, Mirror Carp, Wild Carp and Silver carp are effectively shut down too (0.02–0.05). Winter is a genuinely different game.
 
 ## See also
 

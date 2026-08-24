@@ -154,7 +154,7 @@ ceiling = 0.25 + 0.45 x nutrition + 0.30 x (things in it - 1) / 4      (capped a
 | Plain base, nothing added | 0.48 |
 | Base + one rich thing | ~0.65 |
 | Base + three, rich | ~0.85 |
-| Base + four, rich | 1.00 |
+| Base + four, rich | ~0.90 |
 
 Feeding more gets you to that ceiling faster. It never raises it.
 
@@ -184,8 +184,8 @@ variety   = 0.90 + 0.10 x 0.75                = 0.98
 score     = 1.18 x 0.93 x 0.94 x 0.98 = 1.01  -> capped at 1.00
 ```
 
-Against a **carp** (wants 0.73 / 0.85, and its bait list barely mentions maggot) the same mix comes out
-near 0.45 — no better than not feeding at all. One mix, two verdicts. That is the whole feature.
+Against a **carp** (wants 0.73 / 0.85, and its bait list names neither maggot nor worm) the same mix comes
+out at 0.32 — worse than not feeding at all. One mix, two verdicts. That is the whole feature.
 
 ---
 
@@ -388,7 +388,7 @@ In numbers, for pike (its pair is fraction 0.66, nutrition 0.50):
 |---|---|
 | Not fed | **0.40** |
 | Plain base, no additives | **0.62** |
-| A carp mix: sweetcorn, boilies | **0.29** |
+| A carp mix: sweetcorn, boilies | **0.34** |
 
 Read that as: a sweet carp mix on a pike swim works **against** you — it is worse than not feeding at
 all. Plain base helps, because it claims to be no particular food: the engine scores it "neither the
@@ -421,9 +421,9 @@ where variety counts components: one gives 0, five or more gives 1. Which means:
 
 | Mix | Ceiling | Throws to reach it |
 |---|---|---|
-| Plain base | 0.475 | one and a bit |
+| Plain base | 0.475 | one |
 | Base + worm + maggot + barley | ~0.80 | two |
-| Five parts, rich | 1.00 | two |
+| Five parts, rich | ~0.90 | two |
 
 **More than two throws in a row is pointless** — the swim hits its ceiling and further jars do
 nothing. You cannot spoil it either: there is no overfeeding in this mod, by design.

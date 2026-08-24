@@ -27,7 +27,7 @@ The weight term dominates, deliberately: a swarm of tiny fish is poor XP per hou
 
 (Lengths carry ±2 % natural variation, so the XP wobbles by a point or two.)
 
-Two other things award XP: **netting a friend's fish** (+5) and **fishing up treasure** (+15).
+Three other things award XP: **netting a friend's fish** (+5), **fishing up treasure** (+15) and **claiming a quest reward** — 15 to 300 XP on top of the item the tables below name.
 
 ## Levels and ranks
 
@@ -68,16 +68,19 @@ So being two levels short is ×0.36, five levels short is ×0.08, and the floor 
 
 | Level needed | Count | Species |
 |---|---|---|
-| **0** | 13 | Bleak, Bluegill, Bream, Common dace, Crucian Carp, Gudgeon, Perch, Roach, Rotan, Round goby, Rudd, Ruffe, White Bream |
+| **0** | 17 | Bitterling, Bleak, Bluegill, Bream, Common dace, Crucian Carp, Gudgeon, Perch, Roach, Rotan, Round goby, Rudd, Ruffe, Sculpin, Sunbleak, Tubenose goby, White Bream |
 | **1** | 1 | Smelt |
-| **2** | 6 | Blue bream, Ide, Nase, Sabrefish, Tench, White-eye bream |
-| **3** | 13 | Carp, Chub, Grayling, all five Koi, Largemouth bass, Mirror Carp, Pink salmon, Vimba bream, Volga zander |
+| **2** | 7 | Blue bream, Golden crucian, Ide, Nase, Sabrefish, Tench, White-eye bream |
+| **3** | 15 | Carp, Chub, Grayling, all five Koi, Largemouth bass, Mayan cichlid, Mirror Carp, Oscar, Pink salmon, Vimba bream, Volga zander |
 | **4** | 11 | Burbot, Flounder, Garfish, Grass Carp, Herring, Mackerel, Pike, Rainbow trout, Whitefish, Wild Carp, Zander |
-| **5** | 8 | Arctic char, Asp, Channel catfish, Eel, Lenok, Saithe, Sea bass, Trout |
-| **6** | 6 | Atlantic salmon, Barracuda, Catfish, Cod, Ray, Silver carp |
-| **7** | 8 | Blue marlin, Conger eel, Mahi-mahi, Mako shark, Sailfish, Swordfish, Wahoo, Yellowfin tuna |
+| **5** | 10 | Arctic char, Asp, Bullseye snakehead, Channel catfish, Eel, Lenok, Peacock bass, Saithe, Sea bass, Trout |
+| **6** | 9 | Atlantic salmon, Barracuda, Bluefish, Catfish, Cod, Golden dorado, Ray, Silver carp, Striped bass |
+| **7** | 10 | Blue marlin, Conger eel, Jack crevalle, Mahi-mahi, Mako shark, Sailfish, Snook, Swordfish, Wahoo, Yellowfin tuna |
 | **8** | 2 | Sterlet, Taimen |
-| **9** | 2 | Halibut, Sturgeon |
+| **9** | 4 | Bull shark, Halibut, Sturgeon, Tarpon |
+| **10** | 3 | Arapaima, Goliath grouper, Piraiba |
+| **11** | 1 | Frilled shark |
+| **12** | 1 | Beluga sturgeon |
 
 ## Skills
 
@@ -225,18 +228,20 @@ The species-count advancements are **counted in code** against the live species 
 
 ## The Fishing Journal
 
-Craft it from **Book + Hook No.12 + Leather** (shapeless), then right-click to read. Six tabs:
+Craft it from **Book + Hook No.12 + Leather** (shapeless), then right-click to read. Eight tabs:
 
 | Tab | Contents |
 |---|---|
 | **Fish** | The bestiary — every species, your count and personal best, and a full "how to catch" page (water, depth, width, biomes, best conditions, baits, tackle) read straight from the same profile the bite engine uses |
-| **Baits & Lures** | Every bait, lure and groundbait, and which fish it attracts |
+| **Bait & feed** | Every hook bait and groundbait, plus the ballast and crops that only ever go into a mix, and which fish each one attracts |
+| **Lures** | Every lure, and which fish it attracts |
 | **Gear** | Rods, reels, lines and rigs with their crafting recipes and compatibility bands |
 | **Quests** | The chain above, with progress and the claim buttons |
 | **Skills** | The perk tree and your point balance |
-| **Guides** | Twelve written how-to pages |
+| **Records** | Your career on one page: level and rank, fish landed, species and families, trophies, ice catches and your five biggest fish |
+| **Guides** | Twenty-four written how-to pages |
 
-The Guides shelf covers: the drag, tackle stress, live bait, *every water is its own*, working the lure, topwater, trolling, sea giants, legendary fish, the market and the daily order, fishing together, and the tackle bench.
+The Guides shelf covers, in the order the shelf itself runs: the wait on float and bottom, how the fish notice you before they notice the bait, tackle stress, the drag; groundbait in four pages — the base, the numbers, feeding, the recipes — and the keepnet; working the lure, topwater, live bait; the tackle bench and where the tackle lives; *every water is its own*, the market and the daily order, fishing together; ice fishing; trolling, sea giants, legendary fish; and last the electrofisher, Discord and the thanks.
 
 The header line reads *"Angler: lvl N (rank) — X XP, next in Y"*.
 

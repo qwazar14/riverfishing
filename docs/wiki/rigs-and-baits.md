@@ -106,7 +106,7 @@ bait presented at the species' preferred depth : bite weight ×1.3
 wrong horizon                                  : bite weight ×0.55
 ```
 
-Every species has a `depth_pref`. Across the 91 species: 33 are **bottom**, 28 **mid**, 9 **surface**.
+Every species has a `depth_pref`. Across the 91 species: 40 are **bottom**, 39 **mid**, 12 **surface**.
 
 ## Natural baits
 
@@ -134,7 +134,7 @@ The **Frugal** skill gives a +5 % chance per rank (up to 25 %) that the bait sur
 
 ### Live Bait carries a weight
 
-A live baitfish keeps the weight of the fish it was made from, shown on its tooltip as *"Baitfish: N — culls the small takers"*. During the catch roll it **floors the size** of the fish you get:
+A live baitfish keeps the weight of the fish it was made from, shown on its tooltip as *"Livebait: N — calls predators from 6 × N up"*. During the catch roll it **floors the size** of the fish you get:
 
 ```
 minimum fish weight ≈ 6 × baitfish weight
@@ -146,22 +146,22 @@ Live Bait goes into a **Bait** slot on a bottom rig, or into the **Lure** slot o
 
 ## Artificial lures
 
-Eight lures. All are **predator-only** — a peaceful fish will not take an artificial bait, and the `LURE` slot only exists on the Predator rig.
+Ten lures. All are **predator-only** — a peaceful fish will not take an artificial bait, and the `LURE` slot only exists on the Predator rig.
 
 | Lure | Item id | Recipe | Notes |
 |---|---|---|---|
 | Spinner | `spinner` | Iron Nugget + Iron Ingot + hook (vertical) | Forgiving retrieve. |
 | Spoon Lure | `spoon` | Gold Ingot + hook (vertical) | Forgiving retrieve. |
 | Castmaster | `castmaster` | 2 × Iron Ingot + hook (shapeless) | Long-casting; forgiving retrieve. |
-| Skirted Octopus Jig | `octopus_jig` | Tackle Station only | Trolling weight, 60–400 g. A skirted head for a trolled spread; the pelagics rate it highest. |
-| Giant Spoon | `giant_spoon` | Tackle Station only | Trolling weight, 80–500 g. Big flash and a wide wobble; bluefish and jack crevalle rate it above everything. |
+| Skirted Octopus Jig | `octopus_jig` | **No crafting recipe** — [Tackle Station](tackle-station.md) or the fisherman's Saltwater kit (master tier) | Trolling weight, 60–400 g. A skirted head for a trolled spread; the pelagics rate it highest. |
+| Giant Spoon | `giant_spoon` | **No crafting recipe** — [Tackle Station](tackle-station.md) or the fisherman's Saltwater kit (master tier) | Trolling weight, 80–500 g. Big flash and a wide wobble; bluefish and jack crevalle rate it above everything. |
 | Crankbait | `crankbait` | Iron Ingot + Iron Nugget + hook (shapeless) | **Needs a steady rhythm.** |
 | Soft Jig | `jig` | Iron Ingot + String + hook (shapeless) | Forgiving retrieve. |
 | Popper | `popper` | Iron Nugget + Bamboo + hook (shapeless) | **Topwater** — pop-and-pause. |
 | Wobbler | `wobbler` | **No crafting recipe** — [Tackle Station](tackle-station.md) or the fisherman (expert tier) | **Needs a steady rhythm.** |
 | Soft Plastic | `silicone` | **No crafting recipe** — [Tackle Station](tackle-station.md) or the fisherman (journeyman tier) | Forgiving retrieve. |
 
-The `hook` ingredient is the `riverfishing:hooks` tag (No.16 through No.4).
+The `hook` ingredient is the `riverfishing:hooks` tag (No.16 through No.1).
 
 ### Working the lure
 
@@ -207,7 +207,7 @@ putting the base in a crafting grid with up to 8 other things. The full system i
 
 A fed spot is a **3×3 column zone**:
 
-- Each feed adds **0.6** freshness, up to a ceiling set by the mix — **0.48** for plain base, **1.00**
+- Each feed adds **0.6** freshness, up to a ceiling set by the mix — **0.48** for plain base, **0.90**
   for the base plus four rich things. Feeding more reaches the ceiling faster; it never raises it.
 - Freshness **halves every 1800-5400 ticks** and the zone is spent after **3 to 12 minutes**, both
   depending on the fraction. Dust washes out; whole grain lies where it landed.

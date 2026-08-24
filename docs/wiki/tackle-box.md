@@ -1,6 +1,6 @@
 # The Tackle Box
 
-Seventeen line diameters, six hook sizes, four rig types and dozens of baits, all living loose in the same nine rows as your food and your building blocks. The tackle box takes them.
+Twelve line diameters, nine hook sizes, eleven rig types and dozens of baits, all living loose in the same nine rows as your food and your building blocks. The tackle box takes them.
 
 It is a **block and an item at once**: one object that opens in your hand and stands on the bank. Four sizes, each a craft of the one below.
 

@@ -17,11 +17,11 @@ The items that aren't tackle: how you read the water, keep your gear sharp, and 
 
 ## Fishing Journal
 
-Right-click to read. Six tabs — **Fish**, **Baits & Lures**, **Gear**, **Quests**, **Skills** and **Guides** — covered in [Progression](progression.md#the-fishing-journal).
+Right-click to read. Eight tabs — **Fish**, **Bait & feed**, **Lures**, **Gear**, **Quests**, **Skills**, **Records** and **Guides** — covered in [Progression](progression.md#the-fishing-journal).
 
 The Fish tab is a live bestiary: every species you have caught, with its count, your personal best, and a "how to catch" page listing its water bodies, depth, width, biomes, best season and time, baits and tackle — all read from the **same profile the bite engine uses**, so the advice can never drift from the balance.
 
-The Guides shelf holds twelve written pages: the drag, tackle stress, live bait, *every water is its own*, working the lure, topwater, trolling, sea giants, legendary fish, the market and the daily order, fishing together, and the tackle bench.
+The Guides shelf holds twenty-four written pages, in the order the shelf itself runs: the wait on float and bottom, how the fish notice you before they notice the bait, tackle stress, the drag; groundbait in four pages — the base, the numbers, feeding, the recipes — and the keepnet; working the lure, topwater, live bait; the tackle bench and where the tackle lives; *every water is its own*, the market and the daily order, fishing together; ice fishing; trolling, sea giants, legendary fish; and last the electrofisher, Discord and the thanks.
 
 Your records survive death.
 

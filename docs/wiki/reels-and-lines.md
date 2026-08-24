@@ -42,8 +42,8 @@ So 1000 → 1 kg up to 7000 → 7 kg, then 8000 → 9.5 kg, 10000 → 14.5 kg, 1
 What the drag actually does in the fight:
 
 - Adds `0.5 × drag` on top of your line's breaking strain when working out the break tolerance.
-- **Gives line faster** when you ease off: `relaxTick = 0.010 + clamp(drag/10, 0, 0.5) × 0.02`. A big reel bleeds tension roughly three times as fast as a 1000.
-- **Reel feel**: small reels are twitchy, big ones are coarse but absorbing. `sensitivity = clamp(1 + (4000 − size)/4000 × 0.5, 0.6, 1.5)`. A 1000 sits at 1.375, a 4000 at 1.0, a 14000 at the 0.6 floor. A **reel-less** rod is the twitchiest of all at 1.3.
+- **Gives line faster** when you ease off: `relaxTick = 0.010 + clamp(drag/10, 0, 0.5) × 0.02`. A big reel bleeds tension **1.67 times** as fast as a 1000; the clamp tops out at 5 kg of drag, so every reel from 5000 up bleeds alike.
+- **Reel feel**: small reels are twitchy, big ones are coarse but absorbing. `sensitivity = clamp(1 + (4000 − size)/4000 × 0.5, 0.6, 1.5)`. A 1000 sits at 1.375, a 4000 at 1.0, a 14000 at the 0.6 floor. A **reel-less** rod is a hard-coded 1.3 — twitchy, but just short of the 1000.
 - Slightly speeds up landing: `landPulse` carries a `0.9 + size/14000` term.
 
 ### The spool-diameter rule
@@ -207,7 +207,7 @@ The [fisherman](villager.md) also sells 0.14 and 0.18 mono at low tiers, braid 0
 
 ## Leaders
 
-A leader is a separate item that goes into the **leader slot** of a Predator or Catfish rig. Seven species are toothy enough to bite straight through a bare line — pike, zander, conger eel, wahoo, barracuda, mako shark and taimen.
+A leader is a separate item that goes into the **leader slot** of a Predator or Catfish rig. Fifteen species are toothy enough to bite straight through a bare line — pike, zander, conger eel, wahoo, barracuda, mako shark, taimen, arapaima, beluga sturgeon, bluefish, bull shark, frilled shark, golden dorado, goliath grouper and piraiba.
 
 | Leader | Item id | Bite-through protection | Stealth | Recipe |
 |---|---|---|---|---|

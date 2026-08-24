@@ -66,7 +66,7 @@ Each table below is one tier's **gear** entries, one row per pool slot. Add that
 | 10 × Maggot | 1 emerald |
 | Reel 2000 / Reel 3000 **(rotating)** | 4 / 6 emeralds |
 | Mono Line 0.18 | 2 emeralds |
-| 6 × Grain Groundbait | 1 emerald |
+| 8 × Groundbait Soil | 1 emerald |
 | Bait Trap | 3 emeralds |
 | Oak Boat | 4 emeralds |
 | **Bamboo Rod, assembled** — Mono 0.18 + Light Float Rig (float, No.10 hook) | 9 emeralds |
@@ -101,7 +101,7 @@ Each table below is one tier's **gear** entries, one row per pool slot. Add that
 | Maggot Farm | 5 emeralds |
 | [Medium Keepnet](keepnet.md) / [Large Keepnet](keepnet.md) **(rotating)** | 9 / 14 emeralds |
 | [Kit: Carp](tackle-box.md) | 21 emeralds |
-| 3 × Oil Cake Groundbait | 4 emeralds |
+| **8 × Groundbait, the house blend** — 3 × Base Groundbait + 2 × Pearl Barley + 2 × Worm + 1 × Maggot | 5 emeralds |
 | **Feeder Rod, assembled** — Reel 5000 + Mono 0.25 + Feeder Rig (No.8 hook) | 18 emeralds |
 | **Winter Rod, assembled** — Mono 0.14 + Winter Rig (mormyshka) | 14 emeralds |
 
@@ -166,6 +166,10 @@ Prices below are the **base**; see [the market](#the-market) for how they actual
 | Common dace | 700 g | 1 emerald | 1 |
 | Rotan | 420 g | 1 emerald | 2 |
 | Smelt | 175 g | 1 emerald | 3 |
+| Bitterling | 21 g | 1 emerald | 1 |
+| Sunbleak | 13 g | 1 emerald | 1 |
+| Sculpin | 63 g | 1 emerald | 2 |
+| Tubenose goby | 21 g | 1 emerald | 1 |
 
 #### Tier 2
 
@@ -180,6 +184,7 @@ Prices below are the **base**; see [the market](#the-market) for how they actual
 | White-eye bream | 910 g | 2 emeralds | 3 |
 | Nase | 700 g | 2 emeralds | 4 |
 | Vimba bream | 1.1 kg | 3 emeralds | 5 |
+| Golden crucian | 2.1 kg | 2 emeralds | 3 |
 
 #### Tier 3
 
@@ -252,8 +257,15 @@ Prices below are the **base**; see [the market](#the-market) for how they actual
 | Snook | 17.5 kg | 11 emeralds | 21 |
 | Striped bass | 24.5 kg | 12 emeralds | 23 |
 | Tarpon | 91 kg | 20 emeralds | 32 |
+| Arapaima | 126 kg | 26 emeralds | 38 |
+| Beluga sturgeon | 420 kg | 30 emeralds | 44 |
+| Piraiba | 112 kg | 22 emeralds | 34 |
+| Goliath grouper | 224 kg | 24 emeralds | 36 |
+| Bull shark | 161 kg | 24 emeralds | 36 |
+| Frilled shark | 35 kg | 26 emeralds | 38 |
+| Golden dorado | 21 kg | 12 emeralds | 22 |
 
-**The five Koi cannot be sold at all.** They are collectibles, not commerce. All 74 other species have a buy-trade somewhere in the five tiers. (Asp, White Bream and Mirror Carp were unsellable before 0.6.0 — an oversight, now on tiers 3, 2 and 4. The nine Florida species shipped catchable in 0.7.0 with no buyer anywhere: you could land a tarpon and have nowhere on earth to sell it. Fixed in the same release.)
+**The five Koi cannot be sold at all.** They are collectibles, not commerce. All 86 other species have a buy-trade somewhere in the five tiers. (Asp, White Bream and Mirror Carp were unsellable before 0.6.0 — an oversight, now on tiers 3, 2 and 4. The nine Florida species shipped catchable in 0.7.0 with no buyer anywhere: you could land a tarpon and have nowhere on earth to sell it. Fixed in the same release.)
 
 ## The market
 
@@ -278,9 +290,9 @@ One species per Minecraft day is the fisherman's **order**, paying **×2.5** reg
 
 > *Fisherman's order of the day: Pike — pays ×2.5. The journal's quest page has the full recipe.*
 
-The rotation is **every species some fisherman buys** — all 74 of them — read out of the trade table itself rather than from a list kept beside it, so it can never name a fish nobody takes. The five koi are the only species left out, because nobody buys them. (Before 0.7.0 the pool was a hand-written sixteen, and the two lists had drifted: an order could and did name a species no fisherman on earth would take.)
+The rotation is **every species some fisherman buys** — all 86 of them — read out of the trade table itself rather than from a list kept beside it, so it can never name a fish nobody takes. The five koi are the only species left out, because nobody buys them. (Before 0.7.0 the pool was a hand-written sixteen, and the two lists had drifted: an order could and did name a species no fisherman on earth would take.)
 
-Seventy-four species is a much wider net than sixteen, so the order will more often name a fish your nearest stall is too junior to buy. The journal's **Order of the day** panel, at the top of the Quests tab, states the requirement outright — *"Bought by a fisherman of level N"* — alongside the water, depth, season, hour, bait, rig and rod the species wants.
+Eighty-six species is a much wider net than sixteen, so the order will more often name a fish your nearest stall is too junior to buy. The journal's **Order of the day** panel, at the top of the Quests tab, states the requirement outright — *"Bought by a fisherman of level N"* — alongside the water, depth, season, hour, bait, rig and rod the species wants.
 
 ### The order slot
 
@@ -298,7 +310,7 @@ Nothing is overwritten when the stall's tier is too low to buy today's species, 
 
 The sign hangs above the trade window, or below it when the GUI scale leaves no room above.
 
-**A stall too junior to buy today's fish still shows the sign** — with the rank that does buy it instead of a price. A Novice buys only 8 of the 74 sellable species, so a fresh stall usually cannot take the order; the sign then tells you what the order is and who to take it to, and does nothing when clicked. That is the answer to "why won't he take this" printed where the question gets asked.
+**A stall too junior to buy today's fish still shows the sign** — with the rank that does buy it instead of a price. A Novice buys only 12 of the 86 sellable species, so a fresh stall usually cannot take the order; the sign then tells you what the order is and who to take it to, and does nothing when clicked. That is the answer to "why won't he take this" printed where the question gets asked.
 
 The sign appears on our fisherman only. No other profession draws it.
 

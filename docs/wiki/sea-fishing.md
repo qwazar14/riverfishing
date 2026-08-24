@@ -19,9 +19,9 @@ The four saltwater reels (8000, 10000, 12000, 14000) need ocean loot: prismarine
 
 For line, the heavy tier exists precisely for these reels: mono up to 0.80 mm (64 kg) and braid up to 0.60 mm (108 kg). A 400 kg marlin needs it.
 
-The universal saltwater hook bait is **Raw Fish Fillet** — right-click a caught fish with the Filleting Knife, one per 200 g of it. Nineteen species rate it, nine of them at 0.9 or better.
+The universal saltwater hook bait is **Raw Fish Fillet** — right-click a caught fish with the Filleting Knife, one per 200 g of it. Thirty-one species rate it, nineteen of them at 0.9 or better.
 
-Four sea species are toothy enough to demand a leader: **Conger eel, Wahoo, Barracuda** and **Mako shark**.
+Nine sea species are toothy enough to demand a leader: **Conger eel, Wahoo, Barracuda, Mako shark, Bluefish, Bull shark, Frilled shark, Goliath grouper** and **Beluga sturgeon**.
 
 ### Getting the gear
 
@@ -52,7 +52,7 @@ The other layer is the water column itself. Every sea species has a `depth_min` 
 | 8+ | Yellowfin tuna, Sailfish, Mako shark |
 | 10+ | Blue marlin, Swordfish |
 
-And a `width_min` gate, running from 10 blocks (herring) to 24 (blue marlin, swordfish).
+And a `width_min` gate, running from 4 blocks (tubenose goby) to 28 (frilled shark).
 
 > The in-game guide says "the pelagics live over deep water only". Strictly, what gates them is the **water-column depth and the width**, not the deep-ocean biome tag — the `deep` group merely gives them their best factor (1.2–1.3 for the pelagics). In practice you find them by getting a long way offshore over genuinely deep water, which is the same thing.
 
@@ -88,7 +88,7 @@ And a `width_min` gate, running from 10 blocks (herring) to 24 (blue marlin, swo
 
 Three of these hide a [legendary specimen](fishing-mechanics.md#legendary-fish): yellowfin tuna (Old Ridgeback, 140 kg), blue marlin (The Leviathan, 380 kg) and mako shark (The Megalodon, 390 kg).
 
-**Halibut** is the deepest gate in the mod alongside the sturgeon — angler level **9**.
+**Halibut** gates at angler level **9**, alongside the sturgeon — deep, but no longer the deepest in the mod: arapaima, goliath grouper and piraiba want **10**, the frilled shark **11** and the beluga sturgeon **12**.
 
 ## Trolling
 
@@ -115,7 +115,7 @@ A rough patch — a turn, a wave — **decays** the arming counter by 3 rather t
 
 Hold the speed: too slow and the lure sinks, too fast and the fish spook. Stop the boat and fight when you are hooked up.
 
-Nine species list trolling as ideal tackle: **Mahi-mahi, Wahoo, Yellowfin tuna, Barracuda, Blue marlin, Sailfish, Swordfish, Mako shark** and, in fresh water, **Taimen**.
+Ten species list trolling as ideal tackle: **Mahi-mahi, Wahoo, Yellowfin tuna, Barracuda, Blue marlin, Sailfish, Swordfish, Mako shark, Bull shark** and, in fresh water, **Taimen**.
 
 ## Big-game fights
 
@@ -129,7 +129,7 @@ You cannot out-muscle a dive. Ride it out, then pump the line back in the 3.5–
 
 ### Greyhounding — Blue marlin, Sailfish, Mahi-mahi, Mako shark (and Atlantic salmon)
 
-Between runs the fish **breaches**: *"It jumps — give slack, do not reel!"*, opening a **15-tick** window. Crank inside it and there is a **35 % chance the hook rips straight out**. The answer is the [open drag](fishing-mechanics.md#the-three-drag-positions) — crouch, ride the jump, then stand up and wind.
+Between runs the fish **breaches** — a **0.8 % chance per tick**, falling as it tires: *"It jumps — give slack, do not reel!"*, opening a **15-tick** window whose first **4 ticks are grace**. Crank inside the remaining 11 and there is a **35 % chance the hook rips straight out**. The answer is the [open drag](fishing-mechanics.md#the-three-drag-positions) — crouch, ride the jump, then stand up and wind.
 
 ### And in general
 

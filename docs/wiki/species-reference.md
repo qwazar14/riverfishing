@@ -4,7 +4,7 @@ The rest of the profile data for all 91 species: habitat gates, the environmenta
 
 ## Habitat gates
 
-These four columns are **hard gates** — outside them the fish is simply absent, not merely rare. `Presents at` is the depth horizon the rig must fish (see [the float depth slider](rigs-and-baits.md#the-float)); `Cast distance` is the band, in blocks from the bank, where the species holds.
+These four columns are **hard gates** — outside them the fish is simply absent, not merely rare, unless it has been [stocked](stocking.md) there: a stocked species stays catchable at a quarter of full activity even in water that fails every gate. `Presents at` is the depth horizon the rig must fish (see [the float depth slider](rigs-and-baits.md#the-float)); `Cast distance` is the band, in blocks from the bank, where the species holds.
 
 - Depth is measured as the water column straight down from your cast point, counted up to 16. `4+` means 4 or deeper with no upper limit.
 - Width is the longest open-water span through your cast point. `12+` means 12 or wider; `0–40` means the species only lives in water **up to** 40 wide.
@@ -104,6 +104,8 @@ These four columns are **hard gates** — outside them the fish is simply absent
 | Sunbleak | 1–2 | 3+ | temperate 1.0, warm 1.0, swamp 1.0 | surface | 1–8 |
 | Sculpin | 1–4 | 3+ | cold 1.3, mountain 1.3, taiga 1.1, temperate 0.9 | bottom | 1–8 |
 | Tubenose goby | 1+ | 4+ | warm 1.1, temperate 1.0, beach 1.0 | bottom | 1–10 |
+| Kutum | 2–12 | 10+ | temperate 1.1, warm 1.0, beach 0.9 | bottom | 10–40 |
+| Naked Carp | 2+ | 12+ | warm 1.2, temperate 1.0 | bottom | 14–45 |
 
 ## Season, time and weather
 
@@ -204,15 +206,17 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Sunbleak | 1.1 | 1.4 | 0.6 | 0.0 | 1.1 | 1.3 | 1.1 | 0.0 | 1.2 | 0.8 | 0.5 |
 | Sculpin | 1.1 | 1.0 | 1.1 | 0.5 | 1.0 | 0.6 | 1.2 | 1.4 | 1.0 | 1.1 | 0.9 |
 | Tubenose goby | 1.1 | 1.2 | 1.0 | 0.3 | 1.1 | 1.0 | 1.1 | 0.8 | 1.0 | 1.1 | 0.8 |
+| Kutum | 1.4 | 0.9 | 1.1 | 0.4 | 1.3 | 0.8 | 1.3 | 0.7 | 1.0 | 1.1 | 0.9 |
+| Naked Carp | 0.8 | 1.4 | 0.95 | 0.03 | 1.2 | 0.85 | 1.2 | 1.05 | 0.9 | 1.2 | 0.8 |
 
 ## Fight statistics
 
 - **Pattern** drives run frequency, run length and the gaps between them, plus the signature events (dives, jumps). Full tables in [fight patterns](fishing-mechanics.md#fight-patterns).
-- **Strength** sets the load the fish puts on your tackle: `requiredKg = max(0.5, strength × (1 + weightKg) × 2)`.
+- **Strength** sets the load the fish puts on your tackle: `requiredKg = max(0.5, strength × (1 + fightMassKg(weightKg)) × 2)`, where `fightMassKg` is the weight itself up to 20 kg and `20 × (kg / 20)^0.55` above it. A 200 kg fish of strength 1.0 is fought as 70.96 kg and asks for 143.9 kg of line, not 402 — the strongest line in the mod carries 108 kg.
 - **Runs** is the baseline count before pattern, size and predator bonuses.
 - **Aggression** drives head-shake frequency and tightens the strike-timing window.
 - **`base`** is relative density. **0.95 or above means the species lives in every water** (see [community](water-and-conditions.md#every-water-is-its-own)); 0.0 means it is never drawn from the normal pool at all (the koi).
-- A `stamina` value is also present in every profile but **is not currently read by any game logic**.
+- **`stamina`**, present in every profile, decides how long a fish can keep running: the fatigue it accrues per running tick is divided by `stamina / 0.70` (the table median), clamped to 0.5–1.6. A 0.30-stamina rotan sits on that floor and tires twice as fast as the median; a 1.0-stamina tuna tires 1.43× slower.
 
 | Species | Pattern | Strength | Runs | Aggression | `base` density | Legendary |
 |---|---|---|---|---|---|---|
@@ -237,10 +241,10 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Eel | burst | 0.6 | 3 | 0.7 | 0.6 | — |
 | Grayling | aggressive | 0.55 | 3 | 0.85 | 0.8 | — |
 | Trout | aggressive | 0.75 | 3 | 0.85 | 0.7 | — |
-| Sterlet | steady | 0.8 | 3 | — | 0.35 | — |
-| Wild Carp | aggressive | 1.0 | 6 | 1.0 | 0.5 | 17.5 kg @ 0.6 % |
+| Sterlet | burst | 0.8 | 4 | — | 0.35 | — |
+| Wild Carp | aggressive | 0.9 | 3 | 1.0 | 0.5 | 17.5 kg @ 0.6 % |
 | Mirror Carp | burst | 0.8 | 3 | 0.75 | 0.7 | — |
-| Grass Carp | relentless | 1.0 | 5 | 0.92 | 0.5 | — |
+| Grass Carp | relentless | 1.0 | 3 | 0.92 | 0.5 | — |
 | Koi Kohaku | burst | 0.7 | 3 | 0.6 | 0.0 | — |
 | Koi Tancho Sanke | burst | 0.7 | 3 | 0.6 | 0.0 | — |
 | Koi Showa Sanke | burst | 0.7 | 3 | 0.6 | 0.0 | — |
@@ -249,7 +253,7 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Bluegill | steady | 0.3 | 1 | 0.5 | 1.1 | — |
 | Largemouth bass | aggressive | 0.8 | 3 | 0.9 | 0.8 | — |
 | Rainbow trout | burst | 0.8 | 4 | 0.85 | 0.65 | — |
-| Channel catfish | steady | 0.85 | 3 | 0.7 | 0.55 | — |
+| Channel catfish | burst | 0.85 | 3 | 0.7 | 0.55 | — |
 | Silver carp | relentless | 0.9 | 4 | 0.8 | 0.45 | — |
 | Sabrefish | aggressive | 0.45 | 2 | 0.75 | 0.8 | — |
 | Blue bream | steady | 0.3 | 1 | 0.4 | 0.85 | — |
@@ -261,7 +265,7 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Cod | active_then_passive | 0.8 | 2 | 0.6 | 0.6 | — |
 | Saithe | aggressive | 0.75 | 3 | 0.8 | 0.7 | — |
 | Conger eel | relentless | 0.9 | 3 | 0.75 | 0.4 | — |
-| Ray | steady | 0.95 | 1 | 0.2 | 0.5 | — |
+| Ray | active_then_passive | 0.95 | 2 | 0.2 | 0.5 | — |
 | Mahi-mahi | greyhounding | 0.85 | 3 | 0.9 | 0.5 | — |
 | Wahoo | burst | 0.9 | 4 | 0.95 | 0.4 | — |
 | Yellowfin tuna | sounding | 1.0 | 4 | 0.85 | 0.35 | 140 kg @ 0.6 % |
@@ -270,7 +274,7 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Sailfish | greyhounding | 0.9 | 5 | 1.0 | 0.35 | — |
 | Swordfish | sounding | 1.0 | 4 | 0.8 | 0.25 | — |
 | Mako shark | greyhounding | 1.0 | 5 | 1.0 | 0.3 | 390 kg @ 0.4 % |
-| Rotan | aggressive | 0.25 | 1 | 0.7 | 1.2 | — |
+| Rotan | steady | 0.2 | 1 | 0.5 | 1.2 | — |
 | Nase | steady | 0.45 | 2 | 0.4 | 0.95 | — |
 | Vimba bream | active_then_passive | 0.5 | 2 | 0.5 | 0.8 | — |
 | Smelt | burst | 0.15 | 1 | 0.6 | 1.3 | — |
@@ -281,7 +285,7 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Atlantic salmon | greyhounding | 0.9 | 4 | 0.8 | 0.5 | — |
 | Pink salmon | burst | 0.6 | 3 | 0.7 | 0.9 | — |
 | Sturgeon | sounding | 0.9 | 4 | 0.5 | 0.25 | 145 kg @ 0.4 % |
-| Halibut | sounding | 0.9 | 3 | 0.4 | 0.3 | — |
+| Halibut | sounding | 0.9 | 3 | 0.4 | 0.3 | 250 kg @ 0.4 % |
 | Common dace | aggressive | 0.3 | 2 | 0.8 | 0.9 | — |
 | Volga zander | active_then_passive | 0.55 | 2 | 0.7 | 0.7 | — |
 | White-eye bream | active_then_passive | 0.4 | 2 | 0.5 | 0.8 | — |
@@ -307,6 +311,8 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Sunbleak | steady | 0.02 | 1 | — | 1.0 | — |
 | Sculpin | steady | 0.08 | 1 | — | 0.7 | — |
 | Tubenose goby | steady | 0.06 | 1 | — | 0.9 | — |
+| Kutum | burst | 0.6 | 3 | 0.6 | 0.45 | — |
+| Naked Carp | burst | 0.85 | 4 | 0.8 | 0.35 | — |
 
 ## See also
 

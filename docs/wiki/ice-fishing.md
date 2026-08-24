@@ -105,7 +105,7 @@ The strongest winter species by season factor:
 
 Only **Smelt** and **Whitefish** actually list the winter rod and the winter rig as their ideal tackle. Everything else you pull through the ice is being caught on gear it doesn't strictly want — which costs you on the rod and rig components of the [match score](fishing-mechanics.md#match-coefficient-m--your-tackle), but is entirely playable.
 
-Seven species have `winter: 0.0` and will never bite through the ice: Crucian Carp, Rudd, Bleak, Chub, Tench, Catfish and Eel. Carp, Mirror Carp, Wild Carp, Grass Carp and Silver carp are effectively shut down at 0.02–0.05.
+Nine species have `winter: 0.0` and will never bite through the ice: Crucian Carp, Rudd, Bleak, Chub, Tench, Catfish, Eel, Bitterling and Sunbleak. Carp, Mirror Carp, Wild Carp, Grass Carp and Silver carp are effectively shut down at 0.02–0.05.
 
 ## Progression
 

@@ -181,7 +181,7 @@ Casting an **Active** rod costs hunger — one whole food point every 4 casts.
 
 Cast, then watch. **There is no "Bite!" text and no sound** — the bobber plunges on your screen and spotting it is the game. The bite window is **72 ticks** (3.6 s).
 
-Reeled float rods run the strike-timing bar. Reel-less ones (all three wooden blanks) do **not** — they save their single timing challenge for the [pull-out](#the-pull-out-reel-less-poles).
+The strike-timing bar needs a reel, and **no float blank takes one** — all four save their single timing challenge for the [pull-out](#the-pull-out-reel-less-poles).
 
 ### Bottom (Feeder, Bottom, Carp, Surf, Boat)
 
@@ -262,7 +262,7 @@ A boss bar appears. **It does not name the fish** — you learn what it was when
 | Yellow | Tension above two thirds of the break point |
 | Red | At the break point **or** the fish is running |
 
-The bar's title also reports the state: *"🎣 Player"*, *"🎣 Player — running!"*, or *"🎣 Player — tiring"* once fatigue passes 70 %.
+The bar's title reports one state only: *"🎣 Player"* becomes *"🎣 Player — tiring"* once fatigue passes 70 %. A run is announced by the bar turning red, never by the title.
 
 Under the bar sits the **fight coach** cue:
 
@@ -274,7 +274,7 @@ Under the bar sits the **fight coach** cue:
 
 ### The three drag positions
 
-This is the whole fight, expressed with no new inputs:
+The drag is one of the fight's two axes — how hard you hold:
 
 | Position | How | What happens |
 |---|---|---|
@@ -286,25 +286,49 @@ Open the drag for jumps and runs you cannot hold. You only gain standing up. Cro
 
 While crouched you also **pay out line** even between runs (−0.0025 progress per tick, −0.004 during a run), so camping in the open-drag position is not free immunity.
 
+### Steering the run
+
+A run has a **course**, and answering it is the other axis. Four dedicated keys do it — **←** and **→** pull the rod across, **↑** lifts it, **↓** pushes it down — on the arrows by default and rebindable in the vanilla Controls screen (*Fight: pull LEFT / pull RIGHT / LIFT the rod / rod DOWN*). Hold none of them and the **camera** answers instead: lean your view more than **6°** off where it sat when the run began and that counts as pulling that way, so looking around mid-run is an input whether you meant it or not.
+
+The pattern scripts the course: *sounding* pulls DOWN, *greyhounding* comes UP, *relentless* alternates sides, *active_then_passive* goes sideways twice and then sulks deep. Nothing spells it out — the blank bends toward the fish, and reading it is the game.
+
+How well you are holding it is one number, `align`:
+
+| What you are doing | `align` |
+|---|---|
+| The key that counters the run | **1.0** |
+| Hands off | **0.4** |
+| Any other key — including pulling the way the fish is already going | **0** |
+
+It multiplies four things at once: the tension of a crank by `2.2 − 1.7 × align`, the progress of a crank by `0.2 + 0.5 × align`, the run's own load by `1.9 − 1.35 × align`, and how fast the fish tires by `1 + 1.8 × align²`. Held right, a run costs half the tension, pays most of a full crank and burns the fish out nearly three times as fast; held wrong it is 2.2× the tension for nothing at all. Outside a directed run — a calm crank, a head-shake, the final surge — every one of those multipliers is a flat 1.0.
+
+Your **feet** are tackle too, read whether or not you know it. Backing away from the water wins line exactly as a crank does, and loads the rod the same way; walking at the fish puts slack in it. A second of slack warns you — *"SLACK! Stop walking at it — the hook will fall out"* — and past two seconds every tick rolls **5 %** for the fish to spit the hook. Standing still fishes exactly as it always did, and a running fish keeps its own line tight, so a run can never go slack.
+
 ### Tension and progress
 
 ```
-requiredKg      = max(0.5, fightStrength × (1 + weightKg) × 2)
+fightMass       = weightKg ≤ 20 ? weightKg : 20 × (weightKg/20)^0.55
+requiredKg      = max(0.5, fightStrength × (1 + fightMass) × 2)
 effectiveStrain = lineStrainKg + 0.5 × fightDrag
 breakTension    = clamp(effectiveStrain / requiredKg, 0.2, 1) / breakSensitivity
                         × overloadPenalty × steadyHandMultiplier      (clamped 0.1 … 1.0)
 ```
 
-That single number is your margin. Thin or worn line, a heavy fish, a small reel and an overloaded blank all shrink it.
+That single number is your margin. Thin or worn line, a heavy fish, a small reel and an overloaded blank all shrink it. Past 20 kg the mass a fight is fought against is compressed rather than counted: a 400 kg marlin is fought as 104 kg. Straight, the law would have asked 802 kg of line for it while the strongest braid in the game carries 108 — that fish was not hard, it was impossible.
 
 Per crank:
 
 ```
-tension  += (running ? runPulse : calmPulse) × (1 − 0.55 × fatigue)
-progress += landPulse × (running ? 0.2 : 1.0) × (1 + 0.6 × fatigue)
+wrongWay    = directed run ? 2.2 − 1.7 × align : 1.0
+armStrength = 0.35 + 0.65 × anglerStamina
+
+tension  += (running ? runPulse : calmPulse) × (1 − 0.55 × fatigue) × wrongWay
+                                             × (1 + 0.5 × (1 − anglerStamina))
+progress += landPulse × (directed run ? 0.2 + 0.5 × align : running ? 0.2 : 1.0)
+                      × (1 + 0.6 × fatigue) × armStrength
 ```
 
-Cranking into a run spikes tension and gains almost nothing — that is the lesson.
+Cranking into a run you are not answering spikes tension and gains almost nothing — that is the lesson. `anglerStamina` starts at 1 and every crank spends it — most of all a crank into a run — and it comes back only after a second with no click, twice as fast crouched. A spent angler pays half again in tension and winds at 35 % of the strength, so the answer to being tired is to stop, not to click faster.
 
 The pulses themselves:
 
@@ -312,26 +336,28 @@ The pulses themselves:
 sensitivity = reel-less ? 1.3 : clamp(1 + (4000 − reelSize)/4000 × 0.5, 0.6, 1.5)
 weightStress = clamp(weightKg / 5, 0.2, 2.0)
 smallDamp    = min(1, 0.25 + weightKg / 1.5)
+tackleMargin = effectiveStrain / max(0.5, requiredKg)
+loadFactor   = clamp(max(0.05, tackleMargin)^−0.6, 0.25, 2.0)
 
-runPulse   = 0.18 × sensitivity × (0.7 + 0.6 × weightStress) × smallDamp
-calmPulse  = 0.07 × sensitivity × smallDamp
+runPulse   = 0.18 × sensitivity × (0.7 + 0.6 × weightStress) × loadFactor × smallDamp
+calmPulse  = 0.07 × sensitivity × loadFactor × smallDamp
 landPulse  = 0.05 / (0.7 + 0.6 × weightStress) × (0.9 + reelSize/14000)
 relaxTick  = 0.010 + clamp(fightDrag/10, 0, 0.5) × 0.02
 ```
 
-`smallDamp` is why a 50 g perch no longer loads the rod like a kilo fish.
+`smallDamp` is why a 50 g perch no longer loads the rod like a kilo fish. `loadFactor` is the whole reason to buy stronger line: tackle that out-guns the fish loads at as little as a quarter of the rate, tackle that is barely enough loads at double, and exactly-adequate tackle is the unchanged middle at 1.
 
 Passively, tension falls by `relaxTick` per tick and progress bleeds back by 0.0008 per tick — leave the rod alone entirely and you make no headway.
 
 ### Runs
 
-A **running** fish loads the tackle by itself: `tension += runPulse × 0.12 × (1 − 0.55 × fatigue)` every tick, unless you have the drag open. Riding out a run with a locked drag is not free.
+A **running** fish loads the tackle by itself: `tension += runPulse × 0.12 × (1 − 0.55 × fatigue) × wrongWay` every tick, unless you have the drag open. Here `wrongWay = 1.9 − 1.35 × align` on a directed run and a flat 1.0 on a course-less one, so standing hands-off is ×1.36 of that load, holding the wrong key ×1.9, and answering the run ×0.55. Riding out a run with a locked drag is not free.
 
 Runs are scheduled from a pattern-specific chance, duration and interval (see [fight patterns](#fight-patterns)), all damped by fatigue:
 
 ```
 runChance   = (1 − 0.65 × fatigue) × patternChance
-runDuration = max(6, patternDuration × (1 − 0.5 × fatigue))
+runDuration = max(14, patternDuration × (1 − 0.35 × fatigue))
 ```
 
 The number of runs a fish has in it:
@@ -349,10 +375,14 @@ runs = max(1, profile.runs)
 The fight wears the fish down — fast while it runs, slowly between:
 
 ```
-fatigue += running ? 1/(20 × (4 + 2.5 × weightKg)) : one fifth of that      (capped at 1)
+staminaFactor = clamp(fightStamina / 0.70, 0.5, 1.6)
+courseGain    = directed run ? 1 + 1.8 × align²  (1.0 … 2.8) : 1.0
+fatigueTick   = 1/(20 × (10.4 + 6.5 × weightKg) × staminaFactor)
+
+fatigue += running ? fatigueTick × courseGain : one fifth of fatigueTick   (capped at 1)
 ```
 
-Full burn-out takes about **4 + 2.5 × kg seconds of running**. A perch gasses out in seconds; a carp holds for half a minute; big game outlasts your drag instead. A tired fish pulls softer, comes in faster, runs less often and for less long — the boss bar says *"— tiring"* and that is your cue it is ready for the net.
+Full burn-out takes about **(10.4 + 6.5 × kg) × staminaFactor seconds of running**, and as little as a third of that if you answer every run: a 5 kg fish of median stamina burns out in 43 s held hands-off, in 15 s fought properly. A perch gasses out in seconds; a carp holds for half a minute; big game outlasts your drag instead. A tired fish pulls softer, comes in faster, runs less often and for less long — the boss bar says *"— tiring"* and that is your cue it is ready for the net.
 
 ### Predator fights
 
@@ -392,7 +422,7 @@ Rolled exactly **once**, at the moment the bank is reached. A failed roll is a q
 ### Timeout
 
 ```
-fightTimeout = clamp(700 + weightKg × 80 + patternBonus, 700, 3000) ticks
+fightTimeout = clamp(700 + weightKg × 80 + patternBonus, 900, 3400) ticks
 patternBonus: burst 300, greyhounding 400, relentless 500, sounding 700
              (+300 more for any predator fight)
 ```
@@ -416,25 +446,25 @@ Seven patterns, set per species in its profile.
 
 | Pattern | Run chance | Run length (ticks) | Gap between runs | Extra runs | Signature |
 |---|---|---|---|---|---|
-| **steady** | 0.60 | 25–44 | 50–99 | — | The honest slog. |
-| **active_then_passive** | 0.90 early / 0.25 past halfway | 30–49 early / 14–23 late | 30–59 / 90–149 | — | Fights hard early, tires late. |
-| **burst** | 0.70 | 50–89 | 80–159 | floors at 2 | Long, powerful surges with real breathing space. |
-| **aggressive** | 0.95 | 22–39 | 25–54 | +2 | Constant short, sharp lunges. |
-| **relentless** | 0.97 | 40–74 | 20–44 | +3 | Barely a breath between charges; breaks the surface with a big boil and a leap on every run. |
-| **greyhounding** | 0.85 | 18–31 | 35–64 | +2 | **Jumps.** See below. |
-| **sounding** | 0.92 | 60–109 | 70–129 | +3 | **Dives.** See below. |
+| **steady** | 0.60 | 56–99 | 50–99 | — | The honest slog. |
+| **active_then_passive** | 0.90 early / 0.25 past halfway | 68–113 early / 32–53 late | 30–59 / 90–149 | — | Fights hard early, tires late. |
+| **burst** | 0.70 | 108–187 | 80–159 | floors at 2 | Long, powerful surges with real breathing space. |
+| **aggressive** | 0.95 | 48–87 | 25–54 | +2 | Constant short, sharp lunges. |
+| **relentless** | 0.97 | 88–161 | 20–44 | +3 | Barely a breath between charges; breaks the surface with a big boil and a leap on every run. |
+| **greyhounding** | 0.85 | 40–69 | 35–64 | +2 | **Jumps.** See below. |
+| **sounding** | 0.92 | 135–242 | 70–129 | +3 | **Dives.** See below. |
 
 ### Sounding (deep dives)
 
 While the fish is down, **it takes line**: progress drains 0.0035 per tick. Every 25 run ticks the long drag scream plays and you are told *"Sounding — pump it back between dives!"* You cannot fight a dive; you wait it out and pump the line back in the gap.
 
-Species: **Yellowfin tuna, Swordfish, Sturgeon, Halibut**.
+Species: **Yellowfin tuna, Swordfish, Sturgeon, Halibut, Beluga sturgeon, Frilled shark, Goliath grouper**.
 
 ### Greyhounding (jump series)
 
 Between runs, once progress is past 5 %, a **0.8 % chance per tick** of a full-body breach — and it falls as the fish tires, down to **0.2 %** at full fatigue, so a fight you are winning visibly calms down. *"It jumps — give slack, do not reel!"* opens a **15-tick** window whose first **4 ticks are grace**: the crank already on its way when the fish leaves the water is human reaction time, not a mistake. Crank inside the remaining 11 and there is a **35 % chance the hook rips straight out**: *"Thrown the hook on the jump..."*. The answer to a jump is the open drag.
 
-Species: **Mahi-mahi, Blue marlin, Sailfish, Mako shark, Atlantic salmon**.
+Species: **Mahi-mahi, Blue marlin, Sailfish, Mako shark, Atlantic salmon, Arapaima, Golden dorado, Tarpon**.
 
 ---
 
@@ -469,13 +499,13 @@ A strong line against a light fish nearly always just throws the hook (5 % floor
 
 ### Leader bite-off
 
-Rolled once, at the moment of hooking, for the seven toothy species:
+Rolled once, at the moment of hooking, for the fifteen toothy species:
 
 ```
 chance = 0.75 × (1 − leaderProtection)
 ```
 
-A bite-off **always** loses the rig: *"Bitten through the line — use a leader!"* See [leaders](reels-and-lines.md#leaders).
+A bite-off **always** loses the rig: *"Bitten clean through — around N kg of it. Use a leader!"*, which names roughly the weight of what took it. See [leaders](reels-and-lines.md#leaders).
 
 ### Catastrophic failure
 
@@ -552,7 +582,7 @@ The fish's in-world icon scales from its length alone: `clamp(length/50, 0.45, 8
 trophy  ⇔  weight ≥ weightMin + (weightMax − weightMin) × 0.90
 ```
 
-A trophy is not a dice roll: it is a **property of the specimen**. Any fish whose weight lands in the **top tenth** of its species' range is one, which across the 79 profiles works out at roughly 2–7 % of catches — rare on a species with a long tail, commoner on one with a tight range. Everything that pushes a fish up its own range pushes it towards the band: livebait, a heavy lure, Angler's Luck. The journal publishes each species' threshold weight, so it is a number you can look up rather than infer. A trophy shimmers like enchanted gear, prefixes its name with ★, gives **triple XP** and runs longer than an ordinary fish of its species. The `0.90` is [configurable](config.md#values-the-preset-never-touches).
+A trophy is not a dice roll: it is a **property of the specimen**. Any fish whose weight lands in the **top tenth** of its species' range is one, which across the 91 profiles works out at roughly 2–7 % of catches — rare on a species with a long tail, commoner on one with a tight range. Everything that pushes a fish up its own range pushes it towards the band: livebait, a heavy lure, Angler's Luck. The journal publishes each species' threshold weight, so it is a number you can look up rather than infer. A trophy shimmers like enchanted gear, prefixes its name with ★, gives **triple XP** and runs longer than an ordinary fish of its species. The `0.90` is [configurable](config.md#values-the-preset-never-touches).
 
 ### Prime grade
 
@@ -564,7 +594,7 @@ Any legal catch at or above 70 % of its species' maximum is graded **prime** —
 
 ### Legendary fish
 
-Eight species hide **one named specimen per server**, rolled at the moment of landing:
+Fourteen species hide **one unique specimen per server**, rolled at the moment of landing — eight of them under a name of their own:
 
 | Species | Name | Weight | Chance per landing |
 |---|---|---|---|
@@ -576,6 +606,12 @@ Eight species hide **one named specimen per server**, rolled at the moment of la
 | Sturgeon | The Tsar-Fish | 145 kg | 0.4 % |
 | Mako shark | The Megalodon | 390 kg | 0.4 % |
 | Halibut | The Abyssal Demon | 250 kg | 0.4 % |
+| Arapaima | — | 175 kg | 0.4 % |
+| Piraiba | — | 155 kg | 0.4 % |
+| Beluga sturgeon | — | 580 kg | 0.3 % |
+| Bull shark | — | 225 kg | 0.4 % |
+| Goliath grouper | — | 310 kg | 0.4 % |
+| Frilled shark | — | 48 kg | 0.3 % |
 
 The actual weight varies ±3 % around the listed figure, the length is the species maximum, and it is always a trophy. The catch is **broadcast to the whole server** in bold gold and recorded forever — there will never be another. A foul-hooked fish can never be the legendary one.
 
