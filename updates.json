@@ -1,12 +1,30 @@
 {
   "_comment": "River Fishing update feed (§update-check). Served raw from the mc-1.21.1 branch; the in-game checker compares 'latest' for the running MC version and prints up to 3 bullets per missed release. Bump 'latest' ONLY when a release is actually published.",
   "latest": {
-    "1.20.1": "0.8.0",
-    "1.21.1": "0.8.0",
-    "26.1.2": "0.8.0",
-    "26.2": "0.8.0"
+    "1.20.1": "0.8.1",
+    "1.21.1": "0.8.1",
+    "26.1.2": "0.8.1",
+    "26.2": "0.8.1"
   },
   "changelog": [
+    {
+      "version": "0.8.1",
+      "ru": [
+        "Леска снова уходит туда, куда забросили: пространство отрисовки теперь измеряется, а не угадывается",
+        "Гиганты стали ловимыми: тяга для рыбы тяжелее 20 кг больше не линейна, свечей меньше, у окна прыжка есть фора",
+        "Две новые рыбы — кутум и голый карп (всего 93); перерисованы карась и зеркальный карп"
+      ],
+      "uk": [
+        "Волосінь знову йде туди, куди закинули: простір відмальовки тепер вимірюється, а не вгадується",
+        "Гіганти стали виловними: тяга для риби, важчої за 20 кг, більше не лінійна, свічок менше, у вікна стрибка є фора",
+        "Дві нові риби — кутум і голий короп (усього 93); перемальовано карася і дзеркального коропа"
+      ],
+      "en": [
+        "Your line lands where you cast it: the space the hand pass draws in is measured now, not assumed",
+        "The giants can be landed: required pull tapers above 20 kg, breaches are rarer, and the jump window has grace",
+        "Two new fish, kutum and naked carp (93 in all); crucian and mirror carp repainted"
+      ]
+    },
     {
       "version": "0.8.0",
       "ru": [
