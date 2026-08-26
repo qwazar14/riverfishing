@@ -98,6 +98,13 @@ public final class ModItems {
     public static final RegistrySupplier<Item> WORM;
     public static final RegistrySupplier<Item> CHICKEN_LIVER;
     // ---- In-rig components (Module 4): referenced by slot validation ----
+    /**
+     * §farm-feed: the crop seeds, held onto because they have to be registered as compostable once
+     * they exist. Vanilla wheat, beetroot, melon and pumpkin seeds all sit at 0.30 and these are the
+     * same kind of thing, so they sit there too.
+     */
+    public static final RegistrySupplier<Item> CORN_SEEDS, PEA_SEEDS, BARLEY_SEEDS;
+
     public static final RegistrySupplier<Item> LEADER;
     public static final RegistrySupplier<Item> LEADER_FLUORO;
     public static final RegistrySupplier<Item> LEADER_TITANIUM;
@@ -225,9 +232,9 @@ public final class ModItems {
         // descriptor, not the generic "artificial lure (predators only)" line.
         registerBait("mormyshka", true, "tooltip.riverfishing.bait_ice_jig");
         // ÃÂ§bait-crops: seeds for the plant baits Ã¢ÂÂ plantable on farmland (vanilla wheat-style seeds).
-        reg("corn_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.CORN_CROP.get(), props()));
-        reg("pea_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.PEA_CROP.get(), props()));
-        reg("barley_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.BARLEY_CROP.get(), props()));
+        CORN_SEEDS = reg("corn_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.CORN_CROP.get(), props()));
+        PEA_SEEDS = reg("pea_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.PEA_CROP.get(), props()));
+        BARLEY_SEEDS = reg("barley_seeds", () -> new net.minecraft.world.item.ItemNameBlockItem(ModBlocks.BARLEY_CROP.get(), props()));
 
         // ----- Artificial baits (predators only) -----
         registerBait("spinner", true);
