@@ -11,6 +11,7 @@ import com.riverfishing.item.FilletKnifeItem;
 import com.riverfishing.item.FishItem;
 import com.riverfishing.item.GroundbaitItem;
 import com.riverfishing.item.HookItem;
+import com.riverfishing.item.IngredientItem;
 import com.riverfishing.item.JournalItem;
 import com.riverfishing.item.LeaderItem;
 import com.riverfishing.item.LineItem;
@@ -44,10 +45,26 @@ public final class ModItems {
     /** Registration order = creative-tab order. */
     public static final List<RegistrySupplier<Item>> ALL = new ArrayList<>();
 
+    /** §hook-pick: the hooks in {@link com.riverfishing.tackle.TackleForm#HOOK_SIZES} order — the bench
+     *  picks one by index rather than being handed the item. */
+    public static final List<RegistrySupplier<Item>> HOOKS = new ArrayList<>();
+
     // ---- Rods ----
     public static final List<RegistrySupplier<Item>> RODS = new ArrayList<>();
     // ---- Caught fish: one item + texture per species (Module 8; ÃÂ§ecology adds habitat-bound species) ----
     public static final String[] FISH_SPECIES = {
+            // §carp-kin (0.8.1): two more of the family — a Caspian roach that grew up, and a carp
+            // that forgot to put its scales on.
+            "kutum", "naked_carp",
+            // §giants-and-minnows (0.8.0): the top of the ladder and the bottom of it — six fish that outgrow
+            // every rod in the shop, and five you can catch with a stick and a maggot.
+            "arapaima", "beluga", "piraiba", "goliath_grouper",
+            "bull_shark", "frilled_shark", "golden_dorado", "golden_crucian",
+            "gorchak", "verkhovka", "sculpin", "tubenose_goby",
+            // §florida-nine (0.7.0): the US/Florida wave, from a player who also
+            // found the §session-guard bug that 0.6.1 fixes.
+            "peacock_bass", "bullseye_snakehead", "mayan_cichlid", "oscar",
+            "striped_bass", "bluefish", "jack_crevalle", "tarpon", "snook",
             "bream", "crucian_carp", "roach", "rudd", "white_bream",
             "carp", "catfish", "perch", "pike", "zander",
             "gudgeon", "ruffe", "bleak", "ide", "chub", "asp",
@@ -69,13 +86,25 @@ public final class ModItems {
             "blue_marlin", "sailfish", "swordfish", "mako",
             // north-wave (0.5.0): taiga rivers, the salmon run and the two bottom giants.
             "rotan", "nase", "vimba", "smelt", "whitefish", "char",
-            "lenok", "taimen", "salmon", "pink_salmon", "sturgeon", "halibut"
+            "lenok", "taimen", "salmon", "pink_salmon", "sturgeon", "halibut",
+            // §river-four (0.6.0): the community-requested RU river wave — dace, Volga zander,
+            // white-eye bream and the round goby.
+            "common_dace", "volga_zander", "white_eye_bream", "round_goby"
     };
     public static final Map<Identifier, RegistrySupplier<Item>> FISH_ITEMS = new HashMap<>();
+    /** §groundbait-one-jar: the one groundbait item there is. What it DOES lives in its NBT. */
+    public static final RegistrySupplier<Item> GROUNDBAIT;
     // ---- Baits referenced by event drops ----
     public static final RegistrySupplier<Item> WORM;
     public static final RegistrySupplier<Item> CHICKEN_LIVER;
     // ---- In-rig components (Module 4): referenced by slot validation ----
+    /**
+     * §farm-feed: the crop seeds, held onto because they have to be registered as compostable once
+     * they exist. Vanilla wheat, beetroot, melon and pumpkin seeds all sit at 0.30 and these are the
+     * same kind of thing, so they sit there too.
+     */
+    public static final RegistrySupplier<Item> CORN_SEEDS, PEA_SEEDS, BARLEY_SEEDS;
+
     public static final RegistrySupplier<Item> LEADER;
     public static final RegistrySupplier<Item> LEADER_FLUORO;
     public static final RegistrySupplier<Item> LEADER_TITANIUM;
@@ -85,7 +114,9 @@ public final class ModItems {
     public static final RegistrySupplier<Item> DIGITAL_ALARM;
     // ---- Processing (ÃÂ§11) ----
     public static final RegistrySupplier<Item> FILLET_KNIFE;
-    public static final RegistrySupplier<Item> RAW_FILLET;
+    /** §one-fillet: what the knife cuts. Bait, groundbait component and food, all one item. */
+    public static final RegistrySupplier<Item> FISH_STRIP;
+    public static final RegistrySupplier<Item> GROUNDBAIT_SOIL;
     public static final RegistrySupplier<Item> COOKED_FILLET;
     // ---- Maintenance (ÃÂ§3.8) ----
     public static final RegistrySupplier<Item> WHETSTONE;
@@ -110,7 +141,12 @@ public final class ModItems {
         if ("stick".equals(key)) return net.minecraft.world.item.Items.STICK;
         if ("bamboo".equals(key)) return net.minecraft.world.item.Items.BAMBOO;
         if ("feeder".equals(key) || "bottom".equals(key)) return net.minecraft.world.item.Items.GOLD_INGOT;
-        if ("carp".equals(key)) return net.minecraft.world.item.Items.DIAMOND;
+        // §tackle-craft: the carp blank and the whole saltwater tier are diamond-built. Their prismarine /
+        // nautilus tips are the TIER marker in the recipe, not repair stock you can farm.
+        if ("carp".equals(key) || "sea_spin".equals(key) || "surf".equals(key)
+                || "boat".equals(key) || "trolling".equals(key)) {
+            return net.minecraft.world.item.Items.DIAMOND;
+        }
         return net.minecraft.world.item.Items.IRON_INGOT; // pole / ultralight / spinning / winter
     }
 
@@ -119,13 +155,22 @@ public final class ModItems {
         String key = type.jsonKey();
         if ("stick".equals(key)) return 32;
         if ("bamboo".equals(key)) return 64;
+        if ("winter".equals(key)) return 96;       // short, reel-less, and ice fish are small
         if ("pole".equals(key)) return 128;
         if ("ultralight".equals(key)) return 144;
         if ("spinning".equals(key)) return 192;
         if ("feeder".equals(key)) return 224;
         if ("bottom".equals(key)) return 256;
         if ("carp".equals(key)) return 320;
-        return 128;
+        // §sea-durability: these five used to fall through to the 128 default, so a surf rod —
+        // diamond-built, prismarine-tipped, rated to a 250 g cast and fish an order of magnitude
+        // heavier — wore out faster than a gold-guided feeder. Saltwater now sits above the
+        // freshwater top and climbs with the blank's test window.
+        if ("sea_spin".equals(key)) return 320;
+        if ("surf".equals(key)) return 384;
+        if ("boat".equals(key)) return 448;
+        if ("trolling".equals(key)) return 512;
+        return 128; // only reached by a blank added without a durability decision
     }
 
     static {
@@ -164,14 +209,30 @@ public final class ModItems {
         FLOAT = reg("float", () -> new Item(props("float")));
 
         // ----- Hooks (angling sizes; bigger number = smaller hook) -----
-        for (int size : new int[]{16, 14, 12, 10, 8, 6, 4, 2, 1}) {
+        // The size list itself lives in TackleForm, because the bench prices tackle off it (§hook-pick).
+        // Keeping the literal here too is how you end up with a size the bench can charge for and not
+        // register, or register and not be able to tie.
+        for (int size : com.riverfishing.tackle.TackleForm.HOOK_SIZES) {
             final int s = size;
-            reg("hook_" + size, () -> new HookItem(s, props("hook_" + size)));
+            HOOKS.add(reg("hook_" + size, () -> new HookItem(s, props("hook_" + size))));
         }
 
         // ----- Natural baits -----
         // §sea-tackle (0.5.0): cut fish strip — the universal saltwater hook bait.
-        registerBait("fish_strip", false);
+        // Held here because the filleting knife cuts them (§one-cutter) and needs the item.
+        // §one-fillet: cut fish is ONE item. A piece off a caught fish goes on a hook, into a groundbait
+        // mix, or in a furnace — that is three USES, and it was three items' worth of confusion for no
+        // reason: the same knife on the same fish made "fish strip" standing up and "raw fillet"
+        // crouching, and nothing but the yield told them apart.
+        //
+        // The id stays `fish_strip` because 24 fish profiles, the groundbait pantry and its diet mapping
+        // all point at it, and a rename that misses one of those fails SILENTLY — the fish simply stops
+        // wanting the bait. The NAME is Raw Fish Fillet, which is what pairs with Cooked Fish Fillet.
+        FISH_STRIP = reg("fish_strip", () -> new BaitItem("fish_strip", false, props("fish_strip").food(
+                new FoodProperties.Builder().nutrition(2).saturationModifier(0.2f).build())));
+        // §groundbait-mix: inert ballast. NOT a bait — it goes in the bowl, not on a hook, and it is
+        // the only thing in the pantry that feeds nothing at all.
+        GROUNDBAIT_SOIL = reg("groundbait_soil", () -> new IngredientItem("tooltip.riverfishing.groundbait_soil", props("groundbait_soil")));
         registerBait("maggot", false);
         WORM = registerBait("worm", false);
         registerBait("bloodworm", false);
@@ -188,9 +249,9 @@ public final class ModItems {
         // descriptor, not the generic "artificial lure (predators only)" line.
         registerBait("mormyshka", true, "tooltip.riverfishing.bait_ice_jig");
         // ÃÂ§bait-crops: seeds for the plant baits Ã¢ÂÂ plantable on farmland (vanilla wheat-style seeds).
-        reg("corn_seeds", () -> new net.minecraft.world.item.BlockItem(ModBlocks.CORN_CROP.get(), props("corn_seeds").useItemDescriptionPrefix()));
-        reg("pea_seeds", () -> new net.minecraft.world.item.BlockItem(ModBlocks.PEA_CROP.get(), props("pea_seeds").useItemDescriptionPrefix()));
-        reg("barley_seeds", () -> new net.minecraft.world.item.BlockItem(ModBlocks.BARLEY_CROP.get(), props("barley_seeds").useItemDescriptionPrefix()));
+        CORN_SEEDS = reg("corn_seeds", () -> new net.minecraft.world.item.BlockItem(ModBlocks.CORN_CROP.get(), props("corn_seeds").useItemDescriptionPrefix()));
+        PEA_SEEDS = reg("pea_seeds", () -> new net.minecraft.world.item.BlockItem(ModBlocks.PEA_CROP.get(), props("pea_seeds").useItemDescriptionPrefix()));
+        BARLEY_SEEDS = reg("barley_seeds", () -> new net.minecraft.world.item.BlockItem(ModBlocks.BARLEY_CROP.get(), props("barley_seeds").useItemDescriptionPrefix()));
 
         // ----- Artificial baits (predators only) -----
         registerBait("spinner", true);
@@ -203,11 +264,16 @@ public final class ModItems {
         registerBait("crankbait", true);
         registerBait("jig", true);
         registerBait("castmaster", true);
+        // §trolling-lures (0.7.0): heavy skirted jig and big trolling spoon.
+        registerBait("octopus_jig", true);
+        registerBait("giant_spoon", true);
 
-        // ----- Groundbaits -----
-        for (String cat : new String[]{"powder", "grain", "pellet", "cake"}) {
-            reg("groundbait_" + cat, () -> new GroundbaitItem(cat, props("groundbait_" + cat)));
-        }
+        // ----- Groundbait -----
+        // §groundbait-one-jar: ONE. Grain, pellet and oil cake are gone, and so is the separate base —
+        // four items that between them said nothing a player could act on, because the composition
+        // stamped on the stack says all of it. This jar is that base: neutral, throwable, and the thing
+        // every mix is built on top of.
+        GROUNDBAIT = reg("groundbait_powder", () -> new GroundbaitItem(props("groundbait_powder")));
 
         // ----- Bite alarms (Module 3) -----
         BELL_ALARM = reg("bell_alarm", () -> new AlarmItem(AlarmType.BELL, props("bell_alarm")));
@@ -215,8 +281,6 @@ public final class ModItems {
 
         // ----- Processing: knife + fillets (ÃÂ§11) -----
         FILLET_KNIFE = reg("fillet_knife", () -> new FilletKnifeItem(props("fillet_knife").durability(128)));
-        RAW_FILLET = reg("raw_fillet", () -> new Item(props("raw_fillet").food(
-                new FoodProperties.Builder().nutrition(2).saturationModifier(0.2f).build())));
         COOKED_FILLET = reg("cooked_fillet", () -> new Item(props("cooked_fillet").food(
                 new FoodProperties.Builder().nutrition(5).saturationModifier(0.6f).build())));
 
@@ -231,7 +295,24 @@ public final class ModItems {
 
         // ----- Water analysis (ÃÂ§QoL): player fish finder + admin probe -----
         reg("fish_finder", () -> new com.riverfishing.item.WaterProbeItem(false, props("fish_finder").stacksTo(1)));
+        // §keepnet (0.7.0): the spatial catch box, four tiers of it. Each is its own item so the upgrade
+        // path is a crafting recipe rather than a hidden NBT field.
+        for (com.riverfishing.item.KeepnetTier t : com.riverfishing.item.KeepnetTier.values()) {
+            reg(t.id(), () -> new com.riverfishing.item.KeepnetItem(t, props(t.id()).stacksTo(1)));
+        }
+        // §tackle-box (0.7.0): four sizes of box for line, hooks, rigs, lures and bait. Each is the
+        // BlockItem of its own block, so one item both opens in the hand and stands on the bank.
+        // §26.1: a BlockItem no longer inherits the block translation key — ask for the block prefix,
+        // because the box is named under block.riverfishing.tackle_box_*.
+        for (com.riverfishing.item.TackleBoxTier t : com.riverfishing.item.TackleBoxTier.values()) {
+            reg(t.id(), () -> new com.riverfishing.item.TackleBoxItem(
+                    t, ModBlocks.TACKLE_BOXES.get(t).get(),
+                    props(t.id()).useBlockDescriptionPrefix().stacksTo(1)));
+        }
         reg("hydro_probe", () -> new com.riverfishing.item.WaterProbeItem(true, props("hydro_probe").stacksTo(1)));
+        // §cull (0.7.0): the electrofisher — a world-editing tool. No recipe anywhere: it is creative-only
+        // by design, and it refuses to fire outside creative mode as well as being uncraftable.
+        reg("electro_rod", () -> new com.riverfishing.item.ElectroRodItem(props("electro_rod").stacksTo(1)));
 
         // ----- Caught fish: a distinct item + texture per species (Module 8) -----
         for (String sp : FISH_SPECIES) {

@@ -2,13 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "  d",
-    "ni ",
-    "ii "
+    "si ",
+    "ig "
   ],
   "key": {
     "d": "minecraft:diamond",
-    "n": "minecraft:iron_nugget",
-    "i": "minecraft:iron_ingot"
+    "g": "minecraft:gold_ingot",
+    "i": "minecraft:iron_ingot",
+    "s": "minecraft:string"
   },
   "result": {
     "id": "riverfishing:carp_rod"

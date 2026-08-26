@@ -1,0 +1,16 @@
+{
+	"__comment": "§rod-physics per rod: stiffness = spring pull-back (higher = faster, stiffer), damping = how fast the wobble dies, whip = how much of the lag becomes blank FLEX through the joints (vs the whole rod turning). Live-tune with /rfrod phys rod <field> <v> holding the rod, then paste back here. Rods absent here fall back to the global /rfrod phys values.",
+	"stick":      { "stiffness": 70,  "damping": 7,   "whip": 1.6 },
+	"bamboo":     { "stiffness": 60,  "damping": 6.5, "whip": 2.4 },
+	"pole":       { "stiffness": 55,  "damping": 6,   "whip": 2.8 },
+	"winter":     { "stiffness": 300, "damping": 14,  "whip": 0.4 },
+	"ultralight": { "stiffness": 110, "damping": 8,   "whip": 2.6 },
+	"spinning":   { "stiffness": 120, "damping": 9,   "whip": 2.0 },
+	"feeder":     { "stiffness": 90,  "damping": 8,   "whip": 2.0 },
+	"bottom":     { "stiffness": 110, "damping": 9,   "whip": 1.6 },
+	"carp":       { "stiffness": 100, "damping": 9,   "whip": 1.8 },
+	"surf":       { "stiffness": 95,  "damping": 9,   "whip": 1.7 },
+	"sea_spin":   { "stiffness": 130, "damping": 10,  "whip": 1.5 },
+	"boat":       { "stiffness": 190, "damping": 12,  "whip": 0.9 },
+	"trolling":   { "stiffness": 230, "damping": 13,  "whip": 0.7 }
+}

@@ -1,5 +1,6 @@
 {
   "display": "Судак",
+  "group": "predator",
   "water_bodies": {
     "river": 1.1,
     "lake": 1.0,
@@ -38,7 +39,7 @@
     "rig": [
       "predator"
     ],
-    "groundbait": [],
+    "groundbait": { "fraction": 0.62, "nutrition": 0.50 },
     "bait": {
       "livebait": 0.95,
       "silicone": 1.0,

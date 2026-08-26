@@ -1,5 +1,6 @@
 package com.riverfishing.command;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.riverfishing.RiverFishing;
@@ -26,9 +27,31 @@ public final class JournalCommand {
     public static void init() {
         CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) ->
                 dispatcher.register(Commands.literal("rffish")
-                        .requires(net.minecraft.commands.Commands.hasPermission(net.minecraft.commands.Commands.LEVEL_GAMEMASTERS))
-                        .then(Commands.literal("unlockall").executes(JournalCommand::unlockAll))
-                        .then(Commands.literal("reset").executes(JournalCommand::reset))));
+                        // §guide-nudge: the ONE branch any player may run — it is what the offered line
+                        // clicks, and it does nothing but open a page the journal already holds.
+                        .then(Commands.literal("guide")
+                                .then(Commands.argument("page", StringArgumentType.word())
+                                        .executes(JournalCommand::guide)))
+                        .then(Commands.literal("unlockall")
+                                .requires(net.minecraft.commands.Commands.hasPermission(net.minecraft.commands.Commands.LEVEL_GAMEMASTERS))
+                                .executes(JournalCommand::unlockAll))
+                        .then(Commands.literal("reset")
+                                .requires(net.minecraft.commands.Commands.hasPermission(net.minecraft.commands.Commands.LEVEL_GAMEMASTERS))
+                                .executes(JournalCommand::reset))));
+    }
+
+    /**
+     * §guide-nudge: open the journal on a guide page. Only the handful of pages the nudge can offer are
+     * accepted, so this cannot become a way to poke at the journal from a command block.
+     */
+    private static int guide(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
+        ServerPlayer sp = c.getSource().getPlayerOrException();
+        String page = StringArgumentType.getString(c, "page");
+        if (!com.riverfishing.fishing.GuideNudge.isOfferable(page)) return 0;
+        com.riverfishing.fishing.GuideNudge.accepted(sp);
+        com.riverfishing.network.ModNetwork.toPlayer(sp,
+                com.riverfishing.network.JournalOpenPacket.forPlayer(sp, page));
+        return 1;
     }
 
     private static int unlockAll(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {

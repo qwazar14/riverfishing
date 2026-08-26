@@ -36,7 +36,6 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
 
     private final Player player;
     private final InteractionHand hand;
-    private final ItemStack rod;
     private final ComponentSlot[] slotTypes;
     private final Container components;
     private final SimpleContainer rigContents = new SimpleContainer(RIG_SLOTS);
@@ -49,7 +48,11 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
         super(ModMenus.ROD_ASSEMBLY.get(), id);
         this.player = inv.player;
         this.hand = hand;
-        this.rod = inv.player.getItemInHand(hand);
+        // §live-rod: read the held stack fresh every time (rodStack()) — NEVER cache it in a field. A
+        // cached reference goes stale the moment anything swaps the stack object in the hand slot, and
+        // then every slot edit is written into a detached copy: the GUI shows a full rod, the NBT stays
+        // empty, and the player gets "the rod is not assembled" with tackle visibly in the slots.
+        ItemStack rod = inv.player.getItemInHand(hand);
 
         RodType rodType = rod.getItem() instanceof RodItem ri ? ri.rodType() : null;
         this.directTackle = rodType != null && rodType.directTackle();
@@ -134,9 +137,6 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
             out.set(i, rigContents.getItem(i));
         }
         com.riverfishing.rig.RigData.save(r, out);
-        if (directTackle) {
-            RodData.set(rod, ComponentSlot.RIG, r); // persist the internal rig (not a visible column)
-        }
         saveToRod();
     }
 
@@ -238,14 +238,37 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
 
     private void saveToRod() {
         if (player.level().isClientSide()) return;
+        ItemStack rod = rodStack();
+        if (!(rod.getItem() instanceof RodItem)) return; // hand no longer holds the rod — don't stamp NBT on it
         for (int i = 0; i < slotTypes.length; i++) {
-            RodData.set(rod, slotTypes[i], components.getItem(i));
+            // §one-piece: a rod holds ONE of each part. The slot view caps its stack at 1, but the cap is a
+            // UI rule — a stack that reaches the container another way (a dropped-in stack, an older
+            // save, a datapack-given rod) was written whole, and the extra pieces vanished into NBT.
+            // Store one and only one; anything above that never leaves the player's hands.
+            RodData.set(rod, slotTypes[i], components.getItem(i).copyWithCount(
+                    Math.min(1, components.getItem(i).getCount())));
+        }
+        if (directTackle) {
+            RodData.set(rod, ComponentSlot.RIG, directRig); // built-in rig has no visible column
         }
     }
 
     @Override
     public void removed(Player p) {
         saveToRod();
+        // §one-piece: the rod keeps ONE of each part. Whatever stacked above that goes back to the
+        // player — before this, a stack that reached a slot was written to NBT whole and the extra
+        // pieces were simply gone, which is a quiet way to eat someone's spare lines.
+        for (int i = 0; i < slotTypes.length; i++) {
+            ItemStack st = components.getItem(i);
+            if (st.getCount() > 1) {
+                ItemStack extra = st.copyWithCount(st.getCount() - 1);
+                components.setItem(i, st.copyWithCount(1));
+                if (!p.getInventory().add(extra)) {
+                    p.drop(extra, false);
+                }
+            }
+        }
         super.removed(p);
     }
 
@@ -339,7 +362,7 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
             return null; // wrong slot entirely — not flagged as an "incompatibility"
         }
         if (type == ComponentSlot.REEL && carried.getItem() instanceof ReelItem reel
-                && rod.getItem() instanceof RodItem rodItem) {
+                && rodStack().getItem() instanceof RodItem rodItem) {
             RodType rt = rodItem.rodType();
             if (!rt.takesReel()) {
                 return Component.translatable("validation.riverfishing.reel_none");
@@ -355,7 +378,7 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
         }
         // §tackle-compat: line goes ON a reel — need a reel first (reeled rods), and it must fit the spool.
         if (type == ComponentSlot.LINE && carried.getItem() instanceof com.riverfishing.item.LineItem line
-                && rod.getItem() instanceof RodItem rodItem && rodItem.rodType().takesReel()) {
+                && rodStack().getItem() instanceof RodItem rodItem && rodItem.rodType().takesReel()) {
             int reelSize = installedReelSize();
             if (reelSize <= 0) {
                 return Component.translatable("validation.riverfishing.line_no_reel");
@@ -407,7 +430,7 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
                 return false;
             }
             if (slotType == ComponentSlot.REEL && stack.getItem() instanceof ReelItem reel
-                    && rod.getItem() instanceof RodItem rodItem) {
+                    && rodStack().getItem() instanceof RodItem rodItem) {
                 if (!rodItem.rodType().acceptsReelSize(reel.size())) return false;
                 // §tackle-compat: reject a reel too small for the already-fitted line.
                 double lineDia = installedLineDiameter();
@@ -416,7 +439,7 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
             // §tackle-compat: line goes ON a reel — a reeled rod needs its reel fitted first, and the line
             // must fit that reel's spool. (Reel-less rods spool line straight on the tip — always allowed.)
             if (slotType == ComponentSlot.LINE && stack.getItem() instanceof com.riverfishing.item.LineItem line
-                    && rod.getItem() instanceof RodItem rodItem) {
+                    && rodStack().getItem() instanceof RodItem rodItem) {
                 if (!rodItem.rodType().takesReel()) return true;
                 int reelSize = installedReelSize();
                 if (reelSize <= 0) return false; // no reel yet — nothing to spool onto

@@ -100,7 +100,13 @@ public final class AnglerSkills {
     }
 
     /** Рыбацкая удача: flat trophy-chance bonus added to the roll (+1%/rank). */
-    public static double trophyChanceBonus(Player player) {
+    /**
+     * §skills ANGLERS_LUCK: 0..0.05, and it flattens the SIZE curve rather than adding a trophy chance.
+     * Since 0.7.0 a trophy is simply a fish in the top of its species' range, so the only thing luck can
+     * honestly do is put bigger fish on the end of your line — which then produces more trophies by
+     * itself, without the flag ever being handed out directly.
+     */
+    public static double sizeLuck(Player player) {
         return rank(player, Perk.ANGLERS_LUCK) * 0.01;
     }
 

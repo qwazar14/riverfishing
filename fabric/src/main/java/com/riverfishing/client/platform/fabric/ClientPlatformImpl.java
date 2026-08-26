@@ -10,8 +10,12 @@ package com.riverfishing.client.platform.fabric;
 public final class ClientPlatformImpl {
     private ClientPlatformImpl() {}
 
-    /** §26.1: no-op — the DYED_COLOR tint ships in the client item definitions now. */
-    public static void registerItemColors() {
+    /** §tackle-box: the placed box's insert. Item tints are data-driven on 26.x; block tints are not. */
+    public static void registerColors() {
+        for (var box : com.riverfishing.registry.ModBlocks.TACKLE_BOXES.values()) {
+            net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry.register(
+                    com.riverfishing.client.TackleBoxTint.LAYERS, box.get());
+        }
     }
 
     public static void registerScreens() {
@@ -21,6 +25,13 @@ public final class ClientPlatformImpl {
                 com.riverfishing.registry.ModMenus.ROD_ASSEMBLY.get(), com.riverfishing.client.RodAssemblyScreen::new);
         net.minecraft.client.gui.screens.MenuScreens.register(
                 com.riverfishing.registry.ModMenus.RIG.get(), com.riverfishing.client.RigScreen::new);
+        net.minecraft.client.gui.screens.MenuScreens.register(
+                com.riverfishing.registry.ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
+        // §keepnet + §tackle-box (0.7.0): the two boxes.
+        net.minecraft.client.gui.screens.MenuScreens.register(
+                com.riverfishing.registry.ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
+        net.minecraft.client.gui.screens.MenuScreens.register(
+                com.riverfishing.registry.ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
     }
 
     /** §26.1: handled by FeatureRenderDispatcherMixin (WorldRenderEvents is gone) — nothing to register. */
@@ -28,6 +39,15 @@ public final class ClientPlatformImpl {
     }
 
     /** §26.1: no-op — layers are data-driven (force_translucent in the model; cutout is automatic). */
+    /** /rfrod + /rfnet on fabric-command-api-v2 — Architectury's client-command event never fires here. */
+    public static void registerClientCommands() {
+        net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback.EVENT.register(
+                (dispatcher, registryAccess) -> {
+                    com.riverfishing.client.RodDebugCommand.register(dispatcher);
+                    com.riverfishing.client.KeepnetDebugCommand.register(dispatcher);
+                });
+    }
+
     public static void registerRenderTypes() {
     }
 }

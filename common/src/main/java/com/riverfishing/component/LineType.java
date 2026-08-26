@@ -24,10 +24,23 @@ public enum LineType {
         this.visibilityFactor = visibilityFactor;
     }
 
+    /** §line-visibility: 0.20 mm mono is the reference — it reads as exactly 1. */
+    private static final double VIS_REFERENCE_MM = 0.20;
+
     public String jsonKey() { return jsonKey; }
     public double strengthFactor() { return strengthFactor; }
-    /** §line-visibility: relative conspicuousness of the material (fluoro low, braid high). */
-    public double visibilityFactor() { return visibilityFactor; }
+
+    /**
+     * §line-visibility: how visible a spool of this line actually is — material AND diameter.
+     *
+     * <p>Both halves have always mattered to the bite engine, which is the only thing that ever asked.
+     * The journal asked the material alone, so it printed the same number for 0.10 mm mono and 0.80 mm
+     * mono while the engine treated the thick one as eight times as conspicuous. Two functions had an
+     * opinion about one word; now there is one, and the page a player reads is the engine's own answer.
+     */
+    public double visibility(double diameterMm) {
+        return visibilityFactor * (diameterMm / VIS_REFERENCE_MM);
+    }
 
     /** Breaking strain in kilograms for a given diameter (used by the fight mini-game, stage 3). */
     public double breakingStrainKg(double diameterMm) {

@@ -1,5 +1,6 @@
 {
   "display": "Корюшка",
+  "group": "salmonid",
   "water_bodies": { "sea": 1.2, "river": 0.3, "lake": 0.2, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 20, "max": 250, "mean": 60 },
   "length_cm": { "min": 10, "max": 30 },
@@ -8,7 +9,7 @@
     "rod": ["winter", "pole", "ultralight"],
     "reel_size": 0, "reel_tolerance": 1500,
     "line": { "type": "mono", "diameter_mm": 0.12, "tolerance_mm": 0.05 },
-    "rig": ["winter", "float"], "groundbait": [],
+    "rig": ["winter", "float"], "groundbait": { "fraction": 0.22, "nutrition": 0.56 },
     "bait": { "bloodworm": 1.0, "mormyshka": 0.9, "fish_strip": 0.8, "worm": 0.7 },
     "hook": { "ideal": 16, "tolerance": 4 }
   },

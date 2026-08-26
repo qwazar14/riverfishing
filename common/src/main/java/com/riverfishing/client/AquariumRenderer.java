@@ -48,6 +48,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         final ItemStackRenderState item = new ItemStackRenderState();
         double x, y, z;
         float yRot;
+        float xRot; // §fish-pose: pitch that lays a flatfish flat (0 for everything else)
         float scale;
         Component row; // nameplate line
     }
@@ -84,6 +85,8 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             ItemStack fish = fishes.get(i);
             if (fish.isEmpty()) continue;
             boolean big = FishItem.getWeightG(fish) >= BIG_FISH_G;
+            Identifier sp = FishItem.getSpecies(fish);
+            boolean flat = sp != null && com.riverfishing.fish.FishPose.isFlat(sp.getPath());
             // Spread the fish out in phase and depth so they don't overlap.
             float t = time * 0.05f + i * 2.094f;                 // 120° apart
             double depth = (i - 1) * 0.20;                        // front/mid/back lane
@@ -104,6 +107,12 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
                 height = 1.5 + 0.5 * Mth.sin(2 * t) * 0.28 + (i - 1) * 0.04;
                 travel = Mth.cos(t) >= 0 ? 1f : -1f;
             }
+            // §fish-pose: a flatfish does not loop through open water — it works the floor of the tank.
+            if (flat) {
+                u = Mth.sin(t) * 0.55;
+                height = 1.06 + Mth.sin(time * 0.05f + i) * 0.02;
+                travel = Mth.cos(t) >= 0 ? 1f : -1f;
+            }
             Swim swim = new Swim();
             swim.x = tankX + cw.getStepX() * u + facing.getStepX() * depth;
             swim.y = height;
@@ -112,10 +121,12 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             // (§aquarium-side) — 180° instead of a negative scale so face culling/lighting stay correct.
             float flip = travel > 0 ? 180f : 0f;
             swim.yRot = -facing.toYRot() + flip + Mth.sin(time * 0.15f + i) * 4f;
+            // §fish-pose: the flatfish lie down in the tank too, parallel to its floor — which is also
+            // where they are swimming (see the height above), because that is what they do.
+            swim.xRot = flat ? com.riverfishing.fish.FishPose.lay() : 0f;
             swim.scale = big ? 0.9f : 0.7f;
             itemModelResolver.updateForTopItem(swim.item, fish, ItemDisplayContext.FIXED, be.getLevel(), null, i);
 
-            Identifier sp = FishItem.getSpecies(fish);
             Component name = sp != null
                     ? Component.translatable("fish." + sp.getNamespace() + "." + sp.getPath())
                     : fish.getHoverName();
@@ -140,6 +151,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             pose.pushPose();
             pose.translate(swim.x, swim.y, swim.z);
             pose.mulPose(Axis.YP.rotationDegrees(swim.yRot));
+            if (swim.xRot != 0f) pose.mulPose(Axis.XP.rotationDegrees(swim.xRot));
             pose.scale(swim.scale, swim.scale, swim.scale);
             swim.item.submit(pose, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
             pose.popPose();

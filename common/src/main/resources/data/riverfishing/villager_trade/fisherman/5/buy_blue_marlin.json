@@ -1,0 +1,19 @@
+{
+  "wants": {
+    "id": "riverfishing:blue_marlin",
+    "components": {
+      "riverfishing:prime": 280000
+    }
+  },
+  "gives": {
+    "id": "minecraft:emerald",
+    "count": 28
+  },
+  "max_uses": 12,
+  "xp": 40,
+  "reputation_discount": 0.05,
+  "merchant_predicate": {
+    "condition": "minecraft:random_chance",
+    "chance": 0.12121
+  }
+}

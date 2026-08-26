@@ -18,6 +18,14 @@ public final class ModBlockEntities {
         REGISTER.register();
     }
 
+    // §tackle-station (0.6.0, round 5): the STALL keeps the bench's material slots while it stands.
+    public static final RegistrySupplier<BlockEntityType<com.riverfishing.block.TackleStationBlockEntity>> TACKLE_STATION =
+            // §26.x: the BlockEntityType ctor went private, so every type in this file goes through
+            // the platform seam instead of Builder.of(...).build(null).
+            REGISTER.register("tackle_station", () -> com.riverfishing.platform.PlatformHelper
+                    .createBlockEntityType(com.riverfishing.block.TackleStationBlockEntity::new,
+                            ModBlocks.FISHING_STALL.get()));
+
     public static final RegistrySupplier<BlockEntityType<RodPodBlockEntity>> ROD_POD =
             REGISTER.register("rod_pod", () -> com.riverfishing.platform.PlatformHelper.createBlockEntityType(RodPodBlockEntity::new, ModBlocks.ROD_POD_1.get(), ModBlocks.ROD_POD_3.get()));
 
@@ -35,6 +43,14 @@ public final class ModBlockEntities {
 
     public static final RegistrySupplier<BlockEntityType<AquariumBlockEntity>> AQUARIUM =
             REGISTER.register("aquarium", () -> com.riverfishing.platform.PlatformHelper.createBlockEntityType(AquariumBlockEntity::new, ModBlocks.AQUARIUM.get()));
+
+    // §tackle-box (0.7.0): holds the box ITEM, so the placed box and the carried box are one object.
+    public static final RegistrySupplier<BlockEntityType<com.riverfishing.block.TackleBoxBlockEntity>> TACKLE_BOX =
+            // §26.x: same platform seam as the types above — Builder.of(...).build(null) is gone.
+            REGISTER.register("tackle_box", () -> com.riverfishing.platform.PlatformHelper.createBlockEntityType(
+                    com.riverfishing.block.TackleBoxBlockEntity::new,
+                    ModBlocks.TACKLE_BOXES.values().stream()
+                            .map(RegistrySupplier::get).toArray(net.minecraft.world.level.block.Block[]::new)));
 
     private ModBlockEntities() {}
 }

@@ -61,6 +61,26 @@ public final class BiteEngine {
         return best;
     }
 
+    /**
+     * Why this species will not take right now, or null if it will.
+     *
+     * <p>Exactly the gates {@link #speciesWeight} enforces, asked one at a time and in the same order.
+     * Public and living HERE rather than in the message code on purpose: the hint a player reads and the
+     * rule that actually stopped them have to come from one place, or the mod ends up teaching something
+     * that is no longer true.
+     *
+     * @return {@code absent} the fish does not live here or is not feeding, {@code no_bait} nothing is on
+     *         the hook at all, {@code bait} what is on the hook is not something it eats, {@code hook} the
+     *         hook is the wrong size band for its mouth, {@code no_hook} there is no hook on the rig at
+     *         all, or null
+     */
+    public static String blockReason(FishProfile p, BiteContext c) {
+        if (environmentScore(p, c) <= 0) return "absent";
+        if (baitScore(p, c) <= 0) return c.baits.isEmpty() ? "no_bait" : "bait";
+        if (hookScore(p, c) < HOOK_GATE) return hookScore(p, c) <= 0 && c.hookSizes.isEmpty() ? "no_hook" : "hook";
+        return null;
+    }
+
     public static double matchScore(FishProfile p, BiteContext c) {
         double sBait = baitScore(p, c);
         double sGround = groundbaitScore(p, c);
@@ -79,12 +99,62 @@ public final class BiteEngine {
                 + 0.08 * sReel;
     }
 
+    /**
+     * §groundbait-one-jar (0.8.0): four questions about the bed of feed, and not one of them is "which
+     * of the four jars is it".
+     *
+     * <ul>
+     *   <li><b>the menu</b> — is what is in the bowl something this fish eats? Asked of the species' own
+     *       bait list, because that list already IS its diet. Chop worm into the feed and the fish that
+     *       take worm come; a swim of sweetcorn says nothing to an eel.</li>
+     *   <li><b>fraction against size</b> — a cloud of dust calls up bleak and roach; whole grain on the
+     *       bottom is what a carp is looking for. <b>Big fraction calls big fish.</b> This is also the
+     *       honest answer to "why do I only catch small stuff": it is a choice, not a bug.</li>
+     *   <li><b>nutrition against appetite</b> — a carp wants a table laid; a bleak wants a cloud, and a
+     *       table put down for the carp is not what it came for.</li>
+     *   <li><b>variety</b> — the more different things are down there, the broader the crowd. A small
+     *       term, because it is a nudge in the real thing too.</li>
+     * </ul>
+     *
+     * <p>Nothing here punishes feeding. Overfeeding a spot is impossible by design (see FeedZoneData);
+     * the worst a mix can do is say nothing this fish is interested in, and that lands it back where an
+     * unfed swim already was.
+     */
     private static double groundbaitScore(FishProfile p, BiteContext c) {
-        if (!c.inFeedZone || c.feedFreshness <= 0 || c.feedCategory == null) {
+        if (!c.inFeedZone || c.feedFreshness <= 0 || c.feedMix == null) {
             return 0.4; // fishing an un-fed spot is fine, just not ideal
         }
-        return p.idealGroundbaits.contains(c.feedCategory) ? 1.0 : 0.3;
+        com.riverfishing.groundbait.GroundbaitMix mix = c.feedMix;
+        // Never below half on either axis alone: the wrong grind should cost you the edge, not the fish.
+        double fracFit = 1.0 - Math.min(1.0, Math.abs(mix.fraction() - p.gbFraction));
+        double nutFit = 1.0 - Math.min(1.0, Math.abs(mix.nutrition() - p.gbNutrition));
+        double variety = 0.90 + 0.10 * Math.min(1.0, (mix.variety() - 1) / 4.0);
+        return Math.min(1.0, menuScore(p, mix)
+                * (0.45 + 0.55 * fracFit)
+                * (0.60 + 0.40 * nutFit)
+                * variety);
     }
+
+    /**
+     * Does this species eat what is actually in the bowl?
+     *
+     * <p>Spoon-weighted over everything in the mix that NAMES a diet. The base and the ballast are not in
+     * that list at all, which is the difference between "there is nothing here a bream wants" and "this
+     * mix does not say" — the first should fish worse than a plain jar, the second exactly like one.
+     *
+     * <p>A perfect menu can go slightly over 1.0 on purpose: getting the fish's own food into the feed is
+     * allowed to buy back a fraction or two of the wrong grind, because in the real thing it does.
+     */
+    private static double menuScore(FishProfile p, com.riverfishing.groundbait.GroundbaitMix mix) {
+        int spoons = mix.additiveSpoons();
+        if (spoons == 0) return 0.75;   // a plain jar of base: neither the right food nor the wrong food
+        double sum = 0;
+        for (java.util.Map.Entry<String, Integer> e : mix.diets().entrySet()) {
+            sum += Math.max(0.0, Math.min(1.0, p.baitScore(e.getKey()))) * e.getValue();
+        }
+        return 0.45 + 0.75 * (sum / spoons);
+    }
+
 
     private static double lineScore(FishProfile p, BiteContext c) {
         double typeMatch = c.lineType.jsonKey().equals(p.lineType) ? 1.0 : 0.6;
@@ -210,7 +280,7 @@ public final class BiteEngine {
         // §line-visibility: a thick, opaque line spooks fish and slows the bite — but a SMALL wary fish
         // fears a visible line far more than a big fish does. Fluoro (low visibility) and thin diameters
         // stay near-invisible; thick braid on a roach swim is a real handicap. Reference: 0.20 mm mono = 1.
-        double visibility = c.lineType.visibilityFactor() * (c.lineDiameterMm / 0.20);
+        double visibility = c.lineType.visibility(c.lineDiameterMm);
         if (visibility > 1.0) {
             double sensitivity = Math.max(0.1, Math.min(1.5, 1.5 - meanKg * 0.5)); // small fish = fussy
             w *= Math.max(0.4, 1.0 - 0.25 * (visibility - 1.0) * sensitivity);
@@ -237,6 +307,18 @@ public final class BiteEngine {
             w *= Math.max(0.4, Math.min(1.6, 1.6 - meanKg * 0.6));
         } else if (c.rod == com.riverfishing.component.RodType.SPINNING) {
             w *= Math.min(1.2, 0.85 + meanKg * 0.15);
+        }
+
+        // §lure-size (0.6.0): the lure's bench mass IS its size — the optimum predator weighs about
+        // 0.15 kg per gram of lure (a 20 g spoon calls ~3 kg pike). Off-size fish don't vanish, they
+        // just bite far less — and since the TOTAL weight drives the wait, a big lure also means
+        // slower, rarer, bigger takes. Untied (no TackleWeightG) lures skip the filter entirely.
+        if (c.lureWeightG > 0) {
+            // §round-6: SUBLINEAR optimum (0.5·√g) — a 200 g pilker hunts ~7 kg fish, not a mythical
+            // 30 kg; and the off-size floor drops to 0.05 so a big lure truly silences the tiddlers.
+            double opt = 0.5 * Math.sqrt(c.lureWeightG);
+            double ratio = Math.max(0.05, meanKg / Math.max(0.1, opt));
+            w *= Math.max(0.05, 2.0 / (ratio + 1.0 / ratio));
         }
 
         // §lure-color (§8): a painted lure whose colour suits the light/water pulls more takes; the wrong

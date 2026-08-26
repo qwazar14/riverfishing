@@ -29,6 +29,7 @@ public class BiteContext {
     public double leaderProtection; // bite-through resistance of the fitted leader (0..1)
     public double leaderStealth;    // invisibility of the fitted leader (0..1)
     public double castWeightG;      // rig mass
+    public double lureWeightG;      // §lure-size (0.6.0): the tied lure's bench weight, 0 = none/untied
 
     // ---- Angler (progression gate) ----
     public int anglerLevel;         // the caster's journal level; species can require a minimum
@@ -58,7 +59,12 @@ public class BiteContext {
     // ---- Fed spot (§5) ----
     public boolean inFeedZone;
     public double feedFreshness;    // 0..1
-    public String feedCategory;     // powder / grain / pellet / cake
+    /**
+     * §groundbait-one-jar: WHAT was thrown in, not a summary of it. Nutrition, fraction, what is on the
+     * menu and how varied it is are all questions about this one object, so no reader can get a stale
+     * half of the answer by forgetting to copy a field. Null when the spot has never been fed.
+     */
+    public com.riverfishing.groundbait.GroundbaitMix feedMix;
 
     /** §ice-fishing: the cast is through a hole in an ice sheet — the engine treats it as winter. */
     public boolean iceHole;

@@ -49,8 +49,7 @@ public class SkillUnlockPacket implements ModNetwork.RfPacket {
             sp.level().playSound(null, sp.blockPosition(), SoundEvents.PLAYER_LEVELUP,
                     SoundSource.PLAYERS, 0.5f, 1.6f);
             // Push the refreshed record so the open journal shows the new rank / spent point.
-            ModNetwork.toPlayer(sp, new JournalOpenPacket(
-                    com.riverfishing.item.JournalItem.exportFor(sp)));
+            ModNetwork.toPlayer(sp, JournalOpenPacket.forPlayer(sp));
         }
     }
 }

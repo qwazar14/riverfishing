@@ -1,6 +1,6 @@
 {
   "type": "minecraft:smelting",
-  "ingredient": "riverfishing:raw_fillet",
+  "ingredient": "riverfishing:fish_strip",
   "result": {
     "id": "riverfishing:cooked_fillet"
   },

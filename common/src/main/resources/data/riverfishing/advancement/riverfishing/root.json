@@ -3,7 +3,7 @@
     "icon": { "id": "riverfishing:fishing_journal" },
     "title": { "translate": "advancement.riverfishing.root.title" },
     "description": { "translate": "advancement.riverfishing.root.description" },
-    "background": "minecraft:textures/block/spruce_planks.png",
+    "background": "minecraft:gui/advancements/backgrounds/adventure",
     "show_toast": true,
     "announce_to_chat": true
   },

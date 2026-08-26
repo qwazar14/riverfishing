@@ -26,8 +26,12 @@ public class LevelRendererSubmitMixin {
             CallbackInfo ci) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
-        LineRenderer.submit(new PoseStack(), state.cameraRenderState.pos,
-                mc.getDeltaTracker().getGameTimeDeltaPartialTick(false), collector);
+        float pt = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+        // §shoal first: the fish are under the water, the line is above it. In the retained pass the
+        // order of submission is not the order of drawing, but keeping it honest costs nothing.
+        com.riverfishing.client.ShoalRenderer.submit(new PoseStack(), state.cameraRenderState.pos,
+                pt, collector);
+        LineRenderer.submit(new PoseStack(), state.cameraRenderState.pos, pt, collector);
     }
     *///?}
 }

@@ -4,7 +4,10 @@
   "package": "com.riverfishing.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ItemEntityMixin"
+    "ItemEntityMixin",
+    "VillagerTradePoolMixin",
+    "VillagerRepriceMixin",
+    "VillagerTradeGivesAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -12,6 +15,10 @@
   "client": [
     "ItemInHandRendererMixin",
     "ItemInHandLayerMixin",
-    "LevelRendererSubmitMixin"
+    "LevelRendererSubmitMixin",
+    "ItemEntityRenderStateMixin",
+    "ItemEntitySeatMixin",
+    "MerchantOrderPanelMixin",
+    "FightEdgeGuardMixin"
   ]
 }

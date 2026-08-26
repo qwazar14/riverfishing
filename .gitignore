@@ -31,3 +31,13 @@ Thumbs.db
 # Files from Forge MDK
 forge*changelog.txt
 reference/
+
+# python bytecode from the tools/ generators
+__pycache__/
+
+# agent worktrees (git worktree list still tracks them; this only keeps them out of git status)
+.claude/worktrees/
+
+# Hand-collected jars for a tester. Builds, not sources — they do not belong in history.
+prerelease/
+upload-*/

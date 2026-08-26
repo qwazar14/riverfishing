@@ -1,15 +1,16 @@
 {
   "display": "Сазан",
+  "group": "cyprinid",
   "water_bodies": { "river": 1.3, "lake": 0.9, "pond": 0.5, "swamp": 0.3, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 1500, "max": 18000, "mean": 4200 },
   "length_cm": { "min": 40, "max": 110 },
-  "fight": { "strength": 1.0, "stamina": 1.0, "runs": 6, "pattern": "aggressive", "aggression": 1.0 },
+  "fight": { "strength": 0.9, "stamina": 1.0, "runs": 3, "pattern": "aggressive", "aggression": 1.0 },
   "ideal": {
     "rod": ["carp", "bottom"],
     "reel_size": 6000, "reel_tolerance": 1000,
     "line": { "type": "mono", "diameter_mm": 0.30, "tolerance_mm": 0.07 },
     "rig": ["carp", "flat_feeder"],
-    "groundbait": ["pellet", "cake"],
+    "groundbait": { "fraction": 0.75, "nutrition": 0.84 },
     "bait": { "boilie": 1.0, "corn": 0.85, "pea": 0.7, "pearl_barley": 0.55 },
     "hook": { "ideal": 4, "tolerance": 2 }
   },

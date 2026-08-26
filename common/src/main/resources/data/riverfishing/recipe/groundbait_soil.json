@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:dirt"
+  ],
+  "result": {
+    "id": "riverfishing:groundbait_soil",
+    "count": 4
+  }
+}

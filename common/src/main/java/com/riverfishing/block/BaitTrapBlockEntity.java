@@ -67,14 +67,41 @@ public class BaitTrapBlockEntity extends BlockEntity {
                     ? rollSmallFish(server) : ItemStack.EMPTY;
             if (!small.isEmpty()) {
                 fishes.add(small);
+                // §trap-filter: a trap that works is a trap that takes fish OUT of the water. It presses
+                // the same per-species depletion a rod does, so leaving one down for a week genuinely
+                // thins the small fry around it — the filter players asked the trap to be. Depletion
+                // recovers on its own clock, so the pond is never emptied for good.
+                deplete(server, com.riverfishing.item.FishItem.getSpecies(small));
             } else if (stored < MAX_STORED) {
                 stored++;
+                // The fry netting is the same act with a smaller catch: it eats the local small fry too,
+                // at a fraction of the pressure, or a trap that mostly makes fry would filter nothing.
+                if (server.getRandom().nextDouble() < 0.34) {
+                    deplete(server, pickSmallSpecies(server));
+                }
             }
             setChanged();
             server.sendParticles(ParticleTypes.SPLASH,
                     worldPosition.getX() + 0.5, worldPosition.getY() + 0.8, worldPosition.getZ() + 0.5,
                     8, 0.25, 0.1, 0.25, 0.15);
         }
+    }
+
+
+    /**
+     * §trap-filter: press this species' population down in the trap's own chunk. Reading is done over
+     * the 3x3 neighbourhood, so writing to the one chunk is what thins the water AROUND the trap.
+     */
+    private void deplete(ServerLevel server, net.minecraft.resources.Identifier species) {
+        if (species == null) return;
+        com.riverfishing.fishing.FishingPressureData.get(server).addCatch(
+                net.minecraft.world.level.ChunkPos.pack(worldPosition), species.getPath(), server.getGameTime());
+    }
+
+    /** The species a fry catch stands for: one draw from the same local pool the real catch uses. */
+    private net.minecraft.resources.Identifier pickSmallSpecies(ServerLevel server) {
+        ItemStack probe = rollSmallFish(server);
+        return probe.isEmpty() ? null : com.riverfishing.item.FishItem.getSpecies(probe);
     }
 
     /** A random ≤150 g specimen from the species that actually live in the water at the trap. */

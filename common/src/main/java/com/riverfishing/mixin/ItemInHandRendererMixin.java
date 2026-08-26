@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(ItemInHandRenderer.class)
 public class ItemInHandRendererMixin {
-    @Inject(method = "renderItem", at = @At("HEAD"))
+    @Inject(method = "renderItem", at = @At("HEAD"), cancellable = true)
     private void riverfishing$castAnim(LivingEntity entity, ItemStack stack, ItemDisplayContext ctx,
                                        PoseStack pose, SubmitNodeCollector collector, int light,
                                        CallbackInfo ci) {
@@ -47,6 +47,26 @@ public class ItemInHandRendererMixin {
         float pitch = RodHandTransform.castPitch(chargePower, swing);
         if (pitch != 0f) {
             pose.mulPose(Axis.XP.rotationDegrees(pitch));
+        }
+        // §rod-bend-3d: a segmented blank is drawn HERE as a bone chain, and vanilla must not then
+        // stamp the flat model over it. The 3D pose set is the true-scale one — the sprite poses shrink
+        // the rod because a sprite blank is 16 units wide, and these blanks are modelled at full length.
+        String rodKey = com.riverfishing.client.RodModelLayers.rodKey(stack);
+        if (rodKey != null && com.riverfishing.client.RodChain.has(rodKey)) {
+            // push BEFORE the 3D pose: when submit() refuses, the pop leaves the pose exactly as it
+            // was, and the sprite fallback below applies its own. The first cut pushed after, so the
+            // fallback stacked the sprite pose ON TOP of the 3D one and drew the flat rod off-screen.
+            // Popping before cancel is safe: retained submission snapshots the matrices per node.
+            pose.pushPose();
+            RodHandTransform.apply(pose, ctx, true);
+            float load = ClientLineState.ownRodLoad();
+            boolean drew = com.riverfishing.client.RodChain.submit(
+                    stack, rodKey, load, ctx, pose, collector, light, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY);
+            pose.popPose();
+            if (drew) {
+                ci.cancel();   // the chain IS the rod now
+                return;
+            }
         }
         // §rod-debug: the whole first-person hand pose lives in code so /rfrod tunes it LIVE —
         // the model's hand display only carries the per-layer depth lift.

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "XCX",
+    "LBL",
+    "XCX"
+  ],
+  "key": {
+    "X": "minecraft:iron_ingot",
+    "C": "minecraft:chest",
+    "L": "minecraft:leather",
+    "B": "riverfishing:tackle_box_medium"
+  },
+  "result": {
+    "id": "riverfishing:tackle_box_large",
+    "count": 1
+  }
+}

@@ -47,8 +47,11 @@ public final class ModBlocks {
                     blockProps("maggot_farm").strength(0.6f).sound(SoundType.WOOD).noOcclusion()));
 
     // Fisherman's workstation / POI job-site block (§8). noOcclusion: the model is a stall, not a cube.
+    // §tackle-station (round 5): the stall is the tackle bench too — profession POI + tying UI.
     public static final RegistrySupplier<Block> FISHING_STALL = registerSimple("fishing_stall",
-            () -> new Block(blockProps("fishing_stall").strength(2.0f).sound(SoundType.WOOD).noOcclusion()));
+            // §26.x: Properties must carry a registry id, so the stall keeps the blockProps() helper.
+            () -> new com.riverfishing.block.FishingStallBlock(
+                    blockProps("fishing_stall").strength(2.0f).sound(SoundType.WOOD).noOcclusion()));
 
     // Trophy stand (§15.5) — mounts a caught fish.
     public static final RegistrySupplier<Block> TROPHY_STAND = registerSimple("trophy_stand",
@@ -93,6 +96,26 @@ public final class ModBlocks {
             () -> new com.riverfishing.block.BaitCropBlock("pea_seeds", cropProps("pea_crop")));
     public static final RegistrySupplier<Block> BARLEY_CROP = BLOCKS.register("barley_crop",
             () -> new com.riverfishing.block.BaitCropBlock("barley_seeds", cropProps("barley_crop")));
+
+    /**
+     * §tackle-box (0.7.0): four sizes of set-down tackle box. Their ITEM is a {@link
+     * com.riverfishing.item.TackleBoxItem} (registered in ModItems) rather than a plain BlockItem, because
+     * the same object has to open in the hand as well as stand on the bank.
+     */
+    public static final java.util.Map<com.riverfishing.item.TackleBoxTier, RegistrySupplier<Block>>
+            TACKLE_BOXES = new java.util.EnumMap<>(com.riverfishing.item.TackleBoxTier.class);
+
+    static {
+        for (com.riverfishing.item.TackleBoxTier t : com.riverfishing.item.TackleBoxTier.values()) {
+            // §26.x: Properties MUST carry their registry id — BlockBehaviour's constructor calls
+            // effectiveDrops(), which dereferences it, so a bare Properties.of() throws "Block id not
+            // set" the moment the block is built. That is what blockProps() is for; the tackle boxes
+            // were the one place that missed it.
+            TACKLE_BOXES.put(t, BLOCKS.register(t.id(),
+                    () -> new com.riverfishing.block.TackleBoxBlock(t,
+                            blockProps(t.id()).strength(1.0f).sound(SoundType.WOOD).noOcclusion())));
+        }
+    }
 
     private ModBlocks() {}
 

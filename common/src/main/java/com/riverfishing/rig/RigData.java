@@ -73,6 +73,33 @@ public final class RigData {
 
     // ---- queries for the bite engine ----
 
+    /**
+     * §tackle-station (0.6.0): the rig's EFFECTIVE cast weight — the grams chosen at the bench
+     * (TackleWeightG) when tied there, else the old fixed type mass. A tied lure in the rig's
+     * LURE/BAIT slot adds its own bench weight on top.
+     */
+    public static double effectiveWeightG(ItemStack rig) {
+        var tag = StackNbt.get(rig);
+        double w = tag.contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)
+                ? tag.getIntOr(com.riverfishing.tackle.TackleForm.TAG_WEIGHT, 0)
+                : rigType(rig).massGrams();
+        return w + lureTackleWeightG(rig);
+    }
+
+    /** §lure-size: the tied lure's bench weight sitting in a LURE/BAIT slot, or 0. */
+    public static double lureTackleWeightG(ItemStack rig) {
+        double[] lure = {0};
+        forEachFilled(rig, (role, stack) -> {
+            if (lure[0] == 0 && (role == SlotRole.LURE || role == SlotRole.BAIT)) {
+                var t = StackNbt.get(stack);
+                if (t.contains(com.riverfishing.tackle.TackleForm.TAG_WEIGHT)) {
+                    lure[0] = t.getIntOr(com.riverfishing.tackle.TackleForm.TAG_WEIGHT, 0);
+                }
+            }
+        });
+        return lure[0];
+    }
+
     /** Hook sizes loaded in the rig; the engine picks the best fit per fish. */
     public static List<Integer> hookSizes(ItemStack rig) {
         List<Integer> sizes = new ArrayList<>();
@@ -113,20 +140,15 @@ public final class RigData {
     public static int livebaitWeightG(ItemStack rig) {
         int[] found = { 0 };
         forEachFilled(rig, (role, stack) -> {
-            if (found[0] == 0 && role == SlotRole.BAIT && stack.getItem() instanceof BaitItem b
+            // §livebait-2: BAIT **or** LURE. A predator rig is {LEADER, LURE} and has no BAIT slot at
+            // all, while SlotRole.LURE deliberately accepts a live bait — so scanning BAIT only made
+            // every baitfish on a spinning rod weigh nothing, and the 6x predator size floor was
+            // skipped by its own `> 0` guard. That is how a 150 g baitfish pulled out a 100 g perch.
+            // The sibling queries in this file, baitIds() and lureColorRgb(), already scan both.
+            if (found[0] == 0 && (role == SlotRole.BAIT || role == SlotRole.LURE)
+                    && stack.getItem() instanceof BaitItem b
                     && "livebait".equals(b.baitId())) {
                 found[0] = StackNbt.get(stack).getIntOr(com.riverfishing.item.FishItem.TAG_BAIT_WEIGHT, 0);
-            }
-        });
-        return found[0];
-    }
-
-    /** Groundbait category loaded in the feeder/flat/grusha cage, or null. */
-    public static String groundbaitCategory(ItemStack rig) {
-        String[] found = new String[1];
-        forEachFilled(rig, (role, stack) -> {
-            if (found[0] == null && role == SlotRole.GROUNDBAIT && stack.getItem() instanceof GroundbaitItem g) {
-                found[0] = g.category();
             }
         });
         return found[0];
@@ -144,18 +166,21 @@ public final class RigData {
      * Consumes one groundbait from the rig's feeder cage (§consumables): each cast delivers a charge
      * to the spot. Returns the consumed category, or null when the cage is empty.
      */
-    public static String consumeGroundbait(ItemStack rig) {
+    public static ItemStack consumeGroundbait(ItemStack rig) {
         SlotRole[] roles = RigLayout.rolesFor(rigType(rig));
         NonNullList<ItemStack> inv = load(rig);
         for (int i = 0; i < roles.length && i < inv.size(); i++) {
             ItemStack s = inv.get(i);
-            if (roles[i] == SlotRole.GROUNDBAIT && !s.isEmpty() && s.getItem() instanceof GroundbaitItem g) {
+            if (roles[i] == SlotRole.GROUNDBAIT && !s.isEmpty() && s.getItem() instanceof GroundbaitItem) {
+                // A COPY of one, taken before the shrink: the caller needs what went into the water,
+                // and §groundbait-mix means that is a whole stack's worth of composition, not a word.
+                ItemStack fed = s.copyWithCount(1);
                 s.shrink(1);
                 save(rig, inv);
-                return g.category();
+                return fed;
             }
         }
-        return null;
+        return ItemStack.EMPTY;
     }
 
     /**
