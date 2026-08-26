@@ -125,6 +125,13 @@ public class FishingSession {
     public boolean overstressWarned; // one "ease off!" warning per overstress episode
     public int runsLeft;
     public int runTicksLeft;      // >0 while the fish is making a run (don't reel!)
+    /**
+     * §dive-cost: how long the CURRENT run was when it started. A sounding dive drains the land bar,
+     * and that drain has to be a share of the bar rather than a rate per tick — otherwise retuning run
+     * lengths silently retunes how much a dive costs, which is exactly what happened between 0.5.0 and
+     * 0.7.0 and made the beluga unlandable.
+     */
+    public int runTicksTotal;
     /** §fight-course: which way THIS run is going, and how well the rod is being held against it. */
     public FightCourse course = FightCourse.NONE;
     public float courseAlign = 1f;
