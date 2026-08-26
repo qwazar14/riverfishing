@@ -5,6 +5,21 @@ Full patchnotes. The short three-bullet form the in-game update checker shows li
 
 ---
 
+## 0.8.2 — the giants can be fought, the groundbait can be made
+
+**Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.
+
+Full patchnote: [`docs/patchnotes/0.8.2.md`](patchnotes/0.8.2.md).
+
+Base groundbait had not been craftable on 26.x since 0.8.0 — the recipe spoke the pre-1.21.2 ingredient
+dialect and loaded with an empty ingredient list. The diving species stopped running out the clock: a
+dive costs a fixed share of the land bar rather than a rate that doubled when runs were lengthened, and
+the fatigue clock is capped at a share of the fish's own fight, so a beluga ends one 0.71 spent instead
+of 0.11. The six giants of 0.8.0 are no longer legendary. The mod's seeds compost and feed the worm
+farm, and the maggot farm reads a carrion tag instead of accepting one item.
+
+---
+
 ## 0.8.1 — the line goes where you cast it, and the giants can be landed
 
 **Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.
