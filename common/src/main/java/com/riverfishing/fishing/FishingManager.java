@@ -84,6 +84,12 @@ public final class FishingManager {
     private static final double MAX_SESSION_DISTANCE = 40.0;
     private static final double ROD_BREAK_RATIO = 2.5; // rig mass > rodMax * this -> the blank snaps (#5)
     private static final double FOUL_CHANCE = 0.01;     // §9: 1% per spinning retrieve to foul-hook (× config)
+    /**
+     * §dive-cost: what ONE sounding dive takes off the land bar, whole. The 0.5.0 value in the shape
+     * it was actually tuned in — a dive of average length then (85 ticks) at the old 0.0035 a tick.
+     */
+    private static final double DIVE_COST = 0.30;
+
     private static final double TACKLE_BREAK_CHANCE = 0.003; // §10: 0.3% per hook-up, the line parts, rig lost
     // §snag: per fishing action, 3% a dead (глухой) snag that loses the rig, 7% a recoverable one you
     // tug free. Scaled by the difficulty config's snagChance().
@@ -1508,6 +1514,7 @@ public final class FishingManager {
         session.runIndex = 0;
         session.pullDir = 0;
         session.runTicksLeft = 0;
+        session.runTicksTotal = 0;
         session.fightStartTick = now;
         session.nextRunAt = now + 30 + random.nextInt(40);
 
@@ -1636,6 +1643,7 @@ public final class FishingManager {
         session.runIndex = 0;
         session.pullDir = 0;
         session.runTicksLeft = 22;      // the first second FEELS alive — fish or boot?
+        session.runTicksTotal = 22;     // §dive-cost: even this opener is a span, not a leftover
         session.nextRunAt = now + 100000;
         session.fightStartTick = now;
         session.fightTimeout = 600;
@@ -1917,6 +1925,7 @@ public final class FishingManager {
         } else if (now >= session.nextRunAt) {
             if (session.runsLeft > 0 && random.nextDouble() < runChance(session, progress)) {
                 session.runTicksLeft = runDuration(session, progress, random);
+                session.runTicksTotal = session.runTicksLeft;   // §dive-cost
                 session.runsLeft--;
                 // §fight-course: the run gets a direction, scripted by the species' own fight pattern.
                 session.course = FightCourse.forPattern(session.fightPattern, session.runIndex++, random);
@@ -1942,6 +1951,7 @@ public final class FishingManager {
         if (session.predator && session.runTicksLeft == 0 && session.landProgress > 0.05
                 && random.nextDouble() < session.headShakeChance) {
             session.runTicksLeft = 6 + random.nextInt(6);
+            session.runTicksTotal = session.runTicksLeft;   // §dive-cost: a shake is its own span
             session.tension += session.runTensionPulse * 1.25;
             session.landProgress = Math.max(0.0, session.landProgress - 0.03);
             level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.7f, 1.5f);
@@ -1952,7 +1962,16 @@ public final class FishingManager {
         // §big-game (0.5.0): the two ocean patterns get their signature events.
         if ("sounding".equals(session.fightPattern) && session.runTicksLeft > 0) {
             // The dive TAKES LINE — progress drains while it sounds; pump it back between dives.
-            session.landProgress = Math.max(0.0, session.landProgress - 0.0035);
+            //
+            // §dive-cost: the drain is a SHARE OF THE BAR spread over the dive, not a rate per tick.
+            // It shipped in 0.5.0 as a flat 0.0035 a tick, when a dive was 60-109 ticks and therefore
+            // cost about a third of the bar. §fight-course then lengthened every run ~2.2x without
+            // touching this line, so a dive quietly went to two thirds of the bar and a ten-dive
+            // beluga asked the angler to pump back 6.6 full bars inside one fight. Reported twice
+            // after 0.8.1, in both cases as the fight simply timing out. Written this way the cost
+            // stays put the next time a run length moves.
+            int span = Math.max(1, session.runTicksTotal > 0 ? session.runTicksTotal : 85);
+            session.landProgress = Math.max(0.0, session.landProgress - DIVE_COST / span);
             if (session.runTicksLeft % 25 == 0) {
                 level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.DRAG_LONG.get(),
                         SoundSource.PLAYERS, 0.7f, 0.8f);
@@ -1989,6 +2008,7 @@ public final class FishingManager {
                 // it gave up at the net — this time
             } else {
             session.runTicksLeft = Math.max(session.runTicksLeft, (session.trophy ? 38 : 28) + random.nextInt(14));
+            session.runTicksTotal = Math.max(session.runTicksTotal, session.runTicksLeft);   // §dive-cost
             // It is the fight's last real run, so it gets a course like every other one — otherwise the
             // dash at the net was the ONLY run in the fight with nothing to answer.
             session.course = FightCourse.forPattern(session.fightPattern, session.runIndex++, random);
