@@ -90,9 +90,5 @@
     "deep": 0.8
   },
   "base": 0.1,
-  "min_angler_level": 12,
-  "legendary": {
-    "weight_g": 580000,
-    "chance": 0.003
-  }
+  "min_angler_level": 12
 }
