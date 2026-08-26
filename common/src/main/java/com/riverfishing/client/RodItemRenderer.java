@@ -56,6 +56,658 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         }
     }
 
+    // ===== §rod-bend-3d: the bone chain for segmented 3D blanks =====
+    /**
+     * Master switch for the segmented 3D blank, OFF by default. The models ship in the release
+     * alongside the sprites — this flag decides which of the two a rod is drawn from, so the work in
+     * progress needs no separate test build and no duplicated assets. Client-side and per-session:
+     * flip it with {@code /rfrod blank on|off}.
+     *
+     * <p>§default-3d: ON by default — the 3D pipeline is the shipped look; {@code off} drops back to
+     * the sprite stack for comparison or if something breaks.
+     */
+    public static boolean BLANK_3D = true;
+
+    /**
+     * Joint positions along each segmented blank, in model units, butt to tip — one per bending
+     * section, sitting at that section's own rotation origin. Rods absent from this map have no
+     * segment models and keep the pre-drawn sprite buckets.
+     *
+     * <p>The joints have to be listed here rather than read from the models because a BakedModel has
+     * thrown its element origins away by the time we see it. Regenerate with tools/split_rod.js,
+     * which prints the array it just cut the geometry along.
+     */
+    private static final java.util.Map<String, float[]> BLANK_JOINTS_X =
+            java.util.Map.ofEntries( // ofEntries: Map.of tops out at 10 pairs
+                    java.util.Map.entry("feeder", new float[]{14f, 3f, -5f, -10f}),
+                    // §pole / §bamboo: hinged at the ferrules / culm nodes — each collar rides the
+                    // tip-side segment, so it sleeves its joint when the chain bends, like a real
+                    // telescopic pole. Values come from tools/split_rod.js, which prints them.
+                    java.util.Map.entry("pole", new float[]{15.2f, 7.4f, -0.4f, -8.2f}),
+                    // rebuilt on the feeder skeleton
+                    java.util.Map.entry("spinning", new float[]{14f, 3f, -5f, -10f}),
+                    java.util.Map.entry("ultralight", new float[]{14.8f, 5.5f, -0.8f, -4.1f}),
+                    java.util.Map.entry("surf", new float[]{12.9f, 5.3f, -2.3f, -9.9f}),
+                    java.util.Map.entry("carp", new float[]{13.8f, 6.46f, -0.88f, -8.21f}),
+                    java.util.Map.entry("boat", new float[]{10.94f, 5.39f, -0.16f, -5.66f, -11.16f}),
+                    java.util.Map.entry("bottom", new float[]{12.99f, 5.59f, -1.81f, -9.21f}),
+                    java.util.Map.entry("trolling", new float[]{10.31f, 2.21f, -2.54f}),
+                    // §sea-spin-3d: EIGHT sections, the deepest chain in the fleet
+                    java.util.Map.entry("sea_spin",
+                            new float[]{9.15f, 3.15f, -3.15f, -7.95f, -10.95f, -12.95f, -14.58f}),
+                    java.util.Map.entry("bamboo", new float[]{19.667f, 13.333f, 7f, 0.667f, -5.667f}));
+
+    /** A 3D blank with no joints listed: one rigid piece, drawn but never bent. */
+    private static final float[] NO_JOINTS = new float[0];
+
+    /**
+     * §rod-tip-3d: the tip of each 3D blank in model units — the point the line leaves from. The
+     * blanks are no longer one 16-unit sprite, they run from x=7 (ultralight) to x=-16 (pole), so a
+     * single hand-tuned anchor cannot serve them.
+     */
+    private static final java.util.Map<String, Float> BLANK_TIP_X = java.util.Map.ofEntries(
+            java.util.Map.entry("feeder", -16f), java.util.Map.entry("pole", -16f),
+            java.util.Map.entry("bamboo", -12.1f), java.util.Map.entry("stick", 2.5f),
+            java.util.Map.entry("spinning", -16f), java.util.Map.entry("ultralight", -8.5f),
+            java.util.Map.entry("winter", 21.9f), java.util.Map.entry("sea_spin", -16f),
+            java.util.Map.entry("bottom", -16f), java.util.Map.entry("carp", -16f),
+            java.util.Map.entry("surf", -16f), java.util.Map.entry("boat", -15.7f),
+            java.util.Map.entry("trolling", -5.7f));
+
+    /**
+     * §rod-tip-3d: where the drawn tip landed ON SCREEN, in normalised device coords, captured while
+     * the rod renders and read by {@link LineRenderer} the same frame.
+     *
+     * <p>Screen space rather than world space on purpose: the first-person hand is rendered with the
+     * SETTINGS fov while the world uses the modified one, so a correct world point would not sit on
+     * the drawn rod. Projecting here and travelling out along that screen ray is what keeps the line
+     * on the tip through zoom, lean and bend — none of which need their own correction any more.
+     */
+    public static final float[] TIP_NDC = new float[2];
+    /** Frame counter the NDC above was written on; stale means the rod was not drawn. */
+    public static long tipNdcFrame = Long.MIN_VALUE;
+
+    public static boolean tipNdcFresh() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc.level != null && tipNdcFrame >= mc.level.getGameTime() - 1;
+    }
+
+    /**
+     * §rod-tip-3d third person: the local player's drawn tip in VIEW space — entity rendering poses
+     * are camera-rotated, so this is what pose.last() naturally yields; {@link LineRenderer} rotates
+     * it back to world with the camera quaternion. Without this, an F5 fight ran the line from the
+     * old shoulder anchor while the bent 3D tip waved two blocks away.
+     */
+    public static final float[] TIP_VIEW = new float[3];
+    public static long tipViewFrame = Long.MIN_VALUE;
+
+    public static boolean tipViewFresh() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc.level != null && tipViewFrame >= mc.level.getGameTime() - 1;
+    }
+
+    /**
+     * §hand-space: WHICH space the first-person hand pass leaves in {@code pose.last()}. The line is
+     * submitted with an identity matrix, so it lands in whatever space the model-view holds when the
+     * batch flushes - either eye space (0) or world-relative-to-camera (1). Vanilla leaves eye space;
+     * a loader or a shaderpack that flushes the hand batch under the world matrix leaves the other,
+     * and the far end of the line then swings around the angler as the camera turns. Reported on
+     * NeoForge 1.21.1 in exactly those words: you cast at one spot and the line ends up anywhere.
+     *
+     * <p>So it is MEASURED, not assumed - see {@link #sampleHandSpace}. -1 = measure and latch;
+     * 0 or 1 pins it ({@code /rfrod handspace view|world|auto}).
+     */
+    public static int HAND_SPACE = -1;
+    private static int handSpaceLatch = 0;
+    private static boolean spaceDecided, spaceHasPrev;
+    private static final org.joml.Vector3f spaceTipPrev = new org.joml.Vector3f();
+    private static final org.joml.Quaternionf spaceCamPrev = new org.joml.Quaternionf();
+    /** What the deciding turn saw, for /rfrod tipinfo to show its work. */
+    private static float spaceEvidenceView, spaceEvidenceWorld;
+
+    private static void captureTipView(PoseStack pose, String rodKey, ItemDisplayContext ctx,
+                                       ItemStack stack) {
+        Float tipX = BLANK_TIP_X.get(rodKey);
+        if (tipX == null) return;
+        if (ctx != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+                && ctx != ItemDisplayContext.THIRD_PERSON_LEFT_HAND
+                && !ctx.firstPerson()) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) return;
+        // only the LOCAL player's own held rod — this renderer also runs for everyone else's
+        if (stack != mc.player.getMainHandItem() && stack != mc.player.getOffhandItem()) return;
+        org.joml.Vector4f p = new org.joml.Vector4f(
+                tipX / 16f - 0.5f, BLANK_AXIS_Y / 16f - 0.5f, BLANK_AXIS_Z / 16f - 0.5f, 1f);
+        p.mul(pose.last().pose());
+        TIP_VIEW[0] = p.x();
+        TIP_VIEW[1] = p.y();
+        TIP_VIEW[2] = p.z();
+        tipViewFrame = mc.level.getGameTime();
+    }
+
+    /** Both joints and blank sit on this axis in model units; the chain hinges about Z through it. */
+    private static final float BLANK_AXIS_Y = 10.5f, BLANK_AXIS_Z = 8.5f;
+
+    /**
+     * Share of the total bend taken by joint {@code i} of {@code n}, butt to tip: a triangular split,
+     * {@code 2(i+1)/(n(n+1))}, so a rod loads progressively and the tip joint swings furthest. Sums
+     * to 1 for ANY joint count — the 4-joint feeder gets the hand-approved {0.1, 0.2, 0.3, 0.4}, the
+     * 5-joint bamboo {0.067..0.333}, and a fixed table would have summed a fifth joint to 1.4 and
+     * bent the rod past its own MAX_BEND_DEG.
+     */
+    private static float jointShare(int i, int n) {
+        return 2f * (i + 1) / (n * (n + 1));
+    }
+
+    /** Total tip deflection at full tension, degrees. Live-tunable with {@code /rfrod blank deg}. */
+    public static float MAX_BEND_DEG = 80f;
+
+    /**
+     * §rod-physics: how much of the lag becomes blank FLEX rather than the whole rod swinging. At 0
+     * the rod is a board on a hinge; the joints add this much of the lag again, tip-weighted, so the
+     * tip trails. Live-tunable with {@code /rfrod phys whip}.
+     */
+    public static float WHIP_GAIN = 2.0f;
+
+    /** §pod-3d: where this rod's 3D blank ends, in model units — null for rods with no entry. */
+    public static Float blankTipX(String rodKey) {
+        return BLANK_TIP_X.get(rodKey);
+    }
+
+    /**
+     * §reel-3d: how far each rod's reel-seat centre sits from the feeder's, in model units — the
+     * reel master is authored docked into the FEEDER's seat (centre x 19.5), so mounting it on
+     * another rod is one translate along the blank. Values are seat centres from tools/gen_spin_rod.js
+     * minus 19.5. A rod absent here takes no reel (RodType.takesReel is false).
+     */
+    private static final java.util.Map<String, float[]> REEL_SEAT_DX = java.util.Map.of(
+            "feeder", new float[]{0f, 0f}, "spinning", new float[]{0f, 0f},
+            "ultralight", new float[]{0.8f, 0.4f},   // its seat rides 0.4u higher than the 9.45 docking line
+            "sea_spin", new float[]{1.25f, 0f}, "bottom", new float[]{3f, 0.52f},
+            "carp", new float[]{4.25f, 0.4f}, "surf", new float[]{4f, 0.6f},   // surf seat rides 0.6u high
+            "boat", new float[]{2.75f, 0.8f}, "trolling", new float[]{4.15f, 0f});
+
+    // ===== §line-thru-guides: the line runs from the spool through every ring to the tip =====
+    /**
+     * Per-rod guide ring centres + tip exit, model units, loaded from the generated asset
+     * {@code rod_line_paths.json} (tools/gen_line_paths.js) — the renderer never restates model
+     * geometry by hand. Null-tolerant: a missing or broken asset just means no on-blank line.
+     */
+    private static java.util.Map<String, float[][]> linePaths;
+
+    private static float[][] linePath(String rodKey) {
+        if (linePaths == null) {
+            linePaths = new java.util.HashMap<>();
+            try {
+                var res = Minecraft.getInstance().getResourceManager()
+                        .getResourceOrThrow(com.riverfishing.RiverFishing.id("rod_line_paths.json"));
+                try (var reader = new java.io.InputStreamReader(res.open(), java.nio.charset.StandardCharsets.UTF_8)) {
+                    var root = com.google.gson.JsonParser.parseReader(reader).getAsJsonObject();
+                    for (var e : root.entrySet()) {
+                        var o = e.getValue().getAsJsonObject();
+                        var gs = o.getAsJsonArray("guides");
+                        float[][] pts = new float[gs.size() + 1][];
+                        for (int i = 0; i < gs.size(); i++) {
+                            var p = gs.get(i).getAsJsonArray();
+                            pts[i] = new float[]{p.get(0).getAsFloat(), p.get(1).getAsFloat()};
+                        }
+                        var t = o.getAsJsonArray("tip");
+                        pts[gs.size()] = new float[]{t.get(0).getAsFloat(), t.get(1).getAsFloat()};
+                        linePaths.put(e.getKey(), pts);
+                    }
+                }
+            } catch (Exception ignored) {
+                // asset absent or malformed: rods simply draw no threaded line
+            }
+        }
+        return linePaths.get(rodKey);
+    }
+
+    /**
+     * The full thread: spool lip first (scaled with the fitted reel, shifted to this rod's seat),
+     * then the guide train, then the tip. Null when the rod has no seat, no reel, or no line — a
+     * bare blank carries nothing to thread.
+     */
+    private static float[][] guideLinePoints(ItemStack stack, String rodKey) {
+        float[] off = REEL_SEAT_DX.get(rodKey);
+        if (off == null) return null;
+        if (!(RodData.get(stack, ComponentSlot.LINE).getItem() instanceof LineItem)) return null;
+        if (!(RodData.get(stack, ComponentSlot.REEL).getItem() instanceof ReelItem ri)) return null;
+        float[][] path = linePath(rodKey);
+        if (path == null) return null;
+        float s = (float) Math.cbrt(ri.size() / 4000.0);
+        float[][] pts = new float[path.length + 1][];
+        pts[0] = new float[]{19.3f - 3.75f * s + off[0], 9.55f - 1.5f * s + off[1]};  // the spool's front lip
+        System.arraycopy(path, 0, pts, 1, path.length);
+        return pts;
+    }
+
+    /**
+     * Captures the points belonging to chain stage {@code stage} in the CURRENT pose — a point's
+     * stage is how many joints sit butt-ward of it, so feeder rings past a hinge travel with their
+     * bent segment and the line follows the blank instead of cutting a chord across the bend.
+     */
+    private static void captureLineStage(org.joml.Vector3f[] out, float[][] pts, PoseStack pose,
+                                         float[] joints, int stage) {
+        if (out == null) return;
+        for (int i = 0; i < pts.length; i++) {
+            int st = 0;
+            for (float j : joints) if (pts[i][0] < j) st++;
+            if (st != stage) continue;
+            org.joml.Vector4f v = new org.joml.Vector4f(
+                    pts[i][0] / 16f - 0.5f, pts[i][1] / 16f - 0.5f, BLANK_AXIS_Z / 16f - 0.5f, 1f);
+            v.mul(pose.last().pose());
+            out[i] = new org.joml.Vector3f(v.x(), v.y(), v.z());
+        }
+    }
+
+    /**
+     * §line-strand: how the fitted line looks on the blank — {r, g, b, alpha, shader width}. Colour
+     * and alpha come from the MATERIAL (braid is opaque woven dyneema, fluoro is nearly invisible —
+     * the same identity LineType's visibility factors encode); width comes from the item's actual
+     * diameter, so 0.8 mm carp mono visibly outweighs 0.1 mm ultralight braid.
+     */
+    static float[] lineStyle(ItemStack stack) {
+        if (!(RodData.get(stack, ComponentSlot.LINE).getItem() instanceof LineItem li)) return null;
+        return RodRenderTypes.strandStyle(li.lineType(), li.diameterMm());
+    }
+
+    /** Draws the captured thread. Points are already in render space, so the matrix is identity. */
+    private static void drawLinePath(MultiBufferSource buffers, org.joml.Vector3f[] pts, float[] style) {
+        if (pts == null || style == null) return;
+        var vc = buffers.getBuffer(RodRenderTypes.lineStrand(style[4]));
+        int r = (int) style[0], g = (int) style[1], b = (int) style[2], a = (int) style[3];
+        org.joml.Matrix4f id = new org.joml.Matrix4f();
+        org.joml.Matrix3f nid = new org.joml.Matrix3f();   // §1.20.1: normal() wants a matrix too
+        for (int i = 0; i + 1 < pts.length; i++) {
+            var p = pts[i];
+            var q = pts[i + 1];
+            if (p == null || q == null) continue;
+            float dx = q.x - p.x, dy = q.y - p.y, dz = q.z - p.z;
+            float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (len < 1.0e-5f) continue;
+            dx /= len; dy /= len; dz /= len;
+            vc.vertex(id, p.x, p.y, p.z).color(r, g, b, a).normal(nid, dx, dy, dz).endVertex();
+            vc.vertex(id, q.x, q.y, q.z).color(r, g, b, a).normal(nid, dx, dy, dz).endVertex();
+        }
+    }
+
+    // ===== §hand-line: the first-person water line draws WITH the rod, not a pass later =====
+    /**
+     * Vanilla renders the world (where {@link LineRenderer} lives) BEFORE the hand, so any anchor
+     * captured during the hand pass is a FRAME OLD by the time the world line reads it — and with
+     * live springs the tip visibly outruns its own line. The only exact attachment is to draw the
+     * first-person line IN the hand pass, from the same matrix that just drew the tip: zero lag by
+     * construction, for every rod length, through bend, whip and jerk alike. The world pass then
+     * skips the local player's string (it still draws the float — that is a world object).
+     */
+    public static long handLineFrame = Long.MIN_VALUE;
+
+    public static boolean handLineFresh() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc.level != null && handLineFrame >= mc.level.getGameTime() - 1;
+    }
+
+    private static void drawHandLine(ItemStack stack, ItemDisplayContext ctx, PoseStack pose,
+                                     MultiBufferSource buffers) {
+        if (!ctx.firstPerson()) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null || !tipViewFresh()) return;
+        if (stack != mc.player.getMainHandItem() && stack != mc.player.getOffhandItem()) return;
+        var cam0 = mc.gameRenderer.getMainCamera();
+        // §hand-space: while the space is still being measured, ANY line drawn here is drawn on a
+        // guess, and the frame the verdict lands on is a visible jump across the screen. Draw nothing
+        // until it is known: handLineFrame stays stale meanwhile, so the world pass keeps the line on
+        // screen and the switch never shows.
+        if (HAND_SPACE < 0 && !spaceDecided) {
+            sampleHandSpace(new org.joml.Vector3f(TIP_VIEW[0], TIP_VIEW[1], TIP_VIEW[2]),
+                    new org.joml.Quaternionf(cam0.rotation()));
+            return;
+        }
+        ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
+        if (own == null) return;
+
+        float pt = mc.getFrameTime();
+        net.minecraft.world.phys.Vec3 end = LineRenderer.lineEnd(mc, mc.player, own, pt);
+        var cam = mc.gameRenderer.getMainCamera();
+        net.minecraft.world.phys.Vec3 cp = cam.getPosition();
+        // §1.20.1 §view-yaw: the hand pose calls -Z forward and this version's camera rotation
+        // does not, so world points converted with it alone come out astern. Half turn about Y first.
+        org.joml.Quaternionf q = new org.joml.Quaternionf(cam.rotation()).rotateY((float) Math.PI);
+
+        // The hand pass projects at a fixed 70° while the world projects at fov x modifier. A world
+        // point pushed through the hand projection lands on the wrong pixel, so world-derived points
+        // get their view-space x/y scaled by the tangent ratio — after that both projections agree
+        // on the screen, and the line meets the float where the world actually drew it.
+        double worldFov = mc.options.fov().get() * mc.player.getFieldOfViewModifier();
+        float warp = (float) (Math.tan(Math.toRadians(70.0) / 2.0)
+                / Math.tan(Math.toRadians(worldFov) / 2.0));
+
+        float[] style = lineStyle(stack);
+        var vc = buffers.getBuffer(style != null ? RodRenderTypes.lineStrand(style[4])
+                : net.minecraft.client.renderer.RenderType.lines());
+        int cr = (own.color >> 16) & 0xFF, cg = (own.color >> 8) & 0xFF, cb = own.color & 0xFF;
+        int alpha = style != null ? (int) style[3] : 255;
+
+        org.joml.Vector3f tipV = new org.joml.Vector3f(TIP_VIEW[0], TIP_VIEW[1], TIP_VIEW[2]);
+        // the sag SHAPE is computed in world space (gravity hangs in world-down, not camera-down),
+        // anchored on the tip's approximate world position; the on-screen TIP endpoint stays the
+        // captured hand-space point exactly
+        // §hand-space: TIP_VIEW is by definition already in the pass's own space - whatever that
+        // space is. Only the WORLD points need converting into it, so the whole question reduces to
+        // this one number, and it is measured rather than believed.
+        sampleHandSpace(tipV, q);
+        int space = effectiveHandSpace();
+        net.minecraft.world.phys.Vec3 tipW = tipWorld(tipV, cp, q, space);
+        double dx = tipW.x - end.x, dy = tipW.y - end.y, dz = tipW.z - end.z;
+
+        // The hand and world projections genuinely disagree about where the tip is on screen, so the
+        // correction between them is RAMPED along the whole line instead of switched at the last
+        // segment — a hard switch put a visible kink right under the tip. delta is exactly what the
+        // hand projection adds at the tip; each point takes f of it, so the water end stays
+        // world-correct and the tip end lands on the drawn tip precisely.
+        org.joml.Vector3f tipWarped = toNode(tipW, cp, q, warp, space);
+        float dtx = tipV.x() - tipWarped.x(), dty = tipV.y() - tipWarped.y(), dtz = tipV.z() - tipWarped.z();
+
+        // §hand-line on 1.20.1: canon submits these with an IDENTITY matrix, which lands correctly
+        // only if the buffer is drawn with the view matrix live. 1.21.1 does that, 1.20.1 does not, and
+        // the far end came out behind the camera. pose.last().pose() is the local->view matrix the
+        // blank is drawn with and TIP_VIEW was captured through, so every point goes back through its
+        // inverse and is submitted with it — the same point, now travelling the rod's own road.
+        org.joml.Matrix4f m = new org.joml.Matrix4f(pose.last().pose());
+        if (Math.abs(m.determinant()) < 1.0e-9f) return;   // degenerate pose: nothing to hang a line on
+        org.joml.Matrix4f toLocal = new org.joml.Matrix4f(m).invert();
+        org.joml.Matrix3f nid = new org.joml.Matrix3f();   // §1.20.1: normal() wants a matrix too
+        double time = mc.level.getGameTime() + pt;
+        org.joml.Vector3f prev = toNode(
+                end.add(0, LineRenderer.hangOffset(own, dy, 0.0, time), 0), cp, q, warp, space);
+        for (int k = 1; k <= 16; k++) {
+            double f = k / 16.0;
+            org.joml.Vector3f p = toNode(new net.minecraft.world.phys.Vec3(
+                    end.x + dx * f,
+                    end.y + LineRenderer.hangOffset(own, dy, f, time),   // §line-taut
+                    end.z + dz * f), cp, q, warp, space)
+                    .add((float) (dtx * f), (float) (dty * f), (float) (dtz * f));
+            float sx = p.x() - prev.x(), sy = p.y() - prev.y(), sz = p.z() - prev.z();
+            float len = (float) Math.sqrt(sx * sx + sy * sy + sz * sz);
+            if (len > 1.0e-5f) {
+                sx /= len; sy /= len; sz /= len;
+                org.joml.Vector3f l0 = toLocal.transformPosition(new org.joml.Vector3f(prev));
+                org.joml.Vector3f l1 = toLocal.transformPosition(new org.joml.Vector3f(p));
+                vc.vertex(m, l0.x(), l0.y(), l0.z()).color(cr, cg, cb, alpha).normal(nid, sx, sy, sz).endVertex();
+                vc.vertex(m, l1.x(), l1.y(), l1.z()).color(cr, cg, cb, alpha).normal(nid, sx, sy, sz).endVertex();
+            }
+            prev = p;
+        }
+        handLineFrame = mc.level.getGameTime();
+    }
+
+    /**
+     * A world point in the space the hand pass draws in. Both readings start the same way -
+     * camera-relative, un-rotated into eye space, then scaled by the fov warp (an eye-space scale,
+     * so it belongs here either way). Space 1 rotates the result back out to world-relative.
+     */
+    private static org.joml.Vector3f toNode(net.minecraft.world.phys.Vec3 w,
+                                            net.minecraft.world.phys.Vec3 cp,
+                                            org.joml.Quaternionf q, float warp, int space) {
+        org.joml.Vector3f v = new org.joml.Vector3f(
+                (float) (w.x - cp.x), (float) (w.y - cp.y), (float) (w.z - cp.z));
+        q.transformInverse(v);
+        v.x *= warp;
+        v.y *= warp;
+        if (space == 1) q.transform(v);
+        return v;
+    }
+
+    /** §hand-space: the captured tip as a WORLD point, under the given reading of the pass's space. */
+    private static net.minecraft.world.phys.Vec3 tipWorld(org.joml.Vector3f tipV,
+                                                          net.minecraft.world.phys.Vec3 cp,
+                                                          org.joml.Quaternionf q, int space) {
+        org.joml.Vector3f w = space == 0 ? q.transform(new org.joml.Vector3f(tipV))
+                                         : new org.joml.Vector3f(tipV);
+        return new net.minecraft.world.phys.Vec3(cp.x + w.x(), cp.y + w.y(), cp.z + w.z());
+    }
+
+    /**
+     * §hand-space: decides the reading by MEASURING what the camera does to the captured tip - and
+     * decides it ONCE. The two spaces differ in exactly one way: turn the head, and a tip held in eye
+     * space does not move (the hand is pinned to the screen), while a tip in world-relative space
+     * swings with the camera. So sample the tip and the camera, wait for a real turn, and ask which
+     * of the two the tip actually did. Either it followed the camera or it did not; once answered it
+     * is latched, so the line can never flip between two places mid-fight.
+     */
+    private static void sampleHandSpace(org.joml.Vector3f tipV, org.joml.Quaternionf q) {
+        if (spaceDecided || HAND_SPACE >= 0) return;
+        if (!spaceHasPrev) {
+            spaceTipPrev.set(tipV);
+            spaceCamPrev.set(q);
+            spaceHasPrev = true;
+            return;
+        }
+        org.joml.Quaternionf turn = new org.joml.Quaternionf(q)
+                .mul(new org.joml.Quaternionf(spaceCamPrev).invert());
+        float turnDeg = (float) Math.toDegrees(2.0 * Math.acos(Math.min(1f, Math.abs(turn.w()))));
+        // Under ~12 degrees the two predictions sit inside the noise the springs alone put on the tip.
+        if (turnDeg < 12f) return;
+        float dView = spaceTipPrev.distance(tipV);                                    // tip stayed put
+        float dWorld = turn.transform(new org.joml.Vector3f(spaceTipPrev)).distance(tipV); // tip turned
+        spaceTipPrev.set(tipV);
+        spaceCamPrev.set(q);
+        // Only a CLEAR answer counts; a close call means the turn was not telling, so wait for a better one.
+        if (Math.min(dView, dWorld) * 2f > Math.max(dView, dWorld)) return;
+        handSpaceLatch = dWorld < dView ? 1 : 0;
+        spaceDecided = true;
+        spaceEvidenceView = dView;
+        spaceEvidenceWorld = dWorld;
+        // Persist it: the answer cannot change for a given install, so measuring it once per launch
+        // only buys one avoidable wobble per launch.
+        HAND_SPACE = handSpaceLatch;
+        RodClientSettings.save();
+    }
+
+    /** §hand-space: re-open the question - /rfrod handspace auto starts the measurement over. */
+    public static void resetHandSpace() {
+        spaceDecided = false;
+        spaceHasPrev = false;
+    }
+
+    /** §hand-space: the reading in force right now - pinned value, else the latched measurement. */
+    public static int effectiveHandSpace() {
+        return HAND_SPACE >= 0 ? HAND_SPACE : handSpaceLatch;
+    }
+
+    /** §hand-space: what the last measurement saw - /rfrod tipinfo prints it. */
+    public static String handSpaceReport() {
+        return String.format("space=%s %s  turn moved the tip by: stay %.2f / follow %.2f",
+                effectiveHandSpace() == 0 ? "view" : "world",
+                HAND_SPACE >= 0 ? "(pinned)" : spaceDecided ? "(measured)" : "(still watching)",
+                spaceEvidenceView, spaceEvidenceWorld);
+    }
+
+    // ===== §reel-crank: the handle spins while the fight is being reeled =====
+    /** Crank speed at zero and full tension, degrees per second — /rfrod has no knob for this yet. */
+    private static final float CRANK_MIN_DPS = 140f, CRANK_MAX_DPS = 520f;
+    private static float crankDeg;
+    private static long crankNanos;
+
+    /**
+     * Advances and returns the crank angle. Tension drives the speed — a loaded rod is being pumped
+     * and wound hard, slack means the handle rests wherever it stopped. Negative tension reads the
+     * resting pose without touching the accumulator (podded reels are not being cranked, and must
+     * not mirror the held rod's fight).
+     */
+    private static float crankAngle(float tension) {
+        if (tension < 0f) return 0f;
+        long now = System.nanoTime();
+        float dt = crankNanos == 0 ? 0f : Math.min((now - crankNanos) / 1.0e9f, 0.05f);
+        crankNanos = now;
+        if (tension > 0.01f) {
+            crankDeg = (crankDeg + dt * (CRANK_MIN_DPS + (CRANK_MAX_DPS - CRANK_MIN_DPS) * tension)) % 360f;
+        }
+        return crankDeg;
+    }
+
+    /**
+     * §reel-3d: the fitted reel as a solid model, seated on this rod's own seat. No-op when the rod
+     * carries no reel, has no seat, or the size's model is absent — the caller loses nothing but the
+     * reel. Drawn in the BASE blank frame: the seat lives on segment s0, which never bends. The
+     * handle is its own model, turned about the crank axis by the fight tension (§reel-crank).
+     */
+    private static void drawReel3d(ItemStack stack, String rodKey, float tension, ItemRenderer ir,
+                                   ModelManager mm, BakedModel missing, PoseStack pose,
+                                   MultiBufferSource buffers, int light, int overlay) {
+        float[] off = REEL_SEAT_DX.get(rodKey);
+        if (off == null) return;
+        ItemStack reel = RodData.get(stack, ComponentSlot.REEL);
+        if (!(reel.getItem() instanceof ReelItem ri)) return;
+        BakedModel body = resolve(mm, missing, false, RodModelLayers.reel3d(ri.size()));
+        if (body == null) return;
+        pose.pushPose();
+        pose.translate(off[0] / 16f, off[1] / 16f, 0);
+        ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, body);
+        BakedModel handle = resolve(mm, missing, false, RodModelLayers.reel3dHandle(ri.size()));
+        if (handle != null) {
+            // Pivots from the master, scaled about the foot anchor (19.3, 9.55) with the same cube
+            // root the geometry uses — tools/gen_reels.js prints them, tools/check_rod_assets.js
+            // verifies them against every size's geometry. ir.render maps model e to e/16 - 0.5.
+            float s = (float) Math.cbrt(ri.size() / 4000.0);
+            float ax = (19.3f + 0.15f * s) / 16f - 0.5f;   // crank axis: the gear boss (19.45, 7.0)
+            float ay = (9.55f - 2.55f * s) / 16f - 0.5f;
+            float deg = crankAngle(tension);
+            pose.pushPose();
+            pose.translate(ax, ay, 0);
+            pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(deg));
+            pose.translate(-ax, -ay, 0);
+            ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, handle);
+            // §reel-crank: the knob rides the lever's end but spins free on its own bearing, so it
+            // ORBITS with the crank yet stays level: counter-rotate about the knob's own centre.
+            // Both transforms compose in model space — orbit from the first, orientation cancelled
+            // by the second.
+            BakedModel knobM = resolve(mm, missing, false, RodModelLayers.reel3dKnob(ri.size()));
+            if (knobM != null) {
+                float ky = (9.55f - 3.8f * s) / 16f - 0.5f; // knob centre: master (19.45, 5.75)
+                pose.translate(ax, ky, 0);
+                pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(-deg));
+                pose.translate(-ax, -ky, 0);
+                ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, knobM);
+            }
+            pose.popPose();
+        }
+        pose.popPose();
+    }
+
+    /**
+     * §pod-3d: draws the bare 3D blank STRAIGHT (all segments, no joint rotation) in the caller's
+     * current pose frame. Returns false when the 3D switch is off or this rod has no segment models —
+     * the caller falls back to its sprite path. Used by {@link RodPodRenderer}, where a docked rod
+     * rests untensioned; the in-hand path with its bend chain stays in {@link #renderByItem}.
+     */
+    public static boolean drawPodBlank(ItemStack stack, PoseStack pose, MultiBufferSource buffers,
+                                       int light, int overlay) {
+        if (!BLANK_3D) return false;
+        if (!(stack.getItem() instanceof RodItem rod)) return false;
+        String rodKey = rod.rodType().jsonKey();
+        Minecraft mc = Minecraft.getInstance();
+        ModelManager mm = mc.getModelManager();
+        BakedModel missing = mm.getMissingModel();
+        BakedModel root = resolve(mm, missing, false, RodModelLayers.segment(rodKey, 0));
+        if (root == null) return false;
+        ItemRenderer ir = mc.getItemRenderer();
+        ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, root);
+        int joints = BLANK_JOINTS_X.getOrDefault(rodKey, NO_JOINTS).length;
+        for (int i = 1; i <= joints; i++) {
+            BakedModel seg = resolve(mm, missing, false, RodModelLayers.segment(rodKey, i));
+            if (seg != null) {
+                ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, seg);
+            }
+        }
+        drawReel3d(stack, rodKey, -1f, ir, mm, missing, pose, buffers, light, overlay); // resting crank
+        float[][] lp = guideLinePoints(stack, rodKey);
+        if (lp != null) {
+            org.joml.Vector3f[] thread = new org.joml.Vector3f[lp.length];
+            captureLineStage(thread, lp, pose, NO_JOINTS, 0);   // podded rod is straight: one stage
+            drawLinePath(buffers, thread, lineStyle(stack));
+        }
+        return true;
+    }
+
+    /** §rod-bend: the line's break-risk 0..1 — the crank strain and the sprite buckets read this. */
+    public static float liveTension() {
+        if (FORCE_BEND >= 0) return Math.min(FORCE_BEND, BEND_BUCKETS) / (float) BEND_BUCKETS;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return 0f;
+        ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
+        return l == null ? 0f : net.minecraft.util.Mth.clamp(l.smoothTension, 0f, 1f);
+    }
+
+    /**
+     * §rod-load: how loaded the BLANK is 0..1 — the chain bends off THIS, not off break-risk.
+     * Break-risk is normalised to the line and §tackle-margin starves it on over-gunned gear, which
+     * left a trolling blank arrow-straight over a 2 kg bass; the load is the pull against the rod's
+     * own power class, so the same fish bows an ultralight flat and honestly nods the trolling rod.
+     */
+    public static float liveRodLoad() {
+        if (FORCE_BEND >= 0) return Math.min(FORCE_BEND, BEND_BUCKETS) / (float) BEND_BUCKETS;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return 0f;
+        ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
+        return l == null ? 0f : net.minecraft.util.Mth.clamp(l.smoothRodLoad, 0f, 1f);
+    }
+
+    /**
+     * §bend-plane: where the line's pull sits relative to the angler's view, -1 = hard left,
+     * +1 = hard right, 0 = straight ahead. The cast point off-centre tilts the whole bend toward it
+     * (the line leaves the tip TOWARD the fish, so that is where the blank is loaded), and a
+     * directed run drags it further the way the fish is going. This is what turns "the rod bends"
+     * into "the rod bends AT the fish".
+     */
+    private static float fightLateral() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return 0f;
+        ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
+        if (own == null) return 0f;
+        var d = net.minecraft.world.phys.Vec3.atCenterOf(own.target).subtract(mc.player.position());
+        float yawTo = (float) Math.toDegrees(net.minecraft.util.Mth.atan2(-d.x, d.z));
+        float off = net.minecraft.util.Mth.degreesDifference(mc.player.getYRot(), yawTo);
+        // saturates by 45° off-view: countering a run (fish left, camera swung right) should put the
+        // blank FLAT on its side, not politely diagonal
+        float lat = net.minecraft.util.Mth.clamp(off / 45f, -1f, 1f);
+        if (own.fighting) {
+            // fish running LEFT drags the tip further left — same sign language the lean spoke
+            lat += own.course == 1 ? -0.5f : own.course == 2 ? 0.5f : 0f;
+        }
+        return net.minecraft.util.Mth.clamp(lat, -1f, 1f);
+    }
+
+    /**
+     * §bend-plane vertical: where the line's pull sits against the view PITCH, +1 = clearly below
+     * (the normal stance — bend down, the classic arc), -1 = above the view axis (the camera dragged
+     * DOWN past the line). Without the sign, pulling the camera down while the rod also bent down
+     * folded the two into one ugly crumple at the bottom of the screen; signed, the blank rolls over
+     * and bows UP toward the line, which is where the pull genuinely is.
+     */
+    private static float fightVertical() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return 1f;
+        ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
+        if (own == null) return 1f;
+        var d = net.minecraft.world.phys.Vec3.atCenterOf(own.target).subtract(mc.player.getEyePosition());
+        // MC pitch runs positive-DOWN; so does this, so "pull below view" comes out positive.
+        float pitchTo = (float) Math.toDegrees(net.minecraft.util.Mth.atan2(-d.y,
+                Math.sqrt(d.x * d.x + d.z * d.z)));
+        float off = pitchTo - mc.player.getXRot();
+        // The hand pose carries the blank ~25° above the view axis, so the pull is still below the
+        // ROD well after it crosses the view line — the +25 bias keeps the flip where the rod is,
+        // not where the crosshair is. Saturates over 40°, same spirit as the lateral's 45.
+        float vert = net.minecraft.util.Mth.clamp((off + 25f) / 40f, -1f, 1f);
+        if (own.fighting) {
+            // a sounding fish drags the tip deeper, one coming up to jump lifts it — same sign
+            // language the course lean speaks
+            vert += own.course == 3 ? 0.4f : own.course == 4 ? -0.4f : 0f;
+        }
+        return net.minecraft.util.Mth.clamp(vert, -1f, 1f);
+    }
+
     /** §rod-bend: the LOCAL player's current bend bucket (0 = straight), from smoothed fight stress. */
     public static int liveBend() {
         if (FORCE_BEND >= 0) return Math.min(FORCE_BEND, BEND_BUCKETS);
@@ -76,9 +728,22 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         ItemRenderer ir = mc.getItemRenderer();
         BakedModel missing = mm.getMissingModel();
         String rodKey = stack.getItem() instanceof RodItem r ? r.rodType().jsonKey() : "bamboo";
+        // §rod-physics: advanced here because the view moves per FRAME, not per tick, and this is the
+        // one place that runs every frame a rod is on screen. Calling it twice in a frame is a no-op.
+        RodPhysics.update();
         // In hand / on the head the rod is shown edge-on and the flat sprite gets mirrored — use the
         // pre-flipped rod_m layers there so it reads correctly (§rod-mirror). Inventory keeps normal.
         boolean mir = mirrored(ctx);
+
+        // §rod-bend-3d: decided BEFORE the hand pose, because a 3D blank is worn at true scale and so
+        // needs the other pose set. Outside the hand the flat icon still reads better, so this stays
+        // off there and the sprite path runs.
+        //
+        // Having an s0 model is what makes a rod 3D; having JOINTS is what makes it bend. A one-piece
+        // blank (the reel-less rods, which are a stick with a line on it) is 3D and simply rigid.
+        BakedModel chainRoot = BLANK_3D && mir
+                ? resolve(mm, missing, mir, RodModelLayers.segment(rodKey, 0)) : null;
+        float[] joints = chainRoot == null ? null : BLANK_JOINTS_X.getOrDefault(rodKey, NO_JOINTS);
 
         // The ItemRenderer already centred the whole composite with a translate(-0.5) before handing
         // off to us, and ir.render() does the SAME -0.5 again for each layer — cancel one so the icon
@@ -91,42 +756,62 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         applyCastAnim(pose, ctx);
         // The rod's hand pose lives in code (§rod-debug) so it can be tuned live with /rfrod; the
         // model's hand display is identity, so this IS the whole in-hand transform. No-op elsewhere.
-        RodHandTransform.apply(pose, ctx);
+        RodHandTransform.apply(pose, ctx, chainRoot != null);
 
         // §rod-bend: the blank bends under live fight tension — only edge-on (in hands, where the drag
         // is being worked) and only for the LOCAL player's own held rod (others render straight; the
         // 26.x builds carry the bend in the stack instead and show it to everyone).
         int bend = 0;
+        float tension = 0f;
+        float rodLoad = 0f;
         if (FORCE_BEND >= 0 || (mir && mc.player != null
                 && (ctx.firstPerson()
                     || stack == mc.player.getMainHandItem() || stack == mc.player.getOffhandItem()))) {
             bend = liveBend();
+            tension = liveTension();
+            rodLoad = liveRodLoad(); // §rod-load: the chain bends off the blank's load, not break-risk
         }
 
         int layer = 0;
-        // 1) The bare rod — always (bent blank falls back to the straight one if the sprite is absent).
-        layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.blank(rodKey, bend), RodModelLayers.blank(rodKey)),
-                stack, ctx, pose, buffers, light, overlay, layer);
-
-        // 2) The reel — only if one is fitted (reel-less poles have none). Always part of the rod.
-        ItemStack reel = RodData.get(stack, ComponentSlot.REEL);
-        if (reel.getItem() instanceof ReelItem ri) {
-            layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.reel(ri.size()), RodModelLayers.reelGeneric()),
+        // 1) The bare rod — always. A segmented rod is drawn as a bone chain that loads CONTINUOUSLY
+        // with tension (§rod-bend-3d); every other rod keeps the pre-drawn bend buckets.
+        if (chainRoot != null) {
+            layer = drawBentBlank(ir, chainRoot, joints, rodLoad, rodKey, stack, ctx, pose, buffers,
+                    light, overlay, layer, mm, missing, mir);
+            drawReel3d(stack, rodKey, tension, ir, mm, missing, pose, buffers, light, overlay); // §reel-3d
+            drawHandLine(stack, ctx, pose, buffers); // §hand-line: same pass, same frame, same physics
+        } else {
+            // bent blank falls back to the straight one if the sprite is absent
+            layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.blank(rodKey, bend), RodModelLayers.blank(rodKey)),
                     stack, ctx, pose, buffers, light, overlay, layer);
         }
 
-        // 3+4) The line on the spool and the terminal tackle: shown while the rod is just being held,
-        // hidden once the line is CAST (the 3D line + bobber represents them then) and on the rod-pod.
-        if (showTackle(ctx)) {
-            ItemStack line = RodData.get(stack, ComponentSlot.LINE);
-            if (line.getItem() instanceof LineItem li) {
-                layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.line(li.lineType()), RodModelLayers.lineGeneric()),
+        // 2-4) The reel / line-on-spool / rig overlays are SPRITES, drawn in the 16-unit icon frame.
+        // On a true-scale 3D blank (48 units, its own pose set) they land mid-blank at the wrong
+        // size, so a 3D rod draws none of them: its line is the real 3D line off the computed tip
+        // (§rod-tip-3d), and the reel will be its own model when it lands (§rod-3d). The sprite path
+        // keeps the full stack.
+        if (chainRoot == null) {
+            // The reel — only if one is fitted (reel-less poles have none). Always part of the rod.
+            ItemStack reel = RodData.get(stack, ComponentSlot.REEL);
+            if (reel.getItem() instanceof ReelItem ri) {
+                layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.reel(ri.size()), RodModelLayers.reelGeneric()),
                         stack, ctx, pose, buffers, light, overlay, layer);
             }
-            ItemStack rig = RodData.get(stack, ComponentSlot.RIG);
-            if (rig.getItem() instanceof RigItem rg) {
-                draw(ir, resolve(mm, missing, mir, RodModelLayers.rig(rg.rigType()), RodModelLayers.rigGeneric()),
-                        stack, ctx, pose, buffers, light, overlay, layer);
+
+            // The line on the spool and the terminal tackle: shown while the rod is just being held,
+            // hidden once the line is CAST (the 3D line + bobber represents them then) and on the rod-pod.
+            if (showTackle(ctx)) {
+                ItemStack line = RodData.get(stack, ComponentSlot.LINE);
+                if (line.getItem() instanceof LineItem li) {
+                    layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.line(li.lineType()), RodModelLayers.lineGeneric()),
+                            stack, ctx, pose, buffers, light, overlay, layer);
+                }
+                ItemStack rig = RodData.get(stack, ComponentSlot.RIG);
+                if (rig.getItem() instanceof RigItem rg) {
+                    draw(ir, resolve(mm, missing, mir, RodModelLayers.rig(rg.rigType()), RodModelLayers.rigGeneric()),
+                            stack, ctx, pose, buffers, light, overlay, layer);
+                }
             }
         }
 
@@ -191,6 +876,105 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, model);
         pose.popPose();
         return layer + 1;
+    }
+
+    /**
+     * §rod-bend-3d: draws a segmented blank as a bone chain. Each joint's rotation is applied to the
+     * shared pose and LEFT there, so every segment past it inherits the ones before it — forward
+     * kinematics, which the model format cannot express (flat element list, rotation baked at load,
+     * and only 0/±22.5/±45 allowed) and the renderer can, at any angle, every frame.
+     *
+     * <p>{@code ir.render} maps a model element coord {@code e} to {@code e/16 - 0.5} in this frame,
+     * so a joint has to be pivoted about THAT point, not about {@code e/16}.
+     *
+     * <p>No per-segment z nudge, unlike {@link #draw}: these are solid pieces standing in different
+     * places, not coplanar sprites fighting over the same depth.
+     */
+    private int drawBentBlank(ItemRenderer ir, BakedModel root, float[] jointsX, float tension,
+                              String rodKey, ItemStack stack, ItemDisplayContext ctx, PoseStack pose,
+                              MultiBufferSource buffers, int light, int overlay, int layer,
+                              ModelManager mm, BakedModel missing, boolean mir) {
+        pose.pushPose();
+        ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, root);
+        // §line-thru-guides: thread points are captured stage by stage as the chain bends, so the
+        // line rides each segment's rings instead of cutting a chord across the bend
+        float[][] lp = guideLinePoints(stack, rodKey);
+        org.joml.Vector3f[] thread = lp == null ? null : new org.joml.Vector3f[lp.length];
+        captureLineStage(thread, lp, pose, jointsX, 0);
+        float jy = BLANK_AXIS_Y / 16f - 0.5f, jz = BLANK_AXIS_Z / 16f - 0.5f;
+        // §bend-plane: the chain bends TOWARD the pull. The lateral fraction tilts the bend plane —
+        // the vertical share never drops below 0.35 (a hooked fish always drags down-and-away), and
+        // the yaw sign flips because a positive Y rotation swings the tip screen-LEFT while the
+        // lateral is positive to the RIGHT.
+        float lat = tension > 0f ? fightLateral() : 0f;
+        // §bend-plane vertical: SIGNED by where the pull sits against the view pitch — camera dragged
+        // down past the line and the blank bows UP toward it instead of crumpling into the water.
+        float vert = tension > 0f ? fightVertical() : 1f;
+        // The hand pose's rz tilt leans the model's Y axis, so an on-axis yaw rotation loses part of
+        // its on-screen width — the 1.4 gain buys it back, and the vertical floor drops to 0.2:
+        // a fish pulling hard sideways should lay the blank over, not keep it half-bowed down.
+        float bendVert = Math.max(0.2f, (float) Math.sqrt(Math.max(0f, 1f - lat * lat))) * vert;
+        float bendYaw = -lat * 1.4f;
+        for (int i = 0; i < jointsX.length; i++) {
+            float share = jointShare(i, jointsX.length);
+            float jx = jointsX[i] / 16f - 0.5f;
+            // §rod-physics: the whip. The rigid lag is already in the hand pose; this spreads more of
+            // it down the joints with the same tip-heavy weights the bend uses, so the tip trails the
+            // butt instead of the whole rod swinging as one board. Z is the bend plane, Y is sideways.
+            // §rod-physics-per-rod: how much a blank whips is the blank's own number.
+            float whipGain = RodPhysics.profileFor(rodKey)[2];
+            float whipPitch = RodPhysics.pitch() * whipGain * share;
+            float whipYaw = RodPhysics.yaw() * whipGain * share;
+            float bendDeg = tension * MAX_BEND_DEG * share;
+            pose.translate(jx, jy, jz);
+            pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(bendDeg * bendVert + whipPitch));
+            float yawDeg = bendDeg * bendYaw + whipYaw;
+            if (yawDeg != 0f) pose.mulPose(com.mojang.math.Axis.YP.rotationDegrees(yawDeg));
+            pose.translate(-jx, -jy, -jz);
+            BakedModel seg = resolve(mm, missing, mir, RodModelLayers.segment(rodKey, i + 1));
+            if (seg != null) {
+                ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, seg);
+            }
+            captureLineStage(thread, lp, pose, jointsX, i + 1);
+        }
+        drawLinePath(buffers, thread, lineStyle(stack));
+        // Captured HERE, inside the chain: every joint rotation is still applied, which is the frame
+        // the tip segment was just drawn in. After popPose it would be the straight rod's tip again.
+        captureTipNdc(pose, rodKey, ctx);
+        captureTipView(pose, rodKey, ctx, stack);
+        pose.popPose();
+        return layer + 1;
+    }
+
+    /**
+     * §rod-tip-3d: projects the blank's tip to screen coords so {@link LineRenderer} can start the
+     * line there instead of at a hand-tuned offset.
+     *
+     * <p>Screen coords, not world: the first-person hand is drawn with the SETTINGS fov while the
+     * world uses the fov modifier (§fight-brace zooms it), so the same world point lands in two
+     * different places. Projecting with the hand's own fov and travelling out along that ray is what
+     * makes the anchor survive zoom — and bend and lean come for free, because they already moved the
+     * pose this point was read from.
+     */
+    private static void captureTipNdc(PoseStack pose, String rodKey, ItemDisplayContext ctx) {
+        Float tipX = BLANK_TIP_X.get(rodKey);
+        if (tipX == null || !ctx.firstPerson()) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) return;
+        // ir.render maps a model coord e to e/16 - 0.5, so that is where the tip really sits
+        org.joml.Vector4f p = new org.joml.Vector4f(
+                tipX / 16f - 0.5f, BLANK_AXIS_Y / 16f - 0.5f, BLANK_AXIS_Z / 16f - 0.5f, 1f);
+        p.mul(pose.last().pose());
+        if (p.z >= -1.0e-4f) return;                      // behind the camera; nothing to report
+        // Vanilla renders the in-hand pass with getFov(camera, pt, false) — a CONSTANT 70°, not the
+        // fov option. Projecting with the option here made the anchor drift radially for anyone not
+        // playing at exactly 70, worst mid-fight with the bent tip near screen centre.
+        double fovDeg = 70.0;
+        float t = (float) Math.tan(Math.toRadians(fovDeg) / 2.0);
+        float aspect = (float) mc.getWindow().getWidth() / Math.max(1, mc.getWindow().getHeight());
+        TIP_NDC[0] = p.x / (-p.z * t * aspect);
+        TIP_NDC[1] = p.y / (-p.z * t);
+        tipNdcFrame = mc.level.getGameTime();
     }
 
     /**

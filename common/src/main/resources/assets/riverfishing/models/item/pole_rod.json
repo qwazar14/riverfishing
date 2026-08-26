@@ -2,7 +2,7 @@
   "parent": "minecraft:builtin/entity",
   "gui_light": "front",
   "textures": {
-    "particle": "riverfishing:item/pole_rod"
+    "particle": "riverfishing:item/rod/blank_pole"
   },
   "display": {
     "gui":                   { "rotation": [0, 0, 0],    "translation": [0, 0, 0],     "scale": [1, 1, 1] },

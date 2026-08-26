@@ -42,6 +42,26 @@ public final class ModNetwork {
             SkillUnlockPacket p = SkillUnlockPacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));
         });
+        // §keepnet: the grid asks, the server decides.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeepnetActionPacket.TYPE, (buf, ctx) -> {
+            KeepnetActionPacket p = KeepnetActionPacket.decode(buf);
+            ctx.queue(() -> p.handleServer(ctx));
+        });
+        // §fight-course: which way the angler is pulling — 1.20.1 does not ship a standing player's input.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, FightInputPacket.TYPE, (buf, ctx) -> {
+            FightInputPacket p = FightInputPacket.decode(buf);
+            ctx.queue(() -> p.handleServer(ctx));
+        });
+        // §tackle-box: the name field types straight onto the box the player has open.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, TackleBoxRenamePacket.TYPE, (buf, ctx) -> {
+            TackleBoxRenamePacket p = TackleBoxRenamePacket.decode(buf);
+            ctx.queue(() -> p.handleServer(ctx));
+        });
+        // §cull: the electrofisher's list is answered here — re-validated from scratch, creative only.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, CullPacket.TYPE, (buf, ctx) -> {
+            CullPacket p = CullPacket.decode(buf);
+            ctx.queue(() -> p.handleServer(ctx));
+        });
     }
 
     /** CLIENT-ONLY: the server → client receivers. Called from the client bootstrap (ClientInit). */
@@ -56,6 +76,21 @@ public final class ModNetwork {
         });
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, LineSyncPacket.TYPE, (buf, ctx) -> {
             LineSyncPacket p = LineSyncPacket.decode(buf);
+            ctx.queue(p::handleClient);
+        });
+        // §shoal: the fish you can see in the water.
+        // §order-panel: what the fisherman wants today, for the counter the player just opened.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, OrderPacket.TYPE, (buf, ctx) -> {
+            OrderPacket p = OrderPacket.decode(buf);
+            ctx.queue(p::handleClient);
+        });
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, ShoalPacket.TYPE, (buf, ctx) -> {
+            ShoalPacket p = ShoalPacket.decode(buf);
+            ctx.queue(p::handleClient);
+        });
+        // §cull: what lives in the water the operator pointed at.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, CullListPacket.TYPE, (buf, ctx) -> {
+            CullListPacket p = CullListPacket.decode(buf);
             ctx.queue(p::handleClient);
         });
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, RodWarningPacket.TYPE, (buf, ctx) -> {

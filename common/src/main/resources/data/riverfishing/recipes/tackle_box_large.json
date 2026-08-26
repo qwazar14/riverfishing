@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "XCX",
+    "LBL",
+    "XCX"
+  ],
+  "key": {
+    "X": {
+      "item": "minecraft:iron_ingot"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "B": {
+      "item": "riverfishing:tackle_box_medium"
+    }
+  },
+  "result": {
+    "item": "riverfishing:tackle_box_large"
+  }
+}

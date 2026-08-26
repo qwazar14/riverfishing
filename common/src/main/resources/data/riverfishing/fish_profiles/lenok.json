@@ -1,5 +1,6 @@
 {
   "display": "Ленок",
+  "group": "salmonid",
   "water_bodies": { "river": 1.2, "lake": 0.4, "pond": 0.0, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 500, "max": 6000, "mean": 1500 },
   "length_cm": { "min": 30, "max": 90 },
@@ -8,7 +9,7 @@
     "rod": ["spinning", "ultralight"],
     "reel_size": 3000, "reel_tolerance": 1000,
     "line": { "type": "braid", "diameter_mm": 0.14, "tolerance_mm": 0.05 },
-    "rig": ["predator"], "groundbait": [],
+    "rig": ["predator"], "groundbait": { "fraction": 0.62, "nutrition": 0.70 },
     "bait": { "wobbler": 1.0, "spinner": 0.9, "spoon": 0.9, "crankbait": 0.8, "worm": 0.5 },
     "hook": { "ideal": 6, "tolerance": 2 }
   },

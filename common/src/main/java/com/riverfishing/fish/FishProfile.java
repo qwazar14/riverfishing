@@ -20,6 +20,20 @@ import java.util.Set;
 public final class FishProfile {
     public final ResourceLocation id;
 
+    /**
+     * §fish-groups (0.8.0): which family this species is filed under — {@code cyprinid}, {@code predator},
+     * {@code salmonid}, {@code sturgeon}, {@code koi}, {@code sea}, {@code big_game}, or {@code other}.
+     *
+     * <p>Seventy-nine species in one flat list is a list nobody reads, and the electrofisher now offers
+     * every one of them. The group is the axis a person actually thinks along ("where are the carp") —
+     * so it is written in the profile rather than guessed from weight and water, which would file a koi
+     * under carp and an asp under predator and be wrong about both.
+     *
+     * <p>Unknown or missing lands in {@code other} on purpose: a datapack species with no group is still
+     * listed and still reachable, just not silently mis-filed.
+     */
+    public final String group;
+
     // Presence / size
     public final Map<String, Double> waterBodies;
     public final double weightMin, weightMax, weightMean;
@@ -40,7 +54,18 @@ public final class FishProfile {
     public final String lineType;
     public final double lineDiameter, lineTolerance;
     public final Set<String> idealRigs;
-    public final Set<String> idealGroundbaits;
+    /**
+     * §groundbait-one-jar: the grind this species answers to. 0 is a cloud of dust, 1 is whole grain
+     * lying on the bottom. <b>A big fraction calls big fish</b>, so this mostly tracks the fish's own
+     * size — and where it does not, that is the profile saying something about the fish.
+     */
+    public final double gbFraction;
+    /**
+     * §groundbait-one-jar: how rich a table this species wants. A carp is looking for a meal; a bleak
+     * is looking for a cloud, and a spread laid out for the carp puts it off. Seeded from the species'
+     * own bait list — a fish that eats boilies wants a rich mix, one that eats bloodworm does not.
+     */
+    public final double gbNutrition;
     public final Map<String, Double> baitScores;
     public final int hookIdeal, hookTolerance;
     public final boolean requiresLeader;
@@ -70,6 +95,7 @@ public final class FishProfile {
 
     private FishProfile(Builder b) {
         this.id = b.id;
+        this.group = b.group;
         this.waterBodies = b.waterBodies;
         this.weightMin = b.weightMin;
         this.weightMax = b.weightMax;
@@ -89,7 +115,8 @@ public final class FishProfile {
         this.lineDiameter = b.lineDiameter;
         this.lineTolerance = b.lineTolerance;
         this.idealRigs = b.idealRigs;
-        this.idealGroundbaits = b.idealGroundbaits;
+        this.gbFraction = b.gbFraction;
+        this.gbNutrition = b.gbNutrition;
         this.baitScores = b.baitScores;
         this.hookIdeal = b.hookIdeal;
         this.hookTolerance = b.hookTolerance;
@@ -134,11 +161,46 @@ public final class FishProfile {
         return baitScores.getOrDefault(baitId, 0.0);
     }
 
+    /**
+     * §groundbait-one-jar: the grind a species wants when its profile does not say, straight off its own
+     * weight. A 20 g bleak wants dust, a 1 kg bream the middle, a 20 kg carp whole grain.
+     *
+     * <p>This is also what SEEDED the number into all 79 shipped profiles, so the fallback and the data
+     * agree by construction rather than by anybody remembering to keep them in step.
+     */
+    public static double defaultGbFraction(double weightMeanG, double weightMaxG) {
+        double kg = (weightMeanG > 0 ? weightMeanG : weightMaxG) / 1000.0;
+        // log10 over three decades of fish: 0.02 kg -> ~0.06, 1 kg -> ~0.57, 20 kg -> ~0.95.
+        return Math.max(0.0, Math.min(1.0, (Math.log10(Math.max(0.01, kg)) + 2.0) / 3.5));
+    }
+
+    /**
+     * §groundbait-one-jar: how rich a table a species wants, read off the baits it already likes.
+     *
+     * <p>A fish that eats boilies and corn is asking for a meal; one that eats bloodworm and breadcrumb
+     * is not. Nobody had to invent a second table for this — the bait list IS the fish's diet, and the
+     * pantry already knows what each of those is worth in calories.
+     */
+    public static double defaultGbNutrition(Map<String, Double> baitScores) {
+        double weight = 0, sum = 0;
+        for (Map.Entry<String, Double> e : baitScores.entrySet()) {
+            com.riverfishing.groundbait.GroundbaitMix.Component c =
+                    com.riverfishing.groundbait.GroundbaitMix.PANTRY.get(e.getKey());
+            if (c == null || e.getValue() == null || e.getValue() <= 0) continue;
+            weight += e.getValue();
+            sum += c.nutrition() * e.getValue();
+        }
+        // A predator whose whole list is lures has no pantry entry at all: it never fishes over a bed of
+        // feed on purpose, so the neutral middle is exactly the right thing to say about it.
+        return weight > 0 ? sum / weight : 0.5;
+    }
+
     // ---- JSON parsing (§13 schema) ----
 
     public static FishProfile fromJson(ResourceLocation id, JsonObject json) {
         Builder b = new Builder(id);
 
+        b.group = GsonHelper.getAsString(json, "group", FishGroup.OTHER);
         b.waterBodies = readDoubleMap(GsonHelper.getAsJsonObject(json, "water_bodies", new JsonObject()));
 
         JsonObject w = GsonHelper.getAsJsonObject(json, "weight_g", new JsonObject());
@@ -167,8 +229,14 @@ public final class FishProfile {
         b.lineDiameter = GsonHelper.getAsDouble(line, "diameter_mm", 0.20);
         b.lineTolerance = GsonHelper.getAsDouble(line, "tolerance_mm", 0.06);
         b.idealRigs = readStringSet(ideal, "rig");
-        b.idealGroundbaits = readStringSet(ideal, "groundbait");
         b.baitScores = readDoubleMap(GsonHelper.getAsJsonObject(ideal, "bait", new JsonObject()));
+        // §groundbait-one-jar: "groundbait" used to be a LIST of jar names and is now a pair of numbers.
+        // The isJsonObject guard is not politeness — a modpack still shipping the old array would other-
+        // wise crash the profile load, and a third-party profile deserves to fall back, not to explode.
+        JsonObject gb = ideal.has("groundbait") && ideal.get("groundbait").isJsonObject()
+                ? GsonHelper.getAsJsonObject(ideal, "groundbait") : new JsonObject();
+        b.gbFraction = GsonHelper.getAsDouble(gb, "fraction", defaultGbFraction(b.weightMean, b.weightMax));
+        b.gbNutrition = GsonHelper.getAsDouble(gb, "nutrition", defaultGbNutrition(b.baitScores));
         JsonObject hook = GsonHelper.getAsJsonObject(ideal, "hook", new JsonObject());
         b.hookIdeal = GsonHelper.getAsInt(hook, "ideal", 12);
         b.hookTolerance = Math.max(1, GsonHelper.getAsInt(hook, "tolerance", 2));
@@ -221,6 +289,7 @@ public final class FishProfile {
 
     private static final class Builder {
         final ResourceLocation id;
+        String group = FishGroup.OTHER;
         Map<String, Double> waterBodies = new HashMap<>();
         double weightMin, weightMax, weightMean;
         boolean weightMeanSet;
@@ -234,7 +303,7 @@ public final class FishProfile {
         String lineType = "mono";
         double lineDiameter, lineTolerance;
         Set<String> idealRigs = new HashSet<>();
-        Set<String> idealGroundbaits = new HashSet<>();
+        double gbFraction, gbNutrition;
         Map<String, Double> baitScores = new HashMap<>();
         int hookIdeal, hookTolerance;
         boolean requiresLeader;

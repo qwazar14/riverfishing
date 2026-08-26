@@ -15,8 +15,10 @@ import com.riverfishing.tackle.TackleForm;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
@@ -68,19 +70,41 @@ public final class ModVillagers {
                     ImmutableSet.of(), ImmutableSet.of(),
                     SoundEvents.VILLAGER_WORK_FISHERMAN));
 
+    /**
+     * §order-tier: which fisherman level buys each species, recorded as the trades are built so it cannot
+     * drift from them. The order-of-the-day board prints it — the standing complaint that an order can
+     * name a fish the player's own fisherman will not take is, at bottom, that the requirement was never
+     * stated anywhere.
+     */
+    private static final java.util.Map<String, Integer> BUY_TIER = new java.util.HashMap<>();
+    /**
+     * §market-live: what each species is bought at before the market moves it — {emeralds, xp}. Both,
+     * because §order-slot has to be able to mint the very same offer the pool would have minted.
+     */
+    private static final java.util.Map<String, int[]> BASE_PRICE = new java.util.HashMap<>();
+
+    /** The lowest fisherman level that buys this species, or 0 if none does. */
+    public static int buyTier(String species) {
+        return BUY_TIER.getOrDefault(species, 0);
+    }
+
     /** Prime-grade threshold (§prime-fish): the buyer only takes the top of the species' size range. */
     public static final double PRIME_FRACTION = 0.7;
 
     /** How many rotating fish-buy listings each tier gets (§trade-pool). Two, so a fisherman reliably
      *  buys SOMETHING without the pool turning back into a fish market. */
-    private static final int FISH_LISTINGS_PER_TIER = 2;
+    // §trade-pool 0.7.0: four, up from two. A tier registers between eight and twenty-six species and
+    // used to put TWO of them on any one counter, frozen there for that villager's life — so an angler
+    // with seventy-nine species in the journal could sell five of them.
+    private static final int FISH_LISTINGS_PER_TIER = 4;
 
     /** Vanilla's own per-level offer count — a private constant in {@code Villager}, mirrored here. */
     private static final int VANILLA_TRADES_PER_LEVEL = 2;
 
     /** §trade-pool: a fishing shop needs counter space for bait, line, a rod AND a fish buy, so our
      *  fisherman gets one more offer per level than vanilla hands out. Raised by the mixin. */
-    public static final int TRADES_PER_LEVEL = 3;
+    // ...and the counter has to have room for them: two more than vanilla's two, not one.
+    public static final int TRADES_PER_LEVEL = 4;
 
     /** The pool the mixin draws the extra offer from — the same lists given to the platform registry. */
     private static Int2ObjectMap<List<VillagerTrades.ItemListing>> pool;
@@ -121,10 +145,14 @@ public final class ModVillagers {
         sell(t, 2, "maggot", 1, 10, 2);
         oneOf(t, 2, sellOf("reel_2000", 4, 1, 5), sellOf("reel_3000", 6, 1, 6));
         sell(t, 2, "line_mono_018", 2, 1, 4);
-        sell(t, 2, "groundbait_grain", 1, 6, 3);
+        // §groundbait-one-jar: the second groundbait trade is BALLAST now, not a second groundbait. It is
+        // the dial the whole mixing system turns on — the way you make a blend leaner and bulkier without
+        // making it worse — and it was the one pantry item with no shop leg at all.
+        sell(t, 2, "groundbait_soil", 1, 8, 3);
         sell(t, 2, "bait_trap", 3, 1, 4);           // the trap slowly farms livebait (§livebait)
         sell(t, 2, "minecraft:oak_boat", 4, 1, 5);  // §vanilla-stock: trolling needs a boat under you
-        sellStack(t, 2, 4, ModVillagers::assembledFloatRig, 6);
+        // §internal-rig: the float rig lives INSIDE the float rods (JournalScreen.isInternalRig) and is
+        // never tied on its own, so the stall stopped selling it — it was a component with a price tag.
         sellStack(t, 2, 9, ModVillagers::assembledBambooRod, 8);
 
         // Level 3 — Journeyman: lures (also craftable now, §lure-recipes) + a ready spinning setup.
@@ -134,6 +162,12 @@ public final class ModVillagers {
         oneOf(t, 3, sellOf("line_braid_016", 5, 1, 10), sellOf("line_fluoro_020", 5, 1, 10));
         sell(t, 3, "leader_fluoro", 3, 2, 6);
         sell(t, 3, "fish_finder", 14, 1, 12);        // §QoL: read the swim before you cast
+        // §keepnet + §tackle-box: somewhere to put the catch, and somewhere to put the tackle. Both were
+        // asked for by players, and neither is worth a crafting detour when you are already at the stall.
+        sell(t, 3, "keepnet_small", 5, 1, 6);
+        // §kit-price: each kit is priced at ~80% of what its contents cost piece by piece at this same
+        // stall, plus the box. A kit that cost MORE than the parts is a kit nobody buys.
+        oneOf(t, 3, sellStackOf(7, ModVillagers::floatKit, 10), sellStackOf(18, ModVillagers::pikeKit, 16));
         sellStack(t, 3, 16, ModVillagers::assembledSpinningRod, 14);
 
         // Level 4 — Expert: serious predator/carp gear + winter tackle + a ready feeder setup.
@@ -146,7 +180,9 @@ public final class ModVillagers {
         sell(t, 4, "ice_auger", 9, 1, 14);           // §ice-fishing: drill your first hole
         sell(t, 4, "mormyshka", 3, 2, 8);
         sell(t, 4, "maggot_farm", 5, 1, 8);          // §bait-farm
-        sell(t, 4, "groundbait_cake", 4, 3, 6);      // жмых (sunflower+piston)
+        oneOf(t, 4, sellOf("keepnet_medium", 9, 1, 10), sellOf("keepnet_large", 14, 1, 14));
+        sellStack(t, 4, 21, ModVillagers::carpKit, 18);
+        sellStack(t, 4, 5, ModVillagers::houseBlend, 6);   // §house-blend: the stall's own mix
         // §vanilla-stock + §tackle-craft: the saltwater reels are gated on ocean drops. Selling the
         // INPUTS keeps the gate (you still pay for it) without making it hinge on guardian RNG.
         sell(t, 4, "minecraft:prismarine_shard", 5, 4, 10);
@@ -155,6 +191,8 @@ public final class ModVillagers {
 
         // Level 5 — Master: the trade-only prestige gear (§progression).
         sell(t, 5, "digital_alarm", 10, 1, 25);
+        sell(t, 5, "keepnet_huge", 20, 1, 24);
+        sellStack(t, 5, 51, ModVillagers::seaKit, 34);
         sell(t, 5, "leader_titanium", 8, 1, 20);
         // §vanilla-stock + §tackle-craft: the 14000 reel and the trolling rod each want a nautilus
         // shell, which is the single worst piece of RNG in the ladder. Master tier sells it.
@@ -248,6 +286,40 @@ public final class ModVillagers {
         buyPrime(fish, 5, "sturgeon", 26, 38);
         buyPrime(fish, 5, "halibut", 22, 34);
 
+        // §giants-and-minnows (0.8.0): the giants pay like the taimen tier they sit beside,
+        // the minnows like the bleak they swim with.
+        buyPrime(fish, 3, "kutum", 5, 9);
+        buyPrime(fish, 4, "naked_carp", 8, 14);
+
+        // §giants-and-minnows (0.8.0): the giants pay like the taimen tier they sit beside,
+        // the minnows like the bleak they swim with.
+        buyPrime(fish, 5, "arapaima", 26, 38);
+        buyPrime(fish, 5, "beluga", 30, 44);
+        buyPrime(fish, 5, "piraiba", 22, 34);
+        buyPrime(fish, 5, "goliath_grouper", 24, 36);
+        buyPrime(fish, 5, "bull_shark", 24, 36);
+        buyPrime(fish, 5, "frilled_shark", 26, 38);
+        buyPrime(fish, 5, "golden_dorado", 12, 22);
+        buyPrime(fish, 2, "golden_crucian", 2, 3);
+        buyPrime(fish, 1, "gorchak", 1, 1);
+        buyPrime(fish, 1, "verkhovka", 1, 1);
+        buyPrime(fish, 1, "sculpin", 1, 2);
+        buyPrime(fish, 1, "tubenose_goby", 1, 1);
+
+        // §florida-nine: these nine shipped catchable in 0.7.0 and were never given a buyer here —
+        // you could land a tarpon and have nowhere on earth to sell it. Levels, prices and xp are
+        // copied from the 26.x datapack rather than invented, so the two branches cannot disagree
+        // about what a fish is worth.
+        buyPrime(fish, 4, "bluefish", 6, 12);
+        buyPrime(fish, 4, "bullseye_snakehead", 6, 11);
+        buyPrime(fish, 5, "jack_crevalle", 12, 22);
+        buyPrime(fish, 3, "mayan_cichlid", 2, 3);
+        buyPrime(fish, 3, "oscar", 2, 4);
+        buyPrime(fish, 4, "peacock_bass", 7, 13);
+        buyPrime(fish, 5, "snook", 11, 21);
+        buyPrime(fish, 5, "striped_bass", 12, 23);
+        buyPrime(fish, 5, "tarpon", 20, 32);
+
         // Slice each tier's species into FISH_LISTINGS_PER_TIER disjoint groups, one rotating listing
         // each: the fisherman ends up buying two DIFFERENT species per tier, never a duplicate offer.
         for (int lvl = 1; lvl <= 5; lvl++) {
@@ -309,6 +381,112 @@ public final class ModVillagers {
                 }
             }
         }
+    }
+
+    /**
+     * §market-live: re-price this stall's fish buys from the base, every time the counter opens.
+     *
+     * <p>The base is read from where the trade was DEFINED, never from the offer's current count —
+     * feeding the output back in would multiply ×2.5 on top of ×2.5 every time the player looked.
+     */
+    public static void repriceFishBuys(Villager villager, net.minecraft.world.entity.player.Player player) {
+        if (!(villager.level() instanceof ServerLevel level)) return;
+        if (villager.getVillagerData().getProfession() != FISHERMAN.get()) return;
+        MerchantOffers offers = villager.getOffers();
+        orderSlot(villager, level, offers);
+        var market = com.riverfishing.fishing.MarketData.get(level);
+        for (MerchantOffer offer : offers) {
+            if (!(offer.getCostA().getItem() instanceof FishItem fish)) continue;
+            String species = fish.species().getPath();
+            int[] spec = BASE_PRICE.get(species);
+            if (spec == null) continue;
+            int base = spec[0];
+            ItemStack pay = offer.getResult();
+            // A stack is the ceiling: blue marlin at ×2.5 is 70 emeralds, which will not fit in a slot.
+            pay.setCount(Math.min(pay.getMaxStackSize(), market.price(level, species, base)));
+        }
+        sendOrder(level, offers, player);
+    }
+
+    /**
+     * §order-panel: tell this player what today's order is, and what THIS counter will pay for it.
+     *
+     * <p>The pay is read off the finished offer rather than recomputed, so the sign and the row beneath
+     * it cannot disagree — they are the same number, read once. Nothing is sent when the stall does not
+     * buy today's species: the panel would be advertising a trade the player cannot make here, and that
+     * silence doubles as the "not our fisherman" signal, because no other profession reaches this far.
+     *
+     * <p>It goes out during startTrading HEAD, which is before openTradingScreen builds the screen
+     * packet on the same connection — so the client always has the order before it has a window.
+     */
+    private static void sendOrder(ServerLevel level, MerchantOffers offers,
+                                  net.minecraft.world.entity.player.Player player) {
+        if (!(player instanceof net.minecraft.server.level.ServerPlayer sp)) return;
+        String order = com.riverfishing.fishing.MarketData.orderOfTheDay(level);
+        if (order.isEmpty()) return;
+        int base = BASE_PRICE.getOrDefault(order, new int[]{0, 0})[0];
+        if (base <= 0) return;
+        // The pay comes off the finished offer when this counter has one, so the sign and the row under
+        // it are the same number read once. When it has none the stall is too junior: say so with the
+        // rank instead of saying nothing.
+        for (MerchantOffer offer : offers) {
+            if (!(offer.getCostA().getItem() instanceof FishItem fish)) continue;
+            if (!fish.species().getPath().equals(order)) continue;
+            com.riverfishing.network.ModNetwork.toPlayer(sp,
+                    new com.riverfishing.network.OrderPacket(fish.species(),
+                            offer.getResult().getCount(), base, buyTier(order)));
+            return;
+        }
+        com.riverfishing.network.ModNetwork.toPlayer(sp,
+                new com.riverfishing.network.OrderPacket(RiverFishing.id(order), 0, base, buyTier(order)));
+    }
+
+    /**
+     * §order-slot: every species some fisherman buys, sorted, so the daily rotation cannot name a fish
+     * nobody takes. The trade table IS the answer, so there is no second list to drift.
+     */
+    public static java.util.List<String> buyableSpecies() {
+        return BUY_TIER.keySet().stream().sorted().toList();
+    }
+
+    /**
+     * §order-slot: one seat on this counter always shows today's order.
+     *
+     * <p>It REPLACES rather than appends, and that is the whole design. An extra offer would have to be
+     * found and reclaimed the next day, and there is nothing on a vanilla MerchantOffer to mark it with
+     * that survives a save — so every scheme for finding it again came down to counting the counter,
+     * which breaks the moment a villager gains a level and vanilla appends behind our seat. Overwriting
+     * a seat in place has none of that: the counter never changes size, so there is nothing to count,
+     * nothing to mark, and nothing to get wrong after a restart.
+     *
+     * <p>The seat is the last fish buy on the counter. On the first day that costs one drawn species,
+     * and from then on it is the same seat every day — which is what makes it a permanent slot that
+     * changes rather than a new trade appearing and disappearing.
+     *
+     * <p>Nothing happens when the stall is too junior to buy today's species, or when it already buys
+     * it: in the second case the player can sell it anyway, and taking the seat would only cost them a
+     * second species for nothing.
+     */
+    private static void orderSlot(Villager villager, ServerLevel level, MerchantOffers offers) {
+        String order = com.riverfishing.fishing.MarketData.orderOfTheDay(level);
+        int[] spec = BASE_PRICE.get(order);
+        if (spec == null || BUY_TIER.getOrDefault(order, 0) > villager.getVillagerData().getLevel()) return;
+        int seat = -1;
+        for (int i = 0; i < offers.size(); i++) {
+            if (!(offers.get(i).getCostA().getItem() instanceof FishItem fish)) continue;
+            if (fish.species().getPath().equals(order)) return;   // already on the counter
+            seat = i;
+        }
+        if (seat < 0) return;
+        MerchantOffer offer = buyPrimeOf(order, spec[0], spec[1]).getOffer(villager, villager.getRandom());
+        if (offer == null) return;
+        // The bottom row, every day. Overwriting a seat in the middle of the counter is invisible: the
+        // price moves and nothing tells the player WHICH row the mod is talking about. Taking the seat
+        // and then moving it to the end costs nothing — the counter is the same length either way — and
+        // gives the slot a fixed place to be looked for. It also keeps finding itself: the last fish buy
+        // on the counter tomorrow is this one.
+        offers.remove(seat);
+        offers.add(offer);
     }
 
     /** Same thing already on the counter? Compare both sides — a buy and a sell can share an item. */
@@ -413,6 +591,9 @@ public final class ModVillagers {
      */
     private static void buyPrime(Int2ObjectMap<List<VillagerTrades.ItemListing>> t, int level,
                                  String path, int emeralds, int xp) {
+        BUY_TIER.merge(path, level, Math::min);
+        // §market-live: the same call that knows the tier knows the price. Two facts, one owner.
+        BASE_PRICE.put(path, new int[]{emeralds, xp});
         t.get(level).add(buyPrimeOf(path, emeralds, xp));
     }
 
@@ -432,10 +613,10 @@ public final class ModVillagers {
             ItemStack cost = new ItemStack(i);
             cost.getOrCreateTag().putString(FishItem.TAG_GRADE, FishItem.GRADE_PRIME);
             cost.getOrCreateTag().putInt(FishItem.TAG_MIN_WEIGHT, threshold);
-            // market (0.5.0): the pay is DYNAMIC - glut cuts it to x0.5, the daily order pays x2.5.
-            int pay = trader.level() instanceof net.minecraft.server.level.ServerLevel sl
-                    ? com.riverfishing.fishing.MarketData.get(sl).price(sl, path, emeralds) : emeralds;
-            return new MerchantOffer(cost, new ItemStack(Items.EMERALD, pay), 12, xp, 0.05f);
+            // §market-live: minted at BASE. This lambda runs once per villager-level and the count it
+            // writes is then saved, so a price decided here would be frozen on whatever day the stall
+            // happened to level up. VillagerRepriceMixin owns the price from the first screen open.
+            return new MerchantOffer(cost, new ItemStack(Items.EMERALD, emeralds), 12, xp, 0.05f);
         };
     }
 
@@ -483,8 +664,141 @@ public final class ModVillagers {
         if (i == null || i == Items.AIR) return null;
         return (trader, random) -> {
             ItemStack out = benchGrade(new ItemStack(i, count), form.id);
+            // §lure-color: the stall paints what it ties. A rack of identical silver blades is not a tackle
+            // shop, and the colour is a real parameter here — it feeds the bite engine's condition fit —
+            // so a shop lure arrives with an opinion about the water rather than as a blank.
+            if (form.dyeable) out = paint(out, random);
             return new MerchantOffer(new ItemStack(Items.EMERALD, emeraldCost), out, 12, xp, 0.05f);
         };
+    }
+
+    /**
+     * §tackle-box kits (0.7.0): a named, dyed box that arrives with the tackle for one kind of fishing
+     * already in it. Asked for as "готовые наборы... лут внутри — логичен (карповый набор, на щуку и тп)",
+     * and it is the best thing the fisherman sells: a box that IS the answer to "what do I need for pike".
+     *
+     * <p>Everything inside is bench-graded like the rest of his stock, so the grams count toward a cast the
+     * moment you open it. A kit that had to be re-tied to be usable would be a souvenir.
+     */
+    private record Part(String id, int count, int minG, int maxG, boolean dyed) {}
+
+    private static Part p(String id, int count) {
+        return new Part(id, count, 0, 0, false);
+    }
+
+    /** Bench tackle with a weight rolled inside {@code minG..maxG} and a random dye mix. */
+    private static Part p(String id, int count, int minG, int maxG) {
+        return new Part(id, count, minG, maxG, true);
+    }
+
+    /** A rig: rolled weight, no dye — rigs are hardware, not something you paint. */
+    private static Part rig(String id, int minG, int maxG) {
+        return new Part(id, 1, minG, maxG, false);
+    }
+
+    private static ItemStack kit(String boxId, String nameKey, int colour, Part... contents) {
+        Item boxItem = item(boxId);
+        if (boxItem == null || boxItem == Items.AIR) return ItemStack.EMPTY;
+        RandomSource rng = RandomSource.create();
+        ItemStack box = new ItemStack(boxItem);
+        NonNullList<ItemStack> inside =
+                NonNullList.withSize(com.riverfishing.item.TackleBoxData.tierOf(box).slots(), ItemStack.EMPTY);
+        int slot = 0;
+        for (Part part : contents) {
+            Item item = item(part.id());
+            if (item == null || item == Items.AIR) return ItemStack.EMPTY;   // a typo voids the kit, loudly
+            ItemStack stack = new ItemStack(item, part.count());
+            TackleForm form = TackleForm.byItemId(part.id());
+            if (form != null) {
+                // §tackle-craft: stamped like everything else the stall sells, so the grams count toward a
+                // cast the moment the box is opened. The weight is ROLLED rather than stock, inside the
+                // form's own ladder — two pike kits are not the same pike kit.
+                int grams = part.maxG() > 0 ? rollWeight(form, rng, part.minG(), part.maxG())
+                        : form.stockWeight();
+                TackleForm.stamp(stack, form, grams, null, form.defaultLinkCm, 1);
+            }
+            if (part.dyed()) stack = paint(stack, rng);
+            if (!com.riverfishing.item.TackleBoxData.isTackle(stack)) return ItemStack.EMPTY;
+            if (slot >= inside.size()) break;
+            inside.set(slot++, stack);
+        }
+        com.riverfishing.item.TackleBoxData.save(box, inside);
+        box.setHoverName(net.minecraft.network.chat.Component.translatable(nameKey)
+                .withStyle(net.minecraft.ChatFormatting.WHITE));
+        com.riverfishing.item.DyeUtil.setColor(box, colour);
+        return box;
+    }
+
+    /**
+     * A weight inside the requested window, clamped to what the BENCH can actually tie. The window is the
+     * kit's intent ("3–35 g of lure"); the ladder is the form's reality — a spinner tops out at 14 g, and a
+     * kit holding one heavier than anything craftable would be a lie about the crafting system.
+     */
+    private static int rollWeight(TackleForm form, RandomSource rng, int minG, int maxG) {
+        int floor = form.weights[0];
+        int ceil = form.weights[form.weights.length - 1];
+        int lo = Math.max(minG, floor);
+        int hi = Math.min(maxG, ceil);
+        if (hi <= lo) return Mth.clamp(lo, floor, ceil);
+        return lo + rng.nextInt(hi - lo + 1);
+    }
+
+    /** One to three random dyes, mixed the leather-armour way — no two shop lures look alike. */
+    private static ItemStack paint(ItemStack stack, RandomSource rng) {
+        java.util.List<net.minecraft.world.item.DyeItem> dyes = new java.util.ArrayList<>();
+        net.minecraft.world.item.DyeColor[] all = net.minecraft.world.item.DyeColor.values();
+        for (int i = 0, n = 1 + rng.nextInt(3); i < n; i++) {
+            dyes.add(net.minecraft.world.item.DyeItem.byColor(all[rng.nextInt(all.length)]));
+        }
+            stack = com.riverfishing.item.DyeUtil.applyDyes(stack, dyes);
+        return stack;
+    }
+
+    /** Float kit: the everyday small-fish box — floats, fine hooks, worms and maggots. */
+    private static ItemStack floatKit() {
+        return kit("tackle_box_small", "kit.riverfishing.float", 0xC8D8E8,
+                p("float", 2), p("hook_10", 4), p("hook_12", 4), p("worm", 8), p("maggot", 8));
+    }
+
+    /** Pike kit: wire and hardware. Every lure comes out a different weight and a different colour. */
+    private static ItemStack pikeKit() {
+        return kit("tackle_box_medium", "kit.riverfishing.pike", 0x4A7A3A,
+                p("leader", 2), p("spinner", 1, 3, 35), p("spoon", 1, 3, 35), p("wobbler", 1, 3, 35));
+    }
+
+    /** Carp kit: a session box — bait by the handful, big hooks and a flat feeder to put it out on. */
+    private static ItemStack carpKit() {
+        return kit("tackle_box_medium", "kit.riverfishing.carp", 0xB0863C,
+                p("boilie", 16), p("hook_6", 4), p("hook_8", 4), p("corn", 16),
+                p("line_mono_030", 1), rig("rig_flat_feeder", 40, 60));
+    }
+
+    /**
+     * §house-blend: the stall's own groundbait, already mixed.
+     *
+     * <p>Base, barley, chopped worm and a spoon of maggot — the plain river blend everybody starts from,
+     * and it is deliberately GOOD RATHER THAN RIGHT. It fishes well for the silver fish it was built for
+     * and merely adequately for anything else, so it is worth the emeralds on the day you buy it and worth
+     * beating a week later. That is the whole promise of the mixing system in one trade: a ready recipe is
+     * a floor, not a ceiling.
+     */
+    private static ItemStack houseBlend() {
+        com.riverfishing.groundbait.GroundbaitMix mix = com.riverfishing.groundbait.GroundbaitMix.of(
+                java.util.List.of(new com.riverfishing.groundbait.GroundbaitMix.Part("groundbait_powder", 3),
+                        new com.riverfishing.groundbait.GroundbaitMix.Part("pearl_barley", 2),
+                        new com.riverfishing.groundbait.GroundbaitMix.Part("worm", 2),
+                        new com.riverfishing.groundbait.GroundbaitMix.Part("maggot", 1)));
+        ItemStack out = new ItemStack(ModItems.GROUNDBAIT.get(), 8);
+        com.riverfishing.groundbait.GroundbaitNbt.write(out, mix);
+        return out;
+    }
+
+    /** Sea kit: the saltwater end, sold late because the rest of that ladder is late (§progression). */
+    private static ItemStack seaKit() {
+        return kit("tackle_box_large", "kit.riverfishing.sea", 0x2E5E8A,
+                p("leader_titanium", 2), p("octopus_jig", 1, 100, 200), p("giant_spoon", 1, 100, 200),
+                rig("rig_ground", 100, 200), p("hook_2", 3), p("hook_4", 3),
+                p("line_braid_040", 1), p("livebait", 4));
     }
 
     /** Bamboo's built-in light float rig, loaded with a float and a №10 hook — cast-ready for the beginner. */

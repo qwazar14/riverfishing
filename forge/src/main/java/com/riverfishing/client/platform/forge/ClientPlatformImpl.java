@@ -27,6 +27,11 @@ public final class ClientPlatformImpl {
         // ever appeared. Every menu in ModMenus needs a factory on EVERY loader — check all six.
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
+        // §keepnet + §tackle-box (0.7.0): the two boxes.
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
     }
 
     /**
@@ -45,6 +50,40 @@ public final class ClientPlatformImpl {
             if (r.get() instanceof com.riverfishing.item.BaitItem b && b.artificial()) {
                 Minecraft.getInstance().getItemColors().register(tint, r.get());
             }
+        }
+        // §groundbait-tint: the jar's speckles wear the mix's own colour (layer 1). Forge on 1.20.1 has no
+        // colour-handler EVENT here — this whole method exists because it registers straight on the live
+        // ItemColors — so the neoforge form of this loop, which is what was pasted in, could never compile.
+        for (dev.architectury.registry.registries.RegistrySupplier<net.minecraft.world.item.Item> r
+                : com.riverfishing.registry.ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.GroundbaitItem) {
+                Minecraft.getInstance().getItemColors().register(
+                        com.riverfishing.item.GroundbaitItem::speckleTint, r.get());
+            }
+        }
+        // §morph (0.7.0): the fish's own colour — age shading and its morph, from the shared table.
+
+        net.minecraft.client.color.item.ItemColor fish = com.riverfishing.client.FishTint::itemColor;
+        for (var r : com.riverfishing.registry.ModItems.FISH_ITEMS.values()) {
+            Minecraft.getInstance().getItemColors().register(fish, r.get());
+        }
+        // §tackle-box (0.7.0): the dyed inserts on the icon and on the placed box, from one stack.
+        net.minecraft.client.color.item.ItemColor boxTint = (stack, tintIndex) ->
+                tintIndex == 1 ? (0xFF000000 | com.riverfishing.item.TackleBoxItem.color(stack)) : -1;
+        for (dev.architectury.registry.registries.RegistrySupplier<net.minecraft.world.item.Item> r
+                : com.riverfishing.registry.ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.TackleBoxItem) {
+                Minecraft.getInstance().getItemColors().register(boxTint, r.get());
+            }
+        }
+        net.minecraft.client.color.block.BlockColor band = (state, view, pos, tintIndex) -> {
+            if (tintIndex != 1) return -1;
+            return 0xFF000000 | (view != null && pos != null
+                    && view.getBlockEntity(pos) instanceof com.riverfishing.block.TackleBoxBlockEntity be
+                    ? be.color() : 0xE8E6DF);
+        };
+        for (var b : com.riverfishing.registry.ModBlocks.TACKLE_BOXES.values()) {
+            Minecraft.getInstance().getBlockColors().register(band, b.get());
         }
     }
 
@@ -71,6 +110,9 @@ public final class ClientPlatformImpl {
 
     private static void onRenderLevel(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
+        // §shoal before the line: the fish sit behind the water surface, the line in front of it.
+        com.riverfishing.client.ShoalRenderer.render(event.getPoseStack(), event.getCamera().getPosition(),
+                event.getPartialTick());
         LineRenderer.render(event.getPoseStack(), event.getCamera().getPosition(), event.getPartialTick());
     }
 

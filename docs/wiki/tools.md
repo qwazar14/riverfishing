@@ -38,7 +38,7 @@ Fish finder — biting here right now:
 Bream, Roach, Perch, Pike, Rudd, Gudgeon, Bleak, Tench
 Known for: Tench
 Stock: Bream 180%, Mako shark 45% (temp)
-Pressure: 1004 hPa ↓  —  frenzy
+Pressure: 1004 hPa ↓  —  bite: frenzy
 ```
 
 | Line | Meaning |
@@ -46,7 +46,7 @@ Pressure: 1004 hPa ↓  —  frenzy
 | The species list | Up to 8 species that can bite here **right now**, ordered by environment score. If nothing can: *"The finder is silent — nothing here now"* |
 | *Known for:* | This water's [signature species](water-and-conditions.md#every-water-is-its-own) — they bite ×1.8 |
 | *Stock:* | Every species whose [stock level](stocking.md) is more than 10 % off normal. **(temp)** marks an unsettled transplant |
-| *Pressure:* | The [barometer](water-and-conditions.md#barometric-pressure): reading, trend arrow, and a colour-coded outlook (frenzy / active / fair / sluggish) |
+| *Pressure:* | The [barometer](water-and-conditions.md#barometric-pressure): reading, trend arrow, and a colour-coded outlook (frenzy / active / fair / slow / dead) |
 
 The Fish Finder is sold by a journeyman [fisherman](villager.md) for 14 emeralds, and is the reward-shaped item you want before committing to a long bottom session.
 
@@ -97,20 +97,7 @@ Cook raw fillets three ways:
 | Furnace | 200 ticks | 0.2 |
 | Campfire | 600 ticks | 0.2 |
 
-### Farmer's Delight cutting board
-
-With **Farmer's Delight** installed, all 65 non-koi species have a cutting-board recipe: a knife on the board yields fillets plus a **50 % chance of Bone Meal**.
-
-The yield is by species size:
-
-| Fillets | Species |
-|---|---|
-| **1** | Bleak, Blue bream, Bluegill, Common dace, Garfish, Gudgeon, Herring, Roach, Round goby, Rudd, Ruffe, Sabrefish |
-| **2** | Barracuda, Bream, Arctic char, Chub, Crucian Carp, Flounder, Grayling, Halibut, Ide, Largemouth bass, Lenok, Mackerel, Nase, Perch, Pink salmon, Rainbow trout, Rotan, Saithe, Atlantic salmon, Sea bass, Smelt, Sturgeon, Taimen, Tench, Trout, Vimba bream, Volga zander, White Bream, White-eye bream, Whitefish |
-| **3** | Asp, Burbot, Carp, Channel catfish, Cod, Conger eel, Eel, Mahi-mahi, Mirror Carp, Pike, Ray, Sailfish, Silver carp, Sterlet, Wahoo, Wild Carp, Yellowfin tuna, Zander |
-| **4** | Blue marlin, Catfish, Grass Carp, Mako shark, Swordfish |
-
-The five koi have no cutting recipe — use the knife if you must.
+One fish is at most **one stack** of fillets, however big it was: a legendary catfish is 64, not 500.
 
 ---
 
@@ -156,11 +143,11 @@ You can also gather Live Bait passively from a [Bait Trap](blocks.md#bait-trap).
 
 | Bait | Source |
 |---|---|
-| Worm | Dig dirt / grass / coarse dirt / podzol / rooted dirt / farmland / dirt path / mud **with a shovel** — 10 % |
+| Worm | Dig dirt / grass block / coarse dirt / podzol / rooted dirt / farmland / dirt path / mud **with a shovel** — 10 % |
 | Maggot | Zombie drops — 33 % |
 | Bloodworm | Drowned drops — 33 % |
 | Chicken Liver | Chicken drops — 25 % |
-| Corn / Pea Seeds / Barley Seeds | Grass and tall grass — 5 % each |
+| Corn Seeds / Pea Seeds / Barley Seeds | Grass and tall grass (the plants) — 5 % each |
 
 All of these are loot-table injections, so they behave identically on both loaders. Bait can also be farmed ([Worm Farm](blocks.md#worm-farm), [Maggot Farm](blocks.md#maggot-farm), [bait crops](blocks.md#bait-crops)) or bought from the fisherman.
 
@@ -172,12 +159,14 @@ All of these are loot-table injections, so they behave identically on both loade
 |---|---|
 | **Serene Seasons** *(optional)* | Unlocks the whole [seasonal layer](water-and-conditions.md#seasons) of the bite engine, plus spring's faster spot recovery. Without it every season factor is 1.0. |
 | **Biomes O' Plenty** *(optional)* | Richer biomes for the habitat model. BoP biomes carry the vanilla tags, and the mod's `is_swamp` tag names BoP's Bayou, Marsh, Wetland, Bog and Mangrove explicitly. |
-| **Farmer's Delight** *(optional)* | The cutting-board recipes above; the Filleting Knife registers as a knife. |
+| **Farmer's Delight** *(optional)* | The Filleting Knife is in the `forge:tools/knives` tag, so Farmer's Delight and anything else looking for a knife will take it. |
 | **Jade** *(optional)* | Look-at counts for the farms, trap, pod and aquarium. |
 | **JEI** *(optional)* | A "Fishing" category showing each species' baits, tackle, best conditions, water and recommended level. |
 
 ## See also
 
 - [Rigs and baits](rigs-and-baits.md) · [Blocks](blocks.md)
+- [Keepnet](keepnet.md) · [Tackle box](tackle-box.md) — where the catch and the tackle go
 - [Progression](progression.md) · [Water and conditions](water-and-conditions.md)
+- [Electrofisher](electrofisher.md) — the creative-only tool that is not tackle
 - [Crafting](crafting.md)

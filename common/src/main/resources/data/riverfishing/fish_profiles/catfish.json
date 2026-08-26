@@ -1,5 +1,6 @@
 {
   "display": "Сом",
+  "group": "predator",
   "water_bodies": {
     "river": 1.1,
     "lake": 1.0,
@@ -39,9 +40,7 @@
       "catfish",
       "grusha"
     ],
-    "groundbait": [
-      "cake"
-    ],
+    "groundbait": { "fraction": 0.81, "nutrition": 0.81 },
     "bait": {
       "livebait": 1.0,
       "chicken_liver": 1.0,

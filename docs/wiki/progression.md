@@ -91,7 +91,7 @@ Spend them on the **Skills** tab of the journal. Points cannot be refunded (only
 | **Keen Sense** | Sense | −5 % time to bite | −25 % |
 | **Naturalist** | Knowledge | +5 % overall bite chance | +25 % |
 | **Steady Hand** | Hand | +5 % line tension before it snaps | +25 % |
-| **Angler's Luck** | Fortune | +1 % trophy chance | +5 % |
+| **Angler's Luck** | Fortune | +1 % to the size of the fish you meet — and so to trophies | +5 % |
 | **Finesse** | Finesse | +1 % wider strike zone | +5 % |
 
 Naturalist's bonus is applied uniformly to every species' bite weight; Steady Hand multiplies your break tolerance; Finesse widens the green band of every [timing bar](fishing-mechanics.md#the-timing-bar).
@@ -201,7 +201,7 @@ Twenty-two advancements. Some are driven by simply having the fish in your inven
 | **A Quarter Hundred** | 25 different species |
 | **Fifty Species** | 50 different species |
 | **The Full Bestiary** *(challenge)* | Every species — koi don't count |
-| **A Trophy Specimen** *(goal)* | Have a trophy-tagged fish |
+| **A Trophy Specimen** *(goal)* | **Land** a trophy specimen yourself |
 | **Toothy** | Have a pike |
 | **Master of the Hole** *(goal)* | Have a catfish |
 | **The Tsar Fish** *(challenge)* | Have a sterlet |
@@ -220,6 +220,8 @@ Twenty-two advancements. Some are driven by simply having the fish in your inven
 | **It Was DEFINITELY Huge** *(hidden)* | Suffer the 0.3 % [catastrophic tackle failure](fishing-mechanics.md#catastrophic-failure) |
 
 The species-count advancements are **counted in code** against the live species roster, so they can never drift out of step with a content update. Koi are excluded from that count.
+
+*A Trophy Specimen* is code-driven too, from 0.7.0: it is granted at the moment a trophy is landed, so it says what it always meant to say — you earn it for catching one, not for holding one somebody handed you. (It used to be a datapack item predicate, and on 1.21.1 that predicate decoded to an empty one, which matches every item there is. Players were being handed the goal for picking up pea seeds.)
 
 ## The Fishing Journal
 

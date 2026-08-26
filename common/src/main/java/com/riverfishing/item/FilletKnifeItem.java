@@ -12,17 +12,31 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraft.util.Mth;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * Filleting knife (§11.2). Hold it and right-click while a caught fish is in the other hand to cut the
- * fish into stackable raw fillets — count scales with the fish's weight, turning a non-stacking unique
- * catch into stackable food you can cook.
+ * fish into stackable raw fillets — the count scales with the fish's weight, turning a non-stacking
+ * unique catch into something you can hook, mix or cook.
+ *
+ * <p>§one-cutter: this is the only thing in the mod that cuts up a fish. A shapeless recipe used to turn
+ * any tagged species into a flat 4 strips with no knife involved, which meant a 20 g bleak and a 400 kg
+ * marlin yielded the same, and the knife's weight scaling could be skipped entirely.
+ *
+ * <p>§one-fillet: and it cuts ONE thing. Crouching used to produce "fish strips" at 100 g a piece and
+ * standing "raw fillets" at 300 g, from the same knife and the same fish — two items whose only real
+ * difference was the yield, so the crouch was a hidden lever on a number rather than a choice about
+ * anything. One product, one rate, no modifier key to discover.
  */
 public class FilletKnifeItem extends Item {
-    private static final int GRAMS_PER_FILLET = 300;
+    /**
+     * Between the old 300 (food) and 100 (bait), because one item now has to serve both: at 300 a roach
+     * was worth a single piece and bait was a chore, at 100 a decent bream fed a village.
+     */
+    private static final int GRAMS_PER_FILLET = 200;
 
     public FilletKnifeItem(Properties properties) {
         super(properties);
@@ -41,11 +55,13 @@ public class FilletKnifeItem extends Item {
             // in chat by name (§koi). The knife still does its job.
             boolean koi = FishItem.isKoi(target);
             int weight = FishItem.getWeightG(target);
-            int count = Math.max(1, weight / GRAMS_PER_FILLET);
+            // One fish is at most one stack. Unbounded, a legendary catfish paid 500 fillets and
+            // a blue marlin 1333 — a single right-click that fed a server for a week.
+            int count = Mth.clamp(weight / GRAMS_PER_FILLET, 1, 64);
             target.shrink(1);
-            ItemStack fillets = new ItemStack(ModItems.RAW_FILLET.get(), count);
-            if (!player.getInventory().add(fillets)) {
-                player.drop(fillets, false);
+            ItemStack cut = new ItemStack(ModItems.FISH_STRIP.get(), count);
+            if (!player.getInventory().add(cut)) {
+                player.drop(cut, false);
             }
             knife.hurtAndBreak(1, player, e -> e.broadcastBreakEvent(hand == net.minecraft.world.InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND));
             level.playSound(null, player.blockPosition(), SoundEvents.PLAYER_ATTACK_SWEEP,

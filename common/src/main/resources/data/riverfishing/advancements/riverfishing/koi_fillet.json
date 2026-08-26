@@ -1,7 +1,7 @@
 {
   "parent": "riverfishing:riverfishing/koi",
   "display": {
-    "icon": { "item": "riverfishing:raw_fillet" },
+    "icon": { "item": "riverfishing:fish_strip" },
     "title": { "translate": "advancement.riverfishing.koi_fillet.title" },
     "description": { "translate": "advancement.riverfishing.koi_fillet.description" },
     "frame": "challenge",
