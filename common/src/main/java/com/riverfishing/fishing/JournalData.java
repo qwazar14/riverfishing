@@ -49,6 +49,51 @@ public final class JournalData {
         PlayerData.markDirty(player);
     }
 
+    /**
+     * §morph: records a morph of a species as found. Stored inside that species' own compound as a flag
+     * per morph id, so a morph is a collection entry in its own right without a second data structure.
+     *
+     * @return true if this is the FIRST time the player has seen this morph of this species
+     */
+    public static boolean recordMorph(Player player, Identifier species, String morphId) {
+        if (morphId == null || morphId.isEmpty()) return false;
+        CompoundTag root = get(player);
+        CompoundTag fish = root.getCompoundOrEmpty(species.toString());
+        CompoundTag morphs = fish.getCompoundOrEmpty("morphs");
+        if (morphs.getBooleanOr(morphId, false)) return false;
+        morphs.putBoolean(morphId, true);
+        fish.put("morphs", morphs);
+        root.put(species.toString(), fish);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+        return true;
+    }
+
+    /**
+     * §guide-nudge: this species was first landed after the player took up an offer of help. Nintendo's
+     * dignity rule — nothing is withheld and nothing is locked, the record simply tells the truth.
+     */
+    public static void markHinted(Player player, Identifier species) {
+        CompoundTag root = get(player);
+        CompoundTag fish = root.getCompoundOrEmpty(species.toString());
+        if (fish.getBooleanOr("hinted", false)) return;
+        fish.putBoolean("hinted", true);
+        root.put(species.toString(), fish);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+    }
+
+    /** §guide-nudge: was this species caught with a hint? Reads the journal tag straight. */
+    public static boolean wasHinted(CompoundTag journal, Identifier species) {
+        return journal.getCompoundOrEmpty(species.toString()).getBooleanOr("hinted", false);
+    }
+
+    /** §morph: has the player found this morph of this species? Reads the journal tag straight. */
+    public static boolean hasMorph(CompoundTag journal, Identifier species, String morphId) {
+        return journal.getCompoundOrEmpty(species.toString())
+                .getCompoundOrEmpty("morphs").getBooleanOr(morphId, false);
+    }
+
     /** True if the player has never landed this species before (call BEFORE {@link #record}). */
     public static boolean isNewSpecies(Player player, Identifier species) {
         return get(player).getCompoundOrEmpty(species.toString()).getIntOr("count", 0) == 0;

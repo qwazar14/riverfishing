@@ -1,0 +1,19 @@
+{
+  "wants": {
+    "id": "riverfishing:mayan_cichlid",
+    "components": {
+      "riverfishing:prime": 840
+    }
+  },
+  "gives": {
+    "id": "minecraft:emerald",
+    "count": 2
+  },
+  "max_uses": 12,
+  "xp": 3,
+  "reputation_discount": 0.05,
+  "merchant_predicate": {
+    "condition": "minecraft:random_chance",
+    "chance": 0.30769
+  }
+}

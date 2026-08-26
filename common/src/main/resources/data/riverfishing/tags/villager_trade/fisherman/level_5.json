@@ -1,6 +1,10 @@
 {
   "values": [
     "riverfishing:fisherman/5/digital_alarm",
+    "riverfishing:fisherman/5/keepnet_huge",
+    "riverfishing:fisherman/5/kit_sea_1",
+    "riverfishing:fisherman/5/kit_sea_2",
+    "riverfishing:fisherman/5/kit_sea_3",
     "riverfishing:fisherman/5/leader_titanium",
     "riverfishing:fisherman/5/nautilus_shell",
     "riverfishing:fisherman/5/reel_7000",
@@ -29,6 +33,10 @@
     "riverfishing:fisherman/5/buy_eel",
     "riverfishing:fisherman/5/buy_channel_catfish",
     "riverfishing:fisherman/5/buy_sterlet",
+    "riverfishing:fisherman/5/buy_tarpon",
+    "riverfishing:fisherman/5/buy_snook",
+    "riverfishing:fisherman/5/buy_jack_crevalle",
+    "riverfishing:fisherman/5/buy_striped_bass",
     "riverfishing:fisherman/5/buy_silver_carp",
     "riverfishing:fisherman/5/buy_seabass",
     "riverfishing:fisherman/5/buy_cod",
@@ -46,6 +54,13 @@
     "riverfishing:fisherman/5/buy_wild_carp",
     "riverfishing:fisherman/5/buy_taimen",
     "riverfishing:fisherman/5/buy_sturgeon",
-    "riverfishing:fisherman/5/buy_halibut"
+    "riverfishing:fisherman/5/buy_halibut",
+    "riverfishing:fisherman/5/buy_arapaima",
+    "riverfishing:fisherman/5/buy_beluga",
+    "riverfishing:fisherman/5/buy_piraiba",
+    "riverfishing:fisherman/5/buy_goliath_grouper",
+    "riverfishing:fisherman/5/buy_bull_shark",
+    "riverfishing:fisherman/5/buy_frilled_shark",
+    "riverfishing:fisherman/5/buy_golden_dorado"
   ]
 }

@@ -1,0 +1,81 @@
+{
+	"texture_size": [128, 128],
+	"textures": {
+		"0": "riverfishing:item/rod/blank_trolling_3d",
+		"particle": "riverfishing:item/rod/blank_trolling_3d"
+	},
+	"elements": [
+		{
+			"name": "blank_3",
+			"from": [-2.575, 10.222, 8.222],
+			"to": [2.3, 10.778, 8.778],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [2.225, 10.5, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [0, 0, 4.25, 0.875],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [0, 1, 0.875, 1.875],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [0, 0, 4.25, 0.875],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [0, 1, 0.875, 1.875],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [4.25, 0.875, 0, 0],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [4.25, 0, 0, 0.875],
+					"texture": "#0"
+				}
+			}
+		},
+		{
+			"name": "guide_3",
+			"from": [-2.425, 9.268, 7.995],
+			"to": [-2.425, 10.278, 9.005],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [-2.425, 11.775, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [7.5, 0, 7.75, 1.75],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [2, 4, 3.75, 5.75],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [7.5, 7, 7.75, 8.75],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [2, 4, 3.75, 5.75],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [0.25, 9.75, 0, 8],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [8.25, 0, 8, 1.75],
+					"texture": "#0"
+				}
+			}
+		}
+	]
+}

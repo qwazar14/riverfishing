@@ -1,5 +1,6 @@
 {
   "display": "Бычок-кругляк",
+  "group": "sea",
   "water_bodies": { "river": 1.0, "lake": 0.6, "pond": 0.2, "swamp": 0.0, "sea": 1.1, "puddle": 0.0 },
   "weight_g": { "min": 10, "max": 380, "mean": 100 },
   "length_cm": { "min": 10, "max": 35 },
@@ -9,7 +10,7 @@
     "reel_size": 3000, "reel_tolerance": 2000,
     "line": { "type": "mono", "diameter_mm": 0.20, "tolerance_mm": 0.06 },
     "rig": ["feeder", "primitive"],
-    "groundbait": [],
+    "groundbait": { "fraction": 0.29, "nutrition": 0.62 },
     "bait": { "worm": 1.0, "fish_strip": 0.9, "bloodworm": 0.7, "maggot": 0.6, "silicone": 0.5 },
     "hook": { "ideal": 8, "tolerance": 3 }
   },

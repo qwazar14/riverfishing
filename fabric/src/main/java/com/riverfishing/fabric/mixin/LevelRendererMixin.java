@@ -31,6 +31,23 @@ public class LevelRendererMixin {
         LineRenderer.render(new PoseStack(), mc.gameRenderer.getMainCamera().position(),
                 mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
     }
+
+    /**
+     * §shoal: the fish sit UNDER the water, so they must be drawn BEFORE the translucent pass — that pass
+     * writes depth, and anything submitted after it that sits behind the surface is thrown away. Same
+     * injection point as the line above, opposite shift.
+     */
+    @Inject(method = "lambda$addMainPass$0",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;renderTranslucentFeatures()V",
+                    shift = At.Shift.BEFORE))
+    private void riverfishing$renderShoal(CallbackInfo ci) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) return;
+        com.riverfishing.client.ShoalRenderer.render(new PoseStack(),
+                mc.gameRenderer.getMainCamera().position(),
+                mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
+    }
     //?}
     // On 26.2 the class is an empty no-op: the cast line goes through the loader-neutral common
     // LevelRendererSubmitMixin (submit-based) instead.

@@ -211,5 +211,6 @@ With Jade installed, looking at these blocks shows their contents without openin
 ## See also
 
 - [Tools](tools.md) · [Tackle Station](tackle-station.md) · [Villager](villager.md)
+- [Tackle box](tackle-box.md) — a block that also opens right there in your hand
 - [Rigs and baits](rigs-and-baits.md) · [Ice fishing](ice-fishing.md)
 - [Crafting](crafting.md)

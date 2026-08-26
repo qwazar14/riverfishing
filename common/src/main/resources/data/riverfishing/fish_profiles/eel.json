@@ -1,5 +1,6 @@
 {
   "display": "Угорь",
+  "group": "predator",
   "water_bodies": {
     "lake": 1.1,
     "river": 0.9,
@@ -40,7 +41,7 @@
       "ground",
       "feeder"
     ],
-    "groundbait": [],
+    "groundbait": { "fraction": 0.56, "nutrition": 0.74 },
     "bait": {
       "worm": 1.0,
       "livebait": 0.8,

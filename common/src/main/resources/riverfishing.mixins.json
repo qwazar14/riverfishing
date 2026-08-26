@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ItemEntityMixin",
-    "VillagerTradePoolMixin"
+    "VillagerTradePoolMixin",
+    "VillagerRepriceMixin",
+    "VillagerTradeGivesAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -13,6 +15,10 @@
   "client": [
     "ItemInHandRendererMixin",
     "ItemInHandLayerMixin",
-    "LevelRendererSubmitMixin"
+    "LevelRendererSubmitMixin",
+    "ItemEntityRenderStateMixin",
+    "ItemEntitySeatMixin",
+    "MerchantOrderPanelMixin",
+    "FightEdgeGuardMixin"
   ]
 }

@@ -32,7 +32,8 @@ Running this file GENERATES and then VERIFIES (json re-parse, pool shapes, every
 lang file, every assembled rod legal against RodType's reel band and TackleCompat's spool limit, every
 bench stamp equal to TackleForm's own numbers). Non-zero exit = do not commit the output.
 """
-import json, math, os, re, shutil, sys
+import json
+import random, math, os, re, shutil, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 COMMON = os.path.normpath(os.path.join(HERE, "..", "common", "src", "main"))
@@ -46,12 +47,21 @@ TAG_DIR = os.path.join(ROOT, "tags", "villager_trade", "fisherman")
 
 PRIME_FRACTION = 0.7
 DISCOUNT = 0.05
-TRADES_PER_LEVEL = 3        # §trade-pool: one more than vanilla's two — bait, line, a rod AND a fish buy
-FISH_SLOTS_PER_TIER = 2     # how much of each tier's pool the species share
+# §trade-pool 0.7.0: four and four, up from three and two. A tier registers between eight and
+# twenty-six species and used to put TWO of them on any one counter, frozen there for that
+# villager's life — so an angler with seventy-nine species in the journal could sell five of them.
+# Doubling the slots doubles what one stall takes; the daily order slot (§order-slot) covers the
+# rest, since it is the only thing that ROTATES.
+TRADES_PER_LEVEL = 4        # §trade-pool: two more than vanilla's — bait, line, a rod AND two fish buys
+FISH_SLOTS_PER_TIER = 4     # how much of each tier's pool the species share
 STARTER_FISH = ["bleak", "roach", "gudgeon", "rotan"]  # live in every water — see the community guide
 
 # Effective pool sizes we intend to land on, asserted after generation (§trade-pool).
-TARGET_POOL = {1: 10, 2: 10, 3: 7, 4: 14, 5: 12}
+# §internal-rig: tier 2 is ELEVEN, not twelve. The Java table on 1.20.1/1.21.1 stopped selling the
+# assembled float rig on its own — it lives INSIDE the float rods (JournalScreen.isInternalRig) and is
+# never tied by itself, so a standalone sale was a component with a price tag. That decision never
+# reached this generator, which is why the two branches disagreed about tier 2 by exactly one slot.
+TARGET_POOL = {1: 12, 2: 11, 3: 11, 4: 18, 5: 16}
 
 
 # ---------------------------------------------------------------- SNBT
@@ -168,6 +178,26 @@ def tackle(path, cost, count=1, xp=1):
     return name, trade
 
 
+def house_blend():
+    """§house-blend: the stall's own groundbait, sold already mixed.
+
+    Base, barley, chopped worm and a spoon of maggot — the plain river blend everybody starts from, and
+    deliberately GOOD RATHER THAN RIGHT: it fishes well for the silver fish it was built for and merely
+    adequately for anything else. A ready recipe is a floor, not a ceiling, and this trade is where a
+    player first meets that idea.
+
+    The composition rides in custom_data exactly as GroundbaitNbt writes it. The colour is left out on
+    purpose — the jar derives it from the parts, so writing it here would be a second copy of a number
+    that can only ever disagree with the first.
+    """
+    name, trade = sell("groundbait_powder", 5, 8, 6)
+    parts = [{"id": "groundbait_powder", "n": 3}, {"id": "pearl_barley", "n": 2},
+             {"id": "worm", "n": 2}, {"id": "maggot", "n": 1}]
+    trade["given_item_modifiers"] = [
+        {"function": "minecraft:set_custom_data", "tag": snbt({"Groundbait": {"Parts": parts}})}]
+    return "house_blend", trade
+
+
 def stack(item_id, custom=None):
     s = {"id": full(item_id), "count": 1}
     if custom:
@@ -234,6 +264,117 @@ FLOAT_RIG = ["float", "hook_10"]        # FLOAT, HOOK, (bait)
 PREDATOR_RIG = ["leader", "spinner"]    # LEADER, LURE
 
 # ---------------------------------------------------------------- the shop
+
+# ---------------------------------------------------------------- §lure-color / §tackle-box kits
+
+# Vanilla's own dye diffuse colours, so a shop lure mixes exactly the way a player's would.
+DYE_RGB = [0xF9FFFE, 0xF9801D, 0xC74EBD, 0x3AB3DA, 0xFED83D, 0x80C71F, 0xF38BAA, 0x474F52,
+           0x9D9D97, 0x169C9C, 0x8932B8, 0x3C44AA, 0x835432, 0x5E7C16, 0xB02E26, 0x1D1D21]
+
+
+def mix_dyes(rng, count=None):
+    """Vanilla's leather-armour mix over 1–3 random dyes: average the channels, then rescale by the
+    average of each dye's own brightest channel, which is what keeps mixes vivid instead of muddy."""
+    picks = [DYE_RGB[rng.randrange(len(DYE_RGB))] for _ in range(count or 1 + rng.randrange(3))]
+    r = g = b = peak = 0
+    for c in picks:
+        cr, cg, cb = (c >> 16) & 255, (c >> 8) & 255, c & 255
+        r, g, b, peak = r + cr, g + cg, b + cb, peak + max(cr, cg, cb)
+    n = len(picks)
+    r, g, b, peak = r // n, g // n, b // n, peak // n
+    top = max(r, g, b) or 1
+    gain = peak / top
+    return (int(r * gain) << 16) | (int(g * gain) << 8) | int(b * gain)
+
+
+def roll_weight(item_id, rng, lo, hi):
+    """A weight inside the requested window, clamped to what the BENCH can tie — the window is the kit's
+    intent, the ladder is the form's reality (a spinner tops out at 14 g). Mirrors ModVillagers.rollWeight."""
+    form = FORMS.get(short(item_id))
+    if form is None:
+        return None
+    _, weights, _ = form
+    lo, hi = max(lo, weights[0]), min(hi, weights[-1])
+    if hi <= lo:
+        return max(weights[0], min(lo, weights[-1]))
+    return rng.randrange(lo, hi + 1)
+
+
+def inner(item_id, count, rng, lo=0, hi=0, dyed=False):
+    """One item as it sits INSIDE a box: SNBT in ItemStack.OPTIONAL_CODEC's shape."""
+    comps = {}
+    tags = stamp_tags(item_id)
+    if tags:
+        tags = dict(tags)
+        if hi:
+            grams = roll_weight(item_id, rng, lo, hi)
+            if grams is not None:
+                tags["TackleWeightG"] = grams
+                if short(item_id) in ("spinner", "spoon"):
+                    tags["BladeSize"] = min(5, 1 + grams // 15)
+        comps["minecraft:custom_data"] = tags
+    if dyed:
+        comps["minecraft:dyed_color"] = mix_dyes(rng)
+    out = {"id": full(item_id), "count": count}
+    if comps:
+        out["components"] = comps
+    return out
+
+
+def kit(name, box_id, name_key, colour, parts, cost, xp, seed):
+    """§tackle-box kits: a named, dyed box that arrives with the tackle for one kind of fishing in it.
+
+    The rolls are BAKED at generation time — a datapack trade cannot roll per purchase — so each kit
+    ships as several variants sharing one pool slot, which is how the stall varies anything else here."""
+    rng = random.Random(seed)
+    items = []
+    for slot, part in enumerate(parts):
+        items.append({"s": slot, "i": inner(*part[:2], rng, *part[2:])})
+    return name, {
+        "wants": {"id": "minecraft:emerald", "count": cost},
+        "gives": {"id": full(box_id)},
+        "given_item_modifiers": [
+            {"function": "minecraft:set_custom_data", "tag": snbt({"Box": items})},
+            {"function": "minecraft:set_components", "components": {
+                "minecraft:custom_name": {"translate": name_key, "italic": False},
+                "minecraft:dyed_color": colour}},
+        ],
+        "max_uses": 8, "xp": xp, "reputation_discount": DISCOUNT,
+    }
+
+
+# The four kits, contents settled in playtest. (item, count[, minG, maxG[, dyed]])
+FLOAT_KIT = [("float", 2), ("hook_10", 4), ("hook_12", 4), ("worm", 8), ("maggot", 8)]
+PIKE_KIT = [("leader", 2), ("spinner", 1, 3, 35, True), ("spoon", 1, 3, 35, True),
+            ("wobbler", 1, 3, 35, True)]
+CARP_KIT = [("boilie", 16), ("hook_6", 4), ("hook_8", 4), ("corn", 16), ("line_mono_030", 1),
+            ("rig_flat_feeder", 1, 40, 60)]
+SEA_KIT = [("leader_titanium", 2), ("octopus_jig", 1, 100, 200, True),
+           ("giant_spoon", 1, 100, 200, True), ("rig_ground", 1, 100, 200), ("hook_2", 3),
+           ("hook_4", 3), ("line_braid_040", 1), ("livebait", 4)]
+
+
+def kits(name, box, key, colour, parts, cost, xp, variants):
+    """The same kit rolled `variants` ways; they share one pool slot (§trade-pool)."""
+    return [kit("%s_%d" % (name, i + 1), box, key, colour, parts, cost, xp, hash((name, i)) & 0xFFFF)
+            for i in range(variants)]
+
+
+def painted(form_id, cost, count, xp, shades=3):
+    """§lure-color: the stall paints what it ties. Baked colours, so each form ships a few shades that
+    share its slot — a rack of identical silver blades is not a tackle shop."""
+    out = []
+    for i in range(shades):
+        rng = random.Random(hash((form_id, i)) & 0xFFFF)
+        name, trade = tackle(form_id, cost, count, xp)
+        trade = dict(trade)
+        trade["given_item_modifiers"] = list(trade["given_item_modifiers"]) + [
+            {"function": "minecraft:set_components",
+             "components": {"minecraft:dyed_color": mix_dyes(rng)}}]
+        out.append(("%s_%d" % (name, i + 1), trade))
+    return out
+
+
 # One list per level; each element is one POOL SLOT (variants inside it share the slot).
 
 POOL = {
@@ -256,25 +397,30 @@ POOL = {
         [sell("maggot", 1, 10, 2)],
         [sell("reel_2000", 4, 1, 5), sell("reel_3000", 6, 1, 6)],
         [sell("line_mono_018", 2, 1, 4)],
-        [sell("groundbait_grain", 1, 6, 3)],
+        # §groundbait-one-jar: BALLAST, not a second groundbait — the dial the mixing system turns on.
+        [sell("groundbait_soil", 1, 8, 3)],
         [sell("bait_trap", 3, 1, 4)],                       # slowly farms livebait (§livebait)
         [sell("minecraft:oak_boat", 4, 1, 5)],              # §vanilla-stock: trolling needs a boat
-        [rig_only("assembled_float_rig", "rig_float_light", FLOAT_RIG, 4, 6)],
         [assembled("assembled_bamboo_rod", "bamboo_rod", None, "line_mono_018",
                    "rig_float_light", FLOAT_RIG, 9, 8)],
     ],
     # ---- Level 3 — Journeyman: lures + a ready spinning setup. 5 + 2 = 7.
     3: [
-        [tackle("spinner", 3, 1, 8), tackle("spoon", 4, 1, 8), tackle("silicone", 2, 2, 6)],
+        painted("spinner", 3, 1, 8) + painted("spoon", 4, 1, 8) + painted("silicone", 2, 2, 6),
         [sell("line_braid_016", 5, 1, 10), sell("line_fluoro_020", 5, 1, 10)],
         [sell("leader_fluoro", 3, 2, 6)],
         [sell("fish_finder", 14, 1, 12)],                   # §QoL: read the swim before you cast
+        [sell("keepnet_small", 5, 1, 6)],                   # §keepnet: somewhere to put the catch
+        kits("kit_float", "tackle_box_small", "kit.riverfishing.float", 0xC8D8E8,
+             FLOAT_KIT, 7, 10, 1)
+        + kits("kit_pike", "tackle_box_medium", "kit.riverfishing.pike", 0x4A7A3A,
+               PIKE_KIT, 18, 16, 3),
         [assembled("assembled_spinning_rod", "spinning_rod", "reel_2000", "line_braid_016",
                    "rig_predator", PREDATOR_RIG, 16, 14)],
     ],
     # ---- Level 4 — Expert: predator/carp gear, winter tackle, ready feeder. 12 + 2 = 14.
     4: [
-        [tackle("wobbler", 7, 1, 15), tackle("crankbait", 7, 1, 15), tackle("popper", 6, 1, 14)],
+        painted("wobbler", 7, 1, 15) + painted("crankbait", 7, 1, 15) + painted("popper", 6, 1, 14),
         [sell("livebait", 2, 3, 8)],
         [sell("boilie", 3, 8, 10)],
         [sell("reel_5000", 10, 1, 15), sell("reel_6000", 13, 1, 16)],
@@ -282,7 +428,9 @@ POOL = {
         [sell("ice_auger", 9, 1, 14)],                      # §ice-fishing: drill your first hole
         [sell("mormyshka", 3, 2, 8)],
         [sell("maggot_farm", 5, 1, 8)],                     # §bait-farm
-        [sell("groundbait_cake", 4, 3, 6)],                 # жмых (sunflower+piston)
+        [house_blend()],                                    # §house-blend: the stall's own mix
+        [sell("keepnet_medium", 9, 1, 10), sell("keepnet_large", 14, 1, 14)],
+        kits("kit_carp", "tackle_box_medium", "kit.riverfishing.carp", 0xB0863C, CARP_KIT, 21, 18, 2),
         # §vanilla-stock + §tackle-craft: the saltwater reels are gated on ocean drops. Selling the
         # INPUTS keeps the gate priced without making it hinge on guardian RNG.
         [sell("minecraft:prismarine_shard", 5, 4, 10)],
@@ -295,6 +443,8 @@ POOL = {
     # ---- Level 5 — Master: the trade-only prestige gear (§progression). 10 + 2 = 12.
     5: [
         [sell("digital_alarm", 10, 1, 25)],
+        [sell("keepnet_huge", 20, 1, 24)],
+        kits("kit_sea", "tackle_box_large", "kit.riverfishing.sea", 0x2E5E8A, SEA_KIT, 51, 34, 3),
         [sell("leader_titanium", 8, 1, 20)],
         # §vanilla-stock: the 14000 reel and the trolling rod each want a nautilus shell, the single
         # worst piece of RNG in the ladder. Master tier sells it.
@@ -328,22 +478,38 @@ POOL = {
 # and join here. The five koi stay uncommercial on purpose. Each tier shares FISH_SLOTS_PER_TIER slots.
 FISH = {
     1: [("bleak", 1, 1), ("gudgeon", 1, 1), ("roach", 1, 1), ("bluegill", 1, 1),
-        ("round_goby", 1, 1), ("common_dace", 1, 1), ("rotan", 1, 2), ("smelt", 1, 3)],
+        ("round_goby", 1, 1), ("common_dace", 1, 1), ("rotan", 1, 2), ("smelt", 1, 3),
+        # §giants-and-minnows (0.8.0)
+        ("gorchak", 1, 1), ("verkhovka", 1, 1), ("sculpin", 1, 2), ("tubenose_goby", 1, 1)],
     2: [("crucian_carp", 2, 2), ("perch", 2, 2), ("ruffe", 1, 2), ("rudd", 2, 2), ("sabrefish", 2, 2),
-        ("white_eye_bream", 2, 3), ("nase", 2, 4), ("vimba", 3, 5), ("white_bream", 2, 2)],
+        ("white_eye_bream", 2, 3), ("nase", 2, 4), ("vimba", 3, 5), ("white_bream", 2, 2),
+        # §giants-and-minnows (0.8.0)
+        ("golden_crucian", 2, 3)],
     3: [("bream", 3, 4), ("ide", 3, 5), ("chub", 3, 5), ("tench", 4, 5), ("blue_bream", 2, 3),
         ("pike", 5, 8), ("volga_zander", 4, 6), ("pink_salmon", 4, 8), ("whitefish", 4, 8),
-        ("asp", 6, 9)],
+        ("asp", 6, 9),
+        # §florida-nine: the two small cichlids sit with the pan-fish of their weight.
+        ("oscar", 2, 4), ("mayan_cichlid", 2, 3),
+        # §giants-and-minnows (0.8.0)
+        ("kutum", 5, 9)],
     4: [("carp", 6, 12), ("mirror_carp", 7, 13), ("grass_carp", 9, 14), ("zander", 6, 10),
+        # §florida-nine: the mid-weight predators, priced against largemouth bass and trout.
+        ("peacock_bass", 7, 13), ("bullseye_snakehead", 6, 11), ("bluefish", 6, 12),
         ("trout", 6, 12), ("largemouth_bass", 7, 12), ("rainbow_trout", 7, 12), ("grayling", 7, 12),
         ("burbot", 5, 10), ("mackerel", 3, 6), ("herring", 2, 4), ("garfish", 3, 6),
-        ("flounder", 4, 8), ("char", 6, 12), ("lenok", 6, 12), ("salmon", 10, 18)],
+        ("flounder", 4, 8), ("char", 6, 12), ("lenok", 6, 12), ("salmon", 10, 18),
+        # §giants-and-minnows (0.8.0)
+        ("naked_carp", 8, 14)],
     5: [("catfish", 12, 25), ("eel", 8, 15), ("channel_catfish", 10, 20), ("sterlet", 16, 30),
+        # §florida-nine: the big saltwater four, against the mahi/wahoo/barracuda band.
+        ("tarpon", 20, 32), ("snook", 11, 21), ("jack_crevalle", 12, 22), ("striped_bass", 12, 23),
         ("silver_carp", 14, 26), ("seabass", 7, 14), ("cod", 9, 18), ("saithe", 7, 14),
         ("conger", 13, 24), ("ray", 12, 22), ("mahi", 10, 20), ("wahoo", 14, 26),
         ("yellowfin_tuna", 20, 34), ("barracuda", 8, 16), ("blue_marlin", 28, 40),
         ("sailfish", 18, 30), ("swordfish", 24, 36), ("mako", 22, 34), ("wild_carp", 14, 28),
-        ("taimen", 24, 36), ("sturgeon", 26, 38), ("halibut", 22, 34)],
+        ("taimen", 24, 36), ("sturgeon", 26, 38), ("halibut", 22, 34),
+        # §giants-and-minnows (0.8.0)
+        ("arapaima", 26, 38), ("beluga", 30, 44), ("piraiba", 22, 34), ("goliath_grouper", 24, 36), ("bull_shark", 24, 36), ("frilled_shark", 26, 38), ("golden_dorado", 12, 22)],
 }
 
 
@@ -452,6 +618,23 @@ VANILLA_STOCK = {"minecraft:emerald", "minecraft:string", "minecraft:oak_boat",
                  "minecraft:prismarine_shard", "minecraft:nautilus_shell"}
 
 
+def pantry_ids():
+    """§groundbait-one-jar: what a mix may legally be made of, read off GroundbaitMix's own pantry."""
+    src = os.path.join(HERE, "..", "common", "src", "main", "java", "com", "riverfishing",
+                       "groundbait", "GroundbaitMix.java")
+    with open(src, encoding="utf-8") as f:
+        java = f.read()
+    # The base goes in under the BASE_ID constant rather than a literal, so it needs its own read —
+    # and asserting it landed is the point, because the base is the one component every blend has.
+    ids = set(re.findall(r'put\("([\w:/]+)",', java))
+    ids |= set(re.findall(r'BASE_ID = "([\w:/]+)"', java))
+    assert len(ids) > 20, "the pantry read came back empty — GroundbaitMix moved or changed shape"
+    return ids
+
+
+PANTRY_IDS = pantry_ids()
+
+
 def walk_ids(node, out):
     if isinstance(node, dict):
         for k, v in node.items():
@@ -479,7 +662,16 @@ def verify(tags, weights):
                 continue
         walk_ids(doc, ids)
         for mod in doc.get("given_item_modifiers", []):
-            ids |= set(re.findall(r'id:"([\w:/]+)"', mod.get("tag", "")))
+            tag = mod.get("tag", "")
+            # §groundbait-one-jar: the ids inside a Groundbait tag are PANTRY ids, not item ids — bare
+            # for this mod's own components, `minecraft:`-prefixed for vanilla ones — so the registry
+            # check below would reject every one of them. They get their own check, against the pantry,
+            # because a typo there does not crash: it silently sells a weaker blend, which is worse.
+            for pantry in re.findall(r"Groundbait:\{Parts:\[(.*?)\]\}", tag):
+                for pid in re.findall(r'id:"([\w:/]+)"', pantry):
+                    check(pid in PANTRY_IDS, "unknown pantry component %s in a trade" % pid, fails)
+                tag = tag.replace(pantry, "")
+            ids |= set(re.findall(r'id:"([\w:/]+)"', tag))
 
     known = known_ids()
     for i in sorted(ids):

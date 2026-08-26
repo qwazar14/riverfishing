@@ -35,7 +35,7 @@ Discord: https://discord.gg/Kk2nKvsuRh
 [[dependencies.riverfishing]]
     modId="minecraft"
     type="required"
-    versionRange="[26.1,27)"
+    versionRange="${mcRangeNeo}"
     ordering="NONE"
     side="BOTH"
 

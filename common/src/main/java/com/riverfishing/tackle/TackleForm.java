@@ -29,7 +29,12 @@ public enum TackleForm {
     POPPER("popper", true, false, true, new int[]{7, 12, 30}, 0),
     CRANKBAIT("crankbait", true, false, true, new int[]{8, 14, 22, 40}, 0),
     JIG("jig", true, false, true, new int[]{10, 20, 40, 80, 200}, 0),
-    CASTMASTER("castmaster", true, false, true, new int[]{14, 28, 45, 80, 160}, 0);
+    CASTMASTER("castmaster", true, false, true, new int[]{14, 28, 45, 80, 160}, 0),
+    // §trolling-lures (0.7.0): the two heavy forms a trolled spread actually uses. Their
+    // ladders START above the heaviest older lure (the 180 g spoon), because that is the
+    // gap — the boat blank tests to 400 g and the trolling blank to 600 g.
+    OCTOPUS_JIG("octopus_jig", true, false, true, new int[]{60, 120, 250, 400}, 0),
+    GIANT_SPOON("giant_spoon", true, false, true, new int[]{80, 160, 300, 500}, 0);
 
     /** NBT keys on the tied tackle. */
     public static final String TAG_WEIGHT = "TackleWeightG";
@@ -71,6 +76,28 @@ public enum TackleForm {
     /** Hooks consumed = the rig's own HOOK slots (grusha carries three), lures take one. */
     public int hooksNeeded() {
         return this == GRUSHA ? 3 : 1;
+    }
+
+    /** The angling sizes the bench can tie with, smallest first (§hook-pick). Bigger number = smaller hook. */
+    public static final int[] HOOK_SIZES = {16, 14, 12, 10, 8, 6, 4, 2, 1};
+
+    /**
+     * §hook-pick: what the chosen hook adds to the bill, in whole iron ingots.
+     *
+     * <p>Priced off the hook ladder the player would otherwise climb by hand — a nugget makes two of the
+     * smallest hook and every size up is one nugget more — and then billed at three nuggets to the ingot,
+     * because the bench has no nugget slot and is tying the thing for you.
+     *
+     * <p>That rate is the whole point. At the honest nine-to-one every single-hook rig, which is most of
+     * them, costs exactly one extra ingot no matter which hook you pick, and a choice nobody can feel is
+     * worse than no choice. At three it reads: #16 / #10 / #4 cost 1 / 2 / 3 on one hook, and 1 / 4 / 7 on
+     * the three-hook rig.
+     *
+     * @param sizeIdx index into {@link #HOOK_SIZES}
+     */
+    public static int hookIngots(int sizeIdx, int hooks) {
+        int nuggets = (1 + Math.max(0, Math.min(HOOK_SIZES.length - 1, sizeIdx))) * Math.max(0, hooks);
+        return (nuggets + 2) / 3;
     }
 
     /** §tackle-adv NBT keys. */

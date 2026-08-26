@@ -1,5 +1,6 @@
 {
   "display": "Камбала",
+  "group": "sea",
   "water_bodies": { "sea": 1.2, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 300, "max": 4000, "mean": 900 },
   "length_cm": { "min": 20, "max": 60 },
@@ -8,7 +9,7 @@
     "rod": ["surf", "boat", "bottom"],
     "reel_size": 8000, "reel_tolerance": 2000,
     "line": { "type": "mono", "diameter_mm": 0.30, "tolerance_mm": 0.08 },
-    "rig": ["grusha", "catfish"], "groundbait": [],
+    "rig": ["grusha", "catfish"], "groundbait": { "fraction": 0.56, "nutrition": 0.71 },
     "bait": { "fish_strip": 1.0, "worm": 0.9, "maggot": 0.5 },
     "hook": { "ideal": 6, "tolerance": 2 }
   },

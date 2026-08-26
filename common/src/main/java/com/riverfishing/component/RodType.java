@@ -56,6 +56,14 @@ public enum RodType {
     /** Long-range methods (feeder/bottom/carp/spinning) are blocked on narrow water (Â§4.1). */
     public boolean longRange() { return longRange; }
 
+    /**
+     * §rod-load: the pull (kg) that loads this blank to its full fighting bend — derived from the cast
+     * rating, the one number that already ranks every blank's backbone (10 g ultralight … 600 g
+     * trolling). Not a break limit: the bend gauge, so the same fish bows an ultralight flat and
+     * barely nods a trolling rod.
+     */
+    public double fightPowerKg() { return 1.5 * Math.sqrt(castWeightMax); }
+
     public boolean acceptsReelSize(int size) {
         return takesReel && size >= minReel && size <= maxReel;
     }

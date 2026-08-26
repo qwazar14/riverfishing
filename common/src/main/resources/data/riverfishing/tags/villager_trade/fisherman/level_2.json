@@ -4,10 +4,9 @@
     "riverfishing:fisherman/2/reel_2000",
     "riverfishing:fisherman/2/reel_3000",
     "riverfishing:fisherman/2/line_mono_018",
-    "riverfishing:fisherman/2/groundbait_grain",
+    "riverfishing:fisherman/2/groundbait_soil",
     "riverfishing:fisherman/2/bait_trap",
     "riverfishing:fisherman/2/oak_boat",
-    "riverfishing:fisherman/2/assembled_float_rig",
     "riverfishing:fisherman/2/assembled_bamboo_rod",
     "riverfishing:fisherman/2/buy_crucian_carp",
     "riverfishing:fisherman/2/buy_perch",
@@ -17,6 +16,7 @@
     "riverfishing:fisherman/2/buy_white_eye_bream",
     "riverfishing:fisherman/2/buy_nase",
     "riverfishing:fisherman/2/buy_vimba",
-    "riverfishing:fisherman/2/buy_white_bream"
+    "riverfishing:fisherman/2/buy_white_bream",
+    "riverfishing:fisherman/2/buy_golden_crucian"
   ]
 }

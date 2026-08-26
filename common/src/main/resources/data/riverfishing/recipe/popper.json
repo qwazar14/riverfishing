@@ -1,9 +1,11 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:iron_nugget" },
-    { "item": "minecraft:bamboo" },
-    { "tag": "riverfishing:hooks" }
+    "minecraft:iron_nugget",
+    "minecraft:bamboo",
+    "#riverfishing:hooks"
   ],
-  "result": { "id": "riverfishing:popper" }
+  "result": {
+    "id": "riverfishing:popper"
+  }
 }

@@ -44,5 +44,13 @@ public final class ModBlockEntities {
     public static final RegistrySupplier<BlockEntityType<AquariumBlockEntity>> AQUARIUM =
             REGISTER.register("aquarium", () -> com.riverfishing.platform.PlatformHelper.createBlockEntityType(AquariumBlockEntity::new, ModBlocks.AQUARIUM.get()));
 
+    // §tackle-box (0.7.0): holds the box ITEM, so the placed box and the carried box are one object.
+    public static final RegistrySupplier<BlockEntityType<com.riverfishing.block.TackleBoxBlockEntity>> TACKLE_BOX =
+            // §26.x: same platform seam as the types above — Builder.of(...).build(null) is gone.
+            REGISTER.register("tackle_box", () -> com.riverfishing.platform.PlatformHelper.createBlockEntityType(
+                    com.riverfishing.block.TackleBoxBlockEntity::new,
+                    ModBlocks.TACKLE_BOXES.values().stream()
+                            .map(RegistrySupplier::get).toArray(net.minecraft.world.level.block.Block[]::new)));
+
     private ModBlockEntities() {}
 }

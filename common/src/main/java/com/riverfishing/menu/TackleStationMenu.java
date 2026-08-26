@@ -1,7 +1,7 @@
 package com.riverfishing.menu;
 
-import com.riverfishing.item.HookItem;
 import com.riverfishing.item.StackNbt;
+import com.riverfishing.registry.ModItems;
 import com.riverfishing.registry.ModMenus;
 import com.riverfishing.rig.RigData;
 import com.riverfishing.rig.RigLayout;
@@ -29,11 +29,21 @@ import java.util.List;
  * consumes the materials. Slots hand their contents back on close (no BlockEntity).
  */
 public class TackleStationMenu extends AbstractContainerMenu {
-    public static final int SLOT_HOOK = 0;
-    public static final int SLOT_IRON = 1;
-    public static final int SLOT_STRING = 2;
-    public static final int SLOT_DYE = 3;
-    public static final int SLOT_RESULT = 4;
+    // Container (block-entity) indices. Deliberately UNCHANGED by §hook-pick so an existing bench's
+    // contents still read as what they are: index 0 used to hold hooks, is no longer bound to any slot,
+    // and whatever a player left in it is handed back the first time they open the bench.
+    private static final int C_HOOK = 0;
+    private static final int C_IRON = 1;
+    private static final int C_STRING = 2;
+    private static final int C_DYE = 3;
+
+    // Menu slot order — what quickMoveStack and the screen index by. No longer the same numbers as the
+    // container above, which is the whole reason they are now two named sets instead of one.
+    public static final int SLOT_IRON = 0;
+    public static final int SLOT_STRING = 1;
+    public static final int SLOT_DYE = 2;
+    public static final int SLOT_RESULT = 3;
+    private static final int INV_START = 4;
 
     private final Player player;
     private final BlockPos pos;
@@ -44,6 +54,8 @@ public class TackleStationMenu extends AbstractContainerMenu {
     // §tackle-adv: the fine-tuning knobs; defaults = a sane middle nobody has to touch.
     private final DataSlot leaderCm = DataSlot.standalone();
     private final DataSlot balancePos = DataSlot.standalone();
+    /** §hook-pick: the hook is CHOSEN, not fed in — index into {@link TackleForm#HOOK_SIZES}. */
+    private final DataSlot hookIndex = DataSlot.standalone();
 
     public TackleStationMenu(int id, Inventory inv, BlockPos pos) {
         super(ModMenus.TACKLE_STATION.get(), id);
@@ -54,23 +66,21 @@ public class TackleStationMenu extends AbstractContainerMenu {
         this.materials = inv.player.level().getBlockEntity(pos)
                 instanceof com.riverfishing.block.TackleStationBlockEntity be
                 ? be.items() : new SimpleContainer(4);
-        // §26.x: SimpleContainer lost addListener, so the result preview refreshes from the menu's own
-        // slotsChanged hook instead (see below). Without it the bench renders fine and never shows a
-        // result when you feed it — which reads as broken.
+        // §hook-pick migration: the hook slot is gone, so anything still sitting in it goes back to the
+        // player the first time this bench is opened. Server only — the client's copy is a mirror, and
+        // handing the same stack back on both sides is how you print one.
+        // §26.1: Level.isClientSide the FIELD is private now — call the isClientSide() method.
+        if (!inv.player.level().isClientSide() && !materials.getItem(C_HOOK).isEmpty()) {
+            inv.player.getInventory().placeItemBackInInventory(materials.removeItemNoUpdate(C_HOOK));
+            materials.setChanged();
+        }
 
-        addSlot(new Slot(materials, SLOT_HOOK, 14, 138) {
-            @Override public boolean mayPlace(ItemStack s) { return s.getItem() instanceof HookItem; }
-        });
-        addSlot(new Slot(materials, SLOT_IRON, 38, 138) {
-            @Override public boolean mayPlace(ItemStack s) { return s.is(Items.IRON_INGOT); }
-        });
-        addSlot(new Slot(materials, SLOT_STRING, 62, 138) {
-            @Override public boolean mayPlace(ItemStack s) { return s.is(Items.STRING); }
-        });
-        addSlot(new Slot(materials, SLOT_DYE, 86, 138) {
-            @Override public boolean mayPlace(ItemStack s) { return s.getItem() instanceof DyeItem; }
-        });
-        addSlot(new Slot(result, 0, 152, 138) {
+        // Positions unchanged: x=38 is where the hook slot was, and the hook PICKER now sits there — the
+        // material row keeps its shape and the hook stays where players already look for it.
+        material(C_IRON, 76, s -> s.is(Items.IRON_INGOT));
+        material(C_STRING, 100, s -> s.is(Items.STRING));
+        material(C_DYE, 124, s -> s.getItem() instanceof DyeItem);
+        addSlot(new Slot(result, 0, 176, 150) {
             @Override public boolean mayPlace(ItemStack s) { return false; }
             @Override public boolean mayPickup(Player p) { return !getItem().isEmpty(); }
             @Override public void onTake(Player p, ItemStack taken) {
@@ -83,19 +93,21 @@ public class TackleStationMenu extends AbstractContainerMenu {
         // Player inventory + hotbar.
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(inv, col + row * 9 + 9, 20 + col * 18, 168 + row * 18));
+                addSlot(new Slot(inv, col + row * 9 + 9, 43 + col * 18, 180 + row * 18));
             }
         }
         for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(inv, col, 20 + col * 18, 228));
+            addSlot(new Slot(inv, col, 43 + col * 18, 240));
         }
 
         addDataSlot(formIndex);
         addDataSlot(weightIndex);
         addDataSlot(leaderCm);
         addDataSlot(balancePos);
+        addDataSlot(hookIndex);
         leaderCm.set(form().rig ? form().defaultLinkCm : 40);
         balancePos.set(1);
+        hookIndex.set(3);        // hook 10 — the middle of the ladder, and what the old ghost slot showed
         updateResult();
     }
 
@@ -114,6 +126,18 @@ public class TackleStationMenu extends AbstractContainerMenu {
 
     public int leaderCm() { return Math.max(5, leaderCm.get()); }
     public int balancePos() { return Math.floorMod(balancePos.get(), 3); }
+
+    /** §hook-pick: index into {@link TackleForm#HOOK_SIZES}. */
+    public int hookIdx() { return Math.floorMod(hookIndex.get(), TackleForm.HOOK_SIZES.length); }
+
+    /** The angling size of the hook the bench will tie on, e.g. 10 for a hook 10. */
+    public int hookSize() { return TackleForm.HOOK_SIZES[hookIdx()]; }
+
+    /** Iron the current tackle costs — its own metal PLUS the hooks the bench now supplies (§hook-pick). */
+    public int ironNeeded() {
+        TackleForm f = form();
+        return f.ironFor(weightGrams()) + TackleForm.hookIngots(hookIdx(), f.hooksNeeded());
+    }
 
     /** 0..N = form; 100+i = weight step; 200+cm = leader length (§tackle-adv); 400+i = balance. */
     @Override
@@ -142,15 +166,17 @@ public class TackleStationMenu extends AbstractContainerMenu {
             updateResult();
             return true;
         }
+        if (id >= 500 && id < 500 + TackleForm.HOOK_SIZES.length) {
+            hookIndex.set(id - 500);
+            updateResult();
+            return true;
+        }
         return false;
     }
 
     private boolean materialsPresent() {
-        TackleForm f = form();
-        return materials.getItem(SLOT_HOOK).getItem() instanceof HookItem
-                && materials.getItem(SLOT_HOOK).getCount() >= f.hooksNeeded()
-                && materials.getItem(SLOT_IRON).getCount() >= f.ironFor(weightGrams())
-                && materials.getItem(SLOT_STRING).getCount() >= f.stringNeeded();
+        return materials.getItem(C_IRON).getCount() >= ironNeeded()
+                && materials.getItem(C_STRING).getCount() >= form().stringNeeded();
     }
 
     private void updateResult() {
@@ -166,13 +192,15 @@ public class TackleStationMenu extends AbstractContainerMenu {
         int balance = balancePos();
         TackleForm.stamp(out, f, grams, player.getPlainTextName(), leader, balance);
         if (f.rig) {
-            // The consumed hooks go straight INTO the rig's hook slots — the rig comes ready to bait.
+            // §hook-pick: the bench TIES the chosen size on — the rig comes ready to bait, and the player
+            // never has to have crafted that hook at all; they paid for it in iron (see ironNeeded).
+            ItemStack hook = new ItemStack(ModItems.HOOKS.get(hookIdx()).get());
             SlotRole[] roles = RigLayout.rolesFor(RigData.rigType(out));
             NonNullList<ItemStack> contents = RigData.load(out);
             int placed = 0;
             for (int i = 0; i < roles.length && placed < f.hooksNeeded(); i++) {
                 if (roles[i] == SlotRole.HOOK) {
-                    contents.set(i, materials.getItem(SLOT_HOOK).copyWithCount(1));
+                    contents.set(i, hook.copyWithCount(1));
                     placed++;
                 }
             }
@@ -191,9 +219,29 @@ public class TackleStationMenu extends AbstractContainerMenu {
     }
 
     /**
-     * §26.x replacement for the old container listener: the result preview has to follow whatever the
-     * player drops into the material slots.
+     * One material slot: what it accepts, plus the thing all four must do — refresh the preview.
+     *
+     * <p>§26.x: {@code SimpleContainer.addListener} is gone, and the port replaced it with an override
+     * of {@link #slotsChanged}. That hook is not a general notification: vanilla only reaches it from
+     * containers that call {@code menu.slotsChanged(this)} themselves (CraftingContainer, TransientCraftingContainer),
+     * and the bench's container is the block entity's plain one — so nothing ever called it and the
+     * result slot stayed empty no matter what you fed the bench. {@code Slot#setChanged} IS called on
+     * every path that writes a slot, so the notification is taken from there instead. Going through
+     * one helper is deliberate: four hand-written copies is exactly how three of them end up right.
      */
+    private void material(int index, int x, java.util.function.Predicate<ItemStack> accepts) {
+        addSlot(new Slot(materials, index, x, 150) {
+            @Override public boolean mayPlace(ItemStack s) { return accepts.test(s); }
+
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                updateResult();
+            }
+        });
+    }
+
+    /** Kept for the paths that DO call it (a bundle emptied into the bench goes through here). */
     @Override
     public void slotsChanged(net.minecraft.world.Container container) {
         super.slotsChanged(container);
@@ -202,11 +250,12 @@ public class TackleStationMenu extends AbstractContainerMenu {
 
     private void consumeMaterials() {
         TackleForm f = form();
-        materials.getItem(SLOT_HOOK).shrink(f.hooksNeeded());
-        materials.getItem(SLOT_IRON).shrink(f.ironFor(weightGrams()));
-        materials.getItem(SLOT_STRING).shrink(f.stringNeeded());
-        if (f.dyeable && !materials.getItem(SLOT_DYE).isEmpty()) {
-            materials.getItem(SLOT_DYE).shrink(1);
+        // The iron pays for the hooks too — one number, charged by the same method that showed it in the
+        // GUI, so the price a player read and the price they paid cannot drift apart.
+        materials.getItem(C_IRON).shrink(ironNeeded());
+        materials.getItem(C_STRING).shrink(f.stringNeeded());
+        if (f.dyeable && !materials.getItem(C_DYE).isEmpty()) {
+            materials.getItem(C_DYE).shrink(1);
         }
         materials.setChanged();
     }
@@ -218,13 +267,13 @@ public class TackleStationMenu extends AbstractContainerMenu {
         ItemStack stack = slot.getItem();
         ItemStack before = stack.copy();
         if (index == SLOT_RESULT) {
-            if (!moveItemStackTo(stack, 5, slots.size(), true)) return ItemStack.EMPTY;
+            if (!moveItemStackTo(stack, INV_START, slots.size(), true)) return ItemStack.EMPTY;
             slot.onTake(p, stack);
-        } else if (index < 5) {
-            if (!moveItemStackTo(stack, 5, slots.size(), false)) return ItemStack.EMPTY;
+        } else if (index < INV_START) {
+            if (!moveItemStackTo(stack, INV_START, slots.size(), false)) return ItemStack.EMPTY;
         } else {
-            int target = stack.getItem() instanceof HookItem ? SLOT_HOOK
-                    : stack.is(Items.IRON_INGOT) ? SLOT_IRON
+            // Hooks are no longer a material (§hook-pick), so shift-clicking one here does nothing.
+            int target = stack.is(Items.IRON_INGOT) ? SLOT_IRON
                     : stack.is(Items.STRING) ? SLOT_STRING
                     : stack.getItem() instanceof DyeItem ? SLOT_DYE : -1;
             if (target < 0 || !moveItemStackTo(stack, target, target + 1, false)) return ItemStack.EMPTY;

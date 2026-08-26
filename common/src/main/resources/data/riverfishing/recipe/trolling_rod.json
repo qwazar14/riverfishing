@@ -6,18 +6,10 @@
     "id "
   ],
   "key": {
-    "n": {
-      "item": "minecraft:nautilus_shell"
-    },
-    "d": {
-      "item": "minecraft:diamond"
-    },
-    "i": {
-      "item": "minecraft:iron_ingot"
-    },
-    "s": {
-      "item": "minecraft:string"
-    }
+    "n": "minecraft:nautilus_shell",
+    "d": "minecraft:diamond",
+    "i": "minecraft:iron_ingot",
+    "s": "minecraft:string"
   },
   "result": {
     "id": "riverfishing:trolling_rod"

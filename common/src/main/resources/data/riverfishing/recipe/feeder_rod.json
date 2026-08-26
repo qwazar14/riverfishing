@@ -6,15 +6,9 @@
     "ii "
   ],
   "key": {
-    "g": {
-      "item": "minecraft:gold_ingot"
-    },
-    "i": {
-      "item": "minecraft:iron_ingot"
-    },
-    "s": {
-      "item": "minecraft:string"
-    }
+    "g": "minecraft:gold_ingot",
+    "i": "minecraft:iron_ingot",
+    "s": "minecraft:string"
   },
   "result": {
     "id": "riverfishing:feeder_rod"

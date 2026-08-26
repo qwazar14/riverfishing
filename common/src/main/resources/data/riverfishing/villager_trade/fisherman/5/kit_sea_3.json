@@ -1,0 +1,32 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 51
+  },
+  "gives": {
+    "id": "riverfishing:tackle_box_large"
+  },
+  "given_item_modifiers": [
+    {
+      "function": "minecraft:set_custom_data",
+      "tag": "{Box:[{s:0,i:{id:\"riverfishing:leader_titanium\",count:2}},{s:1,i:{id:\"riverfishing:octopus_jig\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:139,BalancePos:1},\"minecraft:dyed_color\":10904926}}},{s:2,i:{id:\"riverfishing:giant_spoon\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:169,BalancePos:1},\"minecraft:dyed_color\":3044727}}},{s:3,i:{id:\"riverfishing:rig_ground\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:100,LeaderLenCm:40}}}},{s:4,i:{id:\"riverfishing:hook_2\",count:3}},{s:5,i:{id:\"riverfishing:hook_4\",count:3}},{s:6,i:{id:\"riverfishing:line_braid_040\",count:1}},{s:7,i:{id:\"riverfishing:livebait\",count:4}}]}"
+    },
+    {
+      "function": "minecraft:set_components",
+      "components": {
+        "minecraft:custom_name": {
+          "translate": "kit.riverfishing.sea",
+          "italic": false
+        },
+        "minecraft:dyed_color": 3038858
+      }
+    }
+  ],
+  "max_uses": 8,
+  "xp": 34,
+  "reputation_discount": 0.05,
+  "merchant_predicate": {
+    "condition": "minecraft:random_chance",
+    "chance": 0.33333
+  }
+}

@@ -19,6 +19,7 @@ import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerData;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.item.trading.TradeSet;
 import net.minecraft.world.item.trading.VillagerTrade;
@@ -81,6 +82,199 @@ public final class ModVillagers {
                     ImmutableSet.of(), ImmutableSet.of(),
                     SoundEvents.VILLAGER_WORK_FISHERMAN,
                     tradeSets()));
+
+    /**
+     * §order-tier: which fisherman level buys each species. The order-of-the-day board prints it — the
+     * standing complaint that an order can name a fish the player's own fisherman will not take is, at
+     * bottom, that the requirement was never stated anywhere.
+     *
+     * <p>§26.1: the trades are data, so the answer is READ OUT of the generated datapack rather than
+     * recorded while Java builders run — {@code fisherman/<level>/buy_<species>} is the id
+     * {@code gen_villager_trades.py} writes for every fish buy, so this cannot drift from the pools.
+     *
+     * @return the lowest fisherman level that buys this species, or 0 if none does (also off-world).
+     */
+    public static int buyTier(String species) {
+        // §26.x: ResourceKey.location() is identifier() here — the same rename that turned
+        // ResourceLocation into Identifier, and the compiler is the one that found it.
+        return buyTrade(species)
+                .map(h -> Integer.parseInt(h.key().identifier().getPath().split("/")[1]))
+                .orElse(0);
+    }
+
+    /**
+     * The generated buy trade for a species — the ONE place that knows the id shape
+     * {@code fisherman/<level>/buy_<species>} the generator writes. {@link #buyTier} and
+     * {@link #basePrice} are two questions with one answer, so they cannot disagree; the level is
+     * read back off the key rather than handed out through a field, because a second return value
+     * smuggled through static state is how two answers get out of step in the first place.
+     */
+    private static Optional<Holder.Reference<VillagerTrade>> buyTrade(String species) {
+        net.minecraft.server.MinecraftServer server = dev.architectury.utils.GameInstance.getServer();
+        if (server == null) return Optional.empty();
+        Registry<VillagerTrade> trades = server.registryAccess().lookupOrThrow(Registries.VILLAGER_TRADE);
+        for (int lvl = 1; lvl <= 5; lvl++) {
+            var found = trades.get(RiverFishing.id("fisherman/" + lvl + "/buy_" + species));
+            if (found.isPresent()) return found;
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * §order-slot: every species some fisherman buys, sorted, so the daily rotation cannot name a fish
+     * nobody takes. Read out of the trade registry — the trades ARE the answer, so there is no second
+     * list to drift. Cached because it can only change with the datapack.
+     */
+    private static java.util.List<String> buyable = java.util.List.of();
+
+    public static java.util.List<String> buyableSpecies() {
+        if (!buyable.isEmpty()) return buyable;
+        net.minecraft.server.MinecraftServer server = dev.architectury.utils.GameInstance.getServer();
+        if (server == null) return java.util.List.of();
+        Registry<VillagerTrade> trades = server.registryAccess().lookupOrThrow(Registries.VILLAGER_TRADE);
+        java.util.TreeSet<String> found = new java.util.TreeSet<>();
+        for (var key : trades.registryKeySet()) {
+            String path = key.identifier().getPath();
+            int cut = path.indexOf("/buy_");
+            if (path.startsWith("fisherman/") && cut > 0) found.add(path.substring(cut + 5));
+        }
+        buyable = java.util.List.copyOf(found);
+        return buyable;
+    }
+
+    /**
+     * §order-slot: one seat on this counter always shows today's order.
+     *
+     * <p>It REPLACES rather than appends, and that is the whole design. An extra offer would have to be
+     * found and reclaimed the next day, and there is nothing on a vanilla MerchantOffer to mark it with
+     * that survives a save — so every scheme for finding it again came down to counting the counter,
+     * which breaks the moment a villager gains a level and vanilla appends behind our seat. Overwriting
+     * a seat in place has none of that: the counter never changes size, so there is nothing to count,
+     * nothing to mark, and nothing to get wrong after a restart.
+     *
+     * <p>The seat is the last fish buy on the counter. On the first day that costs one drawn species,
+     * and from then on it is the same seat every day — which is what makes it a permanent slot that
+     * changes rather than a new trade appearing and disappearing.
+     *
+     * <p>Nothing happens when the stall is too junior to buy today's species, or when it already buys
+     * it: in the second case the player can sell it anyway, and taking the seat would only cost them a
+     * second species for nothing.
+     */
+    private static void orderSlot(Villager villager, ServerLevel level, MerchantOffers offers) {
+        String order = com.riverfishing.fishing.MarketData.orderOfTheDay(level);
+        int tier = buyTier(order);
+        if (tier <= 0 || tier > villager.getVillagerData().level()) return;
+        int seat = -1;
+        for (int i = 0; i < offers.size(); i++) {
+            if (!(offers.get(i).getCostA().getItem() instanceof FishItem fish)) continue;
+            if (fish.species().getPath().equals(order)) return;   // already on the counter
+            seat = i;
+        }
+        if (seat < 0) return;
+        MerchantOffer offer = offerFor(villager, level, order);
+        if (offer == null) return;
+        // The bottom row, every day. Overwriting a seat in the middle of the counter is invisible: the
+        // price moves and nothing tells the player WHICH row the mod is talking about. Taking the seat
+        // and then moving it to the end costs nothing — the counter is the same length either way — and
+        // gives the slot a fixed place to be looked for. It also keeps finding itself: the last fish buy
+        // on the counter tomorrow is this one.
+        offers.remove(seat);
+        offers.add(offer);
+    }
+
+    /**
+     * One buy offer for a species, rolled through the same loot context vanilla uses for trades.
+     *
+     * <p>Rolled REPEATEDLY, and that is the whole of it. Every generated fish buy carries a
+     * {@code merchant_predicate} of {@code random_chance} between 0.15 and 0.5 — that weight is how
+     * §trade-pool folds k species into one pool slot, because a trade whose predicate fails yields no
+     * offer and vanilla's draw simply re-rolls. It is a device of the DRAW. Asking for one named species
+     * is not a draw, so the weight has no meaning here and must not be allowed to decide anything: a
+     * single call returned null five times out of six and the order slot silently did not appear at all.
+     *
+     * <p>Re-rolling is what vanilla itself does with a declined trade, so this is the same answer, not a
+     * workaround. The bound is a runaway guard, not a probability: at the harshest weight in the data
+     * (0.1538) two hundred and fifty-six attempts fail about once in every ten quintillion openings.
+     */
+    private static MerchantOffer offerFor(Villager villager, ServerLevel level, String species) {
+        var trade = buyTrade(species);
+        if (trade.isEmpty()) return null;
+        LootContext context = new LootContext.Builder(new LootParams.Builder(level)
+                .withParameter(LootContextParams.ORIGIN, villager.position())
+                .withParameter(LootContextParams.THIS_ENTITY, villager)
+                .withParameter(LootContextParams.ADDITIONAL_COST_COMPONENT_ALLOWED, Unit.INSTANCE)
+                .create(LootContextParamSets.VILLAGER_TRADE)).create(Optional.empty());
+        for (int i = 0; i < 256; i++) {
+            MerchantOffer offer = trade.get().value().getOffer(context);
+            if (offer != null) return offer;
+        }
+        return null;
+    }
+
+    /** §market-live: the emeralds the datapack pays for this species before the market moves it. */
+    private static int basePrice(String species) {
+        return buyTrade(species)
+                .map(h -> ((com.riverfishing.mixin.VillagerTradeGivesAccessor) (Object) h.value())
+                        .riverfishing$gives().count())
+                .orElse(0);
+    }
+
+    /**
+     * §market-live: re-price this stall's fish buys from the base, every time the counter opens.
+     *
+     * <p>The base is read from where the trade was DEFINED, never from the offer's current count —
+     * feeding the output back in would multiply ×2.5 on top of ×2.5 every time the player looked.
+     */
+    public static void repriceFishBuys(Villager villager, net.minecraft.world.entity.player.Player player) {
+        if (!(villager.level() instanceof ServerLevel level)) return;
+        if (!villager.getVillagerData().profession().is(FISHERMAN.getKey())) return;
+        MerchantOffers offers = villager.getOffers();
+        orderSlot(villager, level, offers);
+        var market = com.riverfishing.fishing.MarketData.get(level);
+        for (MerchantOffer offer : offers) {
+            if (!(offer.getCostA().getItem() instanceof FishItem fish)) continue;
+            String species = fish.species().getPath();
+            int base = basePrice(species);
+            if (base <= 0) continue;
+            ItemStack pay = offer.getResult();
+            // A stack is the ceiling: blue marlin at ×2.5 is 70 emeralds, which will not fit in a slot.
+            pay.setCount(Math.min(pay.getMaxStackSize(), market.price(level, species, base)));
+        }
+        sendOrder(level, offers, player);
+    }
+
+    /**
+     * §order-panel: tell this player what today's order is, and what THIS counter will pay for it.
+     *
+     * <p>The pay is read off the finished offer rather than recomputed, so the sign and the row beneath
+     * it cannot disagree — they are the same number, read once. Nothing is sent when the stall does not
+     * buy today's species: the panel would be advertising a trade the player cannot make here, and that
+     * silence doubles as the "not our fisherman" signal, because no other profession reaches this far.
+     *
+     * <p>It goes out during startTrading HEAD, which is before openTradingScreen builds the screen
+     * packet on the same connection — so the client always has the order before it has a window.
+     */
+    private static void sendOrder(ServerLevel level, MerchantOffers offers,
+                                  net.minecraft.world.entity.player.Player player) {
+        if (!(player instanceof net.minecraft.server.level.ServerPlayer sp)) return;
+        String order = com.riverfishing.fishing.MarketData.orderOfTheDay(level);
+        if (order.isEmpty()) return;
+        int base = basePrice(order);
+        if (base <= 0) return;
+        // The pay comes off the finished offer when this counter has one, so the sign and the row under
+        // it are the same number read once. When it has none the stall is too junior: say so with the
+        // rank instead of saying nothing.
+        for (MerchantOffer offer : offers) {
+            if (!(offer.getCostA().getItem() instanceof FishItem fish)) continue;
+            if (!fish.species().getPath().equals(order)) continue;
+            com.riverfishing.network.ModNetwork.toPlayer(sp,
+                    new com.riverfishing.network.OrderPacket(fish.species(),
+                            offer.getResult().getCount(), base, buyTier(order)));
+            return;
+        }
+        com.riverfishing.network.ModNetwork.toPlayer(sp,
+                new com.riverfishing.network.OrderPacket(RiverFishing.id(order), 0, base, buyTier(order)));
+    }
 
     /** Prime-grade threshold (§prime-fish): the buyer only takes the top of the species' size range. */
     public static final double PRIME_FRACTION = 0.7;

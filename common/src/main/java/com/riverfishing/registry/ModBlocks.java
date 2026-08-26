@@ -97,6 +97,26 @@ public final class ModBlocks {
     public static final RegistrySupplier<Block> BARLEY_CROP = BLOCKS.register("barley_crop",
             () -> new com.riverfishing.block.BaitCropBlock("barley_seeds", cropProps("barley_crop")));
 
+    /**
+     * §tackle-box (0.7.0): four sizes of set-down tackle box. Their ITEM is a {@link
+     * com.riverfishing.item.TackleBoxItem} (registered in ModItems) rather than a plain BlockItem, because
+     * the same object has to open in the hand as well as stand on the bank.
+     */
+    public static final java.util.Map<com.riverfishing.item.TackleBoxTier, RegistrySupplier<Block>>
+            TACKLE_BOXES = new java.util.EnumMap<>(com.riverfishing.item.TackleBoxTier.class);
+
+    static {
+        for (com.riverfishing.item.TackleBoxTier t : com.riverfishing.item.TackleBoxTier.values()) {
+            // §26.x: Properties MUST carry their registry id — BlockBehaviour's constructor calls
+            // effectiveDrops(), which dereferences it, so a bare Properties.of() throws "Block id not
+            // set" the moment the block is built. That is what blockProps() is for; the tackle boxes
+            // were the one place that missed it.
+            TACKLE_BOXES.put(t, BLOCKS.register(t.id(),
+                    () -> new com.riverfishing.block.TackleBoxBlock(t,
+                            blockProps(t.id()).strength(1.0f).sound(SoundType.WOOD).noOcclusion())));
+        }
+    }
+
     private ModBlocks() {}
 
     // §26.1: every Block/Item Properties must carry its registry id (the ctors throw without it).

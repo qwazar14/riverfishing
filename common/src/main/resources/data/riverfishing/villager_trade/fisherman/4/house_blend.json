@@ -1,0 +1,19 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 5
+  },
+  "gives": {
+    "id": "riverfishing:groundbait_powder",
+    "count": 8
+  },
+  "max_uses": 12,
+  "xp": 6,
+  "reputation_discount": 0.05,
+  "given_item_modifiers": [
+    {
+      "function": "minecraft:set_custom_data",
+      "tag": "{Groundbait:{Parts:[{id:\"groundbait_powder\",n:3},{id:\"pearl_barley\",n:2},{id:\"worm\",n:2},{id:\"maggot\",n:1}]}}"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 {
   "display": "Окунь",
+  "group": "predator",
   "water_bodies": {
     "river": 1.0,
     "lake": 1.1,
@@ -39,7 +40,7 @@
     "rig": [
       "predator"
     ],
-    "groundbait": [],
+    "groundbait": { "fraction": 0.40, "nutrition": 0.70 },
     "bait": {
       "mormyshka": 0.9,
       "livebait": 0.9,

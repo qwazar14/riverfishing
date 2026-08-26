@@ -34,6 +34,24 @@ public class FishItem extends Item {
     // legendary (0.5.0): this specimen is the server one-of-a-kind named fish.
     public static final String TAG_LEGEND = "Legend";
 
+    /**
+     * §dedication: legendaries named for a real person, who gets a line on the fish.
+     *
+     * <p>The Abyssal Demon is idkwho0457_07869's — they brought the mod the whole Florida wave of
+     * species and found a good share of the bugs that shipped fixed with it, and picked the halibut
+     * themselves. Add a species here and give it a {@code legendary.riverfishing.<species>.credit}
+     * line in all three lang files; the tooltip only asks for the key when the name is on this list.
+     */
+    private static final java.util.Set<String> DEDICATED = java.util.Set.of("halibut");
+    /**
+     * §morph: how grown this specimen is, 0..100. Written at creation because only the SERVER has the
+     * fish profiles — the client paints the fish and would otherwise have no idea whether a 900 g bream
+     * is a youngster or an old one.
+     */
+    public static final String TAG_AGE = "Age";
+    /** §morph: the morph id from the {@link com.riverfishing.fish.FishMorph} table, or absent. */
+    public static final String TAG_MORPH = "Morph";
+
     private final Identifier species;
 
     public FishItem(Identifier species, Properties properties) {
@@ -89,7 +107,17 @@ public class FishItem extends Item {
     public static boolean koiReleaseTick(ItemStack stack, net.minecraft.world.entity.item.ItemEntity entity) {
         net.minecraft.world.level.Level level = entity.level();
         if (level.isClientSide()) return false;
-        if (entity.isInWater()) {
+        // §release is a CHOICE, and vanilla already records whether one was made: Player#drop only
+        // calls setThrower when traceItem is true, which is the Q key. An INVOLUNTARY drop records
+        // none — giveFish's inventory-full fallback, Inventory#dropAll on death, a keepnet spill —
+        // and those were being read as "the player let it go", so a landed fish you had no room for
+        // was thrown at the water you were facing and then deleted. Chat said you caught it, the
+        // journal recorded it, and there was nothing in your bag.
+        //
+        // The thrower was already read below, to decide who to credit. It decides whether now too:
+        // one function, one answer.
+        if (entity.isInWater()
+                && entity.getOwner() instanceof net.minecraft.server.level.ServerPlayer thrower) {
             CompoundTag tag = StackNbt.get(stack);
             long now = level.getGameTime();
             if (!tag.contains(TAG_RELEASE_AT)) {
@@ -103,7 +131,7 @@ public class FishItem extends Item {
                     if (released != null) {
                         com.riverfishing.fishing.FishingManager.releaseFish(sl, entity.blockPosition(),
                                 released, getWeightG(stack), stack.getCount(),
-                                entity.getOwner() instanceof net.minecraft.server.level.ServerPlayer t ? t : null);
+                                thrower);
                     }
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE,
                             entity.getX(), entity.getY() + 0.1, entity.getZ(), 14, 0.25, 0.1, 0.25, 0.02);
@@ -139,24 +167,78 @@ public class FishItem extends Item {
     public static ItemStack create(Item fishItem, Identifier species, int weightG, int lengthCm,
                                    boolean legal, boolean trophy) {
         ItemStack stack = new ItemStack(fishItem);
+        // §morph: every fish, from every source — a catch, a bait trap, a villager trade — carries how
+        // grown it is, so the age shading is universal rather than a property of one code path.
+        com.riverfishing.fish.FishProfile profile =
+                com.riverfishing.fish.FishProfileManager.get().byId(species);
+        int age = (int) Math.round(com.riverfishing.fish.FishMorph.ageFraction(profile, weightG) * 100);
         StackNbt.mutate(stack, tag -> {
             tag.putString(TAG_SPECIES, species.toString());
             tag.putInt(TAG_WEIGHT, weightG);
             tag.putInt(TAG_LENGTH, lengthCm);
             tag.putBoolean(TAG_LEGAL, legal);
+            tag.putByte(TAG_AGE, (byte) age);
             if (trophy) tag.putBoolean(TAG_TROPHY, true);
         });
-        // §26.1 §fish-scale: the icon scale rides custom_model_data float[0] — the client item
-        // definition range_dispatches on it into the scale-bucket models (BEWLR is gone).
+        stampIcon(stack);
+        return stack;
+    }
+
+    /**
+     * §26.x: everything the fish's LOOK is dispatched on, written into one component.
+     *
+     * <p>BEWLR is gone, so the two things the old renderer did per specimen are now data the item
+     * carries: {@code floats[0]} is the icon scale (§fish-scale) that the client item definition
+     * range_dispatches into the bucket models, and {@code colors[0]} is the §morph multiply tint the
+     * definition's {@code minecraft:custom_model_data} tint source reads. The port moved the scale and
+     * left the tint behind, so all 79 species rendered as their flat undyed sprite — no age shading, no
+     * morphs — everywhere the item model is drawn.
+     *
+     * <p>Called from every path that writes one of the inputs; the tint depends on species, age AND
+     * morph, and the morph is stamped after the fish is built.
+     *
+     * <p>One thing does NOT come back this way: the white wash that makes a young or albino fish
+     * LIGHTER than its own sprite ({@link com.riverfishing.fish.FishMorph#pale}). An item tint can only
+     * multiply, and multiplying cannot lighten — on 1.21.1 that half rode the renderer's overlay, which
+     * has no equivalent here.
+     */
+    public static void stampIcon(ItemStack stack) {
+        Identifier sp = getSpecies(stack);
+        int tint = sp == null ? -1
+                : com.riverfishing.fish.FishMorph.tint(sp.getPath(), getAge(stack), getMorph(stack));
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
                 new net.minecraft.world.item.component.CustomModelData(
                         java.util.List.of(getIconScale(stack)),
-                        java.util.List.of(), java.util.List.of(), java.util.List.of()));
-        return stack;
+                        java.util.List.of(), java.util.List.of(), java.util.List.of(tint)));
     }
 
     public static boolean isTrophy(ItemStack stack) {
         return StackNbt.get(stack).getBooleanOr(TAG_TROPHY, false);
+    }
+
+    /** §morph: 0..1, how grown this specimen is. Half means a typical fish of its species. */
+    public static double getAge(ItemStack stack) {
+        CompoundTag t = StackNbt.get(stack);
+        return t.getByteOr(TAG_AGE, (byte) 50) / 100.0;
+    }
+
+    /** §morph: the morph id, or "" for an ordinary fish. */
+    public static String getMorph(ItemStack stack) {
+        return StackNbt.get(stack).getStringOr(TAG_MORPH, "");
+    }
+
+    public static void setMorph(ItemStack stack, String morphId) {
+        StackNbt.mutate(stack, t -> t.putString(TAG_MORPH, morphId));
+        stampIcon(stack);   // the morph IS half the tint — see stampIcon
+    }
+
+    /**
+     * §trophy: the weight at which a specimen of this species IS a trophy. A plain reading of the size
+     * range, published in the journal, so the rule is something a player can look up rather than infer.
+     */
+    public static int trophyThresholdG(double weightMinG, double weightMaxG) {
+        return (int) Math.ceil(weightMinG + (weightMaxG - weightMinG)
+                * com.riverfishing.config.RiverFishingConfig.trophyFraction());
     }
 
     /** The fisherman's minimum accepted weight for a species (§prime-fish). */
@@ -177,7 +259,7 @@ public class FishItem extends Item {
     }
 
     public static boolean isPrime(ItemStack stack) {
-        return GRADE_PRIME.equals(StackNbt.get(stack).getString(TAG_GRADE));
+        return GRADE_PRIME.equals(StackNbt.get(stack).getStringOr(TAG_GRADE, ""));
     }
 
     /** Weight as a localized component (§i18n) — "1.50 kg" / "1,50 кг" / "320 g" per the client's lang. */
@@ -185,6 +267,22 @@ public class FishItem extends Item {
         return weightG >= 1000
                 ? Component.translatable("unit.riverfishing.kg", String.format("%.2f", weightG / 1000.0))
                 : Component.translatable("unit.riverfishing.g", weightG);
+    }
+
+    /**
+     * §one-that-got-away: the weight of a fish that was never on the scales. Rounded hard on purpose —
+     * you felt it on the rod and you saw it turn, you did not weigh it, and a figure to the gram would be
+     * a precision the moment never had. Coarser as the fish gets bigger, the way an estimate really is.
+     */
+    public static Component approxWeightText(int weightG) {
+        int step = weightG < 100 ? 10 : weightG < 1000 ? 50 : weightG < 10000 ? 500 : 1000;
+        int rounded = Math.max(step, Math.round(weightG / (float) step) * step);
+        if (rounded < 1000) return Component.translatable("unit.riverfishing.g", rounded);
+        // An estimate has to LOOK like an estimate: half-kilos up to ten, whole kilos above. The normal
+        // two-decimal form would read as "around 30.00 kg", which is a weighed figure, not a guess.
+        return Component.translatable("unit.riverfishing.kg", step >= 1000
+                ? String.valueOf(rounded / 1000)
+                : String.format("%.1f", rounded / 1000.0));
     }
 
     /** Flat-string form of {@link #weightText} for plain-text call sites; resolves the caller-side lang. */
@@ -266,6 +364,14 @@ public class FishItem extends Item {
             if (lsp != null) {
                 tooltip.accept(Component.translatable("legendary.riverfishing." + lsp.getPath())
                         .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+                // §dedication: a legendary named FOR someone says so on the fish itself. Listed in
+                // code rather than guessed from the lang file because a missing translation key renders
+                // as the key, and a fish claiming to honour "legendary.riverfishing.pike.credit" would
+                // be worse than no line at all.
+                if (DEDICATED.contains(lsp.getPath())) {
+                    tooltip.accept(Component.translatable("legendary.riverfishing." + lsp.getPath() + ".credit")
+                            .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
+                }
             }
         }
         if (getWeightG(stack) <= 0) {
@@ -279,6 +385,14 @@ public class FishItem extends Item {
                         .withStyle(ChatFormatting.YELLOW));
             }
             return;
+        }
+        // §morph: named on its own line rather than folded into the item name. A prefix would have to
+        // agree in gender with 79 species names in Russian and Ukrainian, and "Золотистый плотва" is
+        // worse than no feature at all.
+        String morph = tag.getStringOr(TAG_MORPH, "");
+        if (!morph.isEmpty()) {
+            tooltip.accept(Component.translatable("morph.riverfishing." + morph)
+                    .withStyle(ChatFormatting.AQUA, ChatFormatting.ITALIC));
         }
         if (isTrophy(stack)) {
             tooltip.accept(Component.translatable("tooltip.riverfishing.fish_trophy")

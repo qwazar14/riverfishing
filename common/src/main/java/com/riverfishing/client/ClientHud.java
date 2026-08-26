@@ -55,6 +55,11 @@ public final class ClientHud {
         g.fill(cx - w / 2 - 4, y - 3, cx + w / 2 + 4, y + 11, 0x66000000);
         // §26.1: drawString/drawCenteredString are gone — it's text(), and centring is on us.
         g.text(font, text, cx - w / 2, y, color, false);
+
+        // §rod-load: the key cue is GONE — no more [ arrow ] under the crosshair naming the binding to
+        // hold. The rod is the instrument: the blank bends toward the fish and loads with the pull, so a
+        // glyph spelling the answer only repeated what the tackle already shows, and reading a keycap is
+        // not fishing. The bindings still work (§fight-keys, the quiet override) — nothing advertises them.
     }
 
     /** Cast power bar (§cast-minigame): shown while charging a cast (holding RMB with no line out). */

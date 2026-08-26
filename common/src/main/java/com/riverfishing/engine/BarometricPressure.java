@@ -80,6 +80,10 @@ public final class BarometricPressure {
         if (f >= 1.18) return "great";
         if (f >= 1.05) return "good";
         if (f >= 0.92) return "fair";
-        return "poor";
+        // §barometer-words: the bottom used to be one word for everything under 0.92, which is a range
+        // from "slower than usual" down to the 0.70 floor. Split, so a glass worth waiting out reads
+        // differently from a glass worth going to bed on.
+        if (f >= 0.80) return "poor";
+        return "dead";
     }
 }

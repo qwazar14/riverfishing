@@ -20,7 +20,7 @@ Nothing bites by luck. This page is the full model: how the engine decides *what
 
 ## The bite engine
 
-For every one of the 70 species, the engine computes an attractiveness weight **W**. Species with W above zero go into a weighted lottery for *which* fish bites; the **sum** of all their weights decides *how long you wait*.
+For every one of the 79 species, the engine computes an attractiveness weight **W**. Species with W above zero go into a weighted lottery for *which* fish bites; the **sum** of all their weights decides *how long you wait*.
 
 ### Match coefficient M — your tackle
 
@@ -186,6 +186,8 @@ Reeled float rods run the strike-timing bar. Reel-less ones (all three wooden bl
 ### Bottom (Feeder, Bottom, Carp, Surf, Boat)
 
 A long cast and a long wait, with a very forgiving **200-tick** (10 s) bite window and a plain click to set the hook — no timing bar. These are the rods you can leave on a [rod pod](blocks.md#rod-pods) with a [bite alarm](tools.md#bite-alarms).
+
+**These rods are not retrieved.** A right-click *outside* the bite window does not crank the reel — it reels the cast in and ends it. Cast once, then leave it alone until a fish takes. Only the Active rods below are worked with clicks.
 
 ### Active (Ultralight, Spinning, Sea spinning, Trolling)
 
@@ -535,10 +537,10 @@ The fish's in-world icon scales from its length alone: `clamp(length/50, 0.45, 8
 ### Trophies
 
 ```
-chance = 0.04 × clamp(matchScore / 0.85, 0.2, 1.0) + 0.01 per Angler's Luck rank
+trophy  ⇔  weight ≥ weightMin + (weightMax − weightMin) × 0.90
 ```
 
-A trophy is rolled from the **top 15 %** of the species' weight range. It shimmers like enchanted gear, prefixes its name with ★, gives **triple XP**, fights accordingly, and needs a near-ideal kit to appear at all.
+A trophy is not a dice roll: it is a **property of the specimen**. Any fish whose weight lands in the **top tenth** of its species' range is one, which across the 79 profiles works out at roughly 2–7 % of catches — rare on a species with a long tail, commoner on one with a tight range. Everything that pushes a fish up its own range pushes it towards the band: livebait, a heavy lure, Angler's Luck. The journal publishes each species' threshold weight, so it is a number you can look up rather than infer. A trophy shimmers like enchanted gear, prefixes its name with ★, gives **triple XP** and runs longer than an ordinary fish of its species. The `0.90` is [configurable](config.md#values-the-preset-never-touches).
 
 ### Prime grade
 
@@ -550,7 +552,7 @@ Any legal catch at or above 70 % of its species' maximum is graded **prime** —
 
 ### Legendary fish
 
-Seven species hide **one named specimen per server**, rolled at the moment of landing:
+Eight species hide **one named specimen per server**, rolled at the moment of landing:
 
 | Species | Name | Weight | Chance per landing |
 |---|---|---|---|
@@ -561,6 +563,7 @@ Seven species hide **one named specimen per server**, rolled at the moment of la
 | Blue marlin | The Leviathan | 380 kg | 0.8 % |
 | Sturgeon | The Tsar-Fish | 145 kg | 0.4 % |
 | Mako shark | The Megalodon | 390 kg | 0.4 % |
+| Halibut | The Abyssal Demon | 250 kg | 0.4 % |
 
 The actual weight varies ±3 % around the listed figure, the length is the species maximum, and it is always a trophy. The catch is **broadcast to the whole server** in bold gold and recorded forever — there will never be another. A foul-hooked fish can never be the legendary one.
 
@@ -582,22 +585,9 @@ The engine always reads and dulls your **sharpest** hook — you fish with your 
 
 ## Difficulty
 
-The mod ships with four presets. The **realism** preset is the default and the one every number on this page assumes.
+Nine of the harsher mechanics — phantom bites, break sensitivity, spot depletion, leader bite-off, line and hook wear, snags, foul-hooking and how sharply fish spook — move together on a single **preset**: `arcade`, `realism`, `hardcore` or `custom`. **realism** is the default and the one every number on this page assumes; `arcade` cuts the harsh multipliers to roughly a third, `hardcore` raises them by 60–70 %.
 
-| Setting | arcade | realism | hardcore |
-|---|---|---|---|
-| Phantom bite rate (alarms) | ×0.2 | ×1.0 | ×1.6 |
-| Line-break sensitivity | ×0.3 | ×1.0 | ×1.7 |
-| Spot depletion | ×0.3 | ×1.0 | ×1.6 |
-| Leader bite-off chance | 0.30 | 0.75 | 0.95 |
-| Line wear rate | ×0.3 | ×1.0 | ×1.7 |
-| Hook wear rate | ×0.3 | ×1.0 | ×1.7 |
-| Snag chance | ×0.3 | ×1.0 | ×1.6 |
-| Foul-hook chance | ×0.4 | ×1.0 | ×1.6 |
-
-Values not driven by the preset: trophy chance 4 %, frenzy speed ×3, bait and groundbait consumption on, junk bycatch 4.5 %, treasure bycatch 1.3 %.
-
-> There is currently **no config file** — the values are plain defaults in code, fixed at *realism*, and a per-platform loader is still to come. A modpack cannot change the preset yet without patching.
+The preset lives in a config file, and a pack can override each of the nine individually as well as the trophy bar, frenzy speed, bait consumption and the bycatch rates. Every key, default and range is in **[Configuration](config.md#the-preset)**.
 
 ## See also
 

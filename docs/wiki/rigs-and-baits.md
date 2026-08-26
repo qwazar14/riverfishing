@@ -78,6 +78,8 @@ Angling numbering: **a bigger number means a smaller hook.**
 All nine sizes are in the `riverfishing:hooks` tag, so any hook can serve as the hook ingredient in a lure recipe. (Before 0.6.0 the tag stopped at #4, which locked the two biggest hooks — the ones only the master fisherman sells — out of every lure craft.)
 
 **Hook size is a hard gate.** Each species has an ideal hook size and a tolerance; the score falls off linearly and if it drops below **0.34** the fish will simply not take. In practice you must be within roughly ±2.6 × the species' tolerance of its ideal. Put a No.1 on a bleak swim and nothing bites at all.
+**But hook size does not pick the fish's weight.** The hook decides which SPECIES can take; the individual's grams are then rolled inside that species' own range. A No.4 will not keep 20 g gobies off your worm — only a live baitfish ([its weight floors the catch](#live-bait-carries-a-weight)) or a heavy lure does that.
+
 
 A Predator or Winter rig with no separate hook scores a flat **0.85** — the lure's treble and the mormyshka carry their own hooks.
 
@@ -104,7 +106,7 @@ bait presented at the species' preferred depth : bite weight ×1.3
 wrong horizon                                  : bite weight ×0.55
 ```
 
-Every species has a `depth_pref`. Across the 70 species: 33 are **bottom**, 28 **mid**, 9 **surface**.
+Every species has a `depth_pref`. Across the 79 species: 33 are **bottom**, 28 **mid**, 9 **surface**.
 
 ## Natural baits
 
@@ -112,7 +114,7 @@ Twelve natural baits, plus the Ice Jig which lives in bait slots.
 
 | Bait | Item id | Where it comes from |
 |---|---|---|
-| Worm | `worm` | Dig dirt, grass, coarse dirt, podzol, rooted dirt, farmland, dirt path or mud **with a shovel** — 10 % per block. Also the [Worm Farm](blocks.md#worm-farm) and the fisherman. |
+| Worm | `worm` | Dig dirt, grass block, coarse dirt, podzol, rooted dirt, farmland, dirt path or mud **with a shovel** — 10 % per block. Also the [Worm Farm](blocks.md#worm-farm) and the fisherman. |
 | Maggot | `maggot` | Zombie drops (33 %), the [Maggot Farm](blocks.md#maggot-farm), the fisherman. |
 | Bloodworm | `bloodworm` | Drowned drops (33 %), the fisherman. |
 | Chicken Liver | `chicken_liver` | Chicken drops (25 %). |
@@ -151,6 +153,8 @@ Eight lures. All are **predator-only** — a peaceful fish will not take an arti
 | Spinner | `spinner` | Iron Nugget + Iron Ingot + hook (vertical) | Forgiving retrieve. |
 | Spoon Lure | `spoon` | Gold Ingot + hook (vertical) | Forgiving retrieve. |
 | Castmaster | `castmaster` | 2 × Iron Ingot + hook (shapeless) | Long-casting; forgiving retrieve. |
+| Skirted Octopus Jig | `octopus_jig` | Tackle Station only | Trolling weight, 60–400 g. A skirted head for a trolled spread; the pelagics rate it highest. |
+| Giant Spoon | `giant_spoon` | Tackle Station only | Trolling weight, 80–500 g. Big flash and a wide wobble; bluefish and jack crevalle rate it above everything. |
 | Crankbait | `crankbait` | Iron Ingot + Iron Nugget + hook (shapeless) | **Needs a steady rhythm.** |
 | Soft Jig | `jig` | Iron Ingot + String + hook (shapeless) | Forgiving retrieve. |
 | Popper | `popper` | Iron Nugget + Bamboo + hook (shapeless) | **Topwater** — pop-and-pause. |
@@ -166,7 +170,7 @@ Each right-click is one crank. The **gap between clicks** is the lure's action:
 | Lure family | Good cadence | If you get it wrong |
 |---|---|---|
 | Wobbler, Crankbait | a click every **8–18 ticks** (~0.4–0.9 s) | The swimming action dies — fish follow and turn away. |
-| Spinner, Spoon, Soft Jig, Soft Plastic, Castmaster | anything from **5 to 30 ticks** | Almost nothing forgives less. |
+| Spinner, Spoon, Soft Jig, Soft Plastic, Castmaster | anything from **5 to 30 ticks** | Hard to get wrong — the window is that wide. |
 | Popper | Deliberate **pauses** — a pop 6–30 ticks after the last one | Constant cranking drags it under; sitting dead over 60 ticks lets it go stale. |
 
 A good crank pulls the bite **10 ticks closer**; a sloppy one only 2. **Holding** right-click auto-repeats about every 4 ticks — line comes in, but no fish takes that "action". A lure left dead in the water for more than 30 ticks (80 for a popper) pushes the take back out.

@@ -8,62 +8,181 @@
         "threshold": 0.45,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/zander_0"
+          "model": "riverfishing:item/fish_scaled/zander_0",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 0.6,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/zander_1"
+          "model": "riverfishing:item/fish_scaled/zander_1",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 0.75,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/zander_2"
+          "model": "riverfishing:item/fish_scaled/zander_2",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 0.9,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/zander_3"
+          "model": "riverfishing:item/fish_scaled/zander_3",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 1.05,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/zander_4"
+          "model": "riverfishing:item/fish_scaled/zander_4",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 1.25,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/zander_5"
+          "model": "riverfishing:item/fish_scaled/zander_5",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 1.55,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/zander_6"
+          "model": "riverfishing:item/fish_scaled/zander_6",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       },
       {
         "threshold": 2.0,
         "model": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/zander_7"
+          "model": "riverfishing:item/fish_scaled/zander_7",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
+        }
+      },
+      {
+        "threshold": 2.5,
+        "model": {
+          "type": "minecraft:model",
+          "model": "riverfishing:item/fish_scaled/zander_8",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
+        }
+      },
+      {
+        "threshold": 3.2,
+        "model": {
+          "type": "minecraft:model",
+          "model": "riverfishing:item/fish_scaled/zander_9",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
+        }
+      },
+      {
+        "threshold": 4.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "riverfishing:item/fish_scaled/zander_10",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
+        }
+      },
+      {
+        "threshold": 5.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "riverfishing:item/fish_scaled/zander_11",
+          "tints": [
+            {
+              "type": "minecraft:custom_model_data",
+              "index": 0,
+              "default": -1
+            }
+          ]
         }
       }
     ],
     "fallback": {
       "type": "minecraft:model",
-      "model": "riverfishing:item/zander"
+      "model": "riverfishing:item/zander",
+      "tints": [
+        {
+          "type": "minecraft:custom_model_data",
+          "index": 0,
+          "default": -1
+        }
+      ]
     }
   }
 }

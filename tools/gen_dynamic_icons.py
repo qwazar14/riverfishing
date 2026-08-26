@@ -14,9 +14,10 @@ RODS (§rod-layers): items/<rod>.json selects on DISPLAY CONTEXT first —
 FISH (§fish-scale): items/<fish>.json range_dispatches on custom_model_data float[0] (written by
 FishItem.create at the catch) into scale-bucket models that multiply every display-context scale.
 """
-import json, os, shutil
+import io, json, os, re, shutil
 
 ASSETS = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "common", "src", "main", "resources", "assets", "riverfishing"))
+ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 MODELS = os.path.join(ASSETS, "models", "item")
 ITEMS = os.path.join(ASSETS, "items")
 
@@ -43,7 +44,24 @@ PROFILES = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "commo
                                          "resources", "data", "riverfishing", "fish_profiles"))
 FISH = sorted({f[:-5] for f in os.listdir(PROFILES) if f.endswith(".json")}
               & {f[:-5] for f in os.listdir(MODELS) if f.endswith(".json")})
-BUCKETS = [0.45, 0.6, 0.75, 0.9, 1.05, 1.25, 1.55, 2.0]
+# §fish-scale: the ladder FishItem.getIconScale walks (length/50, clamped 0.45..8.0). It used to stop
+# at 2.0, which is the INVENTORY cap — so every fish over a metre rendered identically everywhere, and
+# a 450 cm marlin in the hand was the same object as a 100 cm pike. The rungs above 2.0 exist for the
+# hand and the ground; nothing needs to go past 5.0 because that is where those contexts cap.
+BUCKETS = [0.45, 0.6, 0.75, 0.9, 1.05, 1.25, 1.55, 2.0, 2.5, 3.2, 4.0, 5.0]
+# §fish-scale caps, per display context — the numbers the BEWLR applied on 1.21.1 before 26.x made the
+# model do the sizing. A slot stays readable (0.8..2.0); in the hand, dropped or mounted the giants are
+# the spectacle they are meant to be.
+GUI_MIN, GUI_MAX, WORLD_MAX = 0.8, 2.0, 5.0
+SLOT_CONTEXTS = ("gui", "fixed", "head")
+
+
+def context_scale(ctx, bucket):
+    if ctx == "gui":
+        return min(GUI_MAX, max(GUI_MIN, bucket))
+    if ctx in SLOT_CONTEXTS:
+        return min(GUI_MAX, bucket)
+    return min(WORLD_MAX, bucket)
 
 
 def read(path):
@@ -94,6 +112,40 @@ def hand_display(dz):
 
 def model_node(model):
     return {"type": "minecraft:model", "model": model}
+
+
+# §morph on 26.x: BEWLR is gone, so the per-specimen multiply tint rides custom_model_data colors[0]
+# (written by FishItem.stampIcon) and is read back by this tint source. Default -1 is opaque white,
+# i.e. the sprite exactly as drawn — which is what a fish with no stamp should look like.
+FISH_TINTS = [{"type": "minecraft:custom_model_data", "index": 0, "default": -1}]
+
+
+def fish_node(model):
+    d = model_node(model)
+    d["tints"] = FISH_TINTS
+    return d
+
+
+def flat_species():
+    """The flatfish, read out of FishPose.java so the two cannot drift apart.
+
+    §fish-pose says a flounder, a halibut and a ray lie flat "in open water, in the aquarium and on the
+    ground where you dropped it". The first two are code; the third was the BEWLR's doing and did not
+    survive the port, so on 26.x they stood on their edge on the bank. It is a display transform now,
+    which means it belongs in these generated models — and the species list has to come from the one
+    place that already owns it.
+    """
+    src = os.path.join(ROOT, "common", "src", "main", "java", "com", "riverfishing",
+                       "fish", "FishPose.java")
+    text = io.open(src, encoding="utf-8").read()
+    m = re.search(r"FLAT\s*=\s*Set\.of\(([^)]*)\)", text)
+    if not m:
+        raise SystemExit("FishPose.FLAT not found — the pose table moved, fix this reader")
+    names = re.findall(r'"([^"]+)"', m.group(1))
+    lay = re.search(r"return\s+(-?[\d.]+)f;", text[text.index("public static float lay()"):])
+    if not lay:
+        raise SystemExit("FishPose.lay() not found")
+    return set(names), float(lay.group(1))
 
 
 def str_select(index, cases):
@@ -198,27 +250,39 @@ def main():
         }})
 
     # ---- fish ----
+    flat, lay = flat_species()
     for sp in FISH:
-        fish_display = read(os.path.join(MODELS, sp + ".json")).get("display", {})
+        base = os.path.join(MODELS, sp + ".json")
+        fish_display = read(base).get("display", {})
+        # §fish-pose: a flatfish lies down where it is DROPPED. Only "ground" — in a slot or in the hand
+        # the icon is a picture of the fish and should stay the picture that was drawn.
+        if sp in flat:
+            ground = dict(fish_display.get("ground", {"translation": [0, 2, 0]}))
+            ground["rotation"] = [lay, 0, 0]
+            fish_display["ground"] = ground
+            d = read(base)
+            d.setdefault("display", {})["ground"] = ground
+            write(base, d)
         entries = []
         for i, s in enumerate(BUCKETS):
             scaled = {}
             for ctx, tr in fish_display.items():
                 t = dict(tr)
-                t["scale"] = [round(v * s, 4) for v in t.get("scale", [1, 1, 1])]
+                k = context_scale(ctx, s)
+                t["scale"] = [round(v * k, 4) for v in t.get("scale", [1, 1, 1])]
                 scaled[ctx] = t
             write(os.path.join(MODELS, "fish_scaled", "%s_%d.json" % (sp, i)), {
                 "parent": "riverfishing:item/" + sp,
                 "display": scaled,
             })
             entries.append({"threshold": s,
-                            "model": model_node("riverfishing:item/fish_scaled/%s_%d" % (sp, i))})
+                            "model": fish_node("riverfishing:item/fish_scaled/%s_%d" % (sp, i))})
         write(os.path.join(ITEMS, sp + ".json"), {"model": {
             "type": "minecraft:range_dispatch",
             "property": "minecraft:custom_model_data",
             "index": 0,
             "entries": entries,
-            "fallback": model_node("riverfishing:item/" + sp),
+            "fallback": fish_node("riverfishing:item/" + sp),
         }})
 
     print("rods: %d defs, %d layer models x2 variants; fish: %d x %d buckets" %
