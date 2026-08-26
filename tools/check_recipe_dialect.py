@@ -70,12 +70,17 @@ def main():
     if not os.path.isdir(folder):
         folder = os.path.join(base, "recipes")
 
+    # RECURSIVE on purpose: recipe/ has held subfolders before (recipe/cutting/ for Farmer's Delight),
+    # and a non-recursive scan would call a tree clean while a nested file spoke the wrong dialect.
+    files = []
+    for base_dir, _, names in os.walk(folder):
+        files += [os.path.join(base_dir, n) for n in names if n.endswith(".json")]
+
     wrong, total = [], 0
-    for f in sorted(os.listdir(folder)):
-        if not f.endswith(".json"):
-            continue
+    for path in sorted(files):
+        f = os.path.relpath(path, folder).replace("\\", "/")
         total += 1
-        d = json.load(io.open(os.path.join(folder, f), encoding="utf-8"))
+        d = json.load(io.open(path, encoding="utf-8"))
         vals = values(d)
         if not vals:
             continue
