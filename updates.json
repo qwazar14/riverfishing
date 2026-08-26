@@ -1,12 +1,30 @@
 {
   "_comment": "River Fishing update feed (§update-check). Served raw from the mc-1.21.1 branch; the in-game checker compares 'latest' for the running MC version and prints up to 3 bullets per missed release. Bump 'latest' ONLY when a release is actually published.",
   "latest": {
-    "1.20.1": "0.8.1",
-    "1.21.1": "0.8.1",
-    "26.1.2": "0.8.1",
-    "26.2": "0.8.1"
+    "1.20.1": "0.8.2",
+    "1.21.1": "0.8.2",
+    "26.1.2": "0.8.2",
+    "26.2": "0.8.2"
   },
   "changelog": [
+    {
+      "version": "0.8.2",
+      "ru": [
+        "Базовая прикормка снова крафтится на 26.x — рецепт не читался с самой 0.8.0",
+        "Ныряющие больше не выкатывают весь таймаут: нырок стоит вдвое меньше, и рыба наконец устаёт",
+        "Семена мода идут в компостницу и червятницу, опарышница берёт сырое мясо и паучий глаз"
+      ],
+      "uk": [
+        "Базова прикормка знову крафтиться на 26.x — рецепт не читався від самої 0.8.0",
+        "Пірнальники більше не викочують весь таймаут: пірнання коштує вдвічі менше, і риба нарешті втомлюється",
+        "Насіння мода йде в компостер і черв'ятню, опаришниця бере сире м'ясо і павуче око"
+      ],
+      "en": [
+        "Base groundbait can be crafted on 26.x again — the recipe had not parsed since 0.8.0",
+        "Divers stop running out the clock: a dive costs half what it did, and the fish finally tires",
+        "The mod's seeds compost and feed the worm farm; the maggot farm takes raw meat and spider eyes"
+      ]
+    },
     {
       "version": "0.8.1",
       "ru": [
