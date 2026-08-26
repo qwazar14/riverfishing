@@ -37,3 +37,11 @@ __pycache__/
 
 # agent worktrees (git worktree list still tracks them; this only keeps them out of git status)
 .claude/worktrees/
+
+# Hand-collected jars for a tester. Builds, not sources — they do not belong in history.
+prerelease/
+upload-*/
+
+# generated hand-off pack for outside artists (rebuild with the script, never commit 8 MB of art)
+art-pack-journal/
+art-pack-journal.zip

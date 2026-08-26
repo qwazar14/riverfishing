@@ -17,11 +17,11 @@ The items that aren't tackle: how you read the water, keep your gear sharp, and 
 
 ## Fishing Journal
 
-Right-click to read. Six tabs — **Fish**, **Baits & Lures**, **Gear**, **Quests**, **Skills** and **Guides** — covered in [Progression](progression.md#the-fishing-journal).
+Right-click to read. Eight tabs — **Fish**, **Bait & feed**, **Lures**, **Gear**, **Quests**, **Skills**, **Records** and **Guides** — covered in [Progression](progression.md#the-fishing-journal).
 
 The Fish tab is a live bestiary: every species you have caught, with its count, your personal best, and a "how to catch" page listing its water bodies, depth, width, biomes, best season and time, baits and tackle — all read from the **same profile the bite engine uses**, so the advice can never drift from the balance.
 
-The Guides shelf holds twelve written pages: the drag, tackle stress, live bait, *every water is its own*, working the lure, topwater, trolling, sea giants, legendary fish, the market and the daily order, fishing together, and the tackle bench.
+The Guides shelf holds twenty-four written pages, in the order the shelf itself runs: the wait on float and bottom, how the fish notice you before they notice the bait, tackle stress, the drag; groundbait in four pages — the base, the numbers, feeding, the recipes — and the keepnet; working the lure, topwater, live bait; the tackle bench and where the tackle lives; *every water is its own*, the market and the daily order, fishing together; ice fishing; trolling, sea giants, legendary fish; and last the electrofisher, Discord and the thanks.
 
 Your records survive death.
 
@@ -46,7 +46,7 @@ Pressure: 1004 hPa ↓  —  bite: frenzy
 | The species list | Up to 8 species that can bite here **right now**, ordered by environment score. If nothing can: *"The finder is silent — nothing here now"* |
 | *Known for:* | This water's [signature species](water-and-conditions.md#every-water-is-its-own) — they bite ×1.8 |
 | *Stock:* | Every species whose [stock level](stocking.md) is more than 10 % off normal. **(temp)** marks an unsettled transplant |
-| *Pressure:* | The [barometer](water-and-conditions.md#barometric-pressure): reading, trend arrow, and a colour-coded outlook (frenzy / active / fair / sluggish) |
+| *Pressure:* | The [barometer](water-and-conditions.md#barometric-pressure): reading, trend arrow, and a colour-coded outlook (frenzy / active / fair / slow / dead) |
 
 The Fish Finder is sold by a journeyman [fisherman](villager.md) for 14 emeralds, and is the reward-shaped item you want before committing to a long bottom session.
 
@@ -73,7 +73,7 @@ Right-clicking a **Fishing Stall** with the tablet instead reports that block's 
 Hold the knife, put a **caught fish in your other hand**, and right-click.
 
 ```
-fillets = max(1, fishWeightGrams / 300)
+fillets = max(1, fishWeightGrams / 200)
 ```
 
 The fish is consumed, the knife loses 1 durability (of 128), and you get that many **Raw Fish Fillets** — stackable food, unlike the unique catch.
@@ -97,20 +97,7 @@ Cook raw fillets three ways:
 | Furnace | 200 ticks | 0.2 |
 | Campfire | 600 ticks | 0.2 |
 
-### Farmer's Delight cutting board
-
-With **Farmer's Delight** installed, all 65 non-koi species have a cutting-board recipe: a knife on the board yields fillets plus a **50 % chance of Bone Meal**.
-
-The yield is by species size:
-
-| Fillets | Species |
-|---|---|
-| **1** | Bleak, Blue bream, Bluegill, Common dace, Garfish, Gudgeon, Herring, Roach, Round goby, Rudd, Ruffe, Sabrefish |
-| **2** | Barracuda, Bream, Arctic char, Chub, Crucian Carp, Flounder, Grayling, Halibut, Ide, Largemouth bass, Lenok, Mackerel, Nase, Perch, Pink salmon, Rainbow trout, Rotan, Saithe, Atlantic salmon, Sea bass, Smelt, Sturgeon, Taimen, Tench, Trout, Vimba bream, Volga zander, White Bream, White-eye bream, Whitefish |
-| **3** | Asp, Burbot, Carp, Channel catfish, Cod, Conger eel, Eel, Mahi-mahi, Mirror Carp, Pike, Ray, Sailfish, Silver carp, Sterlet, Wahoo, Wild Carp, Yellowfin tuna, Zander |
-| **4** | Blue marlin, Catfish, Grass Carp, Mako shark, Swordfish |
-
-The five koi have no cutting recipe — use the knife if you must.
+One fish is at most **one stack** of fillets, however big it was: a legendary catfish is 64, not 500.
 
 ---
 
@@ -172,12 +159,14 @@ All of these are loot-table injections, so they behave identically on both loade
 |---|---|
 | **Serene Seasons** *(optional)* | Unlocks the whole [seasonal layer](water-and-conditions.md#seasons) of the bite engine, plus spring's faster spot recovery. Without it every season factor is 1.0. |
 | **Biomes O' Plenty** *(optional)* | Richer biomes for the habitat model. BoP biomes carry the vanilla tags, and the mod's `is_swamp` tag names BoP's Bayou, Marsh, Wetland, Bog and Mangrove explicitly. |
-| **Farmer's Delight** *(optional)* | The cutting-board recipes above; the Filleting Knife registers as a knife. |
+| **Farmer's Delight** *(optional)* | The Filleting Knife is in the `forge:tools/knives` tag, so Farmer's Delight and anything else looking for a knife will take it. |
 | **Jade** *(optional)* | Look-at counts for the farms, trap, pod and aquarium. |
 | **JEI** *(optional)* | A "Fishing" category showing each species' baits, tackle, best conditions, water and recommended level. |
 
 ## See also
 
 - [Rigs and baits](rigs-and-baits.md) · [Blocks](blocks.md)
+- [Keepnet](keepnet.md) · [Tackle box](tackle-box.md) — where the catch and the tackle go
 - [Progression](progression.md) · [Water and conditions](water-and-conditions.md)
+- [Electrofisher](electrofisher.md) — the creative-only tool that is not tackle: it decides what lives in a water
 - [Crafting](crafting.md)

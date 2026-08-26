@@ -27,6 +27,11 @@ import java.util.List;
  * <p>The feed is a single updates.json served from the repo (branch-independent content: per-MC-line
  * latest + a shared changelog with ru/en lines). Checked once per game launch, off-thread, with tight
  * timeouts — a dead feed can never stall a login.
+ *
+ * <p><b>It lives on mc-1.21.1 and nowhere else</b> — see FEED below. Every Minecraft version reads that
+ * one url, so there is no per-branch copy to keep in step, and a copy on any other branch is a decoy:
+ * two of them existed, both a release behind, and nothing had ever read either. If you are looking at
+ * this from a port branch and want to change what players are told, change it on mc-1.21.1.
  */
 public final class UpdateChecker {
     private static final String FEED =

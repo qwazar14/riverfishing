@@ -234,6 +234,91 @@ def _result(res):
     return '<i class="ct out ob" title="%s">%s%s</i>' % (label, initials, n)
 
 
+def all_names(lang_code="en"):
+    """Display name -> id for EVERY riverfishing item and block, drawable or not.
+
+    gear_names() answers a different question — "which names have an icon I can put beside them" — and
+    so it drops rod_pod_1, rod_pod_3 and bait_trap, whose models are assembled from vanilla blocks and
+    have no texture of their own. All three have recipes. Looking a recipe up must not depend on whether
+    the thing happens to be drawable, which is why this is a second map rather than a flag on the first.
+    """
+    lang = json.load(io.open(os.path.join(LANGDIR, LOCALE[lang_code] + ".json"), encoding="utf-8"))
+    out = {}
+    for k, v in lang.items():
+        if k.startswith("item.riverfishing.") or k.startswith("block.riverfishing."):
+            out.setdefault(v, k.rsplit(".", 1)[1])
+    return out
+
+
+_recipes_cache = None
+
+
+def recipes():
+    """Every craftable, keyed by the id it produces. Read once; the folder does not change mid-build."""
+    global _recipes_cache
+    if _recipes_cache is None:
+        _recipes_cache = {}
+        for fn in sorted(os.listdir(RECIPES)):
+            if not fn.endswith(".json"):
+                continue
+            d = json.load(io.open(os.path.join(RECIPES, fn), encoding="utf-8"))
+            if d.get("type") not in ("minecraft:crafting_shaped", "minecraft:crafting_shapeless"):
+                continue
+            res = d.get("result")
+            if isinstance(res, dict):
+                _recipes_cache.setdefault(
+                    (res.get("id") or res.get("item") or "").partition(":")[2], d)
+    return _recipes_cache
+
+
+def grid_html(d):
+    """The 3x3 (or shapeless strip) for one recipe — the only place a recipe becomes cells.
+
+    craft_html's appendix and the grids inlined into the wiki's own tables both come through here, so
+    the two can never render the same recipe differently.
+    """
+    if d.get("type") == "minecraft:crafting_shaped":
+        key, pat, cells = d.get("key", {}), d.get("pattern", []), []
+        for r in range(3):
+            row = pat[r] if r < len(pat) else ""
+            for c in range(3):
+                ch = row[c] if c < len(row) else " "
+                cells.append(_cell(key.get(ch)) if ch != " " else _cell(None))
+        return '<div class="cg">%s</div>' % "".join(cells)
+    return '<div class="cs">%s</div>' % "".join(_cell(i) for i in d.get("ingredients", []))
+
+
+def shape(rows):
+    """A 3x3 pattern reduced to what can be compared across languages.
+
+    The wiki writes its grids with its own letters and its own legend — `S = Stick` in English,
+    `S = Палка` in Russian — so neither the letters nor the legend can be matched against the recipe
+    JSON directly. What CAN be matched is the arrangement: which cells are filled, and which of them
+    hold the same thing as each other. Letters are renamed in order of first appearance, so `··S/·S·/S··`
+    and `  a/ a /a  ` reduce to the same string. That catches every real drift — a moved cell, an extra
+    ingredient, a second material where there was one — without knowing a single translated word.
+    """
+    seen, out = {}, []
+    for r in range(3):
+        row = rows[r] if r < len(rows) else ""
+        for c in range(3):
+            ch = row[c] if c < len(row) else " "
+            if ch in (" ", "·", "."):
+                out.append(".")
+            else:
+                out.append(seen.setdefault(ch, chr(ord("a") + len(seen))))
+        out.append("/")
+    return "".join(out[:-1])
+
+
+def recipe_shape(ident):
+    """The canonical shape of a recipe, or None if it is shapeless or unknown."""
+    d = recipes().get(ident)
+    if not d or d.get("type") != "minecraft:crafting_shaped":
+        return None
+    return shape(d.get("pattern", []))
+
+
 # The grid markup is language-independent, but everything around it is prose: the section heading, the
 # seven family headings, and each recipe's caption. Those were English on every page.
 GRID_LABELS = {
@@ -288,31 +373,9 @@ def craft_html(lang_code="en"):
             return "Blocks and tools"
         return "Food and other"
 
-    for fn in sorted(os.listdir(RECIPES)):
-        if not fn.endswith(".json"):
-            continue
-        d = json.load(io.open(os.path.join(RECIPES, fn), encoding="utf-8"))
-        t = d.get("type", "")
-        if t not in ("minecraft:crafting_shaped", "minecraft:crafting_shapeless"):
-            continue
-        res = d.get("result")
-        if not isinstance(res, dict):
-            continue
-        name = (res.get("id") or res.get("item") or "").partition(":")[2]
-        cells = []
-        if t == "minecraft:crafting_shaped":
-            key = d.get("key", {})
-            pat = d.get("pattern", [])
-            for r in range(3):
-                row = pat[r] if r < len(pat) else ""
-                for c in range(3):
-                    ch = row[c] if c < len(row) else " "
-                    cells.append(_cell(key.get(ch)) if ch != " " else _cell(None))
-            grid = '<div class="cg">%s</div>' % "".join(cells)
-        else:
-            ings = d.get("ingredients", [])
-            grid = ('<div class="cs">%s</div>'
-                    % "".join(_cell(i) for i in ings))
+    for name, d in sorted(recipes().items()):
+        res = d["result"]
+        grid = grid_html(d)
         groups[bucket(name)].append(
             '<figure class="rc"><figcaption>%s</figcaption><div class="rr">%s'
             '<span class="ar">&rarr;</span>%s</div></figure>'
@@ -342,6 +405,13 @@ CSS = """
 .rr{display:flex;align-items:center;gap:9px}
 .cg{display:grid;grid-template-columns:repeat(3,22px);grid-auto-rows:22px;gap:2px}
 .cs{display:flex;flex-wrap:wrap;gap:2px;max-width:96px}
+/* A grid standing in prose rather than in a table cell; two of them when a diagram shows a
+   before and an after. */
+.fg{display:flex;align-items:center;gap:14px;margin:0 0 22px;flex-wrap:wrap}
+/* In a table cell a block-level grid stretches to the column, so the column stays as wide as
+   the letter pattern it replaced. Shrink it to its three tracks and the table closes up.
+   Container only — a `td .cg i` would out-specify .ct and eat its tile colour. */
+td .cg,td .cs{width:max-content}
 /* Class selectors only — a `.cg i` here would out-specify .ct and eat its tile colour. */
 .ci,.ct,.cx{width:22px;height:22px;display:flex;align-items:center;
   justify-content:center;border:1px solid var(--rule);background:var(--paper);

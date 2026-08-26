@@ -36,12 +36,28 @@ public final class ModNetwork {
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, SkillUnlockPacket.TYPE, SkillUnlockPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §fight-course: which way the angler is pulling — this version of MC does not tell the server
+        // what a standing player presses, so the fight has to be told.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, FightInputPacket.TYPE, FightInputPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §cull: the electrofisher's list is answered here — re-validated from scratch, creative only.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, CullPacket.TYPE, CullPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §tackle-box: the name field types straight onto the box the player has open.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, TackleBoxRenamePacket.TYPE,
+                TackleBoxRenamePacket.STREAM_CODEC, (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §keepnet: the grid asks, the server decides.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeepnetActionPacket.TYPE, KeepnetActionPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
 
         if (dev.architectury.platform.Platform.getEnvironment() == dev.architectury.utils.Env.SERVER) {
             NetworkManager.registerS2CPayloadType(FloatTimingPacket.TYPE, FloatTimingPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(JournalOpenPacket.TYPE, JournalOpenPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(LineSyncPacket.TYPE, LineSyncPacket.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(ShoalPacket.TYPE, ShoalPacket.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(OrderPacket.TYPE, OrderPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(RodWarningPacket.TYPE, RodWarningPacket.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(CullListPacket.TYPE, CullListPacket.STREAM_CODEC);
         }
     }
 
@@ -54,6 +70,13 @@ public final class ModNetwork {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, LineSyncPacket.TYPE, LineSyncPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, RodWarningPacket.TYPE, RodWarningPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(payload::handleClient));
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, ShoalPacket.TYPE, ShoalPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(payload::handleClient));
+        // §order-panel: what the fisherman wants today, for the counter the player just opened.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, OrderPacket.TYPE, OrderPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(payload::handleClient));
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, CullListPacket.TYPE, CullListPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
     }
 

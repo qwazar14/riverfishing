@@ -1,5 +1,6 @@
 {
   "display": "Сёмга",
+  "group": "salmonid",
   "water_bodies": { "river": 1.1, "sea": 1.0, "lake": 0.2, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 1500, "max": 25000, "mean": 5000 },
   "length_cm": { "min": 50, "max": 130 },
@@ -8,7 +9,7 @@
     "rod": ["spinning", "sea_spin"],
     "reel_size": 5000, "reel_tolerance": 2000,
     "line": { "type": "braid", "diameter_mm": 0.25, "tolerance_mm": 0.06 },
-    "rig": ["predator"], "groundbait": [],
+    "rig": ["predator"], "groundbait": { "fraction": 0.77, "nutrition": 0.75 },
     "bait": { "spoon": 1.0, "wobbler": 0.9, "spinner": 0.8, "fish_strip": 0.5 },
     "hook": { "ideal": 4, "tolerance": 2 }
   },

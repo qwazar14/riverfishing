@@ -30,7 +30,7 @@ Open a loose rig with **sneak + right-click**. A rig socketed in a rod is edited
 |---|---|
 | **Hook** | Any hook |
 | **Bait** | Any natural bait — plus the Ice Jig, which is technically artificial but is the winter rig's only tackle |
-| **Groundbait** | Any of the four groundbaits |
+| **Groundbait** | Base Groundbait, plain or mixed |
 | **Float** | The Float item |
 | **Leader** | Steel, Fluorocarbon or Titanium Leader |
 | **Lure** | Any artificial lure — **or** Live Bait |
@@ -78,6 +78,8 @@ Angling numbering: **a bigger number means a smaller hook.**
 All nine sizes are in the `riverfishing:hooks` tag, so any hook can serve as the hook ingredient in a lure recipe. (Before 0.6.0 the tag stopped at #4, which locked the two biggest hooks — the ones only the master fisherman sells — out of every lure craft.)
 
 **Hook size is a hard gate.** Each species has an ideal hook size and a tolerance; the score falls off linearly and if it drops below **0.34** the fish will simply not take. In practice you must be within roughly ±2.6 × the species' tolerance of its ideal. Put a No.1 on a bleak swim and nothing bites at all.
+**But hook size does not pick the fish's weight.** The hook decides which SPECIES can take; the individual's grams are then rolled inside that species' own range. A No.4 will not keep 20 g gobies off your worm — only a live baitfish ([its weight floors the catch](#live-bait-carries-a-weight)) or a heavy lure does that.
+
 
 A Predator or Winter rig with no separate hook scores a flat **0.85** — the lure's treble and the mormyshka carry their own hooks.
 
@@ -104,7 +106,7 @@ bait presented at the species' preferred depth : bite weight ×1.3
 wrong horizon                                  : bite weight ×0.55
 ```
 
-Every species has a `depth_pref`. Across the 70 species: 33 are **bottom**, 28 **mid**, 9 **surface**.
+Every species has a `depth_pref`. Across the 91 species: 40 are **bottom**, 39 **mid**, 12 **surface**.
 
 ## Natural baits
 
@@ -122,7 +124,7 @@ Twelve natural baits, plus the Ice Jig which lives in bait slots.
 | Dough | `dough` | Wheat + Water Bucket (shapeless). |
 | Bread Crumb | `bread` | 1 × Bread → **4** (shapeless). |
 | Boilie | `boilie` | 2 × Wheat + Egg + Sugar → **4** (shapeless). |
-| Fish strip | `fish_strip` | Any caught fish → **4** (shapeless). The universal saltwater bait. |
+| Raw Fish Fillet | `fish_strip` | Right-click a caught fish with the Filleting Knife — one per 200 g. The universal saltwater bait, a groundbait component, and food once cooked. |
 | Live Bait | `livebait` | Any caught fish of **150 g or less**, put alone in the grid. Or hold the fish, a hook in the off hand, sneak and use. Or gather them in a [Bait Trap](blocks.md#bait-trap). |
 | Ice Jig | `mormyshka` | Gold Nugget + any hook (No.16–No.4) + 2 × String. |
 
@@ -132,7 +134,7 @@ The **Frugal** skill gives a +5 % chance per rank (up to 25 %) that the bait sur
 
 ### Live Bait carries a weight
 
-A live baitfish keeps the weight of the fish it was made from, shown on its tooltip as *"Baitfish: N — culls the small takers"*. During the catch roll it **floors the size** of the fish you get:
+A live baitfish keeps the weight of the fish it was made from, shown on its tooltip as *"Livebait: N — calls predators from 6 × N up"*. During the catch roll it **floors the size** of the fish you get:
 
 ```
 minimum fish weight ≈ 6 × baitfish weight
@@ -144,20 +146,22 @@ Live Bait goes into a **Bait** slot on a bottom rig, or into the **Lure** slot o
 
 ## Artificial lures
 
-Eight lures. All are **predator-only** — a peaceful fish will not take an artificial bait, and the `LURE` slot only exists on the Predator rig.
+Ten lures. All are **predator-only** — a peaceful fish will not take an artificial bait, and the `LURE` slot only exists on the Predator rig.
 
 | Lure | Item id | Recipe | Notes |
 |---|---|---|---|
 | Spinner | `spinner` | Iron Nugget + Iron Ingot + hook (vertical) | Forgiving retrieve. |
 | Spoon Lure | `spoon` | Gold Ingot + hook (vertical) | Forgiving retrieve. |
 | Castmaster | `castmaster` | 2 × Iron Ingot + hook (shapeless) | Long-casting; forgiving retrieve. |
+| Skirted Octopus Jig | `octopus_jig` | **No crafting recipe** — [Tackle Station](tackle-station.md) or the fisherman's Saltwater kit (master tier) | Trolling weight, 60–400 g. A skirted head for a trolled spread; the pelagics rate it highest. |
+| Giant Spoon | `giant_spoon` | **No crafting recipe** — [Tackle Station](tackle-station.md) or the fisherman's Saltwater kit (master tier) | Trolling weight, 80–500 g. Big flash and a wide wobble; bluefish and jack crevalle rate it above everything. |
 | Crankbait | `crankbait` | Iron Ingot + Iron Nugget + hook (shapeless) | **Needs a steady rhythm.** |
 | Soft Jig | `jig` | Iron Ingot + String + hook (shapeless) | Forgiving retrieve. |
 | Popper | `popper` | Iron Nugget + Bamboo + hook (shapeless) | **Topwater** — pop-and-pause. |
 | Wobbler | `wobbler` | **No crafting recipe** — [Tackle Station](tackle-station.md) or the fisherman (expert tier) | **Needs a steady rhythm.** |
 | Soft Plastic | `silicone` | **No crafting recipe** — [Tackle Station](tackle-station.md) or the fisherman (journeyman tier) | Forgiving retrieve. |
 
-The `hook` ingredient is the `riverfishing:hooks` tag (No.16 through No.4).
+The `hook` ingredient is the `riverfishing:hooks` tag (No.16 through No.1).
 
 ### Working the lure
 
@@ -192,39 +196,51 @@ An **undyed** lure skips the colour check entirely.
 
 ## Groundbait
 
-Four categories. Right-click water while holding groundbait to feed a spot.
+One groundbait, and it is a base. Right-click water while holding it to feed a spot; mix your own by
+putting the base in a crafting grid with up to 8 other things. The full system is on its own page: **[Groundbait](groundbait.md)**.
 
 | Groundbait | Item id | Recipe |
 |---|---|---|
-| Powder Groundbait | `groundbait_powder` | Bread + Wheat → **2** |
-| Grain Groundbait | `groundbait_grain` | Wheat + Wheat Seeds → **2** |
-| Oil Cake Groundbait | `groundbait_cake` | Sunflower + **Piston** → **6** (the piston is the press and is *not* consumed) |
-| Pellet Groundbait | `groundbait_pellet` | **No recipe and not sold** — currently only obtainable as the *Catch a tench* quest reward |
-
-How many species list each category as ideal: **cake** 19, **powder** 12, **pellet** 11, **grain** 8.
+| Base Groundbait | `groundbait_powder` | Wheat Seeds + Bread → **2**. The fisherman sells it, and his own house blend at Expert |
 
 ### The fed spot
 
-A hand-fed spot is a **3×3 column zone**:
+A fed spot is a **3×3 column zone**:
 
-- Each feed adds **0.6** freshness, stacking up to 1.0.
-- Freshness **halves every 1800 ticks** (90 seconds) and the zone is completely spent after **3600 ticks** (3 minutes).
+- Each feed adds **0.6** freshness, up to a ceiling set by the mix — **0.48** for plain base, **0.90**
+  for the base plus four rich things. Feeding more reaches the ceiling faster; it never raises it.
+- Freshness **halves every 1800-5400 ticks** and the zone is spent after **3 to 12 minutes**, both
+  depending on the fraction. Dust washes out; whole grain lies where it landed.
 - The centre column counts at full strength; the outer ring at **60 %**.
-- Coloured particle clouds mark active zones — pale for powder, golden for grain, brown for pellet, olive for cake.
+- A coloured particle cloud marks the zone, in the mix's own colour.
+
+**You cannot overfeed.** There is no fullness and no penalty for feeding — the ceiling above is the only
+limit, and it is a property of the mix, not of how much of it went in.
+
+**The same recipe adds up; a different one takes the swim over.** The old bed does not blend into the new
+one.
 
 What it does:
 
 ```
-right groundbait category for the fish : groundbait score 1.0
-wrong category                          : 0.3
-unfed spot                              : 0.4
-bite weight ×= clamp(1 + freshness, 1, 2)
-time-to-bite ×= 1 − 0.40 × freshness
+menu     = how much of the mix this fish actually eats   (its own bait list)
+fraction = 1 - |mix fraction - the species' fraction|    -> 0.45 .. 1.00
+nutrition= 1 - |mix nutrition - the species' nutrition|  -> 0.60 .. 1.00
+variety  = 0.90 .. 1.00 by how many different components
+groundbait score = menu x fraction x nutrition x variety, capped at 1.0
+unfed spot       = 0.4
+
+bite weight  x= clamp(1 + freshness, 1, 2)
+time-to-bite x= 1 - 0.40 x freshness
+size roll    flattens with a coarse mix — a better chance at a good fish, never a promise
 ```
 
-So a freshly fed spot with the right groundbait roughly doubles a fish's attractiveness *and* cuts up to 40 % off the wait.
+So a freshly fed spot with a mix built for the fish roughly doubles its attractiveness *and* cuts up to
+40 % off the wait.
 
-A **feeder cage** (the Groundbait slot on a feeder / flat feeder / 3-hook / carp rig) delivers one charge automatically on every cast, feeding the landing spot exactly as hand-feeding does. A cage counts as a fixed 0.5 freshness; if a hand-fed zone is fresher, the zone wins.
+A **feeder cage** (the Groundbait slot on a feeder / flat feeder / 3-hook / carp rig) empties one on
+every cast **at the bobber**, through the same call hand-feeding makes. There is no separate "cage
+freshness" any more: the cage and your hand build one fed spot between them.
 
 ## See also
 

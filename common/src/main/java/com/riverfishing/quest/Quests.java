@@ -190,13 +190,15 @@ public final class Quests {
             new Quest("q_first_fish", 1, total(1), item("worm", 8), 15),
             new Quest("q_roach", 1, species("roach", 1), item("maggot", 8), 15),
             new Quest("q_species3", 1, distinct(3), item("hook_12", 4), 30),
-            new Quest("q_crucian", 1, species("crucian_carp", 1), item("groundbait_grain", 4), 20),
+            new Quest("q_crucian", 1, species("crucian_carp", 1), item("groundbait_powder", 4), 20),
             new Quest("q_ten_fish", 1, total(10), item("bait_trap", 1), 25),
             new Quest("q_stage1_done", 1, stageComplete(1), emeralds(12), 40),
             // Stage 2 — float & feeder
             new Quest("q_bream", 2, species("bream", 1), item("hook_8", 3), 25),
-            new Quest("q_rudd", 2, species("rudd", 1), item("groundbait_powder", 4), 20),
-            new Quest("q_tench", 2, species("tench", 1), item("groundbait_pellet", 4), 35),
+            // §groundbait-one-jar: the reward ladder teaches the PANTRY now that there is only one jar.
+            // Ballast, then something coarse — the two things a beginner has no idea they want.
+            new Quest("q_rudd", 2, species("rudd", 1), item("groundbait_soil", 6), 20),
+            new Quest("q_tench", 2, species("tench", 1), item("boilie", 6), 35),
             new Quest("q_bream_big", 2, weight("bream", 2000), emeralds(6), 40),
             new Quest("q_species8", 2, distinct(8), item("spinning_rod", 1), 60),
             new Quest("q_stage2_done", 2, stageComplete(2), item("reel_3000", 1), 60),
@@ -227,7 +229,7 @@ public final class Quests {
             new Quest("q_stage5_done", 5, stageComplete(5), item("carp_rod", 1), 150),
             // Stage 6 — under the ice (§winter-quests)
             new Quest("q_ice_first", 6, ice(1), item("mormyshka", 2), 40),
-            new Quest("q_ice_burbot", 6, species("burbot", 1), item("groundbait_cake", 4), 60),
+            new Quest("q_ice_burbot", 6, species("burbot", 1), item("chicken_liver", 4), 60),
             new Quest("q_ice_ruffe", 6, species("ruffe", 1), item("maggot", 12), 30),
             new Quest("q_ice_ten", 6, ice(10), item("winter_rod", 1), 80),
             new Quest("q_ice_thirty", 6, ice(30), emeralds(24), 160),
@@ -236,7 +238,7 @@ public final class Quests {
             // Rewards hand out the exact lure the NEXT quest's fish wants — the stage teaches itself.
             new Quest("q_rotan", 7, species("rotan", 1), item("spinner", 1), 20),
             new Quest("q_nase", 7, species("nase", 1), item("maggot", 12), 30),
-            new Quest("q_vimba", 7, species("vimba", 1), item("groundbait_grain", 4), 40),
+            new Quest("q_vimba", 7, species("vimba", 1), item("pearl_barley", 8), 40),
             new Quest("q_whitefish", 7, species("whitefish", 1), item("bloodworm", 12), 50),
             new Quest("q_char", 7, species("char", 1), item("castmaster", 1), 60),
             new Quest("q_lenok", 7, species("lenok", 1), item("wobbler", 1), 70),

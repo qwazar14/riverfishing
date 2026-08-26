@@ -241,7 +241,12 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
         ItemStack rod = rodStack();
         if (!(rod.getItem() instanceof RodItem)) return; // hand no longer holds the rod — don't stamp NBT on it
         for (int i = 0; i < slotTypes.length; i++) {
-            RodData.set(rod, slotTypes[i], components.getItem(i));
+            // §one-piece: a rod holds ONE of each part. The slot view caps its stack at 1, but the cap is a
+            // UI rule — a stack that reaches the container another way (a dropped-in stack, an older
+            // save, a datapack-given rod) was written whole, and the extra pieces vanished into NBT.
+            // Store one and only one; anything above that never leaves the player's hands.
+            RodData.set(rod, slotTypes[i], components.getItem(i).copyWithCount(
+                    Math.min(1, components.getItem(i).getCount())));
         }
         if (directTackle) {
             RodData.set(rod, ComponentSlot.RIG, directRig); // built-in rig has no visible column
@@ -251,6 +256,19 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
     @Override
     public void removed(Player p) {
         saveToRod();
+        // §one-piece: the rod keeps ONE of each part. Whatever stacked above that goes back to the
+        // player — before this, a stack that reached a slot was written to NBT whole and the extra
+        // pieces were simply gone, which is a quiet way to eat someone's spare lines.
+        for (int i = 0; i < slotTypes.length; i++) {
+            ItemStack st = components.getItem(i);
+            if (st.getCount() > 1) {
+                ItemStack extra = st.copyWithCount(st.getCount() - 1);
+                components.setItem(i, st.copyWithCount(1));
+                if (!p.getInventory().add(extra)) {
+                    p.drop(extra, false);
+                }
+            }
+        }
         super.removed(p);
     }
 

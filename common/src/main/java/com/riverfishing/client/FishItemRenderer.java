@@ -23,6 +23,9 @@ import net.minecraft.world.item.ItemStack;
 public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static FishItemRenderer instance;
 
+    /** §keepnet: when positive, the size to draw at instead of the length-derived one. */
+    public static float gridScale = 0f;
+
     public static FishItemRenderer get() {
         if (instance == null) {
             Minecraft mc = Minecraft.getInstance();
@@ -51,16 +54,20 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         BakedModel model = com.riverfishing.client.platform.ClientPlatform.bakedModel(iconModel(sp.getPath()));
         if (model == null || model == mm.getMissingModel()) return;
 
-        float s = FishItem.getIconScale(stack);
+        // §keepnet: in the grid a fish is sized by the CELLS IT OCCUPIES, not by its length — the
+        // footprint already says how big it is, and multiplying the two makes a catfish fill the screen.
+        // Set by the keepnet screen around its own draws and cleared straight after; the client renders
+        // on one thread, so a static is honest here.
+        float s = gridScale > 0f ? gridScale : FishItem.getIconScale(stack);
         // §fish-scale (0.5.0): the giants are capped per context — an inventory slot or item frame
         // stays readable at ≤2, but in hand, dropped on the ground or mounted the monsters are the
         // spectacle they should be (a 380 cm Megalodon towers over the player at 5 blocks).
         float cap = (ctx == ItemDisplayContext.GUI || ctx == ItemDisplayContext.FIXED
                 || ctx == ItemDisplayContext.HEAD) ? 2.0f : 5.0f;
-        s = Math.min(s, cap);
+        if (gridScale <= 0f) s = Math.min(s, cap);
         // §gui-readability: in a SLOT even a gudgeon should be recognisable — floor the GUI scale
         // (the ground drop and the aquarium keep the true-size 0.45 floor).
-        if (ctx == ItemDisplayContext.GUI) s = Math.max(s, 0.8f);
+        if (ctx == ItemDisplayContext.GUI && gridScale <= 0f) s = Math.max(s, 0.8f);
         // §release: a dropped fish shrinks away over its final 2 s in the water (the client mirrors
         // the server countdown stored in NBT). Only the loose item entity shrinks, not the inventory.
         if ((ctx == ItemDisplayContext.GROUND || ctx == ItemDisplayContext.NONE) && mc.level != null) {
@@ -75,9 +82,24 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         // Cancel one of the ItemRenderer's centring translations (see RodItemRenderer) and scale the
         // sprite about its centre so a longer fish simply reads bigger.
         pose.translate(0.5, 0.5, 0.5);
-        pose.scale(s, s, s);
+        // §fish-pose: dropped on the ground, a flatfish lies on it. Only the loose entity — in a slot the
+        // icon is a picture of the fish and should stay the picture that was drawn.
+        if ((ctx == ItemDisplayContext.GROUND || ctx == ItemDisplayContext.NONE)
+                && com.riverfishing.fish.FishPose.isFlat(sp.getPath())) {
+            pose.mulPose(com.mojang.math.Axis.XP.rotationDegrees(-90f));
+        }
+        // §morph-shape: a stunted fish is short and thin for its weight, a humpbacked one short and deep.
+        // Neither reads from colour, so the sprite itself is stretched — a different silhouette out of the
+        // same drawing, which is the only honest way to show a body-shape morph without new art.
+        float[] sh = com.riverfishing.fish.FishMorph.stretch(FishItem.getMorph(stack));
+        pose.scale(s * sh[0], s * sh[1], s);
         ItemRenderer ir = mc.getItemRenderer();
-        ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, model);
+        // §morph: the multiply tint arrives through the registered item colour, but multiplying can only
+        // ever darken. A young fish is PALER than its own sprite and an albino is nearly white, so the
+        // second half of the paint job rides the overlay's white channel (see FishTint).
+        int ov = FishTint.overlay(stack);
+        ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light,
+                ov == net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY ? overlay : ov, model);
         pose.popPose();
     }
 }

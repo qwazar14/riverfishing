@@ -1,147 +1,241 @@
-# Pre-release testing
+# Тестирование перед релизом
 
-One procedure for every release, across every version the mod ships on. Written for 0.6.0 but the shape
-does not change: only §6 (what is new this release) gets rewritten each time.
+Одна процедура на каждый релиз, для всех версий, на которых выходит мод. Написана под 0.6.0, но форма не
+меняется: каждый раз переписывается только §6 — то, что нового в этом релизе.
 
-The point of the ordering is that **the expensive pass runs once**. Eight instances × a full gameplay
-sweep is a day of work and nobody does it twice. Instead: machine checks first, a cheap smoke on all
-eight, one deep pass on the primary instance, then only the handful of things that genuinely differ per
-version.
+Смысл такого порядка в том, что **дорогой проход делается один раз**. Восемь инстансов × полный игровой
+прогон — это день работы, и дважды его никто делать не будет. Поэтому: сначала машинные проверки, потом
+дешёвый смоук на всех восьми, один глубокий проход на основном инстансе, и только затем та горстка вещей,
+которые действительно различаются от версии к версии.
 
-**Eight instances**, all in PrismLauncher:
+**Восемь инстансов**, все в PrismLauncher:
 
-| MC | Loaders |
+| MC | Загрузчики |
 |---|---|
 | 1.20.1 | Fabric · Forge |
-| 1.21.1 | Fabric · NeoForge — **primary, the deep pass happens here** |
+| 1.21.1 | Fabric · NeoForge — **основной, глубокий проход здесь** |
 | 26.1.2 | Fabric · NeoForge |
 | 26.2 | Fabric · NeoForge |
 
 ---
 
-## 1. Machine gates — run before touching the game
+## 1. Машинные проверки — до того, как трогать игру
 
-From the repo root. All four must be clean; each one has caught a real shipped-quality bug.
+Из корня репозитория. Все четыре должны быть чистыми; каждая из них уже ловила настоящий баг, который
+иначе уехал бы в релиз.
 
 ```bash
-python tools/check_lang.py && python tools/check_wiki_vanilla.py && python tools/wiki_anchors.py --self-test
+py tools/check_lang.py && py tools/check_wiki_vanilla.py && py tools/wiki_anchors.py --self-test
 ```
 
-| Check | Passes when |
+| Проверка | Проходит, когда |
 |---|---|
-| `check_lang.py` | every locale has en_us's key set, the same placeholders, and no species named two ways |
-| `check_wiki_vanilla.py` | the translated wiki uses Mojang's own names for vanilla items |
-| `wiki_anchors.py --self-test` | every cross-page anchor in the wiki resolves |
-| `gradlew build` on each branch | all eight jars build |
+| `check_lang.py` | у каждой локали тот же набор ключей, что у en_us, те же подстановки, и ни один вид не назван двумя способами |
+| `check_wiki_vanilla.py` | переведённая вики использует собственные названия Mojang для ванильных предметов |
+| `wiki_anchors.py --self-test` | каждая межстраничная ссылка в вики ведёт куда-то |
+| `gradlew build` в каждой ветке | собираются все восемь джарников |
 
-Then confirm the jars actually contain what you think:
+Потом убедиться, что джарники действительно содержат то, что вы думаете:
 
 ```bash
-python tools/verify_release_jars.py
+py tools/verify_release_jars.py
 ```
 
-## 2. Install — one jar per instance, nothing else
+## 2. Установка — один джарник на инстанс, и ничего больше
 
-The installer disables the previous version by renaming it to `.jar.disabled` rather than deleting it,
-so a mid-test rollback is one rename.
+Установщик отключает предыдущую версию переименованием в `.jar.disabled`, а не удалением, так что откат
+посреди тестов — это одно переименование.
 
-**Before launching anything, check each instance has exactly ONE `riverfishing-*.jar` and exactly ONE
-`architectury-*.jar`.** Two of either is a duplicate mod id: Forge and NeoForge refuse to launch,
-Fabric picks one arbitrarily and you spend an hour debugging the wrong build. `verify_release_jars.py`
-reports this.
+**Перед запуском чего бы то ни было проверьте, что в каждом инстансе ровно ОДИН `riverfishing-*.jar` и
+ровно ОДИН `architectury-*.jar`.** Два любых из них — это дублирующийся mod id: Forge и NeoForge просто
+не запустятся, а Fabric выберет один произвольно, и вы потратите час на отладку не той сборки.
+`verify_release_jars.py` про это сообщает.
 
-## 3. Smoke, on all eight — about 5 minutes each
+## 3. Смоук, на всех восьми — примерно 5 минут каждый
 
-The goal is only to prove the build loads and its content registered. Creative, superflat, no world
-generation needed.
+Цель только одна: доказать, что сборка грузится и её содержимое зарегистрировалось. Креатив, суперплоский
+мир, генерация мира не нужна.
 
-1. **It launches.** No crash, no "duplicate mods", no missing-dependency screen.
-2. **The log is clean.** Search `latest.log` for `riverfishing` — no `ERROR`, no `Exception`, no
-   `Unknown recipe`, no missing-texture warnings for our namespace.
-3. **The creative tab is populated.** One River Fishing tab, every item has an icon — no black-and-magenta
-   squares, no `item.riverfishing.…` raw keys.
-4. **Language.** Switch to Русский, then Українська. The tab, the rods and the fish are translated in
-   both; nothing shows a raw key.
-5. **Journal opens.** All six tabs render. The Guides shelf has **13** entries and the last one is
-   Discord.
-6. **JEI/recipe book knows us** (where JEI is installed): search "rod", the 13 blanks appear with recipes.
-7. **Quit cleanly.** No hang on world save.
+1. **Запускается.** Ни краша, ни «duplicate mods», ни экрана с недостающей зависимостью.
+2. **Лог чистый.** Поискать в `latest.log` слово `riverfishing` — ни `ERROR`, ни `Exception`, ни
+   `Unknown recipe`, ни предупреждений о недостающих текстурах в нашем неймспейсе.
+3. **Вкладка креатива наполнена.** Одна вкладка River Fishing, у каждого предмета есть иконка — никаких
+   чёрно-фиолетовых квадратов и сырых ключей вида `item.riverfishing.…`.
+4. **Язык.** Переключиться на Русский, затем на Українську. Вкладка, удилища и рыбы переведены в обоих;
+   нигде не торчит сырой ключ.
+5. **Журнал открывается.** Все шесть вкладок рисуются. На полке гайдов **25** записей, последняя —
+   Благодарности.
+6. **JEI/книга рецептов нас знает** (там, где JEI установлен): поиск «rod» — появляются 13 бланков с
+   рецептами.
+7. **Выход чистый.** Никаких зависаний при сохранении мира.
 
-A failure here stops the release for that version — it is a build problem, not a balance problem.
+Провал здесь останавливает релиз для этой версии — это проблема сборки, а не баланса.
 
-## 4. The deep pass — once, on 1.21.1 Fabric
+## 4. Глубокий проход — один раз, на 1.21.1 Fabric
 
-Survival, a fresh world, a real river. This is the pass that decides whether the release is good, and
-it only tells you the truth in survival.
+Выживание, свежий мир, настоящая река. Это тот проход, который решает, хорош ли релиз, и правду он говорит
+только в выживании.
 
-1. **Bait and a first rod.** Dig for worms, craft a stick rod, a line, a hook. Cast. Catch something.
-2. **The assembly hint.** Try to cast a rod with no line: it must name the missing part. Then with a line
-   but no rig. Then a reeled blank with no reel — it must say *reel*, not *line*.
-3. **Open the rod's screen while it is in your hand, change tackle, close, cast.** The change must
-   survive. (This is the §live-rod bug: the screen used to write into a detached copy.)
-4. **The fight.** Hook something over 1 kg. The rod must visibly bend, and the bend must follow the
-   tension, not the clock. Let it run without cranking — the tackle must load anyway. Fight a long one and
-   feel it tire. Then hook something small and confirm it does *not* fight like a monster.
-5. **Break a line on purpose.** Crank a big fish on 0.10 mono. It should break, and the message should
-   say so.
-6. **The Tackle Station.** Right-click a Fishing Stall empty-handed. Tie a rig at each weight step; tie a
-   lure; dye one. Check the tooltip carries the maker's name and the grams. Take the tackle out and
-   confirm the materials were consumed.
-7. **Weight actually matters** — the headline of this release, so prove it three ways:
-   - a lure below the blank's window gives a short cast and a longer wait;
-   - 2.5× over the window cracks the blank on the cast;
-   - a 160 g+ lure stops producing small fish.
-8. **The fisherman.** Find or cure one. Every level must offer **3** trades; level 1 must include one
-   simple fish; every rod on offer must be fully assembled and castable as bought.
-9. **Progression.** Earn a level, buy a skill, complete a quest, claim its reward, get an advancement.
-10. **Blocks.** Rod pod + alarm, bait trap, a worm farm, an aquarium with a fish in it.
-11. **Sea and ice**, if the world allows: one ocean fish on a sea blank, one hole drilled and one fish
-    under the ice.
-12. **Restart the world.** Journal records, angler level, skills, stocking and tackle NBT all survive.
+1. **Наживка и первое удилище.** Накопать червей, скрафтить палку-удочку, леску, крючок. Забросить.
+   Поймать хоть что-нибудь.
+2. **Подсказка сборки.** Попробовать забросить удилище без лески: оно должно назвать недостающую часть.
+   Потом с леской, но без оснастки. Потом катушечный бланк без катушки — должно сказать *катушка*, а не
+   *леска*.
+3. **Открыть экран удилища, пока оно в руке, поменять снасть, закрыть, забросить.** Изменение должно
+   сохраниться. (Это баг §live-rod: экран раньше писал в оторванную копию.)
+4. **Вываживание.** Подсечь что-нибудь больше 1 кг. Удилище должно заметно гнуться, и изгиб должен
+   следовать за нагрузкой, а не за часами. Дать рыбе походить, не подматывая — снасть всё равно должна
+   нагружаться. Вывести долгую рыбу и почувствовать, как она устаёт. Потом подсечь мелочь и убедиться,
+   что она *не* дерётся как монстр.
+5. **Порвать леску специально.** Тянуть крупную рыбу на моно 0.10. Должна порваться, и сообщение должно
+   это сказать.
+6. **Столик для снастей.** ПКМ по рыболовному прилавку с пустой рукой. Связать оснастку на каждом шаге
+   веса; связать приманку; покрасить одну. Проверить, что в подсказке есть имя изготовителя и граммы.
+   Достать снасть и убедиться, что материалы списались.
+7. **Вес действительно важен** — это был заголовок того релиза, так что доказать тремя способами:
+   - приманка легче окна бланка даёт короткий заброс и более долгое ожидание;
+   - 2.5× сверх окна ломает бланк на забросе;
+   - приманка от 160 г перестаёт приносить мелочь.
+8. **Торговец-рыбак.** Найти или вылечить. На каждом уровне должно предлагаться **3** сделки; на 1-м
+   уровне обязательно одна простая рыба; каждое удилище в продаже — полностью собранное и готовое к
+   забросу прямо из покупки.
+9. **Прогрессия.** Получить уровень, купить перк, выполнить квест, забрать награду, получить достижение.
+10. **Блоки.** Род-под с сигнализатором, малявочник, червятник, аквариум с рыбой внутри.
+11. **Море и лёд**, если мир позволяет: одна морская рыба на морском бланке, одна лунка и одна рыба
+    из-подо льда.
+12. **Перезапустить мир.** Записи журнала, уровень рыбака, навыки, зарыбление и NBT снастей — всё должно
+    пережить перезапуск.
 
-## 5. Dialect spot checks — only where the ports genuinely differ
+## 5. Точечные проверки диалектов — только там, где порты действительно расходятся
 
-Everything above is loader-independent *except* these, which is why they get checked per version instead
-of repeating §4 eight times. Each line is a place where the code actually forks.
+Всё, что выше, не зависит от загрузчика — *кроме* этого списка, поэтому он проверяется по версиям, вместо
+того чтобы повторять §4 восемь раз. Каждая строка — место, где код реально ветвится.
 
-| Instance | Check | Why it is here |
+| Инстанс | Что проверить | Почему это здесь |
 |---|---|---|
-| Forge 1.20.1 · NeoForge 1.21.1/26.x | the assembled rod's **layered icon** shows reel/line/rig | Forge uses a BEWLR mixin, NeoForge an event — two different implementations |
-| all four Forge/NeoForge | **rod bends** during a fight | same fork as above |
-| 26.1.2 vs 26.2, both loaders | **the cast line renders** for you *and* for a second player | 26.1 is immediate-mode rendering, 26.2 is submit/collect — the only architectural difference between them |
-| 1.20.1 both | **dyed lure keeps its colour** after a reload | 1.20.1 stores dye in `display.color` NBT, later versions in a component |
-| 1.20.1 both | **tackle NBT survives a world reload** | the whole component→NBT seam is 1.20.1-only code |
-| 26.x all four | **breaking a block still drops bait** | Architectury dropped the `xp` parameter from `BlockEvent.BREAK` in 21.x |
-| 26.2 both | **the journal reopens on tab switch** | `setScreen` → `setScreenAndShow` |
-| 26.2 both | **the Tackle Station's red-dye ghost icon** appears | `Items.RED_DYE` → `Items.DYE.red()` |
-| Fabric ×4 | **the fish finder's HUD line** shows | `options.hideGui` → `gui.hud.isHidden()` on 26.2 |
+| Forge 1.20.1 · NeoForge 1.21.1/26.x | у собранного удилища **слоёная иконка** показывает катушку/леску/оснастку | Forge использует BEWLR-миксин, NeoForge — событие: две разные реализации |
+| все четыре Forge/NeoForge | **удилище гнётся** во время вываживания | та же развилка, что и выше |
+| 26.1.2 против 26.2, оба загрузчика | **леска заброса рисуется** и у вас, *и* у второго игрока | 26.1 рисует немедленно, 26.2 — через submit/collect; это единственная архитектурная разница между ними |
+| 1.20.1 оба | **крашеная приманка сохраняет цвет** после перезахода | 1.20.1 хранит краску в NBT `display.color`, более поздние версии — в компоненте |
+| 1.20.1 оба | **NBT снасти переживает перезагрузку мира** | весь шов «компоненты → NBT» существует только на 1.20.1 |
+| 26.x все четыре | **сломанный блок по-прежнему роняет наживку** | Architectury убрала параметр `xp` из `BlockEvent.BREAK` в 21.x |
+| 26.2 оба | **журнал переоткрывается при переключении вкладок** | `setScreen` → `setScreenAndShow` |
+| 26.2 оба | **призрачная иконка красного красителя** на столике появляется | `Items.RED_DYE` → `Items.DYE.red()` |
+| Fabric ×4 | **строка эхолота в HUD** показывается | `options.hideGui` → `gui.hud.isHidden()` на 26.2 |
+| 26.x все четыре | от первого лица **леска выходит из нарисованного тюльпана**, а заброс уходит ВПЕРЁД — повернуться на 90° градусов, леска не должна прыгнуть | проход руки оставляет матрицу в одном из двух пространств; код ИЗМЕРЯЕТ, в каком именно, следя, уезжает ли кончик вместе с камерой. `/rfrod tipinfo` печатает вердикт |
+| 26.x все четыре | **поза удилища от третьего лица** (F5) и **бланки на род-поде** | на 26.x нет BEWLR: удилище позируют два миксина, а рисуется оно поданными узлами |
+| 1.20.1 оба | **якорь лески от первого лица** | §view-yaw: на этой версии камера и поза руки расходятся на полоборота, и она единственная, которой нужна поправка |
 
-## 6. Known and accepted for 0.6.0 — confirm, do not chase
+## 6. Что изменила 0.8.0 — это тестировать раньше всего остального
 
-Finding these is not a bug report; they are already decided. Confirm they behave as documented so nothing
-worse is hiding behind them.
+Всё ниже в этом релизе новое или переписанное. Именно прохождение этого раздела и ждёт релизный шлюз.
 
-- **Hook link, balance and blade size do nothing.** Written to NBT and shown on the tooltip, read by
-  nothing. The tooltip and the wiki both say so.
-- **The dynamic fish market is absent on 26.x.** Lost in the 0.5.0 port and not yet restored. Prices are
-  static there; on 1.20.1 and 1.21.1 they move.
-- **There is no config file.** Difficulty is fixed at the *realism* preset in code.
-- **Hand-crafted lures weigh 0 g.** Deliberate — it is what makes the bench worth using.
+**Удилище — самое заметное изменение для любого игрока.** Каждый бланк теперь модель, так что сначала
+*посмотрите* на него и только потом ловите. Начать на 1.21.1 Fabric с фидера, потом повторить быстрый
+проход на морском спиннинге (8 секций, самая глубокая цепочка) и на троллинговом (самый жёсткий).
 
-## 7. Release gate
+- **В руке, от первого лица:** бланк сидит в кулаке, направлен от вас и представляет собой целое удилище —
+  не полоску, не сбоку, не одинокий висящий тюльпан. Сделать это для **всех тринадцати**; это самая
+  быстрая проверка в списке и та, что мгновенно ловит сломанную позу.
+- **Леска** выходит из тюльпана, а не из воздуха рядом с ним, и остаётся на тюльпане, пока вы водите
+  взглядом.
+- **Заброс.** Приманка падает туда, куда целились, и леска идёт к ней *вперёд*.
+- **Подсечь рыбу и посмотреть, как грузится бланк.** Он должен гнуться в сторону рыбы: рывок влево кладёт
+  удилище влево, вправо — вправо. Посмотреть вниз, ниже собственной лески — бланк должен перевалиться и
+  выгнуться **вверх**, к тяге, а не сминаться в нижнюю кромку экрана.
+- **§rod-load, ради чего стоит проверить отдельно.** Зарыбить один водоём одним и тем же средним видом
+  дважды (электролов) и вывести его сперва **ультралайтом**, потом **троллинговым**: ультралайт должен
+  согнуться дугой, троллинговое — кивнуть. До этого релиза троллинговое стояло колом — это и был баг.
+- **Физика.** Резко крутануть обзор: тюльпан должен отстать и успокоиться с покачиванием, а не следовать
+  жёстко. `/rfrod phys off` выключает это начисто, `/rfrod phys on` возвращает.
+- **Катушка.** Подматывать во время боя: ручка вращается, а кноб при этом орбитой обходит рычаг, оставаясь
+  ровным. Попробовать 1000 и 14000 — обе должны сидеть в седле своего удилища, а не висеть рядом.
+- **Леска по кольцам.** Намотать плетёнку, потом флюорокарбон, потом моно 0.8 мм: тёмная и плотная, почти
+  невидимая, и заметно толстая — и в каждом случае идущая шпуля → кольца → тюльпан.
+- **Третье лицо (F5)** и **род-под**: настоящие бланки и там, и там, и водяная леска выходит из
+  настоящего кончика. Проверить под на одно удилище и на три.
+- **Никто больше не подсказывает.** Босс-бар НЕ должен говорить, куда ушла рыба, и под прицелом не должно
+  быть значка `[ ← ]`. Если что-то из этого видно — джарник старый.
+- **Рывок у берега теперь бросок кубика.** Вывести шесть-семь рыб: рывок на последнем метре должен
+  случаться иногда, а не каждый раз, и никогда — на прилове.
+- **Откат по-прежнему работает.** `/rfrod blank off` возвращает старые спрайтовые удилища, и леска
+  ведёт себя нормально; `on` возвращает модели. Настройка должна пережить перезапуск клиента.
 
-Ship only when all of these hold:
+**Двенадцать новых видов.** Гриндить ради них не надо: `/rffish unlockall` даёт 25-й уровень (выше
+белужьего гейта в 12), а креативный электролов сажает любой вид в любую воду.
 
-- [ ] §1 machine gates clean, all eight jars built from a **pushed** commit
-- [ ] §3 smoke green on all eight instances
-- [ ] §4 deep pass green on the primary
-- [ ] §5 spot checks green
-- [ ] §6 confirmed as documented, nothing new hiding
-- [ ] the patchnote in `docs/CHANGELOG.md` matches what actually shipped
-- [ ] **`updates.json`: bump `latest` LAST.** It is what the in-game checker compares against, so bumping
-      it announces the release to every player. Do it after the files are live, not before — and add the
-      `26.2` key the first time 26.2 ships.
-- [ ] Discord post, with the wiki link
+- **Каждый ловится**: зарыбить, поймать и убедиться, что иконка предмета — рыба, а не шашечки:
+  `arapaima, beluga, piraiba, goliath_grouper, bull_shark, frilled_shark, golden_dorado, golden_crucian,
+  gorchak, verkhovka, sculpin, tubenose_goby`.
+- **Уровневый гейт действительно гейтит.** На чистом журнале (`/rffish reset`) белуга клевать не должна;
+  после `unlockall` — должна. Это первая рыба за всю историю мода, поставленная выше 9-го уровня.
+- **Журнал**: карточка, иллюстрация и описание у каждой, на всех трёх языках, а список рыб отсортирован по
+  уровню, так что шестёрка гигантов оказывается внизу.
+- **Торговец их покупает** — четыре мелочи на 1-м тире, гиганты на 5-м. На 26.x эти сделки приходят из
+  датапака, а не из Java, так что там их надо проверить отдельно.
+- **Мини-аквариум** принимает четырёх мелких (все легче 150 г); гигантов должен отказываться брать.
+- **Филейный нож** режет их так же, как любую другую рыбу.
 
-**A failure in §3 blocks that version only. A failure in §4 blocks the whole release** — the deep pass
-covers loader-independent code, so a bug there exists everywhere.
+**Арты пережаты.** Открыть журнал и пролистать список рыб один раз: 12 новых картинок и 7 перерисованных
+карпов/кои сведены к той же палитре, на которой уже сидели остальные семьдесят, — искать полосы на
+градиентах или картинку, потерявшую цвета. Оригиналы сохранены, если что-то выглядит не так.
+
+**Прикормка — главный заголовок релиза.** Старых четырёх банок больше нет; всё, что о них ещё упоминает, —
+это баг.
+
+- Семена пшеницы + хлеб → **2 × базовая прикормка**. Торговец её по-прежнему продаёт.
+- База + до 8 других предметов в сетке даёт замес. **Одну базу можно скрафтить обратно в замес, готовый
+  замес — нельзя.** Один СЛОТ — это один предмет: положите в слот стак из 64, и он всё равно считается
+  один раз.
+- **Перекормить точку невозможно.** Бросьте в одну точку двадцать банок — клёв не станет хуже.
+- **Побеждает последний замес.** Закормить точку замесом A, потом замесом B: B забирает точку целиком,
+  без усреднения.
+- **Заявка про ★ помол.** Закормить одинаковую воду чистыми бойлами и чистой пылью и убедиться, что
+  крупный стол приносит рыбу крупнее, а пыль — уклейку.
+- **Забитая кормушка больше не считается кормом.** Это и был баг: кормушка оценивала точку по
+  *поверхности заброса*, ровные 0.5 свежести на самом мелком помоле, и обычно перебивала замес, реально
+  лежащий на дне. Половить на закормленной точке с забитой кормушкой и убедиться, что решает по-прежнему
+  замес.
+
+**Одно филе.** Нож делает только **сырое рыбное филе**, по 200 г за штуку, без модификатора приседа.
+Убедиться, что оно по-прежнему коптится/плавится/жарится на костре в готовое филе, по-прежнему работает
+морской наживкой, по-прежнему идёт в замес — и что никакая сетка крафта не превращает целую рыбу во
+что-либо без ножа.
+
+**Электролов (только креатив).** Выбить вид, закрыть экран, **открыть заново на том же месте** и
+убедиться, что рыба всё ещё в списке, зачёркнутая, в разделе **Эта вода** — сломан был именно этот круг.
+Потом посадить вид, которого там никогда не было, включая тот, которому вода явно не подходит, и
+убедиться, что он появляется. Проверить счётчики в колонке семейств.
+
+**Выбор крючка на столике.** Кнопка с каждой стороны от размера, связанный крючок соответствует выбору, и
+железо за него списывается.
+
+### Известно и принято — подтвердить, а не чинить
+
+- **Ушко крючка, баланс и размер лепестка ни на что не влияют.** Пишутся в NBT и показываются в подсказке,
+  но не читаются ничем. Подсказка и вики об этом говорят.
+- **Динамического рыбного рынка нет на 26.x.** Потерян при порте 0.5.0 и пока не восстановлен. Там цены
+  статичные; на 1.20.1 и 1.21.1 они ходят.
+- **Файла конфигурации нет.** Сложность жёстко зафиксирована в коде на пресете *реализм*.
+- **Приманки ручной работы весят 0 г.** Это намеренно — именно поэтому столик и имеет смысл.
+- **Старые миры сохраняют закормленные точки как незакормленные.** Зоны корма до 0.8.0 сбрасываются при
+  загрузке, а не мигрируют: осмысленного перевода из четырёх категорий в пару «помол/питательность» не
+  существует.
+
+## 7. Релизный шлюз
+
+Выпускать только когда выполнено всё:
+
+- [ ] §1 машинные проверки чистые, все восемь джарников собраны из **запушенного** коммита
+- [ ] §3 смоук зелёный на всех восьми инстансах
+- [ ] §4 глубокий проход зелёный на основном
+- [ ] §5 точечные проверки зелёные
+- [ ] §6 подтверждён как описано, ничего нового не прячется
+- [ ] патчнот в `docs/CHANGELOG.md` соответствует тому, что реально вышло
+- [ ] **`updates.json`: `latest` бампить ПОСЛЕДНИМ.** Именно с ним сверяется внутриигровой чекер, так что
+      бамп объявляет релиз каждому игроку. Делать это после того, как файлы уже выложены, а не до — и
+      добавить ключ `26.2` в первый раз, когда 26.2 выходит.
+- [ ] пост в Discord со ссылкой на вики
+
+**Провал в §3 блокирует только эту версию. Провал в §4 блокирует весь релиз** — глубокий проход покрывает
+код, не зависящий от загрузчика, так что баг оттуда существует везде.

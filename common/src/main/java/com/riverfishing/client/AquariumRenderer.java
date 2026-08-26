@@ -51,6 +51,8 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             ItemStack fish = fishes.get(i);
             if (fish.isEmpty()) continue;
             boolean big = FishItem.getWeightG(fish) >= BIG_FISH_G;
+            ResourceLocation fsp = FishItem.getSpecies(fish);
+            boolean flat = fsp != null && com.riverfishing.fish.FishPose.isFlat(fsp.getPath());
             // Spread the fish out in phase and depth so they don't overlap.
             float t = time * 0.05f + i * 2.094f;                 // 120° apart
             double depth = (i - 1) * 0.20;                        // front/mid/back lane
@@ -71,6 +73,12 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
                 height = 1.5 + 0.5 * Mth.sin(2 * t) * 0.28 + (i - 1) * 0.04;
                 travel = Mth.cos(t) >= 0 ? 1f : -1f;
             }
+            // §fish-pose: a flatfish does not loop through open water — it works the floor of the tank.
+            if (flat) {
+                u = Mth.sin(t) * 0.55;
+                height = 1.06 + Mth.sin(time * 0.05f + i) * 0.02;
+                travel = Mth.cos(t) >= 0 ? 1f : -1f;
+            }
             double px = tankX + cw.getStepX() * u + facing.getStepX() * depth;
             double pz = tankZ + cw.getStepZ() * u + facing.getStepZ() * depth;
 
@@ -82,6 +90,9 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             // Flip on travel>0 so the head leads the swim (travel<0 was tail-first — "задом наперёд").
             float flip = travel > 0 ? 180f : 0f;
             pose.mulPose(Axis.YP.rotationDegrees(-facing.toYRot() + flip + Mth.sin(time * 0.15f + i) * 4f));
+            // §fish-pose: the flatfish lie down in the tank too, parallel to its floor — which is also
+            // where they are swimming (see the height below), because that is what they do.
+            if (flat) pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
             float scale = big ? 0.9f : 0.7f;
             pose.scale(scale, scale, scale);
             itemRenderer.renderStatic(fish, ItemDisplayContext.FIXED, light, overlay, pose, buffers, be.getLevel(), 0);

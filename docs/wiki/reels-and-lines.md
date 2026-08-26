@@ -42,8 +42,8 @@ So 1000 → 1 kg up to 7000 → 7 kg, then 8000 → 9.5 kg, 10000 → 14.5 kg, 1
 What the drag actually does in the fight:
 
 - Adds `0.5 × drag` on top of your line's breaking strain when working out the break tolerance.
-- **Gives line faster** when you ease off: `relaxTick = 0.010 + clamp(drag/10, 0, 0.5) × 0.02`. A big reel bleeds tension roughly three times as fast as a 1000.
-- **Reel feel**: small reels are twitchy, big ones are coarse but absorbing. `sensitivity = clamp(1 + (4000 − size)/4000 × 0.5, 0.6, 1.5)`. A 1000 sits at 1.375, a 4000 at 1.0, a 14000 at the 0.6 floor. A **reel-less** rod is the twitchiest of all at 1.3.
+- **Gives line faster** when you ease off: `relaxTick = 0.010 + clamp(drag/10, 0, 0.5) × 0.02`. A big reel bleeds tension **1.67 times** as fast as a 1000; the clamp tops out at 5 kg of drag, so every reel from 5000 up bleeds alike.
+- **Reel feel**: small reels are twitchy, big ones are coarse but absorbing. `sensitivity = clamp(1 + (4000 − size)/4000 × 0.5, 0.6, 1.5)`. A 1000 sits at 1.375, a 4000 at 1.0, a 14000 at the 0.6 floor. A **reel-less** rod is a hard-coded 1.3 — twitchy, but just short of the 1000.
 - Slightly speeds up landing: `landPulse` carries a `0.9 + size/14000` term.
 
 ### The spool-diameter rule
@@ -102,32 +102,50 @@ Fluorocarbon also **wears 40 % slower** than the other two.
 
 ### Every line
 
-| Diameter | Mono | Braid | Fluorocarbon |
+All 23 of them, by the name they carry in game. **Smallest reel** is the smallest reel item whose
+spool ceiling reaches that diameter, by the [spool-diameter rule](#the-spool-diameter-rule) above.
+
+#### Mono — 10 diameters
+
+| Line | Item id | Breaking strain | Smallest reel |
 |---|---|---|---|
-| 0.10 mm | **1.0 kg** | — | — |
-| 0.14 mm | **2.0 kg** | — | **2.2 kg** |
-| 0.16 mm | — | **7.7 kg** | **2.8 kg** |
-| 0.18 mm | **3.2 kg** | — | — |
-| 0.20 mm | — | **12.0 kg** | **4.4 kg** |
-| 0.25 mm | **6.3 kg** | **18.8 kg** | **6.9 kg** |
-| 0.30 mm | **9.0 kg** | **27.0 kg** | **9.9 kg** |
-| 0.40 mm | **16.0 kg** | **48.0 kg** | **17.6 kg** |
-| 0.50 mm | **25.0 kg** | **75.0 kg** | — |
-| 0.60 mm | **36.0 kg** | **108.0 kg** | — |
-| 0.70 mm | **49.0 kg** | — | — |
-| 0.80 mm | **64.0 kg** | — | — |
+| Mono Line 0.10 | `line_mono_010` | **1.0 kg** | 1000 |
+| Mono Line 0.14 | `line_mono_014` | **2.0 kg** | 1000 |
+| Mono Line 0.18 | `line_mono_018` | **3.2 kg** | 1000 |
+| Mono Line 0.25 | `line_mono_025` | **6.3 kg** | 2000 |
+| Mono Line 0.30 | `line_mono_030` | **9.0 kg** | 3000 |
+| Mono Line 0.40 | `line_mono_040` | **16.0 kg** | 5000 |
+| Mono Line 0.50 | `line_mono_050` | **25.0 kg** | 7000 |
+| Mono Line 0.60 | `line_mono_060` | **36.0 kg** | 10000 |
+| Mono Line 0.70 | `line_mono_070` | **49.0 kg** | 12000 |
+| Mono Line 0.80 | `line_mono_080` | **64.0 kg** | 14000 |
 
-Thick fluorocarbon does not exist in the mod (impractical in reality). Braid stops at 0.60 mm, mono runs all the way to 0.80 mm.
+#### Braid — 7 diameters
 
-Their in-game names are not perfectly consistent — the thin end of each ladder was added before the heavy tier:
+| Line | Item id | Breaking strain | Smallest reel |
+|---|---|---|---|
+| Braided Line 0.16 | `line_braid_016` | **7.7 kg** | 1000 |
+| Braided Line 0.20 | `line_braid_020` | **12.0 kg** | 1000 |
+| Braided Line 0.25 | `line_braid_025` | **18.8 kg** | 2000 |
+| Braided Line 0.30 | `line_braid_030` | **27.0 kg** | 3000 |
+| Braided Line 0.40 | `line_braid_040` | **48.0 kg** | 5000 |
+| Braided Line 0.50 | `line_braid_050` | **75.0 kg** | 7000 |
+| Braided Line 0.60 | `line_braid_060` | **108.0 kg** | 10000 |
 
-| Item ids | Display name |
-|---|---|
-| `line_mono_010` … `line_mono_040` | Mono **L**ine 0.10 … 0.40 |
-| `line_mono_050` … `line_mono_080` | Mono **l**ine 0.50 … 0.80 |
-| `line_braid_016` … `line_braid_030` | Braided Line 0.16 … 0.30 |
-| `line_braid_040` … `line_braid_060` | Braid line 0.40 … 0.60 |
-| `line_fluoro_014` … `line_fluoro_040` | Fluorocarbon 0.14 … 0.40 |
+#### Fluorocarbon — 6 diameters
+
+| Line | Item id | Breaking strain | Smallest reel |
+|---|---|---|---|
+| Fluorocarbon 0.14 | `line_fluoro_014` | **2.2 kg** | 1000 |
+| Fluorocarbon 0.16 | `line_fluoro_016` | **2.8 kg** | 1000 |
+| Fluorocarbon 0.20 | `line_fluoro_020` | **4.4 kg** | 1000 |
+| Fluorocarbon 0.25 | `line_fluoro_025` | **6.9 kg** | 2000 |
+| Fluorocarbon 0.30 | `line_fluoro_030` | **9.9 kg** | 3000 |
+| Fluorocarbon 0.40 | `line_fluoro_040` | **17.6 kg** | 5000 |
+
+Thick fluorocarbon does not exist in the mod (impractical in reality). Braid stops at 0.60 mm, mono runs all the way to 0.80 mm. At any shared diameter braid is exactly 3× mono and fluorocarbon 1.1× mono — that is the whole of the material factor.
+
+There is **no 9000 reel item**, so 0.60 mm needs a 10000: the 8000's spool tops out at 0.55 mm.
 
 ### Line visibility
 
@@ -189,7 +207,7 @@ The [fisherman](villager.md) also sells 0.14 and 0.18 mono at low tiers, braid 0
 
 ## Leaders
 
-A leader is a separate item that goes into the **leader slot** of a Predator or Catfish rig. Seven species are toothy enough to bite straight through a bare line — pike, zander, conger eel, wahoo, barracuda, mako shark and taimen.
+A leader is a separate item that goes into the **leader slot** of a Predator or Catfish rig. Fifteen species are toothy enough to bite straight through a bare line — pike, zander, conger eel, wahoo, barracuda, mako shark, taimen, arapaima, beluga sturgeon, bluefish, bull shark, frilled shark, golden dorado, goliath grouper and piraiba.
 
 | Leader | Item id | Bite-through protection | Stealth | Recipe |
 |---|---|---|---|---|

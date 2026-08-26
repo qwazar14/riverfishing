@@ -138,24 +138,19 @@ public final class RigData {
         return found[0];
     }
 
-    /** livebait-2: weight of a live baitfish loaded in a BAIT slot, or 0 (drives predator size, 0.4.0). */
+    /** livebait-2: weight of a live baitfish loaded in a BAIT or LURE slot, or 0 (predator size, 0.4.0). */
     public static int livebaitWeightG(ItemStack rig) {
         int[] found = { 0 };
         forEachFilled(rig, (role, stack) -> {
-            if (found[0] == 0 && role == SlotRole.BAIT && stack.getItem() instanceof BaitItem b
+            // §livebait-2: BAIT **or** LURE. A predator rig is {LEADER, LURE} and has no BAIT slot at
+            // all, while SlotRole.LURE deliberately accepts a live bait — so scanning BAIT only made
+            // every baitfish on a spinning rod weigh nothing, and the 6x predator size floor was
+            // skipped by its own `> 0` guard. That is how a 150 g baitfish pulled out a 100 g perch.
+            // The sibling queries in this file, baitIds() and lureColorRgb(), already scan both.
+            if (found[0] == 0 && (role == SlotRole.BAIT || role == SlotRole.LURE)
+                    && stack.getItem() instanceof BaitItem b
                     && "livebait".equals(b.baitId())) {
                 found[0] = StackNbt.get(stack).getInt(com.riverfishing.item.FishItem.TAG_BAIT_WEIGHT);
-            }
-        });
-        return found[0];
-    }
-
-    /** Groundbait category loaded in the feeder/flat/grusha cage, or null. */
-    public static String groundbaitCategory(ItemStack rig) {
-        String[] found = new String[1];
-        forEachFilled(rig, (role, stack) -> {
-            if (found[0] == null && role == SlotRole.GROUNDBAIT && stack.getItem() instanceof GroundbaitItem g) {
-                found[0] = g.category();
             }
         });
         return found[0];
@@ -173,18 +168,21 @@ public final class RigData {
      * Consumes one groundbait from the rig's feeder cage (§consumables): each cast delivers a charge
      * to the spot. Returns the consumed category, or null when the cage is empty.
      */
-    public static String consumeGroundbait(ItemStack rig) {
+    public static ItemStack consumeGroundbait(ItemStack rig) {
         SlotRole[] roles = RigLayout.rolesFor(rigType(rig));
         NonNullList<ItemStack> inv = load(rig);
         for (int i = 0; i < roles.length && i < inv.size(); i++) {
             ItemStack s = inv.get(i);
-            if (roles[i] == SlotRole.GROUNDBAIT && !s.isEmpty() && s.getItem() instanceof GroundbaitItem g) {
+            if (roles[i] == SlotRole.GROUNDBAIT && !s.isEmpty() && s.getItem() instanceof GroundbaitItem) {
+                // A COPY of one, taken before the shrink: the caller needs what went into the water,
+                // and §groundbait-mix means that is a whole stack's worth of composition, not a word.
+                ItemStack fed = s.copyWithCount(1);
                 s.shrink(1);
                 save(rig, inv);
-                return g.category();
+                return fed;
             }
         }
-        return null;
+        return ItemStack.EMPTY;
     }
 
     /**

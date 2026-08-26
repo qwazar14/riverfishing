@@ -93,8 +93,13 @@ public class WaterProbeItem extends Item {
         return waterPos != null;
     }
 
+    /**
+     * The water the player is aiming at, or null. Shared with §cull's electrofisher so both tools agree
+     * about what "that water there" means — two ray-casts with slightly different fallbacks would be two
+     * tools that disagree about which lake you clicked.
+     */
     @Nullable
-    private static BlockPos findWater(Level level, Player player) {
+    public static BlockPos findWater(Level level, Player player) {
         var eye = player.getEyePosition();
         var end = eye.add(player.getLookAngle().scale(24));
         BlockHitResult hit = level.clip(new ClipContext(eye, end,

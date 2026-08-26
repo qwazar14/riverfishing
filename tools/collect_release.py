@@ -11,17 +11,38 @@ Put all eight in one folder to upload and those two collide — and uploading th
 game version is a broken release that looks fine on the page. Everything here carries `+<mc version>`,
 the way the Stonecutter builds already do.
 
-The upload sheet is generated FROM the jars, not typed: loader, game versions and each dependency with
-its required/optional flag are read out of the metadata that will actually ship. If the sheet and the
-jar disagree, the sheet is wrong by construction, not the jar.
+The upload sheet is generated FROM the jars, not typed: loader, game versions, java, environment and
+each dependency with its required/optional flag are read out of the metadata that will actually ship.
+If the sheet and the jar disagree, the sheet is wrong by construction, not the jar.
+
+`manifest.json` is the same extraction in machine-readable form, and it is what tools/upload_release.py
+publishes from — that script never opens a jar. Anything that wants to know what is in a jar asks
+read_meta() here, so there is exactly one answer per file rather than one per consumer.
 """
 import glob, hashlib, io, json, os, re, shutil, sys, tomllib, zipfile
 
-VERSION = "0.6.1"
 HOME = os.path.expanduser("~")
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def mod_version():
+    """The version the build actually stamps on the jars.
+
+    This used to be a literal here and in verify_release_jars.py, which meant that the morning after
+    every version bump both scripts went looking for the *previous* release's files and reported the
+    new build as "NOT BUILT". gradle.properties is what the build reads; read the same thing.
+    """
+    p = io.open(os.path.join(REPO, "gradle.properties"), encoding="utf-8").read()
+    return re.search(r"^mod_version\s*=\s*(\S+)", p, re.M).group(1)
+
+
+VERSION = mod_version()
 WT = os.path.join(HOME, "wt")
 OUT = os.path.join(REPO, "build", "release-" + VERSION)
+
+# Loader and runtime ids. Real dependencies of the mod, but not *related projects* on either store —
+# nobody publishes "minecraft" as a CurseForge relation.
+PLATFORM_IDS = ("minecraft", "java", "fabricloader", "forge", "neoforge")
 
 # (source jar, minecraft version) — three source trees, one per Minecraft line.
 SOURCES = [
@@ -46,14 +67,26 @@ def loader_of(name):
 
 
 def read_meta(jar):
-    """Loader, game-version range and dependencies, out of the jar that ships."""
+    """Everything the two stores need to know about a jar, out of the jar that ships.
+
+    Java and environment come back None for Forge and NeoForge: mods.toml has a field for neither. The
+    `side` on a mods.toml dependency says which side *that dependency* is needed on, not which sides the
+    mod runs on, so it is not the answer either. main() fills both in from the Fabric jar built from the
+    same source tree for the same Minecraft version.
+    """
     with zipfile.ZipFile(jar) as z:
         names = set(z.namelist())
         if "fabric.mod.json" in names:
             d = json.loads(z.read("fabric.mod.json"))
-            deps = [(k, v, "required") for k, v in d.get("depends", {}).items()]
+            depends = d.get("depends", {})
+            deps = [(k, v, "required") for k, v in depends.items()]
             deps += [(k, v, "optional") for k, v in d.get("recommends", {}).items()]
-            return "Fabric", d.get("depends", {}).get("minecraft", "?"), deps
+            java = re.search(r"\d+", depends.get("java", ""))
+            env = d.get("environment", "*")
+            return {"loader": "Fabric", "mc_range": depends.get("minecraft", "?"),
+                    "java": int(java.group()) if java else None,
+                    # fabric.mod.json spells "runs on both sides" as "*".
+                    "environment": "both" if env == "*" else env, "deps": deps}
         for meta in ("META-INF/neoforge.mods.toml", "META-INF/mods.toml"):
             if meta in names:
                 t = tomllib.loads(z.read(meta).decode("utf-8"))
@@ -63,9 +96,9 @@ def read_meta(jar):
                     req = dep.get("type") or ("required" if dep.get("mandatory") else "optional")
                     deps.append((dep["modId"], dep.get("versionRange", "*"), req))
                 mc = next((v for m, v, _ in deps if m == "minecraft"), "?")
-                loader = "NeoForge" if "neoforge" in meta else "Forge"
-                return loader, mc, deps
-    return "?", "?", []
+                return {"loader": "NeoForge" if "neoforge" in meta else "Forge", "mc_range": mc,
+                        "java": None, "environment": None, "deps": deps}
+    return {"loader": "?", "mc_range": "?", "java": None, "environment": None, "deps": []}
 
 
 def main():
@@ -87,9 +120,21 @@ def main():
         shutil.copy2(src, dst)
         digest = hashlib.sha256(io.open(dst, "rb").read()).hexdigest()
         sums.append("%s  %s" % (digest, dst_name))
-        nice_loader, mc_range, deps = read_meta(dst)
-        rows.append((dst_name, nice_loader, mc, mc_range, os.path.getsize(dst), deps))
-        print("  %-44s %6.1f MB  %s %s" % (dst_name, os.path.getsize(dst) / 1e6, nice_loader, mc))
+        m = read_meta(dst)
+        m.update(file=dst_name, minecraft=mc, sha256=digest, size=os.path.getsize(dst))
+        rows.append(m)
+        print("  %-44s %6.1f MB  %s %s" % (dst_name, m["size"] / 1e6, m["loader"], mc))
+
+    # The Forge and NeoForge jars borrow java and environment from the Fabric jar for the same Minecraft
+    # version: same common module, same source tree, so the answer is the same one and it is still read
+    # out of shipping metadata rather than typed here.
+    for m in rows:
+        for field in ("java", "environment"):
+            if m[field] is None:
+                m[field] = next((o[field] for o in rows if o["minecraft"] == m["minecraft"]
+                                 and o[field] is not None), None)
+            if m[field] is None:
+                sys.exit("no %s declared for %s, and no sibling jar to take it from" % (field, m["file"]))
 
     for rel, name in DOCS:
         p = os.path.join(REPO, rel)
@@ -100,20 +145,36 @@ def main():
     io.open(os.path.join(OUT, "SHA256SUMS.txt"), "w", encoding="utf-8", newline="\n").write(
         "\n".join(sums) + "\n")
 
+    # The machine-readable twin of the sheet below: tools/upload_release.py publishes from this and never
+    # opens a jar itself. One extraction feeds both, so the store pages and the sheet a human reads while
+    # checking them cannot describe the same file differently.
+    manifest = {"version": VERSION, "generated_by": "tools/collect_release.py",
+                "changelog": DOCS[0][1],
+                "files": [{"file": m["file"], "loader": m["loader"], "minecraft": m["minecraft"],
+                           "mc_range": m["mc_range"], "java": m["java"],
+                           "environment": m["environment"], "sha256": m["sha256"],
+                           "dependencies": [{"mod_id": i, "range": r, "type": t}
+                                            for i, r, t in m["deps"] if i not in PLATFORM_IDS]}
+                          for m in rows]}
+    io.open(os.path.join(OUT, "manifest.json"), "w", encoding="utf-8", newline="\n").write(
+        json.dumps(manifest, indent=2) + "\n")
+
     # The sheet: one row per upload, so nothing has to be remembered while clicking through a form.
     L = ["# River Fishing %s — upload sheet" % VERSION, "",
          "Generated by `tools/collect_release.py` from the jars in this folder. Loader, game version and",
          "dependencies are read out of each jar's own metadata, so this cannot disagree with what ships.", "",
          "Paste `CHANGELOG-en.md` as the changelog on CurseForge and Modrinth.", "",
-         "| File | Loader | Game version | Required | Optional |", "|---|---|---|---|---|"]
-    for name, loader, mc, mc_range, size, deps in rows:
-        req = ", ".join("%s" % m for m, _, r in deps
-                        if r == "required" and m not in ("minecraft", "java", "fabricloader",
-                                                         "forge", "neoforge")) or "—"
-        opt = ", ".join(m for m, _, r in deps if r != "required") or "—"
-        L.append("| `%s` | %s | %s | %s | %s |" % (name, loader, mc, req, opt))
+         "| File | Loader | Game version | Java | Env | Required | Optional |",
+         "|---|---|---|---|---|---|---|"]
+    for m in rows:
+        deps = [(i, r) for i, _, r in m["deps"] if i not in PLATFORM_IDS]
+        req = ", ".join(i for i, r in deps if r == "required") or "—"
+        opt = ", ".join(i for i, r in deps if r != "required") or "—"
+        L.append("| `%s` | %s | %s | %s | %s | %s | %s |"
+                 % (m["file"], m["loader"], m["minecraft"], m["java"], m["environment"], req, opt))
     L += ["", "## Order of operations", "",
-          "1. Upload all eight files, each against its own game version and loader.",
+          "1. `python tools/upload_release.py --release-type release` — a dry run that uploads nothing.",
+          "   Read what it prints, then re-run it with `--confirm` to publish all eight files.",
           "2. Post the changelog.",
           "3. Announce in Discord with the wiki link: https://qwazar14.github.io/riverfishing/",
           "4. **Last:** bump `latest` in `updates.json` on the `mc-1.21.1` branch and push. That is what",

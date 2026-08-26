@@ -63,11 +63,14 @@ public final class RodData {
      * REFUSES line until its reel is fitted, and a silently bouncing line slot reads as a broken GUI.
      */
     public static String missingKey(ItemStack rod) {
-        if (get(rod, ComponentSlot.LINE).isEmpty()) {
-            boolean needsReel = rod.getItem() instanceof RodItem ri && ri.rodType().takesReel()
-                    && get(rod, ComponentSlot.REEL).isEmpty();
-            return needsReel ? "message.riverfishing.need_reel" : "message.riverfishing.need_line";
+        // The reel check stands ON ITS OWN, not only when the line is missing: assembly is ordered
+        // (reel before line), but disassembly is not — pulling the reel out from under a fitted line
+        // used to slip past this and the rod cast with line spooled on nothing.
+        if (rod.getItem() instanceof RodItem ri && ri.rodType().takesReel()
+                && get(rod, ComponentSlot.REEL).isEmpty()) {
+            return "message.riverfishing.need_reel";
         }
+        if (get(rod, ComponentSlot.LINE).isEmpty()) return "message.riverfishing.need_line";
         if (get(rod, ComponentSlot.RIG).isEmpty()) return "message.riverfishing.need_rig";
         return null;
     }

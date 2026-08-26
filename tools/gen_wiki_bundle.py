@@ -29,9 +29,20 @@ import argparse, glob, io, os, re, html, json, shutil, subprocess, sys, tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wiki_art
+import wiki_calculator
 
 SRC = "docs/wiki"
-MOD_VERSION = "0.6.1"
+def _mod_version():
+    """From gradle.properties, because a hand-kept copy of a version number is a version number that is
+    wrong. This one said 0.6.1 while the mod said 0.7.0."""
+    for line in io.open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                     "gradle.properties"), encoding="utf-8"):
+        if line.startswith("mod_version="):
+            return line.split("=", 1)[1].strip()
+    raise SystemExit("gradle.properties has no mod_version")
+
+
+MOD_VERSION = _mod_version()
 MC_VERSION = "1.21.1"
 
 # English lives at the root of docs/wiki; every other language mirrors the same filenames in a
@@ -45,17 +56,20 @@ GROUP_LABELS = {
     "uk": {"Start": "Початок", "Gear": "Снасть", "Playing": "Гра", "Reference": "Довідник"},
 }
 
-# Sidebar order and grouping, mirroring the wiki's own index.
+# Sidebar order and grouping, mirroring the wiki's own index. THIS LIST IS THE PUBLISHED WIKI: a page
+# on disk that is not named here passes every checker and then does not exist for any reader. Six of
+# them did exactly that. The assertion after the build is what makes the next omission loud.
 GROUPS = [
     ("", ["README"]),
     ("Start", ["getting-started"]),
-    ("Gear", ["rods", "reels-and-lines", "rigs-and-baits", "tackle-station", "crafting",
-              "tools", "blocks"]),
-    ("Playing", ["fishing-mechanics", "water-and-conditions", "ice-fishing", "sea-fishing",
+    ("Gear", ["rods", "reels-and-lines", "rigs-and-baits", "groundbait", "tackle-station", "crafting",
+              "tools", "blocks", "keepnet", "tackle-box"]),
+    ("Playing", ["fishing-mechanics", "water-and-conditions", "shoal", "ice-fishing", "sea-fishing",
                  "stocking"]),
-    ("Reference", ["species", "species-reference", "progression", "villager"]),
+    ("Reference", ["species", "species-reference", "calculator", "progression", "villager",
+                   "order-board", "config", "electrofisher"]),
 ]
-GITHUB = "https://github.com/qwazar14/riverfishing/blob/dev-0.6.0/docs/"
+GITHUB = "https://github.com/qwazar14/riverfishing/blob/dev-0.7.0/docs/"
 
 FISH_TEX = "common/src/main/resources/assets/riverfishing/textures/item/fish"
 
@@ -171,8 +185,137 @@ def inline(text, page):
     return text
 
 
+ALL_NAMES = {}          # display name -> item id, set per language in main()
+_grid_swaps = []        # [(page, item)] replaced
+_grid_left = []         # [(page, first cell, why)] left as letters, reported at the end
+
+BACKTICKED = re.compile(r"`([^`]+)`")
+LEGEND = re.compile(r"^\s*\w\s*=\s*\S")
+
+# The two hand-drawn grids that are not in a table. They sit in prose on the page a new player reads
+# first, so they are the grids that most deserve to be pictures — and there is no row to read a name
+# from, which is why these are listed rather than resolved. Keyed by page and by which ASCII fence it
+# is on that page, both of which are the same in all three languages; the drawing is language-neutral
+# and only the paragraph around it is translated.
+#
+# The second is a teaching diagram, not one recipe: the plain string ring and the same ring with a line
+# in the middle, which is how every thicker line is made. Both halves are real recipes, so both are
+# drawn, and the arrow between them survives.
+FENCE_GRIDS = {("getting-started", 0): ["stick_rod"],
+               ("getting-started", 1): ["line_mono_010", "line_mono_014"]}
+
+
+def pattern_rows(cell):
+    """The grid written inside a table cell, or None if this cell is not a craft pattern.
+
+    Up to 3 rows of up to 3, not exactly 3x3: a Minecraft recipe may be 2x2 or 2x3, and the wiki writes
+    those the same short way the JSON does — the bite alarm is `·g· / gng` against a pattern of
+    [" g ", "gng"]. Demanding three full rows silently skipped every small recipe.
+
+    Still strict enough to be safe. getting-started.md has a row whose cells read `⇪ reel` · `⇩ ease
+    off!`, using the same middle dot as a separator between fight prompts, and the rig tables are full
+    of `Hook · Bait`; both blow the 3-character limit and neither is mistaken for a grid. The real
+    safeguard is downstream anyway — nothing is drawn until the shape matches the recipe JSON.
+    """
+    m = BACKTICKED.search(cell)
+    if not m or "·" not in m.group(1):
+        return None
+    rows = [r.replace(" ", "") for r in m.group(1).split("/")]
+    return rows if 1 <= len(rows) <= 3 and all(1 <= len(r) <= 3 for r in rows) else None
+
+
+def table_grids(head, body, pid):
+    """Swap each hand-written letter pattern in a table for the real grid built from the recipe JSON.
+
+    The markdown keeps its letters — read on GitHub it is still a perfectly good ASCII grid, and it costs
+    no translation work in three languages. This only changes what the built page shows.
+
+    Nothing here trusts the markdown. The row's first cell is resolved to an item, that item's recipe is
+    loaded, and the letters are checked against it through wiki_art.shape() before anything is replaced:
+    the wiki writes `S = Stick` in English and `S = Палка` in Russian, so neither the letters nor the
+    legend can be compared directly, but the arrangement can. A row that does not resolve, or whose
+    shape disagrees, is LEFT as letters and reported — a wrong picture is worse than a plain one.
+
+    Returns the replacements and the columns that ended up carrying nothing.
+    """
+    grids, blanked = {}, set()
+    for r, row in enumerate(body):
+        col = next((c for c, cell in enumerate(row) if pattern_rows(cell)), None)
+        if col is None:
+            continue
+        name = re.sub(r"\*+", "", row[0]).strip()
+        ident = ALL_NAMES.get(name)
+        if not ident:
+            _grid_left.append((pid, name, "no item goes by that name"))
+            continue
+        want = wiki_art.recipe_shape(ident)
+        if want is None:
+            _grid_left.append((pid, name, "%s has no shaped recipe" % ident))
+            continue
+        if want != wiki_art.shape(pattern_rows(row[col])):
+            _grid_left.append((pid, name, "the wiki's grid disagrees with %s.json (%s vs %s)"
+                               % (ident, wiki_art.shape(pattern_rows(row[col])), want)))
+            continue
+        grids[(r, col)] = wiki_art.grid_html(wiki_art.recipes()[ident])
+        _grid_swaps.append((pid, ident))
+        # The legend column only existed to decode the letters, which are now pictures.
+        for c, cell in enumerate(row):
+            if c != col and LEGEND.match(cell):
+                grids[(r, c)] = ""
+                blanked.add(c)
+    # Drop a column only if EVERY row emptied it — a table can mix craftables with trade-only rows, and
+    # those keep their text.
+    dead = {c for c in blanked
+            if all(grids.get((r, c)) == "" for r in range(len(body)) if len(body[r]) > c)}
+    return grids, dead
+
+
+def fence_grid(pid, nth, text):
+    """The listed recipes for a standalone ASCII grid, drawn, or None to keep the text as it is.
+
+    A fence holding ONE grid is checked the same way a table row is — its drawing must agree with the
+    recipe, or it stays text. The two-grid diagram cannot be: it is two patterns, an arrow and a legend
+    laid out side by side on the same lines, and pulling one grid back out of that is guesswork. Its
+    guard is weaker on purpose and stated here rather than implied: the recipes must exist, and that
+    is all.
+    """
+    idents = FENCE_GRIDS.get((pid, nth))
+    if not idents:
+        return None
+    for ident in idents:
+        if ident not in wiki_art.recipes():
+            _grid_left.append((pid, ident, "listed for a fence but there is no such recipe"))
+            return None
+    if len(idents) == 1:
+        rows = [ln.replace(" ", "") for ln in text.strip().split("\n")]
+        want = wiki_art.recipe_shape(idents[0])
+        if want is not None and want != wiki_art.shape(rows):
+            _grid_left.append((pid, idents[0], "the fence disagrees with the recipe (%s vs %s)"
+                               % (wiki_art.shape(rows), want)))
+            return None
+    _grid_swaps.extend((pid, i) for i in idents)
+    return ('<div class="fg">%s</div>'
+            % '<span class="ar">&rarr;</span>'.join(
+                wiki_art.grid_html(wiki_art.recipes()[i]) for i in idents))
+
+
+def calculator_inputs():
+    """Profiles, roster order and the three name tables the calculator widget needs."""
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    pdir = os.path.join(base, "common/src/main/resources/data/riverfishing/fish_profiles")
+    profiles = {f[:-5]: json.load(io.open(os.path.join(pdir, f), encoding="utf-8"))
+                for f in os.listdir(pdir)}
+    mi = io.open(os.path.join(base, "common/src/main/java/com/riverfishing/registry/ModItems.java"),
+                 encoding="utf-8").read()
+    roster = re.findall(r'"([a-z_]+)"', re.search(r"FISH_SPECIES = \{(.*?)\};", mi, re.S).group(1))
+    ldir = os.path.join(base, "common/src/main/resources/assets/riverfishing/lang")
+    names = {code: json.load(io.open(os.path.join(ldir, f + ".json"), encoding="utf-8"))
+             for code, f in (("en", "en_us"), ("ru", "ru_ru"), ("uk", "uk_ua"))}
+    return profiles, roster, names
+
+
 def convert(page):
-    out, lines, i = [], page.raw.split("\n"), 0
+    out, lines, i, fences = [], page.raw.split("\n"), 0, 0
     while i < len(lines):
         ln = lines[i]
 
@@ -183,7 +326,14 @@ def convert(page):
                 body.append(lines[i])
                 i += 1
             i += 1
-            out.append("<pre><code>%s</code></pre>" % esc("\n".join(body)))
+            text = "\n".join(body)
+            if "·" in text:
+                drawn = fence_grid(page.pid, fences, text)
+                fences += 1
+                if drawn:
+                    out.append(drawn)
+                    continue
+            out.append("<pre><code>%s</code></pre>" % esc(text))
             continue
 
         m = re.match(r"(#{1,4})\s+(.*)", ln)
@@ -215,16 +365,23 @@ def convert(page):
             while i < len(lines) and lines[i].startswith("|"):
                 body.append(cells(lines[i]))
                 i += 1
+            grids, dead = table_grids(head, body, page.pid)
             t = ["<div class=\"tw\"><table><thead><tr>"]
             for n, h in enumerate(head):
+                if n in dead:
+                    continue
                 t.append('<th style="text-align:%s">%s</th>'
                          % (aligns[n] if n < len(aligns) else "left", inline(h, page)))
             t.append("</tr></thead><tbody>")
-            for row in body:
+            for rn, row in enumerate(body):
                 t.append("<tr>")
                 for n, c in enumerate(row):
+                    if n in dead:
+                        continue
+                    # A replaced cell is finished HTML — inline() would escape the markup it just built.
+                    cell = grids[(rn, n)] if (rn, n) in grids else inline(c, page)
                     t.append('<td style="text-align:%s">%s</td>'
-                             % (aligns[n] if n < len(aligns) else "left", inline(c, page)))
+                             % (aligns[n] if n < len(aligns) else "left", cell))
                 t.append("</tr>")
             t.append("</tbody></table></div>")
             out.append("".join(t))
@@ -581,15 +738,23 @@ def main():
 
             # Sprites are matched by the item's NAME, so each language needs its own lookup — the
             # Russian tables say "Лещ", not "Bream", and would otherwise come out undecorated.
-            global FISH_NAMES, GEAR_NAMES, FISH_CI, GEAR_CI
+            global FISH_NAMES, GEAR_NAMES, FISH_CI, GEAR_CI, ALL_NAMES
             FISH_NAMES = wiki_art.names(code)
             GEAR_NAMES = wiki_art.gear_names(code)
-            # Case-insensitive fallback: the lang file itself is inconsistent — "Mono Line 0.10" but
-            # "Mono line 0.50" — and the wiki copied both, so exact matching alone drops half the lines.
+            # Recipe lookup takes the unfiltered map: rod_pod_1, rod_pod_3 and bait_trap are craftable
+            # but have no texture of their own, so GEAR_NAMES — which exists to find an icon — omits
+            # exactly the three rows whose grids are hardest to read as letters.
+            ALL_NAMES = wiki_art.all_names(code)
+            # Case-insensitive fallback. It was added because the lang file disagreed with itself —
+            # "Mono Line 0.10" against "Mono line 0.50" — and the wiki had copied both, so exact
+            # matching dropped half the line rows. §line-names has since made the ladders speak one
+            # way, so nothing is known to need this today; it stays as a net under any page whose
+            # capitalisation drifts from lang again, because the failure is a silently missing icon.
             FISH_CI = {k.lower(): v for k, v in FISH_NAMES.items()}
             GEAR_CI = {k.lower(): v for k, v in GEAR_NAMES.items()}
             # The grids are the same art in every language, but their headings and captions are prose.
             craft_grids, craft_count = wiki_art.craft_html(code)
+            calc_profiles, calc_roster, calc_names = calculator_inputs()
 
             pages, order = {}, []
             for _, ids in GROUPS:
@@ -604,6 +769,16 @@ def main():
                 # The recipe grids and the item sprites are generated from the game's own files, so
                 # they are identical in every language — only the surrounding prose is translated.
                 body = illustrate(convert(p))
+                # §calculator: the only interactive page in the wiki. Markdown cannot carry it, so the
+                # page ships a marker and the widget is generated here — data straight from the fish
+                # profiles, so it answers with the game's numbers rather than a copy of them.
+                if "<!-- CALCULATOR -->" in p.raw:
+                    first_calc = not globals().get("_CALC_EMITTED")
+                    globals()["_CALC_EMITTED"] = True
+                    body = body.replace("&lt;!-- CALCULATOR --&gt;",
+                                        wiki_calculator.widget(code, calc_profiles, calc_roster, calc_names, first_calc))
+                    body = body.replace("<!-- CALCULATOR -->",
+                                        wiki_calculator.widget(code, calc_profiles, calc_roster, calc_names, first_calc))
                 if pid == "crafting":
                     body += "\n" + craft_grids
                     p.headings.append((2, wiki_art.GRID_LABELS.get(
@@ -625,6 +800,14 @@ def main():
             navs.append('<nav data-l="%s" hidden>%s</nav>' % (code, "\n".join(nav)))
             built.append((code, label))
             print("  %-3s %d pages" % (code, len(order)))
+
+        print("  inline grids: %d letter patterns replaced with the real recipe" % len(_grid_swaps))
+        if _grid_left:
+            # Never silent. A row left as letters is either a wiki bug or a name this cannot resolve,
+            # and both are things somebody has to see rather than discover on the published page.
+            print("  left as letters (%d):" % len(_grid_left))
+            for pid, name, why in sorted(set(_grid_left)):
+                print("    %-18s %-28s %s" % (pid, name, why))
 
         if not built:
             ap.error("no complete language found under %s" % SRC)

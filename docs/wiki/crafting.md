@@ -89,7 +89,7 @@ All shapeless. A bigger number is a smaller hook.
 | Hook #2 | **trade only** (master fisherman) |
 | Hook #1 | **trade only** (master fisherman) |
 
-All nine hook sizes make up the `riverfishing:hooks` tag used by the lure recipes. Note that #2 and #1 have no recipe of their own — the master fisherman is their only source.
+All nine hook sizes make up the `riverfishing:hooks` tag used by the lure recipes. Note that #2 and #1 have no recipe of their own — the master fisherman sells them, and the [Tackle Station](tackle-station.md) ties any size on for you, billed in iron.
 
 ---
 
@@ -163,7 +163,6 @@ A **special recipe**: any one artificial lure plus one or more **dyes** in the g
 | Dough | shapeless | Wheat + Water Bucket |
 | Bread Crumb **×4** | shapeless | 1 × Bread |
 | Boilie **×4** | shapeless | 2 × Wheat + Egg + Sugar |
-| Fish strip **×4** | shapeless | Any fish (`riverfishing:fishes`) |
 | Ice Jig | shapeless | Gold Nugget + any hook No.16–No.4 + 2 × String |
 | Live Bait | **special** | One caught fish weighing **150 g or less**, alone in the grid — the bait keeps the fish's weight |
 
@@ -175,10 +174,9 @@ Worm, Maggot, Bloodworm and Chicken Liver come from digging and mob drops; Corn,
 
 | Groundbait | Type | Ingredients |
 |---|---|---|
-| Powder Groundbait **×2** | shapeless | Bread + Wheat |
-| Grain Groundbait **×2** | shapeless | Wheat + Wheat Seeds |
-| Oil Cake Groundbait **×6** | **special** | Sunflower + **Piston** — the piston is the press and is returned |
-| Pellet Groundbait | — | **quest only** (*Catch a tench*, stage 2) |
+| Base Groundbait **×2** | shapeless | Wheat Seeds + Bread — *the base; everything else is [mixed](groundbait.md) into it* |
+| Groundbait Soil **×4** | shapeless | Dirt — *ballast, the way you make a mix leaner* |
+| Any mix | shapeless | Base Groundbait + up to 8 other things in a grid — one slot is one item, and one edible item in is one groundbait out |
 
 ---
 
@@ -220,7 +218,7 @@ Worm, Maggot, Bloodworm and Chicken Liver come from digging and mob drops; Corn,
 | Cooked Fish Fillet | Furnace | Raw Fish Fillet | 200 ticks | 0.2 |
 | Cooked Fish Fillet | Campfire | Raw Fish Fillet | 600 ticks | 0.2 |
 
-Raw fillets come from the [Filleting Knife](tools.md#filleting-knife) (one per 300 g of fish) or, with **Farmer's Delight**, from a [cutting board](tools.md#farmers-delight-cutting-board).
+Raw fillets come from the [Filleting Knife](tools.md#filleting-knife) — one per 200 g of fish, at most a stack from any one specimen. The same item is the universal saltwater bait and a groundbait component.
 
 ---
 
@@ -232,9 +230,10 @@ A short list of everything in the mod you cannot craft:
 |---|---|
 | Hook #2, Hook #1 | Master fisherman |
 | Wobbler, Soft Plastic | Tackle Station, or the fisherman |
-| Pellet Groundbait | The *Catch a tench* quest reward |
+| Skirted Octopus Jig, Giant Spoon | Tackle Station, or the fisherman's saltwater kit |
 | Mini Aquarium | Creative / commands only |
 | Ichthyologist's Tablet | Creative / commands only |
+| Electrofisher | Creative / commands only |
 | Primitive / Light Float / Float / Winter / Predator rigs | Built into their rod blanks |
 | Every fish | Catch it |
 

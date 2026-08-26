@@ -27,7 +27,7 @@ The weight term dominates, deliberately: a swarm of tiny fish is poor XP per hou
 
 (Lengths carry ±2 % natural variation, so the XP wobbles by a point or two.)
 
-Two other things award XP: **netting a friend's fish** (+5) and **fishing up treasure** (+15).
+Three other things award XP: **netting a friend's fish** (+5), **fishing up treasure** (+15) and **claiming a quest reward** — 15 to 300 XP on top of the item the tables below name.
 
 ## Levels and ranks
 
@@ -68,16 +68,19 @@ So being two levels short is ×0.36, five levels short is ×0.08, and the floor 
 
 | Level needed | Count | Species |
 |---|---|---|
-| **0** | 13 | Bleak, Bluegill, Bream, Common dace, Crucian Carp, Gudgeon, Perch, Roach, Rotan, Round goby, Rudd, Ruffe, White Bream |
+| **0** | 17 | Bitterling, Bleak, Bluegill, Bream, Common dace, Crucian Carp, Gudgeon, Perch, Roach, Rotan, Round goby, Rudd, Ruffe, Sculpin, Sunbleak, Tubenose goby, White Bream |
 | **1** | 1 | Smelt |
-| **2** | 6 | Blue bream, Ide, Nase, Sabrefish, Tench, White-eye bream |
-| **3** | 13 | Carp, Chub, Grayling, all five Koi, Largemouth bass, Mirror Carp, Pink salmon, Vimba bream, Volga zander |
+| **2** | 7 | Blue bream, Golden crucian, Ide, Nase, Sabrefish, Tench, White-eye bream |
+| **3** | 15 | Carp, Chub, Grayling, all five Koi, Largemouth bass, Mayan cichlid, Mirror Carp, Oscar, Pink salmon, Vimba bream, Volga zander |
 | **4** | 11 | Burbot, Flounder, Garfish, Grass Carp, Herring, Mackerel, Pike, Rainbow trout, Whitefish, Wild Carp, Zander |
-| **5** | 8 | Arctic char, Asp, Channel catfish, Eel, Lenok, Saithe, Sea bass, Trout |
-| **6** | 6 | Atlantic salmon, Barracuda, Catfish, Cod, Ray, Silver carp |
-| **7** | 8 | Blue marlin, Conger eel, Mahi-mahi, Mako shark, Sailfish, Swordfish, Wahoo, Yellowfin tuna |
+| **5** | 10 | Arctic char, Asp, Bullseye snakehead, Channel catfish, Eel, Lenok, Peacock bass, Saithe, Sea bass, Trout |
+| **6** | 9 | Atlantic salmon, Barracuda, Bluefish, Catfish, Cod, Golden dorado, Ray, Silver carp, Striped bass |
+| **7** | 10 | Blue marlin, Conger eel, Jack crevalle, Mahi-mahi, Mako shark, Sailfish, Snook, Swordfish, Wahoo, Yellowfin tuna |
 | **8** | 2 | Sterlet, Taimen |
-| **9** | 2 | Halibut, Sturgeon |
+| **9** | 4 | Bull shark, Halibut, Sturgeon, Tarpon |
+| **10** | 3 | Arapaima, Goliath grouper, Piraiba |
+| **11** | 1 | Frilled shark |
+| **12** | 1 | Beluga sturgeon |
 
 ## Skills
 
@@ -91,7 +94,7 @@ Spend them on the **Skills** tab of the journal. Points cannot be refunded (only
 | **Keen Sense** | Sense | −5 % time to bite | −25 % |
 | **Naturalist** | Knowledge | +5 % overall bite chance | +25 % |
 | **Steady Hand** | Hand | +5 % line tension before it snaps | +25 % |
-| **Angler's Luck** | Fortune | +1 % trophy chance | +5 % |
+| **Angler's Luck** | Fortune | +1 % to the size of the fish you meet — and so to trophies | +5 % |
 | **Finesse** | Finesse | +1 % wider strike zone | +5 % |
 
 Naturalist's bonus is applied uniformly to every species' bite weight; Steady Hand multiplies your break tolerance; Finesse widens the green band of every [timing bar](fishing-mechanics.md#the-timing-bar).
@@ -112,7 +115,7 @@ Eight stages: **51 tasks** plus one completion prize per stage, 59 entries in al
 | Catch your first fish | 8 × Worm |
 | Catch a roach | 8 × Maggot |
 | Discover 3 species | 4 × Hook No.12 |
-| Catch a crucian carp | 4 × Grain Groundbait |
+| Catch a crucian carp | 4 × Groundbait |
 | Catch 10 fish | Bait Trap |
 | Fully complete stage 1 | 12 emeralds |
 
@@ -121,13 +124,13 @@ Eight stages: **51 tasks** plus one completion prize per stage, 59 entries in al
 | Goal | Reward |
 |---|---|
 | Catch a bream | 3 × Hook No.8 |
-| Catch a rudd | 4 × Powder Groundbait |
-| Catch a tench | 4 × Pellet Groundbait |
+| Catch a rudd | 6 × Groundbait Soil |
+| Catch a tench | 6 × Boilie |
 | Catch a bream 2+ kg | 6 emeralds |
 | Discover 8 species | **Spinning Rod** |
 | Fully complete stage 2 | Reel 3000 |
 
-The tench quest is currently the **only source of Pellet Groundbait** in the game.
+The groundbait rewards teach the pantry: the base, then the ballast that makes a mix leaner, then something coarse enough to call a decent fish.
 
 ### Stage 3 — Predators
 
@@ -178,7 +181,7 @@ Each reward hands you the exact lure the *next* quest's fish wants — the stage
 |---|---|
 | Catch a rotan — everyone started with one | Spinner |
 | Catch a nase in the current | 12 × Maggot |
-| Catch a vimba on the spring run | 4 × Grain Groundbait |
+| Catch a vimba on the spring run | 8 × Pearl Barley |
 | Catch a whitefish in a cold lake | 12 × Bloodworm |
 | Catch an Arctic char in northern water | Castmaster |
 | Catch a lenok on a taiga riffle | Wobbler |
@@ -201,7 +204,7 @@ Twenty-two advancements. Some are driven by simply having the fish in your inven
 | **A Quarter Hundred** | 25 different species |
 | **Fifty Species** | 50 different species |
 | **The Full Bestiary** *(challenge)* | Every species — koi don't count |
-| **A Trophy Specimen** *(goal)* | Have a trophy-tagged fish |
+| **A Trophy Specimen** *(goal)* | **Land** a trophy specimen yourself |
 | **Toothy** | Have a pike |
 | **Master of the Hole** *(goal)* | Have a catfish |
 | **The Tsar Fish** *(challenge)* | Have a sterlet |
@@ -221,20 +224,24 @@ Twenty-two advancements. Some are driven by simply having the fish in your inven
 
 The species-count advancements are **counted in code** against the live species roster, so they can never drift out of step with a content update. Koi are excluded from that count.
 
+*A Trophy Specimen* is code-driven too, from 0.7.0: it is granted at the moment a trophy is landed, so it says what it always meant to say — you earn it for catching one, not for holding one somebody handed you. (It used to be a datapack item predicate, and on 1.21.1 that predicate decoded to an empty one, which matches every item there is. Players were being handed the goal for picking up pea seeds.)
+
 ## The Fishing Journal
 
-Craft it from **Book + Hook No.12 + Leather** (shapeless), then right-click to read. Six tabs:
+Craft it from **Book + Hook No.12 + Leather** (shapeless), then right-click to read. Eight tabs:
 
 | Tab | Contents |
 |---|---|
 | **Fish** | The bestiary — every species, your count and personal best, and a full "how to catch" page (water, depth, width, biomes, best conditions, baits, tackle) read straight from the same profile the bite engine uses |
-| **Baits & Lures** | Every bait, lure and groundbait, and which fish it attracts |
+| **Bait & feed** | Every hook bait and groundbait, plus the ballast and crops that only ever go into a mix, and which fish each one attracts |
+| **Lures** | Every lure, and which fish it attracts |
 | **Gear** | Rods, reels, lines and rigs with their crafting recipes and compatibility bands |
 | **Quests** | The chain above, with progress and the claim buttons |
 | **Skills** | The perk tree and your point balance |
-| **Guides** | Twelve written how-to pages |
+| **Records** | Your career on one page: level and rank, fish landed, species and families, trophies, ice catches and your five biggest fish |
+| **Guides** | Twenty-four written how-to pages |
 
-The Guides shelf covers: the drag, tackle stress, live bait, *every water is its own*, working the lure, topwater, trolling, sea giants, legendary fish, the market and the daily order, fishing together, and the tackle bench.
+The Guides shelf covers, in the order the shelf itself runs: the wait on float and bottom, how the fish notice you before they notice the bait, tackle stress, the drag; groundbait in four pages — the base, the numbers, feeding, the recipes — and the keepnet; working the lure, topwater, live bait; the tackle bench and where the tackle lives; *every water is its own*, the market and the daily order, fishing together; ice fishing; trolling, sea giants, legendary fish; and last the electrofisher, Discord and the thanks.
 
 The header line reads *"Angler: lvl N (rank) — X XP, next in Y"*.
 

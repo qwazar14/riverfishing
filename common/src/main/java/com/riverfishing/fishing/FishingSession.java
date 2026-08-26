@@ -22,6 +22,13 @@ public class FishingSession {
     public long biteAtTick;
     /** §live-conditions (0.5.0): the cast's context snapshot — its dynamic half is refreshed every ~15 s. */
     public com.riverfishing.engine.BiteContext ctx;
+    /**
+     * §respec: the two roll inputs that cannot be recovered later. The specimen is rolled at the cast, but
+     * a long wait RE-PICKS which species is coming — and the new fish has to be rolled against its own
+     * profile, or it inherits the weight of a species it is not.
+     */
+    public double rollLuck;
+    public int rollLivebaitG;
     /** Bite speed at the last (re-)evaluation: swarm-capped W × frenzy × feed. Rescales the wait on change. */
     public double biteSpeed;
 
@@ -102,14 +109,55 @@ public class FishingSession {
     public double tension;        // 0..1; over breakTension the line is in overstress (Â§tackle-stress)
     public double landProgress;   // 0..1; reaching 1 lands the fish
     public double breakTension;   // how much tension the tackle tolerates for THIS fish
+    /**
+     * §tackle-margin: effective strain over what this fish demands, UNCAPPED. Above 1 the tackle
+     * out-guns the fish, and that is what makes a heavier line worth spooling: it does not raise the
+     * ceiling, it slows how fast everything fills it.
+     */
+    public double tackleMargin = 1.0;
     // Â§tackle-stress (0.4.0): crossing the limit no longer snaps instantly â a per-tick break chance
     // grows with the overshoot and with how long the line has been held over it.
     public double requiredKg;     // the fish's pull in kg (drives the break-load message)
+    /** §rod-load: the fish's pull over the BLANK's own power (RodType.fightPowerKg) — the bend gauge. */
+    public double rodPull01;
     public double overStress;     // accumulated time-over-the-limit (0..2), decays when eased off
     public int overStressTicks;   // total ticks over the limit this fight (drives extra line wear)
     public boolean overstressWarned; // one "ease off!" warning per overstress episode
     public int runsLeft;
     public int runTicksLeft;      // >0 while the fish is making a run (don't reel!)
+    /**
+     * §dive-cost: how long the CURRENT run was when it started. A sounding dive drains the land bar,
+     * and that drain has to be a share of the bar rather than a rate per tick — otherwise retuning run
+     * lengths silently retunes how much a dive costs, which is exactly what happened between 0.5.0 and
+     * 0.7.0 and made the beluga unlandable.
+     */
+    public int runTicksTotal;
+    /** §fight-course: which way THIS run is going, and how well the rod is being held against it. */
+    public FightCourse course = FightCourse.NONE;
+    public float courseAlign = 1f;
+    /** §fight-course: the movement key currently held, as {@link com.riverfishing.network.FightInputPacket}. */
+    public byte pullDir;
+    /**
+     * §fight-footwork: horizontal distance from the angler to the hook LAST tick. Negative means "not
+     * measured yet", so the first tick of a fight never reads a jump as a sprint.
+     */
+    public double lastDist = -1.0;
+    /** §fight-footwork: how long the angler has been walking AT the fish on a dead line. */
+    public int slackTicks;
+    /** So the slack warning fires once per episode rather than every tick. */
+    public boolean slackWarned;
+    /** §fight-footwork: the angler's legs are loading the line RIGHT NOW, so it must not relax. */
+    public boolean legPull;
+    /** Which run of the fight this is, so a pattern can script its directions in order. */
+    public int runIndex;
+    /**
+     * §angler-stamina: 1 fresh, 0 spent. Winding and holding a rod against a running fish are WORK, and
+     * it only comes back when you stop doing them and let the drag do the fighting — which is the real
+     * technique the fight never asked for before.
+     */
+    public double anglerStamina = 1.0;
+    /** So the "you are spent" warning fires once per episode rather than every tick. */
+    public boolean staminaWarned;
     public long nextRunAt;
     public long fightStartTick;
     public int weightG;
@@ -125,6 +173,10 @@ public class FishingSession {
     /** Hotbar slot the cast was made from, or -1 for off-hand/pod. This is what "still the same rod"
      *  actually means — an index survives the stack object being replaced. */
     public int rodSlot = -1;
+    /** §float-kind: 0 = nothing on the surface, 1 = a plain peg (float rod, no float item),
+     *  2 = the proper float (a float item is rigged). Decided once at the cast — the client cannot
+     *  see the rig, so this has to cross the wire. */
+    public byte floatKind;
 
     // §big-game greyhounding (0.5.0): reeling inside this window throws the hook — give slack.
     public long jumpWindowEnd;

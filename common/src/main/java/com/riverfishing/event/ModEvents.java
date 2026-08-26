@@ -47,6 +47,8 @@ public final class ModEvents {
         TickEvent.PLAYER_POST.register(player -> {
             if (player instanceof ServerPlayer sp) {
                 FishingManager.tick(sp);
+                com.riverfishing.fishing.SpookTracker.tick(sp);  // §spook: what the fish just noticed
+                com.riverfishing.fishing.ShoalTracker.tick(sp);  // §shoal: what is visible in the water
                 FishingManager.trollingTick(sp); // trolling v1 (0.5.0): boat-agnostic towing loop
                 announceDailyOrder(sp); // market (0.5.0): one chat line per player per Minecraft day
                 if (sp.tickCount % 10 == 0) {
@@ -57,10 +59,15 @@ public final class ModEvents {
             }
         });
 
-        PlayerEvent.PLAYER_QUIT.register(player -> FishingManager.clear(player.getUUID()));
+        PlayerEvent.PLAYER_QUIT.register(player -> {
+            FishingManager.clear(player.getUUID());
+            com.riverfishing.fishing.SpookTracker.forget(player.getUUID());
+        });
 
         // Worms from digging soil with a shovel (§9.6).
         BlockEvent.BREAK.register((level, pos, state, player, xp) -> {
+            // §spook: chopping a tree on the bank is the loudest thing an angler can do by accident.
+            if (!level.isClientSide()) com.riverfishing.fishing.SpookTracker.onBlockBreak(level, pos);
             if (!level.isClientSide() && player != null
                     && player.getMainHandItem().getItem() instanceof ShovelItem
                     && isDiggableSoil(state)
@@ -92,8 +99,11 @@ public final class ModEvents {
         long day = sp.server.overworld().getDayTime() / 24000L;
         Long told = ORDER_TOLD.get(sp.getUUID());
         if (told != null && told == day) return;
-        ORDER_TOLD.put(sp.getUUID(), day);
         String species = com.riverfishing.fishing.MarketData.orderOfTheDay(sp.serverLevel());
+        // The pool is read out of the trade registry, so before the server has one there is no
+        // order to name. Say nothing and do not mark the day told — the next tick will have it.
+        if (species.isEmpty()) return;
+        ORDER_TOLD.put(sp.getUUID(), day);
         sp.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
                 "message.riverfishing.daily_order",
                 net.minecraft.network.chat.Component.translatable("fish.riverfishing." + species))

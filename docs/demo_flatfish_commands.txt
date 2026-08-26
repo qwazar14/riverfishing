@@ -1,0 +1,3 @@
+give @p riverfishing:flounder[minecraft:custom_data={Species:"riverfishing:flounder",WeightG:2200,LengthCm:44,Legal:1b,Age:60b}]
+give @p riverfishing:halibut[minecraft:custom_data={Species:"riverfishing:halibut",WeightG:52000,LengthCm:152,Legal:1b,Age:60b}]
+give @p riverfishing:ray[minecraft:custom_data={Species:"riverfishing:ray",WeightG:19200,LengthCm:106,Legal:1b,Age:60b}]

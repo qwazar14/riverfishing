@@ -1,0 +1,144 @@
+package com.riverfishing.groundbait;
+
+import com.riverfishing.registry.ModItems;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.Level;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * §groundbait-mix (0.8.0): stir your own groundbait in the crafting grid.
+ *
+ * <p><b>One SLOT is one spoon, and one spoon of FOOD is one jar.</b> Put three corn, one breadcrumb and
+ * four soil in the grid and you get exactly the mix those spoons make — the composition is what you can
+ * see in front of you, with no sliders to read and no numbers to type.
+ *
+ * <p>A stack of 64 in one slot is still one spoon, because one item per slot is what the craft actually
+ * consumes; reading the stack size instead was a 32x item printer. Ballast pays no jars at all — soil is
+ * what you dilute a mix WITH, and counting it as substance turned two dirt into eight jars of groundbait.
+ * Both numbers now come off the same list of parts, and a jar this recipe made can never be an ingredient
+ * for it. Those two rules together are §groundbait-value; each one alone still leaks.
+ *
+ * <p>The design called for a dedicated bench form with sliders. This is the same feature through the
+ * grid instead, and deliberately so: the mod already ships three CustomRecipes ({@link
+ * com.riverfishing.item.LivebaitRecipe}, LureDyeRecipe, TackleBoxDyeRecipe), the ready-made groundbaits
+ * were themselves grid recipes once, and "count of items" expresses whole spoons more directly than any
+ * widget would. A screen nobody could look at while building it would have been the riskiest part of the
+ * release for the least gain.
+ *
+ * <p>Dyes are optional and behave like they do on a lure: they stain the mix without touching what it
+ * feeds or how it fishes.
+ */
+public class GroundbaitMixRecipe extends CustomRecipe {
+
+    public GroundbaitMixRecipe(CraftingBookCategory category) {
+        super(category);
+    }
+
+    /** The pantry id for a stack, or null when it is not something you can put in a mix. */
+    private static String pantryId(ItemStack stack) {
+        // §groundbait-value: YOUR OWN MIX IS FINISHED GOODS, not an ingredient. This one line is what
+        // closes the loop. Everything this recipe makes is stamped, so nothing it makes can come back
+        // in — and without it the arithmetic alone is not enough: one free wheat seed beside a shop jar
+        // pays two jars out, and both would re-enter at the fat preset numbers of their item id,
+        // doubling every craft. The ready-made jars are still a legal base; that is the point of them.
+        if (GroundbaitNbt.isStamped(stack)) return null;
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        String modKey = "riverfishing".equals(id.getNamespace()) ? id.getPath() : id.toString();
+        return GroundbaitMix.PANTRY.containsKey(modKey) ? modKey : null;
+    }
+
+    /**
+     * Read the grid into spoons.
+     *
+     * @return null when this is not a groundbait mix at all — anything unrecognised in the grid, or a
+     *     recipe that could not stir (only ballast, or a single component that a plain vanilla recipe
+     *     already handles better).
+     */
+    private static Stir stir(CraftingInput input) {
+        Map<String, Integer> spoons = new LinkedHashMap<>();
+        List<DyeItem> dyes = new ArrayList<>();
+        int filled = 0;
+
+        for (int i = 0; i < input.size(); i++) {
+            ItemStack s = input.getItem(i);
+            if (s.isEmpty()) continue;
+            filled++;
+            if (s.getItem() instanceof DyeItem d) {
+                dyes.add(d);
+                continue;
+            }
+            String id = pantryId(s);
+            if (id == null) return null;              // anything else disqualifies the whole grid
+            // ONE SLOT IS ONE SPOON. A crafting grid consumes one item per occupied slot however
+            // big the stack in it is, so reading spoons off getCount() paid out for groundbait
+            // nobody spent — two stacks of 64 read as 128 spoons and cost 2 items.
+            spoons.merge(id, 1, Integer::sum);
+        }
+
+        if (spoons.isEmpty() || filled < 2) return null;
+
+        List<GroundbaitMix.Part> parts = new ArrayList<>();
+        for (Map.Entry<String, Integer> e : spoons.entrySet()) {
+            parts.add(new GroundbaitMix.Part(e.getKey(), e.getValue()));
+        }
+        // Do not steal the ONE basic recipe: wheat + wheat seeds is the plain jar, and both of those are
+        // pantry items, so "two components" cannot be the test on its own. See qualifiesAsMix.
+        if (!GroundbaitMix.qualifiesAsMix(parts, !dyes.isEmpty())) return null;
+        GroundbaitMix mix = GroundbaitMix.of(parts);
+        if (mix == null) return null;                  // all ballast: a bucket of mud is not groundbait
+        return new Stir(mix, dyes);
+    }
+
+    private record Stir(GroundbaitMix mix, List<DyeItem> dyes) {}
+
+    @Override
+    public boolean matches(CraftingInput input, Level level) {
+        return stir(input) != null;
+    }
+
+    @Override
+    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
+        Stir stirred = stir(input);
+        if (stirred == null) return ItemStack.EMPTY;
+
+        GroundbaitMix mix = stirred.mix();
+        for (DyeItem d : stirred.dyes()) {
+            // getFireworkColor is the one dye-RGB accessor that exists unchanged on every version this
+            // mod ships to; getTextureDiffuseColor does not exist on 1.20.1.
+            mix = mix.dyed(d.getDyeColor().getFireworkColor() & 0xFFFFFF);
+        }
+
+        // §groundbait-one-jar: there is one jar, and it always comes out in that. What it does in the
+        // water is the composition stamped on it, and the tooltip reads that out — the item id has not
+        // claimed anything about a groundbait since the other three were deleted.
+        // §groundbait-value: HOW MANY comes off the mix itself — one jar per spoon of food, ballast
+        // paying nothing — so the count and the composition are read from one list and cannot drift.
+        // The clamp is for grids bigger than vanilla's, where 9 components x 9 spoons can pass a stack.
+        ItemStack out = new ItemStack(ModItems.GROUNDBAIT.get());
+        out.setCount(Math.min(GroundbaitMix.jars(mix), out.getMaxStackSize()));
+        GroundbaitNbt.write(out, mix);
+        return out;
+    }
+
+    @Override
+    public boolean canCraftInDimensions(int width, int height) {
+        return width * height >= 2;
+    }
+
+    @Override
+    public RecipeSerializer<?> getSerializer() {
+        return com.riverfishing.registry.ModRecipes.GROUNDBAIT_MIX.get();
+    }
+}

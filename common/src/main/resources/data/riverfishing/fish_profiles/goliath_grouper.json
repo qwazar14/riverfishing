@@ -1,0 +1,93 @@
+{
+  "display": "Голиафовый групер",
+  "group": "big_game",
+  "water_bodies": {
+    "river": 0.0,
+    "lake": 0.0,
+    "pond": 0.0,
+    "swamp": 0.0,
+    "sea": 1.2,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 20000,
+    "max": 320000,
+    "mean": 55000
+  },
+  "length_cm": {
+    "min": 100,
+    "max": 250
+  },
+  "fight": {
+    "strength": 1.0,
+    "stamina": 0.75,
+    "runs": 3,
+    "pattern": "sounding",
+    "aggression": 0.9
+  },
+  "ideal": {
+    "rod": [
+      "boat",
+      "surf"
+    ],
+    "reel_size": 12000,
+    "reel_tolerance": 2000,
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.55,
+      "tolerance_mm": 0.1
+    },
+    "rig": [
+      "catfish",
+      "predator"
+    ],
+    "groundbait": {
+      "fraction": 0.97,
+      "nutrition": 0.78
+    },
+    "bait": {
+      "livebait": 1.0,
+      "fish_strip": 0.95,
+      "octopus_jig": 0.8,
+      "giant_spoon": 0.5
+    },
+    "hook": {
+      "ideal": 1,
+      "tolerance": 1
+    },
+    "requires_leader": true
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 1.2,
+    "autumn": 1.1,
+    "winter": 0.7
+  },
+  "time": {
+    "dawn": 1.2,
+    "day": 1.0,
+    "dusk": 1.2,
+    "night": 1.1
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.0,
+    "thunder": 1.0
+  },
+  "depth_pref": "bottom",
+  "distance_pref": {
+    "min": 10,
+    "max": 35
+  },
+  "habitat": {
+    "depth_min": 5,
+    "width_min": 20
+  },
+  "biomes": {
+    "warm": 1.4,
+    "ocean_biome": 1.0,
+    "beach": 0.9
+  },
+  "base": 0.2,
+  "min_angler_level": 10
+}

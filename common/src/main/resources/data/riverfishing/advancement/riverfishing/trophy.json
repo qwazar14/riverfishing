@@ -9,9 +9,6 @@
     "announce_to_chat": true
   },
   "criteria": {
-    "trophy_fish": {
-      "trigger": "minecraft:inventory_changed",
-      "conditions": { "items": [ { "tag": "riverfishing:fishes", "nbt": "{Trophy:1b}" } ] }
-    }
+    "code": { "trigger": "minecraft:impossible" }
   }
 }

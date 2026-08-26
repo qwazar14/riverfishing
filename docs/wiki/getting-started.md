@@ -6,7 +6,7 @@ From an empty inventory to your first fish in about five minutes. Vanilla fishin
 
 Take a **shovel** to dirt, a grass block, coarse dirt, podzol, rooted dirt, farmland, a dirt path or mud. Each block you break has a **10 % chance** to pop a **Worm**.
 
-Worm is the single most widely liked bait in the game — 35 of the 70 species rate it, 19 of them at 0.9 or better. Six or seven will get you started.
+Worm is the single most widely liked bait in the game — 43 of the 91 species rate it, 24 of them at 0.9 or better. Six or seven will get you started.
 
 Other easy sources: **Maggots** from zombies (33 %), **Bloodworms** from drowned (33 %), **Chicken Liver** from chickens (25 %).
 
@@ -48,7 +48,7 @@ The rod's tooltip turns green: **Rod assembled**.
 
 Any pond or river will do. Small water is species-poor, so a **river or a lake** gives you more to catch, but a pond is fine.
 
-Sixteen species live in **every** water in the world, so nowhere is ever dead: Bream, Crucian Carp, Roach, Rudd, White Bream, Perch, Gudgeon, Ruffe, Bleak, Bluegill, Mackerel, Herring, Rotan, Nase, Smelt and Round goby.
+Nineteen species live in **every** water in the world, so nowhere is ever dead: Bream, Crucian Carp, Roach, Rudd, White Bream, Perch, Gudgeon, Ruffe, Bleak, Bluegill, Mackerel, Herring, Rotan, Nase, Smelt, Round goby, Bitterling, Sunbleak and Mayan cichlid.
 
 Bear in mind the **Stick Rod cannot cast past 6 blocks** — it is a fixed length of line on a tip. Fish the margins.
 
@@ -98,7 +98,7 @@ Landed: *"Caught: Roach — 180 g, 18 cm"*. The item carries that species, weigh
 |---|---|---|
 | **Cast power bar** | Bottom centre, while charging | Throw distance; the red band is unreachable |
 | **Timing bar** | Bottom centre, on a bite | *"Strike in the green zone!"* — green certain, orange 25 % |
-| **Boss bar** | Top of screen, during a fight | Fill = landing progress. **Green** tension fine, **Yellow** two-thirds to the limit, **Red** at the limit or the fish is running. The title reads *"🎣 You"*, *"— running!"* or *"— tiring"* |
+| **Boss bar** | Top of screen, during a fight | Fill = landing progress. **Green** tension fine, **Yellow** two-thirds to the limit, **Red** at the limit or the fish is running. The title reads *"🎣 You"* or *"— tiring"* |
 | **Fight coach** | Just under the boss bar | `⇪ reel` · `⇩ ease off!` · `⚠ open the drag!` |
 | **Action bar** | Above the hotbar | Everything else: cast confirmations, warnings, catches |
 | **The rod in your hand** | — | Visibly **bends** with the tension on the line |
@@ -106,20 +106,21 @@ Landed: *"Caught: Roach — 180 g, 18 cm"*. The item carries that species, weigh
 
 ## Your first fight (on a reeled rod)
 
-The Stick Rod skips this, but the moment you build anything with a reel, the fight becomes the game. Three positions, no new keys:
+The Stick Rod skips this, but the moment you build anything with a reel, the fight becomes the game. Three positions and a direction:
 
 | Position | How | Effect |
 |---|---|---|
 | **Crank** | Right-click | You gain line. Tension climbs. |
 | **Rest** | Stand still, don't click | Tension bleeds off. |
 | **Open the drag** | **Crouch** | Tension drops 3× faster and **the line cannot snap** — but cranks gain nothing and a running fish takes line. |
+| **Hold the rod against the run** | The arrow keys: **←** / **→** pull left and right, **↑** lifts the rod, **↓** puts it down. All four are rebindable in the vanilla Controls screen. Hold none of them and the camera is the input — lean the view more than 6° off where the run began and that reads as a pull too. | Only counts during a run. The right way multiplies the tension by **0.5** and the gain by **0.7**; the wrong way, by **2.2** and **0.2**. |
 
 The rules that matter:
 
 1. **When it runs, stop cranking.** Cranking into a run spikes tension and gains almost nothing.
-2. **When it jumps, crouch.** Reeling through a jump rips the hook out 35 % of the time.
+2. **When it jumps, crouch.** Reeling through a jump rips the hook out 35 % of the time — but the first four ticks of the jump are grace, so a crank already on its way when the fish leaves the water costs you nothing.
 3. **You only gain standing up.** Crouching forever is safe but goes nowhere.
-4. At 85 % there is one **guaranteed last dash at the bank**. Ease off through it.
+4. At 85 % the fish **rolls for one last dash at the bank** — 35 % for an ordinary fish, 85 % for a trophy on a hard pattern. Ease off through it; if it does not come, that is a quiet landing, not a trick.
 
 Over-tension does not snap instantly — every tick past the limit rolls a chance that grows the longer you hold it. Brief spikes are survivable; cranking through a whole run is not. When it does break, the message names the load in kilograms, which tells you exactly what tackle you needed.
 
@@ -131,7 +132,7 @@ Full detail: [the fight](fishing-mechanics.md#the-fight).
 |---|---|
 | Stop digging for bait | Build a **[Worm Farm](blocks.md#worm-farm)** (8 planks + dirt) and a **[Maggot Farm](blocks.md#maggot-farm)** (8 planks + rotten flesh) |
 | Catch more, faster | Upgrade to a **Bamboo Rod** (a float rig) then a **Pole Rod** (two hooks, two baits, the best pull-out curve) |
-| Pull fish to you | Throw **[groundbait](rigs-and-baits.md#the-fed-spot)** into the water — Powder is Bread + Wheat |
+| Pull fish to you | Throw **[groundbait](groundbait.md)** into the water — Wheat Seeds + Bread makes Base Groundbait; add up to 8 other things to it for more |
 | Cast further, catch bigger | Build your first **reel** and a **Feeder Rod** — that opens the Bottom flow and the [rod pod](blocks.md#rod-pods) |
 | Catch predators | A **Spinning Rod** and a lure. Pike and zander **bite through a bare line** — fit a leader |
 | Know what's in the water | The **[Fish Finder](tools.md#fish-finder)** lists what can bite here right now |

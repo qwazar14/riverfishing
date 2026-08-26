@@ -1,0 +1,81 @@
+{
+	"texture_size": [128, 128],
+	"textures": {
+		"0": "riverfishing:item/rod/blank_sea_spin_3d",
+		"particle": "riverfishing:item/rod/blank_sea_spin_3d"
+	},
+	"elements": [
+		{
+			"name": "blank_5",
+			"from": [-11, 10.343, 8.343],
+			"to": [-7.9, 10.657, 8.657],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [-13.3, 10.5, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [0, 0, 4.375, 0.75],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [3, 0, 3.75, 0.75],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [0, 0, 4.375, 0.75],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [3, 0, 3.75, 0.75],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [4.375, 0.75, 0, 0],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [4.375, 0, 0, 0.75],
+					"texture": "#0"
+				}
+			}
+		},
+		{
+			"name": "guide_5",
+			"from": [-10.925, 9.638, 8.15],
+			"to": [-10.925, 10.338, 8.85],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [-10.925, 10.7, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [2.5, 6.5, 3, 7.875],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [1.5, 5, 2.875, 6.375],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [2.5, 6.5, 3, 7.875],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [1.5, 5, 2.875, 6.375],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [3, 7.875, 2.5, 6.5],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [3, 6.5, 2.5, 7.875],
+					"texture": "#0"
+				}
+			}
+		}
+	]
+}

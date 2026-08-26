@@ -56,9 +56,17 @@ Every spot is classified into a **set** of groups. A species' `biomes` map lists
 | `swamp` | Swamp water body, or the mod's `is_swamp` biome tag |
 | `cherry` | Any biome whose id contains "cherry" — so vanilla Cherry Grove and BoP's Cherry Blossom Grove both count |
 
-Exactly one of cold / temperate / warm always applies; the rest stack on top.
+Exactly one of cold / temperate / warm applies to the water block itself; the rest stack on top.
 
-How many of the 70 species reference each group: **temperate** 55, **cold** 34, **warm** 32, **ocean_biome** 15, **deep** 12, **mountain** 8, **taiga** 7, **beach** 5, **swamp** 5, **cherry** 5. The `river_biome`, `forest`, `jungle` and `dry` groups are recognised but **no shipped species currently uses them** — they exist for datapacks.
+**A river also reads its banks.** A river is its own biome in Minecraft — `minecraft:river`, base
+temperature 0.5 — so the land it runs through never reached the water: a river across a taiga scored as
+plain temperate, and a species asking for `cold` or `taiga` was **absent from every river in the world**
+however river-dwelling it was. Since 0.7.1 a river block also takes the groups of the first land found in
+each of eight directions, out to 32 blocks, skipping any water it crosses on the way. So a taiga river is
+cold *and* temperate, and since the best listed group wins, the taimen can live there without evicting the
+roach. Lakes, ponds and the sea are unchanged — they already sat inside the biome they belong to.
+
+How many of the 91 species reference each group: **temperate** 63, **warm** 49, **cold** 38, **ocean_biome** 24, **swamp** 15, **deep** 14, **beach** 13, **mountain** 9, **taiga** 8, **cherry** 5. The `river_biome`, `forest`, `jungle` and `dry` groups are recognised but **no shipped species currently uses them** — they exist for datapacks.
 
 Note that Biomes O' Plenty biomes carry the vanilla tags, so the habitat model works across it without any extra data.
 
@@ -109,7 +117,8 @@ The [Fish Finder](tools.md#fish-finder) shows the reading, an arrow (a change un
 | frenzy | ≥ 1.18 |
 | active | ≥ 1.05 |
 | fair | ≥ 0.92 |
-| sluggish | below 0.92 |
+| slow | ≥ 0.80 |
+| dead | below 0.80 |
 
 ## Feeding frenzy
 
@@ -123,7 +132,7 @@ During a frenzy bites come **3× faster**, fish visibly splash around your float
 
 ## Fed spots
 
-Right-clicking water with groundbait creates a 3×3 fed zone. Full details in [Rigs and baits](rigs-and-baits.md#the-fed-spot): 0.6 freshness per feed stacking to 1.0, halving every 90 seconds, dead after 3 minutes, worth up to double bite weight and 40 % off the wait.
+Right-clicking water with groundbait creates a 3×3 fed zone. Full details in [Rigs and baits](rigs-and-baits.md#the-fed-spot): 0.6 freshness per feed stacking to a ceiling the recipe sets — 0.475 for a plain jar, at most 0.935 for the richest blend — halving every 90 seconds for pure dust to 4.5 minutes for pure grain, dead after 3 to 12 minutes on the same scale, worth up to double bite weight and 40 % off the wait.
 
 ## Spot depletion
 
@@ -155,7 +164,7 @@ absent fraction by width:   < 8 blocks → 60 %      < 16 → 45 %
 
 So a small pond is species-poor and a big river or lake is rich. Then, per species:
 
-- Species whose profile `base` is **0.95 or higher** live **everywhere** — the ubiquitous commons, so no water is ever dead. There are sixteen: Bream, Crucian Carp, Roach, Rudd, White Bream, Perch, Gudgeon, Ruffe, Bleak, Bluegill, Mackerel, Herring, Rotan, Nase, Smelt and Round goby.
+- Species whose profile `base` is **0.95 or higher** live **everywhere** — the ubiquitous commons, so no water is ever dead. There are nineteen: Bream, Crucian Carp, Roach, Rudd, White Bream, Perch, Gudgeon, Ruffe, Bleak, Bitterling, Sunbleak, Bluegill, Mackerel, Herring, Rotan, Nase, Smelt, Round goby and Mayan cichlid.
 - A [stocked](stocking.md) species is always present.
 - Otherwise a stable seed hash decides. Above the absent threshold the species lives here at ×1.0 — and the top **8 %** of rolls become the water's **signature fish**, biting at **×1.8**.
 - Below the threshold the species is absent, unless a recent release has left a temporary population there.
@@ -183,3 +192,4 @@ with hard gates on water type, depth, width, biome match and community presence 
 - [Fishing mechanics](fishing-mechanics.md) · [Species](species.md)
 - [Stocking](stocking.md) · [Tools](tools.md#fish-finder)
 - [Sea fishing](sea-fishing.md) — how the ocean zones map onto biome groups
+- [Fish in the water](shoal.md) — the same community, drawn under the surface before you cast

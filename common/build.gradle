@@ -27,3 +27,10 @@ dependencies {
     // common (snownee.jade.api is loader-neutral) and ships nothing.
     modCompileOnly "maven.modrinth:jade:15.10.5+fabric"
 }
+
+// §asset-hygiene: the artist drops the export ARCHIVE next to the PNGs it unpacks into, and a stray
+// fish.zip rode into 0.8.0's jar as 1.3 MB of dead weight that every player would have downloaded.
+// Source archives and working files are not resources — they are how the art got here.
+processResources {
+    exclude "**/*.zip", "**/*.7z", "**/*.rar", "**/*.psd", "**/*.xcf", "**/*.bbmodel"
+}

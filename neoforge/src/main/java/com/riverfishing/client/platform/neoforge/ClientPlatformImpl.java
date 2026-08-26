@@ -47,6 +47,19 @@ public final class ClientPlatformImpl {
     public static void registerItemColors() {
     }
 
+    /** §tackle-box: the placed box wears the same dye its item does, read off the block entity. */
+    @SubscribeEvent
+    static void onRegisterBlockColors(net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.Block event) {
+        for (var b : com.riverfishing.registry.ModBlocks.TACKLE_BOXES.values()) {
+            event.register((state, view, pos, tintIndex) -> {
+                if (tintIndex != 1) return -1;
+                return 0xFF000000 | (view != null && pos != null
+                        && view.getBlockEntity(pos) instanceof com.riverfishing.block.TackleBoxBlockEntity be
+                        ? be.color() : 0xE8E6DF);
+            }, b.get());
+        }
+    }
+
     /** §lure-color: tint painted lures by their {@code DyedItemColor} on tint-layer 0. */
     @SubscribeEvent
     static void onRegisterItemColors(net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.Item event) {
@@ -56,10 +69,30 @@ public final class ClientPlatformImpl {
                     stack.get(net.minecraft.core.component.DataComponents.DYED_COLOR);
             return dc != null ? (0xFF000000 | dc.rgb()) : -1;
         };
+        // §tackle-box: the dyed inserts on the item icon (tint layer 1).
+        net.minecraft.client.color.item.ItemColor boxTint = (stack, tintIndex) ->
+                tintIndex == 1 ? (0xFF000000 | com.riverfishing.item.TackleBoxItem.color(stack)) : -1;
+        for (RegistrySupplier<Item> r : ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.TackleBoxItem) {
+                event.register(boxTint, r.get());
+            }
+        }
         for (RegistrySupplier<Item> r : ModItems.ALL) {
             if (r.get() instanceof com.riverfishing.item.BaitItem b && b.artificial()) {
                 event.register(tint, r.get());
             }
+        }
+        // §groundbait-tint: the jar's speckles wear the mix's own colour (layer 1).
+        for (RegistrySupplier<Item> r : ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.GroundbaitItem) {
+                event.register(com.riverfishing.item.GroundbaitItem::speckleTint, r.get());
+            }
+        }
+
+        // §morph: the fish's own colour — age shading and its morph, from the shared table.
+        net.minecraft.client.color.item.ItemColor fish = com.riverfishing.client.FishTint::itemColor;
+        for (RegistrySupplier<Item> r : ModItems.FISH_ITEMS.values()) {
+            event.register(fish, r.get());
         }
     }
 
@@ -75,6 +108,8 @@ public final class ClientPlatformImpl {
         event.register(ModMenus.ROD_ASSEMBLY.get(), RodAssemblyScreen::new);
         event.register(ModMenus.RIG.get(), RigScreen::new);
         event.register(ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
+        event.register(ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
+        event.register(ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
     }
 
     /**
@@ -111,9 +146,18 @@ public final class ClientPlatformImpl {
 
     public static void registerLevelRenderer() {
         NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent e) -> {
-            if (e.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
-            LineRenderer.render(e.getPoseStack(), e.getCamera().getPosition(),
-                    e.getPartialTick().getGameTimeDeltaPartialTick(false));
+            float pt = e.getPartialTick().getGameTimeDeltaPartialTick(false);
+            // §shoal: the fish sit UNDER the water, so they have to be drawn BEFORE the translucent
+            // terrain pass — that pass writes depth, and anything submitted behind the surface afterwards
+            // is thrown away. Reported: on NeoForge the shoal was only visible once you dove in, because
+            // both this and the line were sharing the AFTER_PARTICLES stage, which is past the water.
+            if (e.getStage() == RenderLevelStageEvent.Stage.AFTER_ENTITIES) {
+                com.riverfishing.client.ShoalRenderer.render(e.getPoseStack(), e.getCamera().getPosition(), pt);
+            }
+            // The line is above the water, so it stays after it.
+            if (e.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
+                LineRenderer.render(e.getPoseStack(), e.getCamera().getPosition(), pt);
+            }
         });
     }
 

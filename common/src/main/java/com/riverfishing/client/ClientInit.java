@@ -6,6 +6,7 @@ import com.riverfishing.registry.ModMenus;
 import dev.architectury.event.events.client.ClientCommandRegistrationEvent;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientPlayerEvent;
+import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.menu.MenuRegistry;
 
@@ -25,6 +26,7 @@ public final class ClientInit {
 
     /** Fabric client entry: everything at once â registry objects are already bound by init time. */
     public static void init() {
+        RodClientSettings.load();   // §rod-client-settings: /rfrod toggles survive relaunches
         registerEvents();
         registerRenderers();
     }
@@ -35,8 +37,18 @@ public final class ClientInit {
         // the dist-stripped receiver path — see ModNetwork).
         com.riverfishing.network.ModNetwork.registerClientReceivers();
 
+        // §fight-keys: the rod's four bindings. HERE and not in registerRenderers() — NeoForge flushes
+        // queued mappings on RegisterKeyMappingsEvent, and anything later only gets in by hand-patching
+        // Options. Building a KeyMapping touches no registry object, so it honours this method's contract.
+        FightKeys.register();
+
         // Float-timing + cast-power HUD (Forge RenderGuiEvent.Post â Architectury RENDER_HUD).
         ClientGuiEvent.RENDER_HUD.register(ClientHud::render);
+
+        // §fight-poll-tick: the fight keys are polled on the TICK, not from the renderer. A frame is not
+        // a unit of game time — polling there made the input rate the framerate, and let the final
+        // "hands off" go unsent whenever the line was not being drawn.
+        ClientTickEvent.CLIENT_POST.register(mc -> ClientLineState.pollFightInput());
 
         // Never carry a fishing line into another world (Forge ClientPlayerNetworkEvent.LoggingOut).
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> ClientLineState.clear());
@@ -46,6 +58,8 @@ public final class ClientInit {
 
         // /rfrod live pose debugger (Forge RegisterClientCommandsEvent â Architectury client command).
         ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> RodDebugCommand.register(dispatcher));
+        // §keepnet-tune: live sizing for the fish in the grid, dialled in with the box open.
+        ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> KeepnetDebugCommand.register(dispatcher));
 
         // Platform-only event hooks (in-world line render + extra-model bake) â no registry objects.
         ClientPlatform.registerExtraModels();
