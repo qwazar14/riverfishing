@@ -89,9 +89,5 @@
     "swamp": 1.0
   },
   "base": 0.22,
-  "min_angler_level": 10,
-  "legendary": {
-    "weight_g": 175000,
-    "chance": 0.004
-  }
+  "min_angler_level": 10
 }

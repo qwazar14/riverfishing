@@ -87,9 +87,5 @@
     "ocean_biome": 0.7
   },
   "base": 0.06,
-  "min_angler_level": 11,
-  "legendary": {
-    "weight_g": 48000,
-    "chance": 0.003
-  }
+  "min_angler_level": 11
 }
