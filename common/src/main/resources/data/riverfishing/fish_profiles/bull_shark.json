@@ -90,9 +90,5 @@
     "beach": 1.0
   },
   "base": 0.24,
-  "min_angler_level": 9,
-  "legendary": {
-    "weight_g": 225000,
-    "chance": 0.004
-  }
+  "min_angler_level": 9
 }

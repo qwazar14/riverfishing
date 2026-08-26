@@ -88,10 +88,6 @@
     "warm": 1.4,
     "swamp": 0.8
   },
-  "legendary": {
-    "weight_g": 155000,
-    "chance": 0.004
-  },
   "base": 0.18,
   "min_angler_level": 10
 }
