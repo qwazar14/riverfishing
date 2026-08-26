@@ -30,6 +30,16 @@ PATTERN_BONUS = {"sounding": 700}
 CRANKS_PER_SEC = 5.0                # holding RMB repeats about five times a second
 STAMINA_PER_CRANK = 0.014           # out of a run
 DRIFT = 0.0008                      # landProgress bleeds this every tick, always
+FATIGUE_FIGHT_SHARE = 0.55          # §tire-within-the-fight, the ceiling on the clock
+RUN_MEAN = {"sounding": 188.5, "greyhounding": 54.5, "relentless": 124.5,
+            "aggressive": 67.5, "burst": 147.5, "steady": 77.5,
+            "active_then_passive": 90.5}
+GAP_MEAN = {"sounding": 99.5, "greyhounding": 49.5, "relentless": 32.0,
+            "aggressive": 39.5, "burst": 119.5, "steady": 74.5,
+            "active_then_passive": 75.0}
+EXTRA = {"aggressive": 2, "relentless": 3, "sounding": 3, "greyhounding": 2}
+BONUS = {"burst": 300, "relentless": 500, "sounding": 700, "greyhounding": 400}
+FATIGUE_FLOOR = 0.45                # below this a fight has no second act
 
 
 def clamp(v, lo, hi):
@@ -64,6 +74,19 @@ def budget(p, kg):
     return dives, timeout, drain, gain
 
 
+def fatigue_reached(p, kg):
+    """How spent a fish is by the end of a fight it fought to the clock."""
+    f = p["fight"]
+    pat = f.get("pattern", "steady")
+    fac = clamp(f["stamina"] / 0.70, 0.5, 1.6)
+    timeout = clamp(700 + kg * 80 + BONUS.get(pat, 0), 900, 3400)
+    runs = max(1, f["runs"]) + EXTRA.get(pat, 0) + (1 if kg > 2 else 0)
+    run, gap = RUN_MEAN[pat], GAP_MEAN[pat]
+    running = min(runs * run, timeout * run / (run + gap))
+    burn = min(20.0 * (10.4 + 6.5 * kg) * fac, timeout * FATIGUE_FIGHT_SHARE * fac)
+    return min(1.0, running / burn)
+
+
 def main():
     profiles = {f[:-5]: json.load(io.open(os.path.join(PROF, f), encoding="utf-8"))
                 for f in os.listdir(PROF)}
@@ -83,12 +106,32 @@ def main():
                 bad.append((sp, kg, spare))
             print("%-18s %8.0f %6d %6.0fs %8.2f %8.2f %7.2f%s"
                   % (p["display"], kg, dives, timeout / 20, drain, gain, spare, flag))
+    # §tire-within-the-fight: a diver spends most of its fight running, so it is the one pattern where
+    # "it never tires" is a fault rather than a character. A fish that reaches the net as fresh as it
+    # started has no second act: fatigue is what shortens its runs, thins them out and lifts the
+    # angler's gain, and a beluga was ending a full fight 0.11 spent.
+    #
+    # Deliberately NOT applied to every pattern. A flounder barely tires because a flounder barely
+    # runs, and a marlin's runs are short between jumps — those are the fish, not the clock.
+    limp = []
+    for sp in sounding:
+        got = fatigue_reached(profiles[sp], profiles[sp]["weight_g"]["mean"] / 1000.0)
+        if got < FATIGUE_FLOOR:
+            limp.append((sp, profiles[sp]["weight_g"]["mean"] / 1000.0, got))
+    print("\nspent by the end of a full fight, divers only (floor %.2f):" % FATIGUE_FLOOR)
+    for sp in sounding:
+        kg = profiles[sp]["weight_g"]["mean"] / 1000.0
+        got = fatigue_reached(profiles[sp], kg)
+        print("  %-18s %6.0f kg -> %.2f%s" % (sp, kg, got, "   <-- never tires" if got < FATIGUE_FLOOR else ""))
+
     if bad:
         print("\n%d sounding case(s) cannot be landed inside the timeout:" % len(bad))
         for sp, kg, spare in bad:
             print("  %-16s %.0f kg, short by %.2f of the bar" % (sp, kg, -spare))
         return 1
-    print("\nevery sounding fish is landable inside its own timeout")
+    if limp:
+        return 1
+    print("\nevery sounding fish is landable inside its own timeout, and tires while it fights")
     return 0
 
 

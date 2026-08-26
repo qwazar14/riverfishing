@@ -90,6 +90,12 @@ public final class FishingManager {
      */
     private static final double DIVE_COST = 0.30;
 
+    /**
+     * §tire-within-the-fight: the most of its OWN fight a fish may spend before it is fully worn down.
+     * Only ever a ceiling on the absolute fatigue clock — see where it is used.
+     */
+    private static final double FATIGUE_FIGHT_SHARE = 0.55;
+
     private static final double TACKLE_BREAK_CHANCE = 0.003; // §10: 0.3% per hook-up, the line parts, rig lost
     // §snag: per fishing action, 3% a dead (глухой) snag that loses the rig, 7% a recoverable one you
     // tug free. Scaled by the difficulty config's snagChance().
@@ -1485,7 +1491,6 @@ public final class FishingManager {
         // table's median (0.70) so wiring it up leaves the fish that were tuned right exactly as they
         // were; the clamp keeps a bleak from being untirable-fast and a tuna from being unkillable.
         double staminaFactor = Mth.clamp(profile.fightStamina / 0.70, 0.5, 1.6);
-        session.fatigueRunTick = 1.0 / (20.0 * (10.4 + 6.5 * weightKg) * staminaFactor);
         session.landPulse = 0.05 / (0.7 + 0.6 * weightStress) * (0.9 + session.reelSize / 14000.0);
         session.relaxTick = 0.010 + dragRelief * 0.02;                 // big reel gives line faster
         session.fightPattern = profile.fightPattern;
@@ -1496,6 +1501,21 @@ public final class FishingManager {
                         : "relentless".equals(profile.fightPattern) ? 500
                         : "sounding".equals(profile.fightPattern) ? 700      // §big-game: dives eat time
                         : "greyhounding".equals(profile.fightPattern) ? 400 : 0), 900, 3400);
+
+        // §tire-within-the-fight: the clock above grows with mass forever while fightTimeout is CLAMPED
+        // at 3400 ticks, so past a certain size a fish could not reach fatigue inside its own fight at
+        // all — a 90 kg beluga ended a full 170-second fight at 0.11 spent, a 600 kg one at 0.03. That
+        // is not a hard fish, it is a fish with no second act: fatigue shortens runs, thins them out and
+        // lifts the angler's gain, and none of it ever arrived. Reported twice after 0.8.1 as a beluga
+        // that simply runs out the clock.
+        //
+        // So the absolute clock still decides it wherever it fits — every fish under ~3 kg keeps its
+        // number to the tick — and where it does not fit, the fish is spent after this share of its own
+        // fight instead. A cap, not a replacement: written as a share outright it would have made a
+        // half-gram sunbleak twice as durable, which is the opposite of the point.
+        session.fatigueRunTick = 1.0 / Math.min(
+                20.0 * (10.4 + 6.5 * weightKg) * staminaFactor,
+                session.fightTimeout * FATIGUE_FIGHT_SHARE * staminaFactor);
 
         session.fighting = true;
         session.tension = 0.0;
