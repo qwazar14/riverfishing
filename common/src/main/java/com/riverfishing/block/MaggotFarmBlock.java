@@ -81,7 +81,8 @@ public class MaggotFarmBlock extends BaseEntityBlock {
         ItemStack held = player.getItemInHand(hand);
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof MaggotFarmBlockEntity be) {
-            if (held.is(Items.ROTTEN_FLESH)) {
+            // §farm-feed: carrion, from a tag rather than one hard-coded item.
+            if (held.is(com.riverfishing.registry.ModItemTags.MAGGOT_FOOD)) {
                 be.depositOne(player, held);
             } else {
                 be.collect(player);
