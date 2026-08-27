@@ -121,7 +121,7 @@ The fisherman sells traps at apprentice tier (3 emeralds), and one is the reward
 
 A composter for worms. It needs **soil directly below it** (any block in the `dirt` tag) to work.
 
-- Right-click with **anything compostable** (the vanilla composter list) to raise the heap one level, up to 4. The heap is visible.
+- Right-click with **anything compostable** (the vanilla composter list, which since 0.8.2 includes the mod's own corn, pea and barley seeds) to raise the heap one level, up to 4. The heap is visible.
 - Every **2 to 4 minutes** the worms eat through one level: the heap visibly sinks and **3 worms** are added, up to a stock of **24**.
 - Right-click with an empty hand (or anything non-compostable) to collect. Nothing yet: *"No worms bred yet"*.
 
@@ -131,7 +131,7 @@ Sold by the fisherman at novice tier for 4 emeralds — the intended early exit 
 
 ## Maggot Farm
 
-The same idea with **Rotten Flesh**.
+The same idea with **carrion**. Since 0.8.2 the farm reads the `riverfishing:maggot_food` tag: rotten flesh, a spider eye, and raw beef, pork, chicken, mutton or rabbit. Cooked food and fish stay out — it is a carrion box, not a larder — and being a tag, a pack can add its own.
 
 - Right-click with rotten flesh to load **one piece per click**, up to **16**. The heap rises a visible layer every 4 pieces. Progress reads *"Rotten flesh loaded: N/16"*; when full, *"The farm is packed full of flesh"*.
 - Roughly **every 45–90 seconds** one piece hatches into **4 maggots** and the heap sinks. Stock caps at **64**.

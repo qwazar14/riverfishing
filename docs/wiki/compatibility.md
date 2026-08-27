@@ -1,6 +1,6 @@
 # Compatibility
 
-The exact versions River Fishing **0.8.0** is built and played against — not "the latest", the jars that were actually in the instance.
+The exact versions River Fishing **0.8.2** is built and played against — not "the latest", the jars that were actually in the instance.
 
 ## Required
 

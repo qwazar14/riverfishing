@@ -247,7 +247,7 @@ Koi are **excluded from the species count** used by the tiered "N species" advan
 
 ### Legendary specimens
 
-Fourteen species hide one named, one-per-server specimen. Full mechanics in [Fishing mechanics](fishing-mechanics.md#legendary-fish).
+Eight species hide one named, one-per-server specimen. Full mechanics in [Fishing mechanics](fishing-mechanics.md#legendary-fish).
 
 | Species | Name | Weight | Chance |
 |---|---|---|---|

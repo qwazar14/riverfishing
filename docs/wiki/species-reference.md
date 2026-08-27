@@ -299,12 +299,12 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Snook | burst | 0.9 | 3 | 0.85 | 0.55 | — |
 | Striped bass | relentless | 0.85 | 4 | 0.7 | 0.6 | — |
 | Tarpon | greyhounding | 1 | 5 | 0.75 | 0.35 | — |
-| Arapaima | greyhounding | 0.95 | 4 | 0.8 | 0.22 | 175 kg |
-| Beluga sturgeon | sounding | 1.0 | 6 | 0.5 | 0.1 | 580 kg |
-| Piraiba | relentless | 0.95 | 5 | 0.85 | 0.18 | 155 kg |
-| Goliath grouper | sounding | 1.0 | 3 | 0.9 | 0.2 | 310 kg |
-| Bull shark | aggressive | 1.0 | 5 | 1.0 | 0.24 | 225 kg |
-| Frilled shark | sounding | 0.7 | 3 | 0.55 | 0.06 | 48 kg |
+| Arapaima | greyhounding | 0.95 | 4 | 0.8 | 0.22 | — |
+| Beluga sturgeon | sounding | 1.0 | 6 | 0.5 | 0.1 | — |
+| Piraiba | relentless | 0.95 | 5 | 0.85 | 0.18 | — |
+| Goliath grouper | sounding | 1.0 | 3 | 0.9 | 0.2 | — |
+| Bull shark | aggressive | 1.0 | 5 | 1.0 | 0.24 | — |
+| Frilled shark | sounding | 0.7 | 3 | 0.55 | 0.06 | — |
 | Golden dorado | greyhounding | 0.9 | 5 | 1.0 | 0.38 | — |
 | Golden crucian | steady | 0.4 | 2 | 0.3 | 0.85 | — |
 | Bitterling | steady | 0.03 | 1 | — | 1.0 | — |

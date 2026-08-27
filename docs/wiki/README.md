@@ -2,7 +2,7 @@
 
 **River Fishing** turns fishing into a process instead of a click on the water. You assemble a rod from a blank, a reel, a line and a rig; you match bait, hook size, groundbait and leader to the fish you actually want; you read the water, the season, the hour and the barometer; and then you fight what takes.
 
-Nothing bites by luck. A data-driven bite engine weighs your whole setup against every one of **91 species** under the current conditions, and decides both *what* takes and *how long you wait*. Mismatched gear catches nothing, a line that is too visible spooks small wary fish, big fish demand a near-perfect kit, and every water in the world holds its own species community fixed by the world seed.
+Nothing bites by luck. A data-driven bite engine weighs your whole setup against every one of **93 species** under the current conditions, and decides both *what* takes and *how long you wait*. Mismatched gear catches nothing, a line that is too visible spooks small wary fish, big fish demand a near-perfect kit, and every water in the world holds its own species community fixed by the world seed.
 
 - **Version 0.7.0**, on four Minecraft versions:
   - **1.20.1** — Fabric & Forge
@@ -33,7 +33,7 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 | [Rods](rods.md) | All 13 blanks — reel bands, cast-weight windows, reach, built-in rigs, durability, repair, recipes |
 | [Reels and lines](reels-and-lines.md) | 11 reels and the spool-diameter rule, 23 lines with breaking strains, line visibility and wear, the three leaders |
 | [Rigs and baits](rigs-and-baits.md) | 11 rigs and their slot layouts, 9 hooks, the float and its depth slider, 13 natural baits, 8 lures, the one groundbait and its pantry |
-| [Groundbait](groundbait.md) | The base and a pantry: fraction, nutrition, the menu, variety — and what all 91 species want |
+| [Groundbait](groundbait.md) | The base and a pantry: fraction, nutrition, the menu, variety — and what all 93 species want |
 | [Tackle Station](tackle-station.md) | The 0.6.0 bench: forms, the weight stepper, costs, dyeing, and which knobs do nothing yet |
 | [Crafting](crafting.md) | Every recipe in the mod, in one place |
 | [Tools and processing](tools.md) | Journal, fish finder, knife, whetstone, auger, alarms, fillets, live bait, pack integrations |
@@ -56,7 +56,7 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 
 | Page | What's in it |
 |---|---|
-| [Species](species.md) | All 91 species: sizes, home waters, level gates, best baits, ideal tackle, plus notes on the unusual ones |
+| [Species](species.md) | All 93 species: sizes, home waters, level gates, best baits, ideal tackle, plus notes on the unusual ones |
 | [Species reference](species-reference.md) | Habitat gates, season / time / weather tables, fight statistics |
 | [Progression](progression.md) | Angler XP, levels and ranks, the skill tree, the 8-stage quest chain, all 22 advancements, the journal |
 | [Villager](villager.md) | The Fisherman, the Fishing Stall, all five trade tiers, the prime-fish rule, the dynamic market |

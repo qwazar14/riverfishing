@@ -456,7 +456,7 @@ Seven patterns, set per species in its profile.
 
 ### Sounding (deep dives)
 
-While the fish is down, **it takes line**: progress drains 0.0035 per tick. Every 25 run ticks the long drag scream plays and you are told *"Sounding — pump it back between dives!"* You cannot fight a dive; you wait it out and pump the line back in the gap.
+While the fish is down, **it takes line**: one dive costs a flat **0.30 of the land bar**, spread evenly over however long that dive runs. (It was a rate per tick until 0.8.2, which meant lengthening the runs silently doubled what a dive cost — a beluga was asking for 6.6 bars back.) Every 25 run ticks the long drag scream plays and you are told *"Sounding — pump it back between dives!"* You cannot fight a dive; you wait it out and pump the line back in the gap.
 
 Species: **Yellowfin tuna, Swordfish, Sturgeon, Halibut, Beluga sturgeon, Frilled shark, Goliath grouper**.
 
@@ -594,7 +594,7 @@ Any legal catch at or above 70 % of its species' maximum is graded **prime** —
 
 ### Legendary fish
 
-Fourteen species hide **one unique specimen per server**, rolled at the moment of landing — eight of them under a name of their own:
+Eight species hide **one unique specimen per server**, rolled at the moment of landing:
 
 | Species | Name | Weight | Chance per landing |
 |---|---|---|---|
@@ -606,12 +606,6 @@ Fourteen species hide **one unique specimen per server**, rolled at the moment o
 | Sturgeon | The Tsar-Fish | 145 kg | 0.4 % |
 | Mako shark | The Megalodon | 390 kg | 0.4 % |
 | Halibut | The Abyssal Demon | 250 kg | 0.4 % |
-| Arapaima | — | 175 kg | 0.4 % |
-| Piraiba | — | 155 kg | 0.4 % |
-| Beluga sturgeon | — | 580 kg | 0.3 % |
-| Bull shark | — | 225 kg | 0.4 % |
-| Goliath grouper | — | 310 kg | 0.4 % |
-| Frilled shark | — | 48 kg | 0.3 % |
 
 The actual weight varies ±3 % around the listed figure, the length is the species maximum, and it is always a trophy. The catch is **broadcast to the whole server** in bold gold and recorded forever — there will never be another. A foul-hooked fish can never be the legendary one.
 
