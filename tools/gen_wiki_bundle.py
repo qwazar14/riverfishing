@@ -67,8 +67,29 @@ GROUPS = [
     ("Playing", ["fishing-mechanics", "water-and-conditions", "shoal", "ice-fishing", "sea-fishing",
                  "stocking"]),
     ("Reference", ["species", "species-reference", "calculator", "progression", "villager",
-                   "order-board", "config", "electrofisher"]),
+                   "order-board", "config", "electrofisher", "compatibility"]),
 ]
+
+
+def check_groups_cover_disk():
+    """Every page in docs/wiki must be named in GROUPS, or it is invisible to every reader.
+
+    The comment above GROUPS has promised this check since six pages went missing that way. It
+    was never actually written, and compatibility.md then did it a seventh time: added, linked
+    from three READMEs and from two store descriptions, passing every checker, and absent from
+    the published page for four days. Now the build refuses instead.
+    """
+    listed = {name for _, names in GROUPS for name in names}
+    on_disk = {os.path.basename(f)[:-3] for f in glob.glob(os.path.join(SRC, "*.md"))}
+    missing = sorted(on_disk - listed)
+    phantom = sorted(listed - on_disk)
+    if missing:
+        raise SystemExit("gen_wiki_bundle: %d page(s) exist in %s but are not in GROUPS, so "
+                         "they would not be published: %s"
+                         % (len(missing), SRC, ", ".join(missing)))
+    if phantom:
+        raise SystemExit("gen_wiki_bundle: GROUPS names %d page(s) that do not exist: %s"
+                         % (len(phantom), ", ".join(phantom)))
 GITHUB = "https://github.com/qwazar14/riverfishing/blob/dev-0.7.0/docs/"
 
 FISH_TEX = "common/src/main/resources/assets/riverfishing/textures/item/fish"
@@ -708,6 +729,8 @@ def main():
     ap.add_argument("--fish-size", type=int, default=64,
                     help="px to downscale the 256px fish art to (default 64)")
     args = ap.parse_args()
+
+    check_groups_cover_disk()
 
     if not os.path.isdir(SRC):
         ap.error("run me from the repo root: %s not found" % SRC)
