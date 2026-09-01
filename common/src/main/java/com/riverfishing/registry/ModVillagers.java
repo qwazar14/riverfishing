@@ -596,6 +596,16 @@ public final class ModVillagers {
         t.get(level).add(buyPrimeOf(path, emeralds, xp));
     }
 
+    /**
+     * §contracts: what a counter pays for one prime specimen, or 0 for a species no
+     * fisherman buys. The same map the order panel prints its multiplier from — a contract that priced
+     * a fish separately would be a second opinion on what a bream is worth.
+     */
+    public static int baseEmeralds(String species) {
+        int[] p = BASE_PRICE.get(species);
+        return p == null ? 0 : p[0];
+    }
+
     private static VillagerTrades.ItemListing buyPrimeOf(String path, int emeralds, int xp) {
         return (trader, random) -> {
             Item i = item(path);
