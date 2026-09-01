@@ -791,6 +791,8 @@ public class JournalScreen extends Screen {
     private int tab = TAB_FISH;
     private String detail;      // opened fish species, or null
     private int catDetail = -1; // opened bait/gear entry index (in the current tab's list), or -1
+    /** §craft-grid: what the cursor is over this frame — its tooltip is drawn after the whole page. */
+    private ItemStack hoverStack = ItemStack.EMPTY;
     private int scroll;
     private int lastCatH;       // measured content height of the last catalog render (for scroll clamp)
     /** Visible height of whatever the last render scrolled, so the wheel clamps to the RIGHT viewport. */
@@ -1001,6 +1003,7 @@ public class JournalScreen extends Screen {
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(g, mouseX, mouseY, partialTick);
+        hoverStack = ItemStack.EMPTY;   // §craft-grid: refilled by whatever the cursor is over
         boolean scaled = uiScale < 0.999f;
         if (scaled) {
             g.pose().pushPose();
@@ -1036,6 +1039,8 @@ public class JournalScreen extends Screen {
                 renderCatalog(g, list, mouseX, mouseY);
             }
         }
+        // §craft-grid: last, so a tooltip is never drawn under the page it belongs to.
+        if (!hoverStack.isEmpty()) g.renderTooltip(this.font, hoverStack, mouseX, mouseY);
         if (scaled) g.pose().popPose();
     }
 
@@ -1920,7 +1925,7 @@ public class JournalScreen extends Screen {
         }
 
         int y = top + 148;
-        y = obtainRender(g, y, e.stack()) + 4;
+        y = obtainRender(g, y, e.stack(), mouseX, mouseY) + 4;
 
         if (e.kind() == Kind.ROD || e.kind() == Kind.REEL || e.kind() == Kind.LINE) {
             y = compatLines(g, y, e) + 2;
@@ -1930,11 +1935,23 @@ public class JournalScreen extends Screen {
             g.drawString(this.font, Component.translatable("journal.riverfishing.bait_catches"),
                     left + 10, y, GuiStyle.TEXT_HINT, false);
             y += 12;
-            List<String> fish = fishFor(e, 12);
-            String list = fish.isEmpty() ? "—" : String.join(", ", fish);
-            for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.literal(list), W - 20)) {
-                g.drawString(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
+            // §catch-icons: the fish this bait takes, drawn as fish. Twelve names in a row is a
+            // paragraph to read, and "what do I catch on this" is the only question the page answers.
+            List<String> fish = fishIdsFor(e, 12);
+            if (fish.isEmpty()) {
+                g.drawString(this.font, "—", left + 10, y, GuiStyle.TEXT, false);
                 y += 11;
+            } else {
+                int perRow = Math.max(1, (W - 24) / 18);
+                for (int i = 0; i < fish.size(); i++) {
+                    int fx = left + 10 + (i % perRow) * 18, fy = y + (i / perRow) * 18;
+                    GuiStyle.slot(g, fx, fy);
+                    drawFishIcon(g, fish.get(i), fx, fy);
+                    if (mouseX >= fx && mouseX < fx + 16 && mouseY >= fy && mouseY < fy + 16) {
+                        hoverStack = modStack(fish.get(i));
+                    }
+                }
+                y += ((fish.size() + perRow - 1) / perRow) * 18;
             }
         }
         g.drawString(this.font, Component.translatable("guide.riverfishing.back"),
@@ -2032,18 +2049,17 @@ public class JournalScreen extends Screen {
         return y;
     }
 
-    /** "How to get": the crafting recipe's ingredients when one exists, else a generic hint. */
-    private int obtainRender(GuiGraphics g, int y, ItemStack stack) {
-        List<String> ings = craftIngredients(stack);
-        if (!ings.isEmpty()) {
+    /**
+     * §craft-grid: "how to get" is the recipe DRAWN — the slots where the bench wants them, the
+     * result past an arrow. It used to be the ingredient names in a row, which said what goes in
+     * and never where, so the answer to "how do I make this" was still a trip out to JEI.
+     */
+    private int obtainRender(GuiGraphics g, int y, ItemStack stack, int mouseX, int mouseY) {
+        Craft craft = craftOf(stack);
+        if (craft != null) {
             g.drawString(this.font, Component.translatable("journal.riverfishing.obtain_craft"),
                     left + 10, y, GuiStyle.TEXT_HINT, false);
-            y += 12;
-            for (net.minecraft.util.FormattedCharSequence seq
-                    : this.font.split(Component.literal(String.join(", ", ings)), W - 20)) {
-                g.drawString(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
-                y += 11;
-            }
+            return recipeGrid(g, left + 10, y + 12, craft, mouseX, mouseY);
         } else {
             for (net.minecraft.util.FormattedCharSequence seq
                     : this.font.split(Component.translatable("journal.riverfishing.obtain_other"), W - 20)) {
@@ -2086,22 +2102,78 @@ public class JournalScreen extends Screen {
         return t;
     }
 
-    private static List<String> fishFor(Cat e, int limit) {
+    /** The species this bait takes, keenest first — ids, so a caller can draw them. */
+    private static List<String> fishIdsFor(Cat e, int limit) {
         return FishProfileManager.get().all().stream()
                 .filter(p -> p.baitScore(e.id()) >= 0.5)
                 .sorted((a, b) -> Double.compare(b.baitScore(e.id()), a.baitScore(e.id())))
                 .limit(limit)
-                .map(p -> Component.translatable("fish.riverfishing." + p.id.getPath()).getString())
+                .map(p -> p.id.getPath())
+                .collect(Collectors.toList());
+    }
+
+    private static List<String> fishFor(Cat e, int limit) {
+        return fishIdsFor(e, limit).stream()
+                .map(sp -> Component.translatable("fish.riverfishing." + sp).getString())
                 .collect(Collectors.toList());
     }
 
     /** Distinct ingredient names of the first crafting recipe that yields this item, or empty. */
     private static List<String> craftIngredients(ItemStack stack) {
+        Craft c = craftOf(stack);
+        if (c == null) return List.of();
+        LinkedHashSet<String> names = new LinkedHashSet<>();
+        for (ItemStack[] opt : c.cells()) {
+            if (opt.length > 0) names.add(opt[0].getHoverName().getString());
+        }
+        return new ArrayList<>(names);
+    }
+
+    /** A recipe's cells in bench order, every cell holding each item its ingredient accepts. */
+    private record Craft(ItemStack[][] cells, int w, int h, ItemStack result) {}
+
+    private static final ItemStack[] EMPTY_CELL = new ItemStack[0];
+
+    /**
+     * The bench: {@code w × h} slots, an arrow, the result. A cell whose ingredient is a TAG holds
+     * every item that tag accepts and steps through them once a second, the way the recipe book
+     * does — one frozen example would read as the only thing that works.
+     *
+     * <p>Returns the y below the grid.
+     */
+    private int recipeGrid(GuiGraphics g, int x, int y, Craft c, int mouseX, int mouseY) {
+        long sec = System.currentTimeMillis() / 1000L;
+        for (int r = 0; r < c.h(); r++) {
+            for (int col = 0; col < c.w(); col++) {
+                int sx = x + col * 18, sy = y + r * 18;
+                GuiStyle.slot(g, sx, sy);
+                ItemStack[] opt = c.cells()[r * c.w() + col];
+                if (opt.length == 0) continue;
+                ItemStack it = opt[(int) Math.floorMod(sec, opt.length)];
+                g.renderItem(it, sx, sy);
+                if (mouseX >= sx && mouseX < sx + 16 && mouseY >= sy && mouseY < sy + 16) hoverStack = it;
+            }
+        }
+        int ax = x + c.w() * 18 + 4, ay = y + (c.h() * 18 - 16) / 2;
+        g.drawString(this.font, "\u2192", ax, ay + 4, GuiStyle.TEXT_HINT, false);
+        int rx = ax + 14;
+        GuiStyle.slot(g, rx, ay);
+        g.renderItem(c.result(), rx, ay);
+        if (mouseX >= rx && mouseX < rx + 16 && mouseY >= ay && mouseY < ay + 16) hoverStack = c.result();
+        return y + c.h() * 18;
+    }
+
+    /**
+     * §craft-grid: the first crafting recipe that yields this item, laid out the way the bench
+     * wants it. Shaped recipes keep their real shape; shapeless ones have none, so they pack three
+     * to a row. Nothing here is hand-written per item — the scan finds whatever the data pack
+     * defines, so a recipe changed in JSON changes the page with it.
+     *
+     * <p>The one scan behind both the grid and {@link #craftIngredients}.
+     */
+    private static Craft craftOf(ItemStack stack) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null) return List.of();
-        // §groundbait-one-jar: the jar IS craftable again — wheat + wheat seeds — so the generic scan
-        // below finds it and prints the two ingredients, the same as for any piece of gear. The oil cake's
-        // hand-written sunflower-and-piston recipe used to live here; that item no longer exists.
+        if (mc.level == null) return null;
         for (net.minecraft.world.item.crafting.RecipeHolder<?> holder : mc.level.getRecipeManager().getRecipes()) {
             ItemStack res;
             try {
@@ -2112,15 +2184,23 @@ public class JournalScreen extends Screen {
             if (res == null || res.isEmpty() || res.getItem() != stack.getItem()) continue;
             NonNullList<Ingredient> ings = holder.value().getIngredients();
             if (ings.isEmpty()) continue;
-            LinkedHashSet<String> names = new LinkedHashSet<>();
-            for (Ingredient ing : ings) {
-                if (ing.isEmpty()) continue;
-                ItemStack[] arr = ing.getItems();
-                if (arr.length > 0) names.add(arr[0].getHoverName().getString());
+            int w, h;
+            if (holder.value() instanceof net.minecraft.world.item.crafting.ShapedRecipe sr) {
+                w = sr.getWidth();
+                h = sr.getHeight();
+            } else {
+                w = Math.min(3, ings.size());
+                h = (ings.size() + w - 1) / w;
             }
-            if (!names.isEmpty()) return new ArrayList<>(names);
+            if (w <= 0 || h <= 0 || w > 3 || h > 3) continue;
+            ItemStack[][] cells = new ItemStack[w * h][];
+            for (int i = 0; i < cells.length; i++) {
+                Ingredient ing = i < ings.size() ? ings.get(i) : Ingredient.EMPTY;
+                cells[i] = ing.isEmpty() ? EMPTY_CELL : ing.getItems();
+            }
+            return new Craft(cells, w, h, res);
         }
-        return List.of();
+        return null;
     }
 
     private static String sectionKey(Kind k) {
