@@ -37,6 +37,15 @@ public class QuestClaimPacket implements ModNetwork.RfPacket {
 
     public void handleServer(NetworkManager.PacketContext ctx) {
         if (ctx.getPlayer() instanceof ServerPlayer sp) {
+            // §contracts share this packet: both are "the journal says this row is ready, pay it", and
+            // both re-validate from scratch here. A contract id is 'c' + the day it was minted on, so
+            // the test is 'c' followed by a DIGIT — every quest id in the chain starts with "q_", but a
+            // rule that only said "starts with c" would be one new quest name away from being wrong.
+            if (questId.length() > 1 && questId.charAt(0) == 'c'
+                    && Character.isDigit(questId.charAt(1))) {
+                com.riverfishing.fishing.Contracts.claim(sp, questId);
+                return;
+            }
             Quests.claim(sp, sp.level(), questId);
         }
     }

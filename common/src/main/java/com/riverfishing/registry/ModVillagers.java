@@ -211,6 +211,15 @@ public final class ModVillagers {
         return null;
     }
 
+    /**
+     * §contracts: what a counter pays for one prime specimen, or 0 for a species no fisherman buys.
+     * The datapack registry is the only place that knows, and it is the same number the counter prices
+     * from — a contract that priced a fish separately would be a second opinion on what a bream is worth.
+     */
+    public static int baseEmeralds(String species) {
+        return basePrice(species);
+    }
+
     /** §market-live: the emeralds the datapack pays for this species before the market moves it. */
     private static int basePrice(String species) {
         return buyTrade(species)
