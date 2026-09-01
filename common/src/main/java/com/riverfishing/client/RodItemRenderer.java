@@ -824,7 +824,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             int used = mc.player.getUseItem().getUseDuration(mc.player) - mc.player.getUseItemRemainingTicks();
             chargePower = RodItem.castPower(used);
         }
-        float swing = mc.player.getAttackAnim(mc.getTimer().getGameTimeDeltaPartialTick(false));
+        // §crank-swing: the whip belongs to the CAST. This read the swing unconditionally, so every
+        // crank during a fight added a casting whip on top of the arm swing — two shakes per click.
+        float swing = com.riverfishing.client.ClientLineState.active()
+                ? 0f : mc.player.getAttackAnim(mc.getTimer().getGameTimeDeltaPartialTick(false));
         float pitch = RodHandTransform.castPitch(chargePower, swing);
         if (pitch != 0f) {
             pose.mulPose(com.mojang.math.Axis.XP.rotationDegrees(pitch));
