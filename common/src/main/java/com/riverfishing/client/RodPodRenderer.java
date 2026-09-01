@@ -128,7 +128,7 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
         // 3) Lines last (one buffer), from each raised tip (§pod-line): a WAITING line is TAUT (a
         // bottom rig is fished on a tight line); during a bite it twitches; a MISSED real bite goes
         // SLACK — the sagging curve is the "reel in and re-cast" cue.
-        VertexConsumer vc = buffers.getBuffer(RenderType.lines());
+        // §live-buffer: asked for per rod below, never cached — see LineRenderer.render.
         Matrix4f m = pose.last().pose();
         Matrix3f nrm = pose.last().normal();
         float time = be.getLevel() != null ? be.getLevel().getGameTime() + partialTick : partialTick;
@@ -141,7 +141,8 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
             // with no readable line keeps the old thin dark string.
             float[] style = i < rods.size() && !rods.get(i).isEmpty()
                     ? RodItemRenderer.lineStyle(rods.get(i)) : null;
-            VertexConsumer lv = style != null ? buffers.getBuffer(RodRenderTypes.lineStrand(style[4])) : vc;
+            VertexConsumer lv = buffers.getBuffer(
+                    style != null ? RodRenderTypes.lineStrand(style[4]) : RenderType.lines());
             int lr = style != null ? (int) style[0] : 25;
             int lg = style != null ? (int) style[1] : 25;
             int lb = style != null ? (int) style[2] : 25;

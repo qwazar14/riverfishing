@@ -39,7 +39,9 @@ public final class LineRenderer {
         pose.pushPose();
         pose.translate(-cam.x, -cam.y, -cam.z);
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-        VertexConsumer vc = buffers.getBuffer(RenderType.lines());
+        // §live-buffer: NO VertexConsumer is held here. BufferSource.getBuffer ENDS the batch of
+        // the type it last handed out, so a consumer kept across another getBuffer is a dead
+        // buffer that throws "Not building!" on its next vertex. Ask at the point of use.
         Matrix4f m = pose.last().pose();
         Matrix3f nrm = pose.last().normal();
 
@@ -55,7 +57,7 @@ public final class LineRenderer {
             }
             if (!(mc.level.getEntity(entry.getKey()) instanceof Player player)) continue;
             state.tickSmoothing(frameSeconds);
-            renderLine(mc, buffers, vc, m, nrm, player, state, pt);
+            renderLine(mc, buffers, m, nrm, player, state, pt);
             drew = true;
         }
 
@@ -65,7 +67,7 @@ public final class LineRenderer {
         pose.popPose();
     }
 
-    private static void renderLine(Minecraft mc, MultiBufferSource buffers, VertexConsumer vc,
+    private static void renderLine(Minecraft mc, MultiBufferSource buffers,
                                    Matrix4f m, Matrix3f nrm,
                                    Player player, ClientLineState.Line state, float pt) {
         // Rod-tip anchor: exact vanilla FishingHookRenderer math (§vanilla-line).
@@ -88,7 +90,8 @@ public final class LineRenderer {
                         .getItem() instanceof com.riverfishing.item.LineItem li) {
             style = RodRenderTypes.strandStyle(li.lineType(), li.diameterMm());
         }
-        VertexConsumer sv = style == null ? vc : buffers.getBuffer(RodRenderTypes.lineStrand(style[4]));
+        VertexConsumer sv = buffers.getBuffer(
+                style == null ? RenderType.lines() : RodRenderTypes.lineStrand(style[4]));
         int alpha = style == null ? 255 : (int) style[3];
 
         // §hand-line: the LOCAL first-person string is drawn by the hand pass, welded to the tip's
@@ -116,7 +119,10 @@ public final class LineRenderer {
         // Spinning lures and bottom rigs have nothing on the surface. Wave motion is already in
         // `end`, so the float and the line move as one.
         if (state.floatKind != 0) {
-            drawFloat(vc, m, nrm, end, state.floatKind == 2);
+            // Asked for HERE, not reused from above: the strand fetch a few lines up ended the
+            // lines() batch. This is the crash reported on 0.8.2 — a float rod, and only a float
+            // rod, because only a float rig draws a bobber (§bobber-render).
+            drawFloat(buffers.getBuffer(RenderType.lines()), m, nrm, end, state.floatKind == 2);
         }
     }
 
