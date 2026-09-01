@@ -633,6 +633,46 @@ public class JournalScreen extends Screen {
         return y;
     }
 
+    /**
+     * §guide-headings: a guide page is prose with SECTIONS. A paragraph written as {@code ## Something}
+     * in the lang file becomes a brass heading with air above it and a rule under it; everything else
+     * wraps as before.
+     *
+     * <p>In the lang file rather than in code for the same reason {@code .table} and {@code .bars} are:
+     * a page gains sections as a TRANSLATION job, done once per language, instead of a render method
+     * per page that only English would ever get. A translator who drops the marker loses the heading
+     * and keeps the sentence — the page still reads, it just reads flat.
+     *
+     * <p>Wrapping happens per paragraph, so the marker survives: splitting the whole page first would
+     * hand back wrapped lines with no idea which of them a paragraph began on.
+     */
+    private int guideProse(GuiGraphicsExtractor g, String id, int y) {
+        String raw = I18n.get("guide.riverfishing." + id + ".text");
+        for (String para : raw.split("\n")) {
+            if (para.startsWith(HEADING)) {
+                y += 7;
+                g.text(this.font, para.substring(HEADING.length()).trim(), left + 10, y, 0xFFB0842C, false);
+                y += 11;
+                g.fill(left + 10, y, left + W - 14, y + 1, 0x33000000);
+                y += 5;
+                continue;
+            }
+            if (para.isEmpty()) {
+                y += 12;    // a blank line is the paragraph gap the pages were written with
+                continue;
+            }
+            for (net.minecraft.util.FormattedCharSequence seq
+                    : this.font.split(Component.literal(para), W - 24)) {
+                g.text(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
+                y += 12;
+            }
+        }
+        return y;
+    }
+
+    /** What marks a guide paragraph as a section heading. Markdown's, so it reads as one in the file. */
+    private static final String HEADING = "## ";
+
     private int guideBars(GuiGraphicsExtractor g, String id, int y) {
         String key = "guide.riverfishing." + id + ".bars";
         if (!net.minecraft.locale.Language.getInstance().has(key)) return y;
@@ -1856,12 +1896,7 @@ public class JournalScreen extends Screen {
             scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - (contentBottom - contentTop)));
             scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
             int dy = contentTop - scroll;
-            String bk = "guide.riverfishing." + e.id() + ".text";
-            for (net.minecraft.util.FormattedCharSequence seq
-                    : this.font.split(Component.translatable(bk), W - 24)) {
-                g.text(this.font, seq, left + 10, dy, GuiStyle.TEXT, false);
-                dy += 12;
-            }
+            dy = guideProse(g, e.id(), dy);
             dy = guideBars(g, e.id(), dy + 4);
             dy = guideTable(g, e.id(), dy + 4);
             lastCatH = (dy + scroll) - contentTop;
