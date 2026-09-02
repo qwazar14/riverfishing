@@ -71,8 +71,10 @@ public final class CatchCard {
         c.putInt("Value", value);
 
         // What the profile knows, copied in: the client on a server never sees a profile.
-        double pct = p == null || p.weightMax <= p.weightMin ? 0.5
-                : Math.max(0, Math.min(1, (weightG - p.weightMin) / (p.weightMax - p.weightMin)));
+        // §board-3: the size class is FishMorph.ageFraction — 0.5 at an ordinary specimen — so a
+        // 1.15 kg pike is a juvenile, not a baby: the old bar measured against the record weight,
+        // and against a 25 kg record everything you will ever catch was a baby.
+        double pct = FishMorph.ageFraction(p, weightG);
         c.putByte("Size", (byte) (pct < 0.15 ? 0 : pct < 0.35 ? 1 : pct < 0.6 ? 2 : pct < 0.85 ? 3 : 4));
         c.putString("Group", p == null ? "" : p.group);
         c.putString("Latin", p == null ? "" : p.latin);   // §cards-2

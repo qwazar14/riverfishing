@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -14,19 +15,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * §contracts: the board of posts beside the fisherman's counter.
+ * §contracts / §board-3: the board of posts beside the fisherman's counter.
  *
  * <p>Bound to the merchant window exactly the way {@link OrderState} is — the packet lands just before
- * the screen-open packet, the first window claims it, a different window drops it. Drawn as parchment
- * from fills rather than a texture: the posts are all text and icons, and there is no chrome to paint.
- * It stands to the right of the window, or under it when the GUI is too narrow.
+ * the screen-open packet, the first window claims it, a different window drops it — and re-sent by the
+ * server after every click, so what is greyed is what the server says is taken.
  *
- * <p>Every term of a post is a line of its own — a post is as tall as it needs to be, never folded —
- * and the click uses the same layout the draw did.
+ * <p>Each post: a head line with the fish, then the size bar and every term wrapped to the board's
+ * width, then a foot line — when the post leaves the board on the left, the pay on the right. Nothing
+ * shares a line with the emerald, so nothing can run under it.
  */
 public final class ContractBoardState {
     private static final int MERCHANT_W = 276, MERCHANT_H = 166;
-    private static final int W = 124, HEAD = 26, LINE = 9;
+    private static final int W = 150, HEAD = 26, LINE = 9, FOOT = 18, TEXT_W = W - 26;
     private static final int PAPER = 0xFFE3D6B8, EDGE = 0xFF6E5A3C, INK = 0xFF241A0E, INK2 = 0xFF6E5A3C,
             HOVER = 0x38E8B430, TAKEN = 0xFFA89880;
 
@@ -52,17 +53,23 @@ public final class ContractBoardState {
         return true;
     }
 
-    /** The lines under a post's head line: the size bar, then every term. */
-    private static List<Component> lines(CompoundTag t) {
-        List<Component> out = new ArrayList<>();
-        out.add(Component.literal(ContractItem.grams(t.getIntOr("W", 0))));
-        out.addAll(ContractItem.terms(t));
-        // §board-taken: when this post goes — the board turns over with the world day, and the client
-        // has the clock. Real minutes, because that is how long the player has to decide.
-        Minecraft mc = Minecraft.getInstance();
-        long ticks = mc.level == null ? 0 : 24000L - (mc.level.getOverworldClockTime() % 24000L);
-        out.add(Component.translatable("screen.riverfishing.contract_board.refresh", (ticks + 1199) / 1200));
+    /** The lines under a post's head line, wrapped: the size bar, then every term. */
+    private static List<FormattedCharSequence> lines(CompoundTag t) {
+        var font = Minecraft.getInstance().font;
+        List<FormattedCharSequence> out = new ArrayList<>();
+        out.addAll(font.split(Component.literal(ContractItem.grams(t.getIntOr("W", 0))), TEXT_W));
+        for (Component c : ContractItem.terms(t)) out.addAll(font.split(c, TEXT_W));
         return out;
+    }
+
+    /** When this post leaves the board: days while there are days, minutes on its last day. */
+    private static Component leaves(CompoundTag t) {
+        Minecraft mc = Minecraft.getInstance();
+        long time = mc.level == null ? 0 : mc.level.getOverworldClockTime();
+        long daysLeft = t.getLongOr("Exp", 0L) + 1 - time / 24000L;
+        if (daysLeft > 1) return Component.translatable("screen.riverfishing.contract_board.refresh_days", daysLeft);
+        long ticks = 24000L - (time % 24000L);
+        return Component.translatable("screen.riverfishing.contract_board.refresh", (ticks + 1199) / 1200);
     }
 
     private static int[] origin() {
@@ -83,11 +90,11 @@ public final class ContractBoardState {
         ListTag list = board.getListOrEmpty("posts");
         posts = new int[list.size()][];
         int total = HEAD + 4;
-        List<List<Component>> body = new ArrayList<>();
+        List<List<FormattedCharSequence>> body = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
-            List<Component> ls = lines(list.getCompoundOrEmpty(i));
+            List<FormattedCharSequence> ls = lines(list.getCompoundOrEmpty(i));
             body.add(ls);
-            int h = 13 + LINE * ls.size() + 3;
+            int h = 13 + LINE * ls.size() + FOOT;
             posts[i] = new int[]{y + total, h};
             total += h;
         }
@@ -101,37 +108,42 @@ public final class ContractBoardState {
             CompoundTag t = list.getCompoundOrEmpty(i);
             int ry = posts[i][0], rh = posts[i][1];
             boolean taken = t.getBooleanOr("taken", false);
+            if (i > 0) g.fill(x + 4, ry, x + W - 4, ry + 1, 0x30000000);
             if (!taken && mouseX >= x && mouseX < x + W && mouseY >= ry && mouseY < ry + rh) g.fill(x, ry, x + W, ry + rh, HOVER);
-            FishIcon.draw(g, t.getStringOr("Sp", ""), x + 3, ry + 2);
+            FishIcon.draw(g, t.getStringOr("Sp", ""), x + 3, ry + 3);
             g.text(font, Component.translatable("journal.riverfishing.contract_short",
                     t.getIntOr("N", 0), Component.translatable("fish.riverfishing." + t.getStringOr("Sp", ""))),
-                    x + 22, ry + 3, INK, false);
-            int ly = ry + 13;
-            for (Component c : body.get(i)) {
+                    x + 22, ry + 4, taken ? TAKEN : INK, false);
+            int ly = ry + 14;
+            for (FormattedCharSequence c : body.get(i)) {
                 g.text(font, c, x + 22, ly, taken ? TAKEN : INK2, false);
                 ly += LINE;
             }
+            // The foot: when it leaves, and what it pays — or that it is yours already.
+            int fy = ry + rh - FOOT + 2;
+            g.text(font, leaves(t), x + 22, fy + 4, TAKEN, false);
             if (taken) {
-                g.fill(x, ry, x + W, ry + rh, 0x60E3D6B8);       // greyed: yours already, or was
-                g.text(font, Component.translatable("screen.riverfishing.contract_board.taken"),
-                        x + W - 20 - font.width(Component.translatable("screen.riverfishing.contract_board.taken")), ry + 3, TAKEN, false);
-                continue;                                      // no emerald on a post you cannot take
+                Component tk = Component.translatable("screen.riverfishing.contract_board.taken");
+                g.text(font, tk, x + W - 5 - font.width(tk), fy + 4, TAKEN, false);
+                g.fill(x, ry, x + W, ry + rh, 0x50E3D6B8);       // greyed: yours already, or was
+            } else {
+                ItemStack em = new ItemStack(Items.EMERALD);
+                g.fakeItem(em, x + W - 21, fy);
+                g.itemDecorations(font, em, x + W - 21, fy, String.valueOf(t.getIntOr("Em", 0)));
             }
-            ItemStack em = new ItemStack(Items.EMERALD);
-            g.fakeItem(em, x + W - 20, ry + 2);
-            g.itemDecorations(font, em, x + W - 20, ry + 2, String.valueOf(t.getIntOr("Em", 0)));
         }
     }
 
-    /** A click on a post asks the server for its paper. */
+    /** A click on a post asks the server for its paper; the server answers with the board again. */
     public static boolean click(double mx, double my) {
         if (board == null) return false;
         int[] o = origin();
         if (mx < o[0] || mx >= o[0] + W) return false;
         for (int i = 0; i < posts.length; i++) {
             if (my < posts[i][0] || my >= posts[i][0] + posts[i][1]) continue;
-            if (board.getListOrEmpty("posts").getCompoundOrEmpty(i).getBooleanOr("taken", false)) return true;   // a taken post swallows the click
-            board.getListOrEmpty("posts").getCompoundOrEmpty(i).putBoolean("taken", true);   // greyed at once; the server decides for real
+            CompoundTag post = board.getListOrEmpty("posts").getCompoundOrEmpty(i);
+            if (post.getBooleanOr("taken", false)) return true;           // a taken post swallows the click
+            post.putBoolean("taken", true);                       // greyed at once; the server's board follows
             com.riverfishing.network.ModNetwork.toServer(
                     new com.riverfishing.network.ContractTakePacket(board.getIntOr("vid", 0), i));
             Minecraft mc = Minecraft.getInstance();
