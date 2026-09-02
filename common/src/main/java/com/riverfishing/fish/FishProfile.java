@@ -33,6 +33,8 @@ public final class FishProfile {
      * listed and still reachable, just not silently mis-filed.
      */
     public final String group;
+    /** §cards-2: the scientific name, or empty. */
+    public final String latin;
 
     // Presence / size
     public final Map<String, Double> waterBodies;
@@ -97,6 +99,7 @@ public final class FishProfile {
     private FishProfile(Builder b) {
         this.id = b.id;
         this.group = b.group;
+        this.latin = b.latin;
         this.waterBodies = b.waterBodies;
         this.weightMin = b.weightMin;
         this.weightMax = b.weightMax;
@@ -237,6 +240,7 @@ public final class FishProfile {
         Builder b = new Builder(id);
 
         b.group = GsonHelper.getAsString(json, "group", FishGroup.OTHER);
+        b.latin = GsonHelper.getAsString(json, "latin", "");
         b.waterBodies = readDoubleMap(GsonHelper.getAsJsonObject(json, "water_bodies", new JsonObject()));
 
         JsonObject w = GsonHelper.getAsJsonObject(json, "weight_g", new JsonObject());
@@ -328,6 +332,7 @@ public final class FishProfile {
     private static final class Builder {
         final Identifier id;
         String group = FishGroup.OTHER;
+        String latin = "";
         Map<String, Double> waterBodies = new HashMap<>();
         double weightMin, weightMax, weightMean;
         boolean weightMeanSet;

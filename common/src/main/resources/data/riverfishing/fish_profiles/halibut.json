@@ -1,5 +1,6 @@
 {
   "display": "Палтус",
+  "latin": "Hippoglossus hippoglossus",
   "group": "big_game",
   "water_bodies": {
     "sea": 1.2,

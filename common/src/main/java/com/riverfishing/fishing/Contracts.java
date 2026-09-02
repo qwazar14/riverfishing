@@ -198,7 +198,14 @@ public final class Contracts {
         List<CompoundTag> posts = posts(v, level);
         if (slot < 0 || slot >= posts.size()) return;
         CompoundTag post = posts.get(slot);
-        if (holds(sp, post.getStringOr("Id", ""))) {
+        // §cards-2: a post you took stays taken for its whole life — throwing the paper away and
+        // clicking again is not a second contract, it is the same one without the paper.
+        CompoundTag taken = PlayerData.root(sp).getCompoundOrEmpty("contract_taken");
+        long now = today(level);
+        for (String k : new ArrayList<>(taken.keySet())) {
+            if (taken.getLongOr(k, 0L) < now - DAYS_TO_FILL - 1) taken.remove(k);
+        }
+        if (holds(sp, post.getStringOr("Id", "")) || taken.contains(post.getStringOr("Id", ""))) {
             say(sp, "contract_taken_already", ChatFormatting.YELLOW);
             return;
         }
@@ -211,6 +218,9 @@ public final class Contracts {
         t.putLong("Exp", today(level) + DAYS_TO_FILL);
         StackNbt.set(paper, t);
         if (!sp.getInventory().add(paper)) sp.drop(paper, false);
+        taken.putLong(post.getStringOr("Id", ""), now);
+        PlayerData.root(sp).put("contract_taken", taken);
+        PlayerData.markDirty(sp);
         sp.sendOverlayMessage(Component.translatable("message.riverfishing.contract_taken",
                 ContractItem.headline(t)).withStyle(ChatFormatting.GREEN));
         level.playSound(null, sp.blockPosition(), SoundEvents.VILLAGER_TRADE, SoundSource.PLAYERS, 0.8f, 1f);

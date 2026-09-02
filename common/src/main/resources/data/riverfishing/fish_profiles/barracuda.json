@@ -1,5 +1,6 @@
 {
   "display": "Барракуда",
+  "latin": "Sphyraena barracuda",
   "group": "sea",
   "water_bodies": {
     "sea": 1.1,

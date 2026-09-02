@@ -1,5 +1,6 @@
 {
   "display": "Ротан",
+  "latin": "Perccottus glenii",
   "group": "predator",
   "water_bodies": { "pond": 1.3, "swamp": 1.3, "puddle": 1.0, "lake": 0.4, "river": 0.2, "sea": 0.0 },
   "weight_g": { "min": 20, "max": 600, "mean": 90 },

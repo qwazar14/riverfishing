@@ -1,5 +1,6 @@
 {
   "display": "Астронотус",
+  "latin": "Astronotus ocellatus",
   "group": "predator",
   "water_bodies": {
     "lake": 1.2,

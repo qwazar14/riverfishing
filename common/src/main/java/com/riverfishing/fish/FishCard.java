@@ -58,6 +58,7 @@ public final class FishCard {
     public static CompoundTag build(FishProfile p) {
         CompoundTag c = new CompoundTag();
         c.putString("g", FishGroup.of(p));
+        c.putString("lat", p.latin);   // §cards-2
         c.putInt("wmin", (int) p.weightMin);
         c.putInt("wmax", (int) p.weightMax);
         c.putInt("wmean", (int) p.weightMean);
@@ -117,6 +118,8 @@ public final class FishCard {
     public boolean present() {
         return !tag.isEmpty();
     }
+
+    public String latin() { return tag.getStringOr("lat", ""); }
 
     public String group() {
         return tag.contains("g") ? tag.getStringOr("g", "") : FishGroup.OTHER;

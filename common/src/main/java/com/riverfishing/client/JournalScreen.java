@@ -1436,6 +1436,13 @@ public class JournalScreen extends Screen {
                 left + 30, top + 26, GuiStyle.TEXT, false);
         CompoundTag rec = data.getCompoundOrEmpty(key(sp));
         String recStr = "x" + rec.getIntOr("count", 0) + "  •  " + weight(rec.getIntOr("best", 0));
+        // §cards-2: the scientific name after the common one, when there is room before the record.
+        String latin = card(sp).latin();
+        int nameEnd = left + 30 + this.font.width(Component.translatable("fish.riverfishing." + sp)) + 6;
+        if (!latin.isEmpty() && nameEnd + this.font.width(latin) < left + W - 14 - this.font.width(recStr)) {
+            g.text(this.font, Component.literal(latin).withStyle(net.minecraft.ChatFormatting.ITALIC),
+                    nameEnd, top + 26, GuiStyle.TEXT_HINT, false);
+        }
         g.text(this.font, recStr, left + W - 10 - this.font.width(recStr), top + 26,
                 GuiStyle.TEXT_HINT, false);
 

@@ -1,5 +1,6 @@
 {
   "display": "Канальный сомик",
+  "latin": "Ictalurus punctatus",
   "group": "predator",
   "water_bodies": { "river": 1.2, "lake": 1.0, "pond": 0.6, "swamp": 0.5, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 800, "max": 18000, "mean": 3500 },

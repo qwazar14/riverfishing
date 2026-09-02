@@ -1,5 +1,6 @@
 {
   "display": "Белоглазка",
+  "latin": "Ballerus sapa",
   "group": "cyprinid",
   "water_bodies": { "river": 1.3, "lake": 0.3, "pond": 0.0, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 50, "max": 1300, "mean": 300 },

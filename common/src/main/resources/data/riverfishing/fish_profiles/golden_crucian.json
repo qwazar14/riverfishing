@@ -1,5 +1,6 @@
 {
   "display": "Золотой карась",
+  "latin": "Carassius carassius",
   "group": "cyprinid",
   "water_bodies": {
     "river": 0.3,
