@@ -167,6 +167,22 @@ public final class ClientHud {
     }
 
     /** Cast power bar (§cast-minigame): shown while charging a cast (holding RMB with no line out). */
+    private static final net.minecraft.resources.Identifier BAR =
+            com.riverfishing.RiverFishing.id("textures/gui/cast_bar.png");
+
+    /**
+     * §cast-metres: the cast-power gauge, in METRES.
+     *
+     * <p>It was a bar that filled: fifty percent, eighty-five, a colour. Nothing on it said how far the
+     * line would go, and "how far" is the only thing an angler charging a cast wants to know. The
+     * number printed above the gauge now is the real throw — the same {@code castDistance} the server
+     * lands the line at, read off the same rod and rig on this side, so it cannot disagree.
+     *
+     * <p>§cast-bar: drawn off a generated sheet (tools/gen_cast_bar.py) — an oak frame with a brass
+     * rim, the charge as a lit tube from green through amber to red, the dead band an under-loaded
+     * rig cannot reach hatched in red, and the metres on a parchment plaque. Ticks every five metres,
+     * because the scale is metres now and a tick at "fifty percent" would be a tick at nothing.
+     */
     private static void renderCastPower(GuiGraphicsExtractor g, Minecraft mc) {
         Player player = mc.player;
         if (player == null || !player.isUsingItem()) return;
@@ -177,42 +193,48 @@ public final class ClientHud {
 
         int used = player.getUseItem().getUseDuration(player) - player.getUseItemRemainingTicks();
         float power = com.riverfishing.item.RodItem.castPower(used);
+        var rod = player.getUseItem();
 
-        // §cast-bar-cut: mirror the server's rod-test lower bound — an under-loaded blank can't throw
-        // as far, so the far end of the bar is a dead zone the fill can't enter. Computed client-side
-        // from the installed rig's mass vs the rod's minimum test (both pure, NBT-readable here).
-        float usable = 1.0f;
-        var rodType = rodItem.rodType();
-        var rig = com.riverfishing.item.RodData.get(player.getUseItem(), com.riverfishing.component.ComponentSlot.RIG);
-        // §cast-bar-cut (round 6): mirror the server's ACTUAL weight curve — bench-chosen grams,
-        // in-window 85..100%, sqrt collapse below — instead of the stale fixed-mass 0.55 cut.
-        if (rig.getItem() instanceof com.riverfishing.item.RigItem && rodType.castWeightMax() > 0) {
-            double wG = com.riverfishing.rig.RigData.effectiveWeightG(rig);
-            double minW = rodType.castWeightMin(), maxW = rodType.castWeightMax();
-            double f = wG >= minW
-                    ? 0.85 + 0.15 * Math.min(1.0, Math.max(0.0, (wG - minW) / Math.max(1.0, maxW - minW)))
-                    : 0.85 * Math.sqrt(Math.max(0.10, wG / Math.max(1.0, minW)));
-            usable = (float) Math.min(1.0, Math.max(0.30, f));
-        }
+        // The far end of the gauge is what the rod TYPE can do; the reachable part is what this rod,
+        // with this rig on it, actually does. The gap between them is the dead band (§cast-bar-cut).
+        double base = com.riverfishing.fishing.FishingManager.castRangeBase(rodItem.rodType());
+        double reach = com.riverfishing.fishing.FishingManager.castRangeMax(rod);
+        double metres = com.riverfishing.fishing.FishingManager.castDistance(rod, power);
+        float usable = base <= 0 ? 1f : (float) Math.min(1.0, reach / base);
 
         int sw = mc.getWindow().getGuiScaledWidth();
         int sh = mc.getWindow().getGuiScaledHeight();
-        int w = 102, h = 7;
-        int x = (sw - w) / 2, y = sh - 64;
-        g.fill(x - 2, y - 2, x + w + 2, y + h + 2, 0xCC2A1E12);           // wood frame
-        g.fill(x - 1, y - 1, x + w + 1, y + h + 1, 0xFF5C4A34);
-        g.fill(x, y, x + w, y + h, 0xFF1E1610);                            // track
-        int cut = (int) (usable * w);
-        // the unreachable far zone (under-loaded rod): a dim red dead band
-        if (usable < 1.0f) {
-            g.fill(x + cut, y, x + w, y + h, 0x55B03030);
-            g.fill(x + cut, y, x + cut + 1, y + h, 0xFFE05A4A);           // hard cut-off marker
+        final int FW = 120, FH = 16, TW = 112, TH = 8;
+        int x = (sw - FW) / 2, y = sh - 70;
+        int tx = x + 4, ty = y + 4;                          // the recess the sheet leaves for the fill
+
+        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, x, y, 0f, 0f, FW, FH, 128, 48);
+        // The charge, clipped to the metres: a fraction of the base reach, so the tube fills to where
+        // the line will land on the gauge's own scale.
+        int fill = (int) Math.round(TW * Math.min(1.0, (metres / Math.max(1.0, base))));
+        if (fill > 0) g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, tx, ty, 0f, 16f, fill, TH, 128, 48);
+        // The dead band: hatched, tiled, from the rig's reach to the rod's.
+        int cut = (int) Math.round(TW * usable);
+        for (int hx = tx + cut; hx < tx + TW; hx += 8) {
+            int hw = Math.min(8, tx + TW - hx);
+            g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, hx, ty, 0f, 24f, hw, TH, 128, 48);
         }
-        int fill = (int) (Math.min(power, usable) * w);
-        int color = power < 0.5f ? 0xFF7CB342 : (power < 0.85f ? 0xFFF4C542 : 0xFFE05A4A);
-        g.fill(x, y, x + fill, y + h, color);
-        // tick marks at 50% / 85% so the timing is readable (only within the usable zone)
-        if (0.5f < usable) g.fill(x + w / 2, y, x + w / 2 + 1, y + h, 0x66FFFFFF);
-        if (0.85f < usable) g.fill(x + (int) (w * 0.85f), y, x + (int) (w * 0.85f) + 1, y + h, 0x66FFFFFF);
+        if (usable < 1f) g.fill(tx + cut, ty, tx + cut + 1, ty + TH, 0xFFE05A4A);
+        // Ticks every five metres of the base reach, brighter at ten.
+        for (int m = 5; m < base; m += 5) {
+            int px = tx + (int) Math.round(TW * (m / base));
+            g.fill(px, ty, px + 1, ty + TH, (m % 10 == 0) ? 0x88FFFFFF : 0x44FFFFFF);
+        }
+
+        // The metres, on the plaque above the frame.
+        String label = String.format(java.util.Locale.ROOT, "%.1f m", metres);
+        int lw = mc.font.width(label);
+        int px = x + (FW - 48) / 2, py = y - 18;
+        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, px, py, 0f, 32f, 48, 16, 128, 48);
+        g.text(mc.font, label, px + (48 - lw) / 2, py + 4, 0xFF3A2A18, false);
+        // And what the rod could do, small, at the far end.
+        String top = String.format(java.util.Locale.ROOT, "%.0f", base);
+        g.text(mc.font, top, x + FW + 3, y + 4, 0xFFB08D3C, true);
     }
+
 }
