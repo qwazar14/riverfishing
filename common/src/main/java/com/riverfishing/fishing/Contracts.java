@@ -191,6 +191,21 @@ public final class Contracts {
         return false;
     }
 
+    /** The posts this player has taken, pruned of anything older than a paper can live. */
+    public static CompoundTag ledger(ServerPlayer sp, ServerLevel level) {
+        CompoundTag taken = PlayerData.root(sp).getCompound("contract_taken");
+        long now = today(level);
+        for (String k : new ArrayList<>(taken.getAllKeys())) {
+            if (taken.getLong(k) < now - DAYS_TO_FILL - 1) taken.remove(k);
+        }
+        return taken;
+    }
+
+    /** Held now, or taken any time this post has existed. */
+    public static boolean taken(ServerPlayer sp, CompoundTag ledger, String id) {
+        return holds(sp, id) || ledger.contains(id);
+    }
+
     /** The client clicked a post: rebuild the board for THAT villager and hand the paper over. */
     public static void take(ServerPlayer sp, int villagerId, int slot) {
         ServerLevel level = sp.serverLevel();
@@ -200,15 +215,9 @@ public final class Contracts {
         CompoundTag post = posts.get(slot);
         // §cards-2: a post you took stays taken for its whole life — throwing the paper away and
         // clicking again is not a second contract, it is the same one without the paper.
-        CompoundTag taken = PlayerData.root(sp).getCompound("contract_taken");
+        CompoundTag taken = ledger(sp, level);
         long now = today(level);
-        for (String k : new ArrayList<>(taken.getAllKeys())) {
-            if (taken.getLong(k) < now - DAYS_TO_FILL - 1) taken.remove(k);
-        }
-        if (holds(sp, post.getString("Id")) || taken.contains(post.getString("Id"))) {
-            say(sp, "contract_taken_already", ChatFormatting.YELLOW);
-            return;
-        }
+        if (taken(sp, taken, post.getString("Id"))) return;   // §board-taken: the board already shows it greyed
         if (activeCount(sp) >= MAX_ACTIVE) {
             say(sp, "contract_hands_full", ChatFormatting.YELLOW, MAX_ACTIVE);
             return;
