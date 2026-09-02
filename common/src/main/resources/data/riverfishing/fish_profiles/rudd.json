@@ -1,6 +1,7 @@
 {
   "display": "Краснопёрка",
   "latin": "Scardinius erythrophthalmus",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "cyprinid",
   "water_bodies": { "lake": 1.1, "swamp": 1.0, "pond": 0.9, "river": 0.6, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 50, "max": 1000, "mean": 110 },

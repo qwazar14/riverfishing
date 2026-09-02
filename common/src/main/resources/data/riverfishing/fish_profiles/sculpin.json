@@ -1,6 +1,7 @@
 {
   "display": "Подкаменщик",
   "latin": "Cottus gobio",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "river": 1.3,

@@ -1,6 +1,7 @@
 {
   "display": "Окунь",
   "latin": "Perca fluviatilis",
+  "spawn": { "season": "spring", "sub": "mid" },
   "group": "predator",
   "water_bodies": {
     "river": 1.0,

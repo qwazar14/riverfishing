@@ -1,6 +1,7 @@
 {
   "display": "Цихлазома майя",
   "latin": "Mayaheros urophthalmus",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "lake": 1.2,

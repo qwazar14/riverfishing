@@ -23,6 +23,13 @@ public class AquariumBlockEntity extends BlockEntity {
 
     private final List<ItemStack> fishes = new ArrayList<>();
 
+    // §b/breeding (0.9.0): the tank is a live one — the rules are in AquariumBreeding, next door, which is the
+    // only thing that reads or writes these (package-private on purpose; no getters for one caller).
+    long fedUntil;                   // world day until which the fish count as fed (exclusive)
+    int spawnTicks;                  // unbroken ticks of good conditions towards a clutch
+    int incubate;                    // ticks the roe in the slot has been incubating (tank without fish)
+    ItemStack roe = ItemStack.EMPTY; // the roe slot: a RoeItem, or the FryItem it hatched into
+
     public AquariumBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.AQUARIUM.get(), pos, state);
     }
@@ -56,7 +63,7 @@ public class AquariumBlockEntity extends BlockEntity {
         return out;
     }
 
-    private void sync() {
+    void sync() {
         setChanged();
         if (level != null && !level.isClientSide) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
@@ -69,12 +76,20 @@ public class AquariumBlockEntity extends BlockEntity {
         ListTag list = new ListTag();
         for (ItemStack s : fishes) list.add(s.save(new CompoundTag()));
         tag.put("Fishes", list);
+        tag.putLong("FedUntil", fedUntil);
+        tag.putInt("SpawnTicks", spawnTicks);
+        tag.putInt("Incubate", incubate);
+        if (!roe.isEmpty()) tag.put("Roe", roe.save(new CompoundTag()));
     }
 
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
         fishes.clear();
+        fedUntil = tag.getLong("FedUntil");
+        spawnTicks = tag.getInt("SpawnTicks");
+        incubate = tag.getInt("Incubate");
+        roe = tag.contains("Roe") ? ItemStack.of(tag.getCompound("Roe")) : ItemStack.EMPTY;
         if (tag.contains("Fishes")) {
             ListTag list = tag.getList("Fishes", Tag.TAG_COMPOUND);
             for (int i = 0; i < list.size() && fishes.size() < MAX_FISH; i++) {

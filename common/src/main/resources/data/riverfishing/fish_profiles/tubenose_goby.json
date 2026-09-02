@@ -1,6 +1,7 @@
 {
   "display": "Бычок-цуцик",
   "latin": "Proterorhinus semilunaris",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sea",
   "water_bodies": {
     "river": 1.1,

@@ -1,6 +1,7 @@
 package com.riverfishing.fish;
 
 import com.google.gson.JsonObject;
+import com.riverfishing.engine.Calendar;
 import com.riverfishing.engine.Season;
 import com.riverfishing.engine.TimeOfDay;
 import com.riverfishing.engine.Weather;
@@ -35,6 +36,13 @@ public final class FishProfile {
     public final String group;
     /** §cards-2: the scientific name, or empty. */
     public final String latin;
+    /**
+     * §breeding-A: when this species spawns. Never null — a profile without a "spawn" block gets its
+     * family's habit ({@link #defaultSpawnSeason}), the same table tools/add_spawn.py wrote from.
+     */
+    public final Season spawnSeason;
+    /** §breeding-A: the third of that season, or null for the whole of it. */
+    public final Calendar.Sub spawnSub;
 
     // Presence / size
     public final Map<String, Double> waterBodies;
@@ -100,6 +108,8 @@ public final class FishProfile {
         this.id = b.id;
         this.group = b.group;
         this.latin = b.latin;
+        this.spawnSeason = b.spawnSeason;
+        this.spawnSub = b.spawnSub;
         this.waterBodies = b.waterBodies;
         this.weightMin = b.weightMin;
         this.weightMax = b.weightMax;
@@ -240,6 +250,17 @@ public final class FishProfile {
 
         b.group = GsonHelper.getAsString(json, "group", FishGroup.OTHER);
         b.latin = GsonHelper.getAsString(json, "latin", "");
+        // §breeding-A: "spawn": {"season": "spring", "sub": "late"}, sub optional. A block that names a season
+        // but no sub means the whole season; no block at all means the family's habit, sub included.
+        if (json.has("spawn")) {
+            JsonObject spawn = GsonHelper.getAsJsonObject(json, "spawn");
+            Season s = Calendar.seasonOf(GsonHelper.getAsString(spawn, "season", ""));
+            b.spawnSeason = s != null ? s : defaultSpawnSeason(b.group);
+            b.spawnSub = Calendar.subOf(GsonHelper.getAsString(spawn, "sub", ""));
+        } else {
+            b.spawnSeason = defaultSpawnSeason(b.group);
+            b.spawnSub = defaultSpawnSub(b.group);
+        }
         b.waterBodies = readDoubleMap(GsonHelper.getAsJsonObject(json, "water_bodies", new JsonObject()));
 
         JsonObject w = GsonHelper.getAsJsonObject(json, "weight_g", new JsonObject());
@@ -312,6 +333,29 @@ public final class FishProfile {
         return new FishProfile(b);
     }
 
+    /**
+     * §breeding-A: the family's spawning window for a profile that does not say. Cyprinids, sturgeon and
+     * the inshore sea fish go on the late-spring warm-up, predators as soon as the ice is off, salmonids
+     * on the autumn gravel, the big-game fish through the summer. Mirrors the table in tools/add_spawn.py.
+     */
+    public static Season defaultSpawnSeason(String group) {
+        return switch (group == null ? "" : group) {
+            case FishGroup.SALMONID -> Season.AUTUMN;
+            case FishGroup.BIG_GAME -> Season.SUMMER;
+            default -> Season.SPRING;
+        };
+    }
+
+    /** §breeding-A: the family's sub-season, null = the whole season. */
+    public static Calendar.Sub defaultSpawnSub(String group) {
+        return switch (group == null ? "" : group) {
+            case FishGroup.PREDATOR -> Calendar.Sub.EARLY;
+            case FishGroup.SALMONID -> Calendar.Sub.MID;
+            case FishGroup.BIG_GAME -> null;
+            default -> Calendar.Sub.LATE;
+        };
+    }
+
     private static Map<String, Double> readDoubleMap(JsonObject obj) {
         Map<String, Double> map = new HashMap<>();
         for (Map.Entry<String, com.google.gson.JsonElement> e : obj.entrySet()) {
@@ -332,6 +376,8 @@ public final class FishProfile {
         final ResourceLocation id;
         String group = FishGroup.OTHER;
         String latin = "";
+        Season spawnSeason;                 // §breeding-A
+        Calendar.Sub spawnSub;
         Map<String, Double> waterBodies = new HashMap<>();
         double weightMin, weightMax, weightMean;
         boolean weightMeanSet;

@@ -1,6 +1,7 @@
 {
   "display": "Золотой карась",
   "latin": "Carassius carassius",
+  "spawn": { "season": "summer", "sub": "early" },
   "group": "cyprinid",
   "water_bodies": {
     "river": 0.3,

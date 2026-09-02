@@ -1,6 +1,7 @@
 {
   "display": "Полосатый лаврак",
   "latin": "Morone saxatilis",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,

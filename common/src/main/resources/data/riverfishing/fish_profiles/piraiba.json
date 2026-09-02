@@ -1,6 +1,7 @@
 {
   "display": "Пирайба",
   "latin": "Brachyplatystoma filamentosum",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "river": 1.3,

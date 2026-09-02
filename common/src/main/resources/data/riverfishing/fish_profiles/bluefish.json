@@ -1,6 +1,7 @@
 {
   "display": "Луфарь",
   "latin": "Pomatomus saltatrix",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,

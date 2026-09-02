@@ -1,6 +1,7 @@
 {
   "display": "Щука",
   "latin": "Esox lucius",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "river": 1.0,

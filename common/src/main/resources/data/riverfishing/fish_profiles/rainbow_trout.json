@@ -1,6 +1,7 @@
 {
   "display": "Радужная форель",
   "latin": "Oncorhynchus mykiss",
+  "spawn": { "season": "spring", "sub": "mid" },
   "group": "salmonid",
   "water_bodies": { "river": 1.3, "lake": 0.9, "pond": 0.2, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 300, "max": 6000, "mean": 1100 },

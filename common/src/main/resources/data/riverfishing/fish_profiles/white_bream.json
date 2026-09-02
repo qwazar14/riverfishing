@@ -1,6 +1,7 @@
 {
   "display": "Густера",
   "latin": "Blicca bjoerkna",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "cyprinid",
   "water_bodies": { "river": 1.0, "lake": 1.0, "pond": 0.6, "swamp": 0.3, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 100, "max": 1200, "mean": 300 },

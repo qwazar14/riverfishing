@@ -126,10 +126,16 @@ public class FishItem extends Item {
                 if (level instanceof net.minecraft.server.level.ServerLevel sl) {
                     // §stocking 2.0: presence, settling and the weight-scaled surplus all live in
                     // FishingManager.releaseFish — see there for the whole model.
-                    ResourceLocation released = getSpecies(stack);
+                    if (stack.getItem() instanceof com.riverfishing.item.FryItem) {   // §c: fry take the same road in
+                        com.riverfishing.fishing.FishingManager.releaseFry(sl, entity.blockPosition(),
+                                com.riverfishing.item.FryItem.species(stack), com.riverfishing.item.FryItem.genome(stack),
+                                com.riverfishing.item.FryItem.count(stack), thrower);
+                    }
+                    ResourceLocation released = stack.getItem() instanceof FishItem ? getSpecies(stack) : null;
                     if (released != null) {
                         com.riverfishing.fishing.FishingManager.releaseFish(sl, entity.blockPosition(),
                                 released, getWeightG(stack), stack.getCount(),
+                                com.riverfishing.fish.CatchCard.has(stack) ? com.riverfishing.fish.CatchCard.of(stack) : null,   // §c
                                 thrower);
                     }
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE,
