@@ -138,7 +138,7 @@ public final class ShoalRenderer {
                 // to a seventh of its own length and back on every beat. One sine, and it does more for
                 // a fish swimming at you than any amount of geometry would.
                 float yaw = 180f - (float) Math.toDegrees(f.heading)
-                        + Mth.sin(time * 0.22f + f.phase) * (7f + 9f * f.kick);   // §shoal-kick
+                        + Mth.sin(time * 0.22f + f.phase) * (3f + 4f * f.kick);   // §shoal-kick: the wave does the rest
 
                 pose.pushPose();
                 pose.translate(x - cam.x, y - cam.y, z - cam.z);
@@ -165,7 +165,7 @@ public final class ShoalRenderer {
                 // same fish at yaw 180 has it pointing back at the camera.
                 Matrix4f m = pose.last().pose();
                 boolean plusNear = m.m20() * m.m30() + m.m21() * m.m31() + m.m22() * m.m32() < 0f;
-                lens(m, vc, sprite, size, plusNear ? size * THICK : -size * THICK, alpha,
+                body(m, vc, sprite, size, plusNear ? 1f : -1f, f, time, alpha,
                         com.riverfishing.fish.FishMorph.tint(path, age, ""),
                         FishTint.whiten(com.riverfishing.fish.FishMorph.pale(path, age, "")));
                 pose.popPose();
@@ -194,44 +194,46 @@ public final class ShoalRenderer {
     }
 
     /**
-     * §fish-lens: the fish as one CREASED surface rather than one flat one — pinched to the centreline
-     * at nose and tail, standing {@code t} proud of it at mid-body, always bulging toward the viewer.
+     * §fish-wave: the fish as a ribbon of strips with a swimming wave running down it.
      *
-     * <p>It is thickness that cannot ghost, and that is the entire design. A dropped fish is solid
-     * because {@code item/generated} extrudes its sprite into a mesh — front face, back face, and a
-     * side quad traced round the silhouette — and we cannot have that one: measured against our own
-     * sprites it is 241x this quad count on 1.20.1 and 1.21.1 and 909x on 26.x, where the baker emits
-     * a side quad per edge TEXEL, to draw a rim one 256th of a sprite wide. Nor can we have the cheap
-     * six-quad version of it, because a dropped item is OPAQUE and these fish are not: two translucent
-     * surfaces at alpha read as 1-(1-alpha)^2, so a front and a back would silently double the density
-     * of every fish and wreck the fade, and where the two failed to overlap you would get §shoal-ghost
-     * back. Nor can that be dodged by choosing the draw order — the batch is sorted far-to-near on
-     * upload on all four versions, so the order is not ours to choose.
+     * <p>The lens was one crease at mid-body — thickness that could not ghost, and it still cannot,
+     * but a crease is a crease: from the bank every fish looked folded. So the same single surface is
+     * cut into {@link #STRIPS} along the body, and each strip is displaced sideways by a wave that
+     * starts at nothing behind the head and grows toward the tail, travelling nose-to-tail at a rate
+     * set by the tail's own beat (§shoal-kick). That is what a swimming fish's outline does, and it is
+     * eight quads instead of two.
      *
-     * <p>One surface has nothing to blend against, so all of that goes away. Broadside it is the same
-     * silhouette it always was; the bulge is along the line of sight, which is exactly where it is
-     * free. End-on the fish stops being a rasterised line and becomes a band as wide as it is thick.
-     *
-     * <p>The crease sits at mid-body, and so does the split in the uv, so each half maps linearly and
-     * nothing is stretched. On a flatfish, which §fish-pose has already laid horizontal, local Z is
-     * vertical and the same code gives it a back that stands proud of its edges — which is what a
-     * flatfish is.
+     * <p>The thickness rides the same strips: a body profile that peaks a third of the way back and
+     * tapers to nothing at nose and tail, bulging toward the viewer as before. Every strip's uv is a
+     * linear slice of the sprite, so nothing is stretched.
      */
-    private static void lens(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, float t,
-                             int alpha, int tint, int overlay) {
+    private static final int STRIPS = 8;
+
+    private static void body(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, float side,
+                             ShoalSim.Fish f, float time, int alpha, int tint, int overlay) {
         float r = size / 2f;
-        float u0 = sp.getU0(), u1 = sp.getU1(), um = (u0 + u1) * 0.5f;
+        float u0 = sp.getU0(), u1 = sp.getU1();
         float v0 = sp.getV0(), v1 = sp.getV1();
-        // Head half: from the nose on the centreline back to the crease.
-        vertex(m, vc, -r, -r, 0f, u0, v1, alpha, tint, overlay);
-        vertex(m, vc, 0f, -r, t, um, v1, alpha, tint, overlay);
-        vertex(m, vc, 0f, r, t, um, v0, alpha, tint, overlay);
-        vertex(m, vc, -r, r, 0f, u0, v0, alpha, tint, overlay);
-        // Tail half: from the crease back to the tail, returning to the centreline.
-        vertex(m, vc, 0f, -r, t, um, v1, alpha, tint, overlay);
-        vertex(m, vc, r, -r, 0f, u1, v1, alpha, tint, overlay);
-        vertex(m, vc, r, r, 0f, u1, v0, alpha, tint, overlay);
-        vertex(m, vc, 0f, r, t, um, v0, alpha, tint, overlay);
+        // Amplitude at the tail, and the wave's phase speed — faster on a beat, idle on a glide.
+        float amp = size * (0.05f + 0.09f * f.kick);
+        float phase = time * (0.35f + 0.45f * f.kick) + f.phase * 5f;
+        float[] zs = new float[STRIPS + 1];
+        float[] xs = new float[STRIPS + 1];
+        for (int i = 0; i <= STRIPS; i++) {
+            float t = i / (float) STRIPS;               // 0 nose .. 1 tail
+            xs[i] = -r + t * size;
+            float body = (float) Math.sin(Math.PI * Math.pow(t, 0.75));   // peaks at about a third back
+            float thick = side * size * THICK * body;
+            float wave = amp * t * t * Mth.sin(phase - t * 6.5f);       // grows toward the tail
+            zs[i] = thick + wave;
+        }
+        for (int i = 0; i < STRIPS; i++) {
+            float ua = u0 + (u1 - u0) * (i / (float) STRIPS), ub = u0 + (u1 - u0) * ((i + 1) / (float) STRIPS);
+            vertex(m, vc, xs[i], -r, zs[i], ua, v1, alpha, tint, overlay);
+            vertex(m, vc, xs[i + 1], -r, zs[i + 1], ub, v1, alpha, tint, overlay);
+            vertex(m, vc, xs[i + 1], r, zs[i + 1], ub, v0, alpha, tint, overlay);
+            vertex(m, vc, xs[i], r, zs[i], ua, v0, alpha, tint, overlay);
+        }
     }
 
     private static void vertex(Matrix4f m, VertexConsumer vc, float x, float y, float z, float u, float v,

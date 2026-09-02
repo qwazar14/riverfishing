@@ -158,7 +158,13 @@ public final class ShoalTracker {
             byte spookByte = (byte) Mth.clamp((int) Math.round(spook / SPOOK_GONE * 100.0), 0, 100);
 
             RandomSource rng = RandomSource.create(surface.asLong() * 31L + hour);
-            List<ShoalPacket.Entry> fish = pick(pool, env.waterDepth, Math.min(want, budget), minLen, rng);
+            // §shoal-stable: the draw must not depend on the budget. It did: nearer cells eat the
+            // budget first, so a step that reordered the cells changed this cell's cap, which changed
+            // how many draws it made, which changed WHICH species came out — and the client put the
+            // new species into the old fish's positions. Startle a shoal and it turned into a
+            // different shoal. So the cell draws its own shoal, and the budget only trims the tail.
+            List<ShoalPacket.Entry> fish = pick(pool, env.waterDepth, want, minLen, rng);
+            if (fish.size() > budget) fish = new ArrayList<>(fish.subList(0, budget));
             if (fish.isEmpty()) continue;
             budget -= fish.size();
             // Circuits have to stay inside the cell, or two neighbouring shoals swim through each other
