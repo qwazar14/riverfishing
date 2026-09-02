@@ -1,5 +1,6 @@
 {
   "display": "Подкаменщик",
+  "latin": "Cottus gobio",
   "group": "predator",
   "water_bodies": {
     "river": 1.3,

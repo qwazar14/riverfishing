@@ -1,5 +1,6 @@
 {
   "display": "Парусник",
+  "latin": "Istiophorus platypterus",
   "group": "big_game",
   "water_bodies": {
     "sea": 1.0,

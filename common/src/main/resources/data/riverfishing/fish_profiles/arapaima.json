@@ -1,5 +1,6 @@
 {
   "display": "Арапайма",
+  "latin": "Arapaima gigas",
   "group": "big_game",
   "water_bodies": {
     "river": 1.2,

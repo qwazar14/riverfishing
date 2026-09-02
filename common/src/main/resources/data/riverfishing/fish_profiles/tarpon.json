@@ -1,5 +1,6 @@
 {
   "display": "Тарпон",
+  "latin": "Megalops atlanticus",
   "group": "big_game",
   "water_bodies": {
     "sea": 1.2,

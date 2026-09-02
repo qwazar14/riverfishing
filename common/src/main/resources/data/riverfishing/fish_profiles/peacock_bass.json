@@ -1,5 +1,6 @@
 {
   "display": "Павлиний окунь",
+  "latin": "Cichla ocellaris",
   "group": "predator",
   "water_bodies": {
     "lake": 1.2,

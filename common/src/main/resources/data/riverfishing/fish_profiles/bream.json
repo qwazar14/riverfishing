@@ -1,5 +1,6 @@
 {
   "display": "Лещ",
+  "latin": "Abramis brama",
   "group": "cyprinid",
   "water_bodies": { "river": 1.0, "lake": 1.1, "pond": 0.9, "swamp": 0.4, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 300, "max": 4000, "mean": 900 },

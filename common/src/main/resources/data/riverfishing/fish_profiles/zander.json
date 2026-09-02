@@ -1,5 +1,6 @@
 {
   "display": "Судак",
+  "latin": "Sander lucioperca",
   "group": "predator",
   "water_bodies": {
     "river": 1.1,

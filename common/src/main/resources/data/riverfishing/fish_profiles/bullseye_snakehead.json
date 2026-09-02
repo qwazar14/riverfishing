@@ -1,5 +1,6 @@
 {
   "display": "Глазчатый змееголов",
+  "latin": "Channa marulius",
   "group": "predator",
   "water_bodies": {
     "lake": 1.2,

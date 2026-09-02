@@ -1,5 +1,6 @@
 {
   "display": "Белуга",
+  "latin": "Huso huso",
   "group": "sturgeon",
   "water_bodies": {
     "river": 1.0,

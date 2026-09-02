@@ -1,5 +1,6 @@
 {
   "display": "Форель",
+  "latin": "Salmo trutta",
   "group": "salmonid",
   "water_bodies": {
     "river": 1.2,

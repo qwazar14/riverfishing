@@ -1,5 +1,6 @@
 {
   "display": "Бычок-цуцик",
+  "latin": "Proterorhinus semilunaris",
   "group": "sea",
   "water_bodies": {
     "river": 1.1,

@@ -1,5 +1,6 @@
 {
   "display": "Угорь",
+  "latin": "Anguilla anguilla",
   "group": "predator",
   "water_bodies": {
     "lake": 1.1,

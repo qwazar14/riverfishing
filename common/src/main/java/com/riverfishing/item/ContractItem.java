@@ -59,18 +59,9 @@ public class ContractItem extends Item {
         return g >= 1000 ? String.format(java.util.Locale.ROOT, "%.1f kg", g / 1000f) : g + " g";
     }
 
+    /** §cards-2: the paper is drawn as a card, the same renderer the fish uses. */
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext ctx, List<Component> tip, TooltipFlag flag) {
-        CompoundTag t = tag(stack);
-        if (!t.contains("Sp")) return;
-        tip.add(headline(t).withStyle(ChatFormatting.GOLD));
-        for (var c : terms(t)) tip.add(c.withStyle(ChatFormatting.GRAY));
-        // §catch-card: progress is read off the fish, not kept on the paper
-        tip.add(Component.translatable("contract.riverfishing.pay", t.getInt("Em"), t.getInt("Xp"))
-                .withStyle(ChatFormatting.DARK_GREEN));
-        // The client has no world day to compare against on a server, so the paper prints the day it
-        // expires on and the journal, which is told the day, prints "n days left".
-        tip.add(Component.translatable("contract.riverfishing.expires", t.getLong("Exp"))
-                .withStyle(ChatFormatting.DARK_GRAY));
+    public java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(ItemStack stack) {
+        return tag(stack).contains("Sp") ? java.util.Optional.of(new FishCardTooltip(stack)) : java.util.Optional.empty();
     }
 }

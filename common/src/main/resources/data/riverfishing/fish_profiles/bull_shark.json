@@ -1,5 +1,6 @@
 {
   "display": "Тупорылая акула",
+  "latin": "Carcharhinus leucas",
   "group": "big_game",
   "water_bodies": {
     "river": 0.6,
