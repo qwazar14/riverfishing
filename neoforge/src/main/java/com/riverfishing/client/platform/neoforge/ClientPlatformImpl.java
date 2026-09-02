@@ -91,4 +91,11 @@ public final class ClientPlatformImpl {
         // On 26.2 this is a no-op: the stage event fires at DRAW time — too late to submit retained
         // geometry. The cast line goes through the loader-neutral common LevelRendererSubmitMixin.
     }
+
+    /** §catch-card: the fish's tooltip component gets its renderer. */
+    @SubscribeEvent
+    static void onRegisterTooltips(net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(com.riverfishing.item.FishCardTooltip.class,
+                com.riverfishing.client.FishCardClientTooltip::new);
+    }
 }

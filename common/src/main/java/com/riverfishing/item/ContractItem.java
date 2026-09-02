@@ -65,9 +65,7 @@ public class ContractItem extends Item {
         if (!t.contains("Sp")) return;
         tip.accept(headline(t).withStyle(ChatFormatting.GOLD));
         for (var c : terms(t)) tip.accept(c.withStyle(ChatFormatting.GRAY));
-        int caught = t.getIntOr("Caught", 0), n = t.getIntOr("N", 0);
-        tip.accept(Component.translatable("contract.riverfishing.progress", Math.min(caught, n), n)
-                .withStyle(caught >= n ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
+        // §catch-card: progress is read off the fish, not kept on the paper
         tip.accept(Component.translatable("contract.riverfishing.pay", t.getIntOr("Em", 0), t.getIntOr("Xp", 0))
                 .withStyle(ChatFormatting.DARK_GREEN));
         // The client has no world day to compare against on a server, so the paper prints the day it

@@ -2382,9 +2382,9 @@ public class JournalScreen extends Screen {
         for (int i = 0; i < list.size(); i++) {
             CompoundTag c = list.getCompoundOrEmpty(i);
             String sp = c.getStringOr("Sp", "");
-            int need = c.getIntOr("N", 0), caught = Math.min(c.getIntOr("Caught", 0), need);
-            int have = heldFish(sp, c.getIntOr("W", 0));
-            boolean ready = caught >= need && have >= need;
+            int need = c.getIntOr("N", 0);
+            int have = heldFish(c);                                    // §catch-card
+            boolean ready = have >= need;
             if (ready) g.fill(left + 8, y - 3, left + W - 8, y + 24, 0x38E8B430);
 
             drawFishIcon(g, sp, left + 10, y - 2);
@@ -2405,7 +2405,7 @@ public class JournalScreen extends Screen {
             long daysLeft = c.getLongOr("Exp", 0L) - day;
             Component note = ready
                     ? Component.translatable("journal.riverfishing.contract_ready")
-                    : Component.translatable("journal.riverfishing.contract_state", caught, need, have, Math.max(0, daysLeft));
+                    : Component.translatable("journal.riverfishing.contract_state", have, need, Math.max(0, daysLeft));
             g.text(this.font, note, left + 30, y + 20,
                     ready ? 0xFFB05A00 : daysLeft <= 1 ? 0xFFB03020 : GuiStyle.TEXT_HINT, false);
             y += 34;
@@ -2420,11 +2420,11 @@ public class JournalScreen extends Screen {
      * server takes with. Two implementations of "do I have three bream" would be two answers, and the
      * one the row shows is not the one that decides.
      */
-    private int heldFish(String species, int minGrams) {
+    private int heldFish(CompoundTag terms) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return 0;
         return com.riverfishing.fishing.Contracts.held(
-                mc.player.getInventory(), species, minGrams).size();
+                mc.player.getInventory(), terms.getStringOr("Sp", ""), terms.getIntOr("W", 0), terms).size();
     }
 
     /** A weight bar the way an angler says it: grams under a kilo, kilos above. */
