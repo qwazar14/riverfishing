@@ -1,6 +1,7 @@
 {
   "display": "Астронотус",
   "latin": "Astronotus ocellatus",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "lake": 1.2,

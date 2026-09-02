@@ -39,7 +39,7 @@ public class BiteContext {
 
     // ---- Environment ----
     public WaterType water = WaterType.NONE;
-    public Season season;           // null when Serene Seasons is absent -> factor 1.0
+    public Season season;           // §breeding-A: SS's or Calendar's own; null only if never set -> factor 1.0
     public TimeOfDay time = TimeOfDay.DAY;
     public Weather weather = Weather.CLEAR;
     /** §weather-pressure: barometric bite multiplier (~0.7..1.35), uniform across species. 1.0 = neutral. */

@@ -1,6 +1,7 @@
 {
   "display": "Жерех",
   "latin": "Leuciscus aspius",
+  "spawn": { "season": "spring", "sub": "mid" },
   "group": "cyprinid",
   "water_bodies": {
     "river": 1.2,

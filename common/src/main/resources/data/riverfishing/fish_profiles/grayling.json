@@ -1,6 +1,7 @@
 {
   "display": "Хариус",
   "latin": "Thymallus thymallus",
+  "spawn": { "season": "spring", "sub": "mid" },
   "group": "salmonid",
   "water_bodies": {
     "river": 1.3,

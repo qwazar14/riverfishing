@@ -934,6 +934,7 @@ public class JournalScreen extends Screen {
 
         guideGroupNow = 4;   // reading the water, and what to do with a catch
         addGuide("community", modStack("fish_finder"));
+        addGuide("nets", modStack("seine_net")); // §D
         addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
         addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
 

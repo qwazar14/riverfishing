@@ -1,6 +1,7 @@
 {
   "display": "Арапайма",
   "latin": "Arapaima gigas",
+  "spawn": { "season": "summer" },
   "group": "big_game",
   "water_bodies": {
     "river": 1.2,

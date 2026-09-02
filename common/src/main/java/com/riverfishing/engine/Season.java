@@ -1,6 +1,6 @@
 package com.riverfishing.engine;
 
-/** Season buckets (§10.1). Mapped from Serene Seasons if present, otherwise unused. */
+/** Season buckets (§10.1). Mapped from Serene Seasons if present, else Calendar's own (§breeding-A). */
 public enum Season {
     SPRING("spring"),
     SUMMER("summer"),

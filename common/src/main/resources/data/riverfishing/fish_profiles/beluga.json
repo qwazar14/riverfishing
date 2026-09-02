@@ -1,6 +1,7 @@
 {
   "display": "Белуга",
   "latin": "Huso huso",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sturgeon",
   "water_bodies": {
     "river": 1.0,

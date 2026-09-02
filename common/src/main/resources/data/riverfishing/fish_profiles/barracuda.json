@@ -1,6 +1,7 @@
 {
   "display": "Барракуда",
   "latin": "Sphyraena barracuda",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sea",
   "water_bodies": {
     "sea": 1.1,

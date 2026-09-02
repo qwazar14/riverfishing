@@ -789,7 +789,7 @@ public final class FishingManager {
 
     /**
      * §spawn-recovery: spring is spawning season (нерест) — fished-out water restocks ~2.5x faster
-     * (needs Serene Seasons; without it the season is null and recovery stays neutral).
+     * (§breeding-A: Serene Seasons' spring when present, else Calendar's own — never neutral any more).
      */
     private static double spawnRegen(ServerLevel level) {
         return SeasonProvider.getSeason(level) == com.riverfishing.engine.Season.SPRING ? 2.5 : 1.0;
@@ -2514,6 +2514,7 @@ public final class FishingManager {
         // §population: a landed fish leaves the water for real — depletion lands on THIS species only.
         FishingPressureData.get(level).addCatch(new ChunkPos(session.target).toLong(),
                 session.species.getPath(), level.getGameTime());
+        broodAfterCatch(level, sp, session.target, session.species);   // §c
         if (legal) {
             boolean newSpecies = JournalData.isNewSpecies(sp, session.species);
             boolean personalBest = JournalData.isPersonalBest(sp, session.species, session.weightG);
@@ -3094,89 +3095,119 @@ public final class FishingManager {
     }
 
     /**
-     * §stocking 2.0: a fish RELEASED into water. Presence, surplus and settling all flow from here:
-     * — a species already in the water (native or settled) banks a stock SURPLUS, scaled by the
-     *   specimen's weight against the species mean (a trophy counts ~3 fish, a tiddler ~nothing —
-     *   sport catch-and-release of PRIME fish is what feeds a water, not bucketfuls of fry);
-     * — a species NOT living here rolls to SETTLE: chance = 0.18 × fit² × size (nonlinear in habitat
-     *   fit — perfect water settles a prime fish at ~30-40%, a barely-livable one in the low single
-     *   digits; water it cannot inhabit at all never settles);
-     * — natives pack to 250% stock, transplants to 150% (§population floors).
+     * §c §breeding (0.9.0): a fish RELEASED into water. No dice any more — the species settles when a
+     * BROOD lives through one spawn window here (StockedData.tickSettle): a ♀ and a ♂ of breeding size,
+     * or thirty-odd fry, in water that fits it. Hostile water (fit ≤ 0) refuses the fish outright;
+     * everywhere else the fish banks its weight units as the temporary population it always did, and a
+     * mature one (Card.Size ≥ 2 — or, with no card, half the species mean) goes on the ledger with its
+     * sex and genes. Natives and settled species skip the ledger — there is nothing left to settle.
      */
     public static void releaseFish(ServerLevel level, BlockPos pos, ResourceLocation species,
-                                   int weightG, int count,
+                                   int weightG, int count, @org.jetbrains.annotations.Nullable CompoundTag card,
                                    @org.jetbrains.annotations.Nullable ServerPlayer thrower) {
         FishProfile p = FishProfileManager.get().byId(species);
         if (p == null) return;
+        // §stock-units (0.5.1): SUPERLINEAR in size — 0.5·(w/mean)^1.5. A mean fish is half a unit
+        // (a native pond needs ~17 of them for the full 250%), a double-mean trophy ~1.4 units
+        // (~6 trophies), fry a rounding error. Packing a water stays real work.
+        double sizeRatio = weightG / Math.max(1.0, p.weightMean);
+        double units = 0.5 * Math.pow(Mth.clamp(sizeRatio, 0.0, 3.0), 1.5) * Math.max(1, count);
+        boolean mature = card != null ? card.getByte("Size") >= 2 : sizeRatio >= 0.5;
+        int sex = card == null ? -1 : card.getByte("Sex");
+        String genes = card == null ? "" : card.getString("Genes");
+        release(level, pos, p, units, thrower, (stocked, region) -> {
+            if (!mature) return;
+            long day = StockedData.worldDay(level);
+            for (int i = 0; i < Math.max(1, count); i++) {
+                stocked.addBrood(region, species.getPath(), sex, day, genes, thrower == null ? null : thrower.getUUID());
+            }
+        });
+    }
+
+    /** §c §breeding: a FryItem thrown into water — fry on the ledger, a sliver of stock each (fry disperse and die). */
+    public static void releaseFry(ServerLevel level, BlockPos pos, ResourceLocation species, String genome, int count,
+                                  @org.jetbrains.annotations.Nullable ServerPlayer thrower) {
+        FishProfile p = FishProfileManager.get().byId(species);
+        if (p == null || count <= 0) return;
+        release(level, pos, p, count * 0.02, thrower, (stocked, region) ->
+                stocked.addFry(region, species.getPath(), count, StockedData.worldDay(level), genome,
+                        thrower == null ? null : thrower.getUUID()));
+    }
+
+    /**
+     * The one release path: find the water, judge it, bank the stock, write the ledger, run the settle
+     * clock, and tell the angler where things stand — as a checklist, not a percentage. {@code ledger}
+     * runs only for a species that is neither native nor settled here.
+     */
+    private static void release(ServerLevel level, BlockPos pos, FishProfile p, double units,
+                                @org.jetbrains.annotations.Nullable ServerPlayer thrower,
+                                java.util.function.ObjLongConsumer<StockedData> ledger) {
         // A floating item sits in the AIR block above the surface — resolve to the actual water.
         if (!level.getFluidState(pos).is(net.minecraft.tags.FluidTags.WATER)) {
             if (level.getFluidState(pos.below()).is(net.minecraft.tags.FluidTags.WATER)) pos = pos.below();
         }
         WaterBody body = WaterBodyCache.forLevel(level).get(level, pos);
         if (body.type() == WaterType.NONE) return;
+        String id = p.id.getPath();
         long region = StockedData.region(pos);
         long chunk = new ChunkPos(pos).toLong();
         long now = level.getGameTime();
-
+        net.minecraft.network.chat.Component name = fishName(p.id);
         double fit = BiteEngine.environmentScore(p, habitatContext(level, pos, body));
-
-        // §residency-guard: the community hash alone can roll "native" for a shark in a river (it
-        // never looks at habitat) — native/present status flows from fit. But §settle-anything:
-        // hostile water only CUTS the settle chance to its floor, it no longer forbids the attempt.
-        boolean hostile = fit <= 0;
-        boolean nativeHere = !hostile && nativeHere(level, pos, body, species);
+        if (fit <= 0) {
+            // §residency-guard: water the species cannot live in at all takes nothing — no ledger, no stock.
+            if (thrower != null) thrower.displayClientMessage(Component.translatable("message.riverfishing.stock_hostile", name).withStyle(ChatFormatting.RED), true);
+            return;
+        }
+        boolean nativeHere = nativeHere(level, pos, body, p.id);
         StockedData stocked = StockedData.get(level);
-        boolean present = !hostile && (nativeHere || stocked.isStocked(region, species.getPath()));
-
-        // §stock-units (0.5.1): SUPERLINEAR in size — 0.5·(w/mean)^1.5. A mean fish is half a unit
-        // (a native pond needs ~17 of them for the full 250%), a double-mean trophy ~1.4 units
-        // (~6 trophies), fry a rounding error. Packing a water stays real work.
-        double sizeRatio = weightG / Math.max(1.0, p.weightMean);
-        double units = 0.5 * Math.pow(Mth.clamp(sizeRatio, 0.0, 3.0), 1.5);
-        // §stock-vs-settle (0.5.1): the two systems no longer fight over the same fish. Hostile water
-        // kills the release outright; everywhere else EVERY release banks its weight units — the fish
-        // physically swims here now, and while the surplus lasts the species is TEMPORARILY catchable
-        // (communityFactor reads the surplus). Settling is a separate roll for PERMANENCE on top.
-        boolean settledNow = false;
-        double chance = 0.0;
-        if (!present) {
-            // §settle-anything (0.5.1): NONLINEAR in fit with a tiny floor — perfect water settles a
-            // prime fish at ~20-40%, mediocre water in the low percents, and even water that fails
-            // every parameter keeps a sliver (~0.5%): the chance is CUT, never zeroed. Size keeps the
-            // RAW ratio (settling is about the specimen being adult, not tonnage).
-            chance = 0.18 * (0.03 + Math.pow(Math.min(1.2, fit), 2.0)) * Mth.clamp(sizeRatio, 0.1, 2.0);
-            for (int i = 0; i < Math.max(1, count) && !settledNow; i++) {
-                if (level.getRandom().nextDouble() < chance) settledNow = true;
-            }
-            if (settledNow) stocked.markStocked(region, species.getPath());
-        }
+        boolean resident = nativeHere || stocked.isStocked(region, id);
         FishingPressureData pressure = FishingPressureData.get(level);
-        if (!hostile || settledNow) {
-            // §residency: how deep the bank goes depends on the species' standing HERE —
-            // native 250%, settled transplant 150%, an unsettled one builds a 0..100% temp population.
-            double floor = nativeHere ? FishingPressureData.FLOOR_NATIVE
-                    : (present || settledNow) ? FishingPressureData.FLOOR_SETTLED
-                    : FishingPressureData.FLOOR_TRANSPLANT;
-            pressure.addStock(chunk, species.getPath(), now, units * Math.max(1, count), floor);
+        // §residency: how deep the bank goes depends on the species' standing HERE —
+        // native 250%, settled transplant 150%, an unsettled one builds a 0..100% temp population.
+        pressure.addStock(chunk, id, now, units, nativeHere ? FishingPressureData.FLOOR_NATIVE
+                : resident ? FishingPressureData.FLOOR_SETTLED : FishingPressureData.FLOOR_TRANSPLANT);
+        boolean settledNow = false;
+        if (!resident) {
+            ledger.accept(stocked, region);
+            stocked.noteFit(region, id, fit);
+            settledNow = stocked.tickSettle(level, region, id, p);
         }
-
         if (thrower == null) return;
-        net.minecraft.network.chat.Component name = fishName(species);
+        String fitText = String.format(java.util.Locale.ROOT, "%.1f", fit);
+        Component msg;
         if (settledNow) {
-            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_settled", name)
-                    .withStyle(ChatFormatting.GREEN), true);
-        } else if (hostile) {
-            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_hostile",
-                    name, String.format("%.1f", chance * 100)).withStyle(ChatFormatting.RED), true);
-        } else if (!present) {
-            // §residency: a transplant has NO 100% baseline — its temp population grows from zero.
-            int temp = (int) Math.round(pressure.surplus(chunk, species.getPath(), now) * 100);
-            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked_failed",
-                    name, (int) Math.round(chance * 100), temp).withStyle(ChatFormatting.GRAY), true);
+            msg = Component.translatable("message.riverfishing.stock_settled", name).withStyle(ChatFormatting.GREEN);
+        } else if (resident) {
+            msg = Component.translatable("message.riverfishing.stocked", name, pressure.stockPercent(chunk, id, now)).withStyle(ChatFormatting.AQUA);
+        } else if (fit < StockedData.FIT_TO_SETTLE) {
+            msg = Component.translatable("message.riverfishing.stock_unfit", name, fitText).withStyle(ChatFormatting.GRAY);
         } else {
-            thrower.displayClientMessage(Component.translatable("message.riverfishing.stocked",
-                    name, pressure.stockPercent(chunk, species.getPath(), now))
-                    .withStyle(ChatFormatting.AQUA), true);
+            int days = stocked.daysToSettle(region, id, StockedData.worldDay(level));
+            msg = Component.translatable(days < 0 ? "message.riverfishing.stock_waiting" : "message.riverfishing.stock_checklist",
+                    name, stocked.broodCount(region, id, 0), stocked.broodCount(region, id, 1), stocked.fryCount(region, id),
+                    fitText, Math.max(0, days)).withStyle(ChatFormatting.AQUA);
+        }
+        thrower.displayClientMessage(msg, true);
+    }
+
+    /**
+     * §c §breeding: the landing's word on the ledger. First the settle check — a brood that has lived
+     * through its window comes of age the next time anyone fishes the water, nobody has to throw a fish
+     * in to wake it. Then the bill: an unsettled species IS its brood, so every fish landed comes off
+     * the ledger, and fishing the last one out before the window closes ends the attempt.
+     */
+    private static void broodAfterCatch(ServerLevel level, ServerPlayer sp, BlockPos pos, ResourceLocation species) {
+        FishProfile p = FishProfileManager.get().byId(species);
+        if (p == null) return;
+        String id = species.getPath();
+        long region = StockedData.region(pos);
+        StockedData stocked = StockedData.get(level);
+        if (stocked.isStocked(region, id) || !stocked.hasBrood(region, id)) return;
+        if (stocked.tickSettle(level, region, id, p)) {
+            sp.displayClientMessage(Component.translatable("message.riverfishing.stock_settled", fishName(species)).withStyle(ChatFormatting.GREEN), true);
+        } else if (stocked.catchFromBrood(region, id)) {
+            sp.displayClientMessage(Component.translatable("message.riverfishing.stock_brood_lost", fishName(species)).withStyle(ChatFormatting.RED), true);
         }
     }
 

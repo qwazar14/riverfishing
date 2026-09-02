@@ -1,6 +1,7 @@
 {
   "display": "Линь",
   "latin": "Tinca tinca",
+  "spawn": { "season": "summer", "sub": "early" },
   "group": "cyprinid",
   "water_bodies": { "pond": 1.2, "swamp": 1.2, "lake": 1.0, "river": 0.2, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 300, "max": 3500, "mean": 800 },

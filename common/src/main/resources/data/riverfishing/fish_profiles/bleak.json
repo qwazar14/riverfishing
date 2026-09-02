@@ -1,6 +1,7 @@
 {
   "display": "Уклейка",
   "latin": "Alburnus alburnus",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "cyprinid",
   "water_bodies": { "river": 1.1, "lake": 1.0, "pond": 0.5, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 10, "max": 100, "mean": 30 },

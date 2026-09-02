@@ -1,6 +1,7 @@
 {
   "display": "Сом",
   "latin": "Silurus glanis",
+  "spawn": { "season": "summer", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "river": 1.1,

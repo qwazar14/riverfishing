@@ -127,6 +127,13 @@ public final class ModItems {
     public static final RegistrySupplier<Item> CONTRACT = reg("contract",
             () -> new com.riverfishing.item.ContractItem(new Item.Properties()));
 
+    // §b/breeding (0.9.0): what a live tank produces and what a net hauls. The net classes belong to the nets
+    // stream; they are registered HERE because item registration is one file's job (breeding-api.md).
+    public static final RegistrySupplier<Item> ROE = reg("roe", () -> new com.riverfishing.item.RoeItem(props()));
+    public static final RegistrySupplier<Item> FRY = reg("fry", () -> new com.riverfishing.item.FryItem(props()));
+    public static final RegistrySupplier<Item> SEINE_NET = reg("seine_net", () -> new com.riverfishing.item.SeineNetItem(props()));
+    public static final RegistrySupplier<Item> CAST_NET = reg("cast_net", () -> new com.riverfishing.item.CastNetItem(props()));
+
     private static RegistrySupplier<Item> reg(String name, Supplier<Item> supplier) {
         RegistrySupplier<Item> obj = REGISTER.register(name, supplier);
         ALL.add(obj);

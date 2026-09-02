@@ -130,6 +130,7 @@ public class AquariumBlock extends BaseEntityBlock {
             // Pop every mounted fish from the master cell.
             if (isMaster(state) && level.getBlockEntity(pos) instanceof AquariumBlockEntity be) {
                 for (ItemStack f : be.getFishes()) popResource(level, pos, f);
+                if (!be.roe.isEmpty()) popResource(level, pos, be.roe);
             }
             // Non-player removal (piston/explosion): drag the other cells out so nothing floats.
             BlockPos master = masterPos(pos, state);
@@ -150,6 +151,8 @@ public class AquariumBlock extends BaseEntityBlock {
         if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
         ItemStack held = player.getItemInHand(hand);
+        // §b/breeding: food, roe and the roe slot come first; a fish in hand still goes in below.
+        if (AquariumBreeding.use(level, be, player, held)) return net.minecraft.world.ItemInteractionResult.CONSUME;
         // Add a fish (up to 3) when holding one and there's room.
         if (held.getItem() instanceof FishItem && !be.isFull()) {
             if (be.addFish(held)) {
@@ -168,6 +171,15 @@ public class AquariumBlock extends BaseEntityBlock {
             return net.minecraft.world.ItemInteractionResult.CONSUME;
         }
         return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    // §b/breeding: the master cell ticks the tank on the server; the other cells have no entity to tick.
+    @Nullable
+    @Override
+    public <T extends BlockEntity> net.minecraft.world.level.block.entity.BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, net.minecraft.world.level.block.entity.BlockEntityType<T> type) {
+        if (level.isClientSide || type != com.riverfishing.registry.ModBlockEntities.AQUARIUM.get()) return null;
+        return (lvl, pos, st, be) -> AquariumBreeding.tick(lvl, (AquariumBlockEntity) be);
     }
 
     @Override

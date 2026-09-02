@@ -1,6 +1,7 @@
 {
   "display": "Треска",
   "latin": "Gadus morhua",
+  "spawn": { "season": "winter", "sub": "late" },
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,

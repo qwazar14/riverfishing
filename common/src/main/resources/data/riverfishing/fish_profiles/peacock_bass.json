@@ -1,6 +1,7 @@
 {
   "display": "Павлиний окунь",
   "latin": "Cichla ocellaris",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "lake": 1.2,
