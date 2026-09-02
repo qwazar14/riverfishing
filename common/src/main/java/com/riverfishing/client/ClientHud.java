@@ -102,9 +102,12 @@ public final class ClientHud {
                 g.fill(rx, ry, rx + 2, ry + 2, 0xFFFFC83C);
             }
             int dist = (int) Math.round(Math.sqrt((double) near[0] * near[0] + (double) near[1] * near[1]));
-            String label = (picked ? "\u2605 " : "") + Component.translatable("spot.riverfishing." + (near[2] == 0 ? "hole" : "ledge")).getString()
-                    + " " + Component.translatable("finder.riverfishing.metres", dist).getString();
-            g.drawString(mc.font, label, ax + 16, ay - 4, 0xFFFFC83C, true);
+            // §arrow-label: two lines under the needle, centred — what it is, then how far. One
+            // line beside it read as a sentence; a needle wants a caption.
+            String kind = (picked ? "\u2605 " : "") + Component.translatable("spot.riverfishing." + (near[2] == 0 ? "hole" : "ledge")).getString();
+            String range = Component.translatable("finder.riverfishing.metres", dist).getString();
+            g.drawString(mc.font, kind, ax - mc.font.width(kind) / 2, ay + 14, 0xFFFFC83C, true);
+            g.drawString(mc.font, range, ax - mc.font.width(range) / 2, ay + 24, 0xFFFFC83C, true);
         }
     }
 
