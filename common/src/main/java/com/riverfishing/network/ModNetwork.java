@@ -38,6 +38,11 @@ public final class ModNetwork {
             QuestClaimPacket p = QuestClaimPacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));
         });
+        // §contracts-b1: a click on a post at the fisherman's board.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, ContractTakePacket.TYPE, (buf, ctx) -> {
+            ContractTakePacket p = ContractTakePacket.decode(buf);
+            ctx.queue(() -> p.handleServer(ctx));
+        });
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, SkillUnlockPacket.TYPE, (buf, ctx) -> {
             SkillUnlockPacket p = SkillUnlockPacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));
@@ -82,6 +87,10 @@ public final class ModNetwork {
         // §order-panel: what the fisherman wants today, for the counter the player just opened.
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, OrderPacket.TYPE, (buf, ctx) -> {
             OrderPacket p = OrderPacket.decode(buf);
+            ctx.queue(p::handleClient);
+        });
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, ContractBoardPacket.TYPE, (buf, ctx) -> {
+            ContractBoardPacket p = ContractBoardPacket.decode(buf);
             ctx.queue(p::handleClient);
         });
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, ShoalPacket.TYPE, (buf, ctx) -> {

@@ -3,240 +3,332 @@ package com.riverfishing.fishing;
 import com.riverfishing.RiverFishing;
 import com.riverfishing.fish.FishProfile;
 import com.riverfishing.fish.FishProfileManager;
+import com.riverfishing.item.ContractItem;
 import com.riverfishing.item.FishItem;
+import com.riverfishing.item.StackNbt;
 import com.riverfishing.registry.ModItems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 /**
- * §contracts (0.8.3): standing jobs from the fisherman — bring him {@code n} of a species at a size,
- * and be paid for the set.
+ * §contracts (0.9.0): jobs posted by a fisherman, taken as a paper, fished under its terms, handed back.
  *
- * <p>The complaint this answers is that a fish had exactly one use: sell it. The order of the day
- * (§order-board) rewards CATCHING one, so the fish is still there afterwards and still gets sold. A
- * contract is the first thing in the mod that TAKES the fish, which is what makes it a choice: the
- * emeralds on the counter now, or the better price for three of them together.
+ * <p>The first cut was a board in the journal that paid for any three bream — an order of the day with
+ * a count, which is what the complaint said. This is the shape a fishing sim gives it: the FISHERMAN
+ * posts, the board is HIS (three posts a day per villager, so two fishermen are two boards), you take a
+ * post off it as a paper, the paper says HOW the fish are to be caught — from a river, on a float rod,
+ * on worm, at night — and only a fish landed under those terms counts. Bring the paper back with the
+ * fish and he pays, in emeralds, XP and REPUTATION; enough reputation and his counter opens a shelf
+ * the rest of the village never sees.
  *
- * <p>Nothing about the board is stored. Which three jobs stand today is derived from the world day and
- * who is asking, so it is the same board every time it is drawn, survives a restart, and costs no save
- * data; only which ones you have already filled is written down, and that resets with the day.
- *
- * <p>They are drawn from the species you have ALREADY CAUGHT. A contract naming a fish you have never
- * seen is a wiki lookup, not a job — and the order of the day is the part of the mod that sends you
- * somewhere new, with a checklist to get you there.
+ * <p>Nothing about a board is stored: which three posts stand today is the villager's UUID and the
+ * world day through a seeded random, so it is the same board all day, for everyone, after a restart,
+ * with no save data. The paper stores its own terms and its own progress; the player's reputation is
+ * one integer in their player data.
  */
 public final class Contracts {
-    /** How many stand at once. Three is enough to choose between and few enough to read at a glance. */
-    public static final int PER_DAY = 3;
+    /** Posts per fisherman per day. */
+    public static final int POSTS = 3;
+    /** Papers a player may carry at once — a choice, not a collection. */
+    public static final int MAX_ACTIVE = 2;
+    /** World days a paper stays good for. */
+    public static final int DAYS_TO_FILL = 7;
+    /** Reputation at which each trusted shelf opens — see ModVillagers.trustedSlots. */
+    public static final int[] TRUST_STEPS = {5, 15, 30};
 
     /** Paid over the plain counter price for the same fish, one at a time — the reason to bother. */
     private static final double SET_BONUS = 1.6;
-
-    /** Angler XP per emerald of pay — one dial, so the two rewards cannot drift apart. */
+    /** More per term: a job with conditions is a harder job. */
+    private static final double TERM_BONUS = 0.3;
     private static final int XP_PER_EMERALD = 3;
-
-    private static final String TAG = "riverfishing_contracts";
+    private static final String REP = "contract_rep";
 
     private Contracts() {}
 
-    /**
-     * One job. {@code id} is derived, not stored: the day plus the slot, so a claim can name a contract
-     * the server can rebuild and check rather than believe.
-     */
-    public record Contract(String id, String species, int count, int minGrams, int emeralds, int xp) {
-        public Component fish() {
-            return Component.translatable("fish.riverfishing." + species);
-        }
-    }
-
     // ---- the board ----------------------------------------------------------------------------------
 
-    public static long today(ServerPlayer sp) {
-        return sp.getServer() == null ? 0L : sp.getServer().overworld().getDayTime() / 24000L;
+    public static long today(ServerLevel level) {
+        return level.getServer().overworld().getDayTime() / 24000L;
     }
 
-    /**
-     * What this player can be given a job for: landed at least once AND bought by some fisherman, in the
-     * fixed species order so the draw is stable.
-     *
-     * <p>Both halves are filtered HERE rather than at the draw. Dropping an unpriceable species after it
-     * was picked would delete that slot from the board — a job that silently is not there, with nothing
-     * anywhere saying why, which is the same shape of bug as a recipe the journal quietly stops drawing.
-     */
-    private static List<String> pool(CompoundTag journal) {
+    /** Fish any fisherman buys, in the fixed species order so the draw is stable. */
+    private static List<String> pool() {
         List<String> out = new ArrayList<>();
         for (String sp : ModItems.FISH_SPECIES) {
-            if (journal.getCompound(RiverFishing.id(sp).toString()).getInt("count") <= 0) continue;
-            if (com.riverfishing.registry.ModVillagers.baseEmeralds(sp) <= 0) continue;
-            out.add(sp);
+            if (com.riverfishing.registry.ModVillagers.baseEmeralds(sp) > 0) out.add(sp);
         }
         return out;
     }
 
     /**
-     * Today's board. Empty until the player has caught something — with nothing landed there is nothing
-     * to draw from, and the quest chain is what carries the first hour anyway.
+     * Today's posts at this fisherman, as tags with the SAME keys the paper carries, so a post is turned
+     * into a paper by copying it and the board, the tooltip and the journal read one format.
      */
-    public static List<Contract> forPlayer(ServerPlayer sp) {
-        List<String> pool = pool(JournalData.get(sp));
-        if (pool.isEmpty()) return List.of();
-
-        long day = today(sp);
-        List<Contract> out = new ArrayList<>();
+    public static List<CompoundTag> posts(Villager v, ServerLevel level) {
+        List<String> pool = pool();
+        List<CompoundTag> out = new ArrayList<>();
+        if (pool.isEmpty()) return out;
+        long day = today(level);
         List<String> taken = new ArrayList<>();
-        for (int slot = 0; slot < PER_DAY; slot++) {
-            // Seeded per (day, player, slot): the same board for the whole day, a different one for the
-            // player next to you, and no state anywhere.
-            Random rng = new Random(day * 1_000_003L + sp.getUUID().hashCode() * 31L + slot);
+        for (int slot = 0; slot < POSTS; slot++) {
+            Random rng = new Random(day * 1_000_003L + v.getUUID().hashCode() * 31L + slot);
             String species = null;
-            // A board of three that names one fish three times is one job wearing three hats.
             for (int tries = 0; tries < 8 && species == null; tries++) {
                 String pick = pool.get(rng.nextInt(pool.size()));
                 if (!taken.contains(pick)) species = pick;
             }
-            if (species == null) break;              // pool smaller than the board: show what there is
+            if (species == null) break;
             taken.add(species);
+            FishProfile p = FishProfileManager.get().byId(RiverFishing.id(species));
 
-            int base = com.riverfishing.registry.ModVillagers.baseEmeralds(species);
+            CompoundTag t = new CompoundTag();
+            t.putString("Id", v.getUUID().toString().substring(0, 8) + "_" + day + "_" + slot);
+            t.putString("Sp", species);
             int count = 2 + rng.nextInt(3);          // 2..4
-            int emeralds = Math.max(1, (int) Math.round(base * count * SET_BONUS));
-            // Angler XP off the pay rather than off the trade's own xp: 26.x reads its prices out of a
-            // datapack registry that carries no xp at all, and a contract that paid differently by game
-            // version would be a balance difference nobody chose.
-            out.add(new Contract("c" + day + "_" + slot, species, count, minGrams(species, rng),
-                    emeralds, Math.max(1, emeralds * XP_PER_EMERALD)));
+            t.putInt("N", count);
+            t.putInt("W", minGrams(p, rng));
+            int terms = terms(t, p, rng);
+            int base = com.riverfishing.registry.ModVillagers.baseEmeralds(species);
+            int em = Math.max(1, (int) Math.round(base * count * SET_BONUS * (1 + TERM_BONUS * terms)));
+            t.putInt("Em", em);
+            t.putInt("Xp", Math.max(1, em * XP_PER_EMERALD));
+            t.putInt("Rep", 1 + terms);
+            out.add(t);
         }
         return out;
     }
 
     /**
-     * The size bar, off the species' own profile rather than off this player's record: pinning it to a
-     * personal best would make every contract harder the better you fished, which is a punishment
-     * wearing the costume of a difficulty curve.
+     * The terms, drawn from what the profile says the fish actually likes, so every term is one the
+     * fish can be caught under: a water it lives in, a bait it takes, a time it feeds. Each is rolled
+     * separately; a post that rolled none gets the water, because a contract with no terms is the
+     * order of the day again.
+     *
+     * @return how many terms were set
      */
-    private static int minGrams(String species, Random rng) {
-        FishProfile p = FishProfileManager.get().byId(RiverFishing.id(species));
+    private static int terms(CompoundTag t, FishProfile p, Random rng) {
+        int n = 0;
+        String water = best(p == null ? null : p.waterBodies, rng, 1.0);
+        if (water != null && rng.nextDouble() < 0.55) { t.putString("Water", water); n++; }
+        // ponytail: the rod class comes off the family — predators and salmonids are worked, the rest
+        // sit under a float or on the bottom. idealRods would name a rod, not a class.
+        if (rng.nextDouble() < 0.4) {
+            String g = p == null ? "" : p.group;
+            String rod = g.equals("predator") || g.equals("salmonid") ? "active"
+                    : rng.nextBoolean() ? "float" : "bottom";
+            t.putString("Rod", rod);
+            n++;
+        }
+        String bait = best(p == null ? null : p.baitScores, rng, 0.8);
+        if (bait != null && rng.nextDouble() < 0.4) { t.putString("Bait", bait); n++; }
+        String time = best(p == null ? null : p.time, rng, 1.05);
+        if (time != null && rng.nextDouble() < 0.35) { t.putString("Time", time); n++; }
+        if (n == 0) {
+            if (water != null) { t.putString("Water", water); n++; }
+            else { t.putString("Rod", rng.nextBoolean() ? "float" : "bottom"); n++; }
+        }
+        return n;
+    }
+
+    /** A random key whose factor clears the bar, or null. */
+    private static String best(java.util.Map<String, Double> m, Random rng, double min) {
+        if (m == null || m.isEmpty()) return null;
+        List<String> ok = new ArrayList<>();
+        for (var e : new java.util.TreeMap<>(m).entrySet()) if (e.getValue() >= min) ok.add(e.getKey());
+        return ok.isEmpty() ? null : ok.get(rng.nextInt(ok.size()));
+    }
+
+    /**
+     * The size bar, off the species' own profile: 60-100% of an ordinary specimen, a bar you clear with
+     * a decent fish. weight_g is ALREADY GRAMS — tools/check_contract_weights.py guards the x1000.
+     */
+    private static int minGrams(FishProfile p, Random rng) {
         if (p == null) return 0;
-        // 60-100% of an ordinary specimen: a bar you clear with a decent fish, not with the first one.
-        //
-        // The profile field is weight_g and it is ALREADY GRAMS — an earlier cut multiplied by 1000 on
-        // the way in and asked for peacock bass "from 1753.1 kg", which is not a hard contract, it is an
-        // impossible one. tools/check_contract_weights.py exists so that cannot come back.
         double share = 0.6 + rng.nextDouble() * 0.4;
         int g = (int) Math.round(p.weightMean * share);
         return round(Math.max(0, Math.min(g, (int) Math.round(p.weightMax * 0.8))));
     }
 
-    /**
-     * A bar an angler would say out loud. "From 251 g" is a computation showing its working; the board
-     * asks for 250 g, and for anything over a kilo it asks in round hundreds.
-     */
     private static int round(int grams) {
         int step = grams >= 1000 ? 100 : 50;
         return Math.max(step, (grams / step) * step);
     }
 
-    // ---- what has been filled -----------------------------------------------------------------------
+    // ---- taking one ---------------------------------------------------------------------------------
 
-    /** The filled set, cleared whenever the day it was written on is no longer today. */
-    private static CompoundTag state(ServerPlayer sp) {
-        CompoundTag root = PlayerData.root(sp).getCompound(TAG);
-        if (root.getLong("day") != today(sp)) {
-            root = new CompoundTag();
-            root.putLong("day", today(sp));
+    public static int rep(Player p) {
+        return PlayerData.root(p).getInt(REP);
+    }
+
+    private static int activeCount(Player p) {
+        int n = 0;
+        for (int i = 0; i < p.getInventory().getContainerSize(); i++) {
+            if (p.getInventory().getItem(i).getItem() instanceof ContractItem) n++;
         }
-        return root;
+        return n;
     }
 
-    private static boolean isFilled(CompoundTag state, String id) {
-        return state.getBoolean(id);
+    private static boolean holds(Player p, String id) {
+        for (int i = 0; i < p.getInventory().getContainerSize(); i++) {
+            ItemStack s = p.getInventory().getItem(i);
+            if (s.getItem() instanceof ContractItem && ContractItem.tag(s).getString("Id").equals(id)) return true;
+        }
+        return false;
     }
 
-    // ---- the journal payload ------------------------------------------------------------------------
+    /** The client clicked a post: rebuild the board for THAT villager and hand the paper over. */
+    public static void take(ServerPlayer sp, int villagerId, int slot) {
+        ServerLevel level = sp.serverLevel();
+        if (!(level.getEntity(villagerId) instanceof Villager v) || v.distanceToSqr(sp) > 100) return;
+        List<CompoundTag> posts = posts(v, level);
+        if (slot < 0 || slot >= posts.size()) return;
+        CompoundTag post = posts.get(slot);
+        if (holds(sp, post.getString("Id"))) {
+            say(sp, "contract_taken_already", ChatFormatting.YELLOW);
+            return;
+        }
+        if (activeCount(sp) >= MAX_ACTIVE) {
+            say(sp, "contract_hands_full", ChatFormatting.YELLOW, MAX_ACTIVE);
+            return;
+        }
+        ItemStack paper = new ItemStack(ModItems.CONTRACT.get());
+        CompoundTag t = post.copy();
+        t.putInt("Caught", 0);
+        t.putLong("Exp", today(level) + DAYS_TO_FILL);
+        StackNbt.set(paper, t);
+        if (!sp.getInventory().add(paper)) sp.drop(paper, false);
+        sp.displayClientMessage(Component.translatable("message.riverfishing.contract_taken",
+                ContractItem.headline(t)).withStyle(ChatFormatting.GREEN), true);
+        level.playSound(null, sp.blockPosition(), SoundEvents.VILLAGER_TRADE, SoundSource.PLAYERS, 0.8f, 1f);
+    }
 
-    /** Today's board as the journal draws it, {@code done} included so a filled row can say so. */
+    // ---- fishing under it ---------------------------------------------------------------------------
+
+    /**
+     * A fish was landed: the first paper in the bag whose terms it was caught under counts it. Called
+     * from the landing, which is the only place that knows the rod, the bait and the water together.
+     */
+    public static void credit(ServerPlayer sp, ServerLevel level, String species, int grams, String water,
+                              String rodClass, List<String> baits, String time) {
+        long day = today(level);
+        for (int i = 0; i < sp.getInventory().getContainerSize(); i++) {
+            ItemStack s = sp.getInventory().getItem(i);
+            if (!(s.getItem() instanceof ContractItem)) continue;
+            CompoundTag t = ContractItem.tag(s);
+            if (t.getLong("Exp") < day || t.getInt("Caught") >= t.getInt("N")) continue;
+            if (!t.getString("Sp").equals(species) || grams < t.getInt("W")) continue;
+            if (!matches(t.getString("Water"), water) || !matches(t.getString("Rod"), rodClass)
+                    || !matches(t.getString("Time"), time)) continue;
+            String bait = t.getString("Bait");
+            if (!bait.isEmpty() && !baits.contains(bait)) continue;
+            int caught = t.getInt("Caught") + 1;
+            StackNbt.mutate(s, x -> x.putInt("Caught", caught));
+            sp.displayClientMessage(Component.translatable("message.riverfishing.contract_progress",
+                    caught, t.getInt("N"), Component.translatable("fish.riverfishing." + species))
+                    .withStyle(ChatFormatting.AQUA), true);
+            return;
+        }
+    }
+
+    private static boolean matches(String term, String actual) {
+        return term.isEmpty() || term.equals(actual);
+    }
+
+    // ---- handing it in ------------------------------------------------------------------------------
+
+    /**
+     * The paper comes back to a fisherman. Re-checks the day, the count caught under the terms, and the
+     * fish actually in the bag — and takes nothing at all unless the whole set is there.
+     *
+     * @return true when the paper was dealt with (paid or torn up) and the trade screen should not open
+     */
+    public static boolean handIn(ServerPlayer sp, ItemStack paper) {
+        ServerLevel level = sp.serverLevel();
+        CompoundTag t = ContractItem.tag(paper);
+        if (!t.contains("Sp")) return false;
+        if (t.getLong("Exp") < today(level)) {
+            paper.shrink(1);
+            say(sp, "contract_expired", ChatFormatting.RED);
+            return true;
+        }
+        int n = t.getInt("N");
+        if (t.getInt("Caught") < n) {
+            say(sp, "contract_not_yet", ChatFormatting.YELLOW, t.getInt("Caught"), n);
+            return true;
+        }
+        String species = t.getString("Sp");
+        List<Held> have = held(sp.getInventory(), species, t.getInt("W"));
+        if (have.size() < n) {
+            sp.displayClientMessage(Component.translatable("message.riverfishing.contract_short",
+                    have.size(), n, Component.translatable("fish.riverfishing." + species))
+                    .withStyle(ChatFormatting.YELLOW), true);
+            return true;
+        }
+        // ponytail: the fish handed over are the smallest qualifying ones in the bag, not the ones the
+        // paper counted — a landed fish is not tagged with the paper it counted for.
+        take(sp, have.subList(0, n));
+        paper.shrink(1);
+
+        ItemStack pay = new ItemStack(Items.EMERALD, t.getInt("Em"));
+        if (!sp.getInventory().add(pay)) sp.drop(pay, false);
+        JournalData.addXp(sp, t.getInt("Xp"));
+        int before = rep(sp), after = before + t.getInt("Rep");
+        PlayerData.root(sp).putInt(REP, after);
+        PlayerData.markDirty(sp);
+
+        sp.displayClientMessage(Component.translatable("message.riverfishing.contract_filled",
+                n, Component.translatable("fish.riverfishing." + species), t.getInt("Em"), t.getInt("Rep"))
+                .withStyle(ChatFormatting.GREEN), false);
+        for (int step : TRUST_STEPS) {
+            if (before < step && after >= step) {
+                sp.displayClientMessage(Component.translatable("message.riverfishing.contract_trusted", step)
+                        .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+            }
+        }
+        level.playSound(null, sp.blockPosition(), SoundEvents.VILLAGER_YES, SoundSource.PLAYERS, 0.8f, 1.1f);
+        return true;
+    }
+
+    private static void say(ServerPlayer sp, String key, ChatFormatting colour, Object... args) {
+        sp.displayClientMessage(Component.translatable("message.riverfishing." + key, args).withStyle(colour), true);
+    }
+
+    // ---- the journal --------------------------------------------------------------------------------
+
+    /** The papers in the bag, as the journal lists them; the day rides along so it can say "n days left". */
     public static ListTag build(ServerPlayer sp) {
-        CompoundTag st = state(sp);
         ListTag list = new ListTag();
-        for (Contract c : forPlayer(sp)) {
-            CompoundTag t = new CompoundTag();
-            t.putString("id", c.id());
-            t.putString("sp", c.species());
-            t.putInt("n", c.count());
-            t.putInt("w", c.minGrams());
-            t.putInt("em", c.emeralds());
-            t.putInt("xp", c.xp());
-            t.putBoolean("done", isFilled(st, c.id()));
-            list.add(t);
+        for (int i = 0; i < sp.getInventory().getContainerSize(); i++) {
+            ItemStack s = sp.getInventory().getItem(i);
+            if (s.getItem() instanceof ContractItem) list.add(ContractItem.tag(s).copy());
         }
         return list;
     }
 
-    // ---- filling one --------------------------------------------------------------------------------
+    // ---- the fish in the bag ------------------------------------------------------------------------
 
-    /**
-     * Hand the fish over. Re-derives the board rather than trusting the click, counts what is actually in
-     * the bag, and takes nothing at all unless the whole set is there — a contract that ate two of the
-     * three fish and paid nothing would be the worst bug this could have.
-     */
-    public static void claim(ServerPlayer sp, String id) {
-        CompoundTag st = state(sp);
-        if (isFilled(st, id)) return;
-        Contract c = null;
-        for (Contract candidate : forPlayer(sp)) {
-            if (candidate.id().equals(id)) { c = candidate; break; }
-        }
-        if (c == null) return;
-
-        List<Held> have = held(sp.getInventory(), c.species(), c.minGrams());
-        if (have.size() < c.count()) {
-            sp.displayClientMessage(Component.translatable("message.riverfishing.contract_short",
-                    have.size(), c.count(), c.fish()).withStyle(ChatFormatting.YELLOW), true);
-            return;
-        }
-        take(sp, have.subList(0, c.count()));
-
-        st.putBoolean(c.id(), true);
-        PlayerData.root(sp).put(TAG, st);
-        PlayerData.markDirty(sp);
-
-        ItemStack pay = new ItemStack(Items.EMERALD, c.emeralds());
-        if (!sp.getInventory().add(pay)) sp.drop(pay, false);
-        JournalData.addXp(sp, c.xp());
-
-        sp.displayClientMessage(Component.translatable("message.riverfishing.contract_filled",
-                c.count(), c.fish(), c.emeralds()).withStyle(ChatFormatting.GREEN), false);
-        sp.level().playSound(null, sp.blockPosition(), SoundEvents.VILLAGER_YES,
-                SoundSource.PLAYERS, 0.8f, 1.1f);
-    }
-
-    /**
-     * Where one qualifying fish is: which inventory slot, and where inside the keepnet in that slot —
-     * {@code -1} for a fish lying loose. The weight rides along so the list can be sorted without
-     * reading every stack again.
-     */
+    /** Where one qualifying fish is: inventory slot, index inside the keepnet there ({@code -1} loose), weight. */
     public record Held(int slot, int inNet, int grams) {}
 
     /**
      * Every fish this contract accepts, loose in the bag OR inside a keepnet in it, SMALLEST FIRST.
-     *
-     * <p>Keepnets count because that is where a catch actually lives — a net is the thing you carry a
-     * session home in, and a contract that could not see into one would be asking you to tip the net
-     * out on the bank first.
-     *
-     * <p>One method, both sides: the journal row counts with it and the server takes with it, so what
-     * the row promises and what the claim finds cannot drift apart.
+     * Keepnets count because that is where a catch actually lives. One method for both the journal's
+     * count and the server's take, so what the row promises and what the hand-in finds cannot differ.
      */
     public static List<Held> held(net.minecraft.world.entity.player.Inventory inv,
                                   String species, int minGrams) {
@@ -261,17 +353,14 @@ public final class Contracts {
                 out.add(new Held(i, k, FishItem.getWeightG(fish)));
             }
         }
-        // Smallest first: a contract must never quietly walk off with the trophy when an ordinary fish
-        // would have done.
+        // Smallest first: a contract must never quietly walk off with the trophy.
         out.sort(java.util.Comparator.comparingInt(Held::grams));
         return out;
     }
 
     /**
-     * Hand these over. Loose fish are cleared from their slot; netted ones are pulled out of the net
-     * they are in, HIGHEST INDEX FIRST — the net is a list, and removing from the front of one shifts
-     * everything after it, so taking two fish out of the same net in the order they were found would
-     * take the wrong second fish.
+     * Hand these over. Loose fish are cleared from their slot; netted ones are pulled out HIGHEST INDEX
+     * FIRST — the net is a list, and removing from the front shifts everything after it.
      */
     private static void take(ServerPlayer sp, List<Held> taking) {
         java.util.Map<Integer, List<Integer>> nets = new java.util.HashMap<>();
@@ -292,5 +381,10 @@ public final class Contracts {
             }
             data.write(net);
         }
+    }
+
+    /** The lower-case name the terms use for a rod class. */
+    public static String rodKey(com.riverfishing.component.RodClass c) {
+        return c.name().toLowerCase(Locale.ROOT);
     }
 }
