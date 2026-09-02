@@ -1141,7 +1141,7 @@ public final class FishingManager {
     /** Where the finder's bed profile starts and how far it reads, metres out from the rod. */
     public static final int PROFILE_FROM = 2, PROFILE_N = 23;
     /** The map window, blocks either side of the spot. The face draws it at three pixels a block. */
-    public static final int MAP_REACH = 24;
+    public static final int MAP_REACH = 18;
 
     /**
      * §bed-type: what the bed is made of under this column — the first thing that is not water. The
@@ -1258,8 +1258,16 @@ public final class FishingManager {
         ServerLevel level = sp.serverLevel();
         BlockPos water = com.riverfishing.item.WaterProbeItem.findWater(level, sp);
         if (water == null) return;
-        com.riverfishing.network.ModNetwork.toPlayer(sp,
-                new com.riverfishing.network.FinderPacket(finderPayload(sp, level, water, false), true));
+        CompoundTag hud = finderPayload(sp, level, water, false);
+        // §ledge-arrow: where the nearest feature YOU HAVE FOUND is, relative to where you stand —
+        // the strip turns it into a pointer. Only while the finder is held, because that is the only
+        // time this runs, and only for features already on the map: the pointer is for finding your
+        // way back to a hole, not for finding holes.
+        int[] near = SoundingData.get(level).nearest(sp.blockPosition(), 64);
+        if (near != null) {
+            hud.putIntArray("near", near);
+        }
+        com.riverfishing.network.ModNetwork.toPlayer(sp, new com.riverfishing.network.FinderPacket(hud, true));
     }
 
     private static boolean isFinder(ItemStack stack) {
@@ -3156,6 +3164,7 @@ public final class FishingManager {
         env.water = body.type();
         env.waterWidth = body.width();
         env.waterDepth = measureDepth(level, pos);
+        env.bed = bedType(level, pos);
         env.biomeGroups = biomeGroups(level, pos, body);
         env.season = SeasonProvider.getSeason(level);
         env.time = TimeOfDay.fromDayTime(level.getDayTime());
@@ -3181,6 +3190,7 @@ public final class FishingManager {
                                             double castDistance, long now) {
         BiteContext ctx = new BiteContext();
         ctx.rod = ((RodItem) rod.getItem()).rodType();
+        ctx.bed = bedType(level, waterPos);   // §bed-bite
         ctx.anglerLevel = JournalData.getLevel(sp);
         // §skills NATURALIST: a flat overall bite-chance bonus (+5%/rank).
         ctx.skillBiteBonus = AnglerSkills.naturalistBonus(sp);
@@ -3466,6 +3476,7 @@ public final class FishingManager {
             }
             t.putFloat("e", (float) e);
             t.putBoolean("sig", env.communityFactor.applyAsDouble(p.id) > 1.0);
+            t.putFloat("bf", (float) p.bedFactor(env.bed));   // §bed-bite: how it likes this bottom
             if (full) {
                 boolean resident = residentHere(level, waterPos, body, p.id);
                 t.putString("bait", topBait(p));

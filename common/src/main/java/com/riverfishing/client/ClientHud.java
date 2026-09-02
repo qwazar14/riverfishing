@@ -1,6 +1,7 @@
 package com.riverfishing.client;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.entity.player.Player;
 
@@ -64,6 +65,35 @@ public final class ClientHud {
         // The one number worth carrying on the strip: how deep it is where you are aiming.
         String depth = FinderState.latest().getCompound("water").getInt("depth") + " m";
         g.drawString(mc.font, depth, x + 3, y + 3, 0xFF9FE9D0, false);
+
+        // §ledge-arrow: a pointer to the nearest feature you have found, under the strip. Rotated by
+        // the difference between where it is and where you face, so it reads like a compass needle:
+        // straight up is "walk forward". Only for features already on the map — this finds your way
+        // back to a hole, it does not find holes.
+        int[] near = FinderState.latest().getIntArray("near");
+        if (near != null && near.length == 3 && mc.player != null) {
+            double toSpot = Math.toDegrees(Math.atan2(-near[0], near[1]));    // yaw the spot lies at
+            double rel = Math.toRadians(net.minecraft.util.Mth.wrapDegrees(toSpot - mc.player.getYRot()));
+            int ax = x + W / 2, ay = y + H + 14;
+            double sx = Math.sin(rel), sy = -Math.cos(rel);
+            g.fill(ax - 11, ay - 11, ax + 12, ay + 12, 0xCC0B1E22);
+            for (int k = -8; k <= 8; k++) {
+                int px = (int) Math.round(ax + sx * k), py = (int) Math.round(ay + sy * k);
+                g.fill(px, py, px + 2, py + 2, 0xFFFFC83C);
+            }
+            // the head: two short strokes back from the tip
+            for (int k = 0; k < 5; k++) {
+                double bx = sx * (8 - k), by = sy * (8 - k);
+                int lx = (int) Math.round(ax + bx + sy * k), ly = (int) Math.round(ay + by - sx * k);
+                int rx = (int) Math.round(ax + bx - sy * k), ry = (int) Math.round(ay + by + sx * k);
+                g.fill(lx, ly, lx + 2, ly + 2, 0xFFFFC83C);
+                g.fill(rx, ry, rx + 2, ry + 2, 0xFFFFC83C);
+            }
+            int dist = (int) Math.round(Math.sqrt((double) near[0] * near[0] + (double) near[1] * near[1]));
+            String label = Component.translatable("spot.riverfishing." + (near[2] == 0 ? "hole" : "ledge")).getString()
+                    + " " + Component.translatable("finder.riverfishing.metres", dist).getString();
+            g.drawString(mc.font, label, ax + 16, ay - 4, 0xFFFFC83C, true);
+        }
     }
 
     private static boolean isFinder(net.minecraft.world.item.ItemStack stack) {

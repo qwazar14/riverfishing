@@ -74,6 +74,7 @@ public final class FishProfile {
     public final Map<String, Double> season;
     public final Map<String, Double> time;
     public final Map<String, Double> weather;
+    public final Map<String, Double> bed;
     public final String depthPref;
     public final double distMin, distMax;
 
@@ -124,6 +125,7 @@ public final class FishProfile {
         this.season = b.season;
         this.time = b.time;
         this.weather = b.weather;
+        this.bed = b.bed;
         this.depthPref = b.depthPref;
         this.distMin = b.distMin;
         this.distMax = b.distMax;
@@ -154,6 +156,39 @@ public final class FishProfile {
 
     public double weatherFactor(Weather w) {
         return w == null ? 1.0 : weather.getOrDefault(w.jsonKey(), 1.0);
+    }
+
+    /** The bed codes FishingManager.bedType() hands out, by name, for the profile's own "bed" map. */
+    private static final String[] BED_KEYS = {"", "sand", "gravel", "clay", "mud", "rock", "other"};
+
+    /**
+     * §bed-bite: how much this species likes the bottom it is over. A profile may say so itself with a
+     * {@code "bed"} map; the ninety-odd that do not get their FAMILY's habit, which is the same trick
+     * the groundbait grind uses — the fallback seeds sensible numbers into every species at once
+     * instead of asking someone to hand-write ninety files.
+     *
+     * <p>A nudge, never a gate: 0.85 to 1.2. The bed decides where a carp is COMFORTABLE, not whether
+     * a carp exists — depth and water type already do that, and a second hard gate on top of them would
+     * empty half the swims in the game.
+     */
+    public double bedFactor(int bedCode) {
+        if (bedCode <= 0 || bedCode >= BED_KEYS.length) return 1.0;
+        String key = BED_KEYS[bedCode];
+        if (!bed.isEmpty()) return bed.getOrDefault(key, 1.0);
+        switch (group == null ? "" : group) {
+            case "cyprinid":                       // roots in the soft stuff
+                return switch (key) { case "mud", "clay" -> 1.15; case "rock" -> 0.85; default -> 1.0; };
+            case "predator":                       // ambushes off hard structure
+                return switch (key) { case "rock", "gravel" -> 1.12; case "mud" -> 0.9; default -> 1.0; };
+            case "salmonid":                       // gravel is where they spawn and feed
+                return switch (key) { case "gravel" -> 1.2; case "sand" -> 1.05; case "mud" -> 0.85; default -> 1.0; };
+            case "sturgeon":                       // grubs the soft bottom
+                return switch (key) { case "sand", "mud" -> 1.15; case "rock" -> 0.85; default -> 1.0; };
+            case "sea", "big_game":                // sand and rock both work; mud is a harbour
+                return switch (key) { case "sand", "rock" -> 1.1; case "mud" -> 0.9; default -> 1.0; };
+            default:
+                return 1.0;
+        }
     }
 
     public double baitScore(String baitId) {
@@ -245,6 +280,8 @@ public final class FishProfile {
         b.season = readDoubleMap(GsonHelper.getAsJsonObject(json, "season", new JsonObject()));
         b.time = readDoubleMap(GsonHelper.getAsJsonObject(json, "time", new JsonObject()));
         b.weather = readDoubleMap(GsonHelper.getAsJsonObject(json, "weather", new JsonObject()));
+        // §bed-bite: optional. Absent means "my family's habit" — see bedFactor().
+        b.bed = readDoubleMap(GsonHelper.getAsJsonObject(json, "bed", new JsonObject()));
         b.depthPref = GsonHelper.getAsString(json, "depth_pref", "bottom");
 
         JsonObject dist = GsonHelper.getAsJsonObject(json, "distance_pref", new JsonObject());
@@ -310,6 +347,7 @@ public final class FishProfile {
         Map<String, Double> season = new HashMap<>();
         Map<String, Double> time = new HashMap<>();
         Map<String, Double> weather = new HashMap<>();
+        Map<String, Double> bed = new java.util.HashMap<>();
         String depthPref = "bottom";
         double distMin, distMax;
         double base = 1.0;
