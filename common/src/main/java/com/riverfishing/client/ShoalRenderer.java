@@ -168,9 +168,11 @@ public final class ShoalRenderer {
                 int tintNow = com.riverfishing.fish.FishMorph.tint(path, age, "");
                 int overlayNow = FishTint.whiten(com.riverfishing.fish.FishMorph.pale(path, age, ""));
                 // §fish-3d first; a species whose sprite could not be read is drawn flat, as before.
-                if (!FISH_3D || !FishMesh.emit(m, vc, sprite, e.species(), size, f, time, alpha, tintNow, overlayNow)) {
-                    body(m, vc, sprite, size, plusNear ? 1f : -1f, f, time, alpha, tintNow, overlayNow);
-                }
+                // §fish-3d-fins: the slab is the body; the flat sprite still draws — down the centreline,
+                // without its bulge — and that is where the fins, the fork and every thin thing come
+                // from. Inside the body the flanks cover it; outside, it is the fin.
+                boolean slab = FISH_3D && FishMesh.emit(m, vc, sprite, e.species(), size, f, time, alpha, tintNow, overlayNow);
+                body(m, vc, sprite, size, slab ? 0f : (plusNear ? 1f : -1f), f, time, alpha, tintNow, overlayNow);
                 pose.popPose();
                 drew = true;
             }
