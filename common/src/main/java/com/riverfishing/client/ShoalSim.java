@@ -37,7 +37,7 @@ public final class ShoalSim {
     /** Body lengths per second. A fish cruises at about half its own length per second. */
     private static final double CRUISE = 0.55;
     /** ...and bolts at this multiple of it when frightened. */
-    private static final double FLIGHT_SPEED = 3.2;
+    private static final double FLIGHT_SPEED = 2.2;   // a scatter, not a jump-cut (was 3.2)
     /** Radians per second of turn available at cruise; a startled fish turns faster still. */
     private static final float TURN = 1.4f;
     /**
@@ -64,6 +64,13 @@ public final class ShoalSim {
         public float jumpT = -1f;
         /** §shoal-jump: the game second the next jump is due. */
         public double nextJump = -1;
+        /**
+         * §shoal-cloud: this fish's own height within its band, blocks. Depths come off the packet as
+         * whole blocks, so without this every fish of a school sat on one plane and the school read
+         * as a column. A school is a cloud: each member is given its own layer, spread across the
+         * block, and a loner a little jitter of its own.
+         */
+        public double yBias;
 
         Fish(ShoalPacket.Entry entry, double x, double y, double z, float heading, float phase) {
             this.entry = entry;
@@ -92,14 +99,28 @@ public final class ShoalSim {
         BlockPos c = spot.centre();
         double cx = c.getX() + 0.5, cy = c.getY() + 1.0, cz = c.getZ() + 0.5;
         long seed = c.asLong();
+        // Which member of its lane each fish is, so a school can be dealt out along its ring and
+        // through its band instead of every member being placed on the same point of both.
+        int[] laneSize = new int[8], laneIdx = new int[out.length];
+        for (int i = 0; i < out.length; i++) {
+            int ln = Math.max(0, Math.min(7, list.get(i).lane()));
+            laneIdx[i] = laneSize[ln]++;
+        }
         for (int i = 0; i < out.length; i++) {
             ShoalPacket.Entry e = list.get(i);
-            float a = (e.phase() / 64f) * Mth.TWO_PI + (i * 0.7f);
-            double y = cy - 0.35 - e.depth();
-            double want = 0.9 + (e.lane() + 1) * 0.8;
+            int ln = Math.max(0, Math.min(7, e.lane()));
+            int n = laneSize[ln], k = laneIdx[i];
+            // §shoal-cloud: a school is dealt around its ring — half a radian between members —
+            // and each member gets its own layer of the block; a loner gets a little jitter.
+            float a = (e.phase() / 64f) * Mth.TWO_PI + (i * 0.7f) + (n > 1 ? (k - (n - 1) / 2f) * 0.5f : 0f);
+            double bias = n > 1 ? Mth.clamp((k - (n - 1) / 2.0) * 0.32, -0.75, 0.75)
+                    : ((seed >> (i % 20)) & 15) / 15.0 * 0.5 - 0.25;
+            double y = cy - 0.35 - e.depth() + bias;
+            double want = 0.9 + (e.lane() + 1) * 0.8 + (n > 1 ? (k % 3) * 0.3 : 0);
             double r = Math.min(want, ShoalBank.reach(level, c, y, a));
             out[i] = new Fish(e, cx + Math.cos(a) * r, y, cz + Math.sin(a) * r * 0.75,
                     a + Mth.HALF_PI, ((seed >> (i % 24)) & 63) / 63f * Mth.TWO_PI);
+            out[i].yBias = bias;
         }
         return out;
     }
@@ -111,7 +132,7 @@ public final class ShoalSim {
      * @param eye    where the player's head is, to flee from
      */
     /** §shoal-school: how far a schooling fish looks for its neighbours, and how close is too close. */
-    private static final double SCHOOL_SEE = 2.2, SCHOOL_TOO_CLOSE = 0.4;
+    private static final double SCHOOL_SEE = 2.2, SCHOOL_TOO_CLOSE = 0.75;
     /** §shoal-look: a predator notices a bait this far off, and holds this far short of it. */
     private static final double LOOK_RANGE = 6.0, LOOK_HOLD = 1.1;
     /** §shoal-jump: seconds in the air, and how high the arc goes over the surface. */
@@ -261,7 +282,7 @@ public final class ShoalSim {
             // added to the position: adding it per frame made it accumulate with the framerate, which
             // is the hopping. As a target it is a slow, bounded drift the fish eases along, and a
             // frightened one carries the whole band down with it instead of being pushed each tick.
-            double restY = cy - 0.35 - f.entry.depth() - 1.1 * flight
+            double restY = cy - 0.35 - f.entry.depth() + f.yBias - 1.1 * flight
                     + Mth.sin(time * 0.035f + f.phase) * 0.16;
             f.y += (restY - f.y) * Math.min(1.0, dt * 1.6);
         }
