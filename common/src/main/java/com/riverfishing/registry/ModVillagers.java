@@ -445,7 +445,7 @@ public final class ModVillagers {
     }
 
     /** §contracts-b1: this fisherman's three posts, for the player who just opened his counter. */
-    private static void sendBoard(Villager villager, ServerLevel level, net.minecraft.world.entity.player.Player player) {
+    public static void sendBoard(Villager villager, ServerLevel level, net.minecraft.world.entity.player.Player player) {   // §board-3
         if (!(player instanceof net.minecraft.server.level.ServerPlayer sp)) return;
         net.minecraft.nbt.CompoundTag t = new net.minecraft.nbt.CompoundTag();
         t.putInt("vid", villager.getId());
