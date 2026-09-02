@@ -756,7 +756,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         applyCastAnim(pose, ctx);
         // The rod's hand pose lives in code (§rod-debug) so it can be tuned live with /rfrod; the
         // model's hand display is identity, so this IS the whole in-hand transform. No-op elsewhere.
-        RodHandTransform.apply(pose, ctx, chainRoot != null);
+        RodHandTransform.apply(pose, ctx, chainRoot != null, rodKey);
 
         // §rod-bend: the blank bends under live fight tension — only edge-on (in hands, where the drag
         // is being worked) and only for the LOCAL player's own held rod (others render straight; the
