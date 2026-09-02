@@ -1,6 +1,7 @@
 {
   "display": "Блюгилл",
   "latin": "Lepomis macrochirus",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": { "lake": 1.2, "pond": 1.3, "river": 0.6, "swamp": 0.4, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 40, "max": 800, "mean": 150 },

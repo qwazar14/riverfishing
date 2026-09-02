@@ -1,6 +1,7 @@
 {
   "display": "Голавль",
   "latin": "Squalius cephalus",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "cyprinid",
   "water_bodies": {
     "river": 1.2,

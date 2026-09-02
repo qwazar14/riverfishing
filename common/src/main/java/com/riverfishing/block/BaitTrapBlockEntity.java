@@ -138,6 +138,18 @@ public class BaitTrapBlockEntity extends BlockEntity {
         return com.riverfishing.item.FishItem.create(item.get(), pick.id, w, Math.max(1, len), true);
     }
 
+    /** §c: up to 10 fry of whichever brood has the most in this region, off the ledger, with the population genome. */
+    private ItemStack netFry(ServerLevel server) {
+        BlockPos waterPos = waterAt(server);
+        if (waterPos == null) return ItemStack.EMPTY;
+        var stocked = com.riverfishing.fishing.StockedData.get(server);
+        long region = com.riverfishing.fishing.StockedData.region(waterPos);
+        String species = stocked.richestFry(region);
+        int n = species == null ? 0 : stocked.takeFry(region, species, 10);
+        if (n <= 0) return ItemStack.EMPTY;
+        return com.riverfishing.item.FryItem.of(com.riverfishing.RiverFishing.id(species), stocked.genome(region, species), n);
+    }
+
     private BlockPos waterAt(ServerLevel level) {
         BlockState state = getBlockState();
         if (state.hasProperty(BaitTrapBlock.WATERLOGGED) && state.getValue(BaitTrapBlock.WATERLOGGED)) {
@@ -182,7 +194,12 @@ public class BaitTrapBlockEntity extends BlockEntity {
     }
 
     void collect(Player player) {
+        // §c §breeding: the second job — fry of a brood the ledger says swims here, handed over first
+        // so a trap with nothing else in it still gives them.
+        ItemStack fry = level instanceof ServerLevel sl ? netFry(sl) : ItemStack.EMPTY;
+        if (!fry.isEmpty() && !player.getInventory().add(fry)) player.drop(fry, false);
         if (stored <= 0 && fishes.isEmpty()) {
+            if (!fry.isEmpty()) return;
             player.sendOverlayMessage(Component.translatable("message.riverfishing.trap_empty")
                     .withStyle(ChatFormatting.GRAY));
             return;

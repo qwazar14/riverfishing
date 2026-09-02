@@ -1,6 +1,7 @@
 {
   "display": "Голиафовый групер",
   "latin": "Epinephelus itajara",
+  "spawn": { "season": "summer" },
   "group": "big_game",
   "water_bodies": {
     "river": 0.0,

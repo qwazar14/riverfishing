@@ -1,6 +1,7 @@
 {
   "display": "Акула-мако",
   "latin": "Isurus oxyrinchus",
+  "spawn": { "season": "summer" },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.0,

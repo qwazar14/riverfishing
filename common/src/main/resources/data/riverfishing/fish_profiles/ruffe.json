@@ -1,6 +1,7 @@
 {
   "display": "Ёрш",
   "latin": "Gymnocephalus cernua",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": { "river": 1.0, "lake": 1.1, "pond": 0.4, "swamp": 0.2, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 20, "max": 150, "mean": 60 },

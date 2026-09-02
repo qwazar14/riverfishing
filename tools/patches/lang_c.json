@@ -1,0 +1,26 @@
+{
+  "en_us": {
+    "message.riverfishing.stock_checklist": "%1$s: ♀ %2$s · ♂ %3$s · fry %4$s · fit %5$s · settles in %6$s days",
+    "message.riverfishing.stock_waiting": "%1$s: ♀ %2$s · ♂ %3$s · fry %4$s · fit %5$s · needs a pair or 30 fry",
+    "message.riverfishing.stock_settled": "%s: settled — it lives here now!",
+    "message.riverfishing.stock_hostile": "%s: hostile water — it will not survive here",
+    "message.riverfishing.stock_unfit": "%s: fit too low (%s < 0.5) — will not settle",
+    "message.riverfishing.stock_brood_lost": "%s: fished out — the brood is gone"
+  },
+  "ru_ru": {
+    "message.riverfishing.stock_checklist": "%1$s: ♀ %2$s · ♂ %3$s · мальков %4$s · пригодность %5$s · приживётся через %6$s дн.",
+    "message.riverfishing.stock_waiting": "%1$s: ♀ %2$s · ♂ %3$s · мальков %4$s · пригодность %5$s · нужна пара или 30 мальков",
+    "message.riverfishing.stock_settled": "%s: прижилась — теперь она здесь водится!",
+    "message.riverfishing.stock_hostile": "%s: вода непригодна — здесь она не выживет",
+    "message.riverfishing.stock_unfit": "%s: пригодность слишком низкая (%s < 0.5) — не приживётся",
+    "message.riverfishing.stock_brood_lost": "%s: выловлена — маточное стадо потеряно"
+  },
+  "uk_ua": {
+    "message.riverfishing.stock_checklist": "%1$s: ♀ %2$s · ♂ %3$s · мальків %4$s · придатність %5$s · приживеться за %6$s дн.",
+    "message.riverfishing.stock_waiting": "%1$s: ♀ %2$s · ♂ %3$s · мальків %4$s · придатність %5$s · потрібна пара або 30 мальків",
+    "message.riverfishing.stock_settled": "%s: прижилася — тепер вона тут водиться!",
+    "message.riverfishing.stock_hostile": "%s: вода непридатна — тут вона не виживе",
+    "message.riverfishing.stock_unfit": "%s: придатність надто низька (%s < 0.5) — не приживеться",
+    "message.riverfishing.stock_brood_lost": "%s: виловлена — маточне стадо втрачено"
+  }
+}

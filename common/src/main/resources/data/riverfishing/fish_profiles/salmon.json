@@ -1,6 +1,7 @@
 {
   "display": "Сёмга",
   "latin": "Salmo salar",
+  "spawn": { "season": "autumn", "sub": "mid" },
   "group": "salmonid",
   "water_bodies": { "river": 1.1, "sea": 1.0, "lake": 0.2, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 1500, "max": 25000, "mean": 5000 },

@@ -1,6 +1,7 @@
 {
   "display": "Форель",
   "latin": "Salmo trutta fario",
+  "spawn": { "season": "autumn", "sub": "mid" },
   "group": "salmonid",
   "water_bodies": {
     "river": 1.2,

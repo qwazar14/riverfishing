@@ -146,6 +146,8 @@ public class AquariumBlock extends BaseEntityBlock {
         if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
 
         ItemStack held = player.getItemInHand(hand);
+        // §b/breeding: food, roe and the roe slot come first; a fish in hand still goes in below.
+        if (AquariumBreeding.use(level, be, player, held)) return net.minecraft.world.InteractionResult.CONSUME;
         // Add a fish (up to 3) when holding one and there's room.
         if (held.getItem() instanceof FishItem && !be.isFull()) {
             if (be.addFish(held)) {
@@ -164,6 +166,15 @@ public class AquariumBlock extends BaseEntityBlock {
             return net.minecraft.world.InteractionResult.CONSUME;
         }
         return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    // §b/breeding: the master cell ticks the tank on the server; the other cells have no entity to tick.
+    @Nullable
+    @Override
+    public <T extends BlockEntity> net.minecraft.world.level.block.entity.BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, net.minecraft.world.level.block.entity.BlockEntityType<T> type) {
+        if (level.isClientSide() || type != com.riverfishing.registry.ModBlockEntities.AQUARIUM.get()) return null;
+        return (lvl, pos, st, be) -> AquariumBreeding.tick(lvl, (AquariumBlockEntity) be);
     }
 
     @Override

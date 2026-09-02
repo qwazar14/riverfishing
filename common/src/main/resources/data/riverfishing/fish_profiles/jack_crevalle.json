@@ -1,6 +1,7 @@
 {
   "display": "Каранкс",
   "latin": "Caranx hippos",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,

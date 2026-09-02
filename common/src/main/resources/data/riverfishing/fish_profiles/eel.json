@@ -1,6 +1,7 @@
 {
   "display": "Угорь",
   "latin": "Anguilla anguilla",
+  "spawn": { "season": "winter", "sub": "late" },
   "group": "predator",
   "water_bodies": {
     "lake": 1.1,

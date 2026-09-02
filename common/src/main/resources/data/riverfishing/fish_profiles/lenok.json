@@ -1,6 +1,7 @@
 {
   "display": "Ленок",
   "latin": "Brachymystax lenok",
+  "spawn": { "season": "spring", "sub": "mid" },
   "group": "salmonid",
   "water_bodies": { "river": 1.2, "lake": 0.4, "pond": 0.0, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 500, "max": 6000, "mean": 1500 },

@@ -1,6 +1,7 @@
 {
   "display": "Налим",
   "latin": "Lota lota",
+  "spawn": { "season": "winter", "sub": "mid" },
   "group": "predator",
   "water_bodies": {
     "river": 1.1,

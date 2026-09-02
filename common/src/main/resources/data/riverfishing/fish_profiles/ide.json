@@ -1,6 +1,7 @@
 {
   "display": "Язь",
   "latin": "Leuciscus idus",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "cyprinid",
   "water_bodies": {
     "river": 1.2,

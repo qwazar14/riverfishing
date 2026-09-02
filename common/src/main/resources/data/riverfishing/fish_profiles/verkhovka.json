@@ -1,6 +1,7 @@
 {
   "display": "Верховка",
   "latin": "Leucaspius delineatus",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "cyprinid",
   "water_bodies": {
     "river": 0.4,

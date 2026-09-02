@@ -1,6 +1,7 @@
 {
   "display": "Глазчатый змееголов",
   "latin": "Channa marulius",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "lake": 1.2,

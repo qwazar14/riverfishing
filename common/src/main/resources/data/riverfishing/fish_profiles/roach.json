@@ -1,6 +1,7 @@
 {
   "display": "Плотва",
   "latin": "Rutilus rutilus",
+  "spawn": { "season": "spring", "sub": "mid" },
   "group": "cyprinid",
   "water_bodies": { "river": 1.0, "lake": 1.0, "pond": 0.7, "swamp": 0.4, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 50, "max": 1000, "mean": 120 },

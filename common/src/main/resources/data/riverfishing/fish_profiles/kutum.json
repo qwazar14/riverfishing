@@ -1,6 +1,7 @@
 {
   "display": "Кутум",
   "latin": "Rutilus kutum",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "cyprinid",
   "water_bodies": {
     "river": 1.1,

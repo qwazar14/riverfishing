@@ -23,6 +23,13 @@ public class AquariumBlockEntity extends BlockEntity {
 
     private final List<ItemStack> fishes = new ArrayList<>();
 
+    // §b/breeding (0.9.0): the tank is a live one — the rules are in AquariumBreeding, next door, which is the
+    // only thing that reads or writes these (package-private on purpose; no getters for one caller).
+    long fedUntil;                   // world day until which the fish count as fed (exclusive)
+    int spawnTicks;                  // unbroken ticks of good conditions towards a clutch
+    int incubate;                    // ticks the roe in the slot has been incubating (tank without fish)
+    ItemStack roe = ItemStack.EMPTY; // the roe slot: a RoeItem, or the FryItem it hatched into
+
     public AquariumBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.AQUARIUM.get(), pos, state);
     }
@@ -55,6 +62,8 @@ public class AquariumBlockEntity extends BlockEntity {
             for (ItemStack f : fishes) {
                 net.minecraft.world.level.block.Block.popResource(level, pos, f);
             }
+            if (!roe.isEmpty()) net.minecraft.world.level.block.Block.popResource(level, pos, roe);
+            roe = ItemStack.EMPTY;
             fishes.clear();
         }
         super.preRemoveSideEffects(pos, state);
@@ -68,7 +77,7 @@ public class AquariumBlockEntity extends BlockEntity {
         return out;
     }
 
-    private void sync() {
+    void sync() {
         setChanged();
         if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
@@ -79,12 +88,20 @@ public class AquariumBlockEntity extends BlockEntity {
     protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
         super.saveAdditional(tag);
         tag.store("Fishes", ItemStack.OPTIONAL_CODEC.listOf(), java.util.List.copyOf(fishes));
+        tag.putLong("FedUntil", fedUntil);
+        tag.putInt("SpawnTicks", spawnTicks);
+        tag.putInt("Incubate", incubate);
+        tag.store("Roe", ItemStack.OPTIONAL_CODEC, roe);
     }
 
     @Override
     protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
         super.loadAdditional(tag);
         fishes.clear();
+        fedUntil = tag.getLongOr("FedUntil", 0L);
+        spawnTicks = tag.getIntOr("SpawnTicks", 0);
+        incubate = tag.getIntOr("Incubate", 0);
+        roe = tag.read("Roe", ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
         for (ItemStack s : tag.read("Fishes", ItemStack.OPTIONAL_CODEC.listOf()).orElse(java.util.List.of())) {
             if (!s.isEmpty() && fishes.size() < MAX_FISH) fishes.add(s);
         }

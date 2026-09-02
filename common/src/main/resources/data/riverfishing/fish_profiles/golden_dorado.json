@@ -1,6 +1,7 @@
 {
   "display": "Золотой дорадо",
   "latin": "Salminus brasiliensis",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "river": 1.3,

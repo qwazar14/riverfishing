@@ -1,6 +1,7 @@
 {
   "display": "Палтус",
   "latin": "Hippoglossus hippoglossus",
+  "spawn": { "season": "summer" },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.2,
