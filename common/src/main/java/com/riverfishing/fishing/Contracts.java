@@ -129,9 +129,22 @@ public final class Contracts {
         FishProfile p = FishProfileManager.get().byId(RiverFishing.id(species));
         if (p == null) return 0;
         // 60-100% of an ordinary specimen: a bar you clear with a decent fish, not with the first one.
+        //
+        // The profile field is weight_g and it is ALREADY GRAMS — an earlier cut multiplied by 1000 on
+        // the way in and asked for peacock bass "from 1753.1 kg", which is not a hard contract, it is an
+        // impossible one. tools/check_contract_weights.py exists so that cannot come back.
         double share = 0.6 + rng.nextDouble() * 0.4;
-        int g = (int) Math.round(p.weightMean * 1000.0 * share);
-        return Math.max(0, Math.min(g, (int) Math.round(p.weightMax * 1000.0 * 0.8)));
+        int g = (int) Math.round(p.weightMean * share);
+        return round(Math.max(0, Math.min(g, (int) Math.round(p.weightMax * 0.8))));
+    }
+
+    /**
+     * A bar an angler would say out loud. "From 251 g" is a computation showing its working; the board
+     * asks for 250 g, and for anything over a kilo it asks in round hundreds.
+     */
+    private static int round(int grams) {
+        int step = grams >= 1000 ? 100 : 50;
+        return Math.max(step, (grams / step) * step);
     }
 
     // ---- what has been filled -----------------------------------------------------------------------
