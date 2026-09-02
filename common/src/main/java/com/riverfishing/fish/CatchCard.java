@@ -21,10 +21,10 @@ import java.util.Random;
  * no fish profiles and a tooltip that needed one would be blank exactly where it matters.
  *
  * <p>Three levels. The face of the card is what any angler can see by looking at the fish. Behind
- * Shift is HOW it was caught. And two things are hidden until a fisherman has appraised it for an
- * emerald: its NATURE (timid, bold, greedy, wary — a temperament, for the fights and the bites to
- * read one day) and its GENES (four loci, a pair of alleles each, for the breeding that is coming;
- * no mechanics yet, just the truth written down so a fish caught today is a valid parent tomorrow).
+ * Shift is HOW it was caught, and with it the fish's NATURE (timid, bold, greedy, wary — a
+ * temperament, for the fights and the bites to read one day) and its GENES, written down openly
+ * (four loci, a pair of alleles each, for the breeding that is coming; no mechanics yet, just the
+ * truth on the card so a fish caught today is a valid parent tomorrow).
  */
 public final class CatchCard {
     public static final String TAG = "Card";
@@ -131,17 +131,7 @@ public final class CatchCard {
             g.append(a).append(b);
         }
         c.putString("Genes", g.toString());
-        c.putBoolean("Seen", false);
         return c;
-    }
-
-    /** The fisherman has looked: nature and genes are readable from now on. */
-    public static void appraise(ItemStack fish) {
-        StackNbt.mutate(fish, t -> {
-            CompoundTag c = t.getCompoundOrEmpty(TAG);
-            c.putBoolean("Seen", true);
-            t.put(TAG, c);
-        });
     }
 
     /** Does this fish's card meet a contract's terms? An empty term is no term. */

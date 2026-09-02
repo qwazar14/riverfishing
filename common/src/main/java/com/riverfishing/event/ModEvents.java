@@ -60,29 +60,6 @@ public final class ModEvents {
             }
         });
 
-        // §catch-card: crouch and show a fisherman a fish, and for an emerald he reads what the card
-        // hides — its nature and its genes. Interrupted so the counter does not open over it.
-        dev.architectury.event.events.common.InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> {
-            if (!player.isShiftKeyDown()) return EventResult.pass();
-            ItemStack held = player.getItemInHand(hand);
-            if (!(held.getItem() instanceof com.riverfishing.item.FishItem)
-                    || !com.riverfishing.fish.CatchCard.has(held)) return EventResult.pass();
-            if (!(entity instanceof net.minecraft.world.entity.npc.villager.Villager v)) return EventResult.pass();
-            if (!v.getVillagerData().profession().is(com.riverfishing.registry.ModVillagers.FISHERMAN.getKey())) return EventResult.pass();
-            if (player instanceof ServerPlayer sp) {
-                if (com.riverfishing.fish.CatchCard.of(held).getBooleanOr("Seen", false)) {
-                    sp.sendOverlayMessage(net.minecraft.network.chat.Component.translatable("message.riverfishing.card_seen_already"));
-                } else if (sp.getInventory().clearOrCountMatchingItems(
-                        st -> st.is(net.minecraft.world.item.Items.EMERALD), 1, sp.inventoryMenu.getCraftSlots()) >= 1) {
-                    com.riverfishing.fish.CatchCard.appraise(held);
-                    sp.sendOverlayMessage(net.minecraft.network.chat.Component.translatable("message.riverfishing.card_appraised").withStyle(net.minecraft.ChatFormatting.GREEN));
-                } else {
-                    sp.sendOverlayMessage(net.minecraft.network.chat.Component.translatable("message.riverfishing.card_appraise_cost").withStyle(net.minecraft.ChatFormatting.YELLOW));
-                }
-            }
-            return EventResult.interruptTrue();
-        });
-
         // §contracts-b1: right-click a fisherman with a contract in hand and the paper is handed in
         // instead of the counter opening. Interrupted on both sides so the client does not open a
         // screen the server is about to refuse.
