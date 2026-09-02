@@ -820,9 +820,6 @@ public class JournalScreen extends Screen {
     /** Quest rows' {x,y} from the last render (§quest-claim) + optimistic locally-claimed ids. */
     private final int[][] questRects = new int[Quests.ALL.size()][2];
     private final java.util.Set<String> claimedNow = new java.util.HashSet<>();
-    /** §contracts: {x,y} of each contract row from the last render, and the ids clicked since. */
-    private final int[][] contractRects = new int[com.riverfishing.fishing.Contracts.PER_DAY][2];
-    private final java.util.Set<String> contractsFilled = new java.util.HashSet<>();
     /** §discord: the "open Discord" button's rect on the Discord guide page, or zeros when not shown. */
     private final int[] linkRect = new int[4];
     /** Skill "+" button rects {x,y,x2,y2} from the last render (§skills) + optimistic local spends. */
@@ -2371,58 +2368,47 @@ public class JournalScreen extends Screen {
      * state is a snapshot taken when the journal was opened: this is a book you consult, not a HUD.
      */
     /**
-     * §contracts: the jobs standing today, above the order of the day.
-     *
-     * <p>Each row is "n x fish, at least w" with the pay beside it. A row lights up only when the fish
-     * are actually IN THE BAG — the count is taken from this client's own inventory, which is the one
-     * thing the client knows better than the packet does, and the server counts again before it takes
-     * anything. Filling one hands the fish over: that is the whole point of a contract as against the
-     * order of the day, which pays you for catching and leaves you the fish to sell as well.
+     * §contracts-b1: the papers in the bag, above the order of the day. Each is its terms, how many
+     * are caught under them, how many days are left, and whether the set is in the bag. Nothing here is
+     * clickable: a contract is handed to the fisherman, not to the book.
      */
     private int contractBoard(GuiGraphicsExtractor g, int y, int mouseX, int mouseY) {
         ListTag list = data.getListOrEmpty("contracts");
-        for (int i = 0; i < contractRects.length; i++) {
-            contractRects[i][0] = 0;
-            contractRects[i][1] = 0;
-        }
         if (list.isEmpty()) return y;
-
+        long day = data.getLongOr("day", 0L);
         g.text(this.font, Component.translatable("journal.riverfishing.contracts"),
                 left + 10, y, 0xFFB0842C, false);
         y += 13;
-        for (int i = 0; i < list.size() && i < contractRects.length; i++) {
+        for (int i = 0; i < list.size(); i++) {
             CompoundTag c = list.getCompoundOrEmpty(i);
-            String sp = c.getStringOr("sp", "");
-            int need = c.getIntOr("n", 0), minW = c.getIntOr("w", 0);
-            boolean done = c.getBooleanOr("done", false) || contractsFilled.contains(c.getStringOr("id", ""));
-            int have = done ? need : heldFish(sp, minW);
-            boolean ready = !done && have >= need;
-
-            contractRects[i][0] = left + 10;
-            contractRects[i][1] = y;
-            if (ready) g.fill(left + 8, y - 3, left + W - 8, y + 14, 0x38E8B430);
+            String sp = c.getStringOr("Sp", "");
+            int need = c.getIntOr("N", 0), caught = Math.min(c.getIntOr("Caught", 0), need);
+            int have = heldFish(sp, c.getIntOr("W", 0));
+            boolean ready = caught >= need && have >= need;
+            if (ready) g.fill(left + 8, y - 3, left + W - 8, y + 24, 0x38E8B430);
 
             drawFishIcon(g, sp, left + 10, y - 2);
-            Component what = Component.translatable("journal.riverfishing.contract_row",
-                    need, Component.translatable("fish.riverfishing." + sp), grams(minW));
-            int tc = done ? 0xFF6E5A3C : (ready ? 0xFF9A6E10 : GuiStyle.TEXT);
-            g.text(this.font, what, left + 30, y, tc, false);
-
-            // The pay sits at the right margin, an emerald carrying its own number.
+            g.text(this.font, com.riverfishing.item.ContractItem.headline(c), left + 30, y,
+                    ready ? 0xFF9A6E10 : GuiStyle.TEXT, false);
             ItemStack em = new ItemStack(net.minecraft.world.item.Items.EMERALD);
             int ex = left + W - 26;
             g.item(em, ex, y - 4);
-            String n = String.valueOf(c.getIntOr("em", 0));
-            g.text(this.font, n, ex - 4 - this.font.width(n), y, done ? GuiStyle.GHOST : 0xFF2E7D32, false);
+            String n = String.valueOf(c.getIntOr("Em", 0));
+            g.text(this.font, n, ex - 4 - this.font.width(n), y, 0xFF2E7D32, false);
 
-            // Under it: filled, ready to hand over, or how far off the set is.
-            Component note = done
-                    ? Component.translatable("journal.riverfishing.contract_done")
-                    : ready ? Component.translatable("journal.riverfishing.contract_ready")
-                            : Component.translatable("journal.riverfishing.contract_have", have, need);
-            g.text(this.font, note, left + 30, y + 10,
-                    done ? GuiStyle.GHOST : ready ? 0xFFB05A00 : GuiStyle.TEXT_HINT, false);
-            y += 24;
+            StringBuilder sb = new StringBuilder();
+            for (Component t : com.riverfishing.item.ContractItem.terms(c)) {
+                if (sb.length() > 0) sb.append(" · ");
+                sb.append(t.getString());
+            }
+            if (sb.length() > 0) g.text(this.font, sb.toString(), left + 30, y + 10, GuiStyle.TEXT_HINT, false);
+            long daysLeft = c.getLongOr("Exp", 0L) - day;
+            Component note = ready
+                    ? Component.translatable("journal.riverfishing.contract_ready")
+                    : Component.translatable("journal.riverfishing.contract_state", caught, need, have, Math.max(0, daysLeft));
+            g.text(this.font, note, left + 30, y + 20,
+                    ready ? 0xFFB05A00 : daysLeft <= 1 ? 0xFFB03020 : GuiStyle.TEXT_HINT, false);
+            y += 34;
         }
         return y + 4;
     }
@@ -2662,24 +2648,6 @@ public class JournalScreen extends Screen {
                 }
             } else if (tab == TAB_QUEST) {
                 int contentTop = top + 24, contentBottom = top + H - 6;
-                // §contracts first: their rows sit above the chain and share the same claim packet.
-                ListTag cs = data.getListOrEmpty("contracts");
-                for (int i = 0; i < cs.size() && i < contractRects.length; i++) {
-                    int x = contractRects[i][0], cy = contractRects[i][1];
-                    if (x == 0) continue;
-                    if (mouseX >= x - 2 && mouseX < left + W - 8 && mouseY >= cy - 3 && mouseY < cy + 15
-                            && mouseY >= contentTop && mouseY < contentBottom) {
-                        CompoundTag c = cs.getCompoundOrEmpty(i);
-                        String id = c.getStringOr("id", "");
-                        boolean done = c.getBooleanOr("done", false) || contractsFilled.contains(id);
-                        if (!done && heldFish(c.getStringOr("sp", ""), c.getIntOr("w", 0)) >= c.getIntOr("n", 0)) {
-                            contractsFilled.add(id);   // optimistic; the server counts the bag again
-                            com.riverfishing.network.ModNetwork.toServer(
-                                    new com.riverfishing.network.QuestClaimPacket(id));
-                        }
-                        return true;
-                    }
-                }
                 for (int i = 0; i < Quests.ALL.size(); i++) {
                     int x = questRects[i][0], y = questRects[i][1];
                     if (mouseX >= x - 2 && mouseX < left + W - 8 && mouseY >= y - 2 && mouseY < y + 12

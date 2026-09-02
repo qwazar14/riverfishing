@@ -27,6 +27,9 @@ public final class ModNetwork {
         // Client -> server (handled on the server thread).
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, QuestClaimPacket.TYPE, QuestClaimPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §contracts-b1: a click on a post at the fisherman's board.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, ContractTakePacket.TYPE, ContractTakePacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, SkillUnlockPacket.TYPE, SkillUnlockPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
         // §fight-course: which way the angler is pulling — this version of MC does not tell the server
@@ -51,6 +54,7 @@ public final class ModNetwork {
             NetworkManager.registerS2CPayloadType(LineSyncPacket.TYPE, LineSyncPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(ShoalPacket.TYPE, ShoalPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(OrderPacket.TYPE, OrderPacket.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(ContractBoardPacket.TYPE, ContractBoardPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(RodWarningPacket.TYPE, RodWarningPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(CullListPacket.TYPE, CullListPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(FinderPacket.TYPE, FinderPacket.STREAM_CODEC);
@@ -71,6 +75,8 @@ public final class ModNetwork {
                 (payload, ctx) -> ctx.queue(payload::handleClient));
         // §order-panel: what the fisherman wants today, for the counter the player just opened.
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, OrderPacket.TYPE, OrderPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(payload::handleClient));
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, ContractBoardPacket.TYPE, ContractBoardPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, CullListPacket.TYPE, CullListPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));

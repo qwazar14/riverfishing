@@ -60,6 +60,17 @@ public final class ModEvents {
             }
         });
 
+        // §contracts-b1: right-click a fisherman with a contract in hand and the paper is handed in
+        // instead of the counter opening. Interrupted on both sides so the client does not open a
+        // screen the server is about to refuse.
+        dev.architectury.event.events.common.InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> {
+            if (!(entity instanceof net.minecraft.world.entity.npc.villager.Villager v)) return EventResult.pass();
+            if (!(player.getItemInHand(hand).getItem() instanceof com.riverfishing.item.ContractItem)) return EventResult.pass();
+            if (!v.getVillagerData().profession().is(com.riverfishing.registry.ModVillagers.FISHERMAN.getKey())) return EventResult.pass();
+            if (player instanceof ServerPlayer sp) com.riverfishing.fishing.Contracts.handIn(sp, player.getItemInHand(hand));
+            return EventResult.interruptTrue();
+        });
+
         PlayerEvent.PLAYER_QUIT.register(player -> {
             FishingManager.clear(player.getUUID());
             com.riverfishing.fishing.SpookTracker.forget(player.getUUID());

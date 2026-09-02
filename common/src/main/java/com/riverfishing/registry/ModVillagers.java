@@ -239,6 +239,7 @@ public final class ModVillagers {
         if (!villager.getVillagerData().profession().is(FISHERMAN.getKey())) return;
         MerchantOffers offers = villager.getOffers();
         orderSlot(villager, level, offers);
+        trustedSlots(villager, player, offers);
         var market = com.riverfishing.fishing.MarketData.get(level);
         for (MerchantOffer offer : offers) {
             if (!(offer.getCostA().getItem() instanceof FishItem fish)) continue;
@@ -250,6 +251,7 @@ public final class ModVillagers {
             pay.setCount(Math.min(pay.getMaxStackSize(), market.price(level, species, base)));
         }
         sendOrder(level, offers, player);
+        sendBoard(villager, level, player);
     }
 
     /**
@@ -263,6 +265,45 @@ public final class ModVillagers {
      * <p>It goes out during startTrading HEAD, which is before openTradingScreen builds the screen
      * packet on the same connection — so the client always has the order before it has a window.
      */
+    /**
+     * §contracts-b1: the shelf a fisherman keeps for anglers he knows. One item per reputation step,
+     * appended to the counter for a player who has earned it and to nobody else. Half the price of
+     * the same thing anywhere else — the point of reputation is that it buys something.
+     */
+    private static final Object[][] TRUSTED = {
+            {com.riverfishing.fishing.Contracts.TRUST_STEPS[0], "digital_alarm", 6},
+            {com.riverfishing.fishing.Contracts.TRUST_STEPS[1], "fish_finder", 10},
+            {com.riverfishing.fishing.Contracts.TRUST_STEPS[2], "reel_10000", 14},
+    };
+
+    private static void trustedSlots(Villager villager, net.minecraft.world.entity.player.Player player,
+                                     MerchantOffers offers) {
+        int rep = com.riverfishing.fishing.Contracts.rep(player);
+        for (Object[] row : TRUSTED) {
+            if (rep < (int) row[0]) continue;
+            net.minecraft.world.item.Item it = net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(
+                    RiverFishing.id((String) row[1])).orElse(null);
+            if (it == null) continue;
+            boolean dup = false;
+            for (MerchantOffer o : offers) dup |= o.getResult().getItem() == it;
+            if (dup) continue;
+            offers.add(new MerchantOffer(new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.EMERALD, (int) row[2]),
+                    new net.minecraft.world.item.ItemStack(it), 12, 20, 0.05f));
+        }
+    }
+
+    /** §contracts-b1: this fisherman's three posts, for the player who just opened his counter. */
+    private static void sendBoard(Villager villager, ServerLevel level, net.minecraft.world.entity.player.Player player) {
+        if (!(player instanceof net.minecraft.server.level.ServerPlayer sp)) return;
+        net.minecraft.nbt.CompoundTag t = new net.minecraft.nbt.CompoundTag();
+        t.putInt("vid", villager.getId());
+        t.putInt("rep", com.riverfishing.fishing.Contracts.rep(player));
+        net.minecraft.nbt.ListTag posts = new net.minecraft.nbt.ListTag();
+        posts.addAll(com.riverfishing.fishing.Contracts.posts(villager, level));
+        t.put("posts", posts);
+        com.riverfishing.network.ModNetwork.toPlayer(sp, new com.riverfishing.network.ContractBoardPacket(t));
+    }
+
     private static void sendOrder(ServerLevel level, MerchantOffers offers,
                                   net.minecraft.world.entity.player.Player player) {
         if (!(player instanceof net.minecraft.server.level.ServerPlayer sp)) return;

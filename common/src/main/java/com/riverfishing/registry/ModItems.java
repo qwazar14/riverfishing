@@ -123,6 +123,10 @@ public final class ModItems {
 
     private ModItems() {}
 
+    /** §contracts-b1: the paper taken off a fisherman's board. */
+    public static final RegistrySupplier<Item> CONTRACT = reg("contract",
+            () -> new com.riverfishing.item.ContractItem(props("contract")));
+
     private static RegistrySupplier<Item> reg(String name, Supplier<Item> supplier) {
         RegistrySupplier<Item> obj = REGISTER.register(name, supplier);
         ALL.add(obj);

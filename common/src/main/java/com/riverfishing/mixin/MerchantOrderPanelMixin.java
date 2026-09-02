@@ -31,6 +31,7 @@ public abstract class MerchantOrderPanelMixin {
     private void riverfishing$orderPanel(GuiGraphicsExtractor g, int mouseX, int mouseY,
                                         float partialTick, CallbackInfo ci) {
         OrderState.draw(g);
+        com.riverfishing.client.ContractBoardState.draw(g, mouseX, mouseY);   // §contracts-b1
     }
 
     @Inject(method = "mouseClicked(Lnet/minecraft/client/input/MouseButtonEvent;Z)Z",
@@ -38,6 +39,6 @@ public abstract class MerchantOrderPanelMixin {
     private void riverfishing$orderClick(net.minecraft.client.input.MouseButtonEvent e, boolean doubled,
                                          org.spongepowered.asm.mixin.injection.callback
                                                  .CallbackInfoReturnable<Boolean> cir) {
-        if (OrderState.click(e.x(), e.y())) cir.setReturnValue(true);
+        if (OrderState.click(e.x(), e.y()) || com.riverfishing.client.ContractBoardState.click(e.x(), e.y())) cir.setReturnValue(true);
     }
 }
