@@ -1124,6 +1124,13 @@ public final class FishingManager {
             actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
             return;
         }
+        // §depth-map: the swath just written goes straight to the caster's chart, without opening the
+        // screen — the map a player builds over a game is built out of exactly these.
+        BlockPos centre = com.riverfishing.item.WaterProbeItem.findWater(level, sp);
+        if (centre != null) {
+            com.riverfishing.network.ModNetwork.toPlayer(sp, new com.riverfishing.network.FinderPacket(
+                    finderPayload(sp, level, centre, true), true));
+        }
         level.playSound(null, sp.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
                 SoundSource.PLAYERS, 0.7f, 1.4f);
         if (found.isEmpty()) {
