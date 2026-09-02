@@ -93,6 +93,8 @@ public class FishingSession {
     // Predator fight (2.1): a lure-caught fish (or any toothy predator) fights fast and sharp â harder
     // pulls, a tighter margin, and sudden head-shakes. Scaled by weight so an ultralight tiddler is fair.
     public boolean predator;
+    /** §nature: CatchCard.NATURE index rolled at the bite, -1 before one. */
+    public byte nature = -1;
     public double headShakeChance; // per-tick chance of a sudden thrash during the fight
 
     // Float strike-timing mini-game (#5). The green (100%) zone is [centerÂ±zoneHalf]; a flanking orange
