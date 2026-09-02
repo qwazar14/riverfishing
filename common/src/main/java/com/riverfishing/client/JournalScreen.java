@@ -2390,20 +2390,18 @@ public class JournalScreen extends Screen {
         return y + 4;
     }
 
-    /** How many of this species, at or over the bar, are in this player's own bag right now. */
+    /**
+     * How many of this species, at or over the bar, this player is carrying — loose or in a keepnet.
+     *
+     * <p>The counting lives in {@link com.riverfishing.fishing.Contracts#held}, which is also what the
+     * server takes with. Two implementations of "do I have three bream" would be two answers, and the
+     * one the row shows is not the one that decides.
+     */
     private int heldFish(String species, int minGrams) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return 0;
-        int n = 0;
-        var inv = mc.player.getInventory();
-        for (int i = 0; i < inv.getContainerSize(); i++) {
-            ItemStack s = inv.getItem(i);
-            if (!(s.getItem() instanceof com.riverfishing.item.FishItem f)) continue;
-            if (!f.species().getPath().equals(species)) continue;
-            if (com.riverfishing.item.FishItem.getWeightG(s) < minGrams) continue;
-            n++;
-        }
-        return n;
+        return com.riverfishing.fishing.Contracts.held(
+                mc.player.getInventory(), species, minGrams).size();
     }
 
     /** A weight bar the way an angler says it: grams under a kilo, kilos above. */
