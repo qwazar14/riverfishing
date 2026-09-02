@@ -830,6 +830,8 @@
   "finder.riverfishing.weather": "Weather",
   "finder.riverfishing.metres": "%s m",
   "finder.riverfishing.frenzy": "The water is boiling — a feeding frenzy is on",
+  "finder.riverfishing.mark_hint": "Click: point the needle here",
+  "finder.riverfishing.mark_picked": "The needle points here. Click to let go",
   "finder.riverfishing.stock_label": "Stock",
   "finder.riverfishing.to_me": "me",
   "finder.riverfishing.mapped": "Sounded: %s m²",

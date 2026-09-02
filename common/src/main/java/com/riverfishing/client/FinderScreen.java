@@ -68,6 +68,11 @@ public class FinderScreen extends Screen {
     private int zoom = 4;
     /** What the cursor is over on the face this frame — drawn last, above the whole panel. */
     private List<net.minecraft.util.FormattedCharSequence> hover;
+    /** §section-click: where each fish was drawn this frame, {x, y, index into here}. */
+    private final List<int[]> fishRects = new ArrayList<>();
+    /** §arrow-target: where each mark was drawn this frame, {x, y}, parallel to {@link #markKeys}. */
+    private final List<int[]> markRects = new ArrayList<>();
+    private final List<Long> markKeys = new ArrayList<>();
 
     public FinderScreen(CompoundTag data) {
         super(Component.translatable("screen.riverfishing.finder"));
@@ -177,12 +182,15 @@ public class FinderScreen extends Screen {
 
         // The fish, where along the bed their depth is met. Ten at most, at a size that reads.
         List<int[]> taken = new ArrayList<>();
+        fishRects.clear();
         int shown = 0;
-        for (CompoundTag t : here) {
+        for (int fi = 0; fi < here.size(); fi++) {
+            CompoundTag t = here.get(fi);
             if (shown >= MAX_FISH) break;
             int[] at = placeFish(t, pd, taken);
             if (at == null) continue;
             taken.add(at);
+            fishRects.add(new int[]{at[0], at[1], fi});
             shown++;
             drawFish(g, t.getStringOr("sp", ""), at[0], at[1]);
             if (t.getBooleanOr("sig", false)) {
@@ -381,12 +389,20 @@ public class FinderScreen extends Screen {
             if (py > y0 && py < y0 + h) g.fill(x0 + 1, py, x0 + w - 1, py + 1, GRID);
         }
 
-        // Marks: a ring for a hole, a diamond for a drop-off.
+        // Marks: a ring for a hole, a diamond for a drop-off — and a white halo on the one the
+        // strip's needle is set to. Clicking a mark sets it; clicking it again lets it go.
+        markRects.clear();
+        markKeys.clear();
+        Long target = ClientSoundings.target();
         for (java.util.Map.Entry<Long, Byte> e : spots.entrySet()) {
             int gx = ClientSoundings.keyX(e.getKey()), gz = ClientSoundings.keyZ(e.getKey());
             int px = x0 + (int) Math.floor((gx - mapCx) * z + w / 2.0) + z / 2;
             int py = y0 + (int) Math.floor((gz - mapCz) * z + h / 2.0) + z / 2;
             if (px < x0 + 5 || px > x0 + w - 5 || py < y0 + 5 || py > y0 + h - 5) continue;
+            markRects.add(new int[]{px, py});
+            markKeys.add(e.getKey());
+            boolean picked = target != null && target.equals(e.getKey());   // boxed: == is identity
+            if (picked) g.fill(px - 6, py - 6, px + 7, py + 7, 0xFFFFFFFF);
             if (e.getValue() == 0) {
                 g.fill(px - 4, py - 4, px + 4, py + 4, CHART_MARK);
                 g.fill(px - 2, py - 2, px + 2, py + 2, FACE);
@@ -400,7 +416,8 @@ public class FinderScreen extends Screen {
                 Byte v = cells.get(e.getKey());
                 int d = v == null || v < ClientSoundings.DEPTH0 ? 0 : v - ClientSoundings.DEPTH0;
                 hover = List.of(Component.translatable("spot.riverfishing." + (e.getValue() == 0 ? "hole" : "ledge")).getVisualOrderText(),
-                        Component.translatable("finder.riverfishing.metres", d).getVisualOrderText());
+                        Component.translatable("finder.riverfishing.metres", d).getVisualOrderText(),
+                        Component.translatable(picked ? "finder.riverfishing.mark_picked" : "finder.riverfishing.mark_hint").getVisualOrderText());
             }
         }
 
@@ -695,10 +712,29 @@ public class FinderScreen extends Screen {
             centreOnMe();
             return true;
         }
-        if (mapView) return true;                  // a click on the chart is the start of a drag
+        if (mapView) {
+            // §arrow-target: a mark under the cursor is picked (or let go); anything else is the
+            // start of a drag.
+            for (int i = 0; i < markRects.size(); i++) {
+                int[] r = markRects.get(i);
+                if (mx >= r[0] - 5 && mx < r[0] + 5 && my >= r[1] - 5 && my < r[1] + 5) {
+                    ClientSoundings.toggleTarget(markKeys.get(i));
+                    return true;
+                }
+            }
+            return true;
+        }
         if (detail != null) {
             detail = null;
             return true;
+        }
+        // §section-click: a fish on the section is the same fish as in the list.
+        for (int[] r : fishRects) {
+            if (mx >= r[0] && mx < r[0] + ICON && my >= r[1] && my < r[1] + ICON) {
+                detail = here.get(r[2]).getStringOr("sp", "");
+                detailBlocked = false;
+                return true;
+            }
         }
         int x = left + LIST_X, y = top + VIEW_Y;
         List<Row> rows = rows();

@@ -830,6 +830,8 @@
   "finder.riverfishing.weather": "Погода",
   "finder.riverfishing.metres": "%s м",
   "finder.riverfishing.frenzy": "Вода кипит — идёт жор",
+  "finder.riverfishing.mark_hint": "Клик — вести стрелку сюда",
+  "finder.riverfishing.mark_picked": "Стрелка ведёт сюда. Клик — отпустить",
   "finder.riverfishing.stock_label": "Запас",
   "finder.riverfishing.to_me": "ко мне",
   "finder.riverfishing.mapped": "Промерено: %s м²",

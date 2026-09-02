@@ -31,9 +31,9 @@ public final class ClientHud {
             FinderState.clear();
             return;
         }
-        if (!FinderState.fresh()) return;
+        boolean live = FinderState.fresh() && !FinderState.trace().isEmpty();
+        if (!live && ClientSoundings.target() == null) return;
         java.util.List<int[]> trace = FinderState.trace();
-        if (trace.isEmpty()) return;
 
         final int W = 122, H = 62;
         int x = mc.getWindow().getGuiScaledWidth() - W - 6;
@@ -42,6 +42,7 @@ public final class ClientHud {
         int scale = 6;
         for (int[] col : trace) scale = Math.max(scale, col[0]);
 
+        if (live) {
         g.fill(x - 1, y - 1, x + W + 1, y + H + 1, 0xCC0B1E22);
         g.fill(x, y, x + W, y + 1, 0x5540E0B0);
 
@@ -65,12 +66,23 @@ public final class ClientHud {
         // The one number worth carrying on the strip: how deep it is where you are aiming.
         String depth = FinderState.latest().getCompoundOrEmpty("water").getIntOr("depth", 0) + " m";
         g.text(mc.font, depth, x + 3, y + 3, 0xFF9FE9D0, false);
+        }
 
         // §ledge-arrow: a pointer to the nearest feature you have found, under the strip. Rotated by
         // the difference between where it is and where you face, so it reads like a compass needle:
         // straight up is "walk forward". Only for features already on the map — this finds your way
         // back to a hole, it does not find holes.
         int[] near = FinderState.latest().getIntArray("near").orElse(null);
+        // §arrow-target: a mark picked on the chart outranks the nearest one, and it is measured
+        // from where you stand right now rather than from the last sounding — you may have walked.
+        boolean picked = false;
+        Long target = ClientSoundings.target();
+        if (target != null && mc.player != null) {
+            Byte kind = ClientSoundings.spots().get(target);
+            near = new int[]{ClientSoundings.keyX(target) - mc.player.getBlockX(),
+                    ClientSoundings.keyZ(target) - mc.player.getBlockZ(), kind == null ? 1 : kind};
+            picked = true;
+        }
         if (near != null && near.length == 3 && mc.player != null) {
             double toSpot = Math.toDegrees(Math.atan2(-near[0], near[1]));    // yaw the spot lies at
             double rel = Math.toRadians(net.minecraft.util.Mth.wrapDegrees(toSpot - mc.player.getYRot()));
@@ -90,7 +102,7 @@ public final class ClientHud {
                 g.fill(rx, ry, rx + 2, ry + 2, 0xFFFFC83C);
             }
             int dist = (int) Math.round(Math.sqrt((double) near[0] * near[0] + (double) near[1] * near[1]));
-            String label = Component.translatable("spot.riverfishing." + (near[2] == 0 ? "hole" : "ledge")).getString()
+            String label = (picked ? "\u2605 " : "") + Component.translatable("spot.riverfishing." + (near[2] == 0 ? "hole" : "ledge")).getString()
                     + " " + Component.translatable("finder.riverfishing.metres", dist).getString();
             g.text(mc.font, label, ax + 16, ay - 4, 0xFFFFC83C, true);
         }

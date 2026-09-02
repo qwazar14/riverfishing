@@ -34,6 +34,11 @@ public final class ClientSoundings {
     private static final Map<Long, Byte> spots = new HashMap<>();
     private static String loadedFor;
     private static int deepest = 1;
+    /**
+     * §arrow-target: the mark the strip's needle points at, chosen on the chart, or null for "the
+     * nearest one". Kept with the chart, so a hole you picked on Tuesday is still the hole on Friday.
+     */
+    private static Long target;
 
     private ClientSoundings() {}
 
@@ -61,6 +66,18 @@ public final class ClientSoundings {
 
     public static int deepest() {
         return deepest;
+    }
+
+    public static Long target() {
+        ensureLoaded();
+        return target;
+    }
+
+    /** Pick this mark, or clear it if it was the pick. */
+    public static void toggleTarget(long key) {
+        ensureLoaded();
+        target = (target != null && target == key) ? null : key;
+        save();
     }
 
     /** Fold one sounding's windows in: the water mask and the sounded cells, both around its centre. */
@@ -126,6 +143,7 @@ public final class ClientSoundings {
         cells.clear();
         spots.clear();
         deepest = 1;
+        target = null;
         loadedFor = k;
         try {
             Path p = file();
@@ -140,6 +158,7 @@ public final class ClientSoundings {
             long[] sk = t.getLongArray("sk").orElse(new long[0]);
             byte[] sv = t.getByteArray("sv").orElse(new byte[0]);
             for (int i = 0; i < sk.length && i < sv.length; i++) spots.put(sk[i], sv[i]);
+            if (t.getBooleanOr("ht", false)) target = t.getLongOr("t", 0L);
         } catch (Exception e) {
             com.riverfishing.RiverFishing.LOGGER.warn("§depth-map: could not read {}: {}", loadedFor, e.toString());
         }
@@ -166,6 +185,8 @@ public final class ClientSoundings {
             }
             t.putLongArray("sk", sk);
             t.putByteArray("sv", sv);
+            t.putBoolean("ht", target != null);
+            if (target != null) t.putLong("t", target);
             Files.createDirectories(file().getParent());
             NbtIo.writeCompressed(t, file());
         } catch (Exception e) {
