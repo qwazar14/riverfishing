@@ -48,6 +48,11 @@ public class FinderScreen extends Screen {
     private int scroll;
     /** The species whose page is open, or null for the list. */
     private String detail;
+    /**
+     * §sounding: the instrument face shows the section, or the BED FROM ABOVE once you have sounded
+     * some. Two views of one water — the section says how deep, the map says where.
+     */
+    private boolean mapView;
     /** What the cursor is over on the section this frame — drawn last, above the whole panel. */
     private List<net.minecraft.util.FormattedCharSequence> hover;
     private boolean detailBlocked;
@@ -139,6 +144,75 @@ public class FinderScreen extends Screen {
         g.fill(x0 + VIEW_W / 2, y0 + 1, x0 + VIEW_W / 2 + 1, y0 + VIEW_H - 1, 0x1840E0B0);
         g.drawString(this.font, Component.translatable("finder.riverfishing.section"),
                 x0 + 4, y0 + VIEW_H - 11, 0x9940E0B0, false);
+    }
+
+    /**
+     * §sounding: the bed you have measured, from above. Deeper reads darker, unmeasured reads as
+     * nothing at all — an honest map has holes in it until somebody casts across them, and the holes
+     * are the reason to keep casting.
+     */
+    private void renderMap(GuiGraphics g, int mouseX, int mouseY) {
+        int x0 = left + VIEW_X, y0 = top + VIEW_Y;
+        g.fill(x0, y0, x0 + VIEW_W, y0 + VIEW_H, FACE);
+        ListTag map = data.getList("map", 10);
+        if (map.isEmpty()) {
+            for (var seq : this.font.split(
+                    Component.translatable("finder.riverfishing.unsounded"), VIEW_W - 20)) {
+                g.drawString(this.font, seq, x0 + 10, y0 + VIEW_H / 2 - 6, 0x9940E0B0, false);
+                y0 += 11;
+            }
+            return;
+        }
+        final int REACH = 24, CELL = 3;
+        int cx = x0 + VIEW_W / 2, cy = y0 + VIEW_H / 2;
+        int deepest = 1;
+        for (int i = 0; i < map.size(); i++) deepest = Math.max(deepest, map.getCompound(i).getInt("d"));
+
+        for (int i = 0; i < map.size(); i++) {
+            CompoundTag t = map.getCompound(i);
+            int px = cx + t.getInt("x") * CELL, py = cy + t.getInt("z") * CELL;
+            if (px < x0 || px >= x0 + VIEW_W - CELL || py < y0 || py >= y0 + VIEW_H - CELL) continue;
+            // One ramp from shallow to deepest measured, so the shape of the bed is what you read
+            // rather than an absolute depth nobody can eyeball anyway.
+            float f = t.getInt("d") / (float) deepest;
+            int shade = 0xFF000000
+                    | ((int) (0x20 + 0x10 * (1 - f)) << 16)
+                    | ((int) (0x50 + 0x80 * (1 - f)) << 8)
+                    | (int) (0x60 + 0x70 * (1 - f));
+            g.fill(px, py, px + CELL, py + CELL, shade);
+            if (t.contains("s")) {
+                g.fill(px - 1, py - 1, px + CELL + 1, py + CELL + 1, 0xFFE8B430);
+                if (mouseX >= px - 2 && mouseX < px + CELL + 2 && mouseY >= py - 2 && mouseY < py + CELL + 2) {
+                    hover = List.of(Component.translatable("spot.riverfishing." + t.getString("s"))
+                                    .getVisualOrderText(),
+                            Component.translatable("finder.riverfishing.metres", t.getInt("d"))
+                                    .getVisualOrderText());
+                }
+            }
+        }
+        // Where you are standing, so the map has a you-are-here.
+        g.fill(cx - 1, cy - 1, cx + 2, cy + 2, 0xFFFF6060);
+        g.drawString(this.font, Component.translatable("finder.riverfishing.map"),
+                x0 + 4, y0 + VIEW_H - 11, 0x9940E0B0, false);
+    }
+
+    /** The one control on the face: which of the two views it is showing. */
+    private void renderViewTab(GuiGraphics g, int mouseX, int mouseY) {
+        Component label = Component.translatable(mapView
+                ? "finder.riverfishing.to_section" : "finder.riverfishing.to_map");
+        int w = this.font.width(label) + 10;
+        int x = left + VIEW_X + VIEW_W - w, y = top + VIEW_Y - 13;
+        boolean hov = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + 12;
+        g.fill(x, y, x + w, y + 12, hov ? 0xFF8A7038 : 0xFF63512F);
+        g.drawString(this.font, label, x + 5, y + 2, 0xFFEDE2C6, false);
+    }
+
+    private boolean clickedViewTab(double mx, double my) {
+        Component label = Component.translatable(mapView
+                ? "finder.riverfishing.to_section" : "finder.riverfishing.to_map");
+        int w = this.font.width(label) + 10;
+        int x = left + VIEW_X + VIEW_W - w, y = top + VIEW_Y - 13;
+        return mx >= x && mx < x + w && my >= y && my < y + 12;
     }
 
     /** The middle of a species' depth band, which is where it is drawn. */
@@ -315,7 +389,9 @@ public class FinderScreen extends Screen {
             return;
         }
         hover = null;
-        renderSection(g, mouseX, mouseY);
+        if (mapView) renderMap(g, mouseX, mouseY);
+        else renderSection(g, mouseX, mouseY);
+        renderViewTab(g, mouseX, mouseY);
         if (detail == null) renderList(g, mouseX, mouseY);
         else renderDetail(g);
         renderBar(g);
@@ -329,6 +405,10 @@ public class FinderScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
+        if (clickedViewTab(mx, my)) {
+            mapView = !mapView;
+            return true;
+        }
         if (detail != null) {
             detail = null;
             return true;
