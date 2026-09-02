@@ -6,7 +6,7 @@
 Two numbers have to agree and live in different files:
 
     SoundingData.SPOT_RADIUS   how far from a found hole a cast still counts as fishing it
-    FishingManager REACH       how far from the spot the screen's map is sent at all
+    FishingManager MAP_REACH   how far from the spot the screen's map is sent at all
 
 If the radius ever grows past the reach, a cast picks up the bite bonus from a feature that is not on
 the map the player is looking at — the tool would be paying out for something it does not show, which
@@ -57,11 +57,11 @@ def selftest():
 def main():
     d = io.open(os.path.join(ROOT, DATA), encoding="utf-8").read()
     m = io.open(os.path.join(ROOT, MANAGER), encoding="utf-8").read()
-    # REACH is local to soundingMap; read it from there and nowhere else.
-    body = m[m.index("private static ListTag soundingMap"):]
     radius, hole = const(d, "SPOT_RADIUS"), const(d, "HOLE_DROP")
     ledge, bonus = const(d, "LEDGE_STEP"), const(d, "SPOT_BONUS")
-    reach = const(body, "REACH")
+    # MAP_REACH is a class constant now: the map window and the water mask both read it, and a
+    # number two methods share is a number that lives on the class.
+    reach = const(m, "MAP_REACH")
 
     print("spot radius %g, map reach %g, hole %g, ledge %g, bonus x%g"
           % (radius, reach, hole, ledge, bonus))
