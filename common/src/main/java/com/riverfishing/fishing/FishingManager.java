@@ -1394,7 +1394,8 @@ public final class FishingManager {
             }
             if (now >= session.biteAtTick && !spooked(level, session, now)) {
                 session.bitten = true;
-                session.biteWindowEnd = now + biteWindow(session.rodClass);
+                session.biteWindowEnd = now + Math.round(biteWindow(session.rodClass)
+                        * com.riverfishing.fish.CatchCard.dial(session.nature, com.riverfishing.fish.CatchCard.BITE_WINDOW));
                 // §silent-bite: NO audible cue without an alarm — watch the float / the line.
                 playBite(level, session.target);
                 // §catch-the-moment: NO "Поклёвка!" text — the bobber PLUNGES on the client and
@@ -1515,6 +1516,9 @@ public final class FishingManager {
         if (!session.species.getPath().startsWith("carp_koi")) {
             ResourceLocation was = session.species;
             session.species = outcome.pickSpecies(random);
+            // §nature: this fish's temperament, decided with the fish — the take and the fight read it.
+            session.nature = com.riverfishing.fish.CatchCard.rollNature(
+                    FishProfileManager.get().byId(session.species), new java.util.Random(random.nextLong()));
             // §respec: and if it IS a different fish now, roll the SPECIMEN again against its own profile.
             //
             // Reported as a 242 g ruffe — a fish whose range tops out at 150 g. The weight, the length and
@@ -1758,7 +1762,8 @@ public final class FishingManager {
         session.landPulse = 0.05 / (0.7 + 0.6 * weightStress) * (0.9 + session.reelSize / 14000.0);
         session.relaxTick = 0.010 + dragRelief * 0.02;                 // big reel gives line faster
         session.fightPattern = profile.fightPattern;
-        session.fightAggression = profile.fightAggression;
+        session.fightAggression = profile.fightAggression
+                * com.riverfishing.fish.CatchCard.dial(session.nature, com.riverfishing.fish.CatchCard.AGGRESSION);
         session.fightTimeout = (long) Mth.clamp(
                 700 + weightKg * 80
                         + ("burst".equals(profile.fightPattern) ? 300
@@ -1818,7 +1823,8 @@ public final class FishingManager {
             session.calmTensionPulse *= 1.1;
             session.relaxTick *= 0.92;                              // tension eases off a little slower
             session.runsLeft += 1 + (int) Math.round(wAmp);
-            session.headShakeChance = 0.008 + 0.011 * wAmp;
+            session.headShakeChance = (0.008 + 0.011 * wAmp)
+                    * com.riverfishing.fish.CatchCard.dial(session.nature, com.riverfishing.fish.CatchCard.HEAD_SHAKE);
             session.fightTimeout += 300;
             // §spin-harder (4, eased): ULTRALIGHT stays the harder fight than spinning — fragile finesse
             // tackle — but no longer unwinnable. Slower landing + more thrashing rather than a hair trigger.

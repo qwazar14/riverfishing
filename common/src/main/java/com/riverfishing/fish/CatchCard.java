@@ -30,6 +30,28 @@ public final class CatchCard {
     public static final String TAG = "Card";
     public static final String[] SIZE = {"baby", "juvenile", "adult", "big", "giant"};
     public static final String[] NATURE = {"timid", "wary", "greedy", "bold"};
+    /**
+     * §nature: what each temperament does, indexed like {@link #NATURE}. A timid fish takes the bait
+     * briefly and fights soft; a wary one is nearly as quick to drop it; a greedy one holds on — the
+     * longest bite window — and fights ordinarily; a bold one hits, thrashes and runs hard.
+     */
+    public static final double[] BITE_WINDOW = {0.75, 0.85, 1.35, 1.1};
+    public static final double[] AGGRESSION = {0.75, 0.9, 1.0, 1.35};
+    public static final double[] HEAD_SHAKE = {0.6, 0.8, 1.0, 1.6};
+
+    /** A dial for the fish that bit, or 1.0 before a nature has been rolled. */
+    public static double dial(byte nature, double[] table) {
+        return nature < 0 || nature >= table.length ? 1.0 : table[nature];
+    }
+
+    /** timid, wary, greedy, bold — hunters lean bold, the rest lean timid. */
+    public static byte rollNature(FishProfile p, Random rng) {
+        boolean hunter = p != null && (p.group.equals("predator") || p.group.equals("big_game") || p.group.equals("sea"));
+        int[] w = hunter ? new int[]{15, 20, 30, 35} : new int[]{35, 30, 20, 15};
+        int roll = rng.nextInt(100);
+        for (int i = 0, acc = 0; i < w.length; i++) { acc += w[i]; if (roll < acc) return (byte) i; }
+        return 0;
+    }
     private static final String[] BED = {"", "sand", "gravel", "clay", "mud", "rock", "other"};
 
     private CatchCard() {}
@@ -74,8 +96,14 @@ public final class CatchCard {
         // §board-3: the size class is FishMorph.ageFraction — 0.5 at an ordinary specimen — so a
         // 1.15 kg pike is a juvenile, not a baby: the old bar measured against the record weight,
         // and against a 25 kg record everything you will ever catch was a baby.
-        double pct = FishMorph.ageFraction(p, weightG);
-        c.putByte("Size", (byte) (pct < 0.15 ? 0 : pct < 0.35 ? 1 : pct < 0.6 ? 2 : pct < 0.85 ? 3 : 4));
+        // Weight against an ORDINARY specimen of the species: under a fifth of it is a baby, under
+        // half a juvenile, up to 1.2x adult, up to 2.5x big, past that a giant. ageFraction put a
+        // 834 g pike (ordinary: 2 kg) at 0.11 — a baby — because it measures from the smallest
+        // catchable fish, and nobody calls an 800 g pike a baby.
+        double mean = p == null || p.weightMean <= 0 ? weightG : p.weightMean;
+        double r = weightG / mean;
+        double pct = r < 0.2 ? 0.1 : r < 0.5 ? 0.3 : r < 1.2 ? 0.5 : r < 2.5 ? 0.7 : 0.9;
+        c.putByte("Size", (byte) (r < 0.2 ? 0 : r < 0.5 ? 1 : r < 1.2 ? 2 : r < 2.5 ? 3 : 4));
         c.putString("Group", p == null ? "" : p.group);
         c.putString("Latin", p == null ? "" : p.latin);   // §cards-2
         c.putString("Life", p == null ? "" : p.depthPref);
@@ -83,11 +111,9 @@ public final class CatchCard {
         // The hidden two. Seeded off the fish itself so a duplicated stack is the same fish.
         Random rng = new Random(level.getGameTime() * 31L + sp.getUUID().hashCode() + weightG);
         c.putByte("Sex", (byte) rng.nextInt(2));
-        boolean hunter = p != null && (p.group.equals("predator") || p.group.equals("big_game") || p.group.equals("sea"));
-        // timid, wary, greedy, bold — hunters lean bold, the rest lean timid.
-        int[] w = hunter ? new int[]{15, 20, 30, 35} : new int[]{35, 30, 20, 15};
-        int roll = rng.nextInt(100), nature = 0;
-        for (int i = 0, acc = 0; i < w.length; i++) { acc += w[i]; if (roll < acc) { nature = i; break; } }
+        // §nature: the temperament the fish fought with, rolled at the bite; a fish that arrived
+        // without one (an old session) gets one now.
+        byte nature = s.nature >= 0 ? s.nature : rollNature(p, rng);
         c.putByte("Nature", (byte) nature);
         // S size, C colour, V vigour, F fertility: a capital is the strong allele. Size follows the fish,
         // colour follows the morph, the other two are a coin.
