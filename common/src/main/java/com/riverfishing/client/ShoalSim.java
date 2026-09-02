@@ -56,6 +56,14 @@ public final class ShoalSim {
         public final float phase;
         /** Cached from the packet so the renderer does not have to look it up. */
         public final ShoalPacket.Entry entry;
+        /** §shoal-kick: 0..1, how hard the tail is beating this frame — the renderer swings it by this. */
+        public float kick;
+        /** §shoal-jump: nose-up/down, degrees, while in the air; 0 in the water. */
+        public float pitch;
+        /** §shoal-jump: seconds into a jump, or -1 in the water. */
+        public float jumpT = -1f;
+        /** §shoal-jump: the game second the next jump is due. */
+        public double nextJump = -1;
 
         Fish(ShoalPacket.Entry entry, double x, double y, double z, float heading, float phase) {
             this.entry = entry;
@@ -102,8 +110,23 @@ public final class ShoalSim {
      * @param flight 0..1 — how frightened this shoal is (§shoal-spook)
      * @param eye    where the player's head is, to flee from
      */
+    /** §shoal-school: how far a schooling fish looks for its neighbours, and how close is too close. */
+    private static final double SCHOOL_SEE = 2.2, SCHOOL_TOO_CLOSE = 0.4;
+    /** §shoal-look: a predator notices a bait this far off, and holds this far short of it. */
+    private static final double LOOK_RANGE = 6.0, LOOK_HOLD = 1.1;
+    /** §shoal-jump: seconds in the air, and how high the arc goes over the surface. */
+    private static final float JUMP_SECONDS = 0.9f, JUMP_HEIGHT = 0.8f;
+
     public static void advance(Level level, ShoalPacket.Spot spot, Fish[] fish, float flight,
                                Vec3 eye, float time, double dt) {
+        advance(level, spot, fish, flight, eye, null, time, dt);
+    }
+
+    /**
+     * @param bait where this player's own line meets the water, or null — predators go and look
+     */
+    public static void advance(Level level, ShoalPacket.Spot spot, Fish[] fish, float flight,
+                               Vec3 eye, Vec3 bait, float time, double dt) {
         if (fish.length == 0) return;
         BlockPos c = spot.centre();
         double cx = c.getX() + 0.5, cy = c.getY() + 1.0, cz = c.getZ() + 0.5;
@@ -138,13 +161,61 @@ public final class ShoalSim {
                 // Multiplied by dt it stays under the clamp, so the clamp stops deciding and the sines
                 // do: the heading drifts at wander × WANDER_TURN radians a second, framerate-free.
                 want = f.heading + wander * WANDER_TURN * (float) dt;
+
+                // §shoal-school: a fish that moves in numbers keeps its numbers. Three rules, the
+                // classic three — line up with the neighbours, close toward their middle, and do
+                // not sit on one. The old "school" was three fish given the same phase on one
+                // circuit, which held for a minute and then strung out into three loners.
+                if (f.entry.shoaling()) {
+                    double sx = 0, sz = 0, hx = 0, hz = 0, ax = 0, az = 0;
+                    int n = 0;
+                    for (Fish o : fish) {
+                        if (o == f || o.entry.lane() != f.entry.lane()) continue;
+                        double ox = o.x - f.x, oz = o.z - f.z;
+                        double d2 = ox * ox + oz * oz;
+                        if (d2 > SCHOOL_SEE * SCHOOL_SEE) continue;
+                        n++;
+                        sx += ox; sz += oz;
+                        hx += Math.cos(o.heading); hz += Math.sin(o.heading);
+                        if (d2 < SCHOOL_TOO_CLOSE * SCHOOL_TOO_CLOSE && d2 > 1e-6) {
+                            ax -= ox / d2; az -= oz / d2;
+                        }
+                    }
+                    if (n > 0) {
+                        float align = (float) Math.atan2(hz, hx);
+                        float cohere = (float) Math.atan2(sz / n, sx / n);
+                        want = Mth.rotLerp(0.35f, want, align);
+                        double far = Math.sqrt(sx * sx + sz * sz) / n;
+                        if (far > 0.9) want = Mth.rotLerp((float) Math.min(0.5, (far - 0.9) * 0.4), want, cohere);
+                        if (ax != 0 || az != 0) want = Mth.rotLerp(0.5f, want, (float) Math.atan2(az, ax));
+                    }
+                }
+
+                // §shoal-look: a predator that notices a bait goes to see, and holds off it — the
+                // picture you get before a take, and the one you never got. Curious for a few
+                // seconds, bored for a dozen, on its own clock, so a pike does not park on your
+                // float for the whole session.
+                if (bait != null && f.entry.predator() && flight < 0.1f) {
+                    double bx = bait.x - f.x, bz = bait.z - f.z;
+                    double bd = Math.sqrt(bx * bx + bz * bz);
+                    boolean curious = ((time / 20f + f.phase * 3f) % 16f) < 5f;
+                    if (curious && bd < LOOK_RANGE && bd > LOOK_HOLD) {
+                        want = Mth.rotLerp(0.6f, want, (float) Math.atan2(bz, bx));
+                    }
+                }
                 if (out > home) {
                     float inward = (float) Math.atan2(-dz * 0.75, -dx);
                     want = Mth.rotLerp((float) Mth.clamp((out - home) / 2.0, 0.0, 1.0), want, inward);
                 }
             }
 
-            double speed = f.cruise();
+            // §shoal-kick: a fish does not motor — it beats and glides. The beat is a periodic kick,
+            // phased per fish and shaped to be brief; the renderer swings the tail by the same number,
+            // so what you see beating is what is pushing.
+            float beat = Mth.sin(time * 0.09f + f.phase * 4f);
+            f.kick = beat > 0.3f ? (beat - 0.3f) / 0.7f : 0f;
+            f.kick = f.kick * f.kick;
+            double speed = f.cruise() * (0.7 + 0.9 * f.kick);
             if (flight > 0.02f) {
                 // 2. Fright beats everything: away from the player, fast, and down.
                 float away = (float) Math.atan2(f.z - eye.z, f.x - eye.x);
@@ -156,6 +227,36 @@ public final class ShoalSim {
             f.heading = approach(f.heading, want, turn);
             f.x += Math.cos(f.heading) * speed * dt;
             f.z += Math.sin(f.heading) * speed * dt * 0.75;
+
+            // §shoal-jump: a carp rolls, a salmon clears the water. Rare, on the fish's own clock,
+            // never while frightened, and never for a fish drawn far under the surface. The arc is a
+            // parabola over the surface with the nose following it; the splash is the water's, in
+            // and out.
+            if (f.entry.jumper()) {
+                double sec = time / 20.0;
+                if (f.nextJump < 0) f.nextJump = sec + 20 + f.phase * 12;
+                if (f.jumpT < 0 && flight < 0.05f && f.entry.depth() <= 2 && sec >= f.nextJump) {
+                    f.jumpT = 0f;
+                    splash(level, f.x, cy, f.z);
+                }
+                if (f.jumpT >= 0f) {
+                    f.jumpT += (float) dt;
+                    float u = f.jumpT / JUMP_SECONDS;
+                    if (u >= 1f) {
+                        f.jumpT = -1f;
+                        f.pitch = 0f;
+                        f.nextJump = sec + 45 + f.phase * 15;
+                        splash(level, f.x, cy, f.z);
+                    } else {
+                        float arc = 4f * u * (1f - u);
+                        f.y = cy + arc * JUMP_HEIGHT - 0.1;
+                        f.pitch = -(1f - 2f * u) * 40f;
+                        f.x += Math.cos(f.heading) * speed * dt;   // it keeps its way in the air
+                        f.z += Math.sin(f.heading) * speed * dt * 0.75;
+                        continue;
+                    }
+                }
+            }
             // A fish holds its depth loosely. The rise and fall is part of the TARGET, not something
             // added to the position: adding it per frame made it accumulate with the framerate, which
             // is the hopping. As a target it is a slow, bounded drift the fish eases along, and a
@@ -164,6 +265,16 @@ public final class ShoalSim {
                     + Mth.sin(time * 0.035f + f.phase) * 0.16;
             f.y += (restY - f.y) * Math.min(1.0, dt * 1.6);
         }
+    }
+
+    /** §shoal-jump: the water's own splash, at the surface, client-side only. */
+    private static void splash(Level level, double x, double y, double z) {
+        for (int i = 0; i < 6; i++) {
+            level.addParticle(net.minecraft.core.particles.ParticleTypes.SPLASH,
+                    x + (Math.random() - 0.5) * 0.6, y + 0.05, z + (Math.random() - 0.5) * 0.6, 0, 0.1, 0);
+        }
+        level.playLocalSound(x, y, z, net.minecraft.sounds.SoundEvents.FISHING_BOBBER_SPLASH,
+                net.minecraft.sounds.SoundSource.NEUTRAL, 0.35f, 1.3f + (float) Math.random() * 0.3f, false);
     }
 
     /** Turn {@code from} toward {@code to} by at most {@code max} radians, the short way round. */

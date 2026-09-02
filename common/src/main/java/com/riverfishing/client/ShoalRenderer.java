@@ -114,8 +114,10 @@ public final class ShoalRenderer {
                 // Small fish thin out with distance, the way they actually do: a 20 cm roach 30 blocks off
                 // is two pixels of noise, while a metre of pike is worth seeing from the far bank. The
                 // server drops these too — this is here because a fish list outlives the walk that made it.
-                if (dist > 40 && e.lengthCm() < 90) continue;
-                if (dist > 26 && e.lengthCm() < 35) continue;
+                // §shoal-far: a loner too small to see at this range is skipped; a fish in a school is
+                // drawn, because the school is what you see.
+                if (!e.shoaling() && dist > 40 && e.lengthCm() < 90) continue;
+                if (!e.shoaling() && dist > 26 && e.lengthCm() < 35) continue;
                 TextureAtlasSprite sprite = spriteFor(atlas, e.species());
                 if (sprite == null) continue;
 
@@ -136,7 +138,7 @@ public final class ShoalRenderer {
                 // to a seventh of its own length and back on every beat. One sine, and it does more for
                 // a fish swimming at you than any amount of geometry would.
                 float yaw = 180f - (float) Math.toDegrees(f.heading)
-                        + Mth.sin(time * 0.22f + f.phase) * 7f;
+                        + Mth.sin(time * 0.22f + f.phase) * (7f + 9f * f.kick);   // §shoal-kick
 
                 pose.pushPose();
                 pose.translate(x - cam.x, y - cam.y, z - cam.z);
@@ -150,7 +152,7 @@ public final class ShoalRenderer {
                 }
                 // Local Z is the fish's own left-right axis now, so this is a nose-up, nose-down pitch
                 // rather than the screen-plane roll it used to be. It reads better, and it is free.
-                pose.mulPose(Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + f.phase) * 3f));
+                pose.mulPose(Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + f.phase) * 3f + f.pitch));   // §shoal-jump
                 float size = spriteSize(e.lengthCm());
                 // §morph: the fish in the water are painted by the same table as the one in your hand.
                 double age = e.age() / 100.0;

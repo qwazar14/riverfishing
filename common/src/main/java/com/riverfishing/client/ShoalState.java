@@ -140,6 +140,14 @@ public final class ShoalState {
         lastNanos = nanos;
         float time = level.getGameTime() + partialTick;
         Vec3 eye = mc.player == null ? Vec3.ZERO : mc.player.getEyePosition(partialTick);
+        // §shoal-look: where this player's own line meets the water, for the predators to go and see.
+        Vec3 bait = null;
+        if (mc.player != null) {
+            ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
+            if (own != null && own.target != null && !own.target.equals(net.minecraft.core.BlockPos.ZERO)) {
+                bait = new Vec3(own.target.getX() + 0.5, own.target.getY() + 0.9, own.target.getZ() + 0.5);
+            }
+        }
 
         boolean dropped = false;
         for (var it = LIVE.values().iterator(); it.hasNext(); ) {
@@ -152,7 +160,7 @@ public final class ShoalState {
             // leaving flees as it goes, so the last thing you see is fish swimming off, not a fade.
             float wanted = Math.max(live.spot.spookFraction(), live.leaving ? 1f : 0f);
             live.flight += (wanted - live.flight) * Math.min(1f, (float) dt * 1.5f);
-            ShoalSim.advance(level, live.spot, live.fish, live.flight, eye, time, dt);
+            ShoalSim.advance(level, live.spot, live.fish, live.flight, eye, bait, time, dt);
             if (live.leaving && live.fade <= 0.01f) {
                 it.remove();
                 dropped = true;
