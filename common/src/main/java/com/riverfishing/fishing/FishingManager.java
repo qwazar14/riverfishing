@@ -9,6 +9,8 @@ import com.riverfishing.config.RiverFishingConfig;
 import com.riverfishing.engine.BiteContext;
 import com.riverfishing.engine.BiteEngine;
 import com.riverfishing.engine.TimeOfDay;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import com.riverfishing.engine.BarometricPressure;
 import com.riverfishing.engine.Weather;
 import com.riverfishing.fish.FishProfile;
@@ -1059,6 +1061,26 @@ public final class FishingManager {
     }
 
     // ---- per-tick progress (FLOAT / BOTTOM waiting, and the fight for all classes) ----
+
+    /**
+     * §finder-hud: a sounding a second for whoever is holding a finder, so the strip on their HUD is
+     * live as they walk the bank. Nothing is sent when they are not aiming at water — the strip fades
+     * on its own rather than freezing on a reading that stopped being true.
+     */
+    public static void finderHudTick(ServerPlayer sp) {
+        if (sp.tickCount % 20 != 0) return;
+        boolean holding = isFinder(sp.getMainHandItem()) || isFinder(sp.getOffhandItem());
+        if (!holding) return;
+        ServerLevel level = sp.serverLevel();
+        BlockPos water = com.riverfishing.item.WaterProbeItem.findWater(level, sp);
+        if (water == null) return;
+        com.riverfishing.network.ModNetwork.toPlayer(sp,
+                new com.riverfishing.network.FinderPacket(finderPayload(sp, level, water, false), true));
+    }
+
+    private static boolean isFinder(ItemStack stack) {
+        return stack.getItem() instanceof com.riverfishing.item.WaterProbeItem probe && !probe.admin();
+    }
 
     public static void tick(ServerPlayer sp) {
         FishingSession session = SESSIONS.get(sp.getUUID());
@@ -3187,6 +3209,92 @@ public final class FishingManager {
         }
         sp.displayClientMessage(pressureLine(level), false);
         level.playSound(null, sp.blockPosition(), SoundEvents.NOTE_BLOCK_BIT.value(), SoundSource.PLAYERS, 0.6f, 1.5f);
+    }
+
+    /**
+     * §finder-screen: everything the fish finder draws, assembled where the data already is.
+     *
+     * <p>The screen cannot work any of this out for itself. Fish profiles load as SERVER_DATA, so a
+     * client on a dedicated server has none of them, and the community, stock and pressure numbers are
+     * world state. So the server answers the whole question once, in keys rather than sentences, and the
+     * client turns {@code water.riverfishing.river} into its own language.
+     *
+     * <p>The BLOCKED species ride along with the gate that blocks them. That diagnosis already existed —
+     * it was written for the admin probe and shown to nobody else, which is a waste: "pike-perch: too
+     * shallow here" is the single most useful thing this tool can say, and it was hidden behind a
+     * creative-only item.
+     */
+    public static CompoundTag finderPayload(ServerPlayer sp, ServerLevel level, BlockPos waterPos) {
+        return finderPayload(sp, level, waterPos, true);
+    }
+
+    /**
+     * §finder-hud: {@code full=false} is the strip's sounding — the section and nothing else. It runs
+     * once a second for every player holding a finder, so it carries no blocked list, no stock query and
+     * no bait scan: three lookups per species, per second, per angler, to draw something the strip has
+     * no room to print anyway.
+     */
+    public static CompoundTag finderPayload(ServerPlayer sp, ServerLevel level, BlockPos waterPos,
+                                            boolean full) {
+        CompoundTag root = new CompoundTag();
+        WaterBody body = WaterBodyCache.forLevel(level).get(level, waterPos);
+        if (body.type() == WaterType.NONE) return root;
+        BiteContext env = environmentAt(level, waterPos, body);
+
+        CompoundTag w = new CompoundTag();
+        w.putString("type", body.type().key());
+        w.putFloat("width", (float) body.width());
+        w.putInt("depth", env.waterDepth);
+        w.putString("season", env.season == null ? "" : env.season.jsonKey());
+        w.putString("time", env.time.jsonKey());
+        w.putString("weather", env.weather.jsonKey());
+        w.putInt("hpa", (int) Math.round(BarometricPressure.hPa(level)));
+        w.putInt("trend", BarometricPressure.trendSign(level));
+        w.putString("outlook", BarometricPressure.outlookKey(level));
+        w.putInt("x", waterPos.getX());
+        w.putInt("y", waterPos.getY());
+        w.putInt("z", waterPos.getZ());
+        w.putBoolean("frenzy", isFrenzy(level));
+        root.put("water", w);
+
+        FishingPressureData stock = FishingPressureData.get(level);
+        long chunk = new ChunkPos(waterPos).toLong();
+        int anglerLevel = JournalData.getLevel(sp);
+
+        ListTag here = new ListTag();
+        ListTag gone = new ListTag();
+        for (FishProfile p : FishProfileManager.get().all()) {
+            double e = BiteEngine.environmentScore(p, env);
+            CompoundTag t = new CompoundTag();
+            t.putString("sp", p.id.getPath());
+            t.putInt("dmin", p.depthMin);
+            t.putInt("dmax", p.depthMax);
+            t.putInt("lvl", p.minAnglerLevel);
+            if (e <= 1e-4) {
+                // Only what the player could plausibly meet: the whole 93-species list with a reason
+                // each is the wall of text this screen exists to replace.
+                if (full && p.minAnglerLevel <= anglerLevel + 5) {
+                    t.putString("why", gateReason(p, env));
+                    gone.add(t);
+                }
+                continue;
+            }
+            t.putFloat("e", (float) e);
+            t.putBoolean("sig", env.communityFactor.applyAsDouble(p.id) > 1.0);
+            if (full) {
+                boolean resident = residentHere(level, waterPos, body, p.id);
+                t.putString("bait", topBait(p));
+                t.putBoolean("res", resident);
+                t.putInt("stock", resident
+                        ? stock.stockPercent(chunk, p.id.getPath(), level.getGameTime())
+                        : (int) Math.round(stock.surplusAround(waterPos.getX() >> 4, waterPos.getZ() >> 4,
+                                p.id.getPath(), level.getGameTime()) * 100));
+            }
+            here.add(t);
+        }
+        root.put("here", here);
+        root.put("gone", gone);
+        return root;
     }
 
     /**

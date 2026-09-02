@@ -50,6 +50,7 @@ public final class ModEvents {
                 com.riverfishing.fishing.SpookTracker.tick(sp);  // §spook: what the fish just noticed
                 com.riverfishing.fishing.ShoalTracker.tick(sp);  // §shoal: what is visible in the water
                 FishingManager.trollingTick(sp); // trolling v1 (0.5.0): boat-agnostic towing loop
+                FishingManager.finderHudTick(sp); // §finder-hud: the strip, while one is held
                 announceDailyOrder(sp); // market (0.5.0): one chat line per player per Minecraft day
                 if (sp.tickCount % 10 == 0) {
                     var level = sp.serverLevel();

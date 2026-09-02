@@ -58,6 +58,7 @@ public final class ModNetwork {
             NetworkManager.registerS2CPayloadType(OrderPacket.TYPE, OrderPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(RodWarningPacket.TYPE, RodWarningPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(CullListPacket.TYPE, CullListPacket.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(FinderPacket.TYPE, FinderPacket.STREAM_CODEC);
         }
     }
 
@@ -77,6 +78,9 @@ public final class ModNetwork {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, OrderPacket.TYPE, OrderPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, CullListPacket.TYPE, CullListPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(payload::handleClient));
+        // §finder-screen: a sounding, for the screen and for the strip that runs while it is held.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, FinderPacket.TYPE, FinderPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
     }
 

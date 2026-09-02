@@ -12,6 +12,64 @@ import net.minecraft.world.entity.player.Player;
 public final class ClientHud {
     private ClientHud() {}
 
+    /**
+     * §finder-hud: the sounder strip, live while the finder is in a hand.
+     *
+     * <p>A HUD strip rather than a screen, and that is not a stylistic choice: a screen takes the
+     * controls, so a "walk the bank and watch the trace" device CANNOT be a screen. Held, it draws;
+     * right-clicked, {@link FinderScreen} opens with the names and the reasons on it.
+     *
+     * <p>It scrolls: each sounding is a column pushed on the right, the way a paper sounder wrote. So
+     * walking a bank draws the bottom you walked over, and a hole in the bed is a shape you can see
+     * rather than a number that changed while you were not looking.
+     */
+    private static void renderFinderStrip(GuiGraphics g, Minecraft mc) {
+        if (mc.player == null) return;
+        boolean held = isFinder(mc.player.getMainHandItem()) || isFinder(mc.player.getOffhandItem());
+        if (!held) {
+            FinderState.clear();
+            return;
+        }
+        if (!FinderState.fresh()) return;
+        java.util.List<int[]> trace = FinderState.trace();
+        if (trace.isEmpty()) return;
+
+        final int W = 122, H = 62;
+        int x = mc.getWindow().getGuiScaledWidth() - W - 6;
+        int y = 6;
+
+        int scale = 6;
+        for (int[] col : trace) scale = Math.max(scale, col[0]);
+
+        g.fill(x - 1, y - 1, x + W + 1, y + H + 1, 0xCC0B1E22);
+        g.fill(x, y, x + W, y + 1, 0x5540E0B0);
+
+        int cols = trace.size();
+        int step = Math.max(1, W / FinderState.TRACE);
+        for (int i = 0; i < cols; i++) {
+            int[] col = trace.get(i);
+            // Oldest at the left edge, newest against the right: the direction a sounder writes.
+            int cx = x + W - (cols - i) * step;
+            if (cx < x) continue;
+            int floorY = y + 2 + (int) Math.round(col[0] / (double) scale * (H - 6));
+            g.fill(cx, floorY, cx + step, y + H, 0xFF6B5A38);
+            g.fill(cx, floorY, cx + step, floorY + 1, 0xFF8A7448);
+            for (int k = 1; k < col.length; k++) {
+                int fy = y + 2 + (int) Math.round(Math.min(col[k], col[0]) / (double) scale * (H - 6));
+                if (fy >= floorY) continue;      // a fish under the bed is a fish that is not here
+                g.fill(cx, fy, cx + step, fy + 2, 0xFF40E0B0);
+            }
+        }
+
+        // The one number worth carrying on the strip: how deep it is where you are aiming.
+        String depth = FinderState.latest().getCompound("water").getInt("depth") + " m";
+        g.drawString(mc.font, depth, x + 3, y + 3, 0xFF9FE9D0, false);
+    }
+
+    private static boolean isFinder(net.minecraft.world.item.ItemStack stack) {
+        return stack.getItem() instanceof com.riverfishing.item.WaterProbeItem probe && !probe.admin();
+    }
+
     public static void render(GuiGraphics graphics, net.minecraft.client.DeltaTracker deltaTracker) {
         float partialTick = deltaTracker.getGameTimeDeltaPartialTick(false);
         Minecraft mc = Minecraft.getInstance();
@@ -22,6 +80,7 @@ public final class ClientHud {
         }
         renderCastPower(graphics, mc);
         renderPumpReel(graphics, mc);
+        renderFinderStrip(graphics, mc);
     }
 
     /**
