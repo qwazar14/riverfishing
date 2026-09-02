@@ -20,14 +20,15 @@ import java.util.Map;
  * <p>Ninety-three species and no artist for ninety-three models, and an entity per fish is a server
  * object per fish, which scenery must never cost. So the third dimension is DERIVED: the sprite's
  * silhouette is read once per species — the top and bottom of the fish at each station along its
- * length — and the body is that outline given a cross-section. A fish is laterally compressed, so the
- * section is a lozenge: top ridge, two flanks, keel, with the flanks standing off the centreline by a
- * width profile that peaks a third of the way back and tapers to nothing at nose and tail. The same
- * swimming wave the flat fish carries (§fish-wave) runs down the centreline, so the body swims.
+ * length — and the body is that outline given a cross-section. A fish is a slab: two near-vertical
+ * flanks that carry the whole sprite, a thin cap on the back and one under the belly, the flanks
+ * standing off the centreline by a width profile that peaks a third of the way back and tapers to
+ * nothing at nose and tail. The same swimming wave the flat fish carries (§fish-wave) runs down the
+ * centreline, so the body swims.
  *
- * <p>Both flanks wear the sprite; the ridge and the keel wear its edge texels, so the colour continues
- * over the top and under the belly rather than stopping at a seam. Ten segments of four quads is
- * eighty triangles, which at a hundred and sixty fish is nothing.
+ * <p>The caps wear the sprite's edge texels, so the colour continues over the top and under the belly
+ * rather than stopping at a seam — and from above you see a narrow back, not a flank. Ten segments of
+ * six quads is a hundred and twenty triangles, which at a hundred and sixty fish is nothing.
  *
  * <p>Faces that look away from the camera are not emitted. The shoal draws translucent and cannot use
  * the culling render type (see ShoalRenderer's §shoal-layer note), and a closed translucent body drawn
@@ -117,7 +118,13 @@ public final class FishMesh {
         float amp = size * (0.05f + 0.09f * f.kick);
         float phase = time * (0.35f + 0.45f * f.kick) + f.phase * 5f;
 
-        // One ring per station: top, +Z flank, bottom, -Z flank.
+        // §fish-3d-section: six vertices a ring — ridge, upper flank, lower flank, keel, each side.
+        // The first cut was a four-point diamond, which put the sprite's top half on a face sloping
+        // 45 degrees from the ridge: from the side the fish was squashed with its dorsal folded over
+        // the spine, and from above you saw half a flank mirrored across the ridge — a fish lying on
+        // its side. A fish is a slab: near-vertical flanks that carry the whole sprite, and thin caps
+        // on the back and the belly that carry only the edge colour, so the side view is the picture
+        // and the top view is a narrow back.
         float[][] ring = new float[STATIONS + 1][];
         float[] us = new float[STATIONS + 1];
         float[] vt = new float[STATIONS + 1], vb = new float[STATIONS + 1];
@@ -125,25 +132,33 @@ public final class FishMesh {
             float t = s / (float) STATIONS;
             float x = -r + t * size;
             float top = -sil[s][0] * size, bot = -sil[s][1] * size;   // sprite rows grow downward
+            float h = Math.max(0.02f * size, top - bot);
             float body = (float) Math.sin(Math.PI * Math.pow(t, 0.75));
             float half = size * HALF_WIDTH * body;
             float wave = amp * t * t * Mth.sin(phase - t * 6.5f);
-            float mid = (top + bot) * 0.5f;
-            ring[s] = new float[]{x, top, wave, x, mid, wave + half, x, bot, wave, x, mid, wave - half};
+            float up = top - h * 0.12f, lo = bot + h * 0.12f;
+            ring[s] = new float[]{
+                    x, top, wave,             // 0 ridge
+                    x, up, wave + half,       // 1 +Z upper flank
+                    x, lo, wave + half,       // 2 +Z lower flank
+                    x, bot, wave,             // 3 keel
+                    x, lo, wave - half,       // 4 -Z lower flank
+                    x, up, wave - half};      // 5 -Z upper flank
             us[s] = u0 + (u1 - u0) * (su0 + (su1 - su0) * t);
-            // v of the ridge and the keel: the sprite's own edge rows, so the colour carries over.
-            vt[s] = v0 + (v1 - v0) * Mth.clamp(0.5f + sil[s][0] + 0.01f, 0f, 1f);
-            vb[s] = v0 + (v1 - v0) * Mth.clamp(0.5f + sil[s][1] - 0.01f, 0f, 1f);
+            vt[s] = v0 + (v1 - v0) * Mth.clamp(0.5f + sil[s][0] + 0.005f, 0f, 1f);
+            vb[s] = v0 + (v1 - v0) * Mth.clamp(0.5f + sil[s][1] - 0.005f, 0f, 1f);
         }
-        float vm = (v0 + v1) * 0.5f;
 
         for (int s = 0; s < STATIONS; s++) {
             float[] a = ring[s], b = ring[s + 1];
-            // Four quads round the ring: ridge->+flank, +flank->keel, keel->-flank, -flank->ridge.
-            quad(m, vc, a, b, 0, 1, us[s], us[s + 1], vt[s], vm, alpha, tint, overlay);
-            quad(m, vc, a, b, 1, 2, us[s], us[s + 1], vm, vb[s], alpha, tint, overlay);
-            quad(m, vc, a, b, 2, 3, us[s], us[s + 1], vb[s], vm, alpha, tint, overlay);
-            quad(m, vc, a, b, 3, 0, us[s], us[s + 1], vm, vt[s], alpha, tint, overlay);
+            float ua = us[s], ub = us[s + 1];
+            // The flanks carry the sprite top to bottom; the caps carry one edge row of it.
+            quad(m, vc, a, b, 0, 1, ua, ub, vt[s], vt[s], alpha, tint, overlay);     // back, +Z
+            quad(m, vc, a, b, 1, 2, ua, ub, vt[s], vb[s], alpha, tint, overlay);     // +Z flank
+            quad(m, vc, a, b, 2, 3, ua, ub, vb[s], vb[s], alpha, tint, overlay);     // belly, +Z
+            quad(m, vc, a, b, 3, 4, ua, ub, vb[s], vb[s], alpha, tint, overlay);     // belly, -Z
+            quad(m, vc, a, b, 4, 5, ua, ub, vb[s], vt[s], alpha, tint, overlay);     // -Z flank
+            quad(m, vc, a, b, 5, 0, ua, ub, vt[s], vt[s], alpha, tint, overlay);     // back, -Z
         }
         return true;
     }
