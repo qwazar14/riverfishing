@@ -1,5 +1,6 @@
 {
   "display": "Луфарь",
+  "latin": "Pomatomus saltatrix",
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,

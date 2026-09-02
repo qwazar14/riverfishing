@@ -1,5 +1,6 @@
 {
   "display": "Треска",
+  "latin": "Gadus morhua",
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,

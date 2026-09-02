@@ -1,5 +1,6 @@
 {
   "display": "Щука",
+  "latin": "Esox lucius",
   "group": "predator",
   "water_bodies": {
     "river": 1.0,

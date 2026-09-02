@@ -1,8 +1,11 @@
 package com.riverfishing.client;
 
 import com.riverfishing.fish.CatchCard;
+import com.riverfishing.item.ContractItem;
 import com.riverfishing.item.FishCardTooltip;
 import com.riverfishing.item.FishItem;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -15,13 +18,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * §fish-card: the card as it is drawn under the fish's name.
+ * §fish-card: the card as it is drawn under the item's name — a landed fish, or a contract paper.
  *
- * <p>Three blocks separated by rules — the fish, its kind, its catch — then, behind Shift, how it was
- * caught. Labels in grey, values in the colour of what they are, badges as filled plaques. The frame
- * around the whole tooltip is coloured to the fish's standing through {@link #FRAME}: this component's
+ * <p>Blocks separated by rules, labels in grey, values in the colour of what they are, badges as filled
+ * plaques. The frame around the whole tooltip is coloured to the card's standing through {@link #FRAME}:
  * {@code getWidth} runs during layout, BEFORE vanilla paints the background, so it can leave the colour
  * for the frame mixin to pick up and clear.
+ *
+ * <p>The contract card counts the fish in the bag and the days left on the CLIENT: the inventory is
+ * here, and the world day is synced every second — so both tick over while you hold the paper, with
+ * no packet to wait for.
  */
 public final class FishCardClientTooltip implements ClientTooltipComponent {
     /** ARGB the next tooltip background should wear, or 0 for vanilla. Set here, consumed by the mixin. */
@@ -32,15 +38,19 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
             BLUE = 0xFF5599FF, PINK = 0xFFFF55FF, RED = 0xFFFF5555, ORANGE = 0xFFFFA040;
     private static final int ROW = 10, PAD = 4;
 
-    private final ItemStack fish;
-    private final CompoundTag c;
-    private final List<Object[]> rows = new ArrayList<>();   // {label Component, value Component, colour} or null = rule
+    private final List<Object[]> rows = new ArrayList<>();   // {label Component or null, value Component, colour}, or null = rule
     private final List<Object[]> badges = new ArrayList<>(); // {text, bg}
     private final int frame;
 
     public FishCardClientTooltip(FishCardTooltip data) {
-        this.fish = data.fish();
-        this.c = CatchCard.of(fish);
+        ItemStack stack = data.fish();
+        frame = stack.getItem() instanceof ContractItem ? contract(stack) : fish(stack);
+    }
+
+    // ---- the fish --------------------------------------------------------------------------------
+
+    private int fish(ItemStack fish) {
+        CompoundTag c = CatchCard.of(fish);
         CompoundTag t = com.riverfishing.item.StackNbt.get(fish);
         String morph = t.getString(FishItem.TAG_MORPH);
         boolean legend = t.getBoolean(FishItem.TAG_LEGEND), trophy = FishItem.isTrophy(fish);
@@ -49,10 +59,10 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         if (legend) badges.add(new Object[]{key("badge.legendary"), 0xFF5A2AA0});
         if (FishItem.isPrime(fish)) badges.add(new Object[]{key("badge.prime"), 0xFF3A6A20});
         if (!FishItem.isLegal(fish)) badges.add(new Object[]{key("badge.foul"), 0xFF8A2020});
-        frame = legend ? 0xFF9A5AFF : !morph.isEmpty() ? 0xFFE040D0 : trophy ? 0xFFF0C040 : 0xFF40A060;
 
+        String latin = c.getString("Latin");
+        if (!latin.isEmpty()) plain(Component.literal(latin).withStyle(ChatFormatting.ITALIC), LABEL);
         boolean seen = c.getBoolean("Seen");
-        // The fish.
         if (c.getInt("Value") > 0) row("value", key("emeralds", c.getInt("Value")), GREEN);
         row("nature", seen ? key("nature." + CatchCard.NATURE[c.getByte("Nature")]) : key("hidden"), seen ? AQUA : DIM);
         String biome = c.getString("Biome");
@@ -64,13 +74,11 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         row("weight", FishItem.weightText(FishItem.getWeightG(fish)), WHITE);
         row("length", Component.literal(FishItem.getLengthCm(fish) + " cm"), WHITE);
         rule();
-        // Its kind.
         if (!c.getString("Group").isEmpty()) row("group", key("group." + c.getString("Group")), GREEN);
         if (!c.getString("Life").isEmpty()) row("lifestyle", key("life." + c.getString("Life")), BLUE);
         String eco = c.getString("Eco");
         if (!eco.isEmpty()) row("ecosystem", key("eco." + eco), eco.equals("native") ? GREEN : eco.equals("settled") ? YELLOW : ORANGE);
         rule();
-        // Its catch.
         row("angler", Component.literal(c.getString("Angler")), AQUA);
         row("date", Component.literal(c.getString("Date") + "  ·  " + key("day", c.getLong("Day")).getString()), GOLD);
         String rodItem = c.getString("RodItem");
@@ -89,9 +97,42 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
             if (c.getBoolean("Ice")) row("ice", key("yes"), AQUA);
             row("genes", seen ? Component.literal(c.getString("Genes")) : key("hidden"), seen ? PINK : DIM);
         } else {
-            rows.add(new Object[]{null, key("shift"), DIM});
+            plain(key("shift"), DIM);
         }
+        return legend ? 0xFF9A5AFF : !morph.isEmpty() ? 0xFFE040D0 : trophy ? 0xFFF0C040 : 0xFF40A060;
     }
+
+    // ---- the contract ----------------------------------------------------------------------------
+
+    private int contract(ItemStack paper) {
+        CompoundTag t = ContractItem.tag(paper);
+        Minecraft mc = Minecraft.getInstance();
+        long day = mc.level == null ? 0 : mc.level.getDayTime() / 24000L;
+        long daysLeft = t.getLong("Exp") - day;
+        boolean expired = daysLeft < 0;
+        badges.add(expired ? new Object[]{key("badge.expired"), 0xFF8A2020} : new Object[]{key("badge.contract"), 0xFF8A6A10});
+
+        String sp = t.getString("Sp");
+        int n = t.getInt("N");
+        row("contract.fish", Component.translatable("fish.riverfishing." + sp), AQUA);
+        row("contract.count", Component.literal(String.valueOf(n)), WHITE);
+        row("contract.from", Component.literal(ContractItem.grams(t.getInt("W"))), WHITE);
+        // Every term on its own line, labelled — the whole point of the card: nothing folded away.
+        if (!t.getString("Water").isEmpty()) row("water", Component.translatable("water.riverfishing." + t.getString("Water")), BLUE);
+        if (!t.getString("Rod").isEmpty()) row("rod", key("rod." + t.getString("Rod")), GREEN);
+        if (!t.getString("Bait").isEmpty()) row("bait", Component.translatable("item.riverfishing." + t.getString("Bait")), YELLOW);
+        if (!t.getString("Time").isEmpty()) row("time", Component.translatable("time.riverfishing." + t.getString("Time")), WHITE);
+        rule();
+        int have = mc.player == null ? 0
+                : com.riverfishing.fishing.Contracts.held(mc.player.getInventory(), sp, t.getInt("W"), t).size();
+        row("contract.bag", Component.literal(have + " / " + n), have >= n ? GREEN : YELLOW);
+        row("contract.pays", key("contract.pays_value", t.getInt("Em"), t.getInt("Xp"), t.getInt("Rep")), GREEN);
+        row("contract.days", expired ? key("contract.expired") : Component.literal(String.valueOf(daysLeft)),
+                expired ? RED : daysLeft <= 1 ? ORANGE : GOLD);
+        return expired ? 0xFFC03030 : 0xFFC8A040;
+    }
+
+    // ---- rows ------------------------------------------------------------------------------------
 
     private static net.minecraft.network.chat.MutableComponent key(String k, Object... args) {
         return Component.translatable("card.riverfishing." + k, args);
@@ -99,6 +140,10 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
 
     private void row(String label, Component value, int colour) {
         rows.add(new Object[]{key(label), value, colour});
+    }
+
+    private void plain(Component value, int colour) {
+        rows.add(new Object[]{null, value, colour});
     }
 
     private void rule() {
@@ -134,7 +179,6 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
 
     @Override
     public void renderImage(Font font, int x, int y, GuiGraphics g) {
-        FRAME = 0;
         int lw = labelWidth(font), width = getWidth(font);
         FRAME = 0;
         int cy = y;

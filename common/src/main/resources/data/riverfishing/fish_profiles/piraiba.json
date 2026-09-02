@@ -1,5 +1,6 @@
 {
   "display": "Пирайба",
+  "latin": "Brachyplatystoma filamentosum",
   "group": "predator",
   "water_bodies": {
     "river": 1.3,

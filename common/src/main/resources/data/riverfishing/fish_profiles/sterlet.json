@@ -1,5 +1,6 @@
 {
   "display": "Стерлядь",
+  "latin": "Acipenser ruthenus",
   "group": "sturgeon",
   "water_bodies": { "river": 1.2, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 1000, "max": 16000, "mean": 3000 },

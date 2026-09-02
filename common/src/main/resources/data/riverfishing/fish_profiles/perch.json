@@ -1,5 +1,6 @@
 {
   "display": "Окунь",
+  "latin": "Perca fluviatilis",
   "group": "predator",
   "water_bodies": {
     "river": 1.0,

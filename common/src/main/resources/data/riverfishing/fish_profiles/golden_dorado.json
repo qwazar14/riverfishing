@@ -1,5 +1,6 @@
 {
   "display": "Золотой дорадо",
+  "latin": "Salminus brasiliensis",
   "group": "predator",
   "water_bodies": {
     "river": 1.3,

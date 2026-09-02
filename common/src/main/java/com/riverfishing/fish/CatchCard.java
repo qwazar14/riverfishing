@@ -75,6 +75,7 @@ public final class CatchCard {
                 : Math.max(0, Math.min(1, (weightG - p.weightMin) / (p.weightMax - p.weightMin)));
         c.putByte("Size", (byte) (pct < 0.15 ? 0 : pct < 0.35 ? 1 : pct < 0.6 ? 2 : pct < 0.85 ? 3 : 4));
         c.putString("Group", p == null ? "" : p.group);
+        c.putString("Latin", p == null ? "" : p.latin);   // §cards-2
         c.putString("Life", p == null ? "" : p.depthPref);
 
         // The hidden two. Seeded off the fish itself so a duplicated stack is the same fish.

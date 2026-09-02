@@ -1,5 +1,6 @@
 {
   "display": "Хариус",
+  "latin": "Thymallus thymallus",
   "group": "salmonid",
   "water_bodies": {
     "river": 1.3,

@@ -1,5 +1,6 @@
 {
   "display": "Акула-мако",
+  "latin": "Isurus oxyrinchus",
   "group": "big_game",
   "water_bodies": {
     "sea": 1.0,
