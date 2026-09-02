@@ -1086,30 +1086,41 @@ public final class FishingManager {
             actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
             return;
         }
-        final int FROM = 2, TO = 24;
-        int n = TO - FROM + 1;
-        int[] xs = new int[n], zs = new int[n], line = new int[n];
+        // §sounding-swath: five blocks wide, not one. A one-block line meant twenty casts to learn
+        // one swim, which is a chore wearing the costume of realism; a marker float drags a bit of bed
+        // either side of its line anyway, and five is the width at which the map fills at the pace
+        // an angler is actually willing to cast.
+        final int FROM = PROFILE_FROM, N = PROFILE_N, HALF = 2;
+        double dx = look.x / hl, dz = look.z / hl;
+        double sx = -dz, sz = dx;                       // across the line
         int wet = 0, y = sp.getBlockY();
-        for (int i = 0; i < n; i++) {
-            double d = FROM + i;
-            double px = sp.getX() + (look.x / hl) * d;
-            double pz = sp.getZ() + (look.z / hl) * d;
-            xs[i] = Mth.floor(px);
-            zs[i] = Mth.floor(pz);
-            BlockPos surface = findWaterColumn(level, px, sp.getEyeY() + 2.0, pz);
-            if (surface == null) {
-                line[i] = -1;
-                continue;
+        java.util.List<BlockPos> found = new java.util.ArrayList<>();
+        SoundingData data = SoundingData.get(level);
+        for (int o = -HALF; o <= HALF; o++) {
+            int[] xs = new int[N], zs = new int[N], line = new int[N];
+            for (int i = 0; i < N; i++) {
+                double d = FROM + i;
+                double px = sp.getX() + dx * d + sx * o;
+                double pz = sp.getZ() + dz * d + sz * o;
+                xs[i] = Mth.floor(px);
+                zs[i] = Mth.floor(pz);
+                BlockPos surface = findWaterColumn(level, px, sp.getEyeY() + 2.0, pz);
+                if (surface == null) {
+                    line[i] = -1;
+                    continue;
+                }
+                y = surface.getY();
+                line[i] = measureDepth(level, surface);
+                wet++;
             }
-            y = surface.getY();
-            line[i] = measureDepth(level, surface);
-            wet++;
+            // Each strand of the swath is read on its own: features come from evidence along a line,
+            // and the strands are five lines rather than one wide guess.
+            found.addAll(data.record(y, xs, zs, line));
         }
         if (wet == 0) {
             actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
             return;
         }
-        java.util.List<BlockPos> found = SoundingData.get(level).record(y, xs, zs, line);
         level.playSound(null, sp.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
                 SoundSource.PLAYERS, 0.7f, 1.4f);
         if (found.isEmpty()) {
@@ -1127,6 +1138,86 @@ public final class FishingManager {
                 SoundSource.PLAYERS, 0.8f, 1.2f);
     }
 
+    /** Where the finder's bed profile starts and how far it reads, metres out from the rod. */
+    public static final int PROFILE_FROM = 2, PROFILE_N = 23;
+    /** The map window, blocks either side of the spot. The face draws it at three pixels a block. */
+    public static final int MAP_REACH = 24;
+
+    /**
+     * §bed-type: what the bed is made of under this column — the first thing that is not water. The
+     * engine does not read this (no profile asks for it), so it is description, not a gate; the reason
+     * it is on the screen is that a real sounder shows it and an angler reads it.
+     */
+    public static byte bedType(ServerLevel level, BlockPos surface) {
+        BlockPos.MutableBlockPos p = surface.mutable();
+        while (p.getY() > level.getMinBuildHeight()
+                && level.getFluidState(p).is(net.minecraft.tags.FluidTags.WATER)) {
+            p.move(0, -1, 0);
+        }
+        net.minecraft.world.level.block.state.BlockState st = level.getBlockState(p);
+        if (st.is(net.minecraft.tags.BlockTags.SAND)) return 1;
+        if (st.is(net.minecraft.world.level.block.Blocks.GRAVEL)) return 2;
+        if (st.is(net.minecraft.world.level.block.Blocks.CLAY)) return 3;
+        if (st.is(net.minecraft.tags.BlockTags.DIRT) || st.is(net.minecraft.world.level.block.Blocks.MUD)) return 4;
+        if (st.is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD)
+                || st.is(net.minecraft.world.level.block.Blocks.DEEPSLATE)) return 5;
+        return 6;
+    }
+
+    /**
+     * §finder-profile: the bed along the aim line, one reading a metre — the same walk the marker
+     * cast makes, read and not recorded. This is what a sounder actually draws: not "eight metres",
+     * but the SHAPE of the bottom out in front of you, which is where a hole or a bar is visible as a
+     * hole or a bar. Depths in {@code d} (a negative for a metre that is not water), bed types in
+     * {@code b}.
+     */
+    private static CompoundTag profileAlong(ServerPlayer sp, ServerLevel level) {
+        CompoundTag out = new CompoundTag();
+        net.minecraft.world.phys.Vec3 look = sp.getLookAngle();
+        double hl = Math.sqrt(look.x * look.x + look.z * look.z);
+        byte[] d = new byte[PROFILE_N], b = new byte[PROFILE_N];
+        if (hl < 1e-3) {
+            java.util.Arrays.fill(d, (byte) -1);
+        } else {
+            for (int i = 0; i < PROFILE_N; i++) {
+                double dist = PROFILE_FROM + i;
+                double px = sp.getX() + (look.x / hl) * dist, pz = sp.getZ() + (look.z / hl) * dist;
+                BlockPos surface = findWaterColumn(level, px, sp.getEyeY() + 2.0, pz);
+                if (surface == null) {
+                    d[i] = -1;
+                    continue;
+                }
+                d[i] = (byte) Math.min(127, measureDepth(level, surface));
+                b[i] = bedType(level, surface);
+            }
+        }
+        out.putByteArray("d", d);
+        out.putByteArray("b", b);
+        return out;
+    }
+
+    /**
+     * §finder-map: which columns of the map window are open water at the surface, so the map can draw
+     * the lake's SHAPE and the bank around it — a map of sounded cells alone floated in the dark with
+     * nothing to say where the shore was. Heightmap reads only; a cave lake under the bank is not
+     * water you can cast to and does not show.
+     */
+    private static byte[] wetMask(ServerLevel level, BlockPos centre) {
+        int n = MAP_REACH * 2 + 1;
+        byte[] out = new byte[n * n];
+        BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
+        for (int dz = -MAP_REACH; dz <= MAP_REACH; dz++) {
+            for (int dx = -MAP_REACH; dx <= MAP_REACH; dx++) {
+                int x = centre.getX() + dx, z = centre.getZ() + dz;
+                int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, x, z) - 1;
+                p.set(x, y, z);
+                out[(dz + MAP_REACH) * n + (dx + MAP_REACH)] =
+                        (byte) (level.getFluidState(p).is(net.minecraft.tags.FluidTags.WATER) ? 1 : 0);
+            }
+        }
+        return out;
+    }
+
     /**
      * §sounding: what has been measured around this spot, for the screen's map — a window of columns
      * with their depths, and the features found in them.
@@ -1138,7 +1229,7 @@ public final class FishingManager {
      * at the scale one angler measures; bucket the store by chunk if a server ever sounds a lake flat.
      */
     private static ListTag soundingMap(ServerLevel level, BlockPos centre) {
-        final int REACH = 24;
+        final int REACH = MAP_REACH;
         SoundingData data = SoundingData.get(level);
         ListTag out = new ListTag();
         for (var e : data.depths().entrySet()) {
@@ -3348,6 +3439,7 @@ public final class FishingManager {
         w.putInt("y", waterPos.getY());
         w.putInt("z", waterPos.getZ());
         w.putBoolean("frenzy", isFrenzy(level));
+        w.putByte("bed", bedType(level, waterPos));
         root.put("water", w);
 
         FishingPressureData stock = FishingPressureData.get(level);
@@ -3387,7 +3479,12 @@ public final class FishingManager {
         }
         root.put("here", here);
         root.put("gone", gone);
-        if (full) root.put("map", soundingMap(level, waterPos));
+        if (full) {
+            root.put("map", soundingMap(level, waterPos));
+            root.put("profile", profileAlong(sp, level));
+            root.putByteArray("wet", wetMask(level, waterPos));
+            root.putInt("yaw", Math.round(sp.getYRot()));
+        }
         return root;
     }
 
