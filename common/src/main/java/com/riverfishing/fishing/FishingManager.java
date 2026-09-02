@@ -442,34 +442,22 @@ public final class FishingManager {
         // §closed-slots: float/lure rods always fish with their built-in rig — install it if a freshly
         // crafted or trade-bought rod hasn't been opened in the assembly GUI yet (no-op for bottom rods).
         RodData.ensureNativeRig(rod, type);
-        double maxRange = !type.takesReel() ? 6.0 : (type.longRange() ? 32.0 : 18.0);
-        // §spin-harder (3): the spinning rod's reach was too long — halve it (32 → 16). Bottom rods and
-        // ultralight are untouched. The retrieve is made ~2× longer below to compensate.
-        if (type == RodType.SPINNING) maxRange = 16.0;
+        // §cast-metres: the reach is ONE function, read here for the throw and on the client for the
+        // bar, so the metres the bar prints are the metres the line lands at — by construction, not
+        // by two copies of the same arithmetic agreeing until one of them is edited.
+        double maxRange = castRangeMax(rod);
 
         // Rod test, lower bound (§rod-test): an under-weighted rig doesn't load the blank — the cast
         // physically can't fly far. (The over-weight side already strains/snaps the blank.) The client
         // draws the same cut on the power bar (§cast-bar-cut). The bite penalty below is SILENT.
         boolean underloaded = false;
         ItemStack rigCheck = RodData.get(rod, ComponentSlot.RIG);
-        // §test-tolerance (0.6.0): a hidden ±15% slack on the printed window — real blanks forgive a
-        // little; the weight is the bench-chosen grams now, not the fixed type mass.
-        if (rigCheck.getItem() instanceof RigItem && type.castWeightMax() > 0) {
-            double wG = com.riverfishing.rig.RigData.effectiveWeightG(rigCheck);
-            // §cast-weight (round 5): IN-WINDOW tackle always flies well — 85% at the window's bottom
-            // rising to 100% at the top (a 160 g wobbler on a 150-600 trolling rod is fine). Only
-            // BELOW the window does the flight collapse on a sqrt curve.
-            double minW = type.castWeightMin(), maxW = type.castWeightMax();
-            double f = wG >= minW
-                    ? 0.85 + 0.15 * Mth.clamp((wG - minW) / Math.max(1.0, maxW - minW), 0.0, 1.0)
-                    : 0.85 * Math.sqrt(Math.max(0.10, wG / Math.max(1.0, minW)));
-            maxRange *= Mth.clamp(f, 0.30, 1.0);
-            if (minW > 0 && wG < minW * 0.85) {
-                underloaded = true;
-                actionbar(sp, Component.translatable("message.riverfishing.rod_underloaded").withStyle(ChatFormatting.YELLOW));
-            }
+        if (rigCheck.getItem() instanceof RigItem && type.castWeightMin() > 0
+                && com.riverfishing.rig.RigData.effectiveWeightG(rigCheck) < type.castWeightMin() * 0.85) {
+            underloaded = true;
+            actionbar(sp, Component.translatable("message.riverfishing.rod_underloaded").withStyle(ChatFormatting.YELLOW));
         }
-        double throwDist = 2.0 + power * (maxRange - 2.0);
+        double throwDist = castDistance(rod, power);
         net.minecraft.world.phys.Vec3 look = sp.getLookAngle();
         double hl = Math.sqrt(look.x * look.x + look.z * look.z);
         if (hl < 1e-3) {
@@ -1146,6 +1134,48 @@ public final class FishingManager {
                 found.get(0).getX(), found.get(0).getZ()).withStyle(ChatFormatting.GOLD));
         level.playSound(null, sp.blockPosition(), SoundEvents.NOTE_BLOCK_CHIME.value(),
                 SoundSource.PLAYERS, 0.8f, 1.2f);
+    }
+
+    /**
+     * §cast-metres: how far this rod TYPE throws with nothing wrong — the unloaded reach, the far end
+     * of the bar.
+     */
+    public static double castRangeBase(RodType type) {
+        double maxRange = !type.takesReel() ? 6.0 : (type.longRange() ? 32.0 : 18.0);
+        // §spin-harder (3): the spinning rod's reach was too long — halve it (32 → 16). Bottom rods and
+        // ultralight are untouched. The retrieve is made ~2× longer to compensate.
+        if (type == RodType.SPINNING) maxRange = 16.0;
+        return maxRange;
+    }
+
+    /**
+     * §cast-metres: how far THIS rod throws — the type's reach, scaled by how well the fitted rig
+     * loads the blank.
+     *
+     * <p>§cast-weight (round 5): IN-WINDOW tackle always flies well — 85% at the window's bottom
+     * rising to 100% at the top (a 160 g wobbler on a 150-600 trolling rod is fine). Only BELOW the
+     * window does the flight collapse on a sqrt curve. §test-tolerance (0.6.0): a hidden ±15% slack
+     * on the printed window — real blanks forgive a little; the weight is the bench-chosen grams.
+     */
+    public static double castRangeMax(ItemStack rod) {
+        if (!(rod.getItem() instanceof RodItem ri)) return 0.0;
+        RodType type = ri.rodType();
+        double maxRange = castRangeBase(type);
+        ItemStack rig = RodData.get(rod, ComponentSlot.RIG);
+        if (rig.getItem() instanceof RigItem && type.castWeightMax() > 0) {
+            double wG = com.riverfishing.rig.RigData.effectiveWeightG(rig);
+            double minW = type.castWeightMin(), maxW = type.castWeightMax();
+            double f = wG >= minW
+                    ? 0.85 + 0.15 * Mth.clamp((wG - minW) / Math.max(1.0, maxW - minW), 0.0, 1.0)
+                    : 0.85 * Math.sqrt(Math.max(0.10, wG / Math.max(1.0, minW)));
+            maxRange *= Mth.clamp(f, 0.30, 1.0);
+        }
+        return maxRange;
+    }
+
+    /** §cast-metres: where a throw at this power lands, in blocks from the angler. */
+    public static double castDistance(ItemStack rod, double power) {
+        return 2.0 + power * (castRangeMax(rod) - 2.0);
     }
 
     /** Where the finder's bed profile starts and how far it reads, metres out from the rod. */
