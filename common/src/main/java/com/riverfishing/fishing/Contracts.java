@@ -86,7 +86,13 @@ public final class Contracts {
         long day = today(level);
         List<String> taken = new ArrayList<>();
         for (int slot = 0; slot < POSTS; slot++) {
-            Random rng = new Random(day * 1_000_003L + v.getUUID().hashCode() * 31L + slot);
+            // §board-3: a post lives DAYS_TO_FILL days, the same life its paper has, so the two end
+            // together; the three slots are staggered a third of that apart, so the board never
+            // turns over all at once. A post's epoch is its identity — the day it started on.
+            int stagger = slot * DAYS_TO_FILL / POSTS;
+            long epoch = (day + stagger) / DAYS_TO_FILL;
+            long ends = (epoch + 1) * DAYS_TO_FILL - stagger;    // the first day it is gone
+            Random rng = new Random(epoch * 1_000_003L + v.getUUID().hashCode() * 31L + slot);
             String species = null;
             for (int tries = 0; tries < 8 && species == null; tries++) {
                 String pick = pool.get(rng.nextInt(pool.size()));
@@ -97,7 +103,8 @@ public final class Contracts {
             FishProfile p = FishProfileManager.get().byId(RiverFishing.id(species));
 
             CompoundTag t = new CompoundTag();
-            t.putString("Id", v.getUUID().toString().substring(0, 8) + "_" + day + "_" + slot);
+            t.putString("Id", v.getUUID().toString().substring(0, 8) + "_" + epoch + "_" + slot);
+            t.putLong("Exp", ends - 1);                          // the last day the paper is good
             t.putString("Sp", species);
             int count = 2 + rng.nextInt(3);          // 2..4
             t.putInt("N", count);
@@ -210,6 +217,13 @@ public final class Contracts {
     public static void take(ServerPlayer sp, int villagerId, int slot) {
         ServerLevel level = sp.serverLevel();
         if (!(level.getEntity(villagerId) instanceof Villager v) || v.distanceToSqr(sp) > 100) return;
+        take0(sp, level, v, slot);
+        // The board answers every click, taken or refused: the client greys a post the moment it is
+        // clicked, and this is what puts it back when the server said no (hands full).
+        com.riverfishing.registry.ModVillagers.sendBoard(v, level, sp);
+    }
+
+    private static void take0(ServerPlayer sp, ServerLevel level, Villager v, int slot) {
         List<CompoundTag> posts = posts(v, level);
         if (slot < 0 || slot >= posts.size()) return;
         CompoundTag post = posts.get(slot);
@@ -224,7 +238,6 @@ public final class Contracts {
         }
         ItemStack paper = new ItemStack(ModItems.CONTRACT.get());
         CompoundTag t = post.copy();
-        t.putLong("Exp", today(level) + DAYS_TO_FILL);
         StackNbt.set(paper, t);
         if (!sp.getInventory().add(paper)) sp.drop(paper, false);
         taken.putLong(post.getString("Id"), now);
