@@ -830,6 +830,8 @@
   "finder.riverfishing.weather": "Погода",
   "finder.riverfishing.metres": "%s м",
   "finder.riverfishing.frenzy": "Вода кипит — идёт жор",
+  "finder.riverfishing.to_me": "ко мне",
+  "finder.riverfishing.mapped": "Промерено: %s м²",
   "finder.riverfishing.bed_likes": "Любит такое дно (%s)",
   "finder.riverfishing.bed_dislikes": "Такое дно не любит (%s)",
   "finder.riverfishing.bed_neutral": "Дно здесь: %s",

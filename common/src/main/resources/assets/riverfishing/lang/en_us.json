@@ -830,6 +830,8 @@
   "finder.riverfishing.weather": "Weather",
   "finder.riverfishing.metres": "%s m",
   "finder.riverfishing.frenzy": "The water is boiling — a feeding frenzy is on",
+  "finder.riverfishing.to_me": "me",
+  "finder.riverfishing.mapped": "Sounded: %s m²",
   "finder.riverfishing.bed_likes": "Likes this bottom (%s)",
   "finder.riverfishing.bed_dislikes": "Would rather not this bottom (%s)",
   "finder.riverfishing.bed_neutral": "Bottom here: %s",

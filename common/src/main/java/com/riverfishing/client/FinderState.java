@@ -40,6 +40,7 @@ public final class FinderState {
         Minecraft mc = Minecraft.getInstance();
         stamp = mc.level == null ? Long.MIN_VALUE : mc.level.getGameTime();
         push(last);
+        ClientSoundings.merge(last);   // §depth-map: every window the server hands out is kept
         if (!hud && !last.isEmpty()) {
             //? if <26.2 {
             mc.setScreen(new FinderScreen(last));
