@@ -70,22 +70,46 @@ public final class FishMesh {
                         }
                     }
                     if (x1 < x0 + 8) return new float[0][];
-                    float[][] out = new float[STATIONS + 2][];
+                    // §fish-3d-fins: the outline of the BODY, not of the fish. Any-alpha top and
+                    // bottom gave a marlin a slab as tall as its sail and a slab across the fork of
+                    // every tail, with the sprite's transparent cut-outs showing the caps through them
+                    // as stripes. So: the fin outline per station, then a body band no taller than
+                    // 1.2x the median height of the middle stations, centred on that column's
+                    // alpha-weighted middle so a dorsal spike does not drag it up. The fins themselves
+                    // are drawn by the flat sprite the renderer lays down the centreline — thin,
+                    // transparent, forked, exactly as drawn.
+                    int[] finTop = new int[STATIONS + 1], finBot = new int[STATIONS + 1];
+                    float[] mid = new float[STATIONS + 1];
                     for (int s = 0; s <= STATIONS; s++) {
                         int x = x0 + (int) Math.round((x1 - x0) * (s / (double) STATIONS));
                         x = Mth.clamp(x, x0, x1);
                         int top = -1, bot = -1;
-                        // Read a three-column band so a one-pixel fin does not throw a station.
+                        double sum = 0, wsum = 0;
                         for (int y = 0; y < h; y++) {
-                            boolean hit = false;
-                            for (int dx = -1; dx <= 1; dx++) {
-                                int xx = Mth.clamp(x + dx, 0, w - 1);
-                                if (alpha(img, xx, y) > 24) { hit = true; break; }
+                            int al = 0;
+                            for (int dx = -1; dx <= 1; dx++) al = Math.max(al, alpha(img, Mth.clamp(x + dx, 0, w - 1), y));
+                            if (al > 24) {
+                                if (top < 0) top = y;
+                                bot = y;
+                                sum += y * al;
+                                wsum += al;
                             }
-                            if (hit) { if (top < 0) top = y; bot = y; }
                         }
-                        if (top < 0) { top = h / 2 - 1; bot = h / 2 + 1; }
-                        out[s] = new float[]{(top - h / 2f) / h, (bot + 1 - h / 2f) / h};
+                        if (top < 0) { top = h / 2 - 1; bot = h / 2 + 1; sum = h / 2.0; wsum = 1; }
+                        finTop[s] = top;
+                        finBot[s] = bot;
+                        mid[s] = (float) (sum / wsum);
+                    }
+                    int[] heights = new int[5];
+                    for (int s = 3; s <= 7; s++) heights[s - 3] = finBot[s] - finTop[s];
+                    java.util.Arrays.sort(heights);
+                    float bodyH = heights[2] * 1.2f;
+                    float[][] out = new float[STATIONS + 2][];
+                    for (int s = 0; s <= STATIONS; s++) {
+                        float half = Math.min(finBot[s] - finTop[s], bodyH) / 2f;
+                        float top = Math.max(finTop[s], mid[s] - half);
+                        float bot = Math.min(finBot[s] + 1, mid[s] + half);
+                        out[s] = new float[]{(top - h / 2f) / h, (bot - h / 2f) / h};
                     }
                     out[STATIONS + 1] = new float[]{x0 / (float) w, (x1 + 1) / (float) w};
                     return out;
@@ -191,14 +215,14 @@ public final class FishMesh {
 
     private static void vertex(Matrix4f m, VertexConsumer vc, float x, float y, float z, float u, float v,
                                float nx, float ny, float nz, int alpha, int tint, int overlay) {
-        // Full-bright like the flat fish — the fade is the alpha. The normal is real here, so the
-        // entity shader's directional term gives the body its shading and the flat fish keeps its
-        // own constant-up convention untouched.
+        // Full-bright like the flat fish — the fade is the alpha. The normal is world UP, as on the
+        // flat fish: the entity shader mixes directional light by the normal, and a real normal made
+        // the nose a black blob head-on and the flanks flicker as the fish turned.
         vc.addVertex(m, x, y, z)
                 .setColor((tint >> 16) & 0xFF, (tint >> 8) & 0xFF, tint & 0xFF, alpha)
                 .setUv(u, v)
                 .setOverlay(overlay)
                 .setLight(LightCoordsUtil.FULL_BRIGHT)
-                .setNormal(nx, ny, nz);
+                .setNormal(0f, 1f, 0f);
     }
 }
