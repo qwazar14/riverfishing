@@ -103,7 +103,10 @@ public final class CatchCard {
         double mean = p == null || p.weightMean <= 0 ? weightG : p.weightMean;
         double r = weightG / mean;
         double pct = r < 0.2 ? 0.1 : r < 0.5 ? 0.3 : r < 1.2 ? 0.5 : r < 2.5 ? 0.7 : 0.9;
-        c.putByte("Size", (byte) (r < 0.2 ? 0 : r < 0.5 ? 1 : r < 1.2 ? 2 : r < 2.5 ? 3 : 4));
+        // A giant is a fish over the species' trophy bar — the same bar the trophy badge uses — so a
+        // 869 g perch (ordinary: 250 g) is big, and the 1.7 kg one is the giant.
+        int giantAt = com.riverfishing.item.FishItem.trophyThresholdG(p == null ? 0 : p.weightMin, p == null ? weightG : p.weightMax);
+        c.putByte("Size", (byte) (weightG >= giantAt ? 4 : r < 0.2 ? 0 : r < 0.5 ? 1 : r < 1.2 ? 2 : 3));
         c.putString("Group", p == null ? "" : p.group);
         c.putString("Latin", p == null ? "" : p.latin);   // §cards-2
         c.putString("Life", p == null ? "" : p.depthPref);
