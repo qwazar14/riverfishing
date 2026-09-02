@@ -196,8 +196,8 @@ public class FinderScreen extends Screen {
             }
         }
         if (here.size() > shown) {
-            g.text(this.font, Component.translatable("finder.riverfishing.more_fish", here.size() - shown),
-                    x0 + VIEW_W - 60, y0 + 4, 0x9940E0B0, false);
+            Component more = Component.translatable("finder.riverfishing.more_fish", here.size() - shown);
+            g.text(this.font, more, x0 + VIEW_W - this.font.width(more) - 6, y0 + VIEW_H - 11, 0x9940E0B0, false);
         }
 
         // What the bed is made of, read off the profile — the legend a real sounder prints.
@@ -206,8 +206,12 @@ public class FinderScreen extends Screen {
 
     /**
      * Where to draw this species: the first metre out where the bed is deep enough for it, at the
-     * depth it holds — clamped to the bed, so a bottom feeder sits ON the bottom rather than in it.
-     * Then the nearest free cell around that, because two fish on one pixel are no fish at all.
+     * depth it holds — and then the icon is a 24 px RECTANGLE, and the whole rectangle has to sit in
+     * the water. The first cut centred the icon on the depth and kept 0.4 m of clearance to the bed,
+     * which at ten metres of scale is five pixels under a twelve-pixel half-icon: every bottom fish
+     * was drawn standing in the mud, and a nudge sideways to dodge a neighbour put it into a
+     * shallower column's bank. Now every candidate cell is checked against the bed under ITS OWN
+     * width and lifted clear, and the surface caps it from above.
      *
      * @return {x, y} on the face, or null if there is no room left on the face for it
      */
@@ -221,28 +225,29 @@ public class FinderScreen extends Screen {
             if (col < 0 && pd[i] >= dmin) col = i;
         }
         int x0 = left + VIEW_X, y0 = top + VIEW_Y;
-        int wantX, bedHere;
+        int wantX;
         if (pd.length == 0) {
             wantX = x0 + 30 + (taken.size() * (ICON + 6)) % (VIEW_W - 60);
-            bedHere = water().getIntOr("depth", 0);
         } else if (col >= 0) {
             wantX = xForMetre(col);
-            bedHere = pd[col];
         } else {
             // Nowhere along this line is deep enough: it holds where the line is deepest, which is
             // the honest place to say "this fish wants more water than there is here".
             wantX = deepest < 0 ? x0 + 30 : xForMetre(deepest);
-            bedHere = Math.max(0, deepestD);
         }
-        double depth = Mth.clamp(mid, 0.4, Math.max(0.4, bedHere - 0.4));
-        int wantY = yForDepth(depth) - ICON / 2;
+        int wantY = yForDepth(Math.max(0.4, mid)) - ICON / 2;
+        int surfaceY = yForDepth(0);
 
         // Nearest free cell: same spot, then along the bed, then a lane up or down.
-        int[][] tries = {{0, 0}, {ICON + 2, 0}, {-(ICON + 2), 0}, {0, ICON + 2}, {0, -(ICON + 2)},
-                {2 * (ICON + 2), 0}, {-2 * (ICON + 2), 0}, {ICON + 2, ICON + 2}, {-(ICON + 2), -(ICON + 2)}};
+        int[][] tries = {{0, 0}, {ICON + 2, 0}, {-(ICON + 2), 0}, {0, -(ICON + 2)}, {0, ICON + 2},
+                {2 * (ICON + 2), 0}, {-2 * (ICON + 2), 0}, {ICON + 2, -(ICON + 2)}, {-(ICON + 2), -(ICON + 2)}};
         for (int[] d : tries) {
             int x = Mth.clamp(wantX + d[0], x0 + 24, x0 + VIEW_W - ICON - 2);
-            int y = Mth.clamp(wantY + d[1], y0 + 2, y0 + VIEW_H - ICON - 12);
+            // The bed under this icon's own width, and the icon lifted clear of it.
+            int bedY = bedPixelUnder(x, x + ICON, pd);
+            int y = Math.min(wantY + d[1], bedY - ICON - 1);
+            y = Mth.clamp(y, surfaceY + 1, y0 + VIEW_H - ICON - 12);
+            if (y + ICON > bedY) continue;          // no water column tall enough here
             boolean free = true;
             for (int[] o : taken) {
                 if (Math.abs(o[0] - x) < ICON && Math.abs(o[1] - y) < ICON) { free = false; break; }
@@ -250,6 +255,20 @@ public class FinderScreen extends Screen {
             if (free) return new int[]{x, y};
         }
         return null;
+    }
+
+    /** The highest bed pixel across a horizontal span of the face — the bank counts as bed. */
+    private int bedPixelUnder(int xa, int xb, byte[] pd) {
+        if (pd.length == 0) return yForDepth(water().getIntOr("depth", 0));
+        int best = top + VIEW_Y + VIEW_H;
+        int mw = metreWidth();
+        for (int i = 0; i < pd.length; i++) {
+            int mx = xForMetre(i);
+            if (mx + mw <= xa || mx >= xb) continue;
+            int floorY = pd[i] < 0 ? yForDepth(0) - 3 : yForDepth(pd[i]);
+            best = Math.min(best, floorY);
+        }
+        return best;
     }
 
     private Component bedLegend(byte[] pd, byte[] pb) {
@@ -538,7 +557,7 @@ public class FinderScreen extends Screen {
         if (!detailBlocked) {
             y = line(g, x, y, "finder.riverfishing.bait",
                     Component.translatable("item.riverfishing." + t.getStringOr("bait", "")));
-            y = line(g, x, y, "finder.riverfishing.stock",
+            y = line(g, x, y, "finder.riverfishing.stock_label",
                     Component.literal(t.getIntOr("stock", 0) + "%")
                             .append(t.getBooleanOr("res", false) ? Component.empty()
                                     : Component.translatable("finder.riverfishing.temp")));
