@@ -201,15 +201,13 @@ public final class Contracts {
         }
         if (c == null) return;
 
-        List<Integer> slots = matching(sp, c);
-        if (slots.size() < c.count()) {
+        List<Held> have = held(sp.getInventory(), c.species(), c.minGrams());
+        if (have.size() < c.count()) {
             sp.sendOverlayMessage(Component.translatable("message.riverfishing.contract_short",
-                    slots.size(), c.count(), c.fish()).withStyle(ChatFormatting.YELLOW));
+                    have.size(), c.count(), c.fish()).withStyle(ChatFormatting.YELLOW));
             return;
         }
-        for (int i = 0; i < c.count(); i++) {
-            sp.getInventory().setItem(slots.get(i), ItemStack.EMPTY);
-        }
+        take(sp, have.subList(0, c.count()));
 
         st.putBoolean(c.id(), true);
         PlayerData.root(sp).put(TAG, st);
@@ -226,21 +224,75 @@ public final class Contracts {
     }
 
     /**
-     * Inventory slots holding a fish this contract accepts, the SMALLEST qualifying ones first: a
-     * contract must never quietly take the trophy off you when an ordinary fish would have done.
+     * Where one qualifying fish is: which inventory slot, and where inside the keepnet in that slot —
+     * {@code -1} for a fish lying loose. The weight rides along so the list can be sorted without
+     * reading every stack again.
      */
-    private static List<Integer> matching(ServerPlayer sp, Contract c) {
-        List<Integer> slots = new ArrayList<>();
-        var inv = sp.getInventory();
+    public record Held(int slot, int inNet, int grams) {}
+
+    /**
+     * Every fish this contract accepts, loose in the bag OR inside a keepnet in it, SMALLEST FIRST.
+     *
+     * <p>Keepnets count because that is where a catch actually lives — a net is the thing you carry a
+     * session home in, and a contract that could not see into one would be asking you to tip the net
+     * out on the bank first.
+     *
+     * <p>One method, both sides: the journal row counts with it and the server takes with it, so what
+     * the row promises and what the claim finds cannot drift apart.
+     */
+    public static List<Held> held(net.minecraft.world.entity.player.Inventory inv,
+                                  String species, int minGrams) {
+        List<Held> out = new ArrayList<>();
         for (int i = 0; i < inv.getContainerSize(); i++) {
             ItemStack s = inv.getItem(i);
-            if (!(s.getItem() instanceof FishItem f)) continue;
-            if (!f.species().getPath().equals(c.species())) continue;
-            if (FishItem.getWeightG(s) < c.minGrams()) continue;
-            slots.add(i);
+            if (s.isEmpty()) continue;
+            if (s.getItem() instanceof FishItem f) {
+                if (f.species().getPath().equals(species) && FishItem.getWeightG(s) >= minGrams) {
+                    out.add(new Held(i, -1, FishItem.getWeightG(s)));
+                }
+                continue;
+            }
+            if (!(s.getItem() instanceof com.riverfishing.item.KeepnetItem)) continue;
+            List<com.riverfishing.item.KeepnetData.Placed> placed =
+                    com.riverfishing.item.KeepnetData.read(s).items();
+            for (int k = 0; k < placed.size(); k++) {
+                ItemStack fish = placed.get(k).stack();
+                if (!(fish.getItem() instanceof FishItem f)) continue;
+                if (!f.species().getPath().equals(species)) continue;
+                if (FishItem.getWeightG(fish) < minGrams) continue;
+                out.add(new Held(i, k, FishItem.getWeightG(fish)));
+            }
         }
-        slots.sort((a, b) -> Integer.compare(
-                FishItem.getWeightG(inv.getItem(a)), FishItem.getWeightG(inv.getItem(b))));
-        return slots;
+        // Smallest first: a contract must never quietly walk off with the trophy when an ordinary fish
+        // would have done.
+        out.sort(java.util.Comparator.comparingInt(Held::grams));
+        return out;
+    }
+
+    /**
+     * Hand these over. Loose fish are cleared from their slot; netted ones are pulled out of the net
+     * they are in, HIGHEST INDEX FIRST — the net is a list, and removing from the front of one shifts
+     * everything after it, so taking two fish out of the same net in the order they were found would
+     * take the wrong second fish.
+     */
+    private static void take(ServerPlayer sp, List<Held> taking) {
+        java.util.Map<Integer, List<Integer>> nets = new java.util.HashMap<>();
+        for (Held h : taking) {
+            if (h.inNet() < 0) {
+                sp.getInventory().setItem(h.slot(), ItemStack.EMPTY);
+            } else {
+                nets.computeIfAbsent(h.slot(), k -> new ArrayList<>()).add(h.inNet());
+            }
+        }
+        for (java.util.Map.Entry<Integer, List<Integer>> e : nets.entrySet()) {
+            ItemStack net = sp.getInventory().getItem(e.getKey());
+            com.riverfishing.item.KeepnetData data = com.riverfishing.item.KeepnetData.read(net);
+            List<Integer> idx = new ArrayList<>(e.getValue());
+            idx.sort(java.util.Comparator.reverseOrder());
+            for (int i : idx) {
+                if (i >= 0 && i < data.items().size()) data.items().remove(i);
+            }
+            data.write(net);
+        }
     }
 }
