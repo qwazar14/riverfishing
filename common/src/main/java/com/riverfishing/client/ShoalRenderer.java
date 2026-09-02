@@ -166,9 +166,12 @@ public final class ShoalRenderer {
                 // same fish at yaw 180 has it pointing back at the camera.
                 Matrix4f m = pose.last().pose();
                 boolean plusNear = m.m20() * m.m30() + m.m21() * m.m31() + m.m22() * m.m32() < 0f;
-                body(m, vc, sprite, size, plusNear ? 1f : -1f, f, time, alpha,
-                        com.riverfishing.fish.FishMorph.tint(path, age, ""),
-                        FishTint.whiten(com.riverfishing.fish.FishMorph.pale(path, age, "")));
+                int tintNow = com.riverfishing.fish.FishMorph.tint(path, age, "");
+                int overlayNow = FishTint.whiten(com.riverfishing.fish.FishMorph.pale(path, age, ""));
+                // §fish-3d first; a species whose sprite could not be read is drawn flat, as before.
+                if (!FISH_3D || !FishMesh.emit(m, vc, sprite, e.species(), size, f, time, alpha, tintNow, overlayNow)) {
+                    body(m, vc, sprite, size, plusNear ? 1f : -1f, f, time, alpha, tintNow, overlayNow);
+                }
                 pose.popPose();
                 drew = true;
             }
@@ -209,6 +212,13 @@ public final class ShoalRenderer {
      * linear slice of the sprite, so nothing is stretched.
      */
     private static final int STRIPS = 8;
+
+    /**
+     * §fish-3d: bodies pulled out of the sprites (FishMesh) instead of the flat wave. ON by default;
+     * {@code /rfrod fish3d off} is the rollback — persisted, no rebuild, and the flat path underneath
+     * is untouched.
+     */
+    public static boolean FISH_3D = true;
 
     private static void body(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, float side,
                              ShoalSim.Fish f, float time, int alpha, int tint, int overlay) {
