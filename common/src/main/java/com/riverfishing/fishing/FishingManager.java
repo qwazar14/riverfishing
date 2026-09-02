@@ -2505,6 +2505,19 @@ public final class FishingManager {
 
         giveFish(sp, session.species, session.weightG, session.lengthCm, legal, session.trophy, legendary,
                 session.target);
+        // §contracts-b1: the only place that knows the rod, the bait and the water together.
+        if (legal) {
+            ItemStack crod = sessionRod(sp, session);
+            java.util.List<String> cbaits = java.util.List.of();
+            if (crod.getItem() instanceof RodItem) {
+                ItemStack crg = RodData.get(crod, ComponentSlot.RIG);
+                if (crg.getItem() instanceof RigItem) cbaits = RigData.baitIds(crg);
+            }
+            com.riverfishing.fishing.Contracts.credit(sp, level, session.species.getPath(), session.weightG,
+                    WaterBodyCache.forLevel(level).get(level, session.target).type().key(),
+                    com.riverfishing.fishing.Contracts.rodKey(session.rodClass), cbaits,
+                    com.riverfishing.engine.TimeOfDay.fromDayTime(level.getDayTime()).jsonKey());
+        }
         // §population: a landed fish leaves the water for real — depletion lands on THIS species only.
         FishingPressureData.get(level).addCatch(new ChunkPos(session.target).toLong(),
                 session.species.getPath(), level.getGameTime());
