@@ -132,6 +132,25 @@ public final class SoundingData extends SavedData {
         return null;
     }
 
+    /**
+     * §ledge-arrow: the nearest found feature within {@code range} blocks of a point, as
+     * {dx, dz, kindIndex} — or null. Same linear walk as {@link #spotAt}, same ceiling.
+     */
+    public int[] nearest(BlockPos pos, int range) {
+        int[] best = null;
+        long bestD = (long) range * range + 1;
+        for (Map.Entry<Long, String> e : spots.entrySet()) {
+            int dx = keyX(e.getKey()) - pos.getX();
+            int dz = keyZ(e.getKey()) - pos.getZ();
+            long d = (long) dx * dx + (long) dz * dz;
+            if (d < bestD) {
+                bestD = d;
+                best = new int[]{dx, dz, "hole".equals(e.getValue()) ? 0 : 1};
+            }
+        }
+        return best;
+    }
+
     // ---- persistence ---------------------------------------------------------------------------
 
     public static SoundingData load(CompoundTag tag, HolderLookup.Provider registries) {
