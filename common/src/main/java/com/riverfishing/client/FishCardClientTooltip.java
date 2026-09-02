@@ -66,7 +66,7 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         // §nature: the counter buys PRIME fish; anything else has no price there, and says so.
         if (FishItem.isPrime(fish) && c.getInt("Value") > 0) row("value", key("emeralds", c.getInt("Value")), GREEN);
         else row("value", Component.literal("—"), DIM);
-        row("nature", seen ? key("nature." + CatchCard.NATURE[c.getByte("Nature")]) : key("hidden"), seen ? AQUA : DIM);
+        row("nature", key("nature." + CatchCard.NATURE[c.getByte("Nature")]), AQUA);   // in the open: the fish fought with it, you felt it
         String biome = c.getString("Biome");
         if (!biome.isEmpty()) row("location", Component.translatable("biome." + biome.replace(':', '.')), YELLOW);
         Component size = key("size." + CatchCard.SIZE[Math.min(4, c.getByte("Size"))])
