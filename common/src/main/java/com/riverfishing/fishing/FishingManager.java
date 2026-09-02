@@ -583,8 +583,17 @@ public final class FishingManager {
         // §rod-test: an under-loaded blank presents the bait clumsily — a SILENT ~20% fewer bites
         // (longer wait). Never announced (the player only sees the shortened cast).
         double underloadWait = underloaded ? 1.25 : 1.0;
+        // §sounding: a hole or a ledge you FOUND holds fish, and the finding is the work being paid
+        // for. Applied as a shorter wait, the way a fed spot pays out, so the two stack the way an
+        // angler would expect: bait a feature and you have done both halves of the job.
+        String spot = SoundingData.get(level).spotAt(waterPos);
+        double spotWait = spot == null ? 1.0 : 1.0 / SoundingData.SPOT_BONUS;
         long delay = (long) (outcome.ticksToBite / Math.max(0.1, depletion)
-                * AnglerSkills.biteSpeedMult(sp) * underloadWait);
+                * AnglerSkills.biteSpeedMult(sp) * underloadWait * spotWait);
+        if (spot != null) {
+            actionbar(sp, Component.translatable("message.riverfishing.on_spot",
+                    Component.translatable("spot.riverfishing." + spot)).withStyle(ChatFormatting.AQUA));
+        }
         if (depletion < 0.4) {
             actionbar(sp, Component.translatable("message.riverfishing.depleted").withStyle(ChatFormatting.GRAY));
         }
@@ -1064,6 +1073,90 @@ public final class FishingManager {
     }
 
     // ---- per-tick progress (FLOAT / BOTTOM waiting, and the fight for all classes) ----
+
+    /**
+     * §sounding: a marker cast. Walks the aim line metre by metre, measures the bed under each, and
+     * writes the lot into {@link SoundingData} — which is how a swim stops being a number the engine
+     * knows and the angler guesses at.
+     *
+     * <p>Features are read ALONG this one line, because a line is the only place this cast has
+     * evidence. A hole inferred from two casts that never crossed would be invented bed.
+     */
+    public static void takeSounding(ServerPlayer sp, ServerLevel level) {
+        net.minecraft.world.phys.Vec3 look = sp.getLookAngle();
+        double hl = Math.sqrt(look.x * look.x + look.z * look.z);
+        if (hl < 1e-3) {
+            actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
+            return;
+        }
+        final int FROM = 2, TO = 24;
+        int n = TO - FROM + 1;
+        int[] xs = new int[n], zs = new int[n], line = new int[n];
+        int wet = 0, y = sp.getBlockY();
+        for (int i = 0; i < n; i++) {
+            double d = FROM + i;
+            double px = sp.getX() + (look.x / hl) * d;
+            double pz = sp.getZ() + (look.z / hl) * d;
+            xs[i] = Mth.floor(px);
+            zs[i] = Mth.floor(pz);
+            BlockPos surface = findWaterColumn(level, px, sp.getEyeY() + 2.0, pz);
+            if (surface == null) {
+                line[i] = -1;
+                continue;
+            }
+            y = surface.getY();
+            line[i] = measureDepth(level, surface);
+            wet++;
+        }
+        if (wet == 0) {
+            actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
+            return;
+        }
+        java.util.List<BlockPos> found = SoundingData.get(level).record(y, xs, zs, line);
+        level.playSound(null, sp.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
+                SoundSource.PLAYERS, 0.7f, 1.4f);
+        if (found.isEmpty()) {
+            actionbar(sp, Component.translatable("message.riverfishing.sounded", wet)
+                    .withStyle(ChatFormatting.AQUA));
+            return;
+        }
+        // Finding something is the point of the exercise, so it is said out loud rather than in the
+        // corner of the eye.
+        String kind = SoundingData.get(level).spotAt(found.get(0));
+        sp.sendSystemMessage(Component.translatable("message.riverfishing.spot_found",
+                Component.translatable("spot.riverfishing." + (kind == null ? "hole" : kind)),
+                found.get(0).getX(), found.get(0).getZ()).withStyle(ChatFormatting.GOLD));
+        level.playSound(null, sp.blockPosition(), SoundEvents.NOTE_BLOCK_CHIME.value(),
+                SoundSource.PLAYERS, 0.8f, 1.2f);
+    }
+
+    /**
+     * §sounding: what has been measured around this spot, for the screen's map — a window of columns
+     * with their depths, and the features found in them.
+     *
+     * <p>A window rather than the whole world: the map is drawn at a few pixels a metre, so beyond a
+     * short reach it is bytes for something nobody can see.
+     *
+     * <p>ponytail: walks every column ever sounded to find the ones nearby, once per screen open. Fine
+     * at the scale one angler measures; bucket the store by chunk if a server ever sounds a lake flat.
+     */
+    private static ListTag soundingMap(ServerLevel level, BlockPos centre) {
+        final int REACH = 24;
+        SoundingData data = SoundingData.get(level);
+        ListTag out = new ListTag();
+        for (var e : data.depths().entrySet()) {
+            int x = SoundingData.keyX(e.getKey()), z = SoundingData.keyZ(e.getKey());
+            if (Math.abs(x - centre.getX()) > REACH || Math.abs(z - centre.getZ()) > REACH) continue;
+            CompoundTag t = new CompoundTag();
+            t.putInt("x", x - centre.getX());
+            t.putInt("z", z - centre.getZ());
+            t.putInt("d", e.getValue());
+            String spot = data.spots().get(e.getKey());
+            if (spot != null) t.putString("s", spot);
+            out.add(t);
+        }
+        return out;
+    }
 
     /**
      * §finder-hud: a sounding a second for whoever is holding a finder, so the strip on their HUD is
@@ -3297,6 +3390,7 @@ public final class FishingManager {
         }
         root.put("here", here);
         root.put("gone", gone);
+        if (full) root.put("map", soundingMap(level, waterPos));
         return root;
     }
 
