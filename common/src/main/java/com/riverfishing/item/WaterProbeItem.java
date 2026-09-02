@@ -81,6 +81,16 @@ public class WaterProbeItem extends Item {
 
     /** Finds water along the player's view (24 blocks, any fluid shape) and runs the analysis. */
     private boolean scan(Level level, Player player) {
+        // §sounding: crouching turns the finder into a marker cast. One item, two jobs — a separate
+        // weight would have wanted its own model, texture, recipe and trade to say the same thing.
+        if (!admin && player.isShiftKeyDown()) {
+            if (!level.isClientSide() && player instanceof ServerPlayer sp && level instanceof ServerLevel sl) {
+                FishingManager.takeSounding(sp, sl);
+                player.getCooldowns().addCooldown(
+                        net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(this), 20);
+            }
+            return true;
+        }
         BlockPos waterPos = findWater(level, player);
         if (!level.isClientSide() && player instanceof ServerPlayer sp && level instanceof ServerLevel sl) {
             com.riverfishing.RiverFishing.LOGGER.info("[RiverFishing] probe scan by {}: admin={}, water={}",
