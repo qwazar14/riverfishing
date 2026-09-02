@@ -451,7 +451,11 @@ public final class ModVillagers {
         t.putInt("vid", villager.getId());
         t.putInt("rep", com.riverfishing.fishing.Contracts.rep(player));
         net.minecraft.nbt.ListTag posts = new net.minecraft.nbt.ListTag();
-        posts.addAll(com.riverfishing.fishing.Contracts.posts(villager, level));
+        net.minecraft.nbt.CompoundTag ledger = com.riverfishing.fishing.Contracts.ledger(sp, level);   // §board-taken
+        for (net.minecraft.nbt.CompoundTag post : com.riverfishing.fishing.Contracts.posts(villager, level)) {
+            post.putBoolean("taken", com.riverfishing.fishing.Contracts.taken(sp, ledger, post.getString("Id")));
+            posts.add(post);
+        }
         t.put("posts", posts);
         com.riverfishing.network.ModNetwork.toPlayer(sp, new com.riverfishing.network.ContractBoardPacket(t));
     }
