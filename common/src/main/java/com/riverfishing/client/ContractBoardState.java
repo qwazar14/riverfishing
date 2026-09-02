@@ -28,7 +28,7 @@ public final class ContractBoardState {
     private static final int MERCHANT_W = 276, MERCHANT_H = 166;
     private static final int W = 124, HEAD = 26, LINE = 9;
     private static final int PAPER = 0xFFE3D6B8, EDGE = 0xFF6E5A3C, INK = 0xFF241A0E, INK2 = 0xFF6E5A3C,
-            HOVER = 0x38E8B430;
+            HOVER = 0x38E8B430, TAKEN = 0xFFA89880;
 
     private static CompoundTag board;
     private static int boundId = -1;
@@ -57,6 +57,11 @@ public final class ContractBoardState {
         List<Component> out = new ArrayList<>();
         out.add(Component.literal(ContractItem.grams(t.getIntOr("W", 0))));
         out.addAll(ContractItem.terms(t));
+        // §board-taken: when this post goes — the board turns over with the world day, and the client
+        // has the clock. Real minutes, because that is how long the player has to decide.
+        Minecraft mc = Minecraft.getInstance();
+        long ticks = mc.level == null ? 0 : 24000L - (mc.level.getOverworldClockTime() % 24000L);
+        out.add(Component.translatable("screen.riverfishing.contract_board.refresh", (ticks + 1199) / 1200));
         return out;
     }
 
@@ -95,15 +100,22 @@ public final class ContractBoardState {
         for (int i = 0; i < list.size(); i++) {
             CompoundTag t = list.getCompoundOrEmpty(i);
             int ry = posts[i][0], rh = posts[i][1];
-            if (mouseX >= x && mouseX < x + W && mouseY >= ry && mouseY < ry + rh) g.fill(x, ry, x + W, ry + rh, HOVER);
+            boolean taken = t.getBooleanOr("taken", false);
+            if (!taken && mouseX >= x && mouseX < x + W && mouseY >= ry && mouseY < ry + rh) g.fill(x, ry, x + W, ry + rh, HOVER);
             FishIcon.draw(g, t.getStringOr("Sp", ""), x + 3, ry + 2);
             g.text(font, Component.translatable("journal.riverfishing.contract_short",
                     t.getIntOr("N", 0), Component.translatable("fish.riverfishing." + t.getStringOr("Sp", ""))),
                     x + 22, ry + 3, INK, false);
             int ly = ry + 13;
             for (Component c : body.get(i)) {
-                g.text(font, c, x + 22, ly, INK2, false);
+                g.text(font, c, x + 22, ly, taken ? TAKEN : INK2, false);
                 ly += LINE;
+            }
+            if (taken) {
+                g.fill(x, ry, x + W, ry + rh, 0x60E3D6B8);       // greyed: yours already, or was
+                g.text(font, Component.translatable("screen.riverfishing.contract_board.taken"),
+                        x + W - 20 - font.width(Component.translatable("screen.riverfishing.contract_board.taken")), ry + 3, TAKEN, false);
+                continue;                                      // no emerald on a post you cannot take
             }
             ItemStack em = new ItemStack(Items.EMERALD);
             g.fakeItem(em, x + W - 20, ry + 2);
@@ -118,6 +130,8 @@ public final class ContractBoardState {
         if (mx < o[0] || mx >= o[0] + W) return false;
         for (int i = 0; i < posts.length; i++) {
             if (my < posts[i][0] || my >= posts[i][0] + posts[i][1]) continue;
+            if (board.getListOrEmpty("posts").getCompoundOrEmpty(i).getBooleanOr("taken", false)) return true;   // a taken post swallows the click
+            board.getListOrEmpty("posts").getCompoundOrEmpty(i).putBoolean("taken", true);   // greyed at once; the server decides for real
             com.riverfishing.network.ModNetwork.toServer(
                     new com.riverfishing.network.ContractTakePacket(board.getIntOr("vid", 0), i));
             Minecraft mc = Minecraft.getInstance();

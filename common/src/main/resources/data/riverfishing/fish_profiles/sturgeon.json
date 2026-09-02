@@ -1,6 +1,6 @@
 {
   "display": "Осётр",
-  "latin": "Acipenser gueldenstaedtii",
+  "latin": "Acipenser sturio",
   "group": "sturgeon",
   "water_bodies": { "river": 1.2, "lake": 0.6, "pond": 0.0, "swamp": 0.0, "sea": 0.3, "puddle": 0.0 },
   "weight_g": { "min": 5000, "max": 150000, "mean": 22000 },
