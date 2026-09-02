@@ -97,6 +97,11 @@ public final class ModNetwork {
             RodWarningPacket p = RodWarningPacket.decode(buf);
             ctx.queue(p::handleClient);
         });
+        // §finder-screen: a sounding, for the screen and for the strip that runs while it is held.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, FinderPacket.TYPE, (buf, ctx) -> {
+            FinderPacket p = FinderPacket.decode(buf);
+            ctx.queue(p::handleClient);
+        });
     }
 
     public static void toPlayer(ServerPlayer player, RfPacket packet) {
