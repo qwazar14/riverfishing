@@ -241,7 +241,14 @@ public class RodPodBlockEntity extends BlockEntity {
             if (rods.get(i).isEmpty()) continue;
             if (firstOccupied < 0) firstOccupied = i;
             PodLine line = lines[i];
-            if (line != null && line.bitten && line.active && now <= line.windowEnd) {
+            // §pod-phantom: !phantom. The preference for a bitten rod was here from the start, but it
+            // did not tell a fish from a FALSE ALARM — so an alarm that had just cried wolf on rod one
+            // outranked the fish actually hanging on rod three, and the pod handed you the wrong rod.
+            // Reported as "it gives me an empty one", which is exactly what a phantom line is.
+            //
+            // A phantom slot can still come back as firstOccupied below. That is right: when it is the
+            // only rod on the pod there is nothing better to hand over.
+            if (line != null && line.bitten && line.active && !line.phantom && now <= line.windowEnd) {
                 return i;
             }
         }
