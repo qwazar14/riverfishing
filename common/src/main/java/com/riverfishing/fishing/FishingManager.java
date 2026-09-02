@@ -845,6 +845,16 @@ public final class FishingManager {
             if (WaterBodyDetector.isWater(level, p)) {
                 return p.immutable();
             }
+            // §cast-ceiling: the tackle FALLS to the water, so it cannot arrive under a floor. Without
+            // this the scan tunnelled straight through the ground and hooked a cave lake twenty blocks
+            // under a player standing on grass — reported, and the reason a cast could land somewhere
+            // the angler could not see, reach or have aimed at.
+            //
+            // Ice is the one thing it must fall through: the ice check just below this call is what
+            // says "drill a hole", and stopping here would answer a frozen lake with "no water".
+            net.minecraft.world.level.block.state.BlockState st = level.getBlockState(p);
+            if (com.riverfishing.item.IceAugerItem.isIce(st)) continue;
+            if (!st.getCollisionShape(level, p).isEmpty()) return null;
         }
         return null;
     }
