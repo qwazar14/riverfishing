@@ -208,45 +208,12 @@ public final class Contracts {
         }
         ItemStack paper = new ItemStack(ModItems.CONTRACT.get());
         CompoundTag t = post.copy();
-        t.putInt("Caught", 0);
         t.putLong("Exp", today(level) + DAYS_TO_FILL);
         StackNbt.set(paper, t);
         if (!sp.getInventory().add(paper)) sp.drop(paper, false);
         sp.displayClientMessage(Component.translatable("message.riverfishing.contract_taken",
                 ContractItem.headline(t)).withStyle(ChatFormatting.GREEN), true);
         level.playSound(null, sp.blockPosition(), SoundEvents.VILLAGER_TRADE, SoundSource.PLAYERS, 0.8f, 1f);
-    }
-
-    // ---- fishing under it ---------------------------------------------------------------------------
-
-    /**
-     * A fish was landed: the first paper in the bag whose terms it was caught under counts it. Called
-     * from the landing, which is the only place that knows the rod, the bait and the water together.
-     */
-    public static void credit(ServerPlayer sp, ServerLevel level, String species, int grams, String water,
-                              String rodClass, List<String> baits, String time) {
-        long day = today(level);
-        for (int i = 0; i < sp.getInventory().getContainerSize(); i++) {
-            ItemStack s = sp.getInventory().getItem(i);
-            if (!(s.getItem() instanceof ContractItem)) continue;
-            CompoundTag t = ContractItem.tag(s);
-            if (t.getLong("Exp") < day || t.getInt("Caught") >= t.getInt("N")) continue;
-            if (!t.getString("Sp").equals(species) || grams < t.getInt("W")) continue;
-            if (!matches(t.getString("Water"), water) || !matches(t.getString("Rod"), rodClass)
-                    || !matches(t.getString("Time"), time)) continue;
-            String bait = t.getString("Bait");
-            if (!bait.isEmpty() && !baits.contains(bait)) continue;
-            int caught = t.getInt("Caught") + 1;
-            StackNbt.mutate(s, x -> x.putInt("Caught", caught));
-            sp.displayClientMessage(Component.translatable("message.riverfishing.contract_progress",
-                    caught, t.getInt("N"), Component.translatable("fish.riverfishing." + species))
-                    .withStyle(ChatFormatting.AQUA), true);
-            return;
-        }
-    }
-
-    private static boolean matches(String term, String actual) {
-        return term.isEmpty() || term.equals(actual);
     }
 
     // ---- handing it in ------------------------------------------------------------------------------
@@ -267,20 +234,14 @@ public final class Contracts {
             return true;
         }
         int n = t.getInt("N");
-        if (t.getInt("Caught") < n) {
-            say(sp, "contract_not_yet", ChatFormatting.YELLOW, t.getInt("Caught"), n);
-            return true;
-        }
         String species = t.getString("Sp");
-        List<Held> have = held(sp.getInventory(), species, t.getInt("W"));
+        List<Held> have = held(sp.getInventory(), species, t.getInt("W"), t);
         if (have.size() < n) {
             sp.displayClientMessage(Component.translatable("message.riverfishing.contract_short",
                     have.size(), n, Component.translatable("fish.riverfishing." + species))
                     .withStyle(ChatFormatting.YELLOW), true);
             return true;
         }
-        // ponytail: the fish handed over are the smallest qualifying ones in the bag, not the ones the
-        // paper counted — a landed fish is not tagged with the paper it counted for.
         take(sp, have.subList(0, n));
         paper.shrink(1);
 
@@ -326,18 +287,20 @@ public final class Contracts {
     public record Held(int slot, int inNet, int grams) {}
 
     /**
-     * Every fish this contract accepts, loose in the bag OR inside a keepnet in it, SMALLEST FIRST.
+     * Every fish this contract accepts — species, size AND the terms on its card — loose in the bag OR
+     * inside a keepnet in it, SMALLEST FIRST.
      * Keepnets count because that is where a catch actually lives. One method for both the journal's
      * count and the server's take, so what the row promises and what the hand-in finds cannot differ.
      */
     public static List<Held> held(net.minecraft.world.entity.player.Inventory inv,
-                                  String species, int minGrams) {
+                                  String species, int minGrams, CompoundTag terms) {
         List<Held> out = new ArrayList<>();
         for (int i = 0; i < inv.getContainerSize(); i++) {
             ItemStack s = inv.getItem(i);
             if (s.isEmpty()) continue;
             if (s.getItem() instanceof FishItem f) {
-                if (f.species().getPath().equals(species) && FishItem.getWeightG(s) >= minGrams) {
+                if (f.species().getPath().equals(species) && FishItem.getWeightG(s) >= minGrams
+                        && com.riverfishing.fish.CatchCard.meets(s, terms)) {   // §catch-card
                     out.add(new Held(i, -1, FishItem.getWeightG(s)));
                 }
                 continue;
@@ -350,6 +313,7 @@ public final class Contracts {
                 if (!(fish.getItem() instanceof FishItem f)) continue;
                 if (!f.species().getPath().equals(species)) continue;
                 if (FishItem.getWeightG(fish) < minGrams) continue;
+                if (!com.riverfishing.fish.CatchCard.meets(fish, terms)) continue;
                 out.add(new Held(i, k, FishItem.getWeightG(fish)));
             }
         }

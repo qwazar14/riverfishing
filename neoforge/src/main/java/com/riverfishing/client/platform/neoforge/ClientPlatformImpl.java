@@ -183,4 +183,11 @@ public final class ClientPlatformImpl {
         }
     }
 
+
+    /** §catch-card: the fish's tooltip component gets its renderer. */
+    @SubscribeEvent
+    static void onRegisterTooltips(net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(com.riverfishing.item.FishCardTooltip.class,
+                com.riverfishing.client.FishCardClientTooltip::new);
+    }
 }

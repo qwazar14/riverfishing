@@ -323,6 +323,13 @@ public class FishItem extends Item {
                 .append(Component.literal(" (")).append(weightText(w)).append(Component.literal(")"));
     }
 
+    /** §catch-card: a landed fish shows its card; every other fish keeps the plain lines below. */
+    @Override
+    public java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(ItemStack stack) {
+        return com.riverfishing.fish.CatchCard.has(stack)
+                ? java.util.Optional.of(new FishCardTooltip(stack)) : java.util.Optional.empty();
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         CompoundTag tag = StackNbt.get(stack);
@@ -354,6 +361,7 @@ public class FishItem extends Item {
             }
             return;
         }
+        if (com.riverfishing.fish.CatchCard.has(stack)) return;     // the card says all of this
         // §morph: named on its own line rather than folded into the item name. A prefix would have to
         // agree in gender with 79 species names in Russian and Ukrainian, and "Золотистый плотва" is
         // worse than no feature at all.

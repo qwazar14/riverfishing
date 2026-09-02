@@ -2504,20 +2504,7 @@ public final class FishingManager {
         }
 
         giveFish(sp, session.species, session.weightG, session.lengthCm, legal, session.trophy, legendary,
-                session.target);
-        // §contracts-b1: the only place that knows the rod, the bait and the water together.
-        if (legal) {
-            ItemStack crod = sessionRod(sp, session);
-            java.util.List<String> cbaits = java.util.List.of();
-            if (crod.getItem() instanceof RodItem) {
-                ItemStack crg = RodData.get(crod, ComponentSlot.RIG);
-                if (crg.getItem() instanceof RigItem) cbaits = RigData.baitIds(crg);
-            }
-            com.riverfishing.fishing.Contracts.credit(sp, level, session.species.getPath(), session.weightG,
-                    WaterBodyCache.forLevel(level).get(level, session.target).type().key(),
-                    com.riverfishing.fishing.Contracts.rodKey(session.rodClass), cbaits,
-                    com.riverfishing.engine.TimeOfDay.fromDayTime(level.getDayTime()).jsonKey());
-        }
+                session.target, session);
         // §population: a landed fish leaves the water for real — depletion lands on THIS species only.
         FishingPressureData.get(level).addCatch(new ChunkPos(session.target).toLong(),
                 session.species.getPath(), level.getGameTime());
@@ -2560,7 +2547,7 @@ public final class FishingManager {
             int w = (int) Math.round(session.weightG * (0.9 + random.nextDouble() * 0.2));
             int l = (int) Math.round(session.lengthCm * (0.95 + random.nextDouble() * 0.1));
             giveFish(sp, session.species, Math.max(1, w), Math.max(1, l), true, false, false,
-                    session.target);
+                    session.target, session);
         }
 
         playLand(level, session.target);
@@ -2633,7 +2620,8 @@ public final class FishingManager {
     }
 
     private static void giveFish(ServerPlayer sp, ResourceLocation species, int weightG, int lengthCm,
-                                 boolean legal, boolean trophy, boolean legendary, BlockPos where) {
+                                 boolean legal, boolean trophy, boolean legendary, BlockPos where,
+                                 FishingSession session) {
         ItemStack fish = FishItem.create(ModItems.fishItem(species), species, weightG, lengthCm, legal, trophy);
         if (legendary) {
             com.riverfishing.item.StackNbt.mutate(fish, t -> t.putBoolean(FishItem.TAG_LEGEND, true));
@@ -2650,6 +2638,29 @@ public final class FishingManager {
                 // §order-board: and if it IS today's order, that is the order filled.
                 OrderBoard.credit(sp, species);
             }
+        }
+        // §catch-card: a fish caught on a rod remembers its catch — who, where, on what, under what
+        // sky — so a contract can read the fish a week later, out of a chest, with the rod long gone.
+        if (session != null) {
+            ServerLevel lvl = sp.serverLevel();
+            ItemStack crod = sessionRod(sp, session);
+            java.util.List<String> cbaits = java.util.List.of();
+            if (crod.getItem() instanceof RodItem) {
+                ItemStack crg = RodData.get(crod, ComponentSlot.RIG);
+                if (crg.getItem() instanceof RigItem) cbaits = RigData.baitIds(crg);
+            }
+            String path = species.getPath();
+            WaterBody cbody = WaterBodyCache.forLevel(lvl).get(lvl, where);
+            String eco = nativeHere(lvl, where, cbody, species) ? "native"
+                    : com.riverfishing.fishing.StockedData.get(lvl).isStocked(
+                            com.riverfishing.fishing.StockedData.region(where), path) ? "stocked" : "";
+            int base = com.riverfishing.registry.ModVillagers.baseEmeralds(path);
+            int value = base > 0 ? MarketData.get(lvl).price(lvl, path, base) : 0;
+            String morph = com.riverfishing.item.StackNbt.get(fish).getString(FishItem.TAG_MORPH);
+            net.minecraft.nbt.CompoundTag card = com.riverfishing.fish.CatchCard.build(sp, lvl, session, profile,
+                    weightG, crod, cbaits, eco, value, morph,
+                    com.riverfishing.fishing.SoundingData.get(lvl).spotAt(where));
+            com.riverfishing.item.StackNbt.mutate(fish, t -> t.put(com.riverfishing.fish.CatchCard.TAG, card));
         }
         // §fish-scale: the icon now scales purely from LENGTH (FishItem.getIconScale), no NBT needed.
         if (!sp.getInventory().add(fish)) {
