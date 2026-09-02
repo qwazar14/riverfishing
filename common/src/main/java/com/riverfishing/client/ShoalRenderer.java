@@ -215,11 +215,11 @@ public final class ShoalRenderer {
     private static final int STRIPS = 8;
 
     /**
-     * §fish-3d: bodies pulled out of the sprites (FishMesh) instead of the flat wave. ON by default;
-     * {@code /rfrod fish3d off} is the rollback — persisted, no rebuild, and the flat path underneath
-     * is untouched.
+     * §fish-3d: bodies pulled out of the sprites (FishMesh) instead of the flat wave. OFF by default
+     * after testing — the flat wave is the shipped look; {@code /rfrod fish3d on} tries the bodies,
+     * persisted, no rebuild.
      */
-    public static boolean FISH_3D = true;
+    public static boolean FISH_3D = false;
 
     private static void body(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, float side,
                              ShoalSim.Fish f, float time, int alpha, int tint, int overlay) {
