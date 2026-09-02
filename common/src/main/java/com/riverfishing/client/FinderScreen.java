@@ -45,7 +45,14 @@ public class FinderScreen extends Screen {
 
     // The instrument face. Deep water blue-green, the way every sounder ever made has looked.
     private static final int FACE = 0xFF0B1E22, GRID = 0x2240E0B0, SURFACE = 0xFF7FE9D0;
-    private static final int LAND = 0xFF2E3A22, LAND_TOP = 0xFF4A6034, WATER = 0xFF163A44;
+    private static final int LAND = 0xFF2E3A22, LAND_TOP = 0xFF4A6034;
+    // §finder-chart: a chart's palette. Land tan, a darker shoreline, water in six steps from pale
+    // shallows to deep blue, white contours, a red boat, gold marks.
+    private static final int CHART_LAND = 0xFFD8C79A, CHART_SHORE = 0xFF9E8A5A, CHART_GRID = 0x30FFFFFF;
+    private static final int CHART_CONTOUR = 0x88FFFFFF, CHART_YOU = 0xFFE03030, CHART_MARK = 0xFFFFC83C;
+    private static final int[] CHART_BANDS = {
+            0xFF9FD3E6,   // unsounded water: pale, flat, honest
+            0xFFB9E4F0, 0xFF86C4E0, 0xFF5AA3CF, 0xFF3A7FB8, 0xFF275C97, 0xFF163B6E};
 
     private final CompoundTag data;
     private final List<CompoundTag> here = new ArrayList<>();
@@ -292,72 +299,132 @@ public class FinderScreen extends Screen {
     // ---- the map -------------------------------------------------------------------------------
 
     /**
-     * §sounding: the bed you have measured, from above, on the shape of the water itself. Water is
-     * water-dark, bank is bank, a sounded cell reads deeper the darker, and you are the arrow —
-     * pointing where you point. Unmeasured water is just water: an honest map has holes in it until
-     * somebody casts across them, and the holes are the reason to keep casting.
+     * §finder-chart: the bed from above, drawn the way a chart draws it.
+     *
+     * <p>The first two cuts scattered three-pixel dots on a black face and called it a map; it read
+     * as noise, and a map that reads as noise is worse than the number it replaced. A chart works
+     * because it is BANDED: depth in steps, each step one flat colour, a line where the colour
+     * changes. So: water in six depth bands from pale shallows to deep blue, a contour line on every
+     * band edge, the bank in tan with a shoreline, a grid every five metres, a scale bar, and you as
+     * a boat with a heading line. Sounded cells spread two cells out so a swath reads as a band of
+     * bed and not as a row of stitches; water nobody has sounded is plain water.
      */
     private void renderMap(GuiGraphics g, int mouseX, int mouseY) {
         int x0 = left + VIEW_X, y0 = top + VIEW_Y;
-        g.fill(x0, y0, x0 + VIEW_W, y0 + VIEW_H, FACE);
-        final int R = FishingManager.MAP_REACH, N = 2 * R + 1, CELL = 3;
+        final int R = FishingManager.MAP_REACH, N = 2 * R + 1, CELL = 4;
         int cx = x0 + VIEW_W / 2, cy = y0 + VIEW_H / 2;
-        int ox = cx - R * CELL, oy = cy - R * CELL;
+        int ox = cx - R * CELL - CELL / 2, oy = cy - R * CELL - CELL / 2;
+        g.fill(x0, y0, x0 + VIEW_W, y0 + VIEW_H, CHART_LAND);
 
         byte[] wet = data.getByteArray("wet");
-        if (wet.length == N * N) {
-            for (int dz = 0; dz < N; dz++) {
-                for (int dx = 0; dx < N; dx++) {
-                    int px = ox + dx * CELL, py = oy + dz * CELL;
-                    if (py < y0 + 1 || py + CELL > y0 + VIEW_H - 1) continue;
-                    g.fill(px, py, px + CELL, py + CELL, wet[dz * N + dx] != 0 ? WATER : LAND);
-                }
-            }
-        }
+        boolean[] water = new boolean[N * N];
+        if (wet.length == N * N) for (int i = 0; i < N * N; i++) water[i] = wet[i] != 0;
 
-        ListTag map = data.getList("map", 10);
+        // Sounded depth per cell, spread two cells out from each reading — nearest reading wins.
+        int[] depth = new int[N * N];
+        int[] dist = new int[N * N];
+        java.util.Arrays.fill(dist, Integer.MAX_VALUE);
         int deepest = 1;
-        for (int i = 0; i < map.size(); i++) deepest = Math.max(deepest, map.getCompound(i).getInt("d"));
+        ListTag map = data.getList("map", 10);
+        java.util.List<int[]> marks = new java.util.ArrayList<>();
         for (int i = 0; i < map.size(); i++) {
             CompoundTag t = map.getCompound(i);
-            int px = cx + t.getInt("x") * CELL, py = cy + t.getInt("z") * CELL;
-            if (px < x0 + 1 || px + CELL > x0 + VIEW_W - 1 || py < y0 + 1 || py + CELL > y0 + VIEW_H - 1) continue;
-            // One ramp from shallow to the deepest measured, so the SHAPE of the bed is what you
-            // read rather than an absolute depth nobody can eyeball anyway.
-            float f = t.getInt("d") / (float) deepest;
-            int shade = 0xFF000000
-                    | ((int) (0x20 + 0x18 * (1 - f)) << 16)
-                    | ((int) (0x60 + 0x80 * (1 - f)) << 8)
-                    | (int) (0x70 + 0x70 * (1 - f));
-            g.fill(px, py, px + CELL, py + CELL, shade);
-            if (t.contains("s")) {
-                g.fill(px - 1, py - 1, px + CELL + 1, py + CELL + 1, 0xFFE8B430);
-                g.fill(px, py, px + CELL, py + CELL, shade);
-                if (mouseX >= px - 2 && mouseX < px + CELL + 2 && mouseY >= py - 2 && mouseY < py + CELL + 2) {
-                    hover = List.of(Component.translatable("spot.riverfishing." + t.getString("s")).getVisualOrderText(),
-                            Component.translatable("finder.riverfishing.metres", t.getInt("d")).getVisualOrderText());
+            int mx = t.getInt("x") + R, mz = t.getInt("z") + R, d = t.getInt("d");
+            deepest = Math.max(deepest, d);
+            if (t.contains("s")) marks.add(new int[]{mx, mz, "hole".equals(t.getString("s")) ? 0 : 1, d});
+            for (int dz = -2; dz <= 2; dz++) {
+                for (int dx = -2; dx <= 2; dx++) {
+                    int x = mx + dx, z = mz + dz;
+                    if (x < 0 || z < 0 || x >= N || z >= N) continue;
+                    int dd = dx * dx + dz * dz;
+                    if (dd < dist[z * N + x]) { dist[z * N + x] = dd; depth[z * N + x] = d; }
                 }
             }
         }
 
-        // You: an arrow, pointing the way you were facing when you took the sounding.
-        double yaw = Math.toRadians(data.getInt("yaw"));
-        double fx = -Math.sin(yaw), fz = Math.cos(yaw);     // Minecraft: yaw 0 faces +z, 90 faces -x
-        for (int k = 0; k < 7; k++) {
-            int ax = (int) Math.round(cx + 1 + fx * k), ay = (int) Math.round(cy + 1 + fz * k);
-            g.fill(ax - 1, ay - 1, ax + 1, ay + 1, 0xFFFF6060);
+        // Bands: index 0 is unsounded water, 1..6 are shallow to deep.
+        int[] band = new int[N * N];
+        for (int i = 0; i < N * N; i++) {
+            if (!water[i]) { band[i] = -1; continue; }
+            band[i] = dist[i] == Integer.MAX_VALUE ? 0 : 1 + Math.min(5, depth[i] * 6 / (deepest + 1));
         }
-        g.fill(cx - 2, cy - 2, cx + 4, cy + 4, 0xFFFFFFFF);
-        g.fill(cx - 1, cy - 1, cx + 3, cy + 3, 0xFFFF6060);
 
-        if (map.isEmpty()) {
-            for (var seq : this.font.split(Component.translatable("finder.riverfishing.unsounded"), VIEW_W - 20)) {
-                g.drawString(this.font, seq, x0 + 10, y0 + 6, 0xCC40E0B0, false);
-                y0 += 11;
+        for (int z = 0; z < N; z++) {
+            for (int x = 0; x < N; x++) {
+                int px = ox + x * CELL, py = oy + z * CELL;
+                if (px < x0 || px + CELL > x0 + VIEW_W || py < y0 || py + CELL > y0 + VIEW_H) continue;
+                int b = band[z * N + x];
+                if (b < 0) {
+                    // Bank. A shoreline where it meets water, so the edge of the lake is a line.
+                    boolean shore = false;
+                    for (int[] o : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                        int nx = x + o[0], nz = z + o[1];
+                        if (nx >= 0 && nz >= 0 && nx < N && nz < N && band[nz * N + nx] >= 0) shore = true;
+                    }
+                    g.fill(px, py, px + CELL, py + CELL, shore ? CHART_SHORE : CHART_LAND);
+                    continue;
+                }
+                g.fill(px, py, px + CELL, py + CELL, CHART_BANDS[b]);
+                // Contour: a lighter edge wherever the band changes toward the deeper neighbour.
+                boolean edge = false;
+                for (int[] o : new int[][]{{1, 0}, {0, 1}}) {
+                    int nx = x + o[0], nz = z + o[1];
+                    if (nx < N && nz < N && band[nz * N + nx] > b && band[nz * N + nx] > 0 && b > 0) edge = true;
+                }
+                if (edge) g.fill(px, py + CELL - 1, px + CELL, py + CELL, CHART_CONTOUR);
             }
         }
-        g.drawString(this.font, Component.translatable("finder.riverfishing.map"),
-                left + VIEW_X + 4, top + VIEW_Y + VIEW_H - 11, 0x9940E0B0, false);
+
+        // Grid every five metres, faint, so distance can be read off the chart.
+        for (int k = -R; k <= R; k += 5) {
+            int gx = cx + k * CELL, gy = cy + k * CELL;
+            if (gx > x0 && gx < x0 + VIEW_W) g.fill(gx, y0 + 1, gx + 1, y0 + VIEW_H - 1, CHART_GRID);
+            if (gy > y0 && gy < y0 + VIEW_H) g.fill(x0 + 1, gy, x0 + VIEW_W - 1, gy + 1, CHART_GRID);
+        }
+
+        // Features: a ring for a hole, a diamond for a drop-off.
+        for (int[] m : marks) {
+            int px = ox + m[0] * CELL + CELL / 2, py = oy + m[1] * CELL + CELL / 2;
+            if (px < x0 + 4 || px > x0 + VIEW_W - 4 || py < y0 + 4 || py > y0 + VIEW_H - 4) continue;
+            if (m[2] == 0) {
+                g.fill(px - 4, py - 4, px + 4, py + 4, CHART_MARK);
+                g.fill(px - 2, py - 2, px + 2, py + 2, CHART_BANDS[Math.max(1, band[m[1] * N + m[0]])]);
+            } else {
+                for (int k = -3; k <= 3; k++) {
+                    int hw = 3 - Math.abs(k);
+                    g.fill(px - hw, py + k, px + hw + 1, py + k + 1, CHART_MARK);
+                }
+            }
+            if (mouseX >= px - 5 && mouseX < px + 5 && mouseY >= py - 5 && mouseY < py + 5) {
+                hover = List.of(Component.translatable("spot.riverfishing." + (m[2] == 0 ? "hole" : "ledge")).getVisualOrderText(),
+                        Component.translatable("finder.riverfishing.metres", m[3]).getVisualOrderText());
+            }
+        }
+
+        // You: a boat, and a heading line out to where the sounding was aimed.
+        double yaw = Math.toRadians(data.getInt("yaw"));
+        double fx = -Math.sin(yaw), fz = Math.cos(yaw);     // Minecraft: yaw 0 faces +z, 90 faces -x
+        for (int k = 0; k < 18; k++) {
+            int ax = (int) Math.round(cx + fx * k), ay = (int) Math.round(cy + fz * k);
+            if (ax > x0 && ax < x0 + VIEW_W && ay > y0 && ay < y0 + VIEW_H) g.fill(ax, ay, ax + 1, ay + 1, CHART_YOU);
+        }
+        g.fill(cx - 3, cy - 3, cx + 4, cy + 4, 0xFFFFFFFF);
+        g.fill(cx - 2, cy - 2, cx + 3, cy + 3, CHART_YOU);
+
+        // Scale bar: ten metres, bottom left, over the chart.
+        int sx = x0 + 6, sy = y0 + VIEW_H - 8;
+        g.fill(sx, sy, sx + 10 * CELL, sy + 2, 0xFFFFFFFF);
+        g.fill(sx, sy - 2, sx + 1, sy + 3, 0xFFFFFFFF);
+        g.fill(sx + 10 * CELL - 1, sy - 2, sx + 10 * CELL, sy + 3, 0xFFFFFFFF);
+        g.drawString(this.font, Component.translatable("finder.riverfishing.metres", 10), sx + 2, sy - 12, 0xFFFFFFFF, false);
+
+        if (map.isEmpty()) {
+            int ty = y0 + 6;
+            for (var seq : this.font.split(Component.translatable("finder.riverfishing.unsounded"), VIEW_W - 20)) {
+                g.drawString(this.font, seq, x0 + 10, ty, 0xFFFFFFFF, true);
+                ty += 11;
+            }
+        }
     }
 
     /** The one control on the face: which of the two views it is showing. */
@@ -463,6 +530,14 @@ public class FinderScreen extends Screen {
                         x, y, 0xFFB05A00, false);
                 y += 12;
             }
+            // §bed-bite: the bottom here, and whether this fish would rather it were something else.
+            float bf = t.contains("bf") ? t.getFloat("bf") : 1f;
+            Component bedName = Component.translatable("bed.riverfishing." + bedKey(water().getByte("bed")));
+            String bedKeyLine = bf > 1.02f ? "finder.riverfishing.bed_likes"
+                    : bf < 0.98f ? "finder.riverfishing.bed_dislikes" : "finder.riverfishing.bed_neutral";
+            g.drawString(this.font, Component.translatable(bedKeyLine, bedName), x, y,
+                    bf > 1.02f ? 0xFF2E7D32 : bf < 0.98f ? 0xFF9A4A3C : GuiStyle.TEXT_HINT, false);
+            y += 12;
         } else {
             // The one thing this tool can say that nothing else does.
             y += 4;

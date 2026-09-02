@@ -206,7 +206,9 @@ public final class BiteEngine {
         double fWeather = p.weatherFactor(c.weather);
         double fDist = distanceFactor(p, c);
 
-        return fWater * fSeason * fTime * fWeather * Math.pow(fBiome, BIOME_POW) * fDist * fCommunity;
+        // §bed-bite: the bottom under the cast, a nudge of 0.85..1.2 — see FishProfile.bedFactor.
+        double fBed = p.bedFactor(c.bed);
+        return fWater * fSeason * fTime * fWeather * Math.pow(fBiome, BIOME_POW) * fDist * fCommunity * fBed;
     }
 
     /**
