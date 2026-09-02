@@ -36,6 +36,11 @@ public class WaterProbeItem extends Item {
         this.admin = admin;
     }
 
+    /** The creative-only hydro probe dumps diagnostics; the player's finder draws a screen. */
+    public boolean admin() {
+        return admin;
+    }
+
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
@@ -85,7 +90,17 @@ public class WaterProbeItem extends Item {
                 sp.sendSystemMessage(Component.translatable("message.riverfishing.no_water")
                         .withStyle(ChatFormatting.RED));
             } else {
-                FishingManager.analyzeWater(sp, sl, waterPos, admin);
+                // §finder-screen: the admin probe keeps its chat dump — it is a diagnostic, and its
+                // caller is reading a log. The player-facing finder opens the screen instead.
+                if (admin) {
+                    FishingManager.analyzeWater(sp, sl, waterPos, true);
+                } else {
+                    com.riverfishing.network.ModNetwork.toPlayer(sp, new com.riverfishing.network.FinderPacket(
+                            FishingManager.finderPayload(sp, sl, waterPos), false));
+                    sl.playSound(null, sp.blockPosition(),
+                            net.minecraft.sounds.SoundEvents.NOTE_BLOCK_BIT.value(),
+                            net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1.5f);
+                }
                 player.getCooldowns().addCooldown(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(this), 10);
             }
         }
