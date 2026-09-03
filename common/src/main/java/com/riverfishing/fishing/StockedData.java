@@ -94,12 +94,14 @@ public final class StockedData extends SavedData {
         CompoundTag t = entry(region, species);
         String side = sex == 1 || (sex < 0 && t.getIntOr("M", 0) < t.getIntOr("F", 0)) ? "M" : "F";
         t.putInt(side, t.getIntOr(side, 0) + 1);
+        tally(t, genome);   // §h
         stamp(t, day, genome, owner);
     }
 
     public void addFry(long region, String species, int count, long day, String genome, java.util.UUID owner) {
         CompoundTag t = entry(region, species);
         t.putInt("Fry", t.getIntOr("Fry", 0) + Math.max(0, count));
+        tally(t, genome);   // §h: a fry stack is one spawn's worth — two alleles, like one fish
         stamp(t, day, genome, owner);
     }
 
@@ -161,10 +163,59 @@ public final class StockedData extends SavedData {
         return best;
     }
 
-    /** The population's genome — the last brood or fry released; "" when nobody stocked it. */
+    // ---- §h §breeding (0.9.0): the population's genome is an AVERAGE, not the last writer -----------
+    // Dom0..Dom3 count the strong alleles per locus (S C V F) over every brood fish and fry stack ever
+    // recorded, Tot the alleles counted (two each). They live in the entry compound so save/load carry
+    // them for free, and tickSettle leaves them: a settled water remembers what it was stocked with.
+    private static void tally(CompoundTag t, String genome) {
+        if (genome == null || genome.isEmpty()) return;
+        for (int i = 0; i < com.riverfishing.fish.Genome.LOCI.length(); i++) {
+            char l = com.riverfishing.fish.Genome.LOCI.charAt(i);
+            int dom = !com.riverfishing.fish.Genome.dominant(genome, l) ? 0
+                    : com.riverfishing.fish.Genome.pure(genome, l) ? 2 : 1;
+            t.putInt("Dom" + i, t.getIntOr("Dom" + i, 0) + dom);
+        }
+        t.putInt("Tot", t.getIntOr("Tot", 0) + 2);
+    }
+
+    /** Share of strong alleles per locus (S C V F), 0..1; all 0 where nothing was ever recorded. */
+    public double[] shares(long region, String species) {
+        CompoundTag t = brood.get(key(region, species));
+        double[] out = new double[4];
+        int tot = t == null ? 0 : t.getIntOr("Tot", 0);
+        if (tot > 0) for (int i = 0; i < 4; i++) out[i] = t.getIntOr("Dom" + i, 0) / (double) tot;
+        return out;
+    }
+
+    /**
+     * The population's genome, averaged: a locus is SS at a strong-allele share of 2/3 or more, Ss at
+     * 1/3, ss below. "" when nobody stocked it; a ledger from before the tally (Tot 0) still answers
+     * with the last genome it wrote, so old worlds keep their string.
+     */
     public String genome(long region, String species) {
         CompoundTag t = brood.get(key(region, species));
-        return t == null ? "" : t.getStringOr("Genome", "");
+        if (t == null) return "";
+        if (t.getIntOr("Tot", 0) <= 0) return t.getStringOr("Genome", "");
+        double[] s = shares(region, species);
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < 4; i++) {
+            char u = com.riverfishing.fish.Genome.LOCI.charAt(i), l = Character.toLowerCase(u);
+            if (i > 0) out.append(' ');
+            out.append(s[i] >= 0.66 ? u : l).append(s[i] >= 0.33 ? u : l);
+        }
+        return out.toString();
+    }
+
+    /** Every species with a genome in a region, species → string: what the journal shows for "here". */
+    public CompoundTag genomes(long region) {
+        CompoundTag out = new CompoundTag();
+        String prefix = region + "|";
+        for (String k : brood.keySet()) {
+            if (!k.startsWith(prefix)) continue;
+            String g = genome(region, k.substring(prefix.length()));
+            if (!g.isEmpty()) out.putString(k.substring(prefix.length()), g);
+        }
+        return out;
     }
 
     /** Who stocked this water, or null: natives and seed communities have no owner. */

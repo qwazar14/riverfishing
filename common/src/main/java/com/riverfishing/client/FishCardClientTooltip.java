@@ -116,7 +116,8 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         int n = t.getIntOr("N", 0);
         row("contract.fish", Component.translatable("fish.riverfishing." + sp), AQUA);
         row("contract.count", Component.literal(String.valueOf(n)), WHITE);
-        row("contract.from", Component.literal(ContractItem.grams(t.getIntOr("W", 0))), WHITE);
+        boolean fry = ContractItem.isFry(t);   // §e: no size bar and no terms on a fry order
+        if (!fry) row("contract.from", Component.literal(ContractItem.grams(t.getIntOr("W", 0))), WHITE);
         // Every term on its own line, labelled — the whole point of the card: nothing folded away.
         if (!t.getStringOr("Water", "").isEmpty()) row("water", Component.translatable("water.riverfishing." + t.getStringOr("Water", "")), BLUE);
         if (!t.getStringOr("Rod", "").isEmpty()) row("rod", key("rod." + t.getStringOr("Rod", "")), GREEN);
@@ -124,8 +125,9 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         if (!t.getStringOr("Time", "").isEmpty()) row("time", Component.translatable("time.riverfishing." + t.getStringOr("Time", "")), WHITE);
         rule();
         int have = mc.player == null ? 0
+                : fry ? com.riverfishing.fishing.Contracts.fryHeld(mc.player.getInventory(), sp)   // §e
                 : com.riverfishing.fishing.Contracts.held(mc.player.getInventory(), sp, t.getIntOr("W", 0), t).size();
-        row("contract.bag", Component.literal(have + " / " + n), have >= n ? GREEN : YELLOW);
+        row(fry ? "contract.bag_fry" : "contract.bag", Component.literal(have + " / " + n), have >= n ? GREEN : YELLOW);
         row("contract.pays", key("contract.pays_value", t.getIntOr("Em", 0), t.getIntOr("Xp", 0), t.getIntOr("Rep", 0)), GREEN);
         row("contract.days", expired ? key("contract.expired") : Component.literal(String.valueOf(daysLeft)),
                 expired ? RED : daysLeft <= 1 ? ORANGE : GOLD);

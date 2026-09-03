@@ -1475,6 +1475,8 @@ public class JournalScreen extends Screen {
         }
         y = Math.max(y, railY + 4);
         if (c.present()) {
+            String pop = data.getCompoundOrEmpty("pop").getStringOr(sp, "");   // §h: the population where the player stands
+            if (!pop.isEmpty()) y = line(g, y, "journal.riverfishing.pop_here", pop);
             y = line(g, y, "guide.riverfishing.water", waters(c));
             y = line(g, y, "guide.riverfishing.bait", baits(c));
             y = line(g, y, "guide.riverfishing.tackle", tackle(c));

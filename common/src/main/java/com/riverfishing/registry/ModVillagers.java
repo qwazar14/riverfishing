@@ -239,6 +239,7 @@ public final class ModVillagers {
         if (!villager.getVillagerData().profession().is(FISHERMAN.getKey())) return;
         MerchantOffers offers = villager.getOffers();
         orderSlot(villager, level, offers);
+        frySlot(villager, level, offers);   // §e
         trustedSlots(villager, player, offers);
         var market = com.riverfishing.fishing.MarketData.get(level);
         for (MerchantOffer offer : offers) {
@@ -290,6 +291,40 @@ public final class ModVillagers {
             offers.add(new MerchantOffer(new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.EMERALD, (int) row[2]),
                     new net.minecraft.world.item.ItemStack(it), 12, 20, 0.05f));
         }
+    }
+
+    /**
+     * §e §breeding: a bucket of fry of today's order species, beside the order seat. The seat is found
+     * again by its RESULT item, never by position, so a level-up appending behind it changes nothing;
+     * it is kept while it still names today's species (its uses are the daily limit) and replaced when
+     * the order moves on. A stall too junior for today's species sells no fry, and yesterday's go too.
+     */
+    private static final int FRY_EMERALDS = 8, FRY_PER_BUCKET = 10;
+
+    private static void frySlot(Villager villager, ServerLevel level, MerchantOffers offers) {
+        String order = com.riverfishing.fishing.MarketData.orderOfTheDay(level);
+        boolean sells = baseEmeralds(order) > 0 && buyTier(order) <= villager.getVillagerData().level();
+        for (int i = offers.size() - 1; i >= 0; i--) {
+            ItemStack r = offers.get(i).getResult();
+            if (!(r.getItem() instanceof com.riverfishing.item.FryItem)) continue;
+            if (sells && RiverFishing.id(order).equals(com.riverfishing.item.FryItem.species(r))) return;
+            offers.remove(i);
+        }
+        if (!sells) return;
+        ItemStack fry = com.riverfishing.item.FryItem.of(RiverFishing.id(order), randomGenome(villager.getRandom()), FRY_PER_BUCKET);
+        offers.add(new MerchantOffer(new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.EMERALD, FRY_EMERALDS), fry, 8, 6, 0.05f));
+    }
+
+    /** "Ss Cc Vv Ff"-style: every allele a coin, the strong one written first — shop fry are ordinary fry. */
+    private static String randomGenome(net.minecraft.util.RandomSource rng) {
+        StringBuilder g = new StringBuilder();
+        for (char L : com.riverfishing.fish.Genome.LOCI.toCharArray()) {
+            char l = Character.toLowerCase(L);
+            int caps = (rng.nextBoolean() ? 1 : 0) + (rng.nextBoolean() ? 1 : 0);
+            if (g.length() > 0) g.append(' ');
+            g.append(caps > 0 ? L : l).append(caps > 1 ? L : l);
+        }
+        return g.toString();
     }
 
     /** §contracts-b1: this fisherman's three posts, for the player who just opened his counter. */

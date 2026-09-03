@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [ "ppp", "php", "ppp" ],
+  "key": {
+    "p": "#minecraft:planks",
+    "h": "minecraft:hopper"
+  },
+  "result": { "id": "riverfishing:feeding_station" }
+}

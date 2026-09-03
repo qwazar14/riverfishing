@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [ "ls", "sl" ],
+  "key": {
+    "l": "#minecraft:logs",
+    "s": "minecraft:stick"
+  },
+  "result": { "id": "riverfishing:snag_pile" }
+}

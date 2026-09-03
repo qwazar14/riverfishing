@@ -57,6 +57,7 @@ public final class ContractBoardState {
     private static List<FormattedCharSequence> lines(CompoundTag t) {
         var font = Minecraft.getInstance().font;
         List<FormattedCharSequence> out = new ArrayList<>();
+        if (ContractItem.isFry(t)) return out;   // §e: a fry post is its head line and its foot
         out.addAll(font.split(Component.literal(ContractItem.grams(t.getIntOr("W", 0))), TEXT_W));
         for (Component c : ContractItem.terms(t)) out.addAll(font.split(c, TEXT_W));
         return out;

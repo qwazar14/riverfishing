@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:copper_block",
+    "minecraft:blaze_powder",
+    "minecraft:bucket"
+  ],
+  "result": { "id": "riverfishing:warm_outflow" }
+}
