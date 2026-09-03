@@ -83,6 +83,28 @@ public final class ModVillagers {
                     SoundEvents.VILLAGER_WORK_FISHERMAN,
                     tradeSets()));
 
+    // §i §breeding (0.9.0): the warden — the profession fishing/Warden looks for within reach of a
+    // poached haul. His post is a plain block; his trades are a datapack here (trade_set/warden/*),
+    // registered by the integrator — an empty map until then, which is a villager with no counter.
+    public static final RegistrySupplier<PoiType> WARDEN_POI = POI_TYPES.register("warden",
+            () -> new PoiType(Set.copyOf(ModBlocks.WARDEN_POST.get().getStateDefinition().getPossibleStates()), 1, 1));
+
+    public static final RegistrySupplier<VillagerProfession> WARDEN = PROFESSIONS.register("warden",
+            () -> new VillagerProfession(
+                    Component.translatable("entity.minecraft.villager.riverfishing.warden"),
+                    holder -> holder.is(WARDEN_POI.getKey()),
+                    holder -> holder.is(WARDEN_POI.getKey()),
+                    ImmutableSet.of(), ImmutableSet.of(),
+                    SoundEvents.VILLAGER_WORK_FISHERMAN,
+                    wardenTradeSets()));
+
+    /** §26.1: the warden's one shelf — he buys nets — is a datapack trade set like the fisherman's. */
+    private static Int2ObjectMap<ResourceKey<TradeSet>> wardenTradeSets() {
+        Int2ObjectMap<ResourceKey<TradeSet>> m = new Int2ObjectOpenHashMap<>();
+        m.put(1, ResourceKey.create(Registries.TRADE_SET, RiverFishing.id("warden/level_1")));
+        return m;
+    }
+
     /**
      * §order-tier: which fisherman level buys each species. The order-of-the-day board prints it — the
      * standing complaint that an order can name a fish the player's own fisherman will not take is, at
@@ -316,7 +338,7 @@ public final class ModVillagers {
     }
 
     /** "Ss Cc Vv Ff"-style: every allele a coin, the strong one written first — shop fry are ordinary fry. */
-    private static String randomGenome(net.minecraft.util.RandomSource rng) {
+    public static String randomGenome(net.minecraft.util.RandomSource rng) {   // §i: the warden's fry too
         StringBuilder g = new StringBuilder();
         for (char L : com.riverfishing.fish.Genome.LOCI.toCharArray()) {
             char l = Character.toLowerCase(L);
@@ -333,9 +355,13 @@ public final class ModVillagers {
         net.minecraft.nbt.CompoundTag t = new net.minecraft.nbt.CompoundTag();
         t.putInt("vid", villager.getId());
         t.putInt("rep", com.riverfishing.fishing.Contracts.rep(player));
+        // §i: a poacher's board is blank — the flag tells the client why, the empty list tells it what.
+        boolean banned = com.riverfishing.fishing.Warden.banned(sp);
+        t.putBoolean("banned", banned);
         net.minecraft.nbt.ListTag posts = new net.minecraft.nbt.ListTag();
         net.minecraft.nbt.CompoundTag ledger = com.riverfishing.fishing.Contracts.ledger(sp, level);   // §board-taken
-        for (net.minecraft.nbt.CompoundTag post : com.riverfishing.fishing.Contracts.posts(villager, level)) {
+        for (net.minecraft.nbt.CompoundTag post : banned ? java.util.List.<net.minecraft.nbt.CompoundTag>of()   // §i
+                : com.riverfishing.fishing.Contracts.posts(villager, level)) {
             post.putBoolean("taken", com.riverfishing.fishing.Contracts.taken(sp, ledger, post.getStringOr("Id", "")));
             posts.add(post);
         }

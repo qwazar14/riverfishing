@@ -133,6 +133,10 @@ public final class ModItems {
     public static final RegistrySupplier<Item> FRY = reg("fry", () -> new com.riverfishing.item.FryItem(props("fry")));
     public static final RegistrySupplier<Item> SEINE_NET = reg("seine_net", () -> new com.riverfishing.item.SeineNetItem(props("seine_net")));
     public static final RegistrySupplier<Item> CAST_NET = reg("cast_net", () -> new com.riverfishing.item.CastNetItem(props("cast_net")));
+    // §j (0.9.0): what small fish and oily fish become. Meal is bone meal on a crop and protein in the
+    // groundbait bowl; oil is scent in the bowl and nothing else. Both are pantry entries in GroundbaitMix.
+    public static final RegistrySupplier<Item> FISH_MEAL = reg("fish_meal", () -> new com.riverfishing.item.FishMealItem(props("fish_meal")));
+    public static final RegistrySupplier<Item> FISH_OIL = reg("fish_oil", () -> new com.riverfishing.item.FishOilItem(props("fish_oil")));
 
     private static RegistrySupplier<Item> reg(String name, Supplier<Item> supplier) {
         RegistrySupplier<Item> obj = REGISTER.register(name, supplier);

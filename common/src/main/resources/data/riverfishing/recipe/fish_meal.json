@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "#riverfishing:small_fish",
+    "#riverfishing:small_fish",
+    "#riverfishing:small_fish"
+  ],
+  "result": { "id": "riverfishing:fish_meal", "count": 2 }
+}

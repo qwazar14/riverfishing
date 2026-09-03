@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [ "pgp", "psp", "p p" ],
+  "key": {
+    "p": "#minecraft:planks",
+    "g": "minecraft:green_dye",
+    "s": "#minecraft:signs"
+  },
+  "result": { "id": "riverfishing:warden_post" }
+}

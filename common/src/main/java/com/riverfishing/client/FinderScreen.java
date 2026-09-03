@@ -515,6 +515,28 @@ public class FinderScreen extends Screen {
         for (String k : water().getStringOr("eco", "").split(";")) {
             if (!k.isEmpty()) out.add(new Row(null, false, Component.translatable("ecosystem.riverfishing." + k)));
         }
+        // §k §farm: the ledger for this water — one line a species, then what stands on the bank.
+        CompoundTag farm = data.getCompoundOrEmpty("farm");
+        if (!farm.isEmpty()) {
+            out.add(new Row(null, false, Component.translatable("finder.riverfishing.farm")));
+            for (String s : farm.keySet()) {
+                CompoundTag f = farm.getCompoundOrEmpty(s);
+                String line = Component.translatable(f.getBooleanOr("settled", false) ? "finder.riverfishing.farm_row" : "finder.riverfishing.farm_row_new",
+                        fishName(s), f.getIntOr("stock", 0), f.getIntOr("f", 0), f.getIntOr("m", 0), f.getIntOr("fry", 0),
+                        f.getStringOr("genome", ""), Math.max(0, f.getIntOr("grow", 0))).getString();
+                out.add(new Row(null, false, Component.literal(this.font.plainSubstrByWidth(line, LIST_W))));
+            }
+            String up = data.getStringOr("upgrades", "");
+            if (!up.isEmpty()) {
+                List<String> names = new ArrayList<>();
+                for (String k : up.split(";")) {
+                    String block = k.equals("snags") ? "snag_pile" : k.equals("gravel") ? "gravel_bed" : k;
+                    names.add(Component.translatable("block.riverfishing." + block).getString());
+                }
+                String line = Component.translatable("finder.riverfishing.farm_upgrades", String.join(", ", names)).getString();
+                out.add(new Row(null, false, Component.literal(this.font.plainSubstrByWidth(line, LIST_W))));
+            }
+        }
         out.add(new Row(null, false, Component.translatable("finder.riverfishing.biting", here.size())));
         for (CompoundTag t : here) out.add(new Row(t.getStringOr("sp", ""), false, null));
         if (!gone.isEmpty()) {
