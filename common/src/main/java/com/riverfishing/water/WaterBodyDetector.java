@@ -47,7 +47,8 @@ public final class WaterBodyDetector {
 
         Holder<Biome> biome = level.getBiome(start);
         boolean river = biome.is(BiomeTags.IS_RIVER);
-        boolean ocean = biome.is(BiomeTags.IS_OCEAN) || biome.is(BiomeTags.IS_DEEP_OCEAN);
+        boolean ocean = biome.is(BiomeTags.IS_OCEAN) || biome.is(BiomeTags.IS_DEEP_OCEAN)
+                || biome.is(ModBiomeTags.IS_SALTWATER);   // §modded-biomes: a modded sea is a sea
         boolean swamp = biome.is(ModBiomeTags.IS_SWAMP);
 
         double width = measureWidth(level, start);

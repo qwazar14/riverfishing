@@ -34,7 +34,10 @@ public final class RiverFishingFabric implements ModInitializer {
         // §cherry-pond: koi live only in cherry groves and vanilla digs no lakes there, so there was nowhere to
         // catch one. Forge/NeoForge add the pond through a biome_modifier JSON; Fabric has no data-driven
         // equivalent, so the same placed feature is attached here.
-        BiomeModifications.addFeature(BiomeSelectors.includeByKey(Biomes.CHERRY_GROVE), GenerationStep.Decoration.LAKES,
+        // §modded-biomes: a sakura grove is a cherry grove, and the koi do not read release notes.
+        BiomeModifications.addFeature(
+                BiomeSelectors.tag(com.riverfishing.water.ModBiomeTags.IS_CHERRY),
+                GenerationStep.Decoration.LAKES,
                 ResourceKey.create(Registries.PLACED_FEATURE, RiverFishing.id("cherry_pond")));
     }
 }
