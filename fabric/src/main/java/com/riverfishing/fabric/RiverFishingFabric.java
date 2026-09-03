@@ -24,7 +24,5 @@ public final class RiverFishingFabric implements ModInitializer {
         Holder<PoiType> poi = BuiltInRegistries.POINT_OF_INTEREST_TYPE.getHolderOrThrow(ModVillagers.FISHERMAN_POI.getKey());
         PoiTypesInvoker.riverfishing$registerBlockStates(poi, poi.value().matchingStates());
         // §i: the warden's post, the same way.
-        Holder<PoiType> wardenPoi = BuiltInRegistries.POINT_OF_INTEREST_TYPE.getHolderOrThrow(ModVillagers.WARDEN_POI.getKey());
-        PoiTypesInvoker.riverfishing$registerBlockStates(wardenPoi, wardenPoi.value().matchingStates());
     }
 }

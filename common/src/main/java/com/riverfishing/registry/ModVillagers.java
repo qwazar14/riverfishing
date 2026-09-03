@@ -72,16 +72,7 @@ public final class ModVillagers {
 
     // §i §breeding (0.9.0): the warden — the profession fishing/Warden looks for within reach of a
     // poached haul. His post is a plain block; his two trades are built beside the hook (Warden.trades)
-    // and registered below, after the fisherman's table.
-    public static final RegistrySupplier<PoiType> WARDEN_POI = POI_TYPES.register("warden",
-            () -> new PoiType(Set.copyOf(ModBlocks.WARDEN_POST.get().getStateDefinition().getPossibleStates()), 1, 1));
 
-    public static final RegistrySupplier<VillagerProfession> WARDEN = PROFESSIONS.register("warden",
-            () -> new VillagerProfession("river_warden",
-                    holder -> holder.is(WARDEN_POI.getKey()),
-                    holder -> holder.is(WARDEN_POI.getKey()),
-                    ImmutableSet.of(), ImmutableSet.of(),
-                    SoundEvents.VILLAGER_WORK_FISHERMAN));
 
     /**
      * §order-tier: which fisherman level buys each species, recorded as the trades are built so it cannot
@@ -353,7 +344,6 @@ public final class ModVillagers {
 
         pool = t;
         com.riverfishing.platform.VillagerTradeRegistry.register(FISHERMAN, t);
-        com.riverfishing.platform.VillagerTradeRegistry.register(WARDEN, com.riverfishing.fishing.Warden.trades());   // §i
     }
 
     /**

@@ -71,10 +71,7 @@ public final class ModBlocks {
             () -> new com.riverfishing.block.WaterUpgradeBlock("feeding_station", "feeding_station", false,
                     BlockBehaviour.Properties.of().strength(1.0f).sound(SoundType.WOOD)));
 
-    // §i §breeding (0.9.0): the warden's booth — his job site (ModVillagers.WARDEN_POI) and nothing
-    // else, so a plain Block is the whole class.
-    public static final RegistrySupplier<Block> WARDEN_POST = registerSimple("warden_post",
-            () -> new Block(BlockBehaviour.Properties.of().strength(2.0f).sound(SoundType.WOOD)));
+
 
     // Trophy stand (§15.5) — mounts a caught fish.
     public static final RegistrySupplier<Block> TROPHY_STAND = registerSimple("trophy_stand",
