@@ -49,7 +49,8 @@
       "livebait": 1.1,
       "silicone": 0.9,
       "maggot": 0.9,
-      "jig": 0.8
+      "jig": 0.8,
+      "wacky_worm": 1.0
     },
     "hook": {
       "ideal": 8,

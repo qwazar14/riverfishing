@@ -48,7 +48,9 @@
       "popper": 1.0,
       "wobbler": 0.95,
       "jig": 0.85,
-      "worm": 0.6
+      "worm": 0.6,
+      "spinnerbait": 1.0,
+      "swimbait": 0.95
     },
     "hook": {
       "ideal": 2,

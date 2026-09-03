@@ -265,6 +265,12 @@ public final class ModItems {
         // §trolling-lures (0.7.0): heavy skirted jig and big trolling spoon.
         registerBait("octopus_jig", true);
         registerBait("giant_spoon", true);
+        // §more-lures-2 (0.9.0): the four shapes the predator box was still missing — a
+        // wire-armed spinnerbait, a vibrating blade, a paddle-tail swimbait and a wacky worm.
+        registerBait("spinnerbait", true);
+        registerBait("bladebait", true);
+        registerBait("swimbait", true);
+        registerBait("wacky_worm", true);
 
         // ----- Groundbait -----
         // §groundbait-one-jar: ONE. Grain, pellet and oil cake are gone, and so is the separate base —

@@ -53,7 +53,10 @@
       "wobbler": 0.9,
       "spinner": 0.8,
       "crankbait": 0.75,
-      "castmaster": 0.7
+      "castmaster": 0.7,
+      "spinnerbait": 0.7,
+      "bladebait": 0.6,
+      "wacky_worm": 0.6
     },
     "hook": {
       "ideal": 8,
