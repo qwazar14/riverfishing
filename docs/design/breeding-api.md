@@ -410,3 +410,81 @@ the owner's own seine is poaching. The line the simulation could not see is draw
   payload (`water.owner`) name the owner. Lang in `tools/patches/lang_pond.json`; the seams are
   `tools/patches/p_pond.py` (BiteContext, BiteEngine, FishingManager, NetItem — StockedData needed
   nothing).
+
+---
+
+# Layer 6: a pond that actually grows — head count, fry maturing, fish growing, the debt
+
+Four streams (L, M, N, O) again on the layer-2 rule: existing files that more than one stream touches
+go through idempotent patch scripts `tools/patches/p_<l|m|n|o>.py` developed on scratch copies; new
+files land directly; lang to `tools/patches/lang_<stream>.json` (en/ru/uk, identical key sets).
+
+The complaints this answers, from play:
+- a private pond looked identical after 100 days: the head count never moved and the fry number
+  never changed;
+- fish never grow — the weight is rolled from the profile at the bite, so a pond is a fish vending
+  machine, not a farm;
+- the fry trap pulled fry out of a *neighbouring* pond because the ledger is keyed by a ~128-block
+  region, not by the water body;
+- reputation only ever falls, and nothing says how far under you are or what it takes to work off.
+
+## Stream L — the head count and fry maturing (`fishing/StockedData`)
+
+The ledger entry gains `Adults` (int) and `AvgW` (int grams, the pond's average specimen) beside the
+existing F/M/Fry/Dom/Tot/Pos/LastGrow.
+- `addBrood` also `Adults += 1`; `addFry` keeps `Fry`.
+- **Maturing**: every time the species' spawn window CLOSES (the same `sinceClose` clock `growIfDue`
+  uses, but per WINDOW, not per year — see stream M), half the fry become adults, split ♀/♂ evenly
+  into F/M, the rest are lost: `mature = Fry/2; Fry = 0; F += mature/2; M += mature - mature/2;
+  Adults += mature`. That is what makes "thirty fry" turn into a stock you can see.
+- `adults(region, species)`, `avgWeight(region, species)` accessors; `takeAdult(region, species)` used
+  when a fish is landed or netted out of a settled water (decrement Adults, and F or M by turns).
+- `stockPercent` stays as it is (pressure-driven); the head count is a SECOND number, reported by the
+  finder's farm ledger and the release checklist ("♀ 4 · ♂ 3 · fry 12 · adults 7").
+
+## Stream M — growth per season, not per year (`StockedData.growIfDue`, `Ecosystem`)
+
+- The clock becomes per spawn window of the species — a window closes once a year, so instead the
+  growth tick fires every SEASON (24 days): `seasonsSince(LastGrow)`, capped at 4.
+- Per season: `Adults += round(pairs × (1 + 0.5·shareF) × (1 + Ecosystem.frySurvival) )` (min 1 when
+  pairs ≥ 1), and the same units into `FishingPressureData.addStock` as today so the bite still sees
+  it. A pond with one pair grows one to two fish a season; a pond with five pairs, five to ten.
+- **AvgW grows**: each season `AvgW = min(p.weightMax × 0.9, AvgW + round(p.weightMean × 0.06 × (1 +
+  0.5·shareS) × food))`, where `food` is 1.0 normally and 1.25 when a feeding_station module is in
+  reach (`WaterUpgrades.at`); `AvgW` starts at the average weight of the released brood (set in
+  `addBrood`: running mean). Overcrowding: when `Adults > 8 × pairs`, growth halves — a stocked pond
+  needs thinning.
+- The message stays `pond_grew` but names the head count and the average weight.
+
+## Stream N — the pond decides the fish you catch (`FishingManager.rollFish`, the trap's water)
+
+- In a water where the species is settled and the ledger has `AvgW > 0`, the weight roll is centred on
+  the pond's own average instead of the profile's mean: keep the profile's spread but scale it —
+  `weight = clamp(AvgW × (0.6 + 0.8·biased), p.weightMin, p.weightMax)` (read `rollFish`; apply after
+  the existing bias and before the livebait/luck floors so those still work).
+- Landing or netting a fish out of a settled water calls `StockedData.takeAdult` (one fish out is one
+  fish fewer), and when `Adults` hits 0 the species stops biting there until it grows back — the
+  existing surplus/pressure machinery already thins the bite, so just make `stockedPresence` read
+  `adults == 0` as "empty" for a settled species.
+- **The fry trap** must take fry from the SAME WATER BODY, not the region: `BaitTrapBlockEntity.netFry`
+  currently uses `StockedData.region(waterPos)`; gate it on `PondData` — if the trap's water is a
+  claimed pond, only that pond's species/fry may come up (the ledger is per region, so also require
+  that the pond's owner released them: compare `StockedData.owner(region, species)` with
+  `PondData.owner(level, waterPos)`), and if the trap's water is NOT claimed, refuse fry from a
+  species whose ledger owner has a claimed pond in that region. Simplest correct rule: the trap yields
+  fry only when `PondData.isClaimed(trapWater) == PondData.isClaimed(ledger's Pos)` AND both resolve to
+  the same claim (or both unclaimed) — implement with a `PondData.sameWater(level, a, b)` helper.
+
+## Stream O — the debt to the fishermen (`fishing/Warden`, the board, the finder)
+
+- Reputation is one number (`contract_rep`, may go negative now — remove the clamp at 0 in NetItem).
+  Poaching: −5 as today. Working it off: **kilograms of mature fish released into wild water**
+  (not into your own pond — that is stock, not restitution): `Warden.credit(sp, grams)` called from
+  `releaseFish` when the water is NOT a claimed pond and the fish is mature; every 5 kg = +1
+  reputation, remainder kept in `rep_grams`.
+- The contract board shows the standing: when `rep < 0`, the caption is "Debt to the fishermen: N ·
+  release M kg of fish into wild water" (M = grams still needed for the next point, plus points to
+  zero). `Contracts.banned` becomes `rep <= -15` instead of the poach count (keep `poach_count` as a
+  record for the guide page); at `rep < 0` the trusted shelf is closed too.
+- The finder's water-sample view gets one line: your reputation and, when negative, the debt.
+- Lang for all of it, three languages.

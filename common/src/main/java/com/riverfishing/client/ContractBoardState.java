@@ -90,7 +90,16 @@ public final class ContractBoardState {
         int x = o[0], y = o[1];
         ListTag list = board.getListOrEmpty("posts");
         posts = new int[list.size()][];
-        int total = HEAD + 4;
+        // §o: in the red the caption IS the standing — the points owed, the kilograms to the next
+        // one and the kilograms that clear it. It wraps, so the head grows with it.
+        int rep = board.getIntOr("rep", 0), repGrams = board.getIntOr("rep_grams", 0);
+        List<FormattedCharSequence> caption = font.split(rep < 0
+                ? Component.translatable("screen.riverfishing.contract_board.debt", -rep,
+                        com.riverfishing.fishing.Warden.kg(com.riverfishing.fishing.Warden.toNextPoint(repGrams)),
+                        com.riverfishing.fishing.Warden.kg(com.riverfishing.fishing.Warden.toClear(rep, repGrams)))
+                : Component.translatable("screen.riverfishing.contract_board.rep", rep), W - 10);
+        int head = HEAD + LINE * (caption.size() - 1);
+        int total = head + 4;
         // §i: a poacher's board carries no posts — only the reason. The server sent an empty list with it.
         List<FormattedCharSequence> banned = board.getBooleanOr("banned", false)
                 ? font.split(Component.translatable("screen.riverfishing.contract_board.banned"), W - 10)
@@ -107,10 +116,11 @@ public final class ContractBoardState {
         g.fill(x - 1, y - 1, x + W + 1, y + total + 1, EDGE);
         g.fill(x, y, x + W, y + total, PAPER);
         g.text(font, Component.translatable("screen.riverfishing.contract_board.title"), x + 5, y + 5, INK, false);
-        g.text(font, Component.translatable("screen.riverfishing.contract_board.rep", board.getIntOr("rep", 0)),
-                x + 5, y + 15, INK2, false);
+        for (int i = 0; i < caption.size(); i++) {   // §o: one line, three when it is a debt
+            g.text(font, caption.get(i), x + 5, y + 15 + LINE * i, rep < 0 ? INK : INK2, false);
+        }
         for (int i = 0; i < banned.size(); i++) {   // §i
-            g.text(font, banned.get(i), x + 5, y + HEAD + 4 + LINE * i, INK, false);
+            g.text(font, banned.get(i), x + 5, y + head + 4 + LINE * i, INK, false);
         }
 
         for (int i = 0; i < list.size(); i++) {

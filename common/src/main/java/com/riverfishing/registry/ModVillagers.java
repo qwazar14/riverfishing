@@ -341,6 +341,7 @@ public final class ModVillagers {
         // §i: a poacher's board is blank — the flag tells the client why, the empty list tells it what.
         boolean banned = com.riverfishing.fishing.Warden.banned(sp);
         t.putBoolean("banned", banned);
+        t.putInt("rep_grams", com.riverfishing.fishing.Warden.repGrams(player));   // §o: what the debt costs, in kilograms
         net.minecraft.nbt.ListTag posts = new net.minecraft.nbt.ListTag();
         net.minecraft.nbt.CompoundTag ledger = com.riverfishing.fishing.Contracts.ledger(sp, level);   // §board-taken
         for (net.minecraft.nbt.CompoundTag post : banned ? java.util.List.<net.minecraft.nbt.CompoundTag>of()   // §i

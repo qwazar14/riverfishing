@@ -130,6 +130,10 @@ public abstract class NetItem extends Item {
             int weightG = rollWeight(p, rng);
             ItemStack fish = FishItem.create(ModItems.fishItem(p.id), p.id, weightG, lengthCm(p, weightG, rng), true);
             pressure.addCatch(chunk, p.id.getPath(), now);
+            // §n §breeding: out of a settled water, a netted fish costs a head like a landed one.
+            if (stocked.isStocked(region, p.id.getPath()) && stocked.adults(region, p.id.getPath()) > 0) {
+                stocked.takeAdult(region, p.id.getPath());
+            }
 
             // POACHING: a net is legal only in water YOU stocked. A native species is in nobody's book
             // (owner null) — nobody stocked it, so nobody may net it. The haul still happens: this is
@@ -154,9 +158,9 @@ public abstract class NetItem extends Item {
         if (poached > 0) {
             // Every fisherman within earshot "saw" it: the trust the contracts run on drops, once per
             // haul — a net is one act, however many fish came up in it.
-            CompoundTag root = PlayerData.root(sp);
-            root.putInt("contract_rep", Math.max(0, root.getIntOr("contract_rep", 0) - 5));
-            PlayerData.markDirty(sp);
+            // §o: the reputation hit lives in Warden.onPoach now, beside the record it belongs to,
+            // and it lost its clamp at zero. Reputation goes NEGATIVE: the board stops showing a
+            // number and starts showing a debt, in kilograms of fish owed back to wild water.
             if (pondOwner != null) {   // §pond: name whose pond it was
                 sp.sendSystemMessage(Component.translatable("message.riverfishing.pond_not_yours",
                         com.riverfishing.fishing.PondData.ownerName(level, pos)).withStyle(ChatFormatting.RED));

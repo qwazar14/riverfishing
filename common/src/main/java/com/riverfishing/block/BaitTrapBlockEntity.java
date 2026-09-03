@@ -138,16 +138,49 @@ public class BaitTrapBlockEntity extends BlockEntity {
         return com.riverfishing.item.FishItem.create(item.get(), pick.id, w, Math.max(1, len), true);
     }
 
-    /** §c: up to 10 fry of whichever brood has the most in this region, off the ledger, with the population genome. */
-    private ItemStack netFry(ServerLevel server) {
+    /**
+     * §c: up to 10 fry of whichever brood has the most fry here, off the ledger, with the population genome.
+     *
+     * <p>§n §breeding: "here" is the trap's own WATER, not its region. The ledger is keyed by a ~128-block
+     * region, so the richest fry in it could be the neighbour's — which is exactly what players saw: a trap
+     * in one pond coming up with the fry someone stocked in the pond next door. A brood may only be lifted
+     * when its release spot and the trap sit in the same claim (or both in wild water).
+     */
+    private ItemStack netFry(ServerLevel server, Player player) {
         BlockPos waterPos = waterAt(server);
         if (waterPos == null) return ItemStack.EMPTY;
         var stocked = com.riverfishing.fishing.StockedData.get(server);
         long region = com.riverfishing.fishing.StockedData.region(waterPos);
-        String species = stocked.richestFry(region);
+        String species = null;
+        int most = 0;
+        boolean elsewhere = false;
+        for (String s : stocked.farmSpecies(region)) {
+            int fry = stocked.fryCount(region, s);
+            if (fry <= 0) continue;
+            if (!sameWater(server, waterPos, stocked.broodPos(region, s))) { elsewhere = true; continue; }
+            if (fry <= most) continue;
+            most = fry;
+            species = s;
+        }
         int n = species == null ? 0 : stocked.takeFry(region, species, 10);
-        if (n <= 0) return ItemStack.EMPTY;
+        if (n <= 0) {
+            // Said out loud, or the trap looks broken to the man who knows there are fry in the region.
+            if (elsewhere) player.sendOverlayMessage(Component.translatable("message.riverfishing.trap_fry_elsewhere")
+                    .withStyle(ChatFormatting.GRAY));
+            return ItemStack.EMPTY;
+        }
         return com.riverfishing.item.FryItem.of(com.riverfishing.RiverFishing.id(species), stocked.genome(region, species), n);
+    }
+
+    /**
+     * §n: the ledger entry's water against the trap's. A brood with no release spot (it settled before the
+     * ledger recorded one, or grew on its own) belongs to open water: only an unclaimed trap may lift it,
+     * or a pond would inherit every wild brood in its region.
+     */
+    private static boolean sameWater(ServerLevel server, BlockPos trapWater, BlockPos ledgerPos) {
+        return ledgerPos == null
+                ? !com.riverfishing.fishing.PondData.isClaimed(server, trapWater)
+                : com.riverfishing.fishing.PondData.sameWater(server, trapWater, ledgerPos);
     }
 
     private BlockPos waterAt(ServerLevel level) {
@@ -196,7 +229,7 @@ public class BaitTrapBlockEntity extends BlockEntity {
     void collect(Player player) {
         // §c §breeding: the second job — fry of a brood the ledger says swims here, handed over first
         // so a trap with nothing else in it still gives them.
-        ItemStack fry = level instanceof ServerLevel sl ? netFry(sl) : ItemStack.EMPTY;
+        ItemStack fry = level instanceof ServerLevel sl ? netFry(sl, player) : ItemStack.EMPTY;
         if (!fry.isEmpty() && !player.getInventory().add(fry)) player.drop(fry, false);
         if (stored <= 0 && fishes.isEmpty()) {
             if (!fry.isEmpty()) return;
