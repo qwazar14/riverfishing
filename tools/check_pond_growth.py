@@ -169,3 +169,39 @@ assert e["Adults"] == 4 and e["AvgW"] == 600, e
 
 print("check_pond_growth: %d seasons from %d g to the %d g cap; 30 fry -> 15 adults; all asserts pass"
       % (seasons_to_cap, 600, CAP))
+
+# §fry-clock: fry are fry for FRY_DAYS and then they are fish — and the clock runs whether or not the
+# water has settled. The old code matured them inside growIfDue, which returns early for an unsettled
+# water, so a released bucket sat at the same number for ever. Read the constant back out of the java
+# so the check cannot drift from the game.
+import re as _re, os as _os, sys as _sys, io as _io
+_src = _io.open(_os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+                              "common", "src", "main", "java", "com", "riverfishing",
+                              "fishing", "StockedData.java"), encoding="utf-8").read()
+_m = _re.search(r"FRY_DAYS = (\d+)", _src)
+assert _m, "FRY_DAYS not found in StockedData.java"
+FRY_DAYS = int(_m.group(1))
+assert 6 <= FRY_DAYS <= 24, "fry should be a stage, not a season: %d" % FRY_DAYS
+assert "public void matureIfDue(" in _src, "the fry clock must be its own method"
+assert "matureIfDue(level, region, s); growIfDue(" in _src, "growAround must run the fry clock too"
+
+
+def _mature(fry):
+    m = fry // 2
+    return m, m // 2, m - m // 2          # adults, F, M
+
+
+def fry_clock(day_added, today, fry):
+    """What the ledger holds at `today` for a batch added on `day_added`."""
+    if today - day_added < FRY_DAYS:
+        return fry, 0
+    adults, _, _ = _mature(fry)
+    return 0, adults
+
+
+assert fry_clock(0, FRY_DAYS - 1, 30) == (30, 0)
+assert fry_clock(0, FRY_DAYS, 30) == (0, 15)
+assert fry_clock(0, 400, 30) == (0, 15)          # not a year later — the day it is due
+assert _mature(30) == (15, 7, 8)
+assert _mature(1) == (0, 0, 0)                   # one fry is not half a fish
+print("check_pond_growth: fry clock %d days; 30 fry -> 15 adults, 7 female 8 male" % FRY_DAYS)
