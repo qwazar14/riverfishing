@@ -59,6 +59,9 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         if (legend) badges.add(new Object[]{key("badge.legendary"), 0xFF5A2AA0});
         if (FishItem.isPrime(fish)) badges.add(new Object[]{key("badge.prime"), 0xFF3A6A20});
         if (!FishItem.isLegal(fish)) badges.add(new Object[]{key("badge.foul"), 0xFF8A2020});
+        // §netted-card: hauled, not caught — and if the water was not yours, it says that too.
+        if (c.getBoolean("Net")) badges.add(new Object[]{key("badge.netted"), 0xFF505860});
+        if (c.getBoolean("Poached")) badges.add(new Object[]{key("badge.poached"), 0xFF8A2020});
 
         String latin = c.getString("Latin");
         if (!latin.isEmpty()) plain(Component.literal(latin).withStyle(ChatFormatting.ITALIC), LABEL);

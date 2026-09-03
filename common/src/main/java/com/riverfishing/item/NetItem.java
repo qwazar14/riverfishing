@@ -121,17 +121,25 @@ public abstract class NetItem extends Item {
             FishProfile p = pick(pool, weights, total, rng);
             int weightG = rollWeight(p, rng);
             ItemStack fish = FishItem.create(ModItems.fishItem(p.id), p.id, weightG, lengthCm(p, weightG, rng), true);
-            if (!sp.getInventory().add(fish)) sp.drop(fish, false);
             pressure.addCatch(chunk, p.id.getPath(), now);
 
             // POACHING: a net is legal only in water YOU stocked. A native species is in nobody's book
             // (owner null) — nobody stocked it, so nobody may net it. The haul still happens: this is
             // a simulator, and poaching working is what makes it wrong. The water pays twice.
             UUID owner = stocked.owner(region, p.id.getPath());
-            if (owner == null || !owner.equals(sp.getUUID())) {
+            boolean poachedFish = owner == null || !owner.equals(sp.getUUID());
+            if (poachedFish) {
                 pressure.addCatch(chunk, p.id.getPath(), now);
                 poached++;
             }
+            // §netted-card: a card, so the fish can be stocked and bred — and one that says it was
+            // netted, and whether it was poached. It never loses that.
+            String eco = stocked.isStocked(region, p.id.getPath()) ? "stocked" : "native";
+            int base = com.riverfishing.registry.ModVillagers.baseEmeralds(p.id.getPath());
+            int value = base > 0 ? com.riverfishing.fishing.MarketData.get(level).price(level, p.id.getPath(), base) : 0;
+            com.riverfishing.item.StackNbt.mutate(fish, t -> t.put(com.riverfishing.fish.CatchCard.TAG,
+                    com.riverfishing.fish.CatchCard.netted(sp, level, p, weightG, pos, eco, value, poachedFish)));
+            if (!sp.getInventory().add(fish)) sp.drop(fish, false);
         }
 
         if (poached > 0) {
