@@ -104,3 +104,18 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+# §recipe-result: 1.20.1 reads the result as {"item": ...}; "id" arrived in 1.20.5 and loads as
+# "Missing item" here. Eleven recipes shipped that way once — a checker that only looked at the
+# ingredients called them clean.
+import json as _json, glob as _glob, os as _os, sys as _sys
+_bad = []
+for _f in _glob.glob(_os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+                                   "common", "src", "main", "resources", "data", "riverfishing", "recipes", "*.json")):
+    _r = _json.load(open(_f, encoding="utf-8")).get("result")
+    if isinstance(_r, dict) and "id" in _r and "item" not in _r:
+        _bad.append(_os.path.basename(_f))
+if _bad:
+    _sys.exit("result_key: these recipes use \"id\" for the result, which 1.20.1 cannot read: " + ", ".join(_bad))
+print("every recipe result uses the 1.20.1 result key")

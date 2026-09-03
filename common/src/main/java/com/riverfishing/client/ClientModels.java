@@ -23,6 +23,7 @@ public final class ClientModels {
         for (String sp : ModItems.FISH_SPECIES) {
             list.add(FishItemRenderer.iconModel(sp));
         }
+        list.add(FryItemRenderer.FALLBACK); // §breeding: the static fry icon the procedural one falls back to
         return list;
     }
 

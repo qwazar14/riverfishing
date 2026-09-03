@@ -29,6 +29,8 @@ public class BiteContext {
     public double leaderProtection; // bite-through resistance of the fitted leader (0..1)
     public double leaderStealth;    // invisibility of the fitted leader (0..1)
     public double castWeightG;      // rig mass
+    /** §livebait-3: the live baitfish on the hook, grams; 0 when none. A taker must be able to swallow it. */
+    public int livebaitG;
     public double lureWeightG;      // §lure-size (0.6.0): the tied lure's bench weight, 0 = none/untied
 
     // ---- Angler (progression gate) ----
@@ -52,6 +54,8 @@ public class BiteContext {
     public boolean biomeOcean;
     public double waterWidth = 32;  // max horizontal span of the water body (§4.1)
     public int waterDepth = 3;      // water-column depth (blocks) at the cast point — habitat gate
+    /** §pond: a claimed private pond — the depth and width gates are waived; a dug pit is the size its owner made it. */
+    public boolean privatePond;
     /** §bed-bite: what the bed is under the cast, FishingManager.bedType's code; 0 = not read. */
     public int bed;
     /** §f §ecosystem: water clarity, 1.0 untouched; filter-feeders raise it, rooting carp lower it. */

@@ -5,5 +5,5 @@
     { "item": "minecraft:blaze_powder" },
     { "item": "minecraft:bucket" }
   ],
-  "result": { "id": "riverfishing:warm_outflow" }
+  "result": { "item": "riverfishing:warm_outflow" }
 }

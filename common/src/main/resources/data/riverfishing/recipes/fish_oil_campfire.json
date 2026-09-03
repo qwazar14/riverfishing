@@ -1,7 +1,7 @@
 {
   "type": "minecraft:campfire_cooking",
   "ingredient": { "tag": "riverfishing:oily_fish" },
-  "result": {"id": "riverfishing:fish_oil"},
+  "result": { "item": "riverfishing:fish_oil"},
   "experience": 0.35,
   "cookingtime": 600
 }

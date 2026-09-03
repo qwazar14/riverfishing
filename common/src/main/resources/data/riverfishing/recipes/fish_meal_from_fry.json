@@ -3,5 +3,5 @@
   "ingredients": [
     { "item": "riverfishing:fry" }
   ],
-  "result": { "id": "riverfishing:fish_meal", "count": 1 }
+  "result": { "item": "riverfishing:fish_meal", "count": 1 }
 }

@@ -5,5 +5,5 @@
     { "tag": "riverfishing:small_fish" },
     { "tag": "riverfishing:small_fish" }
   ],
-  "result": { "id": "riverfishing:fish_meal", "count": 2 }
+  "result": { "item": "riverfishing:fish_meal", "count": 2 }
 }

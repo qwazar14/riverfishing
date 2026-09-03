@@ -1,9 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [ "nnn", "ggg", "ggg" ],
+  "pattern": [ "gng", "gng" ],
   "key": {
     "n": { "item": "minecraft:iron_nugget" },
     "g": { "item": "minecraft:gravel" }
   },
-  "result": { "id": "riverfishing:gravel_bed" }
+  "result": { "item": "riverfishing:gravel_bed", "count": 4 }
 }

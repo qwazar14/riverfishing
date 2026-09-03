@@ -6,5 +6,5 @@
     "h": { "item": "minecraft:string" },
     "n": { "item": "minecraft:iron_nugget" }
   },
-  "result": { "id": "riverfishing:cast_net" }
+  "result": { "item": "riverfishing:cast_net" }
 }

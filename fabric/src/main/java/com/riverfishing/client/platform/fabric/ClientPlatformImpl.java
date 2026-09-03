@@ -102,6 +102,10 @@ public final class ClientPlatformImpl {
         for (RegistrySupplier<Item> f : ModItems.FISH_ITEMS.values()) {
             BuiltinItemRendererRegistry.INSTANCE.register(f.get(), fish);
         }
+        // §breeding: the fry bucket draws three of its species' sprite.
+        BuiltinItemRendererRegistry.INSTANCE.register(ModItems.FRY.get(),
+                (stack, ctx, pose, buffers, light, overlay) ->
+                        com.riverfishing.client.FryItemRenderer.get().renderByItem(stack, ctx, pose, buffers, light, overlay));
     }
 
     public static void registerExtraModels() {
@@ -127,6 +131,8 @@ public final class ClientPlatformImpl {
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.BAIT_TRAP.get(), RenderType.cutout());
         // §mini-aquarium: the glass tank needs cutout (NeoForge reads render_type from the model JSON).
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.TROPHY_STAND.get(), RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.SNAG_PILE.get(), RenderType.cutout());   // §snags: a tangle with gaps
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.POND_SIGN.get(), RenderType.cutout());   // §pond: a cross model
         // §bait-crops: crop cross-models need cutout (NeoForge reads it from the model JSON).
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.CORN_CROP.get(), RenderType.cutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.PEA_CROP.get(), RenderType.cutout());

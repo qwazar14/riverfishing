@@ -6,5 +6,5 @@
     "h": { "item": "minecraft:string" },
     "s": { "item": "minecraft:stick" }
   },
-  "result": { "id": "riverfishing:seine_net" }
+  "result": { "item": "riverfishing:seine_net" }
 }

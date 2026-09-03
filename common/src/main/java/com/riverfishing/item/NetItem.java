@@ -91,6 +91,9 @@ public abstract class NetItem extends Item {
         StockedData stocked = StockedData.get(level);
         FishingPressureData pressure = FishingPressureData.get(level);
         RandomSource rng = level.random;
+        // §pond: in a claimed pond the OWNER is legal for every species — his fish, his net. Anyone else
+        // is poaching the lot, native book or no. Outside claimed water the stocking book rules as before.
+        UUID pondOwner = com.riverfishing.fishing.PondData.owner(level, pos);
 
         List<FishProfile> pool = new ArrayList<>();
         List<Integer> weights = new ArrayList<>();
@@ -98,7 +101,10 @@ public abstract class NetItem extends Item {
         for (FishProfile p : FishProfileManager.get().all()) {
             String id = p.id.getPath();
             if (stocked.isCulled(region, id)) continue;
-            if (!FishingManager.residentHere(level, pos, body, p.id)) continue;
+            // §pond: nothing is resident in a claimed pond but what was put in — so the transplants still
+            // dispersing there count too, or the net would come up empty the day after stocking.
+            if (!FishingManager.residentHere(level, pos, body, p.id)
+                    && !(pondOwner != null && pressure.surplusAround(pos.getX() >> 4, pos.getZ() >> 4, id, now) > 0)) continue;
             // The community hash can call a shark native to a brook; the habitat score is what keeps
             // the bite engine honest about that, so the net asks it too.
             if (BiteEngine.environmentScore(p, FishingManager.habitatContext(level, pos, body)) <= 0) continue;
@@ -127,7 +133,8 @@ public abstract class NetItem extends Item {
             // (owner null) — nobody stocked it, so nobody may net it. The haul still happens: this is
             // a simulator, and poaching working is what makes it wrong. The water pays twice.
             UUID owner = stocked.owner(region, p.id.getPath());
-            boolean poachedFish = owner == null || !owner.equals(sp.getUUID());
+            boolean poachedFish = pondOwner != null ? !pondOwner.equals(sp.getUUID())   // §pond
+                    : owner == null || !owner.equals(sp.getUUID());
             if (poachedFish) {
                 pressure.addCatch(chunk, p.id.getPath(), now);
                 poached++;
@@ -148,6 +155,10 @@ public abstract class NetItem extends Item {
             CompoundTag root = PlayerData.root(sp);
             root.putInt("contract_rep", Math.max(0, root.getInt("contract_rep") - 5));
             PlayerData.markDirty(sp);
+            if (pondOwner != null) {   // §pond: name whose pond it was
+                sp.displayClientMessage(Component.translatable("message.riverfishing.pond_not_yours",
+                        com.riverfishing.fishing.PondData.ownerName(level, pos)).withStyle(ChatFormatting.RED), false);
+            }
             sp.displayClientMessage(Component.translatable("message.riverfishing.poaching")
                     .withStyle(ChatFormatting.RED), false);
             // §i: the warden. In his reach the net is his and the fine is due; out of it, the record

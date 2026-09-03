@@ -1272,17 +1272,16 @@ public final class FishingManager {
         final int REACH = MAP_REACH;
         SoundingData data = SoundingData.get(level);
         ListTag out = new ListTag();
-        for (var e : data.depths().entrySet()) {
-            int x = SoundingData.keyX(e.getKey()), z = SoundingData.keyZ(e.getKey());
-            if (Math.abs(x - centre.getX()) > REACH || Math.abs(z - centre.getZ()) > REACH) continue;
+        // §finder2: only the chunks the window covers are walked — the store is bucketed by chunk now,
+        // so a lake sounded flat no longer costs every column it holds on each screen open and cast.
+        data.forEachNear(centre, REACH, (x, z, d, spot) -> {
             CompoundTag t = new CompoundTag();
             t.putInt("x", x - centre.getX());
             t.putInt("z", z - centre.getZ());
-            t.putInt("d", e.getValue());
-            String spot = data.spots().get(e.getKey());
+            t.putInt("d", d);
             if (spot != null) t.putString("s", spot);
             out.add(t);
-        }
+        });
         return out;
     }
 
@@ -2945,8 +2944,10 @@ public final class FishingManager {
         // roughly 6× the bait's weight and up. A weighed livebait FLOORS the size roll there (capped at
         // 60% of the species' range so the roll stays a roll). Only for species that actually take
         // livebait; everything else ignores it.
-        if (livebaitWeightG > 0 && p.baitScore("livebait") >= 0.5 && p.weightMax > p.weightMin) {
-            double minW = Mth.clamp(livebaitWeightG * 6.0, p.weightMin,
+        // §livebait-3: every species that bit on a baitfish is floored by it, not only the ones that
+        // score it — the score is about liking, the floor is about the mouth.
+        if (livebaitWeightG > 0 && p.weightMax > p.weightMin) {
+            double minW = Mth.clamp(livebaitWeightG * 4.0, p.weightMin,
                     p.weightMin + (p.weightMax - p.weightMin) * 0.6);
             double floor = (minW - p.weightMin) / (p.weightMax - p.weightMin);
             biased = floor + (1.0 - floor) * biased;
@@ -3103,12 +3104,19 @@ public final class FishingManager {
         StockedData stocked = StockedData.get(level);
         FishingPressureData pd = FishingPressureData.get(level);
         int cx = waterPos.getX() >> 4, cz = waterPos.getZ() >> 4;
+        boolean claimed = PondData.isClaimed(level, waterPos);   // §pond
         return id -> {
             // §cull (0.7.0): removed from this water by an operator. FIRST, before the common-species
             // shortcut below — a culled roach is exactly the case this exists for, and roach take that
             // shortcut. Everything that asks "does this live here" comes through this lambda: the bite
             // engine, the shoal you can see in the water, the fish finder and the stocking check.
             if (stocked.isCulled(region, id.getPath())) return 0.0;
+            // §pond: a claimed pond has NO wild community — not even the commons. What lives there is what
+            // its owner put in: the settled species, and the temporary stock of releases still dispersing.
+            if (claimed) {
+                return stocked.isStocked(region, id.getPath()) ? 1.0
+                        : Math.min(1.0, pd.surplusAround(cx, cz, id.getPath(), level.getGameTime()));
+            }
             FishProfile pr = FishProfileManager.get().byId(id);
             if (pr == null || pr.base >= 0.95) return 1.0;
             if (stocked.isStocked(region, id.getPath())) return 1.0;
@@ -3221,6 +3229,10 @@ public final class FishingManager {
                     name, stocked.broodCount(region, id, 0), stocked.broodCount(region, id, 1), stocked.fryCount(region, id),
                     fitText, Math.max(0, days)).withStyle(ChatFormatting.AQUA);
         }
+        // §pond: said as the farmer hears it — this is his pond, not "the water".
+        if (thrower.getUUID().equals(PondData.owner(level, pos))) {
+            msg = Component.translatable("message.riverfishing.your_pond", msg).withStyle(msg.getStyle());
+        }
         thrower.displayClientMessage(msg, true);
     }
 
@@ -3268,6 +3280,7 @@ public final class FishingManager {
     public static boolean nativeHere(ServerLevel level, BlockPos pos, WaterBody body, ResourceLocation id) {
         FishProfile pr = FishProfileManager.get().byId(id);
         if (pr == null) return false;
+        if (PondData.isClaimed(level, pos)) return false;   // §pond: nobody is native to a claimed pond
         if (pr.base >= 0.95) return true;
         double absent = body.width() < 8 ? 0.60 : body.width() < 16 ? 0.45 : body.width() < 32 ? 0.30 : 0.20;
         return hashUnit(level.getSeed(), StockedData.region(pos), id.getPath()) >= absent;
@@ -3296,6 +3309,7 @@ public final class FishingManager {
         env.water = body.type();
         env.waterWidth = body.width();
         env.waterDepth = measureDepth(level, pos);
+        env.privatePond = PondData.isClaimed(level, pos);   // §pond: size gates waived
         env.bed = bedType(level, pos);
         env.biomeGroups = biomeGroups(level, pos, body);
         env.season = SeasonProvider.getSeason(level);
@@ -3346,6 +3360,7 @@ public final class FishingManager {
             ctx.lureWeightG = RigData.lureTackleWeightG(rigStack); // §lure-size: size gates the take
             ctx.hookSizes = RigData.hookSizes(rigStack);
             ctx.baits = RigData.baitIds(rigStack);
+            ctx.livebaitG = RigData.livebaitWeightG(rigStack);   // §livebait-3
             int lureRgb = RigData.lureColorRgb(rigStack);
             ctx.lureColor = lureRgb >= 0 ? com.riverfishing.engine.LureColor.fromRgb(lureRgb) : null;
             ctx.hasLeader = RigData.hasLeader(rigStack);
@@ -3379,6 +3394,7 @@ public final class FishingManager {
         ctx.pressureFactor = com.riverfishing.engine.BarometricPressure.biteFactor(level);
         ctx.biomeTemperature = level.getBiome(waterPos).value().getBaseTemperature();
         ctx.waterDepth = measureDepth(level, waterPos);
+        ctx.privatePond = PondData.isClaimed(level, waterPos);   // §pond: size gates waived
         ctx.biomeGroups = biomeGroups(level, waterPos, body);
 
         // §feed-lands-where-the-rig-does: THE FED ZONE AT THE BOBBER IS THE ONLY ANSWER.
@@ -3486,6 +3502,12 @@ public final class FishingManager {
             return;
         }
 
+        // §pond: whose water this is, before the list — an empty wild list is the claim working.
+        String pondOwner = PondData.ownerName(level, waterPos);
+        if (!pondOwner.isEmpty()) {
+            sp.displayClientMessage(Component.translatable("finder.riverfishing.owner", pondOwner)
+                    .withStyle(ChatFormatting.GOLD), false);
+        }
         // Player-facing fish finder: just the species list, no numbers.
         if (here.isEmpty()) {
             sp.displayClientMessage(Component.translatable("finder.riverfishing.none")
@@ -3585,6 +3607,16 @@ public final class FishingManager {
         w.putInt("z", waterPos.getZ());
         w.putBoolean("frenzy", isFrenzy(level));
         w.putByte("bed", bedType(level, waterPos));
+        // §finder2: the sample view's own lines — how clear the water is (Ecosystem.apply set it), which
+        // third of the season it is, and the biome groups the climate gate reads. The strip skips them.
+        if (full) {
+            w.putFloat("clarity", (float) env.clarity);
+            w.putString("sub", com.riverfishing.engine.Calendar.sub(level).name().toLowerCase(java.util.Locale.ROOT));
+            w.putString("groups", String.join(";", new java.util.TreeSet<>(env.biomeGroups)));
+        }
+        // §f §ecosystem: the active effects as lang-key tails; the strip has no room and asks every second.        // §pond: whose water this is, if anyone's — the screen has no SavedData to ask.
+        String pondOwner = PondData.ownerName(level, waterPos);
+        if (!pondOwner.isEmpty()) w.putString("owner", pondOwner);
         // §f §ecosystem: the active effects as lang-key tails; the strip has no room and asks every second.
         if (full) w.putString("eco", String.join(";", Ecosystem.effects(level, waterPos)));
         root.put("water", w);
@@ -3592,6 +3624,9 @@ public final class FishingManager {
         FishingPressureData stock = FishingPressureData.get(level);
         long chunk = new ChunkPos(waterPos).toLong();
         int anglerLevel = JournalData.getLevel(sp);
+        // §finder2: the release's own context — no community, day, clear — so "fit" here IS the number
+        // a fish thrown back is settled by, not the bite chance this minute.
+        BiteContext hab = full ? habitatContext(level, waterPos, body) : null;
 
         ListTag here = new ListTag();
         ListTag gone = new ListTag();
@@ -3602,6 +3637,7 @@ public final class FishingManager {
             t.putInt("dmin", p.depthMin);
             t.putInt("dmax", p.depthMax);
             t.putInt("lvl", p.minAnglerLevel);
+            if (full) habitatTag(p, env, hab, t);   // §finder2: the gates with their numbers, for the detail panel
             if (e <= 1e-4) {
                 // Only what the player could plausibly meet: the whole 93-species list with a reason
                 // each is the wall of text this screen exists to replace.
@@ -3646,16 +3682,59 @@ public final class FishingManager {
                 f.putString("genome", st.genome(region, s));
                 f.putInt("grow", settled ? StockedData.daysToGrow(level, fp) : st.daysToSettle(region, s, StockedData.worldDay(level)));
                 f.putBoolean("settled", settled);
+                // §finder2: when it spawns, and how far off that is — the sample view lists the windows.
+                f.putString("spawn", fp.spawnSeason.jsonKey());
+                f.putString("ssub", fp.spawnSub == null ? "" : fp.spawnSub.name().toLowerCase(java.util.Locale.ROOT));
+                f.putInt("in", com.riverfishing.engine.Calendar.daysUntil(level, fp.spawnSeason, fp.spawnSub));
                 farm.put(s, f);
             }
             root.put("farm", farm);
             root.putString("upgrades", String.join(";", WaterUpgrades.at(level, waterPos)));
+            // §finder2: fry, roe or a fish in the OTHER hand is priced against this water gate by gate —
+            // the question a player holding a bucket of fry at a pond is actually asking. Server-side,
+            // because the client has no profiles to read the gates from.
+            ItemStack other = isFinder(sp.getMainHandItem()) ? sp.getOffhandItem() : sp.getMainHandItem();
+            ResourceLocation held = other.getItem() instanceof com.riverfishing.item.FryItem ? com.riverfishing.item.FryItem.species(other)
+                    : other.getItem() instanceof com.riverfishing.item.RoeItem ? com.riverfishing.item.RoeItem.species(other)
+                    : other.getItem() instanceof FishItem ? FishItem.getSpecies(other) : null;
+            FishProfile hp = held == null ? null : FishProfileManager.get().byId(held);
+            if (hp != null) {
+                CompoundTag s = new CompoundTag();
+                s.putString("sp", hp.id.getPath());
+                s.putInt("dmin", hp.depthMin);
+                s.putInt("dmax", hp.depthMax);
+                habitatTag(hp, env, hab, s);
+                s.putBoolean("native", nativeHere(level, waterPos, body, hp.id));
+                s.putBoolean("settled", st.isStocked(region, hp.id.getPath()));
+                root.put("suit", s);
+            }
             root.put("map", soundingMap(level, waterPos));
             root.put("profile", profileAlong(sp, level));
             root.putByteArray("wet", wetMask(level, waterPos));
             root.putInt("yaw", Math.round(sp.getYRot()));
         }
         return root;
+    }
+
+    /**
+     * §finder2: the habitat gates the release prices, as numbers, on a species tag — in the order
+     * {@link BiteEngine#environmentScore} asks them: water factor, depth band, width band, the best
+     * matching biome group and its factor, the season factor, and the fit itself. The client cannot
+     * work any of these out: the profiles are server data.
+     */
+    private static void habitatTag(FishProfile p, BiteContext env, BiteContext hab, CompoundTag t) {
+        t.putFloat("wf", (float) p.waterFactor(env.water));
+        t.putFloat("wmin", (float) p.widthMin);
+        t.putFloat("wmax", (float) p.widthMax);
+        double bio = p.biomes.isEmpty() ? 1.0 : 0.0;
+        String hit = "";
+        for (var e : p.biomes.entrySet()) {
+            if (env.biomeGroups.contains(e.getKey()) && e.getValue() > bio) { bio = e.getValue(); hit = e.getKey(); }
+        }
+        t.putFloat("bio", (float) bio);
+        t.putString("bgrp", hit);
+        t.putFloat("sf", (float) p.seasonFactor(env.season));
+        t.putFloat("fit", (float) BiteEngine.environmentScore(p, hab));
     }
 
     /**
@@ -3731,8 +3810,10 @@ public final class FishingManager {
 
     private static String gateReason(FishProfile p, BiteContext c) {
         if (p.waterFactor(c.water) <= 0) return "water";
-        if (c.waterDepth < p.depthMin || c.waterDepth > p.depthMax) return "depth(" + c.waterDepth + ")";
-        if (c.waterWidth < p.widthMin || c.waterWidth > p.widthMax) return "width";
+        if (!c.privatePond) {   // §pond: a dug pit is as deep and as wide as its owner wants it
+            if (c.waterDepth < p.depthMin || c.waterDepth > p.depthMax) return "depth(" + c.waterDepth + ")";
+            if (c.waterWidth < p.widthMin || c.waterWidth > p.widthMax) return "width";
+        }
         if (!p.biomes.isEmpty()) {
             boolean any = false;
             for (var e : p.biomes.entrySet()) {

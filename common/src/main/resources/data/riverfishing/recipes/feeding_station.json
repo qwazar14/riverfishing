@@ -5,5 +5,5 @@
     "p": { "tag": "minecraft:planks" },
     "h": { "item": "minecraft:hopper" }
   },
-  "result": { "id": "riverfishing:feeding_station" }
+  "result": { "item": "riverfishing:feeding_station" }
 }

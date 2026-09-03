@@ -5,5 +5,5 @@
     "l": { "tag": "minecraft:logs" },
     "s": { "item": "minecraft:stick" }
   },
-  "result": { "id": "riverfishing:snag_pile" }
+  "result": { "item": "riverfishing:snag_pile" }
 }
