@@ -515,6 +515,10 @@ public class FinderScreen extends Screen {
      */
     private List<Row> rows() {
         List<Row> out = new ArrayList<>();
+        // §f §ecosystem: what a settled species or a bank-side upgrade did to this water, one line each.
+        for (String k : water().getString("eco").split(";")) {
+            if (!k.isEmpty()) out.add(new Row(null, false, Component.translatable("ecosystem.riverfishing." + k)));
+        }
         out.add(new Row(null, false, Component.translatable("finder.riverfishing.biting", here.size())));
         for (CompoundTag t : here) out.add(new Row(t.getString("sp"), false, null));
         if (!gone.isEmpty()) {

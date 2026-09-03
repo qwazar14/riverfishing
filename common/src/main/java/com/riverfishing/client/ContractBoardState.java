@@ -57,6 +57,7 @@ public final class ContractBoardState {
     private static List<FormattedCharSequence> lines(CompoundTag t) {
         var font = Minecraft.getInstance().font;
         List<FormattedCharSequence> out = new ArrayList<>();
+        if (ContractItem.isFry(t)) return out;   // §e: a fry post is its head line and its foot
         out.addAll(font.split(Component.literal(ContractItem.grams(t.getInt("W"))), TEXT_W));
         for (Component c : ContractItem.terms(t)) out.addAll(font.split(c, TEXT_W));
         return out;
@@ -112,7 +113,8 @@ public final class ContractBoardState {
             if (!taken && mouseX >= x && mouseX < x + W && mouseY >= ry && mouseY < ry + rh) g.fill(x, ry, x + W, ry + rh, HOVER);
             g.blit(RiverFishing.id("textures/item/fish/" + t.getString("Sp") + ".png"),
                     x + 3, ry + 3, 16, 16, 0f, 0f, 16, 16, 16, 16);
-            g.drawString(font, Component.translatable("journal.riverfishing.contract_short",
+            g.drawString(font, ContractItem.isFry(t) ? ContractItem.headline(t)   // §e
+                    : Component.translatable("journal.riverfishing.contract_short",
                     t.getInt("N"), Component.translatable("fish.riverfishing." + t.getString("Sp"))),
                     x + 22, ry + 4, taken ? TAKEN : INK, false);
             int ly = ry + 14;

@@ -34,6 +34,8 @@ public class ContractItem extends Item {
 
     /** The head line: "3 x bream, from 500 g". */
     public static net.minecraft.network.chat.MutableComponent headline(CompoundTag t) {
+        if (isFry(t)) return Component.translatable("journal.riverfishing.contract_fry_row", t.getInt("N"),   // §e
+                Component.translatable("fish.riverfishing." + t.getString("Sp")));
         return Component.translatable("journal.riverfishing.contract_row", t.getInt("N"),
                 Component.translatable("fish.riverfishing." + t.getString("Sp")), grams(t.getInt("W")));
     }
@@ -41,6 +43,7 @@ public class ContractItem extends Item {
     /** The conditions beyond the fish itself, one line each, in the order the board prints them. */
     public static List<net.minecraft.network.chat.MutableComponent> terms(CompoundTag t) {
         List<net.minecraft.network.chat.MutableComponent> out = new ArrayList<>();
+        if (isFry(t)) return out;   // §e: fry have no card, so a fry order has no terms
         String water = t.getString("Water"), rod = t.getString("Rod"), bait = t.getString("Bait"),
                 time = t.getString("Time");
         if (!water.isEmpty()) out.add(Component.translatable("contract.riverfishing.term.water",
@@ -52,6 +55,11 @@ public class ContractItem extends Item {
         if (!time.isEmpty()) out.add(Component.translatable("contract.riverfishing.term.time",
                 Component.translatable("time.riverfishing." + time)));
         return out;
+    }
+
+    /** §e §breeding: a post for fry ({@code Kind:"fry"}) rather than fish — one reader for every renderer. */
+    public static boolean isFry(CompoundTag t) {
+        return "fry".equals(t.getString("Kind"));
     }
 
     /** A weight bar the way an angler says it: grams under a kilo, kilos above. */

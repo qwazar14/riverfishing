@@ -56,6 +56,9 @@ public class JournalOpenPacket implements ModNetwork.RfPacket {
         // dedicated server every species page lost its water, bait, tackle, season and trophy weight
         // without saying so. One table, built once per open, and the client stops needing the profiles.
         copy.put("cards", com.riverfishing.fish.FishCard.buildAll());
+        // §h §breeding: the genomes stocked in the region the player STANDS in — the client has no ledger.
+        copy.put("pop", com.riverfishing.fishing.StockedData.get(sp.serverLevel())
+                .genomes(com.riverfishing.fishing.StockedData.region(sp.blockPosition())));
         return copy;
     }
 
