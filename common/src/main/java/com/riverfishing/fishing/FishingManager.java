@@ -3253,6 +3253,7 @@ public final class FishingManager {
             stocked.notePos(region, id, pos);
             settledNow = stocked.tickSettle(level, region, id, p);
         }
+        stocked.matureIfDue(level, region, id);   // §fry-clock
         stocked.growIfDue(level, region, id);   // §k: a window that closed since anyone last looked pays out now
         if (thrower == null) return;
         String fitText = String.format(java.util.Locale.ROOT, "%.1f", fit);
@@ -3288,6 +3289,7 @@ public final class FishingManager {
         String id = species.getPath();
         long region = StockedData.region(pos);
         StockedData stocked = StockedData.get(level);
+        stocked.matureIfDue(level, region, id);   // §fry-clock
         stocked.growIfDue(level, region, id);   // §k §farm: a landing is a touch of the water too
         // §n §breeding: one fish out is one fish fewer. A settled water pays from its head count (§l);
         // an unsettled one still pays from the brood ledger below, which is the only population it has.

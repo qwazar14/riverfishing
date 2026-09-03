@@ -117,6 +117,10 @@ public final class StockedData extends SavedData {
 
     public void addFry(long region, String species, int count, long day, String genome, java.util.UUID owner) {
         CompoundTag t = entry(region, species);
+        // §fry-clock: the batch's day, stamped when a water goes from no fry to some. Fry are fry for
+        // FRY_DAYS and then they are fish — the spawn window they were tied to comes round once a YEAR,
+        // so a bucket of fry sat in the ledger for ninety-six days and looked like a bug, because it was.
+        if (t.getIntOr("Fry", 0) <= 0) t.putLong("FryDay", day);
         t.putInt("Fry", t.getIntOr("Fry", 0) + Math.max(0, count));
         tally(t, genome);   // §h: a fry stack is one spawn's worth — two alleles, like one fish
         stamp(t, day, genome, owner);
@@ -197,6 +201,26 @@ public final class StockedData extends SavedData {
      * the pond can grow from. Called at the settle (tickSettle) and at every window close after it
      * (growIfDue); an unsettled brood's fry mature the day it settles, which is the only day they count.
      */
+    /** Half a season: long enough to be a stage, short enough to watch. */
+    public static final int FRY_DAYS = 12;
+
+
+    /**
+     * §fry-clock: fry that have had their twelve days become fish, wherever they are — the maturing
+     * used to live inside growIfDue, which returns early for water that has not settled yet, so the
+     * fry a player was waiting on were exactly the ones the clock never reached.
+     */
+    public void matureIfDue(ServerLevel level, long region, String species) {
+        CompoundTag t = brood.get(key(region, species));
+        if (t == null || t.getIntOr("Fry", 0) <= 0) return;
+        long day = worldDay(level);
+        long stamped = t.getLongOr("FryDay", 0L);
+        if (stamped <= 0) { t.putLong("FryDay", day); setDirty(); return; }
+        if (day - stamped < FRY_DAYS) return;
+        t.remove("FryDay");
+        matureFry(t);
+    }
+
     private void matureFry(CompoundTag t) {
         int fry = t.getIntOr("Fry", 0);
         t.remove("Fry");
@@ -444,7 +468,7 @@ public final class StockedData extends SavedData {
     /** Every farm species in the region the position is in — the per-player tick's call. */
     public void growAround(ServerLevel level, BlockPos pos) {
         long region = region(pos);
-        for (String s : farmSpecies(region)) growIfDue(level, region, s);
+        for (String s : farmSpecies(region)) { matureIfDue(level, region, s); growIfDue(level, region, s); }
     }
 
     public void growIfDue(ServerLevel level, long region, String species) {
@@ -454,16 +478,7 @@ public final class StockedData extends SavedData {
         com.riverfishing.fish.FishProfile p = com.riverfishing.fish.FishProfileManager.get().byId(com.riverfishing.RiverFishing.id(species));
         if (p == null) return;
         long today = worldDay(level);
-        // §lm: TWO clocks on one entry. LastMat is the spawn window's close — once a year, when the fry
-        // that lived through it become fish. LastGrow is the season — four times a year, because the
-        // pond has to visibly move between windows or it reads as scenery.
-        long lastClose = today - sinceClose(level, p);
-        long lastMat = t.getLongOr("LastMat", 0L);
-        if (lastMat <= 0 || lastClose > lastMat) {
-            if (lastMat > 0) matureFry(t);   // the first read only starts the clock: no back pay
-            t.putLong("LastMat", lastClose);
-            setDirty();
-        }
+        // §fry-clock: maturing is its own clock now (matureIfDue), on its own days.
         long last = t.getLongOr("LastGrow", 0L);
         if (last <= 0) {
             // The clock starts the first time the water is looked at as a farm — no back pay for the
