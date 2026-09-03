@@ -38,7 +38,8 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
     /** Fish at or above this weight are too big to loop the figure-8 — they just cruise back and forth. */
     private static final int BIG_FISH_G = 3000;
 
-    // §roe-frames: gen_aquarium_roe.py's 80x16 strip — four incubation days, then the hatched shoal. Bound
+    // §roe-frames: gen_aquarium_roe.py's 80x16 strip — four incubation days (the fifth frame, a generic
+    // shoal, is no longer drawn: hatched fry wear their species' sprite, see renderFry). Bound
     // straight from its path rather than stitched: a texture nothing in a model references is not on the
     // block atlas, and an atlases/blocks.json entry is a second file for one quad.
     private static final ResourceLocation ROE_STRIP = RiverFishing.id("textures/block/aquarium_roe.png");
@@ -127,35 +128,30 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
      * on the seam between the two upper cells (the kelp stands at each cell's own centre, so the middle
      * is the one clear patch of floor); the frame is the incubation day, counted on the client from the
      * synced start time and the world clock — the same arithmetic the server's ticker does, so the
-     * picture and the sneak-click status agree. Hatched fry stand upright and broadside like the fish
-     * (a flat shoal seen from the front of a tank is a line) and drift side to side on the game clock.
+     * picture and the sneak-click status agree. Hatched fry are a shoal of the SPECIES' OWN sprite
+     * (§fry-sprite: the strip's fifth frame was a generic silver fish — a hatched pike swam as a roach),
+     * drawn through the same item renderer as the mounted fish, upright and broadside, drifting side
+     * to side on the game clock with each copy out of phase so it reads as a shoal, not one sprite.
      */
     private void renderRoe(AquariumBlockEntity be, ItemStack roe, float time, Direction facing, Direction cw,
                            double tankX, double tankZ, PoseStack pose, MultiBufferSource buffers,
                            int light, int overlay) {
-        boolean fry = roe.getItem() instanceof FryItem;
-        if (!fry && !(roe.getItem() instanceof RoeItem)) return;
-        int frame;
-        double u = 0, y;
-        if (fry) {
-            frame = ROE_FRAMES - 1;
-            // Period ~3 s (60 ticks), amplitude 3/16 — a shoal working the middle of the tank, plus a bob.
-            u = Mth.sin(time * (float) (Math.PI * 2 / 60)) * (3.0 / 16);
-            y = 1.5 + Mth.sin(time * 0.13f) * 0.02;   // mid-water: the quad's bottom edge just clears the gravel
-        } else {
-            long start = be.getIncubate();
-            long day = start == 0 || be.getLevel() == null ? 0 : (be.getLevel().getDayTime() - start) / 24000L;
-            // ponytail: a cold-climate clutch takes eight days and sits on the day-4 frame for its second
-            // half; the client would need the profile and the biome to stretch the strip over it.
-            frame = (int) Mth.clamp(day, 0, ROE_FRAMES - 2);
-            y = ROE_FLOOR;
+        if (roe.getItem() instanceof FryItem) {
+            renderFry(be, roe, time, facing, cw, tankX, tankZ, pose, buffers, light, overlay);
+            return;
         }
+        if (!(roe.getItem() instanceof RoeItem)) return;
+        long start = be.getIncubate();
+        long day = start == 0 || be.getLevel() == null ? 0 : (be.getLevel().getDayTime() - start) / 24000L;
+        // ponytail: a cold-climate clutch takes eight days and sits on the day-4 frame for its second
+        // half; the client would need the profile and the biome to stretch the strip over it.
+        int frame = (int) Mth.clamp(day, 0, ROE_FRAMES - 2);
         pose.pushPose();
-        pose.translate(tankX + cw.getStepX() * u, y, tankZ + cw.getStepZ() * u);
-        // Same yaw as the fish so the strip's left-right is the tank's left-right whichever way it faces.
+        pose.translate(tankX, ROE_FLOOR, tankZ);
+        // Same yaw as the fish so the strip's left-right is the tank's left-right whichever way it faces,
+        // then laid flat on the gravel; the quad is drawn in its own x-y plane below.
         pose.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
-        // The roe lies down; the fry stand up. Either way the quad is drawn in its own x-y plane below.
-        if (!fry) pose.mulPose(Axis.XP.rotationDegrees(90f));
+        pose.mulPose(Axis.XP.rotationDegrees(90f));
         Matrix4f m = pose.last().pose();
         VertexConsumer vc = buffers.getBuffer(ROE_LAYER);
         float u0 = frame / (float) ROE_FRAMES, u1 = (frame + 1) / (float) ROE_FRAMES;
@@ -165,6 +161,45 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         vertex(m, vc, h, h, u1, 0f, light, overlay);
         vertex(m, vc, -h, h, u0, 0f, light, overlay);
         pose.popPose();
+    }
+
+    /** §fry-sprite: one copy is a fry; a bucket of twenty or more is six. Each ~0.18 of a block long. */
+    private static final int FRY_MAX = 6;
+    private static final float FRY_LEN = 0.18f;
+
+    /**
+     * §fry-sprite: the fry are the mounted-fish draw in miniature — a throwaway fish stack of the fry's
+     * species (1 g, so FishTint shades it as the palest juvenile, which a fry is) pushed through
+     * {@code renderStatic} with the {@link FishItemRenderer#gridScale} override, exactly like the fish
+     * in render(): same yaw, same head-first flip on the turn, same lie-down for a flatfish, same three
+     * depth lanes. The motion is the old strip's drift (period 3 s, amplitude 3/16) plus a bob, offset
+     * per copy in phase and height so the copies never stack into one sprite.
+     */
+    private void renderFry(AquariumBlockEntity be, ItemStack fryStack, float time, Direction facing, Direction cw,
+                           double tankX, double tankZ, PoseStack pose, MultiBufferSource buffers,
+                           int light, int overlay) {
+        ResourceLocation sp = FryItem.species(fryStack);
+        if (sp == null) return;
+        ItemStack fish = FishItem.create(com.riverfishing.registry.ModItems.fishItem(sp), sp, 1, 5, true);
+        boolean flat = com.riverfishing.fish.FishPose.isFlat(sp.getPath());
+        int n = Math.min(FRY_MAX, FryItem.count(fryStack) / 4 + 1);
+        for (int i = 0; i < n; i++) {
+            float t = time * (float) (Math.PI * 2 / 60) + i * 1.1f;
+            double u = Mth.sin(t) * (3.0 / 16);
+            double depth = ((i % 3) - 1) * 0.20;
+            double y = flat ? 1.06 + Mth.sin(time * 0.05f + i) * 0.02
+                    : 1.5 + Mth.sin(time * 0.13f + i) * 0.02 + ((i % 5) - 2) * 0.04;   // ±0.08 spread
+            float flip = Mth.cos(t) >= 0 ? 180f : 0f;
+            pose.pushPose();
+            pose.translate(tankX + cw.getStepX() * u + facing.getStepX() * depth, y,
+                    tankZ + cw.getStepZ() * u + facing.getStepZ() * depth);
+            pose.mulPose(Axis.YP.rotationDegrees(-facing.toYRot() + flip + Mth.sin(time * 0.15f + i) * 4f));
+            if (flat) pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
+            FishItemRenderer.gridScale = FRY_LEN;
+            itemRenderer.renderStatic(fish, ItemDisplayContext.FIXED, light, overlay, pose, buffers, be.getLevel(), 0);
+            FishItemRenderer.gridScale = 0f;
+            pose.popPose();
+        }
     }
 
     /** One corner of the roe quad; lit like the fish beside it, normal up so the entity shader's directional light is steady. */
