@@ -37,7 +37,9 @@ public final class KeepnetSale {
         if (base <= 0) return 0;
         int market = MarketData.get(level).price(level, species.getPath(), base);
         if (FishItem.isPrime(fish)) return market;
-        return Math.max(1, CatchCard.has(fish) ? market / 2 : market / 3);
+        // §netted-card: a netted fish carries a card now, but it is still a third — nobody saw it bite.
+        boolean netted = !CatchCard.has(fish) || CatchCard.of(fish).getBooleanOr("Net", false);
+        return Math.max(1, netted ? market / 3 : market / 2);
     }
 
     public static void sell(ServerPlayer sp, ItemStack net) {

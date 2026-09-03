@@ -2,6 +2,7 @@ package com.riverfishing.fish;
 
 import com.riverfishing.fishing.FishingSession;
 import com.riverfishing.item.StackNbt;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -92,6 +93,44 @@ public final class CatchCard {
         c.putString("Eco", eco);
         c.putInt("Value", value);
 
+        Random rng = new Random(level.getGameTime() * 31L + sp.getUUID().hashCode() + weightG);
+        body(c, p, weightG, morph, rng, s.nature);
+        return c;
+    }
+
+    /**
+     * §netted-card: a fish out of a net gets a card as well — it can be put in a pond and bred like
+     * any other — and the card says so: {@code Net} true, {@code Poached} when the water was not the
+     * netter's own. No rod, no bait, no bite: it was hauled.
+     */
+    public static CompoundTag netted(ServerPlayer sp, ServerLevel level, FishProfile p, int weightG,
+                                     BlockPos pos, String eco, int value, boolean poached) {
+        CompoundTag c = new CompoundTag();
+        c.putString("Angler", sp.getGameProfile().name());
+        c.putLong("Day", level.getServer().overworld().getOverworldClockTime() / 24000L);
+        c.putString("Date", java.time.LocalDate.now().toString());
+        c.putString("Rod", "net");
+        c.putString("RodItem", "");
+        c.putString("Bait", "");
+        c.putString("Water", com.riverfishing.water.WaterBodyCache.forLevel(level).get(level, pos).type().key());
+        c.putString("Biome", level.getBiome(pos).unwrapKey().map(k -> k.identifier().toString()).orElse(""));
+        c.putString("Time", com.riverfishing.engine.TimeOfDay.fromDayTime(level.getOverworldClockTime()).jsonKey());
+        c.putString("Season", com.riverfishing.engine.Calendar.season(level).jsonKey());
+        c.putString("Weather", level.isThundering() ? "thunder" : level.isRaining() ? "rain" : "clear");
+        c.putString("Bed", "");
+        c.putString("Spot", "");
+        c.putBoolean("Ice", false);
+        c.putString("Eco", eco);
+        c.putInt("Value", value);
+        c.putBoolean("Net", true);
+        c.putBoolean("Poached", poached);
+        Random rng = new Random(level.getGameTime() * 31L + sp.getUUID().hashCode() + weightG);
+        body(c, p, weightG, "", rng, (byte) -1);
+        return c;
+    }
+
+    /** The half of the card that is the FISH — size class, kind, sex, nature, genes — shared by both. */
+    private static void body(CompoundTag c, FishProfile p, int weightG, String morph, Random rng, byte natureIn) {
         // What the profile knows, copied in: the client on a server never sees a profile.
         // §board-3: the size class is FishMorph.ageFraction — 0.5 at an ordinary specimen — so a
         // 1.15 kg pike is a juvenile, not a baby: the old bar measured against the record weight,
@@ -112,11 +151,10 @@ public final class CatchCard {
         c.putString("Life", p == null ? "" : p.depthPref);
 
         // The hidden two. Seeded off the fish itself so a duplicated stack is the same fish.
-        Random rng = new Random(level.getGameTime() * 31L + sp.getUUID().hashCode() + weightG);
         c.putByte("Sex", (byte) rng.nextInt(2));
         // §nature: the temperament the fish fought with, rolled at the bite; a fish that arrived
         // without one (an old session) gets one now.
-        byte nature = s.nature >= 0 ? s.nature : rollNature(p, rng);
+        byte nature = natureIn >= 0 ? natureIn : rollNature(p, rng);
         c.putByte("Nature", (byte) nature);
         // S size, C colour, V vigour, F fertility: a capital is the strong allele. Size follows the fish,
         // colour follows the morph, the other two are a coin.
@@ -131,7 +169,6 @@ public final class CatchCard {
             g.append(a).append(b);
         }
         c.putString("Genes", g.toString());
-        return c;
     }
 
     /** Does this fish's card meet a contract's terms? An empty term is no term. */
