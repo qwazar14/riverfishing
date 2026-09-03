@@ -33,6 +33,7 @@ public final class RodClientSettings {
             JsonObject o = JsonParser.parseString(Files.readString(f, StandardCharsets.UTF_8)).getAsJsonObject();
             if (o.has("blank3d")) RodItemRenderer.BLANK_3D = o.get("blank3d").getAsBoolean();
             if (o.has("fish3d")) ShoalRenderer.FISH_3D = o.get("fish3d").getAsBoolean();
+            if (o.has("fishItem")) ShoalRenderer.FISH_ITEM = o.get("fishItem").getAsBoolean();
             if (o.has("bendDeg")) RodItemRenderer.MAX_BEND_DEG = o.get("bendDeg").getAsFloat();
             if (o.has("whip")) RodItemRenderer.WHIP_GAIN = o.get("whip").getAsFloat();
             if (o.has("phys")) RodPhysics.ENABLED = o.get("phys").getAsBoolean();
@@ -55,6 +56,7 @@ public final class RodClientSettings {
             JsonObject o = new JsonObject();
             o.addProperty("blank3d", RodItemRenderer.BLANK_3D);
             o.addProperty("fish3d", ShoalRenderer.FISH_3D);
+            o.addProperty("fishItem", ShoalRenderer.FISH_ITEM);
             o.addProperty("bendDeg", RodItemRenderer.MAX_BEND_DEG);
             o.addProperty("whip", RodItemRenderer.WHIP_GAIN);
             o.addProperty("phys", RodPhysics.ENABLED);

@@ -4,7 +4,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.riverfishing.RiverFishing;
+import com.riverfishing.item.FishItem;
+import com.riverfishing.item.StackNbt;
 import com.riverfishing.network.ShoalPacket;
+import com.riverfishing.registry.ModItems;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -24,6 +29,10 @@ import java.util.Map;
 
 /**
  * §shoal render: the fish the water actually holds, drifting under the surface.
+ *
+ * <p>§fish-item (0.9.0): by default each fish is now the dropped ITEM — the baked {@code item/generated}
+ * model through the item renderer, sized to its length — see {@link #FISH_ITEM}. What follows describes
+ * the flat path that {@code /rfrod fishitem off} brings back.
  *
  * <p>Each fish is ONE textured quad carrying its own item sprite — not the item model. That distinction is
  * the whole reason this can show seventy fish at once: the fish icons are 256px, and vanilla's
@@ -118,8 +127,8 @@ public final class ShoalRenderer {
                 // drawn, because the school is what you see.
                 if (!e.shoaling() && dist > 40 && e.lengthCm() < 90) continue;
                 if (!e.shoaling() && dist > 26 && e.lengthCm() < 35) continue;
-                TextureAtlasSprite sprite = spriteFor(atlas, e.species());
-                if (sprite == null) continue;
+                TextureAtlasSprite sprite = FISH_ITEM ? null : spriteFor(atlas, e.species());
+                if (!FISH_ITEM && sprite == null) continue;
 
                 double x = f.x, y = f.y, z = f.z;
 
@@ -153,6 +162,29 @@ public final class ShoalRenderer {
                 // Local Z is the fish's own left-right axis now, so this is a nose-up, nose-down pitch
                 // rather than the screen-plane roll it used to be. It reads better, and it is free.
                 pose.mulPose(Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + f.phase) * 3f + f.pitch));   // §shoal-jump
+                if (FISH_ITEM) {
+                    // §fish-item: the fish is the ITEM — the same baked item/generated model as the one
+                    // you drop on the bank, a sixteenth thick with coloured edges — posed where the flat
+                    // quad was. The item model cannot bend, so the swimming wave becomes a beat: the
+                    // whole body swings ±6° at the wave's own rhythm, on top of the §fish-beat above.
+                    // The FIXED display turns the model 180° about Y (head to +X); one more 180° here
+                    // puts the head back on −X so the yaw derivation, the lay and the pitch sign all
+                    // hold unchanged.
+                    pose.mulPose(Axis.YP.rotationDegrees(180f
+                            + Mth.sin(time * (0.35f + 0.45f * f.kick) + f.phase * 5f) * 6f));
+                    if (f.stack == null) f.stack = stackFor(e);
+                    // Size rides the length, which the server derived from the weight it rolled — so
+                    // the picture is the weight, and the fish keeps it between packets.
+                    FishItemRenderer.gridScale = itemSize(e.lengthCm());
+                    ALPHA.alpha = alpha;
+                    ALPHA.vc = vc;
+                    mc.getItemRenderer().renderStatic(f.stack, ItemDisplayContext.FIXED, LightTexture.FULL_BRIGHT,
+                            OverlayTexture.NO_OVERLAY, pose, ALPHA_SOURCE, mc.level, 0);
+                    FishItemRenderer.gridScale = 0f;
+                    pose.popPose();
+                    drew = true;
+                    continue;
+                }
                 float size = spriteSize(e.lengthCm());
                 // §morph: the fish in the water are painted by the same table as the one in your hand.
                 double age = e.age() / 100.0;
@@ -220,6 +252,65 @@ public final class ShoalRenderer {
      * persisted, no rebuild.
      */
     public static boolean FISH_3D = false;
+
+    /**
+     * §fish-item: the fish in the water drawn as the dropped ITEM would be — the baked
+     * {@code item/generated} model, a sixteenth thick, edges and all. ON by default; {@code /rfrod
+     * fishitem off} is the flat wave (and FISH_3D under it) for a live comparison.
+     *
+     * <p>The header's cost argument still stands: a 256px sprite bakes to on the order of a thousand
+     * quads, and the fish list can hold seventy. ponytail: it is drawn through the item renderer and
+     * measured by eye, not profiled; if a full shoal shows in the frame time, bake one distance-capped
+     * model per species (a 64px downsample of the sprite) and draw that past ten blocks.
+     */
+    public static boolean FISH_ITEM = true;
+
+    /**
+     * The item renderer writes every vertex at alpha 1 and with the quad's own normal. The shoal's
+     * whole visibility model is alpha — clarity, distance, spook, the arrival fade — and its lighting
+     * is a constant up-normal so a fish does not brighten and darken as it turns (see {@link #vertex}).
+     * This sits between the item renderer and the shoal's translucent buffer and imposes both.
+     */
+    private static final class AlphaConsumer implements VertexConsumer {
+        VertexConsumer vc;
+        int alpha;
+
+        @Override public VertexConsumer addVertex(float x, float y, float z) { vc.addVertex(x, y, z); return this; }
+        @Override public VertexConsumer setColor(int r, int g, int b, int a) { vc.setColor(r, g, b, alpha); return this; }
+        @Override public VertexConsumer setUv(float u, float v) { vc.setUv(u, v); return this; }
+        @Override public VertexConsumer setUv1(int u, int v) { vc.setUv1(u, v); return this; }
+        @Override public VertexConsumer setUv2(int u, int v) { vc.setUv2(u, v); return this; }
+        @Override public VertexConsumer setNormal(float x, float y, float z) { vc.setNormal(0f, 1f, 0f); return this; }
+    }
+
+    private static final AlphaConsumer ALPHA = new AlphaConsumer();
+    /** Whatever layer the item renderer asks for, it gets the shoal's own (see §shoal-layer). */
+    private static final MultiBufferSource ALPHA_SOURCE = type -> ALPHA;
+
+    /**
+     * §fish-item: the stack the item renderer paints. Species, weight, length and age are what the
+     * packet knows, and they are all FishItemRenderer and FishTint read — so a young roach in the
+     * water is as pale as the one in your hand, by the same code. No morph: the packet does not carry one.
+     */
+    private static ItemStack stackFor(ShoalPacket.Entry e) {
+        ItemStack stack = new ItemStack(ModItems.fishItem(e.species()));
+        StackNbt.mutate(stack, tag -> {
+            tag.putString(FishItem.TAG_SPECIES, e.species().toString());
+            tag.putInt(FishItem.TAG_WEIGHT, e.weightG());
+            tag.putInt(FishItem.TAG_LENGTH, e.lengthCm());
+            tag.putByte(FishItem.TAG_AGE, e.age());
+        });
+        return stack;
+    }
+
+    /**
+     * §fish-item: true length, one block per metre — the icons are drawn full-length across the sprite,
+     * so the model's width IS the fish. A 15 cm bleak is 0.15 of a block and a metre of pike a block;
+     * the floor keeps a fry visible at all. Shared with the aquarium, which caps it to its tank.
+     */
+    public static float itemSize(int lengthCm) {
+        return Mth.clamp(lengthCm / 100f, 0.12f, 4.5f);
+    }
 
     private static void body(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, float side,
                              ShoalSim.Fish f, float time, int alpha, int tint, int overlay) {

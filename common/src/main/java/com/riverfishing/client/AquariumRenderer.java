@@ -71,6 +71,9 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             ItemStack fish = fishes.get(i);
             if (fish.isEmpty()) continue;
             boolean big = FishItem.getWeightG(fish) >= BIG_FISH_G;
+            // §fish-item: the same true-length rule as the fish in open water (one block per metre off
+            // the length the weight rolled), capped so a two-metre catfish stays inside a two-wide tank.
+            float fishLen = Math.min(1.8f, ShoalRenderer.itemSize(FishItem.getLengthCm(fish)));
             ResourceLocation fsp = FishItem.getSpecies(fish);
             boolean flat = fsp != null && com.riverfishing.fish.FishPose.isFlat(fsp.getPath());
             // Spread the fish out in phase and depth so they don't overlap.
@@ -82,7 +85,6 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
                 // §aquarium-big: a big fish just cruises side to side (the old behaviour). The cruise
                 // amplitude shrinks with the fish's rendered length so a tank-filling giant (§fish-scale:
                 // FIXED caps at 2 blocks) sways in place instead of poking through the glass.
-                float fishLen = Math.min(2.0f, FishItem.getIconScale(fish)) * 0.9f;
                 double amp = Mth.clamp(0.95 - fishLen / 2.0, 0.05, 0.30);
                 u = Mth.sin(t) * amp;
                 height = 1.5 + Mth.sin(time * 0.09f + i) * 0.04 - (i / 3) * 0.14;
@@ -113,9 +115,11 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             // §fish-pose: the flatfish lie down in the tank too, parallel to its floor — which is also
             // where they are swimming (see the height below), because that is what they do.
             if (flat) pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
-            float scale = big ? 0.9f : 0.7f;
-            pose.scale(scale, scale, scale);
+            // The size is applied ONCE, by the renderer override (see KeepnetScreen): it bypasses the
+            // FIXED cap and the 0.45 floor, so the tank shows the fish at the water's own scale.
+            FishItemRenderer.gridScale = fishLen;
             itemRenderer.renderStatic(fish, ItemDisplayContext.FIXED, light, overlay, pose, buffers, be.getLevel(), 0);
+            FishItemRenderer.gridScale = 0f;
             pose.popPose();
         }
 

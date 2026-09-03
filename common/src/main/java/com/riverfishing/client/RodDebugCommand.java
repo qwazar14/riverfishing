@@ -146,6 +146,25 @@ public final class RodDebugCommand {
                             say(c, "§cfish3d OFF §7— back to the flat swimming sprite");
                             return 1;
                         })))
+                // §fish-item: the fish in the water as the dropped item — the extruded sprite, sized by weight.
+                .then(ClientCommandRegistrationEvent.literal("fishitem")
+                        .executes(c -> {
+                            say(c, "§efishitem: " + (ShoalRenderer.FISH_ITEM ? "§aON" : "§cOFF")
+                                    + " §7(/rfrod fishitem on|off) — the item model in the water, or the flat wave");
+                            return 1;
+                        })
+                        .then(ClientCommandRegistrationEvent.literal("on").executes(c -> {
+                            ShoalRenderer.FISH_ITEM = true;
+                            RodClientSettings.save();
+                            say(c, "§afishitem ON §7— fish in the water are drawn like the dropped item");
+                            return 1;
+                        }))
+                        .then(ClientCommandRegistrationEvent.literal("off").executes(c -> {
+                            ShoalRenderer.FISH_ITEM = false;
+                            RodClientSettings.save();
+                            say(c, "§cfishitem OFF §7— back to the flat swimming sprite");
+                            return 1;
+                        })))
                 .then(ClientCommandRegistrationEvent.literal("blank")
                         .executes(c -> {
                             say(c, String.format("§eblank3d: %s §edeg=%.1f §7(/rfrod blank on|off|deg <v>)",

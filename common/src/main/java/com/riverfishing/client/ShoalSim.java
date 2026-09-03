@@ -71,6 +71,8 @@ public final class ShoalSim {
          * block, and a loner a little jitter of its own.
          */
         public double yBias;
+        /** §fish-item: the stack the item renderer draws for this fish; built once, on first draw. */
+        public net.minecraft.world.item.ItemStack stack;
 
         Fish(ShoalPacket.Entry entry, double x, double y, double z, float heading, float phase) {
             this.entry = entry;
