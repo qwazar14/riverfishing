@@ -1,25 +1,47 @@
 package com.riverfishing.fishing;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 
 
 /**
- * §i §breeding (0.9.0): the poaching record. There is no warden villager any more — he never took
- * the job reliably, and a villager is not what makes poaching cost something here. The fishermen
- * are: every net haul from water you did not stock is counted, and at {@link #BAN_AT} the contract
- * board is closed to you until the fish are put back, one mature release per offence.
+ * §i §breeding (0.9.0) · §o (layer 6): the debt to the fishermen. There is no warden villager — he
+ * never took the job reliably, and a villager is not what makes poaching cost something here. The
+ * fishermen are: a net hauled out of water you did not stock costs {@link #POACH_REP} points of the
+ * reputation their contracts run on, and the number GOES NEGATIVE. Below zero the trusted shelf is
+ * shut (every step of {@code Contracts.TRUST_STEPS} is positive), and at {@link #BAN_REP} the board
+ * itself is blank.
+ *
+ * <p>The way back is not time and not emeralds: it is {@link #GRAMS_PER_POINT} grams of mature fish
+ * put back into WILD water, per point. Not into your own claimed pond — a fish released there is
+ * still yours: you stocked it, it grows for you, you catch it again, and the village is no better
+ * off than before you took the net to it. Restitution has to leave your hands and go into water
+ * anybody may fish, which is exactly the water a net emptied. That is also why it is measured in
+ * kilograms rather than in fish: five kilos is five kilos whether it comes as one carp or ten roach,
+ * and a bucket of undersized fish cannot buy a pardon (only mature fish count, the same size class
+ * the stocking ledger takes as brood).
+ *
+ * <p>{@code poach_count} is kept as a plain record — the guide page and any future warden read it —
+ * but nothing gates on it any more.
  */
 public final class Warden {
-    /** The record that empties the board. Three, so one net in a strange pond is a lesson, not a life. */
-    public static final int BAN_AT = 3;
-    /** How far a warden sees a net go in. */
-    /** The fine, capped by what the poacher actually carries — a warden takes emeralds, not debts. */
+    /** Reputation at or below which the contract board is closed: three hauls' worth, and no way to drift into it. */
+    public static final int BAN_REP = -15;
+    /** What one haul from water that is not yours costs, however many fish came up in it. */
+    public static final int POACH_REP = 5;
+    /** Grams of mature fish released into wild water that buy one point back. */
+    public static final int GRAMS_PER_POINT = 5000;
+
     private static final String KEY = "poach_count";
+    /** The same key {@code Contracts.rep} reads — one number: the contracts pay it, poaching takes it. */
+    private static final String REP = "contract_rep";
+    /** The part of a kilogram already released and not yet worth a point. */
+    private static final String GRAMS = "rep_grams";
 
     private Warden() {}
 
@@ -27,48 +49,68 @@ public final class Warden {
         return PlayerData.root(p).getInt(KEY);
     }
 
-    /** The board is empty for this player (ModVillagers.sendBoard; Contracts.take refuses too). */
+    /** Grams banked towards the next point of reputation, 0..{@link #GRAMS_PER_POINT}-1. */
+    public static int repGrams(Player p) {
+        return PlayerData.root(p).getInt(GRAMS);
+    }
+
+    /** §o: the board is empty for this player (ModVillagers.sendBoard; Contracts.take refuses too). */
     public static boolean banned(Player p) {
-        return poachCount(p) >= BAN_AT;
+        return Contracts.rep(p) <= BAN_REP;
     }
 
     /**
-     * Called from NetItem's poaching block, once per haul. The record grows either way; a warden in
-     * reach turns it into a confiscation and a fine on the spot.
+     * Called from NetItem's poaching block, once per haul: the record grows and the fishermen's
+     * trust drops. There is no floor at zero — the debt IS the punishment, and the board shows it.
      *
-     * @param fish how many fish came up poached in this haul — the message names the count
+     * @param fish how many fish came up poached in this haul (the record counts hauls, not fish)
      */
     public static void onPoach(ServerPlayer sp, ServerLevel level, BlockPos where, int fish) {
         CompoundTag root = PlayerData.root(sp);
         root.putInt(KEY, root.getInt(KEY) + 1);
+        root.putInt(REP, root.getInt(REP) - POACH_REP);   // §o: no clamp — reputation goes negative
         PlayerData.markDirty(sp);
     }
-
-    /** One mature fish released into water pays one point off the record (FishingManager.releaseFish). */
-    public static void workOff(ServerPlayer sp) {
-        CompoundTag root = PlayerData.root(sp);
-        int n = root.getInt(KEY);
-        if (n <= 0) return;
-        root.putInt(KEY, n - 1);
-        PlayerData.markDirty(sp);
-    }
-
-
-    /** Emeralds out of the inventory, up to {@code max}; returns how many were actually there to take. */
-
-    // ---- trades ---------------------------------------------------------------------------------------
 
     /**
-     * Level 1: buys either net for an emerald. Level 2: sells fry. Registered through the same platform
-     * seam as the fisherman's table (ModVillagers.registerTrades, "§i").
+     * §o: kilograms of mature fish put back into wild water, banked. Every {@link #GRAMS_PER_POINT}
+     * grams is one point of reputation; the remainder waits in {@code rep_grams} for the next fish,
+     * so releasing a pound at a time works exactly as well as releasing a sturgeon.
      *
-     * <p>The fry species is rolled ONCE, when the offer is minted at level-up, from every species some
-     * fisherman buys — stream E's frySlot re-rolls the fisherman's bucket daily because it tracks the
-     * order of the day, and a warden has no order to track: his programme is one species, and the
-     * bucket says which. ponytail: "settled-or-native of his region" would need the villager's region
-     * looked up at mint time; the buyable pool is the fisherman's own "any species you could sell" list.
+     * <p>Called from {@code FishingManager.releaseFish}, which decides what counts: mature, and not
+     * into a claimed pond (see the class note for why).
      */
+    public static void credit(ServerPlayer sp, int grams) {
+        if (grams <= 0) return;
+        CompoundTag root = PlayerData.root(sp);
+        int banked = root.getInt(GRAMS) + grams;
+        int points = banked / GRAMS_PER_POINT;
+        root.putInt(GRAMS, banked - points * GRAMS_PER_POINT);
+        if (points > 0) {
+            int rep = root.getInt(REP) + points;
+            root.putInt(REP, rep);
+            sp.displayClientMessage(Component.translatable("message.riverfishing.rep_credit", points, rep)
+                    .withStyle(rep < 0 ? ChatFormatting.YELLOW : ChatFormatting.GREEN), false);
+        }
+        PlayerData.markDirty(sp);
+    }
 
-    /** Buys one net — worn or new, the cost matches the item alone — for one emerald. */
+    // ---- what the board and the finder say ------------------------------------------------------------
+    // Pure arithmetic on the two numbers the server sends, so the caption and the finder line cannot
+    // disagree about what is owed.
 
+    /** Grams still to release for the next point. */
+    public static int toNextPoint(int repGrams) {
+        return GRAMS_PER_POINT - repGrams;
+    }
+
+    /** Grams still to release to get back to zero — 0 when there is no debt. */
+    public static int toClear(int rep, int repGrams) {
+        return rep >= 0 ? 0 : -rep * GRAMS_PER_POINT - repGrams;
+    }
+
+    /** Grams as kilograms with one decimal: both screens say the debt in the same words. */
+    public static String kg(int grams) {
+        return String.format(java.util.Locale.ROOT, "%.1f", Math.max(0, grams) / 1000.0);
+    }
 }

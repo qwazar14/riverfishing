@@ -1,0 +1,11 @@
+{
+  "en_us": {
+    "message.riverfishing.trap_fry_elsewhere": "The fry nearby belong to another water"
+  },
+  "ru_ru": {
+    "message.riverfishing.trap_fry_elsewhere": "Малёк поблизости — из другого водоёма"
+  },
+  "uk_ua": {
+    "message.riverfishing.trap_fry_elsewhere": "Мальок поблизу — з іншої водойми"
+  }
+}

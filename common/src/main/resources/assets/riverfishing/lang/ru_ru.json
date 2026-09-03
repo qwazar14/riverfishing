@@ -1285,13 +1285,11 @@
   "message.riverfishing.feeder_loaded": "Кормушка заряжена: %s/%s дней",
   "message.riverfishing.feeder_full": "Кормушка уже полная",
   "journal.riverfishing.pop_here": "Популяция здесь:",
-  "screen.riverfishing.contract_board.banned": "Браконьеру работы нет. Выпускайте взрослую рыбу в воду — доска вернётся.",
   "item.riverfishing.fish_meal": "Рыбная мука",
   "item.riverfishing.fish_oil": "Рыбий жир",
   "tooltip.riverfishing.fish_meal": "Костная мука для грядок, белок для прикормки",
   "tooltip.riverfishing.fish_meal_fry": "Мальки дороже живыми",
   "tooltip.riverfishing.fish_oil": "Масло в прикормку — запах разносится далеко",
-  "message.riverfishing.pond_grew": "%1$s отнерестился в вашем пруду: запас %2$s%%",
   "message.riverfishing.keepnet_sold": "Рыба из садка (%1$s шт.) продана за %2$s изумрудов",
   "message.riverfishing.keepnet_unwanted": "В этом садке нет ничего, что купил бы рыбак",
   "finder.riverfishing.farm": "Книга хозяйства",
@@ -1369,5 +1367,12 @@
   "finder.riverfishing.suit_fit_none": "Здесь не выживет — выпуск ничего не даст",
   "finder.riverfishing.suit_native": "местный вид",
   "finder.riverfishing.suit_settled": "уже прижился",
-  "finder.riverfishing.suit_new": "будет вселенцем"
+  "finder.riverfishing.suit_new": "будет вселенцем",
+  "message.riverfishing.pond_grew": "%1$s подрос в вашем пруду: %2$s шт., в среднем %3$s · запас %4$s%%",
+  "message.riverfishing.trap_fry_elsewhere": "Малёк поблизости — из другого водоёма",
+  "screen.riverfishing.contract_board.debt": "Долг рыбакам: %1$s · до следующего очка %2$s кг, до нуля %3$s кг",
+  "screen.riverfishing.contract_board.banned": "Браконьеру работы нет. Выпускайте взрослую рыбу в дикую воду, пока долг не погашен.",
+  "message.riverfishing.rep_credit": "Рыбаки видели, как рыба вернулась в воду: +%1$s репутации (сейчас %2$s)",
+  "finder.riverfishing.rep": "Репутация",
+  "finder.riverfishing.rep_debt": "%1$s · до нуля %2$s кг рыбы в дикую воду"
 }

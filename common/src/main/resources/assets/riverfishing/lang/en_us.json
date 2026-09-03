@@ -1285,13 +1285,11 @@
   "message.riverfishing.feeder_loaded": "Feeding station loaded: %s/%s days",
   "message.riverfishing.feeder_full": "The feeding station is full",
   "journal.riverfishing.pop_here": "Population here:",
-  "screen.riverfishing.contract_board.banned": "No work for a poacher. Release mature fish into the water to earn the board back.",
   "item.riverfishing.fish_meal": "Fish Meal",
   "item.riverfishing.fish_oil": "Fish Oil",
   "tooltip.riverfishing.fish_meal": "Bone meal for the fields, protein for the groundbait",
   "tooltip.riverfishing.fish_meal_fry": "Fry are worth more alive",
   "tooltip.riverfishing.fish_oil": "Oil for the groundbait — scent carries far",
-  "message.riverfishing.pond_grew": "%1$s spawned in your pond: stock %2$s%%",
   "message.riverfishing.keepnet_sold": "%1$s fish from the keepnet sold for %2$s emeralds",
   "message.riverfishing.keepnet_unwanted": "No fisherman buys anything in this keepnet",
   "finder.riverfishing.farm": "Farm ledger",
@@ -1369,5 +1367,12 @@
   "finder.riverfishing.suit_fit_none": "Cannot live here — a release takes nothing",
   "finder.riverfishing.suit_native": "native here",
   "finder.riverfishing.suit_settled": "settled here",
-  "finder.riverfishing.suit_new": "would be a transplant"
+  "finder.riverfishing.suit_new": "would be a transplant",
+  "message.riverfishing.pond_grew": "%1$s grew in your pond: %2$s fish, %3$s on average · stock %4$s%%",
+  "message.riverfishing.trap_fry_elsewhere": "The fry nearby belong to another water",
+  "screen.riverfishing.contract_board.debt": "Debt to the fishermen: %1$s · %2$s kg to the next point, %3$s kg to clear",
+  "screen.riverfishing.contract_board.banned": "No work for a poacher. Release mature fish into wild water until the debt is paid off.",
+  "message.riverfishing.rep_credit": "The fishermen saw the fish go back: +%1$s reputation (now %2$s)",
+  "finder.riverfishing.rep": "Reputation",
+  "finder.riverfishing.rep_debt": "%1$s · %2$s kg back into wild water to clear"
 }
