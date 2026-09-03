@@ -213,7 +213,10 @@ public class TackleStationMenu extends AbstractContainerMenu {
             }
             RigData.save(out, contents);
         }
-        if (f.dyeable && materials.getItem(SLOT_DYE).getItem() instanceof DyeItem dye) {
+        // §dye-slot: the CONTAINER index, not the menu's. The two sets stopped being the same numbers
+        // when the hook slot went (§hook-pick), and this line kept reading menu slot 2 — the string —
+        // so a dye in the bench was consumed and never applied.
+        if (f.dyeable && materials.getItem(C_DYE).getItem() instanceof DyeItem dye) {
             out = DyedItemColor.applyDyes(out, List.of(dye)); // applyDyes RETURNS the dyed copy
         }
         return out;
