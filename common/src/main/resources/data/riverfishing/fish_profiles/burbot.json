@@ -47,7 +47,9 @@
       "livebait": 1.0,
       "worm": 0.9,
       "chicken_liver": 0.9,
-      "jig": 0.75
+      "jig": 0.75,
+      "bladebait": 0.8,
+      "swimbait": 0.6
     },
     "hook": {
       "ideal": 6,

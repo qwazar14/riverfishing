@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:slime_ball",
+    "#riverfishing:hooks"
+  ],
+  "result": { "id": "riverfishing:wacky_worm" }
+}

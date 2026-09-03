@@ -52,7 +52,8 @@
       "livebait": 1.0,
       "fish_strip": 1.0,
       "octopus_jig": 0.75,
-      "giant_spoon": 0.7
+      "giant_spoon": 0.7,
+      "swimbait": 0.9
     },
     "hook": {
       "ideal": 1,

@@ -50,7 +50,9 @@
       "wobbler": 1.05,
       "popper": 1.0,
       "jig": 0.9,
-      "fish_strip": 0.85
+      "fish_strip": 0.85,
+      "spinnerbait": 0.8,
+      "swimbait": 1.15
     },
     "hook": {
       "ideal": 2,

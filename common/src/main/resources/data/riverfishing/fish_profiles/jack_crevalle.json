@@ -51,7 +51,9 @@
       "silicone": 1.0,
       "livebait": 1.0,
       "wobbler": 0.95,
-      "giant_spoon": 1.15
+      "giant_spoon": 1.15,
+      "spinnerbait": 0.8,
+      "swimbait": 1.1
     },
     "hook": {
       "ideal": 1,

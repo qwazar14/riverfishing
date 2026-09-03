@@ -48,7 +48,11 @@
       "wobbler": 0.9,
       "popper": 0.85,
       "spinner": 0.8,
-      "crankbait": 0.7
+      "crankbait": 0.7,
+      "spinnerbait": 0.85,
+      "bladebait": 0.7,
+      "swimbait": 0.7,
+      "wacky_worm": 0.5
     },
     "hook": {
       "ideal": 6,

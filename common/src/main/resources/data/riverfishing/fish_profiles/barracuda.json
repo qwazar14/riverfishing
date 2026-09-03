@@ -49,7 +49,9 @@
       "spinner": 0.7,
       "fish_strip": 0.6,
       "octopus_jig": 0.9,
-      "giant_spoon": 1.1
+      "giant_spoon": 1.1,
+      "spinnerbait": 0.7,
+      "swimbait": 1.05
     },
     "hook": {
       "ideal": 2,

@@ -52,7 +52,8 @@
       "fish_strip": 0.9,
       "giant_spoon": 0.85,
       "wobbler": 0.75,
-      "silicone": 0.6
+      "silicone": 0.6,
+      "swimbait": 0.85
     },
     "hook": {
       "ideal": 1,
