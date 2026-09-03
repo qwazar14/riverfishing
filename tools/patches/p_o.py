@@ -42,7 +42,8 @@ def write(path, text):
 def to26(java):
     """The 26.x dialect of a 1.21.1 snippet: only the idioms this stream's text actually uses."""
     if DIALECT != "26":
-        return java
+            java = java.replace("g.drawString(", "g.text(")   # §port26: 26.x draws text through the extractor
+    return java
     java = re.sub(r"\.getInt\(([^()]+)\)", r".getIntOr(\1, 0)", java)
     java = re.sub(r"\.getBoolean\(([^()]+)\)", r".getBooleanOr(\1, false)", java)
     java = re.sub(r"\.getByte\(([^()]+)\)", r".getByteOr(\1, (byte) 0)", java)
