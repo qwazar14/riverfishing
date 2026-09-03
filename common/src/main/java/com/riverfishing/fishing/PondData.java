@@ -87,6 +87,17 @@ public final class PondData extends SavedData {
         return c == null ? "" : c.ownerName;
     }
 
+    /**
+     * §n §breeding: are these two spots the same water, as far as a claim can tell — the same pond, or
+     * both wild? The fry trap asks it: the brood ledger is keyed by a ~128-block region, which happily
+     * holds two ponds and a river, and the claim is the only line between them that a player drew
+     * himself. Identity comparison: there is exactly one Claim object per claim, and null means wild.
+     */
+    public static boolean sameWater(ServerLevel level, BlockPos a, BlockPos b) {
+        PondData d = get(level);
+        return d.claimAt(a) == d.claimAt(b);
+    }
+
     @Nullable
     private Claim claimAt(BlockPos pos) {
         Claim c = byWater.get(pos.asLong());

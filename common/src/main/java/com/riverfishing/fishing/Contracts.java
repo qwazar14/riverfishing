@@ -245,7 +245,7 @@ public final class Contracts {
     }
 
     private static void take0(ServerPlayer sp, ServerLevel level, Villager v, int slot) {
-        if (Warden.banned(sp)) return;   // §i: the board he saw was blank; a stale click gets nothing
+        if (Warden.banned(sp)) return;   // §o: rep <= BAN_REP — the board he saw was blank; a stale click gets nothing
         List<CompoundTag> posts = posts(v, level);
         if (slot < 0 || slot >= posts.size()) return;
         CompoundTag post = posts.get(slot);

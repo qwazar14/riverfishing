@@ -2909,6 +2909,17 @@ public final class FishingManager {
         return stocked.isStocked(region, species) ? stocked.shares(region, species)[locus] : 0.0;
     }
 
+    /**
+     * §n §breeding: the average specimen of the population SETTLED here, in grams — 0 when the species is
+     * not settled in the region, or when the ledger never measured one (a world from before the head
+     * count, or a water that settled on fry alone). 0 means "ask the profile", the way it always did.
+     */
+    private static double pondAvgWeight(ServerLevel level, BlockPos pos, String species) {
+        StockedData stocked = StockedData.get(level);
+        long region = StockedData.region(pos);
+        return stocked.isStocked(region, species) ? stocked.avgWeight(region, species) : 0;
+    }
+
     // ---- fish generation ----
 
     private static void rollFish(ServerLevel level, RandomSource random, FishProfile p, FishingSession session, double luck,
@@ -2962,6 +2973,15 @@ public final class FishingManager {
         }
 
         double weight = p.weightMin + (p.weightMax - p.weightMin) * biased;
+        // §n §breeding: where the species is settled and the ledger knows its average specimen, the POND
+        // decides the size, not the profile: the same roll re-centred on the pond's own AvgW, keeping the
+        // profile's spread (0.6..1.4 of the average) and clamped to the species' range. A pond stocked
+        // with small fish gives small fish until it grows them (§m raises AvgW a season at a time) — the
+        // answer to "my pond is a vending machine for profile-mean fish".
+        // ponytail: the clamp is the profile's range, and the two multipliers below can still nudge a
+        // fish a few percent past it — exactly as they already do for a wild one.
+        double pondAvg = pondAvgWeight(level, session.target, p.id.getPath());
+        if (pondAvg > 0) weight = Mth.clamp(pondAvg * (0.6 + 0.8 * biased), p.weightMin, p.weightMax);
         // §h §breeding: a settled population's size genes — all-ss stock runs 10% light, all-SS 15% heavy
         // (0.9 + 0.25 × share) — then the ecosystem's word (a predator thinning the small cyprinids fattens
         // the rest, §F). Applied before the rounding so the length keeps tracking the weight.
@@ -3147,12 +3167,20 @@ public final class FishingManager {
         boolean mature = card != null ? card.getByte("Size") >= 2 : sizeRatio >= 0.5;
         int sex = card == null ? -1 : card.getByte("Sex");
         String genes = card == null ? "" : card.getString("Genes");
+        // §o: the debt to the fishermen is paid in fish PUT BACK, and only into water anybody may
+        // fish. A fish released into your own claimed pond is not restitution: it is still yours —
+        // you stocked it, it grows for you, you catch it again — while the water a net emptied is
+        // no fuller than it was. Kilograms rather than fish, because five kilos is five kilos
+        // whether it comes as one carp or ten roach; mature only, the same size class the ledger
+        // takes as brood, so a bucket of undersized fish buys no pardon.
+        if (thrower != null && mature && !PondData.isClaimed(level, pos)) {
+            Warden.credit(thrower, weightG * Math.max(1, count));
+        }
         release(level, pos, p, units, thrower, (stocked, region) -> {
             if (!mature) return;
             long day = StockedData.worldDay(level);
             for (int i = 0; i < Math.max(1, count); i++) {
-                stocked.addBrood(region, species.getPath(), sex, day, genes, thrower == null ? null : thrower.getUUID());
-                if (thrower != null) com.riverfishing.fishing.Warden.workOff(thrower);   // §i: a fish in pays a poach off
+                stocked.addBrood(region, species.getPath(), sex, day, genes, thrower == null ? null : thrower.getUUID(), weightG);   // §lm: the pond's average weight learns from what went in   // §o: the work-off is Warden.credit now, by weight
             }
         });
     }
@@ -3246,6 +3274,11 @@ public final class FishingManager {
         long region = StockedData.region(pos);
         StockedData stocked = StockedData.get(level);
         stocked.growIfDue(level, region, id);   // §k §farm: a landing is a touch of the water too
+        // §n §breeding: one fish out is one fish fewer. A settled water pays from its head count (§l);
+        // an unsettled one still pays from the brood ledger below, which is the only population it has.
+        // ponytail: a 20 g roach costs one head like a 5 kg carp — the ledger counts fish, not kilograms;
+        // takeAdult(grams) if a pond should feel the difference.
+        if (stocked.isStocked(region, id) && stocked.adults(region, id) > 0) stocked.takeAdult(region, id);
         if (stocked.isStocked(region, id) || !stocked.hasBrood(region, id)) return;
         if (stocked.tickSettle(level, region, id, p)) {
             sp.displayClientMessage(Component.translatable("message.riverfishing.stock_settled", fishName(species)).withStyle(ChatFormatting.GREEN), true);
@@ -3296,8 +3329,18 @@ public final class FishingManager {
         FishingPressureData pd = FishingPressureData.get(level);
         long region = StockedData.region(waterPos);
         int cx = waterPos.getX() >> 4, cz = waterPos.getZ() >> 4;
-        return id -> stocked.isStocked(region, id.getPath()) ? 1.0
-                : Math.min(1.0, pd.surplusAround(cx, cz, id.getPath(), level.getGameTime()));
+        return id -> {
+            String s = id.getPath();
+            if (!stocked.isStocked(region, s)) return Math.min(1.0, pd.surplusAround(cx, cz, s, level.getGameTime()));
+            // §n §breeding: fish the last adult out of a settled pond and the species is GONE there until
+            // it grows back (§m) — a stocked water is a head count, not a permanent licence. Guarded on
+            // AvgW: a ledger from before the head count, or one that settled on fry alone, has no Adults
+            // to read and its 0 must not empty a water that was working.
+            // ponytail: all-or-nothing — one adult bites like a hundred. Scale by adults/(8×pairs) if a
+            // thin pond should also FEEL thin.
+            if (stocked.avgWeight(region, s) > 0 && stocked.adults(region, s) <= 0) return 0.0;
+            return 1.0;
+        };
     }
 
     /** Environment-only context at a spot (no tackle): habitat + season/time/weather + community. */
@@ -3610,6 +3653,9 @@ public final class FishingManager {
             w.putFloat("clarity", (float) env.clarity);
             w.putString("sub", com.riverfishing.engine.Calendar.sub(level).name().toLowerCase(java.util.Locale.ROOT));
             w.putString("groups", String.join(";", new java.util.TreeSet<>(env.biomeGroups)));
+            // §o: where the angler stands with the fishermen, and how much of a kilogram is banked.
+            w.putInt("rep", Contracts.rep(sp));
+            w.putInt("rep_grams", Warden.repGrams(sp));
         }
         // §f §ecosystem: the active effects as lang-key tails; the strip has no room and asks every second.        // §pond: whose water this is, if anyone's — the screen has no SavedData to ask.
         String pondOwner = PondData.ownerName(level, waterPos);
