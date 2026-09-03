@@ -16,7 +16,8 @@
     "message.riverfishing.tank_roe_ready": "There is roe in the tank — take it out with an empty hand",
     "message.riverfishing.tank_incubating": "Roe incubating: day %1$s of %2$s",
     "message.riverfishing.tank_fry_ready": "The fry have hatched — take them out with an empty hand",
-    "message.riverfishing.tank_busy": "Empty the tank first — roe and fish do not share it"
+    "message.riverfishing.tank_busy": "Empty the tank first — roe and fish do not share it",
+    "message.riverfishing.tank_no_species": "This roe is of no species — it will never hatch"
   },
   "ru_ru": {
     "item.riverfishing.roe": "Икра: %s",
@@ -35,7 +36,8 @@
     "message.riverfishing.tank_roe_ready": "В аквариуме икра — заберите её пустой рукой",
     "message.riverfishing.tank_incubating": "Икра созревает: день %1$s из %2$s",
     "message.riverfishing.tank_fry_ready": "Мальки вылупились — заберите их пустой рукой",
-    "message.riverfishing.tank_busy": "Сначала освободите аквариум — икра и рыба вместе не живут"
+    "message.riverfishing.tank_busy": "Сначала освободите аквариум — икра и рыба вместе не живут",
+    "message.riverfishing.tank_no_species": "Эта икра ничья — из неё ничего не вылупится"
   },
   "uk_ua": {
     "item.riverfishing.roe": "Ікра: %s",
@@ -54,6 +56,7 @@
     "message.riverfishing.tank_roe_ready": "В акваріумі ікра — заберіть її порожньою рукою",
     "message.riverfishing.tank_incubating": "Ікра дозріває: день %1$s з %2$s",
     "message.riverfishing.tank_fry_ready": "Мальки вилупилися — заберіть їх порожньою рукою",
-    "message.riverfishing.tank_busy": "Спочатку звільніть акваріум — ікра й риба разом не живуть"
+    "message.riverfishing.tank_busy": "Спочатку звільніть акваріум — ікра й риба разом не живуть",
+    "message.riverfishing.tank_no_species": "Ця ікра нічия — з неї нічого не вилупиться"
   }
 }
