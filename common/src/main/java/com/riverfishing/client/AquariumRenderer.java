@@ -4,7 +4,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.riverfishing.block.AquariumBlock;
 import com.riverfishing.block.AquariumBlockEntity;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.riverfishing.RiverFishing;
 import com.riverfishing.item.FishItem;
+import com.riverfishing.item.FryItem;
+import com.riverfishing.item.RoeItem;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.core.Direction;
@@ -17,6 +22,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Matrix4f;
 
 /**
  * Renders the mounted fish swimming inside the glass tank (§aquarium) and the nameplate on the wooden
@@ -32,11 +38,22 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
     /** Fish at or above this weight are too big to loop the figure-8 — they just cruise back and forth. */
     private static final int BIG_FISH_G = 3000;
 
+    // §roe-frames: gen_aquarium_roe.py's 80x16 strip — four incubation days, then the hatched shoal. Bound
+    // straight from its path rather than stitched: a texture nothing in a model references is not on the
+    // block atlas, and an atlases/blocks.json entry is a second file for one quad.
+    private static final ResourceLocation ROE_STRIP = RiverFishing.id("textures/block/aquarium_roe.png");
+    private static final int ROE_FRAMES = 5;
+    private static final RenderType ROE_LAYER = RenderType.entityCutoutNoCull(ROE_STRIP);
+    /** The tank model's gravel floor tops out at 2/16 of the upper cell; a hair above it, or they z-fight. */
+    private static final float ROE_FLOOR = 1f + 2f / 16f + 0.004f;
+    private static final float ROE_HALF = 6f / 16f;   // 12/16 wide: between the two kelp stands
+
     @Override
     public void render(AquariumBlockEntity be, float partialTick, PoseStack pose,
                        MultiBufferSource buffers, int light, int overlay) {
         java.util.List<ItemStack> fishes = be.getFishes();
-        if (fishes.isEmpty()) return;
+        ItemStack roe = be.getRoe();
+        if (fishes.isEmpty() && roe.isEmpty()) return;
 
         Direction facing = be.getBlockState().hasProperty(AquariumBlock.FACING)
                 ? be.getBlockState().getValue(AquariumBlock.FACING) : Direction.NORTH;
@@ -46,6 +63,9 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         // Centre of the 2-wide × 1-tall glass tank (upper row), relative to the master cell corner.
         double tankX = 0.5 + cw.getStepX() * 0.5;
         double tankZ = 0.5 + cw.getStepZ() * 0.5;
+
+        if (!roe.isEmpty()) renderRoe(be, roe, time, facing, cw, tankX, tankZ, pose, buffers, light, overlay);
+        if (fishes.isEmpty()) return;
 
         for (int i = 0; i < fishes.size(); i++) {
             ItemStack fish = fishes.get(i);
@@ -100,6 +120,64 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         }
 
         renderNameplate(be, fishes, facing, cw, pose, buffers, light);
+    }
+
+    /**
+     * §roe-frames: the roe slot, drawn where it is. Incubating roe is a flat quad on the gravel, centred
+     * on the seam between the two upper cells (the kelp stands at each cell's own centre, so the middle
+     * is the one clear patch of floor); the frame is the incubation day, counted on the client from the
+     * synced start time and the world clock — the same arithmetic the server's ticker does, so the
+     * picture and the sneak-click status agree. Hatched fry stand upright and broadside like the fish
+     * (a flat shoal seen from the front of a tank is a line) and drift side to side on the game clock.
+     */
+    private void renderRoe(AquariumBlockEntity be, ItemStack roe, float time, Direction facing, Direction cw,
+                           double tankX, double tankZ, PoseStack pose, MultiBufferSource buffers,
+                           int light, int overlay) {
+        boolean fry = roe.getItem() instanceof FryItem;
+        if (!fry && !(roe.getItem() instanceof RoeItem)) return;
+        int frame;
+        double u = 0, y;
+        if (fry) {
+            frame = ROE_FRAMES - 1;
+            // Period ~3 s (60 ticks), amplitude 3/16 — a shoal working the middle of the tank, plus a bob.
+            u = Mth.sin(time * (float) (Math.PI * 2 / 60)) * (3.0 / 16);
+            y = 1.5 + Mth.sin(time * 0.13f) * 0.02;   // mid-water: the quad's bottom edge just clears the gravel
+        } else {
+            long start = be.getIncubate();
+            long day = start == 0 || be.getLevel() == null ? 0 : (be.getLevel().getDayTime() - start) / 24000L;
+            // ponytail: a cold-climate clutch takes eight days and sits on the day-4 frame for its second
+            // half; the client would need the profile and the biome to stretch the strip over it.
+            frame = (int) Mth.clamp(day, 0, ROE_FRAMES - 2);
+            y = ROE_FLOOR;
+        }
+        pose.pushPose();
+        pose.translate(tankX + cw.getStepX() * u, y, tankZ + cw.getStepZ() * u);
+        // Same yaw as the fish so the strip's left-right is the tank's left-right whichever way it faces.
+        pose.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
+        // The roe lies down; the fry stand up. Either way the quad is drawn in its own x-y plane below.
+        if (!fry) pose.mulPose(Axis.XP.rotationDegrees(90f));
+        Matrix4f m = pose.last().pose();
+        VertexConsumer vc = buffers.getBuffer(ROE_LAYER);
+        float u0 = frame / (float) ROE_FRAMES, u1 = (frame + 1) / (float) ROE_FRAMES;
+        float h = ROE_HALF;
+        vertex(m, vc, -h, -h, u0, 1f, light, overlay);
+        vertex(m, vc, h, -h, u1, 1f, light, overlay);
+        vertex(m, vc, h, h, u1, 0f, light, overlay);
+        vertex(m, vc, -h, h, u0, 0f, light, overlay);
+        pose.popPose();
+    }
+
+    /** One corner of the roe quad; lit like the fish beside it, normal up so the entity shader's directional light is steady. */
+    private static void vertex(Matrix4f m, VertexConsumer vc, float x, float y, float u, float v, int light, int overlay) {
+        // §26.x: addVertex/setColor/setUv/setOverlay/setLight/setNormal is the 1.21.1 chain; 1.20.1 is
+        // vertex/color/uv/overlayCoords/uv2/normal + endVertex(), 26.x is this chain against
+        // RenderTypes.entityCutoutNoCull and a submitCustomGeometry from submit().
+        vc.addVertex(m, x, y, 0f)
+                .setColor(255, 255, 255, 255)
+                .setUv(u, v)
+                .setOverlay(overlay)
+                .setLight(light)
+                .setNormal(0f, 1f, 0f);
     }
 
     private void renderNameplate(AquariumBlockEntity be, java.util.List<ItemStack> fishes, Direction facing,

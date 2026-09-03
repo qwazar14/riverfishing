@@ -110,6 +110,7 @@ public final class ClientPlatformImpl {
         event.register(ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
         event.register(ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         event.register(ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
+        event.register(ModMenus.AQUARIUM.get(), com.riverfishing.client.AquariumScreen::new);
     }
 
     /**
