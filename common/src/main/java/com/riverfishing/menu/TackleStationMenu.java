@@ -210,7 +210,7 @@ public class TackleStationMenu extends AbstractContainerMenu {
         // and applyDyes takes DyeColor instead of DyeItem. Still returns the dyed copy.
         if (f.dyeable) {
             net.minecraft.world.item.DyeColor dye =
-                    materials.getItem(SLOT_DYE).get(net.minecraft.core.component.DataComponents.DYE);
+                    materials.getItem(C_DYE).get(net.minecraft.core.component.DataComponents.DYE);   // §dye-slot: the CONTAINER index
             if (dye != null) {
                 out = DyedItemColor.applyDyes(out, List.of(dye));
             }

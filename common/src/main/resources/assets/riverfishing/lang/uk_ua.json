@@ -1371,9 +1371,7 @@
   "finder.riverfishing.suit_new": "буде вселенцем",
   "message.riverfishing.pond_grew": "%1$s підріс у вашому ставку: %2$s шт., у середньому %3$s · запас %4$s%%",
   "message.riverfishing.trap_fry_elsewhere": "Мальок поблизу — з іншої водойми",
-  "screen.riverfishing.contract_board.debt": "Борг рибалкам: %1$s · до наступного очка %2$s кг, до нуля %3$s кг",
   "screen.riverfishing.contract_board.banned": "Браконьєрові роботи немає. Випускайте дорослу рибу в дику воду, доки борг не сплачено.",
   "message.riverfishing.rep_credit": "Рибалки бачили, як риба повернулася у воду: +%1$s репутації (зараз %2$s)",
-  "finder.riverfishing.rep": "Репутація",
-  "finder.riverfishing.rep_debt": "%1$s · до нуля %2$s кг риби в дику воду"
+  "finder.riverfishing.rep": "Репутація"
 }

@@ -29,7 +29,7 @@ public final class ContractBoardState {
     private static final int MERCHANT_W = 276, MERCHANT_H = 166;
     private static final int W = 150, HEAD = 26, LINE = 9, FOOT = 18, TEXT_W = W - 26;
     private static final int PAPER = 0xFFE3D6B8, EDGE = 0xFF6E5A3C, INK = 0xFF241A0E, INK2 = 0xFF6E5A3C,
-            HOVER = 0x38E8B430, TAKEN = 0xFFA89880;
+            HOVER = 0x38E8B430, TAKEN = 0xFFA89880, DEBT = 0xFFA02020;   // §rep-sign: red for a minus
 
     private static CompoundTag board;
     private static int boundId = -1;
@@ -90,14 +90,11 @@ public final class ContractBoardState {
         int x = o[0], y = o[1];
         ListTag list = board.getListOrEmpty("posts");
         posts = new int[list.size()][];
-        // §o: in the red the caption IS the standing — the points owed, the kilograms to the next
-        // one and the kilograms that clear it. It wraps, so the head grows with it.
-        int rep = board.getIntOr("rep", 0), repGrams = board.getIntOr("rep_grams", 0);
-        List<FormattedCharSequence> caption = font.split(rep < 0
-                ? Component.translatable("screen.riverfishing.contract_board.debt", -rep,
-                        com.riverfishing.fishing.Warden.kg(com.riverfishing.fishing.Warden.toNextPoint(repGrams)),
-                        com.riverfishing.fishing.Warden.kg(com.riverfishing.fishing.Warden.toClear(rep, repGrams)))
-                : Component.translatable("screen.riverfishing.contract_board.rep", rep), W - 10);
+        // §rep-sign: the standing is a signed number and nothing else — "-5" in red says everything
+        // the three-clause debt sentence said, in one glance and in every language.
+        int rep = board.getIntOr("rep", 0);
+        List<FormattedCharSequence> caption = font.split(
+                Component.translatable("screen.riverfishing.contract_board.rep", rep), W - 10);
         int head = HEAD + LINE * (caption.size() - 1);
         int total = head + 4;
         // §i: a poacher's board carries no posts — only the reason. The server sent an empty list with it.
@@ -117,7 +114,7 @@ public final class ContractBoardState {
         g.fill(x, y, x + W, y + total, PAPER);
         g.text(font, Component.translatable("screen.riverfishing.contract_board.title"), x + 5, y + 5, INK, false);
         for (int i = 0; i < caption.size(); i++) {   // §o: one line, three when it is a debt
-            g.text(font, caption.get(i), x + 5, y + 15 + LINE * i, rep < 0 ? INK : INK2, false);
+            g.text(font, caption.get(i), x + 5, y + 15 + LINE * i, rep < 0 ? DEBT : INK2, false);
         }
         for (int i = 0; i < banned.size(); i++) {   // §i
             g.text(font, banned.get(i), x + 5, y + head + 4 + LINE * i, INK, false);

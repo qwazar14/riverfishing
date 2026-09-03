@@ -820,10 +820,9 @@ public class FinderScreen extends Screen {
             }
         }
         // §o: where the angler stands with the fishermen, and in the red what it takes to clear it.
-        if (w.contains("rep")) out.add(pairLine("finder.riverfishing.rep", w.getIntOr("rep", 0) < 0
-                ? Component.translatable("finder.riverfishing.rep_debt", w.getIntOr("rep", 0),
-                        com.riverfishing.fishing.Warden.kg(com.riverfishing.fishing.Warden.toClear(w.getIntOr("rep", 0), w.getIntOr("rep_grams", 0))))
-                : Component.literal(String.valueOf(w.getIntOr("rep", 0)))));
+        // §rep-sign: the standing, signed; a minus is the whole message.
+        if (w.contains("rep")) out.add(pairLine("finder.riverfishing.rep",
+                Component.literal(String.valueOf(w.getIntOr("rep", 0)))));
         CompoundTag ownerWater = data.getCompoundOrEmpty("water");   // the owner rides in the water tag
         if (ownerWater.contains("owner")) {
             out.add(pairLine("finder.riverfishing.owner", Component.literal(ownerWater.getStringOr("owner", ""))));
