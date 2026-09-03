@@ -32,6 +32,9 @@ public final class ClientPlatformImpl {
                 com.riverfishing.registry.ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
+        // §aquarium-window (0.9.0): the tank.
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.AQUARIUM.get(), com.riverfishing.client.AquariumScreen::new);
     }
 
     /**

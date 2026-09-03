@@ -1,6 +1,5 @@
 package com.riverfishing.block;
 
-import com.riverfishing.item.FishItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -122,10 +121,9 @@ public class AquariumBlock extends BaseEntityBlock {
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
         if (!state.is(newState.getBlock())) {
-            // Pop every mounted fish from the master cell.
-            if (isMaster(state) && level.getBlockEntity(pos) instanceof AquariumBlockEntity be) {
-                for (ItemStack f : be.getFishes()) popResource(level, pos, f);
-                if (!be.roe.isEmpty()) popResource(level, pos, be.roe);
+            // Drop everything the master cell holds — fish, food, roe, modules — through the Container (§aquarium-window).
+            if (isMaster(state) && level.getBlockEntity(pos) instanceof net.minecraft.world.Container c) {
+                net.minecraft.world.Containers.dropContents(level, pos, c);
             }
             // Non-player removal (piston/explosion): drag the other cells out so nothing floats.
             BlockPos master = masterPos(pos, state);
@@ -138,34 +136,37 @@ public class AquariumBlock extends BaseEntityBlock {
         }
     }
 
+    /**
+     * §aquarium-window (0.9.0): a click on any cell opens the master's window (server side) — the old
+     * add-fish / take-fish / feed-by-hand actions are slots now. 1.20.1 has the single {@code use}, hand or not.
+     */
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide) return InteractionResult.SUCCESS;
-        BlockPos master = masterPos(pos, state);
-        if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return InteractionResult.PASS;
+        if (!level.isClientSide && player instanceof net.minecraft.server.level.ServerPlayer sp) {
+            BlockPos master = masterPos(pos, state);
+            if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return InteractionResult.PASS;
+            dev.architectury.registry.menu.MenuRegistry.openExtendedMenu(sp,
+                    new dev.architectury.registry.menu.ExtendedMenuProvider() {
+                        @Override
+                        public net.minecraft.network.chat.Component getDisplayName() {
+                            return net.minecraft.network.chat.Component.translatable("screen.riverfishing.aquarium.title");
+                        }
 
-        ItemStack held = player.getItemInHand(hand);
-        // §b/breeding: food, roe and the roe slot come first; a fish in hand still goes in below.
-        if (AquariumBreeding.use(level, be, player, held)) return InteractionResult.CONSUME;
-        // Add a fish (up to 3) when holding one and there's room.
-        if (held.getItem() instanceof FishItem && !be.isFull()) {
-            if (be.addFish(held)) {
-                held.shrink(1);
-                level.playSound(null, master, net.minecraft.sounds.SoundEvents.BUCKET_EMPTY_FISH,
-                        net.minecraft.sounds.SoundSource.BLOCKS, 0.7f, 1.1f);
-                return InteractionResult.CONSUME;
-            }
+                        @Nullable
+                        @Override
+                        public net.minecraft.world.inventory.AbstractContainerMenu createMenu(
+                                int id, net.minecraft.world.entity.player.Inventory inv, Player p) {
+                            return new com.riverfishing.menu.AquariumMenu(id, inv, (net.minecraft.world.Container) be, be.data());
+                        }
+
+                        @Override
+                        public void saveExtraData(net.minecraft.network.FriendlyByteBuf buf) {
+                            buf.writeBlockPos(master);
+                        }
+                    });
         }
-        // Empty hand takes the last fish back out.
-        if (held.isEmpty() && !be.isEmpty()) {
-            ItemStack fish = be.removeLastFish();
-            if (!fish.isEmpty() && !player.getInventory().add(fish)) player.drop(fish, false);
-            level.playSound(null, master, net.minecraft.sounds.SoundEvents.BUCKET_FILL_FISH,
-                    net.minecraft.sounds.SoundSource.BLOCKS, 0.7f, 1.0f);
-            return InteractionResult.CONSUME;
-        }
-        return InteractionResult.PASS;
+        return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     // §b/breeding: the master cell ticks the tank on the server; the other cells have no entity to tick.
