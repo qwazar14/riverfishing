@@ -3147,6 +3147,7 @@ public final class FishingManager {
             long day = StockedData.worldDay(level);
             for (int i = 0; i < Math.max(1, count); i++) {
                 stocked.addBrood(region, species.getPath(), sex, day, genes, thrower == null ? null : thrower.getUUID());
+                if (thrower != null) com.riverfishing.fishing.Warden.workOff(thrower);   // §i: a fish in pays a poach off
             }
         });
     }
@@ -3198,11 +3199,13 @@ public final class FishingManager {
         pressure.addStock(chunk, id, now, units, nativeHere ? FishingPressureData.FLOOR_NATIVE
                 : resident ? FishingPressureData.FLOOR_SETTLED : FishingPressureData.FLOOR_TRANSPLANT);
         boolean settledNow = false;
-        if (!resident) {
+        if (!nativeHere) {   // §k §farm: a settled pond keeps its ledger — every mature fish put in is brood
             ledger.accept(stocked, region);
             stocked.noteFit(region, id, fit);
+            stocked.notePos(region, id, pos);
             settledNow = stocked.tickSettle(level, region, id, p);
         }
+        stocked.growIfDue(level, region, id);   // §k: a window that closed since anyone last looked pays out now
         if (thrower == null) return;
         String fitText = String.format(java.util.Locale.ROOT, "%.1f", fit);
         Component msg;
@@ -3233,6 +3236,7 @@ public final class FishingManager {
         String id = species.getPath();
         long region = StockedData.region(pos);
         StockedData stocked = StockedData.get(level);
+        stocked.growIfDue(level, region, id);   // §k §farm: a landing is a touch of the water too
         if (stocked.isStocked(region, id) || !stocked.hasBrood(region, id)) return;
         if (stocked.tickSettle(level, region, id, p)) {
             sp.displayClientMessage(Component.translatable("message.riverfishing.stock_settled", fishName(species)).withStyle(ChatFormatting.GREEN), true);
@@ -3624,6 +3628,28 @@ public final class FishingManager {
         root.put("here", here);
         root.put("gone", gone);
         if (full) {
+            // §k §farm: every species on the ledger here — settled, or still settling — with its brood, its
+            // genome and when it next pays; and the bank's upgrades. The client has no ledger to ask.
+            CompoundTag farm = new CompoundTag();
+            StockedData st = StockedData.get(level);
+            long region = StockedData.region(waterPos);
+            for (String s : st.farmSpecies(region)) {
+                FishProfile fp = FishProfileManager.get().byId(com.riverfishing.RiverFishing.id(s));
+                if (fp == null) continue;
+                boolean settled = st.isStocked(region, s);
+                CompoundTag f = new CompoundTag();
+                f.putInt("stock", settled ? stock.stockPercent(chunk, s, level.getGameTime())
+                        : (int) Math.round(stock.surplusAround(waterPos.getX() >> 4, waterPos.getZ() >> 4, s, level.getGameTime()) * 100));
+                f.putInt("f", st.broodCount(region, s, 0));
+                f.putInt("m", st.broodCount(region, s, 1));
+                f.putInt("fry", st.fryCount(region, s));
+                f.putString("genome", st.genome(region, s));
+                f.putInt("grow", settled ? StockedData.daysToGrow(level, fp) : st.daysToSettle(region, s, StockedData.worldDay(level)));
+                f.putBoolean("settled", settled);
+                farm.put(s, f);
+            }
+            root.put("farm", farm);
+            root.putString("upgrades", String.join(";", WaterUpgrades.at(level, waterPos)));
             root.put("map", soundingMap(level, waterPos));
             root.put("profile", profileAlong(sp, level));
             root.putByteArray("wet", wetMask(level, waterPos));

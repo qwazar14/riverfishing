@@ -1,0 +1,23 @@
+{
+  "en_us": {
+    "item.riverfishing.fish_meal": "Fish Meal",
+    "item.riverfishing.fish_oil": "Fish Oil",
+    "tooltip.riverfishing.fish_meal": "Bone meal for the fields, protein for the groundbait",
+    "tooltip.riverfishing.fish_meal_fry": "Fry are worth more alive",
+    "tooltip.riverfishing.fish_oil": "Oil for the groundbait — scent carries far"
+  },
+  "ru_ru": {
+    "item.riverfishing.fish_meal": "Рыбная мука",
+    "item.riverfishing.fish_oil": "Рыбий жир",
+    "tooltip.riverfishing.fish_meal": "Костная мука для грядок, белок для прикормки",
+    "tooltip.riverfishing.fish_meal_fry": "Мальки дороже живыми",
+    "tooltip.riverfishing.fish_oil": "Масло в прикормку — запах разносится далеко"
+  },
+  "uk_ua": {
+    "item.riverfishing.fish_meal": "Рибне борошно",
+    "item.riverfishing.fish_oil": "Риб'ячий жир",
+    "tooltip.riverfishing.fish_meal": "Кісткове борошно для грядок, білок для прикормки",
+    "tooltip.riverfishing.fish_meal_fry": "Мальки дорожчі живими",
+    "tooltip.riverfishing.fish_oil": "Олія в прикормку — запах розноситься далеко"
+  }
+}

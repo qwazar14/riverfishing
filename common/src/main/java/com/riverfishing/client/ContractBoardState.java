@@ -91,6 +91,11 @@ public final class ContractBoardState {
         ListTag list = board.getList("posts", 10);
         posts = new int[list.size()][];
         int total = HEAD + 4;
+        // §i: a poacher's board carries no posts — only the reason. The server sent an empty list with it.
+        List<FormattedCharSequence> banned = board.getBoolean("banned")
+                ? font.split(Component.translatable("screen.riverfishing.contract_board.banned"), W - 10)
+                : java.util.List.<FormattedCharSequence>of();
+        total += banned.isEmpty() ? 0 : LINE * banned.size() + 4;
         List<List<FormattedCharSequence>> body = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             List<FormattedCharSequence> ls = lines(list.getCompound(i));
@@ -104,6 +109,9 @@ public final class ContractBoardState {
         g.drawString(font, Component.translatable("screen.riverfishing.contract_board.title"), x + 5, y + 5, INK, false);
         g.drawString(font, Component.translatable("screen.riverfishing.contract_board.rep", board.getInt("rep")),
                 x + 5, y + 15, INK2, false);
+        for (int i = 0; i < banned.size(); i++) {   // §i
+            g.drawString(font, banned.get(i), x + 5, y + HEAD + 4 + LINE * i, INK, false);
+        }
 
         for (int i = 0; i < list.size(); i++) {
             CompoundTag t = list.getCompound(i);
