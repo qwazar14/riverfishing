@@ -50,7 +50,10 @@
       "silicone": 0.95,
       "spinner": 0.9,
       "livebait": 0.85,
-      "jig": 0.8
+      "jig": 0.8,
+      "spinnerbait": 0.9,
+      "swimbait": 1.05,
+      "wacky_worm": 0.9
     },
     "hook": {
       "ideal": 4,

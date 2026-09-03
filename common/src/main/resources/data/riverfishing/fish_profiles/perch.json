@@ -51,7 +51,10 @@
       "silicone": 0.95,
       "spinner": 0.9,
       "jig": 0.8,
-      "popper": 0.7
+      "popper": 0.7,
+      "spinnerbait": 0.7,
+      "bladebait": 0.95,
+      "wacky_worm": 0.85
     },
     "hook": {
       "ideal": 8,

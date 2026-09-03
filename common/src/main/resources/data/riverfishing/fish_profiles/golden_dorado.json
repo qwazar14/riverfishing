@@ -53,7 +53,9 @@
       "popper": 0.85,
       "crankbait": 0.8,
       "silicone": 0.8,
-      "livebait": 0.7
+      "livebait": 0.7,
+      "spinnerbait": 0.9,
+      "swimbait": 0.95
     },
     "hook": {
       "ideal": 2,

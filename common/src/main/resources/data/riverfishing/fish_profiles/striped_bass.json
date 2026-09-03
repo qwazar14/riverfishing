@@ -52,7 +52,9 @@
       "silicone": 0.95,
       "spoon": 0.9,
       "jig": 0.85,
-      "giant_spoon": 1.05
+      "giant_spoon": 1.05,
+      "bladebait": 1.0,
+      "swimbait": 1.15
     },
     "hook": {
       "ideal": 2,

@@ -49,7 +49,8 @@
       "maggot": 1.0,
       "bloodworm": 1.0,
       "silicone": 0.8,
-      "bread": 0.7
+      "bread": 0.7,
+      "wacky_worm": 0.9
     },
     "hook": {
       "ideal": 10,

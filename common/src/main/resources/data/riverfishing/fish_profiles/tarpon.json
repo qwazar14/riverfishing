@@ -51,7 +51,8 @@
       "silicone": 1.0,
       "popper": 1.0,
       "jig": 0.9,
-      "giant_spoon": 0.85
+      "giant_spoon": 0.85,
+      "swimbait": 1.1
     },
     "hook": {
       "ideal": 1,

@@ -51,7 +51,10 @@
       "bread": 0.7,
       "pea": 0.6,
       "popper": 0.9,
-      "crankbait": 0.7
+      "crankbait": 0.7,
+      "spinnerbait": 0.6,
+      "bladebait": 0.6,
+      "wacky_worm": 0.6
     },
     "hook": {
       "ideal": 10,

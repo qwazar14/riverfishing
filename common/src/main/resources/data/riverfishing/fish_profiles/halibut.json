@@ -50,7 +50,8 @@
       "silicone": 0.8,
       "jig": 0.7,
       "octopus_jig": 1.0,
-      "giant_spoon": 0.7
+      "giant_spoon": 0.7,
+      "swimbait": 0.9
     },
     "hook": {
       "ideal": 1,
