@@ -23,5 +23,6 @@ public final class RiverFishingFabric implements ModInitializer {
         // Map the stall's states into PoiTypes.TYPE_BY_STATE ourselves now that the registry is bound.
         Holder<PoiType> poi = BuiltInRegistries.POINT_OF_INTEREST_TYPE.get(ModVillagers.FISHERMAN_POI.getKey()).orElseThrow();
         PoiTypesInvoker.riverfishing$registerBlockStates(poi, poi.value().matchingStates());
+        // §i: the warden's post, the same way.
     }
 }

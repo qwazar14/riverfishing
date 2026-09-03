@@ -37,6 +37,9 @@ import java.util.Random;
 final class AquariumBreeding {
     /** Three game days of unbroken conditions make a clutch. */
     static final int SPAWN_TICKS = 3 * 24000;
+    // §tank-days: the counters hold the WORLD TIME the run started (0 = not running), and progress is
+    // world time minus that. Ticks-while-loaded looked the same in a test that sat by the tank and
+    // stuck at "1/3" for anyone who slept, set the time, or walked off — days the tank never saw.
     /** The ticker looks once a second: the shortest thing it times is days long. */
     static final int STEP = 20;
     private static final int DAY = 24000;
@@ -53,9 +56,8 @@ final class AquariumBreeding {
             be.spawnTicks = 0;
             // A tank with no adults incubates whatever roe it holds; adults would have eaten it.
             if (be.roe.getItem() instanceof RoeItem) {
-                be.incubate += STEP;
-                if (be.incubate >= incubateTicks(level, be)) hatch(be);
-                else be.setChanged();
+                if (be.incubate == 0) { be.incubate = Math.max(1, level.getOverworldClockTime()); be.setChanged(); }
+                else if (level.getOverworldClockTime() - be.incubate >= incubateTicks(level, be)) hatch(be);
             }
             return;
         }
@@ -67,8 +69,8 @@ final class AquariumBreeding {
             if (be.spawnTicks != 0) { be.spawnTicks = 0; be.setChanged(); }
             return;
         }
-        be.spawnTicks += STEP;
-        if (be.spawnTicks < SPAWN_TICKS) { be.setChanged(); return; }
+        if (be.spawnTicks == 0) { be.spawnTicks = Math.max(1, level.getOverworldClockTime()); be.setChanged(); return; }
+        if (level.getOverworldClockTime() - be.spawnTicks < SPAWN_TICKS) return;
         ItemStack mother = pair[0];
         String genome = Genome.cross(Genome.of(mother), Genome.of(pair[1]), RNG);
         int eggs = Genome.clutch(Genome.of(mother), FishItem.getWeightG(mother), p, RNG);
@@ -154,7 +156,8 @@ final class AquariumBreeding {
         if (be.roe.getItem() instanceof RoeItem) {
             if (!be.getFishes().isEmpty()) return msg("tank_roe_ready");
             int days = incubateTicks(level, be) / DAY;
-            return msg("tank_incubating", Math.min(days, be.incubate / DAY + 1), days);
+            long run = be.incubate == 0 ? 0 : level.getOverworldClockTime() - be.incubate;
+            return msg("tank_incubating", (int) Math.min(days, run / DAY + 1), days);
         }
         if (be.getFishes().isEmpty()) return msg("tank_empty");
         ItemStack[] pair = pair(be);
@@ -165,7 +168,8 @@ final class AquariumBreeding {
             return msg("tank_out_of_season", RoeItem.speciesName(p.id), Calendar.name(p.spawnSeason, p.spawnSub));
         }
         if (level.getOverworldClockTime() / DAY >= be.fedUntil) return msg("tank_hungry");
-        return msg("tank_spawning", Math.min(3, be.spawnTicks / DAY + 1), 3);
+        long run = be.spawnTicks == 0 ? 0 : level.getOverworldClockTime() - be.spawnTicks;
+        return msg("tank_spawning", (int) Math.min(3, run / DAY + 1), 3);
     }
 
     // ---- helpers ----

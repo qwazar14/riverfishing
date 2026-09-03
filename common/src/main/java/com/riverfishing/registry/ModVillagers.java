@@ -85,25 +85,8 @@ public final class ModVillagers {
 
     // §i §breeding (0.9.0): the warden — the profession fishing/Warden looks for within reach of a
     // poached haul. His post is a plain block; his trades are a datapack here (trade_set/warden/*),
-    // registered by the integrator — an empty map until then, which is a villager with no counter.
-    public static final RegistrySupplier<PoiType> WARDEN_POI = POI_TYPES.register("warden",
-            () -> new PoiType(Set.copyOf(ModBlocks.WARDEN_POST.get().getStateDefinition().getPossibleStates()), 1, 1));
 
-    public static final RegistrySupplier<VillagerProfession> WARDEN = PROFESSIONS.register("warden",
-            () -> new VillagerProfession(
-                    Component.translatable("entity.minecraft.villager.riverfishing.warden"),
-                    holder -> holder.is(WARDEN_POI.getKey()),
-                    holder -> holder.is(WARDEN_POI.getKey()),
-                    ImmutableSet.of(), ImmutableSet.of(),
-                    SoundEvents.VILLAGER_WORK_FISHERMAN,
-                    wardenTradeSets()));
 
-    /** §26.1: the warden's one shelf — he buys nets — is a datapack trade set like the fisherman's. */
-    private static Int2ObjectMap<ResourceKey<TradeSet>> wardenTradeSets() {
-        Int2ObjectMap<ResourceKey<TradeSet>> m = new Int2ObjectOpenHashMap<>();
-        m.put(1, ResourceKey.create(Registries.TRADE_SET, RiverFishing.id("warden/level_1")));
-        return m;
-    }
 
     /**
      * §order-tier: which fisherman level buys each species. The order-of-the-day board prints it — the
