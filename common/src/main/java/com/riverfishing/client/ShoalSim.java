@@ -115,7 +115,7 @@ public final class ShoalSim {
             float a = (e.phase() / 64f) * Mth.TWO_PI + (i * 0.7f) + (n > 1 ? (k - (n - 1) / 2f) * 0.5f : 0f);
             double bias = n > 1 ? Mth.clamp((k - (n - 1) / 2.0) * 0.32, -0.75, 0.75)
                     : ((seed >> (i % 20)) & 15) / 15.0 * 0.5 - 0.25;
-            double y = cy - 0.35 - e.depth() + bias;
+            double y = Math.min(cy - 0.35 - e.depth() + bias, ceilingY(cy, e));   // §under-water
             double want = 0.9 + (e.lane() + 1) * 0.8 + (n > 1 ? (k % 3) * 0.3 : 0);
             double r = Math.min(want, ShoalBank.reach(level, c, y, a));
             out[i] = new Fish(e, cx + Math.cos(a) * r, y, cz + Math.sin(a) * r * 0.75,
@@ -135,6 +135,17 @@ public final class ShoalSim {
     private static final double SCHOOL_SEE = 2.2, SCHOOL_TOO_CLOSE = 0.75;
     /** §shoal-look: a predator notices a bait this far off, and holds this far short of it. */
     private static final double LOOK_RANGE = 6.0, LOOK_HOLD = 1.1;
+    /**
+     * §under-water: the highest this fish may sit and still be a fish IN the water — the surface,
+     * less half its own body. A surface-lane fish was placed 0.35 under the top and then lifted by
+     * up to 0.75 of school bias and 0.16 of drift, and a metre-long pike drawn at its real length
+     * stood half out of the lake. Jumps ignore this on purpose: that is the whole point of a jump.
+     */
+    private static double ceilingY(double cy, ShoalPacket.Entry e) {
+        double half = Mth.clamp(e.lengthCm() / 200.0, 0.08, 0.5);
+        return cy - 0.30 - half;
+    }
+
     /** §shoal-jump: seconds in the air, and how high the arc goes over the surface. */
     private static final float JUMP_SECONDS = 0.9f, JUMP_HEIGHT = 0.8f;
 
@@ -282,8 +293,8 @@ public final class ShoalSim {
             // added to the position: adding it per frame made it accumulate with the framerate, which
             // is the hopping. As a target it is a slow, bounded drift the fish eases along, and a
             // frightened one carries the whole band down with it instead of being pushed each tick.
-            double restY = cy - 0.35 - f.entry.depth() + f.yBias - 1.1 * flight
-                    + Mth.sin(time * 0.035f + f.phase) * 0.16;
+            double restY = Math.min(cy - 0.35 - f.entry.depth() + f.yBias
+                    + Mth.sin(time * 0.035f + f.phase) * 0.16, ceilingY(cy, f.entry)) - 1.1 * flight;
             f.y += (restY - f.y) * Math.min(1.0, dt * 1.6);
         }
     }
