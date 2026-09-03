@@ -81,6 +81,9 @@ final class AquariumBreeding {
 
     /** Vigour is what survives the egg: VV nine in ten, vv one in two. Never fewer than one fry. */
     private static void hatch(AquariumBlockEntity be) {
+        // §roe-no-species: a creative-tab roe names no species; it hatches into nothing rather than
+        // into a crash the tank repeats every tick from the moment the world loads.
+        if (RoeItem.species(be.roe) == null) { be.roe = ItemStack.EMPTY; be.incubate = 0; be.sync(); return; }
         String g = RoeItem.genome(be.roe);
         double survival = !Genome.dominant(g, 'V') ? 0.5 : Genome.pure(g, 'V') ? 0.9 : 0.7;
         int n = Math.max(1, (int) Math.round(RoeItem.count(be.roe) * survival));
@@ -110,6 +113,7 @@ final class AquariumBreeding {
         boolean food = held.getItem() instanceof GroundbaitItem
                 || (held.getItem() instanceof BaitItem b && !b.artificial());
         if (held.getItem() instanceof RoeItem) {
+            if (RoeItem.species(held) == null) { say(player, "tank_no_species"); return true; }   // §roe-no-species
             if (!be.getFishes().isEmpty() || !be.roe.isEmpty()) { say(player, "tank_busy"); return true; }
             be.roe = held.copyWithCount(1);
             held.shrink(1);
