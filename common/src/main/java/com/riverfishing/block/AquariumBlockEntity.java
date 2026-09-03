@@ -26,8 +26,8 @@ public class AquariumBlockEntity extends BlockEntity {
     // §b/breeding (0.9.0): the tank is a live one — the rules are in AquariumBreeding, next door, which is the
     // only thing that reads or writes these (package-private on purpose; no getters for one caller).
     long fedUntil;                   // world day until which the fish count as fed (exclusive)
-    int spawnTicks;                  // unbroken ticks of good conditions towards a clutch
-    int incubate;                    // ticks the roe in the slot has been incubating (tank without fish)
+    long spawnTicks;                 // §tank-days: world time the clutch run started, 0 = none
+    long incubate;                   // §tank-days: world time incubation started, 0 = none
     ItemStack roe = ItemStack.EMPTY; // the roe slot: a RoeItem, or the FryItem it hatched into
 
     public AquariumBlockEntity(BlockPos pos, BlockState state) {
@@ -77,8 +77,8 @@ public class AquariumBlockEntity extends BlockEntity {
         for (ItemStack s : fishes) list.add(s.save(new CompoundTag()));
         tag.put("Fishes", list);
         tag.putLong("FedUntil", fedUntil);
-        tag.putInt("SpawnTicks", spawnTicks);
-        tag.putInt("Incubate", incubate);
+        tag.putLong("SpawnTicks", spawnTicks);
+        tag.putLong("Incubate", incubate);
         if (!roe.isEmpty()) tag.put("Roe", roe.save(new CompoundTag()));
     }
 
@@ -87,8 +87,8 @@ public class AquariumBlockEntity extends BlockEntity {
         super.load(tag);
         fishes.clear();
         fedUntil = tag.getLong("FedUntil");
-        spawnTicks = tag.getInt("SpawnTicks");
-        incubate = tag.getInt("Incubate");
+        spawnTicks = tag.getLong("SpawnTicks");
+        incubate = tag.getLong("Incubate");
         roe = tag.contains("Roe") ? ItemStack.of(tag.getCompound("Roe")) : ItemStack.EMPTY;
         if (tag.contains("Fishes")) {
             ListTag list = tag.getList("Fishes", Tag.TAG_COMPOUND);
