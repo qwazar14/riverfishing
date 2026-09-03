@@ -54,6 +54,8 @@ public class BiteContext {
     public int waterDepth = 3;      // water-column depth (blocks) at the cast point — habitat gate
     /** §bed-bite: what the bed is under the cast, FishingManager.bedType's code; 0 = not read. */
     public int bed;
+    /** §f §ecosystem: water clarity, 1.0 untouched; filter-feeders raise it, rooting carp lower it. */
+    public double clarity = 1.0;
     /** Biome groups at the spot (climate + terrain: cold/temperate/warm, taiga, jungle, swamp, mountain…). */
     public java.util.Set<String> biomeGroups = new java.util.HashSet<>();
     public double castDistance = 8;

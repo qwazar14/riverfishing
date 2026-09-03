@@ -106,6 +106,11 @@ public final class Contracts {
             t.putString("Id", v.getUUID().toString().substring(0, 8) + "_" + epoch + "_" + slot);
             t.putLong("Exp", ends - 1);                          // the last day the paper is good
             t.putString("Sp", species);
+            if (slot == 2 && rng.nextBoolean()) {    // §e: the third post is a fry order half the time
+                fryPost(t, species, rng);
+                out.add(t);
+                continue;
+            }
             int count = 2 + rng.nextInt(3);          // 2..4
             t.putInt("N", count);
             t.putInt("W", minGrams(p, rng));
@@ -118,6 +123,22 @@ public final class Contracts {
             out.add(t);
         }
         return out;
+    }
+
+    /**
+     * §e §breeding: a fry order — the fisherman restocks a water and wants 20/30/40 fry of the species,
+     * no size bar, no terms: fry have no card to meet them with. Paid per fry at a fifth of a fish,
+     * with the set bonus; the reputation of a two-term job, because it takes a tank and a season.
+     */
+    private static void fryPost(CompoundTag t, String species, Random rng) {
+        int n = 20 + 10 * rng.nextInt(3);
+        t.putString("Kind", "fry");
+        t.putInt("N", n);
+        int base = com.riverfishing.registry.ModVillagers.baseEmeralds(species);
+        int em = Math.max(1, (int) Math.round(base * n / 5.0 * SET_BONUS));
+        t.putInt("Em", em);
+        t.putInt("Xp", Math.max(1, em * XP_PER_EMERALD));
+        t.putInt("Rep", 2);
     }
 
     /**
@@ -267,14 +288,23 @@ public final class Contracts {
         }
         int n = t.getInt("N");
         String species = t.getString("Sp");
-        List<Held> have = held(sp.getInventory(), species, t.getInt("W"), t);
-        if (have.size() < n) {
-            sp.displayClientMessage(Component.translatable("message.riverfishing.contract_short",
-                    have.size(), n, Component.translatable("fish.riverfishing." + species))
-                    .withStyle(ChatFormatting.YELLOW), true);
-            return true;
+        if (ContractItem.isFry(t)) {   // §e: a fry order is filled out of fry buckets, not fish
+            int fry = fryHeld(sp.getInventory(), species);
+            if (fry < n) {
+                say(sp, "contract_short_fry", ChatFormatting.YELLOW, fry, n, Component.translatable("fish.riverfishing." + species));
+                return true;
+            }
+            takeFry(sp.getInventory(), species, n);
+        } else {
+            List<Held> have = held(sp.getInventory(), species, t.getInt("W"), t);
+            if (have.size() < n) {
+                sp.displayClientMessage(Component.translatable("message.riverfishing.contract_short",
+                        have.size(), n, Component.translatable("fish.riverfishing." + species))
+                        .withStyle(ChatFormatting.YELLOW), true);
+                return true;
+            }
+            take(sp, have.subList(0, n));
         }
-        take(sp, have.subList(0, n));
         paper.shrink(1);
 
         ItemStack pay = new ItemStack(Items.EMERALD, t.getInt("Em"));
@@ -376,6 +406,31 @@ public final class Contracts {
                 if (i >= 0 && i < data.items().size()) data.items().remove(i);
             }
             data.write(net);
+        }
+    }
+
+    // ---- §e the fry in the bag ----------------------------------------------------------------------
+
+    /** Fry of this species in the bag, summed over every bucket: one counter for the row and the hand-in. */
+    public static int fryHeld(net.minecraft.world.entity.player.Inventory inv, String species) {
+        int n = 0;
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack s = inv.getItem(i);
+            if (s.getItem() instanceof com.riverfishing.item.FryItem && RiverFishing.id(species).equals(com.riverfishing.item.FryItem.species(s))) {
+                n += com.riverfishing.item.FryItem.count(s);
+            }
+        }
+        return n;
+    }
+
+    /** Take {@code n} fry out of the buckets, front of the bag first; an emptied bucket goes with them. */
+    private static void takeFry(net.minecraft.world.entity.player.Inventory inv, String species, int n) {
+        for (int i = 0; i < inv.getContainerSize() && n > 0; i++) {
+            ItemStack s = inv.getItem(i);
+            if (!(s.getItem() instanceof com.riverfishing.item.FryItem) || !RiverFishing.id(species).equals(com.riverfishing.item.FryItem.species(s))) continue;
+            int c = com.riverfishing.item.FryItem.count(s);
+            if (c <= n) { inv.setItem(i, ItemStack.EMPTY); n -= c; }
+            else { com.riverfishing.item.FryItem.setCount(s, c - n); n = 0; }
         }
     }
 

@@ -152,3 +152,87 @@ Replaces the settle ROLL with a breeding-stock ledger, keyed as today by region 
 
 Registers nothing, writes nothing new: merges lang additions, builds 1.21.1, fixes, ports to 1.20.1
 and 26.x with the patch scripts, installs, commits, writes the 0.9.0 patchnote entries.
+
+---
+
+# Layer 2 (same night): trade and contracts, ecosystem, water upgrades, population genome
+
+Same rules as above, with ONE change: streams E–H develop their patch scripts against a SCRATCH COPY
+of the files they change (copy the file from the main tree into your scratch dir, run the script
+there, diff) and apply to the real tree ONLY new files. The integrator applies
+`tools/patches/p_e.py … p_h.py` in that order. Reason: four streams patching FishingManager.java at
+the same time is a read-modify-write race.
+
+## Stream E — roe and fry at the counter; fry contracts
+
+- Fisherman BUYS roe: a trade per species group priced off `ModVillagers.baseEmeralds(species)` of the
+  roe's species: sturgeon/salmonid roe = base × 3 per stack, everything else base ÷ 2, min 1. Since a
+  trade cannot match NBT species, ONE buy trade "any roe" is not possible either — so the roe is sold
+  the way contracts are handed in: right-click the fisherman holding roe → paid, message. (Reuse the
+  INTERACT_ENTITY pattern in ModEvents next to the contract hand-in.)
+- Fisherman SELLS fry: one trade slot "fry of the order-of-the-day species", 10 fry for 8 emeralds,
+  genome random, appears beside the order slot (ModVillagers.orderSlot).
+- Fry CONTRACTS: `Contracts.posts` rolls a fourth kind: post tag `Kind:"fry"`, `N` = 20/30/40 fry,
+  species from the pool, no size/terms; pay = base × N ÷ 5 × 1.6; hand-in takes FryItem stacks of
+  that species with total count ≥ N. The card renderer (FishCardClientTooltip.contract), the board
+  (ContractBoardState.lines) and the journal row show "N fry" instead of "N x fish, from W".
+
+## Stream F — the ecosystem: a settled species changes the water (`fishing/Ecosystem.java`)
+
+One table, applied in `FishingManager.environmentAt` (the ONLY existing-file patch: one call
+`Ecosystem.apply(level, pos, env)` at the end of environmentAt) reading `StockedData.isStocked(region,
+species)` for the region:
+- grass_carp settled → weed eaten: `env.feedFreshness *= 0.7` is NOT it; instead set a new
+  `BiteContext.clarity` (double, default 1.0, new field) += 0.15 and cyprinid-with-plants species
+  (tench, rudd, crucian) get `env.speciesFactor` × 0.8 (compose with the existing ToDoubleFunction).
+- silver_carp settled → `clarity += 0.25`; predators that hunt by sight (pike, asp, zander is a
+  night hunter so not, perch, chub, rainbow_trout, trout) get speciesFactor × (0.9 + 0.3·clarity) —
+  compute in `Ecosystem`, clamp 0.8..1.3.
+- carp / wild_carp / mirror_carp settled → bed becomes mud (`env.bed = 4`) when it was sand/clay,
+  clarity −0.2, salmonids speciesFactor × 0.7.
+- pike or zander or catfish settled → small cyprinids (bleak, verkhovka, gudgeon, roach, rudd, white_bream)
+  speciesFactor × 0.75, and the OTHER cyprinids' weight roll +10% (expose `Ecosystem.weightScale(level,
+  pos, species)` for stream H to call — H owns the weight-roll patch).
+- Water upgrades (stream G) enter through `WaterUpgrades.at(level, pos)` (Set<String> of kinds:
+  "aerator", "snags", "gravel", "warm_outflow", "feeding_station"): aerator → clarity +0.1 and summer
+  (Calendar.season == SUMMER) speciesFactor × 1.15 for all; snags → predators × 1.2, and `Ecosystem.frySurvival`
+  +0.15; gravel → `env.bed = 2`; warm_outflow → `env.biomeTemperature += 0.2`; feeding_station →
+  `env.inFeedZone = true; env.feedFreshness = max(env.feedFreshness, 0.6)`.
+- Expose `Ecosystem.frySurvival(level, pos)` (0..0.3 bonus) for stream H, and `Ecosystem.describe(level,
+  pos)` → List<Component> for the fish finder's detail (optional, only if the finder has an obvious hook;
+  otherwise skip and say so).
+
+## Stream G — water-body upgrades (blocks)
+
+Five blocks, `registry/ModBlocks.registerSimple` style, each a plain block with a 16×16 generated
+texture (tools/gen_<block>_tex.py — same raw PNG writer) and blockstate/model/item-model JSON like
+`bait_trap`'s files, plus a recipe each: `aerator` (iron + redstone + glass bottle), `snag_pile`
+(logs + sticks, placed IN or beside water), `gravel_bed` (gravel + iron nugget rake), `warm_outflow`
+(copper block + blaze powder + bucket), `feeding_station` (planks + hopper; right-click with groundbait
+to load, holds 8 charges, one per game day). A SavedData `fishing/WaterUpgrades` (per level, like
+SoundingData) records `(pos → kind)` on place and removes on break (Architectury BlockEvent.PLACE /
+BREAK in event/ModEvents — that is your ONE existing-file patch; also ModBlocks registration and the
+creative tab if there is a block tab list). API: `static Set<String> at(ServerLevel level, BlockPos
+waterPos)` = kinds of upgrades within 24 blocks horizontally / 6 vertically; feeding_station only
+counts while it has charges (the block entity or a charges map in the SavedData — keep it in the
+SavedData, no block entity). Lang names + one tooltip line each saying what it does.
+
+## Stream H — the population's genome
+
+- `StockedData.genome` becomes an AVERAGE: keep per locus the count of dominant alleles over all
+  brood/fry recorded (`Dom` int[4], `Tot` int); `genome(region, species)` returns the string with a
+  locus capital-capital when share ≥ 0.66, capital-lower ≥ 0.33, else lower-lower. Patch script on
+  StockedData (developed against a scratch copy; stream C's file — anchors `addBrood`/`addFry` bodies
+  and save/load).
+- Effects, read at the bite site in FishingManager: S share → the weight roll: `session.weightG *=
+  (0.9 + 0.25 × shareS)` for a species settled here (the anchor is the line `session.weightG = (int)
+  Math.round(weight);`), then × `Ecosystem.weightScale(level, pos, species)`; C share → morph chance
+  in `rollMorph` × (1 + shareC) (find the roll and scale its probability); V share →
+  `FishingPressureData` regenScale × (1 + 0.5 × shareV) where `speciesAttractiveness` is called for that
+  species (find the call; if regenScale is a shared number, add a per-species multiplier at the call).
+- Fry survival at incubation (stream B's `AquariumBreeding`): patch to add `Ecosystem.frySurvival`
+  — no: the aquarium is indoors. Instead wild fry: `StockedData.addFry` count × (0.7 + Ecosystem
+  .frySurvival(level, pos)) — patch in FishingManager.releaseFry where addFry is called.
+- Journal: the species page shows the population genome of the region the player stands in if the
+  journal has an obvious place (the `card(sp)` header area); otherwise the release checklist message
+  gains " · genome Ss Cc VV ff". Say which.

@@ -1464,6 +1464,8 @@ public class JournalScreen extends Screen {
         }
         y = Math.max(y, railY + 4);
         if (c.present()) {
+            String pop = data.getCompound("pop").getString(sp);   // §h: the population where the player stands
+            if (!pop.isEmpty()) y = line(g, y, "journal.riverfishing.pop_here", pop);
             y = line(g, y, "guide.riverfishing.water", waters(c));
             y = line(g, y, "guide.riverfishing.bait", baits(c));
             y = line(g, y, "guide.riverfishing.tackle", tackle(c));
@@ -2405,6 +2407,9 @@ public class JournalScreen extends Screen {
     private int heldFish(CompoundTag terms) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return 0;
+        if (com.riverfishing.item.ContractItem.isFry(terms)) {   // §e
+            return com.riverfishing.fishing.Contracts.fryHeld(mc.player.getInventory(), terms.getString("Sp"));
+        }
         return com.riverfishing.fishing.Contracts.held(
                 mc.player.getInventory(), terms.getString("Sp"), terms.getInt("W"), terms).size();
     }

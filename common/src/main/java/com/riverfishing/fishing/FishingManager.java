@@ -1479,7 +1479,8 @@ public final class FishingManager {
         FishingPressureData popData = FishingPressureData.get(level);
         long popChunk = new ChunkPos(session.target).toLong();
         double popRegen = spawnRegen(level);
-        ctx.speciesFactor = id -> popData.speciesAttractiveness(popChunk, id.getPath(), now, popRegen);
+        ctx.speciesFactor = id -> popData.speciesAttractiveness(popChunk, id.getPath(), now,
+                popRegen * (1.0 + 0.5 * hShare(level, session.target, id.getPath(), 2)));   // §h: vigorous stock recovers faster
         // Groundbait thrown AFTER the cast registers, and so does groundbait that has washed away or been
         // replaced. §last-thrown-wins made the old "only ever ratchet up" shortcut a lie: throw a
         // different mix over your own swim and the swim really is that other mix now, sometimes weaker.
@@ -1488,6 +1489,8 @@ public final class FishingManager {
         ctx.inFeedZone = feed.inZone();
         ctx.feedFreshness = feed.freshness();
         ctx.feedMix = feed.mix();
+        // §f §ecosystem: the factor and the feed were just replaced — put the water's effects back.
+        Ecosystem.apply(level, session.target, ctx);
 
         RandomSource random = level.getRandom();
         BiteEngine.Outcome outcome = BiteEngine.evaluate(FishProfileManager.get().all(), ctx, random);
@@ -1527,7 +1530,7 @@ public final class FishingManager {
                 FishProfile fresh = FishProfileManager.get().byId(session.species);
                 if (fresh != null) {
                     session.trophy = false;
-                    rollFish(random, fresh, session, session.rollLuck, session.rollLivebaitG,
+                    rollFish(level, random, fresh, session, session.rollLuck, session.rollLivebaitG,   // §h
                             BiteEngine.matchScore(fresh, ctx));
                 }
             }
@@ -1678,7 +1681,7 @@ public final class FishingManager {
         double match = session.ctx != null ? BiteEngine.matchScore(profile, session.ctx) : 0.85;
         session.rollLuck = AnglerSkills.sizeLuck(sp);
         session.rollLivebaitG = livebaitW;
-        rollFish(random, profile, session, session.rollLuck, livebaitW, match);
+        rollFish(level, random, profile, session, session.rollLuck, livebaitW, match);   // §h
 
         ItemStack rod = sessionRod(sp, session);
         // A blunt hook can slip on the strike (§3.8) — empty set, fish gone, hook dulls a touch more.
@@ -2700,6 +2703,11 @@ public final class FishingManager {
                 where.getX() >> 4, where.getZ() >> 4, path, level.getGameTime());
 
         var morph = com.riverfishing.fish.FishMorph.roll(path, age, settled, surplus, level.getRandom());
+        // §h §breeding: strong colour genes in the population double the morph chance at a full share — a
+        // second roll, taken with probability shareC, is chance × (1 + shareC) to within the chance itself.
+        if (morph == null && level.getRandom().nextDouble() < hShare(level, where, path, 1)) {
+            morph = com.riverfishing.fish.FishMorph.roll(path, age, settled, surplus, level.getRandom());
+        }
         if (morph == null) return;
         FishItem.setMorph(fish, morph.id());
         if (JournalData.recordMorph(sp, species, morph.id())) {
@@ -2891,10 +2899,21 @@ public final class FishingManager {
         }
     }
 
+    /**
+     * §h §breeding: the strong-allele share (0..1) at one locus of the population stocked here — 0 for a
+     * species that is not SETTLED in the region, because until then the brood is a handful of fish, not a
+     * population. Locus by Genome.LOCI index: 0 size, 1 colour, 2 vigour, 3 fertility.
+     */
+    private static double hShare(ServerLevel level, BlockPos pos, String species, int locus) {
+        StockedData stocked = StockedData.get(level);
+        long region = StockedData.region(pos);
+        return stocked.isStocked(region, species) ? stocked.shares(region, species)[locus] : 0.0;
+    }
+
     // ---- fish generation ----
 
-    private static void rollFish(RandomSource random, FishProfile p, FishingSession session, double luck,
-                                 int livebaitWeightG, double match) {
+    private static void rollFish(ServerLevel level, RandomSource random, FishProfile p, FishingSession session, double luck,
+                                 int livebaitWeightG, double match) {   // §h: level for the population's size genes
         // §weight-curve (0.5.0): the profile's weight_g.mean is the MEDIAN catch — the power curve is
         // solved per species so half the catches land under it (0.5^k = (mean-min)/(max-min)). Profiles
         // without an explicit mean keep the classic big-fish-are-rare 2.4 curve.
@@ -2942,6 +2961,11 @@ public final class FishingManager {
         }
 
         double weight = p.weightMin + (p.weightMax - p.weightMin) * biased;
+        // §h §breeding: a settled population's size genes — all-ss stock runs 10% light, all-SS 15% heavy
+        // (0.9 + 0.25 × share) — then the ecosystem's word (a predator thinning the small cyprinids fattens
+        // the rest, §F). Applied before the rounding so the length keeps tracking the weight.
+        weight *= (0.9 + 0.25 * hShare(level, session.target, p.id.getPath(), 0))
+                * com.riverfishing.fishing.Ecosystem.weightScale(level, session.target, p.id);
         session.weightG = (int) Math.round(weight);
 
         // §trophy (0.7.0): a trophy is a PROPERTY OF THE FISH, not a dice roll. It used to be rolled
@@ -3129,8 +3153,11 @@ public final class FishingManager {
                                   @org.jetbrains.annotations.Nullable ServerPlayer thrower) {
         FishProfile p = FishProfileManager.get().byId(species);
         if (p == null || count <= 0) return;
-        release(level, pos, p, count * 0.02, thrower, (stocked, region) ->
-                stocked.addFry(region, species.getPath(), count, StockedData.worldDay(level), genome,
+        // §h §breeding: fry thrown into open water are eaten — 70% make it in bare water, up to 100% with
+        // snags to hide in (§F's frySurvival). Stock units and the ledger both count the survivors.
+        int alive = Math.max(1, (int) Math.round(count * (0.7 + com.riverfishing.fishing.Ecosystem.frySurvival(level, pos))));
+        release(level, pos, p, alive * 0.02, thrower, (stocked, region) ->
+                stocked.addFry(region, species.getPath(), alive, StockedData.worldDay(level), genome,
                         thrower == null ? null : thrower.getUUID()));
     }
 
@@ -3271,6 +3298,7 @@ public final class FishingManager {
         env.anglerLevel = Integer.MAX_VALUE;
         env.communityFactor = communityFactor(level, pos, body);
         env.stockedPresence = stockedPresence(level, pos);
+        Ecosystem.apply(level, pos, env);   // §f §ecosystem: what the settled fish did to this water
         return env;
     }
 
@@ -3334,7 +3362,8 @@ public final class FishingManager {
         FishingPressureData popData = FishingPressureData.get(level);
         long popChunk = new ChunkPos(waterPos).toLong();
         double popRegen = spawnRegen(level);
-        ctx.speciesFactor = id -> popData.speciesAttractiveness(popChunk, id.getPath(), now, popRegen);
+        ctx.speciesFactor = id -> popData.speciesAttractiveness(popChunk, id.getPath(), now,
+                popRegen * (1.0 + 0.5 * hShare(level, waterPos, id.getPath(), 2)));   // §h: vigorous stock recovers faster
         ctx.communityFactor = communityFactor(level, waterPos, body);
         ctx.stockedPresence = stockedPresence(level, waterPos);
         ctx.season = SeasonProvider.getSeason(level);
@@ -3360,6 +3389,7 @@ public final class FishingManager {
         ctx.inFeedZone = feed.inZone();
         ctx.feedFreshness = feed.inZone() ? feed.freshness() : 0.0;
         ctx.feedMix = feed.mix();
+        Ecosystem.apply(level, waterPos, ctx);   // §f §ecosystem: after the feed read, so a feeder can top it up
 
         return ctx;
     }
@@ -3548,6 +3578,8 @@ public final class FishingManager {
         w.putInt("z", waterPos.getZ());
         w.putBoolean("frenzy", isFrenzy(level));
         w.putByte("bed", bedType(level, waterPos));
+        // §f §ecosystem: the active effects as lang-key tails; the strip has no room and asks every second.
+        if (full) w.putString("eco", String.join(";", Ecosystem.effects(level, waterPos)));
         root.put("water", w);
 
         FishingPressureData stock = FishingPressureData.get(level);
