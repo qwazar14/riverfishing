@@ -1,6 +1,5 @@
 package com.riverfishing.block;
 
-import com.riverfishing.item.FishItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -26,7 +25,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import javax.annotation.Nullable;
 
 /**
- * A 2×2 (2 wide × 2 tall × 1 deep) display aquarium (§aquarium) that mounts one caught fish. Glass
+ * A 2×2 (2 wide × 2 tall × 1 deep) aquarium (§aquarium) — a live tank with a window (§aquarium-window). Glass
  * tank on top, wooden base with a nameplate below. The bottom-left cell is the MASTER (holds the
  * BlockEntity + fish); the other three are parts that place/break together with it.
  */
@@ -138,34 +137,30 @@ public class AquariumBlock extends BaseEntityBlock {
         super.affectNeighborsAfterRemoval(state, level, pos, moved);
     }
 
+    /**
+     * §aquarium-window (0.9.0): a click on any cell opens the master's window (server side) — the old
+     * add-fish / take-fish / feed-by-hand actions are slots now. §26.x: both hooks, as TackleBoxBlock
+     * does, so a held item opens it too; the contents drop through the entity's preRemoveSideEffects.
+     */
     @Override
-    protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
-                                 InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide()) return InteractionResult.SUCCESS;
-        BlockPos master = masterPos(pos, state);
-        if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                               BlockHitResult hit) {
+        return open(state, level, pos, player);
+    }
 
-        ItemStack held = player.getItemInHand(hand);
-        // §b/breeding: food, roe and the roe slot come first; a fish in hand still goes in below.
-        if (AquariumBreeding.use(level, be, player, held)) return net.minecraft.world.InteractionResult.CONSUME;
-        // Add a fish (up to 3) when holding one and there's room.
-        if (held.getItem() instanceof FishItem && !be.isFull()) {
-            if (be.addFish(held)) {
-                held.shrink(1);
-                level.playSound(null, master, net.minecraft.sounds.SoundEvents.BUCKET_EMPTY_FISH,
-                        net.minecraft.sounds.SoundSource.BLOCKS, 0.7f, 1.1f);
-                return net.minecraft.world.InteractionResult.CONSUME;
-            }
+    @Override
+    protected InteractionResult useItemOn(ItemStack held, BlockState state, Level level, BlockPos pos,
+                                          Player player, InteractionHand hand, BlockHitResult hit) {
+        return open(state, level, pos, player);
+    }
+
+    private static InteractionResult open(BlockState state, Level level, BlockPos pos, Player player) {
+        if (!level.isClientSide() && player instanceof net.minecraft.server.level.ServerPlayer sp) {
+            BlockPos master = masterPos(pos, state);
+            if (!(level.getBlockEntity(master) instanceof AquariumBlockEntity be)) return InteractionResult.PASS;
+            com.riverfishing.menu.AquariumMenu.open(sp, be);
         }
-        // Empty hand takes the last fish back out.
-        if (held.isEmpty() && !be.isEmpty()) {
-            ItemStack fish = be.removeLastFish();
-            if (!fish.isEmpty() && !player.getInventory().add(fish)) player.drop(fish, false);
-            level.playSound(null, master, net.minecraft.sounds.SoundEvents.BUCKET_FILL_FISH,
-                    net.minecraft.sounds.SoundSource.BLOCKS, 0.7f, 1.0f);
-            return net.minecraft.world.InteractionResult.CONSUME;
-        }
-        return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
+        return InteractionResult.SUCCESS;
     }
 
     // §b/breeding: the master cell ticks the tank on the server; the other cells have no entity to tick.

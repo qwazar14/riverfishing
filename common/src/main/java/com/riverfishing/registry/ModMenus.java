@@ -38,6 +38,11 @@ public final class ModMenus {
             REGISTER.register("tackle_box",
                     () -> MenuRegistry.ofExtended(com.riverfishing.menu.TackleBoxMenu::fromNetwork));
 
+    // §aquarium-window (0.9.0): the tank's slots and its ten status ints.
+    public static final RegistrySupplier<MenuType<com.riverfishing.menu.AquariumMenu>> AQUARIUM =
+            REGISTER.register("aquarium",
+                    () -> MenuRegistry.ofExtended(com.riverfishing.menu.AquariumMenu::fromNetwork));
+
     public static void init() {
         REGISTER.register();
     }

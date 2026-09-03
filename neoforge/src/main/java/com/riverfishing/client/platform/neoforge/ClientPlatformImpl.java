@@ -67,6 +67,7 @@ public final class ClientPlatformImpl {
         // §keepnet + §tackle-box (0.7.0): the two boxes.
         event.register(ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         event.register(ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
+        event.register(ModMenus.AQUARIUM.get(), com.riverfishing.client.AquariumScreen::new);
     }
 
     public static void registerLevelRenderer() {
