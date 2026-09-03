@@ -199,7 +199,10 @@ public final class BiteEngine {
         }
 
         double fBiome = biomeGroupFactor(p, c);
-        if (fBiome <= 0) return 0.0; // wrong climate/terrain — not this fish's range
+        // §pond-biome: a private pond is out of every fish's range by definition — the owner put the
+        // fish there. The gate stays for wild water; in a pond a fish out of its climate lives and
+        // bites at half rate, which is what a koi in a forest pit deserves.
+        if (fBiome <= 0) { if (!c.privatePond) return 0.0; fBiome = 0.5; }
 
         // §community (0.5.0): THIS water's own species set — the seed decides which species a given
         // lake/river patch actually holds (0 = simply not here, 1.8 = the water's signature fish).

@@ -3816,7 +3816,7 @@ public final class FishingManager {
             for (var e : p.biomes.entrySet()) {
                 if (c.biomeGroups.contains(e.getKey()) && e.getValue() > 0) any = true;
             }
-            if (!any) return "biome";
+            if (!any && !c.privatePond) return "biome";   // §pond-biome
         }
         if (p.seasonFactor(c.season) <= 0) return "season";
         if (p.timeFactor(c.time) <= 0) return "time";

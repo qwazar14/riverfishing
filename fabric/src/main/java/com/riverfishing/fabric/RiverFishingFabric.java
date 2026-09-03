@@ -4,8 +4,14 @@ import com.riverfishing.RiverFishing;
 import com.riverfishing.fabric.mixin.PoiTypesInvoker;
 import com.riverfishing.registry.ModVillagers;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
+import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 
 /**
@@ -24,5 +30,11 @@ public final class RiverFishingFabric implements ModInitializer {
         Holder<PoiType> poi = BuiltInRegistries.POINT_OF_INTEREST_TYPE.getHolderOrThrow(ModVillagers.FISHERMAN_POI.getKey());
         PoiTypesInvoker.riverfishing$registerBlockStates(poi, poi.value().matchingStates());
         // §i: the warden's post, the same way.
+
+        // §cherry-pond: koi live only in cherry groves and vanilla digs no lakes there, so there was nowhere to
+        // catch one. Forge/NeoForge add the pond through a biome_modifier JSON; Fabric has no data-driven
+        // equivalent, so the same placed feature is attached here.
+        BiomeModifications.addFeature(BiomeSelectors.includeByKey(Biomes.CHERRY_GROVE), GenerationStep.Decoration.LAKES,
+                ResourceKey.create(Registries.PLACED_FEATURE, RiverFishing.id("cherry_pond")));
     }
 }
