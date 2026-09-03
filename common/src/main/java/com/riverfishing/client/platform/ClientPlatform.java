@@ -54,6 +54,17 @@ public final class ClientPlatform {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
     }
 
+    /**
+     * §fry-icon (26.x): the fry bucket's {@link com.riverfishing.client.FrySpecialRenderer} under its id
+     * ({@code riverfishing:fry}), so {@code items/fry.json} can name it. NeoForge takes it on
+     * {@code RegisterSpecialModelRendererEvent}; Fabric API has no registry, so it goes straight into
+     * vanilla's map through a mixin accessor. Before the first resource reload either way.
+     */
+    @ExpectPlatform
+    public static void registerSpecialModelRenderers() {
+        throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
+    }
+
     @ExpectPlatform
     public static void registerLevelRenderer() {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");

@@ -80,6 +80,9 @@ public final class ClientInit {
         // §tackle-box: block tints (needs the blocks bound, so it lives here).
         ClientPlatform.registerColors();
 
+        // §fry-icon: the fry bucket's special model renderer (data-driven items look it up by id).
+        ClientPlatform.registerSpecialModelRenderers();
+
         // Non-solid block render layers (aquarium glass, ice hole, bait trap) — Fabric only; Forge reads
         // "render_type" from the model. Needs the blocks bound, so it lives here with the renderers.
         ClientPlatform.registerRenderTypes();

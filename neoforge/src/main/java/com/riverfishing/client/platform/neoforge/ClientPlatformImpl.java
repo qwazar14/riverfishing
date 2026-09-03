@@ -55,6 +55,18 @@ public final class ClientPlatformImpl {
     public static void registerRenderTypes() {
     }
 
+    /** Handled by {@link #onRegisterSpecialModelRenderers} on the mod bus. */
+    public static void registerSpecialModelRenderers() {
+    }
+
+    /** §fry-icon: the fry bucket's special model renderer, on NeoForge's own registration event. */
+    @SubscribeEvent
+    static void onRegisterSpecialModelRenderers(
+            net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent event) {
+        event.register(com.riverfishing.client.FrySpecialRenderer.ID,
+                com.riverfishing.client.FrySpecialRenderer.Unbaked.MAP_CODEC);
+    }
+
     /**
      * Register the assembly / rig screens on NeoForge's native {@link RegisterMenuScreensEvent}
      * (Architectury's deferred path fires too late on NeoForge — see the 1.21.1 port notes).

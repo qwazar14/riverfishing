@@ -374,3 +374,39 @@ fits, the mod's parchment/teal palette is NOT required — dark aquarium blue-gr
 `AquariumMenu` follows `menu/TackleStationMenu` for the open/extended-menu pattern; the block's
 `useItemOn`/`useWithoutItem` opens it (server side) and nothing else — the old right-click
 add-fish/feed/roe actions are removed by A (B removes `AquariumBreeding.use`).
+
+---
+
+# Layer 5: private ponds — a claim, not a heuristic
+
+The community hash calls every water block natural water, so a dug pit gets the seed's rotan and
+crucian, its two-deep water fails the fry's `depth_min`, a released pike counts as "local stock", and
+the owner's own seine is poaching. The line the simulation could not see is drawn explicitly:
+
+- **`block/PondSignBlock`** (`pond_sign`, `ModBlocks.registerSimple`, cross model, recipe sign +
+  planks). Placed within 3 blocks of water it floods that body (6-way, cap 601) and CLAIMS it in
+  **`fishing/PondData`** (per-level SavedData: sign pos → owner UUID + name + the packed water
+  blocks). Bodies over `PondData.MAX_BLOCKS` = 600 are "too big to be anyone's"; another player's
+  body is "%s's pond"; a refused sign pops back off. Breaking the sign (or a piston/creeper —
+  `onRemove`) releases the claim. The claim IS the block set — `WaterBody` has no stable id, and a
+  flood re-run tomorrow could differ, so membership is one map lookup per bite.
+  ponytail: frozen at placement; dig the pond bigger and re-place the sign.
+- API: `PondData.isClaimed(level, pos)` (also true one block above the surface, where a thrown item
+  lands), `owner(level, pos)` → UUID or null, `ownerName(level, pos)` → "" when wild, `flood(level,
+  signPos)` → the body or null, `put(sign, player, body)`, `remove(sign)`.
+- **No wild community** in a claimed pond: `communityFactor` returns 1.0 for `StockedData.isStocked`
+  species, else the 0..1 `surplusAround` of releases, else 0 — commons included; `nativeHere` is false
+  for every species. Every consumer routes through those two (`environmentAt` → finder, shoal,
+  `speciesHere`, `habitatContext`; `buildContext` → the bite; the catch card's "native"; the morph
+  roll; `residentHere` → nets, stock lines).
+- **Size gates waived**: `BiteContext.privatePond` (set in `environmentAt` and `buildContext`);
+  `BiteEngine.naturalScore` and `FishingManager.gateReason` skip the depth and width gates when it
+  is set. Water type, biome/climate, season, time and weather still gate, and the release checklist
+  still names the one that fails.
+- **Nets**: `NetItem` asks `PondData.owner` first — the owner is legal for every species in his pond,
+  and unsettled transplants are in his pool; anyone else poaches the lot and is told whose pond it
+  was. Outside claimed water the stocking-book rule stands.
+- **Messages**: releases in your own pond are prefixed `your pond:`; the finder chat and the finder
+  payload (`water.owner`) name the owner. Lang in `tools/patches/lang_pond.json`; the seams are
+  `tools/patches/p_pond.py` (BiteContext, BiteEngine, FishingManager, NetItem — StockedData needed
+  nothing).

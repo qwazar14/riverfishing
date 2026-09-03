@@ -185,12 +185,19 @@ public final class BiteEngine {
     }
 
     private static double naturalScore(FishProfile p, BiteContext c) {
+        // §livebait-3: a 29 g rotan does not take a 125 g baitfish. A species whose biggest specimen
+        // could not swallow the bait (three times its weight, generously) is not a taker at all.
+        if (c.livebaitG > 0 && p.weightMax < c.livebaitG * 3.0) return 0.0;
         double fWater = p.waterFactor(c.water);
         if (fWater <= 0) return 0.0; // the fish does not live in this water body
 
         // Habitat hard gates (§ecology): wrong depth or wrong-sized water = the fish simply isn't here.
-        if (c.waterDepth < p.depthMin || c.waterDepth > p.depthMax) return 0.0;
-        if (c.waterWidth < p.widthMin || c.waterWidth > p.widthMax) return 0.0;
+        // §pond: not in a private pond — a 2x5x2 pit holds whatever its owner put in it, and the water type,
+        // climate and biome gates below still say whether the fish can live there at all.
+        if (!c.privatePond) {
+            if (c.waterDepth < p.depthMin || c.waterDepth > p.depthMax) return 0.0;
+            if (c.waterWidth < p.widthMin || c.waterWidth > p.widthMax) return 0.0;
+        }
 
         double fBiome = biomeGroupFactor(p, c);
         if (fBiome <= 0) return 0.0; // wrong climate/terrain — not this fish's range

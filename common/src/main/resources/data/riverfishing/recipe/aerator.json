@@ -4,7 +4,7 @@
   "key": {
     "i": "minecraft:iron_ingot",
     "r": "minecraft:redstone",
-    "b": "minecraft:glass_bottle"
+    "b": "minecraft:magma_block"
   },
   "result": { "id": "riverfishing:aerator" }
 }

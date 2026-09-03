@@ -39,8 +39,26 @@ public final class ClientSoundings {
      * nearest one". Kept with the chart, so a hole you picked on Tuesday is still the hole on Friday.
      */
     private static Long target;
+    /**
+     * §finder2: bumped on every change to the cells or the marks, so a reader can keep what it built
+     * from them (the chart's cell grid, the visible marks) until the data actually moves. And the
+     * sounded-column count kept as it changes, because the chart printed it by walking every cell a frame.
+     */
+    private static int version;
+    private static int sounded;
 
     private ClientSoundings() {}
+
+    public static int version() {
+        ensureLoaded();
+        return version;
+    }
+
+    /** How many columns hold a depth — the chart's "Sounded: N m²". */
+    public static int sounded() {
+        ensureLoaded();
+        return sounded;
+    }
 
     public static long key(int x, int z) {
         return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
@@ -109,12 +127,16 @@ public final class ClientSoundings {
             CompoundTag t = map.getCompoundOrEmpty(i);
             long k = key(cx + t.getIntOr("x", 0), cz + t.getIntOr("z", 0));
             int d = t.getIntOr("d", 0);
-            cells.put(k, (byte) Math.min(127, DEPTH0 + d));
+            Byte old = cells.put(k, (byte) Math.min(127, DEPTH0 + d));
+            if (old == null || old < DEPTH0) sounded++;
             deepest = Math.max(deepest, d);
             if (t.contains("s")) spots.put(k, (byte) ("hole".equals(t.getStringOr("s", "")) ? 0 : 1));
             changed = true;
         }
-        if (changed) save();
+        if (changed) {
+            version++;
+            save();
+        }
     }
 
     // ---- disk ----------------------------------------------------------------------------------
@@ -144,6 +166,8 @@ public final class ClientSoundings {
         spots.clear();
         deepest = 1;
         target = null;
+        sounded = 0;
+        version++;
         loadedFor = k;
         try {
             Path p = file();
@@ -153,7 +177,10 @@ public final class ClientSoundings {
             byte[] vs = t.getByteArray("v").orElse(new byte[0]);
             for (int i = 0; i < ks.length && i < vs.length; i++) {
                 cells.put(ks[i], vs[i]);
-                if (vs[i] >= DEPTH0) deepest = Math.max(deepest, vs[i] - DEPTH0);
+                if (vs[i] >= DEPTH0) {
+                    deepest = Math.max(deepest, vs[i] - DEPTH0);
+                    sounded++;
+                }
             }
             long[] sk = t.getLongArray("sk").orElse(new long[0]);
             byte[] sv = t.getByteArray("sv").orElse(new byte[0]);

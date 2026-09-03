@@ -28,6 +28,13 @@ import java.util.Map;
  * fact about that spot. Stored per world in the overworld's data storage, like the market and the
  * fishing pressure, because a swim is a place rather than a player's possession — a friend who sounds
  * the far bank has sounded it for everyone.
+ *
+ * <p>§finder2: bucketed by chunk. Every reader — the cast asking "am I on a spot", the strip's needle
+ * once a second, the screen's map window — wants what is NEAR a point, and a flat map answered by
+ * walking the whole world. A lake sounded flat is a hundred thousand columns; the readers now open the
+ * handful of chunks they can see into. And a feature is ONE per 4×4 cell per kind: five strands a cast,
+ * cast twenty times over the same drop-off, wrote the same ledge as a hundred markers, and the chart
+ * drew every one of them.
  */
 public final class SoundingData extends SavedData {
     private static final String NAME = "riverfishing_soundings";
@@ -40,11 +47,21 @@ public final class SoundingData extends SavedData {
     private static final int LEDGE_STEP = 3;
     /** The bite bonus for fishing a found feature. Worth crossing the swim for, not worth abandoning it. */
     public static final double SPOT_BONUS = 1.35;
+    /** §finder2: one feature of a kind per this many blocks square — the marker cast's own strand pitch. */
+    private static final int CELL_SHIFT = 2;
 
-    /** column key -> depth in blocks. */
-    private final Map<Long, Integer> depth = new HashMap<>();
-    /** column key -> which kind of feature was found there. */
-    private final Map<Long, String> spots = new HashMap<>();
+    /** chunk key -> column key -> depth in blocks. */
+    private final Map<Long, Map<Long, Integer>> depth = new HashMap<>();
+    /** chunk key -> column key -> which kind of feature was found there. */
+    private final Map<Long, Map<Long, String>> spots = new HashMap<>();
+    /** §finder2: 4×4 cell key -> bit 0 a hole, bit 1 a ledge — the dedupe. */
+    private final Map<Long, Byte> cells = new HashMap<>();
+
+    /** §finder2: what a reader does with one sounded column. */
+    @FunctionalInterface
+    public interface Visitor {
+        void visit(int x, int z, int depth, String spot);
+    }
 
     // §26.1: SavedData.Factory is gone — a codec-backed SavedDataType drives load/save now.
     private static final net.minecraft.world.level.saveddata.SavedDataType<SoundingData> TYPE =
@@ -71,16 +88,13 @@ public final class SoundingData extends SavedData {
         return (int) k;
     }
 
+    private static long chunkOf(int x, int z) {
+        return key(x >> 4, z >> 4);
+    }
+
     public Integer depthAt(int x, int z) {
-        return depth.get(key(x, z));
-    }
-
-    public Map<Long, Integer> depths() {
-        return depth;
-    }
-
-    public Map<Long, String> spots() {
-        return spots;
+        Map<Long, Integer> m = depth.get(chunkOf(x, z));
+        return m == null ? null : m.get(key(x, z));
     }
 
     /**
@@ -96,7 +110,7 @@ public final class SoundingData extends SavedData {
         List<BlockPos> found = new ArrayList<>();
         for (int i = 0; i < line.length; i++) {
             if (line[i] < 0) continue;
-            depth.put(key(xs[i], zs[i]), line[i]);
+            depth.computeIfAbsent(chunkOf(xs[i], zs[i]), k -> new HashMap<>()).put(key(xs[i], zs[i]), line[i]);
         }
         for (int i = 1; i < line.length - 1; i++) {
             int d = line[i], before = line[i - 1], after = line[i + 1];
@@ -108,83 +122,134 @@ public final class SoundingData extends SavedData {
                 kind = "ledge";                       // the bed steps away here
             }
             if (kind == null) continue;
-            long k = key(xs[i], zs[i]);
-            if (spots.containsKey(k)) continue;       // already on the map; finding it twice is not news
-            spots.put(k, kind);
-            found.add(new BlockPos(xs[i], y, zs[i]));
+            // Already on the map — this column or its cell; finding it twice is not news.
+            if (putSpot(xs[i], zs[i], kind)) found.add(new BlockPos(xs[i], y, zs[i]));
         }
         if (!found.isEmpty() || line.length > 0) setDirty();
         return found;
     }
 
-    /**
-     * The feature this cast landed on, or null — {@link #SPOT_RADIUS} blocks of slack, not a pixel.
-     *
-     * <p>ponytail: linear over every spot in the world, once per cast. A world with a few hundred found
-     * features costs nothing; index by chunk key if a server ever gets into the thousands.
-     */
+    /** §finder2: a feature goes on the map unless its 4×4 cell already holds one of that kind. */
+    private boolean putSpot(int x, int z, String kind) {
+        long cell = key(x >> CELL_SHIFT, z >> CELL_SHIFT);
+        byte bit = (byte) ("hole".equals(kind) ? 1 : 2);
+        byte have = cells.getOrDefault(cell, (byte) 0);
+        if ((have & bit) != 0) return false;
+        cells.put(cell, (byte) (have | bit));
+        spots.computeIfAbsent(chunkOf(x, z), k -> new HashMap<>()).put(key(x, z), kind);
+        return true;
+    }
+
+    /** The feature this cast landed on, or null — {@link #SPOT_RADIUS} blocks of slack, not a pixel. */
     public String spotAt(BlockPos pos) {
-        for (Map.Entry<Long, String> e : spots.entrySet()) {
-            int dx = keyX(e.getKey()) - pos.getX();
-            int dz = keyZ(e.getKey()) - pos.getZ();
-            if (dx * dx + dz * dz <= SPOT_RADIUS * SPOT_RADIUS) return e.getValue();
-        }
-        return null;
+        int[] near = nearest(pos, SPOT_RADIUS);
+        return near == null ? null : (near[2] == 0 ? "hole" : "ledge");
     }
 
     /**
      * §ledge-arrow: the nearest found feature within {@code range} blocks of a point, as
-     * {dx, dz, kindIndex} — or null. Same linear walk as {@link #spotAt}, same ceiling.
+     * {dx, dz, kindIndex} — or null. Walks the chunks the range covers and nothing else.
      */
     public int[] nearest(BlockPos pos, int range) {
         int[] best = null;
         long bestD = (long) range * range + 1;
-        for (Map.Entry<Long, String> e : spots.entrySet()) {
-            int dx = keyX(e.getKey()) - pos.getX();
-            int dz = keyZ(e.getKey()) - pos.getZ();
-            long d = (long) dx * dx + (long) dz * dz;
-            if (d < bestD) {
-                bestD = d;
-                best = new int[]{dx, dz, "hole".equals(e.getValue()) ? 0 : 1};
+        for (int cx = (pos.getX() - range) >> 4; cx <= (pos.getX() + range) >> 4; cx++) {
+            for (int cz = (pos.getZ() - range) >> 4; cz <= (pos.getZ() + range) >> 4; cz++) {
+                Map<Long, String> m = spots.get(key(cx, cz));
+                if (m == null) continue;
+                for (Map.Entry<Long, String> e : m.entrySet()) {
+                    int dx = keyX(e.getKey()) - pos.getX();
+                    int dz = keyZ(e.getKey()) - pos.getZ();
+                    long d = (long) dx * dx + (long) dz * dz;
+                    if (d < bestD) {
+                        bestD = d;
+                        best = new int[]{dx, dz, "hole".equals(e.getValue()) ? 0 : 1};
+                    }
+                }
             }
         }
         return best;
     }
 
+    /** §finder2: every sounded column within {@code reach} blocks (a square) of the centre, with its feature if any. */
+    public void forEachNear(BlockPos centre, int reach, Visitor visitor) {
+        for (int cx = (centre.getX() - reach) >> 4; cx <= (centre.getX() + reach) >> 4; cx++) {
+            for (int cz = (centre.getZ() - reach) >> 4; cz <= (centre.getZ() + reach) >> 4; cz++) {
+                long chunk = key(cx, cz);
+                Map<Long, Integer> m = depth.get(chunk);
+                if (m == null) continue;
+                Map<Long, String> s = spots.get(chunk);
+                for (Map.Entry<Long, Integer> e : m.entrySet()) {
+                    int x = keyX(e.getKey()), z = keyZ(e.getKey());
+                    if (Math.abs(x - centre.getX()) > reach || Math.abs(z - centre.getZ()) > reach) continue;
+                    visitor.visit(x, z, e.getValue(), s == null ? null : s.get(e.getKey()));
+                }
+            }
+        }
+    }
+
     // ---- persistence ---------------------------------------------------------------------------
 
+    /**
+     * Flat arrays (§finder2): the first format was a list of one compound per column, which for a lake
+     * sounded flat was megabytes of NBT to gzip on every autosave. The old lists still load, and their
+     * duplicate features fall out through {@link #putSpot} — an old world is cleaned on first load.
+     */
     public static SoundingData load(CompoundTag tag, HolderLookup.Provider registries) {
         SoundingData d = new SoundingData();
+        long[] bk = tag.getLongArray("bk").orElse(new long[0]);
+        int[] bd = tag.getIntArray("bd").orElse(new int[0]);
+        for (int i = 0; i < bk.length && i < bd.length; i++) {
+            int x = keyX(bk[i]), z = keyZ(bk[i]);
+            d.depth.computeIfAbsent(chunkOf(x, z), k -> new HashMap<>()).put(bk[i], bd[i]);
+        }
+        long[] sk = tag.getLongArray("sk").orElse(new long[0]);
+        byte[] sv = tag.getByteArray("sv").orElse(new byte[0]);
+        for (int i = 0; i < sk.length && i < sv.length; i++) {
+            d.putSpot(keyX(sk[i]), keyZ(sk[i]), sv[i] == 0 ? "hole" : "ledge");
+        }
         ListTag beds = tag.getListOrEmpty("beds");
         for (int i = 0; i < beds.size(); i++) {
             CompoundTag t = beds.getCompoundOrEmpty(i);
-            d.depth.put(t.getLongOr("k", 0L), t.getIntOr("d", 0));
+            long k = t.getLongOr("k", 0L);
+            d.depth.computeIfAbsent(chunkOf(keyX(k), keyZ(k)), c -> new HashMap<>()).put(k, t.getIntOr("d", 0));
         }
         ListTag marks = tag.getListOrEmpty("spots");
         for (int i = 0; i < marks.size(); i++) {
             CompoundTag t = marks.getCompoundOrEmpty(i);
-            d.spots.put(t.getLongOr("k", 0L), t.getStringOr("t", "hole"));
+            long k = t.getLongOr("k", 0L);
+            d.putSpot(keyX(k), keyZ(k), t.getStringOr("t", "hole"));
         }
         return d;
     }
 
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
-        ListTag beds = new ListTag();
-        for (Map.Entry<Long, Integer> e : depth.entrySet()) {
-            CompoundTag t = new CompoundTag();
-            t.putLong("k", e.getKey());
-            t.putInt("d", e.getValue());
-            beds.add(t);
+        int n = 0;
+        for (Map<Long, Integer> m : depth.values()) n += m.size();
+        long[] bk = new long[n];
+        int[] bd = new int[n];
+        int i = 0;
+        for (Map<Long, Integer> m : depth.values()) {
+            for (Map.Entry<Long, Integer> e : m.entrySet()) {
+                bk[i] = e.getKey();
+                bd[i++] = e.getValue();
+            }
         }
-        tag.put("beds", beds);
-        ListTag marks = new ListTag();
-        for (Map.Entry<Long, String> e : spots.entrySet()) {
-            CompoundTag t = new CompoundTag();
-            t.putLong("k", e.getKey());
-            t.putString("t", e.getValue());
-            marks.add(t);
+        tag.putLongArray("bk", bk);
+        tag.putIntArray("bd", bd);
+        n = 0;
+        for (Map<Long, String> m : spots.values()) n += m.size();
+        long[] sk = new long[n];
+        byte[] sv = new byte[n];
+        i = 0;
+        for (Map<Long, String> m : spots.values()) {
+            for (Map.Entry<Long, String> e : m.entrySet()) {
+                sk[i] = e.getKey();
+                sv[i++] = (byte) ("hole".equals(e.getValue()) ? 0 : 1);
+            }
         }
-        tag.put("spots", marks);
+        tag.putLongArray("sk", sk);
+        tag.putByteArray("sv", sv);
         return tag;
     }
 }

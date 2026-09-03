@@ -62,6 +62,21 @@ public class WaterUpgradeBlock extends Block implements SimpleWaterloggedBlock {
         return kind;
     }
 
+    /** §aerator-bubbles: an aerator is a magma block's bubbles without the burn — so it shows them. */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, net.minecraft.util.RandomSource random) {
+        if (!"aerator".equals(kind())) return;
+        boolean wet = (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED)
+                && state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED))
+                || level.getFluidState(pos.above()).is(net.minecraft.tags.FluidTags.WATER);
+        if (!wet) return;
+        for (int i = 0; i < 2; i++) {
+            level.addParticle(net.minecraft.core.particles.ParticleTypes.BUBBLE_COLUMN_UP,
+                    pos.getX() + 0.2 + random.nextDouble() * 0.6, pos.getY() + 1.0,
+                    pos.getZ() + 0.2 + random.nextDouble() * 0.6, 0.0, 0.06, 0.0);
+        }
+    }
+
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(WATERLOGGED);

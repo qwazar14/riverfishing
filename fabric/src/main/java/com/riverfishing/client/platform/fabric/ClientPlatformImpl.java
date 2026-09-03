@@ -52,4 +52,11 @@ public final class ClientPlatformImpl {
 
     public static void registerRenderTypes() {
     }
+
+    /** §fry-icon: no Fabric API registry for special model renderers — vanilla's map, through the accessor. */
+    public static void registerSpecialModelRenderers() {
+        com.riverfishing.mixin.SpecialModelRenderersAccessor.riverfishing$idMapper().put(
+                com.riverfishing.client.FrySpecialRenderer.ID,
+                com.riverfishing.client.FrySpecialRenderer.Unbaked.MAP_CODEC);
+    }
 }
