@@ -60,7 +60,7 @@ public final class ModBlocks {
                     BlockBehaviour.Properties.of().strength(1.5f).sound(SoundType.METAL)));
     public static final RegistrySupplier<Block> SNAG_PILE = registerSimple("snag_pile",
             () -> new com.riverfishing.block.WaterUpgradeBlock("snag_pile", "snags", true,
-                    BlockBehaviour.Properties.of().strength(1.0f).sound(SoundType.WOOD)));
+                    BlockBehaviour.Properties.of().strength(1.0f).sound(SoundType.WOOD).noOcclusion()));   // a tangle, not a cube
     public static final RegistrySupplier<Block> GRAVEL_BED = registerSimple("gravel_bed",
             () -> new com.riverfishing.block.WaterUpgradeBlock("gravel_bed", "gravel", true,
                     BlockBehaviour.Properties.of().strength(0.6f).sound(SoundType.GRAVEL)));
