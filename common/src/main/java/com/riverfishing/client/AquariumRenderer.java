@@ -75,7 +75,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             boolean flat = fsp != null && com.riverfishing.fish.FishPose.isFlat(fsp.getPath());
             // Spread the fish out in phase and depth so they don't overlap.
             float t = time * 0.05f + i * 2.094f;                 // 120° apart
-            double depth = (i - 1) * 0.20;                        // front/mid/back lane
+            double depth = ((i % 3) - 1) * 0.20;                  // §aq-fix: three lanes, six fish — the second trio shares them                        // front/mid/back lane
             double u, height;
             float travel; // horizontal travel direction: +1 swims one way, −1 the other
             if (big) {
@@ -85,12 +85,12 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
                 float fishLen = Math.min(2.0f, FishItem.getIconScale(fish)) * 0.9f;
                 double amp = Mth.clamp(0.95 - fishLen / 2.0, 0.05, 0.30);
                 u = Mth.sin(t) * amp;
-                height = 1.5 + Mth.sin(time * 0.09f + i) * 0.04;
+                height = 1.5 + Mth.sin(time * 0.09f + i) * 0.04 - (i / 3) * 0.14;
                 travel = Mth.cos(t) >= 0 ? 1f : -1f;
             } else {
                 // §aquarium-eight: a Gerono lemniscate ∞ — sin(t) across, ½·sin(2t) up = a figure-8.
                 u = Mth.sin(t) * 0.60;
-                height = 1.5 + 0.5 * Mth.sin(2 * t) * 0.28 + (i - 1) * 0.04;
+                height = 1.5 + 0.5 * Mth.sin(2 * t) * 0.28 + ((i % 3) - 1) * 0.04 - (i / 3) * 0.14;
                 travel = Mth.cos(t) >= 0 ? 1f : -1f;
             }
             // §fish-pose: a flatfish does not loop through open water — it works the floor of the tank.

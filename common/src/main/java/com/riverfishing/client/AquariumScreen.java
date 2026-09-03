@@ -94,7 +94,13 @@ public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
 
         // Status line, at most two lines; a third would run into the window line.
         int ly = 100, lines = 0;
-        for (FormattedCharSequence line : font.split(Component.translatable(K + "status." + STATUS[status]), TEXT_W)) {
+        // §aq-fix: out_of_season names the window — the one status with an argument.
+        Component statusText = status == 3 && menu.data(6) >= 0
+                ? Component.translatable(K + "status." + STATUS[status], Calendar.name(
+                        Season.values()[Math.floorMod(menu.data(6), Season.values().length)],
+                        menu.data(7) < 0 ? null : Calendar.Sub.values()[Math.floorMod(menu.data(7), Calendar.Sub.values().length)]))
+                : Component.translatable(K + "status." + STATUS[status]);
+        for (FormattedCharSequence line : font.split(statusText, TEXT_W)) {
             if (lines++ == 2) break;
             g.drawString(font, line, 8, ly, COL_TEXT, false);
             ly += 11;
