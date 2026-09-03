@@ -296,9 +296,92 @@ public final class StockedData extends SavedData {
         markStocked(region, species);
         // The brood IS the population now: pairs and fry grew into it. Genome and owner stay — the
         // nets ask who stocked a water long after it settled.
-        for (String k : new String[]{"F", "M", "Fry", "Since", "Due"}) t.remove(k);
+        // §k §farm: the pairs stay — a settled pond's brood is what grows it (growIfDue); fry became fish.
+        for (String k : new String[]{"Fry", "Since", "Due"}) t.remove(k);
         setDirty();
         return true;
+    }
+
+    // ---- §k §breeding (0.9.0): the pond as a farm ----------------------------------------------
+    // A settled species with a pair on the ledger grows by itself once a year: every time its spawn
+    // window CLOSES, the chunk of the last release (Pos) banks 3 units per pair, more for fertile stock
+    // and for a bank with cover and oxygen. LastGrow is the world day of the last close paid out, so
+    // however many times the water is touched, a window pays once. There is no world ticker: release,
+    // landing and a once-a-minute player tick (ModEvents) all ask growIfDue.
+    /** The last release spot — the chunk the growth lands in, and where "you are near your pond" is measured. */
+    public void notePos(long region, String species, BlockPos pos) {
+        entry(region, species).putLong("Pos", pos.asLong());
+        setDirty();
+    }
+
+    /** Species on the farm here: settled, or with a brood in the making. */
+    public Set<String> farmSpecies(long region) {
+        Set<String> out = new HashSet<>();
+        Set<String> s = regions.get(region);
+        if (s != null) out.addAll(s);
+        String prefix = region + "|";
+        for (String k : brood.keySet()) if (k.startsWith(prefix)) out.add(k.substring(prefix.length()));
+        return out;
+    }
+
+    /** Days since the species' window last closed, 0 on the closing day. Calendar arithmetic, like Due. */
+    private static int sinceClose(ServerLevel level, com.riverfishing.fish.FishProfile p) {
+        int start = p.spawnSeason.ordinal() * com.riverfishing.engine.Calendar.SEASON_DAYS
+                + (p.spawnSub == null ? 0 : p.spawnSub.ordinal() * com.riverfishing.engine.Calendar.SUB_DAYS);
+        int len = p.spawnSub == null ? com.riverfishing.engine.Calendar.SEASON_DAYS : com.riverfishing.engine.Calendar.SUB_DAYS;
+        return Math.floorMod(com.riverfishing.engine.Calendar.dayOfYear(level) - (start + len), com.riverfishing.engine.Calendar.YEAR_DAYS);
+    }
+
+    /** Days until the window next closes, 1..96 — the farm view's "grows in". */
+    public static int daysToGrow(ServerLevel level, com.riverfishing.fish.FishProfile p) {
+        return com.riverfishing.engine.Calendar.YEAR_DAYS - sinceClose(level, p);
+    }
+
+    /** Every farm species in the region the position is in — the per-player tick's call. */
+    public void growAround(ServerLevel level, BlockPos pos) {
+        long region = region(pos);
+        for (String s : farmSpecies(region)) growIfDue(level, region, s);
+    }
+
+    public void growIfDue(ServerLevel level, long region, String species) {
+        if (!isStocked(region, species)) return;
+        CompoundTag t = brood.get(key(region, species));
+        if (t == null || !t.contains("Pos")) return;
+        com.riverfishing.fish.FishProfile p = com.riverfishing.fish.FishProfileManager.get().byId(com.riverfishing.RiverFishing.id(species));
+        if (p == null) return;
+        long today = worldDay(level);
+        long lastClose = today - sinceClose(level, p);
+        long last = t.getLong("LastGrow");
+        if (last <= 0) {
+            // The clock starts the first time the water is looked at as a farm — no back pay for the
+            // years before, and the settle day itself (Due IS a closing day) does not pay either.
+            t.putLong("LastGrow", today);
+            setDirty();
+            return;
+        }
+        if (lastClose <= last) return;
+        // Windows closed in (last, lastClose]: one per year, rounded up because the first close after
+        // an arbitrary start day counts. ponytail: capped at 3 — a pond nobody visited for a decade
+        // pays three years, not ten; and with a Serene Seasons year longer than 96 the count is off the
+        // way Calendar.daysUntil is (see its note).
+        int windows = (int) Math.min(3, (lastClose - last + com.riverfishing.engine.Calendar.YEAR_DAYS - 1) / com.riverfishing.engine.Calendar.YEAR_DAYS);
+        t.putLong("LastGrow", lastClose);
+        setDirty();
+        int pairs = broodPairs(region, species);
+        if (pairs <= 0) return;
+        BlockPos pos = BlockPos.of(t.getLong("Pos"));
+        double units = windows * 3.0 * pairs * (1.0 + 0.5 * shares(region, species)[3])
+                * (1.0 + Ecosystem.frySurvival(level, pos));
+        FishingPressureData pd = FishingPressureData.get(level);
+        long chunk = new net.minecraft.world.level.ChunkPos(pos).toLong();
+        long now = level.getGameTime();
+        pd.addStock(chunk, species, now, units, FishingPressureData.FLOOR_SETTLED);
+        net.minecraft.network.chat.Component msg = net.minecraft.network.chat.Component.translatable(
+                "message.riverfishing.pond_grew", net.minecraft.network.chat.Component.translatable("fish.riverfishing." + species),
+                pd.stockPercent(chunk, species, now)).withStyle(net.minecraft.ChatFormatting.AQUA);
+        for (net.minecraft.server.level.ServerPlayer sp : level.players()) {
+            if (sp.blockPosition().closerThan(pos, 64)) sp.displayClientMessage(msg, true);
+        }
     }
 
     private CompoundTag saveBrood() {

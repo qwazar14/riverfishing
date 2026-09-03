@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "riverfishing:bleak",
+    "riverfishing:verkhovka",
+    "riverfishing:gudgeon",
+    "riverfishing:ruffe",
+    "riverfishing:smelt",
+    "riverfishing:round_goby",
+    "riverfishing:tubenose_goby"
+  ]
+}

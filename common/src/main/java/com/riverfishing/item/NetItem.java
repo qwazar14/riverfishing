@@ -142,8 +142,9 @@ public abstract class NetItem extends Item {
             PlayerData.markDirty(sp);
             sp.displayClientMessage(Component.translatable("message.riverfishing.poaching")
                     .withStyle(ChatFormatting.RED), false);
-            // ponytail: warden/patrol and confiscation hook in here — a nearby fisherman villager
-            // reacting to `poached > 0` (take the net, raise the alarm) — once that feature exists.
+            // §i: the warden. In his reach the net is his and the fine is due; out of it, the record
+            // still grows (fishing/Warden).
+            com.riverfishing.fishing.Warden.onPoach(sp, level, pos, poached);
         }
         sp.displayClientMessage(Component.translatable("message.riverfishing.net_haul", count)
                 .withStyle(ChatFormatting.GREEN), true);

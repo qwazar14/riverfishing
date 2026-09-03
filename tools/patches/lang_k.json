@@ -1,0 +1,29 @@
+{
+  "en_us": {
+    "message.riverfishing.pond_grew": "%1$s spawned in your pond: stock %2$s%%",
+    "message.riverfishing.keepnet_sold": "%1$s fish from the keepnet sold for %2$s emeralds",
+    "message.riverfishing.keepnet_unwanted": "No fisherman buys anything in this keepnet",
+    "finder.riverfishing.farm": "Farm ledger",
+    "finder.riverfishing.farm_row": "%1$s %2$s%% · ♀%3$s ♂%4$s · fry %5$s · %6$s · grows in %7$s d",
+    "finder.riverfishing.farm_row_new": "%1$s settling · ♀%3$s ♂%4$s · fry %5$s · %6$s · %7$s d",
+    "finder.riverfishing.farm_upgrades": "On the bank: %s"
+  },
+  "ru_ru": {
+    "message.riverfishing.pond_grew": "%1$s отнерестился в вашем пруду: запас %2$s%%",
+    "message.riverfishing.keepnet_sold": "Рыба из садка (%1$s шт.) продана за %2$s изумрудов",
+    "message.riverfishing.keepnet_unwanted": "В этом садке нет ничего, что купил бы рыбак",
+    "finder.riverfishing.farm": "Книга хозяйства",
+    "finder.riverfishing.farm_row": "%1$s %2$s%% · ♀%3$s ♂%4$s · мальки %5$s · %6$s · прирост через %7$s дн.",
+    "finder.riverfishing.farm_row_new": "%1$s приживается · ♀%3$s ♂%4$s · мальки %5$s · %6$s · %7$s дн.",
+    "finder.riverfishing.farm_upgrades": "На берегу: %s"
+  },
+  "uk_ua": {
+    "message.riverfishing.pond_grew": "%1$s нерестився у вашому ставку: запас %2$s%%",
+    "message.riverfishing.keepnet_sold": "Рибу з садка (%1$s шт.) продано за %2$s смарагдів",
+    "message.riverfishing.keepnet_unwanted": "У цьому садку немає нічого, що купив би рибалка",
+    "finder.riverfishing.farm": "Книга господарства",
+    "finder.riverfishing.farm_row": "%1$s %2$s%% · ♀%3$s ♂%4$s · мальки %5$s · %6$s · приріст за %7$s дн.",
+    "finder.riverfishing.farm_row_new": "%1$s приживається · ♀%3$s ♂%4$s · мальки %5$s · %6$s · %7$s дн.",
+    "finder.riverfishing.farm_upgrades": "На березі: %s"
+  }
+}

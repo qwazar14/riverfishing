@@ -1,0 +1,29 @@
+{
+  "en_us": {
+    "entity.minecraft.villager.riverfishing.warden": "Warden",
+    "entity.riverfishing.villager.warden": "Warden",
+    "block.riverfishing.warden_post": "Warden's Post",
+    "message.riverfishing.warden_caught": "The warden saw that net go in: %s fish poached — the net is confiscated, and %s emeralds with it",
+    "screen.riverfishing.contract_board.banned": "No work for a poacher. Release mature fish into the water to earn the board back.",
+    "guide.riverfishing.warden.title": "The Warden",
+    "guide.riverfishing.warden.text": "Every fishery that has ever lasted has had a warden — the man who walks the bank with no rod, asking whose net that is. Not because anglers are thieves, but because a water is shared by everyone who will ever fish it, including the people not born yet, and somebody has to speak for them.\n\n## WHY A FISHERY NEEDS ONE\nA rod takes one fish; a net takes a year. The fishermen can refuse to trust a poacher, and they do — but trust is not a fine. The warden is. He lives in a village like any villager, at his post — a plank booth with a green sign — and he watches forty-eight blocks of water in every direction. Haul a net from water you did not stock in his sight, and the net is his, up to ten emeralds go with it, and your name goes in his book.\n\n## WHAT HAPPENS TO A POACHER HERE\nThe book is the part that lasts. Three entries, in sight of a warden or not, and the fishermen's boards go blank for you: no contracts, no work, until you have paid the water back — one mature fish released into the water for every entry. Nets you no longer want, the warden buys back for an emerald apiece; fry for restocking he sells, ten to the bucket, because putting fish IN is the other half of his job.\n\nThe fish you leave in the water are the fish you catch next year."
+  },
+  "ru_ru": {
+    "entity.minecraft.villager.riverfishing.warden": "Рыбинспектор",
+    "entity.riverfishing.villager.warden": "Рыбинспектор",
+    "block.riverfishing.warden_post": "Пост рыбинспектора",
+    "message.riverfishing.warden_caught": "Инспектор видел, как сеть ушла в воду: %s рыбы браконьерским ловом — сеть конфискована, и %s изумрудов вместе с ней",
+    "screen.riverfishing.contract_board.banned": "Браконьеру работы нет. Выпускайте взрослую рыбу в воду — доска вернётся.",
+    "guide.riverfishing.warden.title": "Рыбинспектор",
+    "guide.riverfishing.warden.text": "У каждого рыбного хозяйства, которое продержалось хоть сколько-нибудь, был инспектор — человек, который ходит по берегу без удочки и спрашивает, чья это сеть. Не потому что рыболовы воры, а потому что вода общая для всех, кто когда-нибудь будет здесь ловить, включая ещё не родившихся, и кто-то должен говорить от их имени.\n\n## ЗАЧЕМ ХОЗЯЙСТВУ ИНСПЕКТОР\nУдочка берёт одну рыбу; сеть берёт год. Рыбаки могут отказать браконьеру в доверии — и отказывают, — но доверие не штраф. Инспектор — штраф. Он живёт в деревне, как любой житель, у своего поста — дощатой будки с зелёной вывеской — и видит воду на сорок восемь блоков во все стороны. Вытащите сеть из воды, которую не зарыбляли, у него на глазах — сеть его, до десяти изумрудов уходят вместе с ней, а ваше имя попадает в его книгу.\n\n## ЧТО ЗДЕСЬ БЫВАЕТ С БРАКОНЬЕРОМ\nКнига — то, что остаётся. Три записи, на глазах у инспектора или нет, и доски рыбаков для вас пустеют: ни контрактов, ни работы, пока не вернёте воде долг — по одной взрослой рыбе, выпущенной в воду, за каждую запись. Ненужные сети инспектор выкупает по изумруду за штуку; мальков для зарыбления продаёт, по десять в ведре, потому что запускать рыбу В воду — вторая половина его работы.\n\nРыба, которую вы оставили в воде, — это рыба, которую вы поймаете в следующем году."
+  },
+  "uk_ua": {
+    "entity.minecraft.villager.riverfishing.warden": "Рибінспектор",
+    "entity.riverfishing.villager.warden": "Рибінспектор",
+    "block.riverfishing.warden_post": "Пост рибінспектора",
+    "message.riverfishing.warden_caught": "Інспектор бачив, як сітка пішла у воду: %s риби браконьєрським ловом — сітку конфісковано, і %s смарагдів разом із нею",
+    "screen.riverfishing.contract_board.banned": "Браконьєрові роботи немає. Випускайте дорослу рибу у воду — дошка повернеться.",
+    "guide.riverfishing.warden.title": "Рибінспектор",
+    "guide.riverfishing.warden.text": "У кожного рибного господарства, що протрималося хоч скільки-небудь, був інспектор — людина, яка ходить берегом без вудки й питає, чия це сітка. Не тому, що рибалки злодії, а тому, що вода спільна для всіх, хто колись тут ловитиме, включно з іще не народженими, і хтось має говорити від їхнього імені.\n\n## НАВІЩО ГОСПОДАРСТВУ ІНСПЕКТОР\nВудка бере одну рибу; сітка бере рік. Рибалки можуть відмовити браконьєрові в довірі — і відмовляють, — але довіра не штраф. Інспектор — штраф. Він живе в селі, як будь-який житель, біля свого поста — дощаної будки із зеленою вивіскою — і бачить воду на сорок вісім блоків в усі боки. Витягніть сітку з води, якої не зарибнювали, в нього на очах — сітка його, до десяти смарагдів ідуть разом із нею, а ваше ім'я потрапляє до його книги.\n\n## ЩО ТУТ БУВАЄ З БРАКОНЬЄРОМ\nКнига — те, що лишається. Три записи, на очах в інспектора чи ні, і дошки рибалок для вас порожніють: ні контрактів, ні роботи, доки не повернете воді борг — по одній дорослій рибі, випущеній у воду, за кожен запис. Непотрібні сітки інспектор викуповує по смарагду за штуку; мальків для зарибнення продає, по десять у відрі, бо запускати рибу У воду — друга половина його роботи.\n\nРиба, яку ви лишили у воді, — це риба, яку ви зловите наступного року."
+  }
+}

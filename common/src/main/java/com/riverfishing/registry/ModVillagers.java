@@ -70,6 +70,19 @@ public final class ModVillagers {
                     ImmutableSet.of(), ImmutableSet.of(),
                     SoundEvents.VILLAGER_WORK_FISHERMAN));
 
+    // §i §breeding (0.9.0): the warden — the profession fishing/Warden looks for within reach of a
+    // poached haul. His post is a plain block; his two trades are built beside the hook (Warden.trades)
+    // and registered below, after the fisherman's table.
+    public static final RegistrySupplier<PoiType> WARDEN_POI = POI_TYPES.register("warden",
+            () -> new PoiType(Set.copyOf(ModBlocks.WARDEN_POST.get().getStateDefinition().getPossibleStates()), 1, 1));
+
+    public static final RegistrySupplier<VillagerProfession> WARDEN = PROFESSIONS.register("warden",
+            () -> new VillagerProfession("river_warden",
+                    holder -> holder.is(WARDEN_POI.getKey()),
+                    holder -> holder.is(WARDEN_POI.getKey()),
+                    ImmutableSet.of(), ImmutableSet.of(),
+                    SoundEvents.VILLAGER_WORK_FISHERMAN));
+
     /**
      * §order-tier: which fisherman level buys each species, recorded as the trades are built so it cannot
      * drift from them. The order-of-the-day board prints it — the standing complaint that an order can
@@ -340,6 +353,7 @@ public final class ModVillagers {
 
         pool = t;
         com.riverfishing.platform.VillagerTradeRegistry.register(FISHERMAN, t);
+        com.riverfishing.platform.VillagerTradeRegistry.register(WARDEN, com.riverfishing.fishing.Warden.trades());   // §i
     }
 
     /**
@@ -468,7 +482,7 @@ public final class ModVillagers {
     }
 
     /** "Ss Cc Vv Ff"-style: every allele a coin, the strong one written first — shop fry are ordinary fry. */
-    private static String randomGenome(net.minecraft.util.RandomSource rng) {
+    public static String randomGenome(net.minecraft.util.RandomSource rng) {   // §i: the warden's fry too
         StringBuilder g = new StringBuilder();
         for (char L : com.riverfishing.fish.Genome.LOCI.toCharArray()) {
             char l = Character.toLowerCase(L);
@@ -485,9 +499,13 @@ public final class ModVillagers {
         net.minecraft.nbt.CompoundTag t = new net.minecraft.nbt.CompoundTag();
         t.putInt("vid", villager.getId());
         t.putInt("rep", com.riverfishing.fishing.Contracts.rep(player));
+        // §i: a poacher's board is blank — the flag tells the client why, the empty list tells it what.
+        boolean banned = com.riverfishing.fishing.Warden.banned(sp);
+        t.putBoolean("banned", banned);
         net.minecraft.nbt.ListTag posts = new net.minecraft.nbt.ListTag();
         net.minecraft.nbt.CompoundTag ledger = com.riverfishing.fishing.Contracts.ledger(sp, level);   // §board-taken
-        for (net.minecraft.nbt.CompoundTag post : com.riverfishing.fishing.Contracts.posts(villager, level)) {
+        for (net.minecraft.nbt.CompoundTag post : banned ? java.util.List.<net.minecraft.nbt.CompoundTag>of()   // §i
+                : com.riverfishing.fishing.Contracts.posts(villager, level)) {
             post.putBoolean("taken", com.riverfishing.fishing.Contracts.taken(sp, ledger, post.getString("Id")));
             posts.add(post);
         }

@@ -51,6 +51,8 @@ public final class ModEvents {
                 com.riverfishing.fishing.ShoalTracker.tick(sp);  // §shoal: what is visible in the water
                 FishingManager.trollingTick(sp); // trolling v1 (0.5.0): boat-agnostic towing loop
                 FishingManager.finderHudTick(sp); // §finder-hud: the strip, while one is held
+                // §k §farm: once a minute, the region the player stands in pays out any spawn window that closed.
+                if (sp.tickCount % 1200 == 0) com.riverfishing.fishing.StockedData.get(sp.serverLevel()).growAround(sp.serverLevel(), sp.blockPosition());
                 announceDailyOrder(sp); // market (0.5.0): one chat line per player per Minecraft day
                 if (sp.tickCount % 10 == 0) {
                     var level = sp.serverLevel();
@@ -58,6 +60,17 @@ public final class ModEvents {
                             .emitParticles(level, sp.blockPosition(), level.getGameTime());
                 }
             }
+        });
+
+        // §k §farm: a keepnet held out to the fisherman sells everything in it that any fisherman buys —
+        // prime at the market price, carded at half, netted (no card) at a third. Before the roe block so
+        // the net is never mistaken for an ordinary right-click.
+        dev.architectury.event.events.common.InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> {
+            if (!(entity instanceof net.minecraft.world.entity.npc.Villager v)) return EventResult.pass();
+            if (!(player.getItemInHand(hand).getItem() instanceof com.riverfishing.item.KeepnetItem)) return EventResult.pass();
+            if (v.getVillagerData().getProfession() != com.riverfishing.registry.ModVillagers.FISHERMAN.get()) return EventResult.pass();
+            if (player instanceof ServerPlayer sp) com.riverfishing.fishing.KeepnetSale.sell(sp, player.getItemInHand(hand));
+            return EventResult.interruptTrue();
         });
 
         // §e §breeding: roe is sold the way a contract is handed in — a trade cannot match the species
