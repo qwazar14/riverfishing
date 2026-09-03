@@ -3300,6 +3300,27 @@ public final class FishingManager {
      */
     public static BiteContext habitatContext(ServerLevel level, BlockPos pos, WaterBody body) {
         BiteContext env = environmentAt(level, pos, body);
+        // §fit-body: whether a species can LIVE here is a question about the water, not about the
+        // one column the fish happened to be thrown into. The finder prices it at the column you aim
+        // at, mid-pond; a fish released a step away bobs at the bank, where the depth reads 1 and the
+        // claim may not reach — and the same pond answered "it will not survive". So the habitat
+        // question takes the best water within three blocks: the deepest column, and the claim if any
+        // of them carries one. The BITE still reads its own column (environmentAt), where standing in
+        // the shallows is supposed to matter.
+        int bestDepth = env.waterDepth;
+        boolean claimed = com.riverfishing.fishing.PondData.isClaimed(level, pos);
+        BlockPos.MutableBlockPos scan = pos.mutable();
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dz = -3; dz <= 3; dz++) {
+                if (dx == 0 && dz == 0) continue;
+                scan.set(pos.getX() + dx, pos.getY(), pos.getZ() + dz);
+                if (!level.getFluidState(scan).is(net.minecraft.tags.FluidTags.WATER)) continue;
+                bestDepth = Math.max(bestDepth, measureDepth(level, scan));
+                claimed |= com.riverfishing.fishing.PondData.isClaimed(level, scan);
+            }
+        }
+        env.waterDepth = bestDepth;
+        env.privatePond = claimed;
         env.communityFactor = null;
         env.time = TimeOfDay.DAY;
         env.weather = Weather.CLEAR;
