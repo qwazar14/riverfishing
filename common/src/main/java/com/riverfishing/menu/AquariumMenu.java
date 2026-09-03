@@ -63,7 +63,8 @@ public class AquariumMenu extends AbstractContainerMenu {
         addSlot(filtered(GROUNDBAIT, s -> s.getItem() instanceof GroundbaitItem, 64));
         addSlot(filtered(WATER, s -> s.is(Items.WATER_BUCKET), 1));
         addSlot(new Slot(tank, RESULT, SLOT_XY[RESULT][0], SLOT_XY[RESULT][1]) {
-            @Override public boolean mayPlace(ItemStack s) { return false; }
+            // §aq-fix: roe goes IN here to incubate — the tank decides (only with no fish inside)
+            @Override public boolean mayPlace(ItemStack s) { return tank.canPlaceItem(RESULT, s); }
         });
         for (int i = MODULE_FIRST; i <= MODULE_LAST; i++) addSlot(filtered(i, AquariumMenu::isModule, 1));
 
