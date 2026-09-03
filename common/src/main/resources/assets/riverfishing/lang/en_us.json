@@ -1370,9 +1370,7 @@
   "finder.riverfishing.suit_new": "would be a transplant",
   "message.riverfishing.pond_grew": "%1$s grew in your pond: %2$s fish, %3$s on average · stock %4$s%%",
   "message.riverfishing.trap_fry_elsewhere": "The fry nearby belong to another water",
-  "screen.riverfishing.contract_board.debt": "Debt to the fishermen: %1$s · %2$s kg to the next point, %3$s kg to clear",
   "screen.riverfishing.contract_board.banned": "No work for a poacher. Release mature fish into wild water until the debt is paid off.",
   "message.riverfishing.rep_credit": "The fishermen saw the fish go back: +%1$s reputation (now %2$s)",
-  "finder.riverfishing.rep": "Reputation",
-  "finder.riverfishing.rep_debt": "%1$s · %2$s kg back into wild water to clear"
+  "finder.riverfishing.rep": "Reputation"
 }
