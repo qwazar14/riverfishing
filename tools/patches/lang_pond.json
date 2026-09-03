@@ -1,0 +1,32 @@
+{
+  "en_us": {
+    "block.riverfishing.pond_sign": "Private pond sign",
+    "tooltip.riverfishing.pond_sign": "Plant it by your water — no wild fish, no size limits, and your own net is legal",
+    "message.riverfishing.pond_claimed": "This water is your private pond now (%s blocks)",
+    "message.riverfishing.pond_too_big": "This water is too big to be anyone's",
+    "message.riverfishing.pond_released": "The pond is wild water again",
+    "message.riverfishing.pond_not_yours": "This is %s's pond",
+    "message.riverfishing.your_pond": "your pond: %s",
+    "finder.riverfishing.owner": "Private pond of %s"
+  },
+  "ru_ru": {
+    "block.riverfishing.pond_sign": "Табличка: частный пруд",
+    "tooltip.riverfishing.pond_sign": "Поставьте у своей воды — ни дикой рыбы, ни ограничений по размеру, а своя сеть законна",
+    "message.riverfishing.pond_claimed": "Теперь эта вода — ваш частный пруд (%s блоков)",
+    "message.riverfishing.pond_too_big": "Эта вода слишком велика, чтобы быть чьей-то",
+    "message.riverfishing.pond_released": "Пруд снова дикая вода",
+    "message.riverfishing.pond_not_yours": "Это пруд игрока %s",
+    "message.riverfishing.your_pond": "ваш пруд: %s",
+    "finder.riverfishing.owner": "Частный пруд игрока %s"
+  },
+  "uk_ua": {
+    "block.riverfishing.pond_sign": "Табличка: приватний став",
+    "tooltip.riverfishing.pond_sign": "Поставте біля своєї води — ні дикої риби, ні обмежень за розміром, а власна сітка законна",
+    "message.riverfishing.pond_claimed": "Тепер ця вода — ваш приватний став (%s блоків)",
+    "message.riverfishing.pond_too_big": "Ця вода завелика, щоб бути чиєюсь",
+    "message.riverfishing.pond_released": "Став знову дика вода",
+    "message.riverfishing.pond_not_yours": "Це став гравця %s",
+    "message.riverfishing.your_pond": "ваш став: %s",
+    "finder.riverfishing.owner": "Приватний став гравця %s"
+  }
+}

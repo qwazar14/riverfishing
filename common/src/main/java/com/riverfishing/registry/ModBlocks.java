@@ -71,7 +71,11 @@ public final class ModBlocks {
             () -> new com.riverfishing.block.WaterUpgradeBlock("feeding_station", "feeding_station", false,
                     BlockBehaviour.Properties.of().strength(1.0f).sound(SoundType.WOOD)));
 
-
+    // §pond §breeding (0.9.0): the private-pond sign — plant it by your water and the community hash,
+    // the size gates and the poaching rule all step back from it (fishing/PondData).
+    public static final RegistrySupplier<Block> POND_SIGN = registerSimple("pond_sign",
+            () -> new com.riverfishing.block.PondSignBlock(
+                    BlockBehaviour.Properties.of().strength(0.8f).sound(SoundType.WOOD).noOcclusion().noCollission()));
 
     // Trophy stand (§15.5) — mounts a caught fish.
     public static final RegistrySupplier<Block> TROPHY_STAND = registerSimple("trophy_stand",

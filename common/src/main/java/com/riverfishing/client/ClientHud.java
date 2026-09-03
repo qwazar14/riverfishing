@@ -31,9 +31,9 @@ public final class ClientHud {
             FinderState.clear();
             return;
         }
-        boolean live = FinderState.fresh() && !FinderState.trace().isEmpty();
-        if (!live && ClientSoundings.target() == null) return;
         java.util.List<int[]> trace = FinderState.trace();
+        boolean live = FinderState.fresh() && !trace.isEmpty();
+        if (!live && ClientSoundings.target() == null) return;
 
         final int W = 122, H = 62;
         int x = mc.getWindow().getGuiScaledWidth() - W - 6;

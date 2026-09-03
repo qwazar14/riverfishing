@@ -28,6 +28,10 @@ import java.util.List;
  *
  * <p>The face has a second view, the bed FROM ABOVE: the lake's shape, the bank, where you stand and
  * face, and whatever has been sounded — with holes in it until somebody casts across them.
+ *
+ * <p>§finder2: and a third, the WATER SAMPLE — everything measured that is not a fish (clarity, climate,
+ * the season's third, oxygen, cover, the ecosystem, the farm ledger), and for fry, roe or a fish held
+ * in the other hand, the release's gates with their numbers. The section's list is fish only again.
  */
 public class FinderScreen extends Screen {
     private static final int W = 440, H = 252;
@@ -62,11 +66,23 @@ public class FinderScreen extends Screen {
     /** The species whose page is open, or null for the list. */
     private String detail;
     private boolean detailBlocked;
-    /** §sounding: the face shows the section, or the bed from above. */
-    private boolean mapView;
+    /** §finder2: the face shows the section, the bed from above, or the water sample. */
+    private static final int SECTION = 0, CHART = 1, SAMPLE = 2;
+    private int view = SECTION;
     /** §depth-map: the chart's centre in world blocks, and pixels per block. */
     private double mapCx, mapCz;
     private int zoom = 4;
+    /**
+     * §finder2: the chart's cells and marks are built when the block window, the zoom or the data
+     * changes — not every frame. Dragging a sub-block keeps the grid; the pixels move, the colours do not.
+     */
+    private int chartStartX, chartStartZ, chartCols, chartRows, chartZoom = -1, chartVersion = -1;
+    private int[] chartCells;
+    private byte[] chartEdges;
+    /** Marks inside the block window as {gx, gz, kind}, parallel to {@link #chartMarkKeys}. */
+    private final List<int[]> chartMarks = new ArrayList<>();
+    private final List<Long> chartMarkKeys = new ArrayList<>();
+    private int sampleScroll;
     /** What the cursor is over on the face this frame — drawn last, above the whole panel. */
     private List<net.minecraft.util.FormattedCharSequence> hover;
     /** §section-click: where each fish was drawn this frame, {x, y, index into here}. */
@@ -87,6 +103,8 @@ public class FinderScreen extends Screen {
         // The chart opens on the water you just sounded.
         mapCx = water().getInt("x") + 0.5;
         mapCz = water().getInt("z") + 0.5;
+        // §finder2: fry in the other hand means the question is "will they live here" — open on the answer.
+        if (this.data.contains("suit")) view = SAMPLE;
     }
 
     @Override
@@ -348,38 +366,40 @@ public class FinderScreen extends Screen {
         int x0 = left + VIEW_X, y0 = top + VIEW_Y, w = W - 2 * VIEW_X, h = VIEW_H;
         g.fill(x0, y0, x0 + w, y0 + h, FACE);
         java.util.Map<Long, Byte> cells = ClientSoundings.cells();
-        java.util.Map<Long, Byte> spots = ClientSoundings.spots();
-        int deepest = Math.max(1, ClientSoundings.deepest());
         int z = zoom;
         int cols = w / z + 2, rows = h / z + 2;
         int startX = (int) Math.floor(mapCx - (w / 2.0) / z), startZ = (int) Math.floor(mapCz - (h / 2.0) / z);
+        if (chartCells == null || chartStartX != startX || chartStartZ != startZ || chartCols != cols
+                || chartRows != rows || chartZoom != z || chartVersion != ClientSoundings.version()) {
+            buildChart(startX, startZ, cols, rows, z);
+        }
 
-        for (int gz = startZ; gz < startZ + rows; gz++) {
-            for (int gx = startX; gx < startX + cols; gx++) {
-                Byte v = cells.get(ClientSoundings.key(gx, gz));
-                if (v == null) continue;
-                int px = x0 + (int) Math.floor((gx - mapCx) * z + w / 2.0);
-                int py = y0 + (int) Math.floor((gz - mapCz) * z + h / 2.0);
-                int px2 = Math.min(px + z, x0 + w), py2 = Math.min(py + z, y0 + h);
-                int cx1 = Math.max(px, x0), cy1 = Math.max(py, y0);
-                if (cx1 >= px2 || cy1 >= py2) continue;
-                int b = bandOf(v, deepest);
-                if (b < 0) {
-                    boolean shore = false;
-                    for (int[] o : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
-                        Byte nb = cells.get(ClientSoundings.key(gx + o[0], gz + o[1]));
-                        if (nb != null && nb >= ClientSoundings.WATER) shore = true;
-                    }
-                    g.fill(cx1, cy1, px2, py2, shore ? LAND_TOP : LAND);
-                    continue;
-                }
-                g.fill(cx1, cy1, px2, py2, CHART_BANDS[b]);
-                if (b > 0 && z >= 3) {
-                    // Contour: a lighter edge wherever the next cell over is a deeper band.
-                    Byte rt = cells.get(ClientSoundings.key(gx + 1, gz)), dn = cells.get(ClientSoundings.key(gx, gz + 1));
-                    if (rt != null && bandOf(rt, deepest) > b) g.fill(px2 - 1, cy1, px2, py2, CHART_CONTOUR);
-                    if (dn != null && bandOf(dn, deepest) > b) g.fill(cx1, py2 - 1, px2, py2, CHART_CONTOUR);
-                }
+        // The cells, a row at a time with runs of one colour merged into one fill: a whole lake at two
+        // pixels a block was seventeen thousand fills a frame, most of them the same teal as the last.
+        for (int r = 0; r < rows; r++) {
+            int py = y0 + (int) Math.floor((startZ + r - mapCz) * z + h / 2.0);
+            int cy1 = Math.max(py, y0), py2 = Math.min(py + z, y0 + h);
+            if (cy1 >= py2) continue;
+            for (int c = 0; c < cols; ) {
+                int colour = chartCells[r * cols + c];
+                if (colour == 0) { c++; continue; }
+                int c2 = c;
+                while (c2 + 1 < cols && chartCells[r * cols + c2 + 1] == colour) c2++;
+                int px = x0 + (int) Math.floor((startX + c - mapCx) * z + w / 2.0);
+                int px2 = Math.min(px + (c2 - c + 1) * z, x0 + w);
+                if (px < px2) g.fill(Math.max(px, x0), cy1, px2, py2, colour);
+                c = c2 + 1;
+            }
+            if (z < 3) continue;
+            for (int c = 0; c < cols; c++) {
+                byte e = chartEdges[r * cols + c];
+                if (e == 0) continue;
+                int px = x0 + (int) Math.floor((startX + c - mapCx) * z + w / 2.0);
+                int px2 = Math.min(px + z, x0 + w), cx1 = Math.max(px, x0);
+                if (cx1 >= px2) continue;
+                // Contour: a lighter edge wherever the next cell over is a deeper band.
+                if ((e & 1) != 0) g.fill(px2 - 1, cy1, px2, py2, CHART_CONTOUR);
+                if ((e & 2) != 0) g.fill(cx1, py2 - 1, px2, py2, CHART_CONTOUR);
             }
         }
 
@@ -398,16 +418,17 @@ public class FinderScreen extends Screen {
         markRects.clear();
         markKeys.clear();
         Long target = ClientSoundings.target();
-        for (java.util.Map.Entry<Long, Byte> e : spots.entrySet()) {
-            int gx = ClientSoundings.keyX(e.getKey()), gz = ClientSoundings.keyZ(e.getKey());
-            int px = x0 + (int) Math.floor((gx - mapCx) * z + w / 2.0) + z / 2;
-            int py = y0 + (int) Math.floor((gz - mapCz) * z + h / 2.0) + z / 2;
+        for (int i = 0; i < chartMarks.size(); i++) {
+            int[] m = chartMarks.get(i);
+            Long key = chartMarkKeys.get(i);
+            int px = x0 + (int) Math.floor((m[0] - mapCx) * z + w / 2.0) + z / 2;
+            int py = y0 + (int) Math.floor((m[1] - mapCz) * z + h / 2.0) + z / 2;
             if (px < x0 + 5 || px > x0 + w - 5 || py < y0 + 5 || py > y0 + h - 5) continue;
             markRects.add(new int[]{px, py});
-            markKeys.add(e.getKey());
-            boolean picked = target != null && target.equals(e.getKey());   // boxed: == is identity
+            markKeys.add(key);
+            boolean picked = target != null && target.equals(key);   // boxed: == is identity
             if (picked) g.fill(px - 6, py - 6, px + 7, py + 7, 0xFFFFFFFF);
-            if (e.getValue() == 0) {
+            if (m[2] == 0) {
                 g.fill(px - 4, py - 4, px + 4, py + 4, CHART_MARK);
                 g.fill(px - 2, py - 2, px + 2, py + 2, FACE);
             } else {
@@ -417,9 +438,9 @@ public class FinderScreen extends Screen {
                 }
             }
             if (mouseX >= px - 5 && mouseX < px + 5 && mouseY >= py - 5 && mouseY < py + 5) {
-                Byte v = cells.get(e.getKey());
+                Byte v = cells.get(key);
                 int d = v == null || v < ClientSoundings.DEPTH0 ? 0 : v - ClientSoundings.DEPTH0;
-                hover = List.of(Component.translatable("spot.riverfishing." + (e.getValue() == 0 ? "hole" : "ledge")).getVisualOrderText(),
+                hover = List.of(Component.translatable("spot.riverfishing." + (m[2] == 0 ? "hole" : "ledge")).getVisualOrderText(),
                         Component.translatable("finder.riverfishing.metres", d).getVisualOrderText(),
                         Component.translatable(picked ? "finder.riverfishing.mark_picked" : "finder.riverfishing.mark_hint").getVisualOrderText());
             }
@@ -448,8 +469,7 @@ public class FinderScreen extends Screen {
         g.fill(sx, sy - 2, sx + 1, sy + 3, SURFACE);
         g.fill(sx + 10 * z - 1, sy - 2, sx + 10 * z, sy + 3, SURFACE);
         g.drawString(this.font, Component.translatable("finder.riverfishing.metres", 10), sx + 2, sy - 12, 0x9940E0B0, false);
-        int sounded = 0;
-        for (Byte v : cells.values()) if (v >= ClientSoundings.DEPTH0) sounded++;
+        int sounded = ClientSoundings.sounded();
         Component mapped = Component.translatable("finder.riverfishing.mapped", sounded);
         g.drawString(this.font, mapped, x0 + w - this.font.width(mapped) - 6, y0 + h - 11, 0x9940E0B0, false);
         if (sounded == 0) {
@@ -468,18 +488,38 @@ public class FinderScreen extends Screen {
         return 1 + Math.min(5, (v - ClientSoundings.DEPTH0) * 6 / (deepest + 1));
     }
 
-    /** The two controls on the face: which view, and — on the chart — a way back to yourself. */
+    /**
+     * §finder2: the controls on the face — the two views you are NOT on, and on the chart a way back to
+     * yourself. Right-aligned against the face's edge, left to right in {@link #tabKeys} order.
+     */
     private void renderViewTab(GuiGraphics g, int mouseX, int mouseY) {
-        int x = tabX(0);
-        tab(g, mouseX, mouseY, x, mapView ? "finder.riverfishing.to_section" : "finder.riverfishing.to_map");
-        if (mapView) tab(g, mouseX, mouseY, tabX(1), "finder.riverfishing.to_me");
+        List<String> keys = tabKeys();
+        int[] xs = tabXs(keys);
+        for (int i = 0; i < keys.size(); i++) tab(g, mouseX, mouseY, xs[i], keys.get(i));
     }
 
-    private int tabX(int i) {
-        int w0 = this.font.width(Component.translatable(mapView ? "finder.riverfishing.to_section" : "finder.riverfishing.to_map")) + 10;
-        int right = left + VIEW_X + (mapView ? W - 2 * VIEW_X : VIEW_W);
-        if (i == 0) return right - w0;
-        return right - w0 - 4 - (this.font.width(Component.translatable("finder.riverfishing.to_me")) + 10);
+    private List<String> tabKeys() {
+        List<String> k = new ArrayList<>();
+        if (view == CHART) k.add("finder.riverfishing.to_me");
+        if (view != SECTION) k.add("finder.riverfishing.to_section");
+        if (view != CHART) k.add("finder.riverfishing.to_map");
+        if (view != SAMPLE) k.add("finder.riverfishing.to_sample");
+        return k;
+    }
+
+    private int faceWidth() {
+        return view == SECTION ? VIEW_W : W - 2 * VIEW_X;
+    }
+
+    private int[] tabXs(List<String> keys) {
+        int[] xs = new int[keys.size()];
+        int x = left + VIEW_X + faceWidth();
+        for (int i = keys.size() - 1; i >= 0; i--) {
+            x -= this.font.width(Component.translatable(keys.get(i))) + 10;
+            xs[i] = x;
+            x -= 4;
+        }
+        return xs;
     }
 
     private void tab(GuiGraphics g, int mouseX, int mouseY, int x, String key) {
@@ -490,17 +530,17 @@ public class FinderScreen extends Screen {
         g.drawString(this.font, label, x + 5, y + 2, 0xFFEDE2C6, false);
     }
 
-    /** 0 the view toggle, 1 "to me", -1 neither. */
-    private int clickedTab(double mx, double my) {
+    /** The lang key of the tab under the cursor, or null. */
+    private String clickedTab(double mx, double my) {
         int y = top + VIEW_Y - 13;
-        if (my < y || my >= y + 12) return -1;
-        int w0 = this.font.width(Component.translatable(mapView ? "finder.riverfishing.to_section" : "finder.riverfishing.to_map")) + 10;
-        if (mx >= tabX(0) && mx < tabX(0) + w0) return 0;
-        if (mapView) {
-            int w1 = this.font.width(Component.translatable("finder.riverfishing.to_me")) + 10;
-            if (mx >= tabX(1) && mx < tabX(1) + w1) return 1;
+        if (my < y || my >= y + 12) return null;
+        List<String> keys = tabKeys();
+        int[] xs = tabXs(keys);
+        for (int i = 0; i < keys.size(); i++) {
+            int w = this.font.width(Component.translatable(keys.get(i))) + 10;
+            if (mx >= xs[i] && mx < xs[i] + w) return keys.get(i);
         }
-        return -1;
+        return null;
     }
 
     // ---- the list ------------------------------------------------------------------------------
@@ -515,32 +555,8 @@ public class FinderScreen extends Screen {
      */
     private List<Row> rows() {
         List<Row> out = new ArrayList<>();
-        // §f §ecosystem: what a settled species or a bank-side upgrade did to this water, one line each.
-        for (String k : water().getString("eco").split(";")) {
-            if (!k.isEmpty()) out.add(new Row(null, false, Component.translatable("ecosystem.riverfishing." + k)));
-        }
-        // §k §farm: the ledger for this water — one line a species, then what stands on the bank.
-        CompoundTag farm = data.getCompound("farm");
-        if (!farm.isEmpty()) {
-            out.add(new Row(null, false, Component.translatable("finder.riverfishing.farm")));
-            for (String s : farm.getAllKeys()) {
-                CompoundTag f = farm.getCompound(s);
-                String line = Component.translatable(f.getBoolean("settled") ? "finder.riverfishing.farm_row" : "finder.riverfishing.farm_row_new",
-                        fishName(s), f.getInt("stock"), f.getInt("f"), f.getInt("m"), f.getInt("fry"),
-                        f.getString("genome"), Math.max(0, f.getInt("grow"))).getString();
-                out.add(new Row(null, false, Component.literal(this.font.plainSubstrByWidth(line, LIST_W))));
-            }
-            String up = data.getString("upgrades");
-            if (!up.isEmpty()) {
-                List<String> names = new ArrayList<>();
-                for (String k : up.split(";")) {
-                    String block = k.equals("snags") ? "snag_pile" : k.equals("gravel") ? "gravel_bed" : k;
-                    names.add(Component.translatable("block.riverfishing." + block).getString());
-                }
-                String line = Component.translatable("finder.riverfishing.farm_upgrades", String.join(", ", names)).getString();
-                out.add(new Row(null, false, Component.literal(this.font.plainSubstrByWidth(line, LIST_W))));
-            }
-        }
+        // §finder2: fish only. The ecosystem, the farm ledger and the bank moved to the water sample —
+        // eight lines of pond-keeping before the first fish was the list about the wrong thing.
         out.add(new Row(null, false, Component.translatable("finder.riverfishing.biting", here.size())));
         for (CompoundTag t : here) out.add(new Row(t.getString("sp"), false, null));
         if (!gone.isEmpty()) {
@@ -632,6 +648,16 @@ public class FinderScreen extends Screen {
                 y += 11;
             }
         }
+        // §finder2: the release's gates with their numbers — the same block the sample view shows for
+        // what is in the other hand, here for the fish you clicked.
+        if (t.contains("fit")) {
+            List<Component> lines = suitLines(t);
+            for (int i = 0; i < lines.size(); i++) {
+                int colour = i < lines.size() - 1 ? GuiStyle.TEXT_HINT : t.getFloat("fit") > 0 ? 0xFF2E7D32 : 0xFF9A4A3C;
+                g.drawString(this.font, this.font.plainSubstrByWidth(lines.get(i).getString(), LIST_W), x, y, colour, false);
+                y += 11;
+            }
+        }
         g.drawString(this.font, Component.translatable("guide.riverfishing.back"),
                 x, top + VIEW_Y + VIEW_H - 10, GuiStyle.GHOST, false);
     }
@@ -646,6 +672,225 @@ public class FinderScreen extends Screen {
         for (CompoundTag t : here) if (t.getString("sp").equals(sp)) return t;
         for (CompoundTag t : gone) if (t.getString("sp").equals(sp)) return t;
         return null;
+    }
+
+    // ---- the chart cache -----------------------------------------------------------------------
+
+    /**
+     * §finder2: the block window's colours, contour edges and marks, built once and kept until the
+     * window, the zoom or the data moves. Cells: 0 nothing, else an ARGB. Edges: bit 0 a deeper band
+     * to the right, bit 1 below.
+     */
+    private void buildChart(int startX, int startZ, int cols, int rows, int z) {
+        chartStartX = startX;
+        chartStartZ = startZ;
+        chartCols = cols;
+        chartRows = rows;
+        chartZoom = z;
+        chartVersion = ClientSoundings.version();
+        java.util.Map<Long, Byte> cells = ClientSoundings.cells();
+        int deepest = Math.max(1, ClientSoundings.deepest());
+        chartCells = new int[cols * rows];
+        chartEdges = new byte[cols * rows];
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                int gx = startX + c, gz = startZ + r;
+                Byte v = cells.get(ClientSoundings.key(gx, gz));
+                if (v == null) continue;
+                int b = bandOf(v, deepest);
+                if (b < 0) {
+                    boolean shore = false;
+                    for (int[] o : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                        Byte nb = cells.get(ClientSoundings.key(gx + o[0], gz + o[1]));
+                        if (nb != null && nb >= ClientSoundings.WATER) shore = true;
+                    }
+                    chartCells[r * cols + c] = shore ? LAND_TOP : LAND;
+                    continue;
+                }
+                chartCells[r * cols + c] = CHART_BANDS[b];
+                if (b > 0) {
+                    Byte rt = cells.get(ClientSoundings.key(gx + 1, gz)), dn = cells.get(ClientSoundings.key(gx, gz + 1));
+                    int e = 0;
+                    if (rt != null && bandOf(rt, deepest) > b) e |= 1;
+                    if (dn != null && bandOf(dn, deepest) > b) e |= 2;
+                    chartEdges[r * cols + c] = (byte) e;
+                }
+            }
+        }
+        chartMarks.clear();
+        chartMarkKeys.clear();
+        for (java.util.Map.Entry<Long, Byte> e : ClientSoundings.spots().entrySet()) {
+            int gx = ClientSoundings.keyX(e.getKey()), gz = ClientSoundings.keyZ(e.getKey());
+            if (gx < startX || gx >= startX + cols || gz < startZ || gz >= startZ + rows) continue;
+            chartMarks.add(new int[]{gx, gz, e.getValue()});
+            chartMarkKeys.add(e.getKey());
+        }
+    }
+
+    // ---- the water sample ----------------------------------------------------------------------
+
+    /** One line of the sample: a label with a value, or a plain line with {@code label == null}. */
+    private record Line(Component label, Component value, int colour) {}
+
+    private static final int SAMPLE_LABEL = 0x9940E0B0, SAMPLE_TEXT = 0xFFB0E8D8, SAMPLE_HEAD = 0xFFE8B430;
+    private static final int SAMPLE_OK = 0xFF7CE07C, SAMPLE_BAD = 0xFFFF6060;
+
+    private Line head(String key, Object... args) {
+        return new Line(null, Component.translatable(key, args), SAMPLE_HEAD);
+    }
+
+    private Line pairLine(String key, Component value) {
+        return new Line(Component.translatable(key), value, SAMPLE_TEXT);
+    }
+
+    private Line plain(Component c) {
+        return new Line(null, c, SAMPLE_TEXT);
+    }
+
+    /**
+     * §finder2: the water as a sample — what the finder measured that is not a fish. Everything the
+     * section's list used to open with, plus what the bite engine reads and never said: clarity, the
+     * climate groups, the third of the season, oxygen and cover. For a fish, roe or fry in the other
+     * hand, the suitability block comes first: that is the question being asked.
+     */
+    private List<Line> sampleLines() {
+        CompoundTag w = water();
+        List<Line> out = new ArrayList<>();
+        CompoundTag suit = data.getCompound("suit");
+        if (!suit.isEmpty()) {
+            out.add(head("finder.riverfishing.suit", fishName(suit.getString("sp"))));
+            List<Component> lines = suitLines(suit);
+            for (int i = 0; i < lines.size(); i++) {
+                boolean last = i == lines.size() - 1;
+                out.add(new Line(null, lines.get(i), !last ? SAMPLE_TEXT : suit.getFloat("fit") > 0 ? SAMPLE_OK : SAMPLE_BAD));
+            }
+            out.add(plain(Component.empty()));
+        }
+        out.add(head("finder.riverfishing.sample"));
+        out.add(pairLine("finder.riverfishing.water", Component.translatable("water.riverfishing." + w.getString("type"))));
+        out.add(pairLine("finder.riverfishing.depth", Component.translatable("finder.riverfishing.metres", w.getInt("depth"))));
+        out.add(pairLine("finder.riverfishing.width", Component.translatable("finder.riverfishing.metres", Math.round(w.getFloat("width")))));
+        out.add(pairLine("finder.riverfishing.bed_label", Component.translatable("bed.riverfishing." + bedKey(w.getByte("bed")))));
+        if (w.contains("clarity")) {
+            out.add(pairLine("finder.riverfishing.clarity", Component.literal(Math.round(w.getFloat("clarity") * 100) + "%")));
+        }
+        List<Component> groups = new ArrayList<>();
+        for (String k : w.getString("groups").split(";")) {
+            if (!k.isEmpty()) groups.add(Component.translatable("biomegroup.riverfishing." + k));
+        }
+        net.minecraft.network.chat.MutableComponent climate = Component.empty();
+        for (int i = 0; i < groups.size(); i++) climate.append(i == 0 ? "" : ", ").append(groups.get(i));
+        out.add(pairLine("finder.riverfishing.climate", groups.isEmpty() ? Component.literal("—") : climate));
+        if (!w.getString("season").isEmpty()) {
+            out.add(pairLine("finder.riverfishing.season", windowName(w.getString("season"), w.getString("sub"))));
+        }
+        String up = data.getString("upgrades");
+        boolean aerator = false, snags = false;
+        List<String> upNames = new ArrayList<>();
+        for (String k : up.split(";")) {
+            if (k.isEmpty()) continue;
+            aerator |= k.equals("aerator");
+            snags |= k.equals("snags");
+            String block = k.equals("snags") ? "snag_pile" : k.equals("gravel") ? "gravel_bed" : k;
+            upNames.add(Component.translatable("block.riverfishing." + block).getString());
+        }
+        out.add(pairLine("finder.riverfishing.oxygen", Component.translatable(aerator ? "finder.riverfishing.oxygen_aerated" : "finder.riverfishing.oxygen_natural")));
+        out.add(pairLine("finder.riverfishing.cover", Component.translatable(snags ? "finder.riverfishing.cover_snags" : "finder.riverfishing.cover_none")));
+        // §f §ecosystem: what a settled species or a bank-side upgrade did to this water, one line each.
+        for (String k : w.getString("eco").split(";")) {
+            if (!k.isEmpty()) out.add(plain(Component.translatable("ecosystem.riverfishing." + k)));
+        }
+        if (!upNames.isEmpty()) {
+            out.add(plain(Component.translatable("finder.riverfishing.farm_upgrades", String.join(", ", upNames))));
+        }
+        // §k §farm: the ledger for this water — one line a species, and when each spawns.
+        CompoundTag farm = data.getCompound("farm");
+        if (!farm.isEmpty()) {
+            out.add(head("finder.riverfishing.farm"));
+            for (String s : farm.getAllKeys()) {
+                CompoundTag f = farm.getCompound(s);
+                out.add(plain(Component.translatable(f.getBoolean("settled") ? "finder.riverfishing.farm_row" : "finder.riverfishing.farm_row_new",
+                        fishName(s), f.getInt("stock"), f.getInt("f"), f.getInt("m"), f.getInt("fry"),
+                        f.getString("genome"), Math.max(0, f.getInt("grow")))));
+                if (f.contains("spawn")) {
+                    int in = f.getInt("in");
+                    out.add(plain(in <= 0
+                            ? Component.translatable("finder.riverfishing.spawn_now", fishName(s), windowName(f.getString("spawn"), f.getString("ssub")))
+                            : Component.translatable("finder.riverfishing.spawn_row", fishName(s), windowName(f.getString("spawn"), f.getString("ssub")), in)));
+                }
+            }
+        }
+        if (data.contains("owner")) {
+            out.add(pairLine("finder.riverfishing.owner", Component.literal(data.getString("owner"))));
+        }
+        return out;
+    }
+
+    /** "late spring" from a season key and a sub key ("" for the whole season) — the calendar's own names. */
+    private static Component windowName(String season, String sub) {
+        return sub.isEmpty() ? Component.translatable("season.riverfishing." + season)
+                : Component.translatable("calendar.riverfishing.name." + sub + "_" + season);
+    }
+
+    /**
+     * §finder2: the habitat gates as three lines, from a species tag carrying the server's numbers —
+     * the factors, the two hard bands with their pass marks, and the fit the release settles by. Used
+     * on the sample for what is in the other hand and in the detail panel for a fish in the list.
+     */
+    private List<Component> suitLines(CompoundTag t) {
+        CompoundTag w = water();
+        int depth = w.getInt("depth");
+        float width = w.getFloat("width");
+        boolean dOk = depth >= t.getInt("dmin") && depth <= t.getInt("dmax");
+        boolean wOk = width >= t.getFloat("wmin") && width <= t.getFloat("wmax");
+        String grp = t.getString("bgrp");
+        Component climate = !grp.isEmpty() ? Component.translatable("biomegroup.riverfishing." + grp)
+                : Component.translatable(t.getFloat("bio") > 0 ? "finder.riverfishing.climate_any" : "finder.riverfishing.climate_none");
+        List<Component> out = new ArrayList<>();
+        out.add(Component.translatable("finder.riverfishing.suit_factors", fmt(t.getFloat("wf")), fmt(t.getFloat("sf")), climate, fmt(t.getFloat("bio"))));
+        out.add(Component.translatable("finder.riverfishing.suit_gates", depth, dOk ? "✓" : "✗", t.getInt("dmin"), t.getInt("dmax"),
+                Math.round(width), wOk ? "✓" : "✗", Math.round(t.getFloat("wmin")),
+                t.getFloat("wmax") >= 1000 ? "∞" : String.valueOf(Math.round(t.getFloat("wmax")))));
+        float fit = t.getFloat("fit");
+        net.minecraft.network.chat.MutableComponent last = fit <= 0 ? Component.translatable("finder.riverfishing.suit_fit_none")
+                : Component.translatable("finder.riverfishing.suit_fit", Math.round(fit * 100));
+        if (t.contains("native")) {
+            last.append(" · ").append(Component.translatable(t.getBoolean("native") ? "finder.riverfishing.suit_native"
+                    : t.getBoolean("settled") ? "finder.riverfishing.suit_settled" : "finder.riverfishing.suit_new"));
+        }
+        out.add(last);
+        return out;
+    }
+
+    private static String fmt(float f) {
+        return String.format(java.util.Locale.ROOT, "%.2f", f);
+    }
+
+    private void renderSample(GuiGraphics g) {
+        int x0 = left + VIEW_X, y0 = top + VIEW_Y, w = faceWidth(), h = VIEW_H;
+        g.fill(x0, y0, x0 + w, y0 + h, FACE);
+        List<Line> lines = sampleLines();
+        sampleScroll = Mth.clamp(sampleScroll, 0, Math.max(0, lines.size() - 3));
+        g.enableScissor(x0, y0, x0 + w, y0 + h);
+        int x = x0 + 6, y = y0 + 5;
+        for (int i = sampleScroll; i < lines.size() && y < y0 + h; i++) {
+            Line l = lines.get(i);
+            if (l.label() != null) {
+                g.drawString(this.font, l.label(), x, y, SAMPLE_LABEL, false);
+                g.drawString(this.font, l.value(), x + 96, y, l.colour(), false);
+                y += 11;
+                continue;
+            }
+            for (var seq : this.font.split(l.value(), w - 12)) {
+                g.drawString(this.font, seq, x, y, l.colour(), false);
+                y += 11;
+            }
+        }
+        g.disableScissor();
+        if (lines.size() > sampleScroll + 1 && y >= y0 + h) {
+            g.drawString(this.font, Component.translatable("finder.riverfishing.more", lines.size() - sampleScroll),
+                    x0 + w - 90, y0 + h - 11, 0x9940E0B0, false);
+        }
     }
 
     // ---- the instrument bar --------------------------------------------------------------------
@@ -672,6 +917,12 @@ public class FinderScreen extends Screen {
                 Component.translatable("finder.riverfishing.metres", w.getInt("depth")));
         y = pair(g, x, y, "finder.riverfishing.width",
                 Component.translatable("finder.riverfishing.metres", Math.round(w.getFloat("width"))));
+        // §pond: a claimed pond says whose it is — and why the wild list is short.
+        if (!w.getString("owner").isEmpty()) {
+            g.drawString(this.font, Component.translatable("finder.riverfishing.owner", w.getString("owner")),
+                    x, y, 0xFFB08A00, false);
+            y += 12;
+        }
 
         int x2 = left + 230;
         int y2 = top + VIEW_Y + VIEW_H + 8;
@@ -720,10 +971,12 @@ public class FinderScreen extends Screen {
             return;
         }
         hover = null;
-        if (mapView) {
+        if (view == CHART) {
             // The chart takes the whole face: a species list beside a map of last week's lake is a
             // list about the wrong water.
             renderMap(g, mouseX, mouseY);
+        } else if (view == SAMPLE) {
+            renderSample(g);
         } else {
             renderSection(g, mouseX, mouseY);
             if (detail == null) renderList(g, mouseX, mouseY);
@@ -741,16 +994,18 @@ public class FinderScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
-        int t = clickedTab(mx, my);
-        if (t == 0) {
-            mapView = !mapView;
+        String tab = clickedTab(mx, my);
+        if (tab != null) {
+            switch (tab) {
+                case "finder.riverfishing.to_me" -> centreOnMe();
+                case "finder.riverfishing.to_section" -> view = SECTION;
+                case "finder.riverfishing.to_map" -> view = CHART;
+                default -> view = SAMPLE;
+            }
             return true;
         }
-        if (t == 1) {
-            centreOnMe();
-            return true;
-        }
-        if (mapView) {
+        if (view == SAMPLE) return true;
+        if (view == CHART) {
             // §arrow-target: a mark under the cursor is picked (or let go); anything else is the
             // start of a drag.
             for (int i = 0; i < markRects.size(); i++) {
@@ -791,7 +1046,7 @@ public class FinderScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
-        if (mapView && button == 0) {
+        if (view == CHART && button == 0) {
             mapCx -= dx / zoom;
             mapCz -= dy / zoom;
             return true;
@@ -801,7 +1056,11 @@ public class FinderScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mx, double my, double dx, double dy) {
-        if (mapView) {
+        if (view == SAMPLE) {
+            sampleScroll = Math.max(0, sampleScroll - (int) Math.signum(dy));
+            return true;
+        }
+        if (view == CHART) {
             // Five steps of zoom. Two pixels a block shows a whole lake; eight shows a swim.
             int[] steps = {2, 3, 4, 6, 8};
             int i = 0;

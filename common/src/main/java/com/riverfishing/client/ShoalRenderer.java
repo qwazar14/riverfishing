@@ -263,7 +263,7 @@ public final class ShoalRenderer {
      * measured by eye, not profiled; if a full shoal shows in the frame time, bake one distance-capped
      * model per species (a 64px downsample of the sprite) and draw that past ten blocks.
      */
-    public static boolean FISH_ITEM = true;
+    public static boolean FISH_ITEM = false;   // off by default: a 256 px sprite bakes to ~1k quads, 70 fish tanked the FPS
 
     /**
      * The item renderer writes every vertex at alpha 1 and with the quad's own normal. The shoal's
