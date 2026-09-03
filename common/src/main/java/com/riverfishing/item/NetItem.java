@@ -71,7 +71,9 @@ public abstract class NetItem extends Item {
         if (!level.isClientSide() && player instanceof ServerPlayer sp && level instanceof ServerLevel sl) {
             haul(sp, sl, water);
             stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
-            player.getCooldowns().addCooldown(stack, cooldownTicks);
+            // §pond-haste: your own pond is worked, not raided — a third of the wait.
+            java.util.UUID pondOwner0 = com.riverfishing.fishing.PondData.owner(sl, water);
+            player.getCooldowns().addCooldown(stack, pondOwner0 != null && pondOwner0.equals(sp.getUUID()) ? cooldownTicks / 3 : cooldownTicks);
         }
         return InteractionResult.SUCCESS;
     }
