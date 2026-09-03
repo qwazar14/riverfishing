@@ -122,8 +122,8 @@ public final class GroundbaitMix {
         // word the freshwater predators (pike, zander, perch, catfish) score, and the sturgeon and the big
         // game with them; "fish_strip" is the SEA word and pike does not answer it at all. Meal is dense
         // protein that lies on the bottom; oil is fraction 0 on purpose — a slick, all scent and no grain.
-        put("fish_meal", 0.90, 0.30, "livebait", 0xC8A870);
-        put("fish_oil", 0.60, 0.00, "livebait", 0xD89A30);
+        put("fish_meal", 0.90, 0.30, "fish_strip", 0xC8A870); // a diet must be a bait the pantry holds
+        put("fish_oil", 0.60, 0.00, "fish_strip", 0xD89A30);
 
         // ---- vanilla, so the first mix does not wait on a farm ----
         // Reach matters more than variety here: wheat and a potato are hour-one items, corn and boilies
