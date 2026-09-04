@@ -92,6 +92,32 @@ These four columns are **hard gates** — outside them the fish is simply absent
 | Snook | 2+ | 8+ | warm 1.4, beach 1.2, swamp 1, ocean_biome 0.9 | mid | 5–35 |
 | Striped bass | 2+ | 12+ | beach 1.3, temperate 1.2, cold 1, ocean_biome 1 | mid | 10–45 |
 | Tarpon | 3+ | 16+ | warm 1.5, beach 1.2, ocean_biome 1 | mid | 15–60 |
+| Mullet | 1–12 | 8+ | warm 1.2, beach 1.2, temperate 1.0, ocean_biome 0.9 | surface | 3–20 |
+| Anglerfish | 12+ | 24+ | deep 1.4, cold 1.2, temperate 0.8, ocean_biome 0.5 | bottom | 20–45 |
+| Black marlin | 12+ | 24+ | deep 1.4, warm 1.3, ocean_biome 0.4 | surface | 32–45 |
+| Blobfish | 12+ | 24+ | deep 1.5, cold 1.1, temperate 0.7, ocean_biome 0.15 | bottom | 25–45 |
+| Bluefin tuna | 10+ | 24+ | deep 1.3, temperate 1.2, cold 1.0, warm 0.8, ocean_biome 0.5 | mid | 25–45 |
+| Loach | 1–4 | 2+ | swamp 1.2, temperate 1.1, warm 1.0, cold 0.8 | bottom | 1–8 |
+| Whale shark | 14+ | 28+ | deep 1.5, warm 1.4, ocean_biome 0.3 | surface | 35–45 |
+| Nelma | 3+ | 14+ | cold 1.3, taiga 1.2, mountain 0.8, temperate 0.5 | mid | 10–35 |
+| Ocean sunfish | 10+ | 24+ | deep 1.3, warm 1.1, temperate 1.0, ocean_biome 0.5 | surface | 25–45 |
+| Pollock | 4+ | 16+ | cold 1.4, deep 1.1, ocean_biome 0.9, temperate 0.6 | mid | 15–45 |
+| Red piranha | 1–12 | 5+ | jungle 1.4, warm 1.3, swamp 1.0 | mid | 3–20 |
+| Tiger shark | 8+ | 24+ | warm 1.3, ocean_biome 1.0, deep 1.0, beach 0.9 | mid | 20–45 |
+| Kutum | 2–12 | 10+ | temperate 1.1, warm 1.0, beach 0.9 | bottom | 10–40 |
+| Naked Carp | 2+ | 12+ | warm 1.2, temperate 1.0 | bottom | 14–45 |
+| Arapaima | 3+ | 14+ | warm 1.4, swamp 1.0 | surface | 10–35 |
+| Beluga sturgeon | 6+ | 26+ | temperate 1.0, cold 1.0, ocean_biome 0.9, deep 0.8 | bottom | 20–60 |
+| Piraiba | 5+ | 18+ | warm 1.4, swamp 0.8 | bottom | 15–45 |
+| Goliath grouper | 5+ | 20+ | warm 1.4, ocean_biome 1.0, beach 0.9 | bottom | 10–35 |
+| Bull shark | 4+ | 18+ | warm 1.3, ocean_biome 1.0, beach 1.0 | mid | 15–40 |
+| Frilled shark | 14+ | 28+ | deep 1.6, cold 1.0, ocean_biome 0.7 | bottom | 25–60 |
+| Golden dorado | 2+ | 10+ | warm 1.4, swamp 0.6 | mid | 8–30 |
+| Golden crucian | 1+ | 5+ | swamp 1.3, warm 1.1, temperate 1.0 | bottom | 3–15 |
+| Bitterling | 1–3 | 4+ | warm 1.1, temperate 1.0, swamp 0.9 | mid | 2–10 |
+| Sunbleak | 1–2 | 3+ | temperate 1.0, warm 1.0, swamp 1.0 | surface | 1–8 |
+| Sculpin | 1–4 | 3+ | cold 1.3, mountain 1.3, taiga 1.1, temperate 0.9 | bottom | 1–8 |
+| Tubenose goby | 1+ | 4+ | warm 1.1, temperate 1.0, beach 1.0 | bottom | 1–10 |
 
 ## Season, time and weather
 
@@ -180,6 +206,32 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Snook | 1.1 | 1.3 | 1.1 | 0.2 | 1.4 | 0.7 | 1.4 | 1.3 | 1 | 1.1 | 1 |
 | Striped bass | 1.2 | 0.9 | 1.3 | 0.7 | 1.3 | 0.7 | 1.4 | 1.1 | 0.9 | 1.2 | 1.2 |
 | Tarpon | 1.2 | 1.3 | 1 | 0.2 | 1.4 | 0.7 | 1.4 | 1.2 | 1 | 1.1 | 0.9 |
+| Mullet | 1.0 | 1.4 | 1.1 | 0.3 | 1.2 | 1.1 | 1.2 | 0.4 | 1.1 | 0.9 | 0.7 |
+| Anglerfish | 1.0 | 0.8 | 1.1 | 1.2 | 0.8 | 0.5 | 1.1 | 1.5 | 1.0 | 1.0 | 0.9 |
+| Black marlin | 1.0 | 1.3 | 1.1 | 0.4 | 1.3 | 1.2 | 1.1 | 0.2 | 1.2 | 0.9 | 0.5 |
+| Blobfish | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 |
+| Bluefin tuna | 0.9 | 1.2 | 1.3 | 0.6 | 1.3 | 1.0 | 1.2 | 0.5 | 1.1 | 1.0 | 0.7 |
+| Loach | 1.1 | 1.2 | 1.0 | 0.5 | 1.1 | 0.5 | 1.3 | 1.4 | 0.8 | 1.3 | 1.4 |
+| Whale shark | 1.0 | 1.2 | 1.0 | 0.6 | 1.1 | 1.2 | 1.0 | 0.5 | 1.2 | 0.8 | 0.4 |
+| Nelma | 0.9 | 0.8 | 1.5 | 0.7 | 1.3 | 1.0 | 1.3 | 0.6 | 1.0 | 1.1 | 0.8 |
+| Ocean sunfish | 1.0 | 1.3 | 1.1 | 0.5 | 1.0 | 1.3 | 1.0 | 0.4 | 1.3 | 0.8 | 0.5 |
+| Pollock | 1.1 | 0.8 | 1.2 | 1.3 | 1.2 | 1.0 | 1.2 | 0.8 | 0.9 | 1.1 | 1.0 |
+| Red piranha | 1.0 | 1.2 | 1.0 | 0.4 | 1.1 | 1.3 | 1.1 | 0.4 | 1.1 | 1.0 | 0.8 |
+| Tiger shark | 1.0 | 1.3 | 1.1 | 0.4 | 1.2 | 0.7 | 1.3 | 1.5 | 1.0 | 1.1 | 0.9 |
+| Kutum | 1.4 | 0.9 | 1.1 | 0.4 | 1.3 | 0.8 | 1.3 | 0.7 | 1.0 | 1.1 | 0.9 |
+| Naked Carp | 0.8 | 1.4 | 0.95 | 0.03 | 1.2 | 0.85 | 1.2 | 1.05 | 0.9 | 1.2 | 0.8 |
+| Arapaima | 1.1 | 1.2 | 1.0 | 0.3 | 1.2 | 0.9 | 1.2 | 0.8 | 1.0 | 1.2 | 0.9 |
+| Beluga sturgeon | 1.2 | 0.9 | 1.2 | 0.5 | 1.1 | 0.6 | 1.2 | 1.4 | 1.0 | 1.1 | 1.0 |
+| Piraiba | 1.1 | 1.2 | 1.0 | 0.3 | 1.0 | 0.4 | 1.3 | 1.6 | 0.9 | 1.3 | 1.1 |
+| Goliath grouper | 1.0 | 1.2 | 1.1 | 0.7 | 1.2 | 1.0 | 1.2 | 1.1 | 1.0 | 1.0 | 1.0 |
+| Bull shark | 1.0 | 1.3 | 1.1 | 0.5 | 1.3 | 0.9 | 1.3 | 1.1 | 1.0 | 1.1 | 1.0 |
+| Frilled shark | 1.0 | 0.8 | 1.0 | 1.1 | 1.0 | 0.25 | 1.2 | 1.6 | 1.0 | 1.0 | 1.0 |
+| Golden dorado | 1.2 | 1.3 | 1.0 | 0.2 | 1.4 | 0.9 | 1.4 | 0.5 | 1.0 | 1.2 | 0.9 |
+| Golden crucian | 1.0 | 1.4 | 0.8 | 0.05 | 1.3 | 0.9 | 1.3 | 0.6 | 1.0 | 1.2 | 0.7 |
+| Bitterling | 1.1 | 1.3 | 0.7 | 0.0 | 1.0 | 1.2 | 1.0 | 0.0 | 1.2 | 0.9 | 0.6 |
+| Sunbleak | 1.1 | 1.4 | 0.6 | 0.0 | 1.1 | 1.3 | 1.1 | 0.0 | 1.2 | 0.8 | 0.5 |
+| Sculpin | 1.1 | 1.0 | 1.1 | 0.5 | 1.0 | 0.6 | 1.2 | 1.4 | 1.0 | 1.1 | 0.9 |
+| Tubenose goby | 1.1 | 1.2 | 1.0 | 0.3 | 1.1 | 1.0 | 1.1 | 0.8 | 1.0 | 1.1 | 0.8 |
 
 ## Fight statistics
 
@@ -271,6 +323,32 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Snook | burst | 0.9 | 3 | 0.85 | 0.55 | — |
 | Striped bass | relentless | 0.85 | 4 | 0.7 | 0.6 | — |
 | Tarpon | greyhounding | 1 | 5 | 0.75 | 0.35 | — |
+| Mullet | burst | 0.6 | 3 | 0.5 | 0.85 | — |
+| Anglerfish | steady | 0.5 | 1 | 0.2 | 0.22 | — |
+| Black marlin | greyhounding | 0.95 | 6 | 1.0 | 0.18 | — |
+| Blobfish | steady | 0.15 | 1 | 0.05 | 0.16 | — |
+| Bluefin tuna | sounding | 1.0 | 5 | 0.9 | 0.24 | — |
+| Loach | steady | 0.1 | 1 | 0.2 | 1.0 | — |
+| Whale shark | relentless | 0.15 | 8 | 0.1 | 0.03 | — |
+| Nelma | burst | 0.8 | 4 | 0.7 | 0.4 | — |
+| Ocean sunfish | steady | 0.35 | 2 | 0.1 | 0.2 | — |
+| Pollock | active_then_passive | 0.7 | 2 | 0.5 | 0.75 | — |
+| Red piranha | aggressive | 0.65 | 3 | 1.0 | 0.7 | — |
+| Tiger shark | relentless | 0.85 | 5 | 0.9 | 0.2 | — |
+| Kutum | burst | 0.6 | 3 | 0.6 | 0.45 | — |
+| Naked Carp | burst | 0.85 | 4 | 0.8 | 0.35 | — |
+| Arapaima | greyhounding | 0.95 | 4 | 0.8 | 0.22 | — |
+| Beluga sturgeon | sounding | 1.0 | 6 | 0.5 | 0.1 | — |
+| Piraiba | relentless | 0.95 | 5 | 0.85 | 0.18 | — |
+| Goliath grouper | sounding | 1.0 | 3 | 0.9 | 0.2 | — |
+| Bull shark | aggressive | 1.0 | 5 | 1.0 | 0.24 | — |
+| Frilled shark | sounding | 0.7 | 3 | 0.55 | 0.06 | — |
+| Golden dorado | greyhounding | 0.9 | 5 | 1.0 | 0.38 | — |
+| Golden crucian | steady | 0.4 | 2 | 0.3 | 0.85 | — |
+| Bitterling | steady | 0.03 | 1 | — | 1.0 | — |
+| Sunbleak | steady | 0.02 | 1 | — | 1.0 | — |
+| Sculpin | steady | 0.08 | 1 | — | 0.7 | — |
+| Tubenose goby | steady | 0.06 | 1 | — | 0.9 | — |
 
 ## See also
 
