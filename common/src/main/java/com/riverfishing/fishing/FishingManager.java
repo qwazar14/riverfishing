@@ -2268,7 +2268,13 @@ public final class FishingManager {
         }
 
         // §big-game (0.5.0): the two ocean patterns get their signature events.
-        if ("sounding".equals(session.fightPattern) && session.runTicksLeft > 0) {
+        // §shake-dive: …and only for a REAL run. A head-shake borrows runTicksLeft/runTicksTotal for
+        // its six ticks, so before this line asked, every shake was billed a whole DIVE_COST — about
+        // forty of them in a beluga fight, thirteen bars of drain nobody could wind back. A scripted
+        // run always carries a course (FightCourse.forPattern never returns NONE) and a shake never
+        // does, which is the distinction every other reader of runTicksLeft in this fight already makes.
+        if ("sounding".equals(session.fightPattern) && session.runTicksLeft > 0
+                && session.course.isRun()) {
             // The dive TAKES LINE — progress drains while it sounds; pump it back between dives.
             //
             // §dive-cost: the drain is a SHARE OF THE BAR spread over the dive, not a rate per tick.
