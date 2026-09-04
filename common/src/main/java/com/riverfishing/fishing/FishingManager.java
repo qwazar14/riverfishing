@@ -107,6 +107,7 @@ public final class FishingManager {
     private FishingManager() {}
 
     public static void clear(UUID uuid) {
+        ChartData.forget(uuid);   // §chart-server: they take their copy with them
         TROLL_GOOD.remove(uuid);
         TROLL_LAST.remove(uuid);
         FishingSession session = SESSIONS.remove(uuid);
@@ -1128,8 +1129,12 @@ public final class FishingManager {
         // screen — the map a player builds over a game is built out of exactly these.
         BlockPos centre = com.riverfishing.item.WaterProbeItem.findWater(level, sp);
         if (centre != null) {
-            com.riverfishing.network.ModNetwork.toPlayer(sp, new com.riverfishing.network.FinderPacket(
-                    finderPayload(sp, level, centre, true), true));
+            CompoundTag payload = finderPayload(sp, level, centre, true);
+            // §chart-server: into the sounder's own chart before it goes to the screen, and out of it
+            // first if this player has not been handed this sounder's work yet.
+            ChartData.record(sp, level, payload);
+            com.riverfishing.network.ModNetwork.toPlayer(sp,
+                    new com.riverfishing.network.FinderPacket(payload, true));
         }
         level.playSound(null, sp.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
                 SoundSource.PLAYERS, 0.7f, 1.4f);
