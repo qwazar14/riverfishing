@@ -109,6 +109,14 @@ public final class FishProfile {
      */
     public final java.util.Set<String> biomesRequire;
 
+    /**
+     * §breeds-with: the other species ids this one will spawn with, by path. EMPTY MEANS ITSELF ONLY,
+     * which is what almost every fish wants. It is for the cases where two ids are one animal — the
+     * carp and the sazan are both Cyprinus carpio, the koi is a carp in a kimono — and for the few
+     * crosses that make fertile young in the water they actually share.
+     */
+    public final java.util.Set<String> breedsWith;
+
     // §legendary (0.5.0): the species hides ONE named specimen per server (0 = none).
     public final int legendaryWeightG;
     public final double legendaryChance;
@@ -168,6 +176,7 @@ public final class FishProfile {
         this.biomes = b.biomes;
         this.provinces = b.provinces;
         this.biomesRequire = b.biomesRequire;
+        this.breedsWith = b.breedsWith;
     }
 
     // ---- Lookups used by the engine ----
@@ -349,6 +358,7 @@ public final class FishProfile {
         b.biomes = readDoubleMap(GsonHelper.getAsJsonObject(json, "biomes", new JsonObject()));
         b.provinces = readStringSet(json, "provinces");          // §provinces
         b.biomesRequire = readStringSet(json, "biomes_require"); // §biomes-require
+        b.breedsWith = readStringSet(json, "breeds_with");        // §breeds-with
         return new FishProfile(b);
     }
 
@@ -429,6 +439,7 @@ public final class FishProfile {
         Map<String, Double> biomes = new HashMap<>();
         java.util.Set<String> provinces = new java.util.HashSet<>();
         java.util.Set<String> biomesRequire = new java.util.HashSet<>();
+        java.util.Set<String> breedsWith = new java.util.HashSet<>();
 
         Builder(ResourceLocation id) { this.id = id; }
     }
