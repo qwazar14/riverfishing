@@ -69,14 +69,48 @@ public class FinderScreen extends Screen {
     /** §finder2: the face shows the section, the bed from above, or the water sample. */
     private static final int SECTION = 0, CHART = 1, SAMPLE = 2;
     private int view = SECTION;
-    /** §depth-map: the chart's centre in world blocks, and pixels per block. */
+    /** §depth-map: the chart's centre in world blocks. */
     private double mapCx, mapCz;
-    private int zoom = 4;
+    /**
+     * §chart-far: one zoom step, as {blocks per cell, pixels per cell}. It used to be a pixel count,
+     * which put a floor of about a lake on how far back the chart could stand — and §provinces then
+     * asked a question a lake cannot answer. Below the middle of this table a cell is one block drawn
+     * big, exactly as it always was; above it a cell is many blocks drawn one pixel. The far end is
+     * thirteen thousand blocks across the face, which is four faunal provinces.
+     */
+    private static final int[][] STEPS = {
+            {64, 1}, {32, 1}, {16, 1}, {8, 1}, {4, 1}, {2, 1}, {1, 1}, {1, 2}, {1, 3}, {1, 4}, {1, 6}, {1, 8}};
+    /** Index into {@link #STEPS}: {1, 4}, four pixels a block, where the chart has always opened. */
+    private int zoom = 9;
+    /**
+     * §chart-far: the faunal provinces, painted under the bed — in {@link com.riverfishing.water.Provinces#ALL}
+     * order. Four darks the water sits on top of, so a sounded lake still reads as a lake, and a gold
+     * line where two meet, because a region map is mostly its borders.
+     */
+    private static final int[] PROV = {0xFF101C2C, 0xFF101F14, 0xFF241609, 0xFF1E132A};
+    private static final int PROV_EDGE = 0xAAE8B430;
+    /** Cells between province samples. A Voronoi is smooth and a border is three thousand blocks long. */
+    private static final int PROV_STRIDE = 2;
+
+    private int step() {
+        return STEPS[zoom][0];
+    }
+
+    private int cellPx() {
+        return STEPS[zoom][1];
+    }
+
+    /** Pixels per world block — the one number the marks, the grid and you are all placed by. */
+    private double ppb() {
+        return (double) STEPS[zoom][1] / STEPS[zoom][0];
+    }
     /**
      * §finder2: the chart's cells and marks are built when the block window, the zoom or the data
      * changes — not every frame. Dragging a sub-block keeps the grid; the pixels move, the colours do not.
      */
     private int chartStartX, chartStartZ, chartCols, chartRows, chartZoom = -1, chartVersion = -1;
+    /** §chart-far: the province under the middle of the chart, plus one; 0 when the layer is off. */
+    private int chartProv;
     private int[] chartCells;
     private byte[] chartEdges;
     /** Marks inside the block window as {gx, gz, kind}, parallel to {@link #chartMarkKeys}. */
@@ -366,50 +400,62 @@ public class FinderScreen extends Screen {
         int x0 = left + VIEW_X, y0 = top + VIEW_Y, w = W - 2 * VIEW_X, h = VIEW_H;
         g.fill(x0, y0, x0 + w, y0 + h, FACE);
         java.util.Map<Long, Byte> cells = ClientSoundings.cells();
-        int z = zoom;
-        int cols = w / z + 2, rows = h / z + 2;
-        int startX = (int) Math.floor(mapCx - (w / 2.0) / z), startZ = (int) Math.floor(mapCz - (h / 2.0) / z);
+        int step = step(), cp = cellPx();
+        double ppb = ppb();
+        // §chart-far: where a world block lands on the face — ox + x * ppb, and that is the whole of the
+        // projection. A cell is `step` blocks, so cell c starts at ox + (startX + c) * cp exactly.
+        double ox = x0 + w / 2.0 - mapCx * ppb, oz = y0 + h / 2.0 - mapCz * ppb;
+        int cols = w / cp + 2, rows = h / cp + 2;
+        int startX = (int) Math.floor(mapCx / step - (w / 2.0) / cp);
+        int startZ = (int) Math.floor(mapCz / step - (h / 2.0) / cp);
         if (chartCells == null || chartStartX != startX || chartStartZ != startZ || chartCols != cols
-                || chartRows != rows || chartZoom != z || chartVersion != ClientSoundings.version()) {
-            buildChart(startX, startZ, cols, rows, z);
+                || chartRows != rows || chartZoom != zoom || chartVersion != ClientSoundings.version()) {
+            buildChart(startX, startZ, cols, rows, zoom);
         }
 
         // The cells, a row at a time with runs of one colour merged into one fill: a whole lake at two
         // pixels a block was seventeen thousand fills a frame, most of them the same teal as the last.
         for (int r = 0; r < rows; r++) {
-            int py = y0 + (int) Math.floor((startZ + r - mapCz) * z + h / 2.0);
-            int cy1 = Math.max(py, y0), py2 = Math.min(py + z, y0 + h);
+            int py = (int) Math.floor(oz + (startZ + r) * (double) cp);
+            int cy1 = Math.max(py, y0), py2 = Math.min(py + cp, y0 + h);
             if (cy1 >= py2) continue;
             for (int c = 0; c < cols; ) {
                 int colour = chartCells[r * cols + c];
                 if (colour == 0) { c++; continue; }
                 int c2 = c;
                 while (c2 + 1 < cols && chartCells[r * cols + c2 + 1] == colour) c2++;
-                int px = x0 + (int) Math.floor((startX + c - mapCx) * z + w / 2.0);
-                int px2 = Math.min(px + (c2 - c + 1) * z, x0 + w);
+                int px = (int) Math.floor(ox + (startX + c) * (double) cp);
+                int px2 = Math.min(px + (c2 - c + 1) * cp, x0 + w);
                 if (px < px2) g.fill(Math.max(px, x0), cy1, px2, py2, colour);
                 c = c2 + 1;
             }
-            if (z < 3) continue;
             for (int c = 0; c < cols; c++) {
                 byte e = chartEdges[r * cols + c];
                 if (e == 0) continue;
-                int px = x0 + (int) Math.floor((startX + c - mapCx) * z + w / 2.0);
-                int px2 = Math.min(px + z, x0 + w), cx1 = Math.max(px, x0);
+                int px = (int) Math.floor(ox + (startX + c) * (double) cp);
+                int px2 = Math.min(px + cp, x0 + w), cx1 = Math.max(px, x0);
                 if (cx1 >= px2) continue;
+                // §chart-far: a province border draws at every zoom — at the far end it is the only
+                // thing on the face. A depth contour needs a cell big enough to put a line inside.
+                if ((e & 4) != 0) g.fill(px2 - 1, cy1, px2, py2, PROV_EDGE);
+                if ((e & 8) != 0) g.fill(cx1, py2 - 1, px2, py2, PROV_EDGE);
+                if (cp < 3) continue;
                 // Contour: a lighter edge wherever the next cell over is a deeper band.
                 if ((e & 1) != 0) g.fill(px2 - 1, cy1, px2, py2, CHART_CONTOUR);
                 if ((e & 2) != 0) g.fill(cx1, py2 - 1, px2, py2, CHART_CONTOUR);
             }
         }
 
-        // Chunk grid, faint — the face's own teal, the way the section rules its depths.
-        for (int gx = (startX / 16) * 16; gx < startX + cols; gx += 16) {
-            int px = x0 + (int) Math.floor((gx - mapCx) * z + w / 2.0);
+        // Chunk grid, faint — the face's own teal, the way the section rules its depths. §chart-far:
+        // it coarsens with the zoom, sixteen blocks on a swim and a thousand on a continent, or the
+        // whole face would be grid.
+        int grid = 16 * step;
+        for (int gx = Math.floorDiv(startX * step, grid) * grid; gx < (startX + cols) * step; gx += grid) {
+            int px = (int) Math.floor(ox + gx * ppb);
             if (px > x0 && px < x0 + w) g.fill(px, y0 + 1, px + 1, y0 + h - 1, GRID);
         }
-        for (int gz = (startZ / 16) * 16; gz < startZ + rows; gz += 16) {
-            int py = y0 + (int) Math.floor((gz - mapCz) * z + h / 2.0);
+        for (int gz = Math.floorDiv(startZ * step, grid) * grid; gz < (startZ + rows) * step; gz += grid) {
+            int py = (int) Math.floor(oz + gz * ppb);
             if (py > y0 && py < y0 + h) g.fill(x0 + 1, py, x0 + w - 1, py + 1, GRID);
         }
 
@@ -421,8 +467,8 @@ public class FinderScreen extends Screen {
         for (int i = 0; i < chartMarks.size(); i++) {
             int[] m = chartMarks.get(i);
             Long key = chartMarkKeys.get(i);
-            int px = x0 + (int) Math.floor((m[0] - mapCx) * z + w / 2.0) + z / 2;
-            int py = y0 + (int) Math.floor((m[1] - mapCz) * z + h / 2.0) + z / 2;
+            int px = (int) Math.floor(ox + m[0] * ppb) + cp / 2;
+            int py = (int) Math.floor(oz + m[1] * ppb) + cp / 2;
             if (px < x0 + 5 || px > x0 + w - 5 || py < y0 + 5 || py > y0 + h - 5) continue;
             markRects.add(new int[]{px, py});
             markKeys.add(key);
@@ -449,12 +495,12 @@ public class FinderScreen extends Screen {
         // You, live: where you stand now and which way you face, not where the sounding was taken.
         var mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player != null) {
-            int px = x0 + (int) Math.floor((mc.player.getX() - mapCx) * z + w / 2.0);
-            int py = y0 + (int) Math.floor((mc.player.getZ() - mapCz) * z + h / 2.0);
+            int px = (int) Math.floor(ox + mc.player.getX() * ppb);
+            int py = (int) Math.floor(oz + mc.player.getZ() * ppb);
             if (px > x0 && px < x0 + w && py > y0 && py < y0 + h) {
                 double yaw = Math.toRadians(mc.player.getYRot());
                 double fx = -Math.sin(yaw), fz = Math.cos(yaw);
-                for (int k = 0; k < 4 * z; k++) {
+                for (int k = 0; k < Math.max(8, 4 * cp); k++) {
                     int ax = (int) Math.round(px + fx * k), ay = (int) Math.round(py + fz * k);
                     if (ax > x0 && ax < x0 + w && ay > y0 && ay < y0 + h) g.fill(ax, ay, ax + 1, ay + 1, CHART_YOU);
                 }
@@ -463,12 +509,27 @@ public class FinderScreen extends Screen {
             }
         }
 
-        // Scale bar, ten metres at this zoom; and how much of the world is on the chart.
+        // Scale bar; and how much of the world is on the chart. §chart-far: the distance is chosen
+        // to come out between forty and a couple of hundred pixels, so the ruler stays a ruler whether
+        // the face holds a swim or four provinces.
+        int metres = 10;
+        for (int m : new int[]{10, 25, 50, 100, 250, 500, 1000, 2500, 5000}) {
+            metres = m;
+            if (m * ppb >= 40) break;
+        }
+        int bar = Math.max(10, (int) Math.round(metres * ppb));
         int sx = x0 + 6, sy = y0 + h - 8;
-        g.fill(sx, sy, sx + 10 * z, sy + 2, SURFACE);
+        g.fill(sx, sy, sx + bar, sy + 2, SURFACE);
         g.fill(sx, sy - 2, sx + 1, sy + 3, SURFACE);
-        g.fill(sx + 10 * z - 1, sy - 2, sx + 10 * z, sy + 3, SURFACE);
-        g.drawString(this.font, Component.translatable("finder.riverfishing.metres", 10), sx + 2, sy - 12, 0x9940E0B0, false);
+        g.fill(sx + bar - 1, sy - 2, sx + bar, sy + 3, SURFACE);
+        g.drawString(this.font, Component.translatable("finder.riverfishing.metres", metres), sx + 2, sy - 12, 0x9940E0B0, false);
+        // §chart-far: and what part of the world the middle of it is. The colours say where the borders
+        // are; this says what they are, which is the half a player can act on.
+        if (chartProv != 0) {
+            Component region = Component.translatable(
+                    "province.riverfishing." + com.riverfishing.water.Provinces.ALL[chartProv - 1]);
+            g.drawString(this.font, region, x0 + w - this.font.width(region) - 6, y0 + 5, 0xCCE8B430, false);
+        }
         int sounded = ClientSoundings.sounded();
         Component mapped = Component.translatable("finder.riverfishing.mapped", sounded);
         g.drawString(this.font, mapped, x0 + w - this.font.width(mapped) - 6, y0 + h - 11, 0x9940E0B0, false);
@@ -681,17 +742,47 @@ public class FinderScreen extends Screen {
      * window, the zoom or the data moves. Cells: 0 nothing, else an ARGB. Edges: bit 0 a deeper band
      * to the right, bit 1 below.
      */
-    private void buildChart(int startX, int startZ, int cols, int rows, int z) {
+    private void buildChart(int startX, int startZ, int cols, int rows, int zoomLevel) {
         chartStartX = startX;
         chartStartZ = startZ;
         chartCols = cols;
         chartRows = rows;
-        chartZoom = z;
+        chartZoom = zoomLevel;
         chartVersion = ClientSoundings.version();
-        java.util.Map<Long, Byte> cells = ClientSoundings.cells();
+        int step = STEPS[zoomLevel][0];
+        java.util.Map<Long, Byte> cells = ClientSoundings.cells(step);
         int deepest = Math.max(1, ClientSoundings.deepest());
         chartCells = new int[cols * rows];
         chartEdges = new byte[cols * rows];
+
+        // §chart-far: the provinces first, as the ground everything else is drawn on. Only when the face
+        // is wide enough for a border to be on it — under a thousand blocks the layer is one flat colour
+        // and the sample view already names it — and only once the server has sent the map's seed.
+        long seed = ClientSoundings.mapSeed();
+        chartProv = 0;
+        if (seed != 0 && (long) cols * step >= 1024) {
+            int[] pr = new int[cols * rows];
+            for (int r = 0; r < rows; r += PROV_STRIDE) {
+                for (int c = 0; c < cols; c += PROV_STRIDE) {
+                    int v = com.riverfishing.water.Provinces.index(
+                            seed, (startX + c) * step, (startZ + r) * step) + 1;
+                    for (int rr = r; rr < Math.min(rows, r + PROV_STRIDE); rr++) {
+                        for (int cc = c; cc < Math.min(cols, c + PROV_STRIDE); cc++) pr[rr * cols + cc] = v;
+                    }
+                }
+            }
+            for (int r = 0; r < rows; r++) {
+                for (int c = 0; c < cols; c++) {
+                    int v = pr[r * cols + c];
+                    chartCells[r * cols + c] = PROV[(v - 1) % PROV.length];
+                    int e = 0;
+                    if (c + 1 < cols && pr[r * cols + c + 1] != v) e |= 4;
+                    if (r + 1 < rows && pr[(r + 1) * cols + c] != v) e |= 8;
+                    chartEdges[r * cols + c] |= (byte) e;   // §chart-far: the province border keeps its bits
+                }
+            }
+            chartProv = pr[(rows / 2) * cols + cols / 2];
+        }
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 int gx = startX + c, gz = startZ + r;
@@ -721,7 +812,9 @@ public class FinderScreen extends Screen {
         chartMarkKeys.clear();
         for (java.util.Map.Entry<Long, Byte> e : ClientSoundings.spots().entrySet()) {
             int gx = ClientSoundings.keyX(e.getKey()), gz = ClientSoundings.keyZ(e.getKey());
-            if (gx < startX || gx >= startX + cols || gz < startZ || gz >= startZ + rows) continue;
+            // §chart-far: the mark is a world column; the window is in cells.
+            int mcx = Math.floorDiv(gx, step), mcz = Math.floorDiv(gz, step);
+            if (mcx < startX || mcx >= startX + cols || mcz < startZ || mcz >= startZ + rows) continue;
             chartMarks.add(new int[]{gx, gz, e.getValue()});
             chartMarkKeys.add(e.getKey());
         }
@@ -925,6 +1018,14 @@ public class FinderScreen extends Screen {
 
         y = pair(g, x, y, "finder.riverfishing.water",
                 Component.translatable("water.riverfishing." + w.getString("type")));
+        // §provbar: and which part of the world that water is in. The two lines together are the whole
+        // of why a fish is or is not here, and they belong next to each other rather than three pages
+        // apart. Empty on the strip's short sounding, which sends no province.
+        String prov = w.getString("prov");
+        if (!prov.isEmpty()) {
+            y = pair(g, x, y, "finder.riverfishing.province",
+                    Component.translatable("province.riverfishing." + prov));
+        }
         y = pair(g, x, y, "finder.riverfishing.depth",
                 Component.translatable("finder.riverfishing.metres", w.getInt("depth")));
         y = pair(g, x, y, "finder.riverfishing.width",
@@ -1059,8 +1160,8 @@ public class FinderScreen extends Screen {
     @Override
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
         if (view == CHART && button == 0) {
-            mapCx -= dx / zoom;
-            mapCz -= dy / zoom;
+            mapCx -= dx / ppb();
+            mapCz -= dy / ppb();
             return true;
         }
         return super.mouseDragged(mx, my, button, dx, dy);
@@ -1073,12 +1174,9 @@ public class FinderScreen extends Screen {
             return true;
         }
         if (view == CHART) {
-            // Five steps of zoom. Two pixels a block shows a whole lake; eight shows a swim.
-            int[] steps = {2, 3, 4, 6, 8};
-            int i = 0;
-            for (int k = 0; k < steps.length; k++) if (steps[k] == zoom) i = k;
-            i = Mth.clamp(i + (int) Math.signum(dy), 0, steps.length - 1);
-            zoom = steps[i];
+            // §chart-far: twelve steps, from eight pixels a block to sixty-four blocks a pixel — a
+            // swim at one end and four faunal provinces at the other.
+            zoom = Mth.clamp(zoom + (int) Math.signum(dy), 0, STEPS.length - 1);
             return true;
         }
         scroll -= (int) Math.signum(dy);

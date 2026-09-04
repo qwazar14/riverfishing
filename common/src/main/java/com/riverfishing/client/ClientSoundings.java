@@ -46,6 +46,15 @@ public final class ClientSoundings {
      */
     private static int version;
     private static int sounded;
+    /**
+     * §chart-far: the seed the chart draws the faunal provinces off — NOT the world seed, a one-way
+     * scramble of it ({@link com.riverfishing.water.Provinces#mapSeed}). 0 until a sounding arrives,
+     * which reads as "no regions on the chart yet".
+     */
+    private static long mapSeed;
+    /** §chart-far: the bed folded down to a zoom's cell size, and which zoom and which data it is. */
+    private static final Map<Long, Byte> coarse = new HashMap<>();
+    private static int coarseStep = -1, coarseVersion = -1;
 
     private ClientSoundings() {}
 
@@ -77,6 +86,33 @@ public final class ClientSoundings {
         return cells;
     }
 
+    /** §chart-far: the seed for the province layer, or 0 if the server has not said yet. */
+    public static long mapSeed() {
+        ensureLoaded();
+        return mapSeed;
+    }
+
+    /**
+     * §chart-far: the same bed at {@code step} blocks a cell, DEEPEST WINS — the byte order is
+     * LAND &lt; WATER &lt; a depth, so a lake stays a lake when one pixel is thirty-two blocks of bank.
+     * Built once per zoom and kept until the soundings change: a drag at the far end would otherwise
+     * fold every column a player has ever sounded, every frame.
+     */
+    public static Map<Long, Byte> cells(int step) {
+        ensureLoaded();
+        if (step <= 1) return cells;
+        if (step == coarseStep && version == coarseVersion) return coarse;
+        coarse.clear();
+        for (Map.Entry<Long, Byte> e : cells.entrySet()) {
+            long k = key(Math.floorDiv(keyX(e.getKey()), step), Math.floorDiv(keyZ(e.getKey()), step));
+            Byte had = coarse.get(k);
+            if (had == null || e.getValue() > had) coarse.put(k, e.getValue());
+        }
+        coarseStep = step;
+        coarseVersion = version;
+        return coarse;
+    }
+
     public static Map<Long, Byte> spots() {
         ensureLoaded();
         return spots;
@@ -106,6 +142,11 @@ public final class ClientSoundings {
         if (w.isEmpty()) return;
         int cx = w.getInt("x"), cz = w.getInt("z");
         boolean changed = false;
+        long seed = w.getLong("seed");                        // §chart-far
+        if (seed != 0 && seed != mapSeed) {
+            mapSeed = seed;
+            changed = true;
+        }
 
         byte[] wet = data.getByteArray("wet");
         int r = FishingManager.MAP_REACH, n = 2 * r + 1;
@@ -167,6 +208,8 @@ public final class ClientSoundings {
         deepest = 1;
         target = null;
         sounded = 0;
+        mapSeed = 0;
+        coarseStep = -1;
         version++;
         loadedFor = k;
         try {
@@ -186,6 +229,7 @@ public final class ClientSoundings {
             byte[] sv = t.getByteArray("sv");
             for (int i = 0; i < sk.length && i < sv.length; i++) spots.put(sk[i], sv[i]);
             if (t.getBoolean("ht")) target = t.getLong("t");
+            mapSeed = t.getLong("seed");   // §chart-far
         } catch (Exception e) {
             com.riverfishing.RiverFishing.LOGGER.warn("§depth-map: could not read {}: {}", loadedFor, e.toString());
         }
@@ -214,6 +258,7 @@ public final class ClientSoundings {
             t.putByteArray("sv", sv);
             t.putBoolean("ht", target != null);
             if (target != null) t.putLong("t", target);
+            t.putLong("seed", mapSeed);
             Files.createDirectories(file().getParent());
             NbtIo.writeCompressed(t, file());
         } catch (Exception e) {

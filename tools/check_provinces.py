@@ -151,6 +151,44 @@ for p in ALL:
 if '"finder.riverfishing.province"' not in lang:
     die("the sounder has no label for the province line")
 
+# ---- §chart-far: the chart draws the same map the engine gates on --------------------------------
+fin = io.open(os.path.join(JAVA, "client/FinderScreen.java"), encoding="utf-8").read()
+snd = io.open(os.path.join(JAVA, "client/ClientSoundings.java"), encoding="utf-8").read()
+mgr2 = io.open(os.path.join(JAVA, "fishing/FishingManager.java"), encoding="utf-8").read()
+
+colours = re.findall(r"0x[0-9A-Fa-f]{8}", re.search(r"int\[\] PROV = \{(.*?)\};", fin, re.S).group(1))
+if len(colours) != len(ALL):
+    die("the chart has %d province colours for %d provinces — %s would be drawn as another"
+        % (len(colours), len(ALL), ALL[min(len(colours), len(ALL) - 1)]))
+
+# The client is handed a SCRAMBLE of the seed, never the seed. A world seed is every structure in it.
+if "Provinces.mapSeed(level.getSeed())" not in mgr2:
+    die("the sounding no longer sends the province map seed — the chart cannot draw the regions")
+if re.search(r'put(Long|Int)\("seed",\s*level\.getSeed\(\)', mgr2):
+    die("the raw world seed is being sent to the client — that is every structure and every ore vein")
+if "index(mapSeed(worldSeed), x, z)" not in src:
+    die("Provinces.at no longer derives the map seed, so the server gates on a different map than the "
+        "chart draws")
+if 'mapSeed = t.' not in snd or 'putLong("seed", mapSeed)' not in snd:
+    die("the chart's seed is not kept on disk — the regions would vanish until the next sounding")
+
+# The zoom table: strictly wider each step out, and wide enough at the end to hold a province.
+steps = [(int(a), int(b)) for a, b in
+         re.findall(r"\{(\d+), (\d+)\}", re.search(r"STEPS = \{(.*?)\};", fin, re.S).group(1))]
+span = [420.0 * a / b for a, b in steps]        # blocks across the face, w = W - 2 * VIEW_X
+if span != sorted(span, reverse=True):
+    die("the zoom steps are not ordered from the widest to the closest: %s" % span)
+if len(set(span)) != len(span):
+    die("two zoom steps show the same width of world")
+if span[0] < CELL * 2:
+    die("the widest zoom shows %d blocks and a province cell is %d — a player can never see a border"
+        % (span[0], CELL))
+if span[-1] > 64:
+    die("the closest zoom shows %d blocks; the chart has to stay usable for one swim" % span[-1])
+gate = re.search(r"cols \* step >= (\d+)", fin)
+if not gate:
+    die("the province layer no longer has a width gate; it would wash a close chart in one flat colour")
+
 if fails:
     print("FAILED:")
     for x in fails:
@@ -160,3 +198,5 @@ print("provinces: %d over %d-block cells, %d seeds all fair (>=10%% each), a str
       "%d blocks; %s; %d species left open"
       % (len(ALL), CELL, len(SEEDS), mean_run,
          ", ".join("%s %d" % (p, counts[p]) for p in ALL), len(open_range)))
+print("chart: %d zoom steps, %d blocks across at the widest (%.1f province cells), regions from %s blocks; "
+      "the client gets a scrambled seed" % (len(steps), span[0], span[0] / CELL, gate.group(1)))

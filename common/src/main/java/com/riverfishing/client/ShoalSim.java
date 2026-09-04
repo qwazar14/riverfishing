@@ -41,6 +41,20 @@ public final class ShoalSim {
     /** Radians per second of turn available at cruise; a startled fish turns faster still. */
     private static final float TURN = 1.4f;
     /**
+     * §swim-inertia: what one tail beat is worth. The fish glides at {@code BEAT_LOW} of its cruise and
+     * drives at {@code BEAT_LOW + BEAT_SWING} of it, and the swing used to be 0.7..1.6 — a factor of
+     * 2.3 between one half of a beat and the other, which is a lurch and not a swim.
+     */
+    private static final double BEAT_LOW = 0.78, BEAT_SWING = 0.55;
+    /**
+     * §swim-inertia: seconds to reach a new speed, cruising and bolting. The beat is a FORCE; the speed
+     * is what the fish gets to over about a body length of swimming. Taking the beat as the velocity
+     * outright — which is what this did — is a step change in velocity twice a beat, and that is what
+     * "the acceleration is jerky" looks like from the bank. A frightened fish is allowed to be abrupt:
+     * that is what a bolt is.
+     */
+    private static final double SPEED_LAG = 0.55, FLIGHT_LAG = 0.12;
+    /**
      * Radians per second the wander may swing the heading by — the LAZY turn, as opposed to TURN, which
      * is the corrective one a fish spends on a bank or on a player. At the peak of both sines this is
      * about fourteen degrees a second, and it is nowhere near the peak most of the time.
@@ -58,6 +72,8 @@ public final class ShoalSim {
         public final ShoalPacket.Entry entry;
         /** §shoal-kick: 0..1, how hard the tail is beating this frame — the renderer swings it by this. */
         public float kick;
+        /** §swim-inertia: metres a second, right now — eased toward what the beat asks for, never taken. */
+        public double speed;
         /** §shoal-jump: nose-up/down, degrees, while in the air; 0 in the water. */
         public float pitch;
         /** §shoal-jump: seconds into a jump, or -1 in the water. */
@@ -81,6 +97,7 @@ public final class ShoalSim {
             this.z = z;
             this.heading = heading;
             this.phase = phase;
+            this.speed = cruise();     // §swim-inertia: it is already swimming when you first see it
         }
 
         /** Metres per second this fish swims at rest. Length drives it, as it does in the water. */
@@ -249,13 +266,18 @@ public final class ShoalSim {
             float beat = Mth.sin(time * 0.09f + f.phase * 4f);
             f.kick = beat > 0.3f ? (beat - 0.3f) / 0.7f : 0f;
             f.kick = f.kick * f.kick;
-            double speed = f.cruise() * (0.7 + 0.9 * f.kick);
+            double demand = f.cruise() * (BEAT_LOW + BEAT_SWING * f.kick);
             if (flight > 0.02f) {
                 // 2. Fright beats everything: away from the player, fast, and down.
                 float away = (float) Math.atan2(f.z - eye.z, f.x - eye.x);
                 want = Mth.rotLerp(flight, want, away);
-                speed *= 1.0 + (FLIGHT_SPEED - 1.0) * flight;
+                demand *= 1.0 + (FLIGHT_SPEED - 1.0) * flight;
             }
+            // §swim-inertia: and the fish eases onto it. Framerate-free — dt/tau, not a fixed fraction
+            // a frame — so the same fish swims the same way at 30 and at 300.
+            double tau = Mth.lerp((double) flight, SPEED_LAG, FLIGHT_LAG);
+            f.speed += (demand - f.speed) * Math.min(1.0, dt / tau);
+            double speed = f.speed;
 
             float turn = TURN * (1f + 2f * flight) * (float) dt;
             f.heading = approach(f.heading, want, turn);
@@ -285,8 +307,9 @@ public final class ShoalSim {
                         float arc = 4f * u * (1f - u);
                         f.y = cy + arc * JUMP_HEIGHT - 0.1;
                         f.pitch = -(1f - 2f * u) * 40f;
-                        f.x += Math.cos(f.heading) * speed * dt;   // it keeps its way in the air
-                        f.z += Math.sin(f.heading) * speed * dt * 0.75;
+                        // §swim-inertia: it keeps the way it already has — the move at the top of the
+                        // loop was that move. Adding a second one here doubled a jumper's speed for the
+                        // nine tenths of a second it was in the air and halved it on the way in.
                         continue;
                     }
                 }
