@@ -84,6 +84,8 @@
     "depth_max": 6,
     "width_min": 4
   },
+  "provinces": ["indomalaya"],
+  "biomes_require": ["warm", "swamp"],
   "biomes": {
     "warm": 1.4,
     "swamp": 1.2

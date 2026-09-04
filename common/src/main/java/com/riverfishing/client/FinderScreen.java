@@ -781,6 +781,13 @@ public class FinderScreen extends Screen {
         net.minecraft.network.chat.MutableComponent climate = Component.empty();
         for (int i = 0; i < groups.size(); i++) climate.append(i == 0 ? "" : ", ").append(groups.get(i));
         out.add(pairLine("finder.riverfishing.climate", groups.isEmpty() ? Component.literal("—") : climate));
+        // §provinces: the part of the world, above the season — it changes nothing about today and
+        // everything about what lives here, which is exactly the order a player wants to read it in.
+        String prov = w.getString("prov");
+        if (!prov.isEmpty()) {
+            out.add(pairLine("finder.riverfishing.province",
+                    Component.translatable("province.riverfishing." + prov)));
+        }
         if (!w.getString("season").isEmpty()) {
             out.add(pairLine("finder.riverfishing.season", windowName(w.getString("season"), w.getString("sub"))));
         }

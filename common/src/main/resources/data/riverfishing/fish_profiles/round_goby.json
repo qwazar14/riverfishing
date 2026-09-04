@@ -22,6 +22,7 @@
   "depth_pref": "bottom",
   "distance_pref": { "min": 2, "max": 20 },
   "habitat": { "depth_min": 1, "width_min": 6 },
+  "provinces": ["palearctic"],
   "biomes": { "temperate": 1.0, "warm": 1.2, "beach": 1.2, "ocean_biome": 0.9 },
   "base": 1.0
 }
