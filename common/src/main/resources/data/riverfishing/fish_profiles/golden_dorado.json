@@ -89,6 +89,8 @@
     "depth_min": 2,
     "width_min": 10
   },
+  "provinces": ["neotropic"],
+  "biomes_require": ["warm", "river_biome"],
   "biomes": {
     "warm": 1.4,
     "swamp": 0.6

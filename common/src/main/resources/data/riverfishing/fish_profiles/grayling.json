@@ -84,6 +84,8 @@
     "width_min": 3,
     "width_max": 20
   },
+  "provinces": ["palearctic"],
+  "biomes_require": ["cold", "river_biome"],
   "biomes": {
     "cold": 1.2,
     "taiga": 1.2,

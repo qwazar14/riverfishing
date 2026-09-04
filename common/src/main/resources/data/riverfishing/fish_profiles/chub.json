@@ -91,6 +91,7 @@
     "width_min": 6,
     "width_max": 40
   },
+  "provinces": ["palearctic"],
   "biomes": {
     "temperate": 1.0,
     "warm": 0.8

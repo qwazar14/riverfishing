@@ -22,6 +22,7 @@
   "depth_pref": "bottom",
   "distance_pref": { "min": 3, "max": 18 },
   "habitat": { "depth_min": 1, "depth_max": 4, "width_max": 32 },
+  "provinces": ["palearctic", "nearctic"],
   "biomes": { "warm": 1.1, "temperate": 1.0, "swamp": 1.2 },
   "base": 0.8,
   "min_angler_level": 2

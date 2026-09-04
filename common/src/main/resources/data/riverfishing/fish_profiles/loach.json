@@ -88,6 +88,7 @@
     "depth_max": 4,
     "width_min": 2
   },
+  "provinces": ["palearctic", "indomalaya"],
   "biomes": {
     "temperate": 1.1,
     "warm": 1.0,

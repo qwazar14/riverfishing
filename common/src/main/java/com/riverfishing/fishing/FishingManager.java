@@ -3263,7 +3263,17 @@ public final class FishingManager {
         double fit = BiteEngine.environmentScore(p, habitatContext(level, pos, body));
         if (fit <= 0) {
             // §residency-guard: water the species cannot live in at all takes nothing — no ledger, no stock.
-            if (thrower != null) thrower.sendOverlayMessage(Component.translatable("message.riverfishing.stock_hostile", name).withStyle(ChatFormatting.RED));
+            // §provinces: and when the ONLY thing wrong is the part of the world, say that instead —
+            // "hostile water" is a lie about a river that suits the fish in every way but the continent.
+            // A claimed pond is exempt from the gate, so the answer also tells you what to do about it.
+            String prov = com.riverfishing.water.Provinces.at(level.getSeed(), pos.getX(), pos.getZ());
+            boolean wrongPlace = !p.provinces.isEmpty() && !p.provinces.contains(prov);
+            if (thrower != null) {
+                thrower.sendOverlayMessage(Component.translatable(wrongPlace
+                                ? "message.riverfishing.stock_province" : "message.riverfishing.stock_hostile",
+                        name, Component.translatable("province.riverfishing." + prov))
+                        .withStyle(ChatFormatting.RED));
+            }
             return;
         }
         boolean nativeHere = nativeHere(level, pos, body, p.id);
@@ -3418,6 +3428,7 @@ public final class FishingManager {
         env.privatePond = PondData.isClaimed(level, pos);   // §pond: size gates waived
         env.bed = bedType(level, pos);
         env.biomeGroups = biomeGroups(level, pos, body);
+        env.province = com.riverfishing.water.Provinces.at(level.getSeed(), pos.getX(), pos.getZ());  // §provinces
         env.season = SeasonProvider.getSeason(level);
         env.time = TimeOfDay.fromDayTime(level.getOverworldClockTime());
         env.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
@@ -3502,6 +3513,7 @@ public final class FishingManager {
         ctx.waterDepth = measureDepth(level, waterPos);
         ctx.privatePond = PondData.isClaimed(level, waterPos);   // §pond: size gates waived
         ctx.biomeGroups = biomeGroups(level, waterPos, body);
+        ctx.province = com.riverfishing.water.Provinces.at(level.getSeed(), waterPos.getX(), waterPos.getZ());  // §provinces
 
         // §feed-lands-where-the-rig-does: THE FED ZONE AT THE BOBBER IS THE ONLY ANSWER.
         //
@@ -3719,6 +3731,9 @@ public final class FishingManager {
             w.putFloat("clarity", (float) env.clarity);
             w.putString("sub", com.riverfishing.engine.Calendar.sub(level).name().toLowerCase(java.util.Locale.ROOT));
             w.putString("groups", String.join(";", new java.util.TreeSet<>(env.biomeGroups)));
+            // §provinces: which part of the world this is. The sounder is where a player finds out why
+            // the fish they are hunting is not in this river, so it is the sounder that has to say it.
+            w.putString("prov", env.province);
             // §o: where the angler stands with the fishermen, and how much of a kilogram is banked.
             w.putInt("rep", Contracts.rep(sp));
             w.putInt("rep_grams", Warden.repGrams(sp));

@@ -29,7 +29,10 @@ public final class StackNbt {
      * everything that writes goes through {@link #mutate}.
      */
     public static CompoundTag get(ItemStack stack) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).getUnsafe();
+        // §nbt-read on THIS branch: 26.x dropped CustomData#getUnsafe, and the tag behind the component
+        // is private with no other door. So the copy stays here — the 1.21.1 tree reads the live tag and
+        // this one pays for it. It matters less here: this branch has no item renderer asking per layer.
+        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
     }
 
     /** Whether the stack carries any custom data at all (old {@code stack.hasTag()}). */
