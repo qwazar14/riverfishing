@@ -93,7 +93,9 @@ public class RoeItem extends Item {
         tooltip.accept(Component.translatable("tooltip.riverfishing.genome", t.getStringOr(TAG_GENOME, ""))
                 .withStyle(ChatFormatting.DARK_GRAY));
         // §pattern: the clutch's index and the family it will hatch into — what the line is FOR.
-        int pattern = pattern(stack);
+        // §pattern-gate: on the species that wear one; roe laid before the gate keeps its int unread.
+        int pattern = com.riverfishing.registry.ModItemTags.patterned(species(stack))
+                ? pattern(stack) : com.riverfishing.fish.Pattern.NONE;
         if (com.riverfishing.fish.Pattern.has(pattern)) {
             tooltip.accept(Component.translatable("tooltip.riverfishing.pattern", pattern,
                     Component.translatable("pattern.riverfishing."
