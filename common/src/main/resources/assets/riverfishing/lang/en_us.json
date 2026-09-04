@@ -1000,6 +1000,7 @@
   "finder.riverfishing.outlook.fair": "fair",
   "finder.riverfishing.outlook.poor": "slow",
   "finder.riverfishing.outlook.dead": "dead",
+  "tooltip.riverfishing.chart": "Chart %s",
   "tooltip.riverfishing.fish_finder": "Right-click water to scan for active fish",
   "tooltip.riverfishing.hydro_probe": "Right-click water for the full summary (admin)",
   "message.riverfishing.qte_start": "Hold her! Strike in the green zone!",

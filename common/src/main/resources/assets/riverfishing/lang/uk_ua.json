@@ -1000,6 +1000,7 @@
   "finder.riverfishing.outlook.fair": "середнє",
   "finder.riverfishing.outlook.poor": "слабке",
   "finder.riverfishing.outlook.dead": "мертве",
+  "tooltip.riverfishing.chart": "Карта дна %s",
   "tooltip.riverfishing.fish_finder": "ПКМ по воді — показати активну рибу",
   "tooltip.riverfishing.hydro_probe": "ПКМ по воді — повне зведення водойми (адмін)",
   "message.riverfishing.qte_start": "Тримай її! Підсікай у зеленій зоні!",

@@ -33,6 +33,14 @@ public final class ClientSoundings {
     /** column key -> 0 hole, 1 drop-off. */
     private static final Map<Long, Byte> spots = new HashMap<>();
     private static String loadedFor;
+    /**
+     * §chart-item: the sounder whose chart is loaded, or empty for the old per-world pile. Set by the
+     * sounding itself — the server names the finder that took it — so putting one sounder away and
+     * drawing another swaps charts on the next reading rather than on a guess about which hand.
+     */
+    private static String chart = "";
+    /** The world the loaded chart belongs to, so joining another server does not carry an id over. */
+    private static String world;
     private static int deepest = 1;
     /**
      * §arrow-target: the mark the strip's needle points at, chosen on the chart, or null for "the
@@ -134,8 +142,27 @@ public final class ClientSoundings {
         save();
     }
 
+    /** Which sounder's chart is on screen, or empty. */
+    public static String chart() {
+        ensureLoaded();
+        return chart;
+    }
+
+    /**
+     * §chart-item: move to this sounder's chart, banking the one we were on. Empty means "the server
+     * said nothing", which happens for every payload that did not come from a finder — those must
+     * leave the chart alone rather than reset it.
+     */
+    private static void select(String id) {
+        if (id.isEmpty() || id.equals(chart)) return;
+        if (loadedFor != null) save();
+        chart = id;
+        loadedFor = null;               // …so ensureLoaded swaps the store instead of skipping
+    }
+
     /** Fold one sounding's windows in: the water mask and the sounded cells, both around its centre. */
     public static void merge(CompoundTag data) {
+        select(data.getCompoundOrEmpty("water").getStringOr("chart", ""));             // §chart-item: before the load, or it lands in the last chart
         ensureLoaded();
         if (loadedFor == null) return;
         CompoundTag w = data.getCompoundOrEmpty("water");
@@ -201,7 +228,13 @@ public final class ClientSoundings {
     }
 
     private static void ensureLoaded() {
-        String k = worldKey();
+        String wk = worldKey();
+        // §chart-item: a different world is a different chart, whatever sounder is in the bag.
+        if (wk != null && !wk.equals(world)) {
+            world = wk;
+            chart = "";
+        }
+        String k = wk == null || chart.isEmpty() ? wk : wk + "_" + chart;
         if (k == null || k.equals(loadedFor)) return;
         cells.clear();
         spots.clear();
@@ -214,6 +247,18 @@ public final class ClientSoundings {
         loadedFor = k;
         try {
             Path p = file();
+            // §chart-item: the first sounder used in a world inherits the pile that was kept per world,
+            // and TAKES it — renamed as it goes, so the second sounder starts blank the way it should.
+            if (!Files.exists(p) && !chart.isEmpty()) {
+                Path old = p.getParent().resolve(world + ".nbt");
+                if (Files.exists(old)) {
+                    try {
+                        Files.move(old, p);
+                    } catch (Exception ignored) {
+                        // an unreadable legacy chart is not worth failing a world join over
+                    }
+                }
+            }
             if (!Files.exists(p)) return;
             CompoundTag t = NbtIo.readCompressed(p, net.minecraft.nbt.NbtAccounter.unlimitedHeap());
             long[] ks = t.getLongArray("k").orElse(new long[0]);

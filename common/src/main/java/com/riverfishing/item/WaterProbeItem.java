@@ -145,5 +145,12 @@ public class WaterProbeItem extends Item {
         tooltip.accept(Component.translatable(admin
                 ? "tooltip.riverfishing.hydro_probe" : "tooltip.riverfishing.fish_finder")
                 .withStyle(ChatFormatting.DARK_GRAY));
+        // §chart-item: a surveyed sounder is worth more than a new one, so it has to be possible to
+        // tell them apart in a chest without plugging each one in.
+        String chart = FinderChart.of(stack);
+        if (!admin && !chart.isEmpty()) {
+            tooltip.accept(Component.translatable("tooltip.riverfishing.chart", chart)
+                    .withStyle(ChatFormatting.DARK_AQUA));
+        }
     }
 }
