@@ -207,6 +207,42 @@ public final class ClientSoundings {
         }
     }
 
+    /**
+     * §chart-server: a parcel of this sounder's chart, as the world save has it. Folded in by the same
+     * rules a sounding is — a depth beats water, water beats land, nothing goes backwards — so an
+     * older local chart and the server's copy converge instead of one wiping the other, and a parcel
+     * that never arrives costs detail rather than correctness.
+     */
+    public static void absorb(CompoundTag parcel) {
+        select(parcel.getStringOr("chart", ""));
+        ensureLoaded();
+        if (loadedFor == null) return;
+        long[] ks = parcel.getLongArray("k").orElse(new long[0]);
+        byte[] vs = parcel.getByteArray("v").orElse(new byte[0]);
+        boolean changed = false;
+        for (int i = 0; i < ks.length && i < vs.length; i++) {
+            byte v = vs[i];
+            Byte old = cells.get(ks[i]);
+            if (v >= DEPTH0) {
+                if (old == null || old < DEPTH0) sounded++;
+                deepest = Math.max(deepest, v - DEPTH0);
+            } else if (old != null && (old >= DEPTH0 || old == v)) {
+                continue;
+            }
+            cells.put(ks[i], v);
+            changed = true;
+        }
+        long[] sk = parcel.getLongArray("sk").orElse(new long[0]);
+        byte[] sv = parcel.getByteArray("sv").orElse(new byte[0]);
+        for (int i = 0; i < sk.length && i < sv.length; i++) {
+            if (spots.put(sk[i], sv[i]) == null) changed = true;
+        }
+        if (changed) version++;
+        // One write per chart, not one per parcel: a big chart is twenty-five of these, and saving
+        // the whole file each time would be twenty-five writes of a growing megabyte.
+        if (parcel.getBooleanOr("last", false)) save();
+    }
+
     // ---- disk ----------------------------------------------------------------------------------
 
     /** This world's chart, by the level name in singleplayer and the address on a server. */

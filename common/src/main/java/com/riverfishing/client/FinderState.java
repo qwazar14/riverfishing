@@ -36,6 +36,12 @@ public final class FinderState {
     private FinderState() {}
 
     public static void accept(CompoundTag data, boolean hud) {
+        // §chart-server: a parcel of somebody's chart, not a sounding — it is not the last reading, it
+        // does not belong on the trace and it must not open a screen.
+        if (data != null && data.getBooleanOr("chartsync", false)) {
+            ClientSoundings.absorb(data);
+            return;
+        }
         last = data == null ? new CompoundTag() : data;
         Minecraft mc = Minecraft.getInstance();
         stamp = mc.level == null ? Long.MIN_VALUE : mc.level.getGameTime();

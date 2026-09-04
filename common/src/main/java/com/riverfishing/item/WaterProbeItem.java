@@ -105,8 +105,12 @@ public class WaterProbeItem extends Item {
                 if (admin) {
                     FishingManager.analyzeWater(sp, sl, waterPos, true);
                 } else {
-                    com.riverfishing.network.ModNetwork.toPlayer(sp, new com.riverfishing.network.FinderPacket(
-                            FishingManager.finderPayload(sp, sl, waterPos), false));
+                    net.minecraft.nbt.CompoundTag payload =
+                            FishingManager.finderPayload(sp, sl, waterPos);
+                    // §chart-server: the chart belongs to this sounder and lives in the world save.
+                    com.riverfishing.fishing.ChartData.record(sp, sl, payload);
+                    com.riverfishing.network.ModNetwork.toPlayer(sp,
+                            new com.riverfishing.network.FinderPacket(payload, false));
                     sl.playSound(null, sp.blockPosition(),
                             net.minecraft.sounds.SoundEvents.NOTE_BLOCK_BIT.value(),
                             net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1.5f);
