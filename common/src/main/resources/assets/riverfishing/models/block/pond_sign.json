@@ -1,5 +1,35 @@
 {
-  "parent": "minecraft:block/cross",
-  "render_type": "minecraft:cutout",
-  "textures": { "cross": "riverfishing:block/pond_sign" }
+  "parent": "minecraft:block/block",
+  "textures": {
+    "sign": "riverfishing:block/pond_sign",
+    "particle": "riverfishing:block/pond_sign"
+  },
+  "elements": [
+    {
+      "name": "post",
+      "from": [7, 0, 7],
+      "to": [9, 7, 9],
+      "faces": {
+        "north": {"uv": [0, 11, 2, 16], "texture": "#sign"},
+        "south": {"uv": [0, 11, 2, 16], "texture": "#sign"},
+        "west":  {"uv": [0, 11, 2, 16], "texture": "#sign"},
+        "east":  {"uv": [0, 11, 2, 16], "texture": "#sign"},
+        "up":    {"uv": [0, 11, 2, 13], "texture": "#sign"},
+        "down":  {"uv": [0, 11, 2, 13], "texture": "#sign"}
+      }
+    },
+    {
+      "name": "board",
+      "from": [1, 6, 6.5],
+      "to": [15, 15, 8.5],
+      "faces": {
+        "north": {"uv": [0, 0, 14, 9], "texture": "#sign"},
+        "south": {"uv": [0, 0, 14, 9], "texture": "#sign"},
+        "west":  {"uv": [14, 0, 16, 9], "texture": "#sign"},
+        "east":  {"uv": [14, 0, 16, 9], "texture": "#sign"},
+        "up":    {"uv": [0, 9, 14, 11], "texture": "#sign"},
+        "down":  {"uv": [0, 9, 14, 11], "texture": "#sign"}
+      }
+    }
+  ]
 }

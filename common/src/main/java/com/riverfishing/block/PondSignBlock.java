@@ -11,7 +11,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -28,15 +34,32 @@ import java.util.UUID;
  * means a standing claim.
  */
 public class PondSignBlock extends Block {
-    private static final VoxelShape SHAPE = Block.box(4, 0, 4, 12, 16, 12);
+    /** §pond-sign: which way the board looks — set from whoever planted it, like the rest of the furniture. */
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
+
+    /** The post, and the board across it: the hitbox is the sign and not the air it stands in. */
+    private static final VoxelShape POST = Block.box(6, 0, 6, 10, 7, 10);
+    private static final VoxelShape NORTH_SOUTH = Shapes.or(POST, Block.box(1, 6, 6, 15, 15, 9));
+    private static final VoxelShape EAST_WEST = Shapes.or(POST, Block.box(6, 6, 1, 9, 15, 15));
 
     public PondSignBlock(Properties properties) {
         super(properties);
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(FACING);
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite());
     }
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
-        return SHAPE;
+        return state.getValue(FACING).getAxis() == Direction.Axis.X ? EAST_WEST : NORTH_SOUTH;
     }
 
     @Override

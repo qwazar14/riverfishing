@@ -1,4 +1,3 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "riverfishing:block/pond_sign" }
+  "parent": "riverfishing:block/pond_sign"
 }
