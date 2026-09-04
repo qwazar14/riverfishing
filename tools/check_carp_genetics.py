@@ -65,7 +65,10 @@ def lethal(n):
 
 # ---- the table the design doc draws (docs/design/breeding-api.md, Layer 7) ------------------------
 
-if LOCI != "SCVFKN":
+# §koi-genes: the string grew again (…WRB, the koi's colour loci). What this file guards is that the
+# four every fish carries come first and the scale pair comes straight after them — anything appended
+# past that is somebody else's locus and somebody else's check.
+if not LOCI.startswith("SCVFKN"):
     die("LOCI is %r — the scale loci must be K then N, after the four every fish carries" % LOCI)
 if (OLD_K, OLD_N) != ("KK", "nn"):
     die("an old card's missing pair defaults to %r/%r, not KK/nn: every carp in a chest becomes a "

@@ -826,23 +826,25 @@ public final class FishingManager {
         return (t >= s1 && t < s1 + 2000) || (t >= s2 && t < s2 + 2000);
     }
 
-    // §koi: the five ornamental koi are a hidden collectible — never in the normal bite pool
-    // (their profile base is 0). Instead, a CARP-rig catch of a carp-family fish has a small chance
-    // to turn out to be a koi. A cherry-grove pond is proper koi water, so there it's far likelier.
-    private static final ResourceLocation[] KOI = {
-            com.riverfishing.RiverFishing.id("carp_koi_kohaku"),
-            com.riverfishing.RiverFishing.id("carp_koi_tancho_sanke"),
-            com.riverfishing.RiverFishing.id("carp_koi_showa_sanke"),
-            com.riverfishing.RiverFishing.id("carp_koi_asagi"),
-            com.riverfishing.RiverFishing.id("carp_koi_bekko"),
-    };
+    // §koi: the ornamental koi is a hidden collectible — never in the normal bite pool (its
+    // profile base is 0). Instead, a CARP-rig catch of a carp-family fish has a small chance to turn
+    // out to be a koi. A cherry-grove pond is proper koi water, so there it's far likelier.
+    //
+    // §koi-genes: the five ids that list used to hold were never five fish. They are one fish with
+    // three colour loci, so the draw picks a VARIETY out of Genome's wild table instead.
     private static final double KOI_CHANCE = 0.005;       // 0.5% on carp tackle anywhere
     private static final double KOI_CHANCE_CHERRY = 0.35; // far higher in a cherry-grove pond
 
     private static ResourceLocation maybeKoi(ResourceLocation picked, BiteContext ctx, RandomSource random) {
         if (ctx.rig != RigType.CARP || !isCarpFamily(picked)) return picked;
         double chance = ctx.biomeGroups.contains("cherry") ? KOI_CHANCE_CHERRY : KOI_CHANCE;
-        return random.nextDouble() < chance ? KOI[random.nextInt(KOI.length)] : picked;
+        // §koi-genes: the id returned here is the variety's DRAW id and is never a registered item —
+        // Genome.landed turns it into `koi_carp`, Genome.varietyOfSpecies into the word the card
+        // writes the genotype from. Weighted to the common varieties: platinum and tancho are bred.
+        return random.nextDouble() < chance
+                ? com.riverfishing.RiverFishing.id(
+                        "koi_" + com.riverfishing.fish.Genome.wildKoi(random.nextDouble()))
+                : picked;
     }
 
     private static boolean isCarpFamily(ResourceLocation id) {
@@ -1528,7 +1530,7 @@ public final class FishingManager {
         session.biteSpeed = sNew;
         // Re-pick the biter from the fresh weights — but a koi decided at cast stays sticky (re-rolling
         // its chance every 15 s would compound a per-cast rarity into a near-guarantee over a long wait).
-        if (!session.species.getPath().startsWith("carp_koi")) {
+        if (!com.riverfishing.fish.Genome.isKoiId(session.species.getPath())) {   // §koi-genes
             ResourceLocation was = session.species;
             ResourceLocation redrawn = outcome.pickSpecies(random);
             session.variety = com.riverfishing.fish.Genome.varietyOfSpecies(redrawn.getPath());
@@ -2683,6 +2685,9 @@ public final class FishingManager {
                             com.riverfishing.fishing.StockedData.region(where), path) ? "stocked" : "";
             int base = com.riverfishing.registry.ModVillagers.baseEmeralds(path);
             int value = base > 0 ? MarketData.get(lvl).price(lvl, path, base) : 0;
+            // §koi-genes: a koi is priced by its VARIETY — that is what the whole hobby is. A trade
+            // slot cannot read a genotype, so the multiplier lands here, on the card the buyer reads.
+            value = (int) Math.round(value * com.riverfishing.fish.Genome.varietyValue(session.variety));
             String morph = com.riverfishing.item.StackNbt.get(fish).getString(FishItem.TAG_MORPH);
             net.minecraft.nbt.CompoundTag card = com.riverfishing.fish.CatchCard.build(sp, lvl, session, profile,
                     weightG, crod, cbaits, eco, value, morph,

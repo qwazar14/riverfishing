@@ -178,7 +178,14 @@ public final class CatchCard {
         // genotype that makes it. Every other species keeps the four pairs it always had, so nothing
         // else on a card, in a finder or in a contract changes shape.
         String v = variety.isEmpty() && p != null ? Genome.varietyOfSpecies(p.id.getPath()) : variety;
-        if (!v.isEmpty()) {
+        // §koi-genes: a koi is a carp wearing three more loci — white ground, red hi, black sumi — and
+        // every named variety the hobby trades in falls straight out of them. The water draws a
+        // VARIETY; what is written down is the genotype that makes it, so the tank can cross it and
+        // the card can be read back instead of believed.
+        if (v.startsWith("koi_")) {
+            g = new StringBuilder(Genome.koiGenome(g.toString(), v.substring(4), rng));
+            c.putString("Variety", "koi_" + Genome.koiVariety(g.toString()));
+        } else if (!v.isEmpty()) {
             boolean scaled = v.equals("scaled") || v.equals("linear");
             boolean nude = v.equals("linear") || v.equals("naked");
             g.append(' ').append(scaled ? (rng.nextBoolean() ? "KK" : "Kk") : "kk");

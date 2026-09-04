@@ -22,7 +22,10 @@ public final class Genome {
      * N nude (dominant, and DEAD when homozygous) / n normal. Only the carp family carries them:
      * every other fish keeps the four pairs it always had.
      */
-    public static final String LOCI = "SCVFKN";
+    // §koi-genes (0.9.0): three more, and koi alone carry them — W white ground, R red (hi),
+    // B black (sumi). Nine pairs on a koi, six on a carp, four on everything else; `cross`
+    // writes as many as the longer parent has, so nothing that never had them grows any.
+    public static final String LOCI = "SCVFKNWRB";
 
     /** The four loci EVERY fish carries. K and N belong to the carp alone (§scale-genes). */
     public static final String COMMON_LOCI = "SCVF";
@@ -38,10 +41,162 @@ public final class Genome {
 
     private Genome() {}
 
+    // ---- §koi-genes: the koi's three colour loci ---------------------------------------------------
+
+    /**
+     * §koi-genes: the variety table, read top to bottom — the FIRST row a genotype matches names the
+     * fish. Two letters per locus, in W R B order: {@code W_} at least one dominant allele, {@code WW}
+     * homozygous dominant, {@code ww} no dominant at all.
+     *
+     * <p>Tancho is not a fourth locus. It is the one genotype that is homozygous at BOTH the white
+     * ground and the red with no black to break the crown up, which is why it needs two homozygotes at
+     * once, why it is prized, and why it sits above kohaku here: a kohaku that happens to be pure at
+     * both IS a tancho.
+     */
+    private static final String[] KOI_TABLE = {
+            "WWRRbb=tancho",
+            "W_R_bb=kohaku",
+            "W_R_B_=taisho_sanke",
+            "wwR_B_=showa",
+            "W_rrB_=bekko",
+            "wwrrB_=asagi",
+            "W_rrbb=platinum",
+            "wwR_bb=hi_utsuri",
+            "wwrrbb=karasu",
+    };
+
+    /**
+     * §koi-genes: what the WATER gives, {@code variety=weight}. Platinum and tancho are missing on
+     * purpose — both need a homozygote a wild pond never fixes, so they are BRED, not found. That is
+     * the whole reason to keep a tank, and the reason a bred koi is worth more than a caught one.
+     */
+    private static final String[] WILD_KOI = {
+            "kohaku=8", "taisho_sanke=5", "bekko=4", "showa=2", "asagi=2", "hi_utsuri=2", "karasu=1",
+    };
+
+    /** §koi-genes: the five ids the water used to hand out, and the variety each of them WAS. */
+    private static final java.util.Map<String, String> KOI_OF_ID = java.util.Map.of(
+            "carp_koi_kohaku", "kohaku", "carp_koi_tancho_sanke", "tancho",
+            "carp_koi_showa_sanke", "showa", "carp_koi_asagi", "asagi", "carp_koi_bekko", "bekko");
+
+    /** The nine variety names in table order — the aquarium window indexes them, so it is one list. */
+    private static final java.util.List<String> KOI_NAMES = java.util.Arrays.stream(KOI_TABLE)
+            .map(r -> r.substring(r.indexOf('=') + 1)).toList();
+
+    public static java.util.List<String> koiVarieties() {
+        return KOI_NAMES;
+    }
+
+    /**
+     * §koi-genes: the koi variety an id names — the five old species ids, and the {@code koi_<variety>}
+     * DRAW ids the water uses now. A draw id is never a registered item: it exists between the roll and
+     * {@link #landed}, exactly long enough to say which koi came ashore. "" for anything else.
+     */
+    public static String koiOfId(String path) {
+        String v = KOI_OF_ID.get(path);
+        if (v != null) return v;
+        return path.startsWith("koi_") && KOI_NAMES.contains(path.substring(4)) ? path.substring(4) : "";
+    }
+
+    /** True for every id that IS a koi: the species itself, the five old ones, and the draw ids. */
+    public static boolean isKoiId(String path) {
+        return "koi_carp".equals(path) || !koiOfId(path).isEmpty();
+    }
+
+    /**
+     * §koi-genes: the variety three colour loci make. Read back off the genotype rather than stored
+     * beside it, so a card can never say "kohaku" over alleles that spell a bekko.
+     */
+    public static String koiVariety(String genome) {
+        for (String row : KOI_TABLE) {
+            if (koiMatch(genome, row)) return row.substring(row.indexOf('=') + 1);
+        }
+        return "karasu";   // unreachable: the last row is ww rr bb, which everything else has excluded
+    }
+
+    private static boolean koiMatch(String genome, String row) {
+        for (int i = 0; i < 3; i++) {
+            char locus = "WRB".charAt(i), want = row.charAt(i * 2 + 1);
+            boolean dom = dominant(genome, locus);
+            if (want == '_' ? !dom : want == locus ? !(dom && pure(genome, locus)) : dom) return false;
+        }
+        return true;
+    }
+
+    /**
+     * §koi-genes: the genome a fish DRAWN as a named variety carries — the caller's four (or six) pairs,
+     * the carp's scale pair if it had none, then the three colour pairs that make the variety.
+     *
+     * <p>Written as a genotype rather than stored as a word: that is what lets the tank cross a koi like
+     * any other fish and get a variety nobody wrote down. Which pairs are homozygous is a coin, because
+     * that is the hidden half a breeder is actually working on — except on the last try, where every
+     * "at least one dominant" locus is forced heterozygous so a kohaku can never fall out of the loop
+     * still reading as the tancho above it.
+     */
+    public static String koiGenome(String base, String variety, Random rng) {
+        String head = base.trim();
+        if (pairs(head) < 6) head = head + " KK nn";     // a koi is a carp, and a bred koi is scaled
+        String row = koiRow(variety);
+        String out = head;
+        for (int tries = 0; tries < 8; tries++) {
+            StringBuilder b = new StringBuilder(head);
+            for (int i = 0; i < 3; i++) {
+                char L = "WRB".charAt(i), l = Character.toLowerCase(L), want = row.charAt(i * 2 + 1);
+                boolean homo = want == L || (want == '_' && tries < 7 && rng.nextBoolean());
+                b.append(' ').append(want == l ? "" + l + l : "" + L + (homo ? L : l));
+            }
+            out = b.toString();
+            if (koiVariety(out).equals(variety)) return out;
+        }
+        return out;
+    }
+
+    private static String koiRow(String variety) {
+        for (String row : KOI_TABLE) if (row.endsWith("=" + variety)) return row;
+        return KOI_TABLE[1];      // kohaku: the archetype, and what an unknown name should look like
+    }
+
+    /** §koi-genes: the variety a WILD koi is, drawn from {@link #WILD_KOI}; {@code roll} is in [0,1). */
+    public static String wildKoi(double roll) {
+        int total = 0;
+        for (String row : WILD_KOI) total += koiWeight(row);
+        int at = (int) Math.floor(Math.max(0.0, Math.min(0.999999, roll)) * total), sum = 0;
+        for (String row : WILD_KOI) {
+            sum += koiWeight(row);
+            if (at < sum) return row.substring(0, row.indexOf('='));
+        }
+        return "kohaku";
+    }
+
+    private static int koiWeight(String row) {
+        return Integer.parseInt(row.substring(row.indexOf('=') + 1));
+    }
+
+    /**
+     * §koi-genes: what a variety is worth against an ordinary fish of its species — the counter cannot
+     * read a genotype off a trade slot, so the multiplier is applied wherever a price is worked out
+     * from the STACK (the catch card's value, the keepnet sold over the counter). A tancho and a plain
+     * platinum are the two the hobby pays for; a karasu is a black fish nobody ordered.
+     */
+    public static double varietyValue(String variety) {
+        switch (variety) {
+            case "koi_tancho": return 4.0;
+            case "koi_platinum": return 3.0;
+            case "koi_showa": case "koi_asagi": return 2.0;
+            case "koi_taisho_sanke": case "koi_hi_utsuri": return 1.5;
+            case "koi_karasu": return 0.8;
+            default: return 1.0;
+        }
+    }
+
     /** The variety a carp id names, or "" for a fish that is not a carp (nothing else has K/N). */
     public static String varietyOfSpecies(String path) {
         String v = VARIETY_OF_ID.get(path);
-        return v != null ? v : "wild_carp".equals(path) ? "scaled" : "";
+        if (v != null) return v;
+        // §koi-genes: a koi's variety word is the card's own key tail, prefixed so `kohaku` cannot
+        // collide with a scale variety in the one `variety.riverfishing.*` namespace both use.
+        String koi = koiOfId(path);
+        return !koi.isEmpty() ? "koi_" + koi : "wild_carp".equals(path) ? "scaled" : "";
     }
 
     /**
@@ -51,7 +206,11 @@ public final class Genome {
      * keeps working exactly as before.
      */
     public static ResourceLocation landed(ResourceLocation drawn) {
-        return isVarietyId(drawn.getPath()) ? com.riverfishing.RiverFishing.id("carp") : drawn;
+        String p = drawn.getPath();
+        // §koi-genes: the same trade, one species along — five koi ids and nine draw ids all come
+        // ashore as `koi_carp`, and the genotype on the card says which of them it is.
+        if (!koiOfId(p).isEmpty()) return com.riverfishing.RiverFishing.id("koi_carp");
+        return isVarietyId(p) ? com.riverfishing.RiverFishing.id("carp") : drawn;
     }
 
     /**
@@ -60,7 +219,8 @@ public final class Genome {
      * nothing may ASK for one: not a contract, not the order of the day, not the all-species bar.
      */
     public static boolean isVarietyId(String path) {
-        return VARIETY_OF_ID.containsKey(path) && !"carp".equals(path);
+        // §koi-genes: the five old koi ids are varieties of `koi_carp` in exactly this way.
+        return (VARIETY_OF_ID.containsKey(path) && !"carp".equals(path)) || !koiOfId(path).isEmpty();
     }
 
     /**
@@ -146,7 +306,10 @@ public final class Genome {
         String t = token(genome, LOCI.indexOf(locus));
         if (t != null) return t;
         char l = Character.toLowerCase(locus);
-        return locus == 'K' ? "KK" : locus == 'N' ? "nn" : "" + l + l;
+        // §koi-genes: and a koi card written before the colour loci reads as a kohaku — the
+        // archetype, and the only reading that leaves an old red-on-white fish looking like itself.
+        return locus == 'K' ? "KK" : locus == 'N' ? "nn"
+                : locus == 'W' ? "WW" : locus == 'R' ? "Rr" : locus == 'B' ? "bb" : "" + l + l;
     }
 
     /** The i-th locus as the string actually writes it, or null when it does not carry that pair. */

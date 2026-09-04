@@ -73,6 +73,9 @@ public final class Contracts {
             // §scale-genes: a mirror or a leather carp is a genotype of `carp` now — the water never
             // hands one out, so an order for three of them could never be filled.
             if (com.riverfishing.fish.Genome.isVarietyId(sp)) continue;
+            // §koi-genes: and no order for a koi. The water gives one on carp tackle by cherry
+            // blossom and effectively nowhere else — three of them is not a job, it is a wall.
+            if (com.riverfishing.fish.Genome.isKoiId(sp)) continue;
             if (com.riverfishing.registry.ModVillagers.baseEmeralds(sp) > 0) out.add(sp);
         }
         return out;

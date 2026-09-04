@@ -290,6 +290,9 @@ public final class ModVillagers {
         buyPrime(fish, 5, "sturgeon", 26, 38);
         buyPrime(fish, 5, "halibut", 22, 34);
 
+        // §koi-genes (0.9.0): priced against the fish they swim beside.
+        buyPrime(fish, 4, "koi_carp", 8, 14);
+
         // §scale-genes (0.9.0): priced against the fish they swim beside.
         buyPrime(fish, 4, "linear_carp", 7, 13);
 
@@ -551,7 +554,10 @@ public final class ModVillagers {
         // §scale-genes: the counter still BUYS a mirror carp out of an old chest; it just cannot
         // order one, because no water hands one out any more.
         return BUY_TIER.keySet().stream()
-                .filter(sp -> !com.riverfishing.fish.Genome.isVarietyId(sp)).sorted().toList();
+                // §koi-genes: the counter BUYS a koi (see the trade table) but never orders one —
+                // the order of the day has to be a fish the day can actually produce.
+                .filter(sp -> !com.riverfishing.fish.Genome.isVarietyId(sp)
+                        && !com.riverfishing.fish.Genome.isKoiId(sp)).sorted().toList();
     }
 
     /**
