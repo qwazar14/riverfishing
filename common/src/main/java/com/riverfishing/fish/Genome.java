@@ -39,6 +39,23 @@ public final class Genome {
     private static final java.util.Map<String, String> VARIETY_OF_ID = java.util.Map.of(
             "carp", "scaled", "mirror_carp", "mirror", "linear_carp", "linear", "naked_carp", "naked");
 
+    /**
+     * §variety-icon: the id whose SPRITE this fish is drawn with. A carp wears the drawing of the
+     * scale variety its K/N pair gave it — the three hand-drawn sprites are still on disk, still
+     * registered as icon models, so this is a name swap and nothing more: the item, the price, the
+     * journal page and the ledger all go on saying `carp`.
+     *
+     * <p>Koi are not here on purpose. One white koi sprite is painted into all nine varieties by tint
+     * layers (§koi-genes), so a koi already looks like its genotype without changing drawings.
+     */
+    public static String drawnAs(String speciesPath, String variety) {
+        if (variety == null || variety.isEmpty() || !"carp".equals(speciesPath)) return speciesPath;
+        for (java.util.Map.Entry<String, String> e : VARIETY_OF_ID.entrySet()) {
+            if (e.getValue().equals(variety)) return e.getKey();
+        }
+        return speciesPath;
+    }
+
     private Genome() {}
 
     // ---- §koi-genes: the koi's three colour loci ---------------------------------------------------

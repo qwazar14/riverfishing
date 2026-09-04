@@ -51,7 +51,11 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         if (sp == null) return;
         Minecraft mc = Minecraft.getInstance();
         ModelManager mm = mc.getModelManager();
-        BakedModel model = com.riverfishing.client.platform.ClientPlatform.bakedModel(iconModel(sp.getPath()));
+        // §variety-icon: a carp is drawn as the scale variety on its card — mirror, linear or leather.
+        // Its own model if the card says nothing, which is every fish that is not a carp.
+        String draw = com.riverfishing.fish.Genome.drawnAs(sp.getPath(),
+                com.riverfishing.fish.CatchCard.of(stack).getString("Variety"));
+        BakedModel model = com.riverfishing.client.platform.ClientPlatform.bakedModel(iconModel(draw));
         if (model == null || model == mm.getMissingModel()) return;
 
         // §keepnet: in the grid a fish is sized by the CELLS IT OCCUPIES, not by its length — the
