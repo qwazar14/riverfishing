@@ -32,11 +32,21 @@ public final class Provinces {
     private Provinces() {}
 
     /** The province of a block, for this world's seed. */
-    public static String at(long seed, int x, int z) {
-        return ALL[index(seed, x, z)];
+    public static String at(long worldSeed, int x, int z) {
+        return ALL[index(mapSeed(worldSeed), x, z)];
     }
 
-    /** 0..ALL.length-1, the same answer {@link #at} names. */
+    /**
+     * §chart-far: what a CLIENT is handed so its chart can draw the regions — a one-way scramble of the
+     * world seed, and deliberately not the seed itself. The chart has to compute provinces at any
+     * coordinate, which needs a seed; handing out the world's own would hand out every structure and
+     * every ore vein in it to anybody who joins. This draws the same map and is not the same number.
+     */
+    public static long mapSeed(long worldSeed) {
+        return mix(worldSeed ^ 0x50524F56494E4345L);
+    }
+
+    /** 0..ALL.length-1, the same answer {@link #at} names, off the seed {@link #mapSeed} derives. */
     public static int index(long seed, int x, int z) {
         int cx = Math.floorDiv(x, CELL), cz = Math.floorDiv(z, CELL);
         long best = Long.MAX_VALUE;

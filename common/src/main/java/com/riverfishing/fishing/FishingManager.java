@@ -3734,6 +3734,9 @@ public final class FishingManager {
             // §provinces: which part of the world this is. The sounder is where a player finds out why
             // the fish they are hunting is not in this river, so it is the sounder that has to say it.
             w.putString("prov", env.province);
+            // §chart-far: and the seed the chart paints the regions off. A scramble of the world's, on
+            // purpose: the client needs the map, it does not need the world.
+            w.putLong("seed", com.riverfishing.water.Provinces.mapSeed(level.getSeed()));
             // §o: where the angler stands with the fishermen, and how much of a kilogram is banked.
             w.putInt("rep", Contracts.rep(sp));
             w.putInt("rep_grams", Warden.repGrams(sp));
