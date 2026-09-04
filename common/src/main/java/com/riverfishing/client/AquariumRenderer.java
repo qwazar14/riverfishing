@@ -74,12 +74,22 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             boolean big = FishItem.getWeightG(fish) >= BIG_FISH_G;
             // §fish-item: the same true-length rule as the fish in open water (one block per metre off
             // the length the weight rolled), capped so a two-metre catfish stays inside a two-wide tank.
-            float fishLen = Math.min(1.8f, ShoalRenderer.itemSize(FishItem.getLengthCm(fish)));
+            // §aq-size: the tank is a DISPLAY, so it zooms. True length reads tiny behind glass — a
+            // 20 cm perch at one block per metre is a fifth of the tank, and smaller than the same fish
+            // looked before §fish-item, which had a 0.45 floor under it. The proportions between fish
+            // are the water's own; only the whole shoal is drawn larger, floored so a fry is visible
+            // and capped so a big fish stays inside two blocks of glass.
+            float fishLen = Mth.clamp(ShoalRenderer.itemSize(FishItem.getLengthCm(fish)) * 1.6f,
+                    0.32f, 1.7f);
             ResourceLocation fsp = FishItem.getSpecies(fish);
             boolean flat = fsp != null && com.riverfishing.fish.FishPose.isFlat(fsp.getPath());
-            // Spread the fish out in phase and depth so they don't overlap.
-            float t = time * 0.05f + i * 2.094f;                 // 120° apart
-            double depth = ((i % 3) - 1) * 0.20;                  // §aq-fix: three lanes, six fish — the second trio shares them                        // front/mid/back lane
+            // §aq-lanes: phase and lane come off the COUNT. They used to be a fixed 120° step and
+            // `i % 3`, which is three of each — so with six fish, i and i+3 shared a phase AND a lane
+            // and swam as one fish with a shadow 0.14 below it. n phases, n lanes, no two alike.
+            int n = Math.max(1, fishes.size());
+            float t = time * 0.05f + i * (float) (Math.PI * 2.0 / n);
+            double lane = n == 1 ? 0.5 : i / (double) (n - 1);     // 0..1 from the front glass to the back
+            double depth = (lane - 0.5) * 0.40;
             double u, height;
             float travel; // horizontal travel direction: +1 swims one way, −1 the other
             if (big) {
@@ -88,12 +98,12 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
                 // FIXED caps at 2 blocks) sways in place instead of poking through the glass.
                 double amp = Mth.clamp(0.95 - fishLen / 2.0, 0.05, 0.30);
                 u = Mth.sin(t) * amp;
-                height = 1.5 + Mth.sin(time * 0.09f + i) * 0.04 - (i / 3) * 0.14;
+                height = 1.5 + Mth.sin(time * 0.09f + i) * 0.04 + (lane - 0.5) * 0.16;
                 travel = Mth.cos(t) >= 0 ? 1f : -1f;
             } else {
                 // §aquarium-eight: a Gerono lemniscate ∞ — sin(t) across, ½·sin(2t) up = a figure-8.
                 u = Mth.sin(t) * 0.60;
-                height = 1.5 + 0.5 * Mth.sin(2 * t) * 0.28 + ((i % 3) - 1) * 0.04 - (i / 3) * 0.14;
+                height = 1.5 + 0.5 * Mth.sin(2 * t) * 0.28 + (lane - 0.5) * 0.16;
                 travel = Mth.cos(t) >= 0 ? 1f : -1f;
             }
             // §fish-pose: a flatfish does not loop through open water — it works the floor of the tank.
