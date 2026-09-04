@@ -128,7 +128,9 @@ print("every recipe result uses the 1.20.1 result key")
 _data = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
                       "common", "src", "main", "resources", "data")
 _wrong = []
-for _ns in (sorted(_os.listdir(_data)) if _os.path.isdir(_data) else []):
+# only this mod's own namespace: a data/forge or data/c folder is an advert to OTHER mods,
+# written in their convention, and this tree does not read it either way.
+for _ns in ("riverfishing",):
     _d = _os.path.join(_data, _ns, "tags", "item")
     if _os.path.isdir(_d):
         _wrong += [_ns + "/tags/item/" + f for f in sorted(_os.listdir(_d))]
