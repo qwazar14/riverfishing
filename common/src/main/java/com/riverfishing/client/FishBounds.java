@@ -80,7 +80,7 @@ public final class FishBounds {
         put("kutum", 0.938f, 0.445f);
         put("largemouth_bass", 0.949f, 0.484f);
         put("lenok", 0.98f, 0.375f);
-        put("linear_carp", 0.938f, 0.5f);
+        put("linear_carp", 0.945f, 0.496f);
         put("loach", 0.953f, 0.293f);
         put("mackerel", 0.957f, 0.309f);
         put("mahi", 0.965f, 0.496f);
