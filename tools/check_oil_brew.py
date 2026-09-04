@@ -56,24 +56,30 @@ for r in ("fish_oil_smelting", "fish_oil_campfire"):
     if j.get("ingredient", {}).get("tag") != "riverfishing:oily_fish":
         die("%s no longer reads the oily_fish tag" % r)
 
-# §oil-brew-item: the empty-bottle route. The list is shared; only the call that records it differs,
-# and only on 1.20.1 — so check the shared half here and each door where it lives.
+# §oil-brew-item: the empty-bottle route, and the reason it is not everywhere. Vanilla's brewing tables
+# type-check BOTH ends as potions — 1.20.1 throws on the glass bottle, 1.21.1's builder calls
+# expectPotion on the input and the output, and Fabric's registerItemRecipe forwards to the same check.
+# So an item output is a loader's own list or nothing, and this asserts nobody has quietly reached for
+# the vanilla one again.
+if "builder.addContainerRecipe" in JAVA or "addContainer(Items.GLASS_BOTTLE)" in JAVA:
+    die("something is registering the glass bottle through VANILLA's container table — it type-checks "
+        "both ends as potions and throws on sight. Use the loader's own item-recipe list.")
 if "addOilBrews" not in JAVA or "Items.GLASS_BOTTLE" not in JAVA:
-    die("the empty-bottle recipe is gone from ModPotions — the oil ITEM is back to a furnace only")
+    die("the empty-bottle recipe is gone from ModPotions")
+
 doors = []
-for rel, need in (("fabric/src/main/java/com/riverfishing/platform/fabric/PlatformHelperImpl.java", "addOilBrews"),
-                  ("forge/src/main/java/com/riverfishing/platform/forge/PlatformHelperImpl.java", "addOilBrews"),
-                  ("neoforge/src/main/java/com/riverfishing/platform/neoforge/PlatformHelperImpl.java", None)):
+for rel, need in (("neoforge/src/main/java/com/riverfishing/platform/neoforge/PlatformHelperImpl.java",
+                   "addOilBrews"),
+                  ("forge/src/main/java/com/riverfishing/platform/forge/PlatformHelperImpl.java",
+                   "addOilBrews")):
     p2 = os.path.join(ROOT, rel)
     if os.path.exists(p2):
-        doors.append((rel.split("/")[0], need is None or need in io.open(p2, encoding="utf-8").read()))
-# On a tree whose builder is vanilla's, the shared line covers every loader and no door needs its own.
-shared = "builder.addContainerRecipe" in JAVA
-if not shared:
-    for loader, ok in doors:
-        if not ok:
-            die("%s has no empty-bottle recipe: this tree has no PotionBrewing.Builder, so each loader "
-                "needs its own door and that one is shut" % loader)
+        doors.append((rel.split("/")[0], need in io.open(p2, encoding="utf-8").read()))
+if not doors or not any(ok for _, ok in doors):
+    die("no loader in this tree pours addOilBrews anywhere — the empty-bottle route is dead code")
+for loader, ok in doors:
+    if not ok:
+        die("%s has a door for an item output and is not using it" % loader)
 
 if "Potions.AWKWARD, fish.get(), FISH_OIL" not in JAVA:
     die("the stand no longer takes the fish itself")
@@ -85,8 +91,7 @@ if fails:
     for x in fails:
         print("  " + x)
     sys.exit(1)
-print("fish oil: %d oily fish, the same list in the stand and the furnace; item from a furnace, a "
-      "campfire or an EMPTY BOTTLE in a stand (%s); potion from the oil or from the fish over an "
-      "awkward base"
-      % (len(java_list), "one shared vanilla line" if shared
-         else "a door per loader: " + ", ".join(l for l, ok in doors if ok)))
+print("fish oil: %d oily fish, the same list in the stand and the furnace; the ITEM from a furnace, a "
+      "campfire, or an empty bottle in a stand on %s; the POTION from the oil or from a fish over an "
+      "awkward base, on every loader"
+      % (len(java_list), " and ".join(l for l, ok in doors if ok) or "no loader in this tree"))
