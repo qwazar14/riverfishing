@@ -39,9 +39,17 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         super(dispatcher, models);
     }
 
-    /** Icon model location for a species (registered as an additional model). */
+    /**
+     * Icon model location for a species (registered as an additional model).
+     *
+     * <p>§nbt-read: memoised. It is asked for once per fish per frame, and a string concat plus a
+     * ResourceLocation is pure garbage when the answer is one of a hundred and seven fixed values.
+     * Render-thread only, like ShoalRenderer's texture map.
+     */
+    private static final java.util.Map<String, ResourceLocation> ICON = new java.util.HashMap<>();
+
     public static ResourceLocation iconModel(String speciesPath) {
-        return RiverFishing.id("item/fish_icon/" + speciesPath);
+        return ICON.computeIfAbsent(speciesPath, sp -> RiverFishing.id("item/fish_icon/" + sp));
     }
 
     @Override

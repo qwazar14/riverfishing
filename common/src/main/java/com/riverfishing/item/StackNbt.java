@@ -17,9 +17,19 @@ import java.util.function.Consumer;
 public final class StackNbt {
     private StackNbt() {}
 
-    /** A copy of the stack's custom-data tag — never null, empty when the stack has none. Read-only intent. */
+    /**
+     * The stack's custom-data tag — never null, empty when the stack has none. READ ONLY: this is the
+     * live tag, not a copy, so writing to it would edit every stack sharing that component.
+     *
+     * <p>§nbt-read: it used to hand back {@code copyTag()}, which deep-copies the whole compound. That
+     * is a fine price once, and a terrible one sixty times a second: drawing ONE fish asks for its
+     * species, its scale, its morph, its card and its pattern, and the item colour asks again per
+     * layer — about twenty-five copies of a twenty-entry card per fish per frame. A chest holding
+     * twenty-one of them dropped the frame rate on its own, which is how this was found. Nothing in
+     * the mod mutates what {@code get} returns; everything that writes goes through {@link #mutate}.
+     */
     public static CompoundTag get(ItemStack stack) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).getUnsafe();
     }
 
     /** Whether the stack carries any custom data at all (old {@code stack.hasTag()}). */
