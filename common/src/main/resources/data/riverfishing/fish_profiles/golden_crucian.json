@@ -90,6 +90,7 @@
     "width_min": 5
   },
   "provinces": ["palearctic"],
+  "breeds_with": ["crucian_carp"],
   "biomes": {
     "temperate": 1.0,
     "warm": 1.1,
