@@ -212,10 +212,22 @@ public class FishItem extends Item {
         Identifier sp = getSpecies(stack);
         int tint = sp == null ? -1
                 : com.riverfishing.fish.FishMorph.tint(sp.getPath(), getAge(stack), getMorph(stack));
+        java.util.List<Integer> colors = java.util.List.of(tint);
+        // §koi-genes: a koi carries FOUR tints — ground, red hi, black sumi and the tancho crown — one
+        // per layer of its icon, because one white sprite paints all nine named varieties. On 1.21.1
+        // the same four numbers come from FishTint.itemColor; here they are data on the stack.
+        if (sp != null && "koi_carp".equals(sp.getPath())) {
+            String variety = com.riverfishing.fish.CatchCard.of(stack).getStringOr("Variety", "");
+            colors = java.util.List.of(
+                    com.riverfishing.fish.FishMorph.koiTint(variety, 0),
+                    com.riverfishing.fish.FishMorph.koiTint(variety, 1),
+                    com.riverfishing.fish.FishMorph.koiTint(variety, 2),
+                    com.riverfishing.fish.FishMorph.koiTint(variety, 3));
+        }
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
                 new net.minecraft.world.item.component.CustomModelData(
                         java.util.List.of(getIconScale(stack)),
-                        java.util.List.of(), java.util.List.of(), java.util.List.of(tint)));
+                        java.util.List.of(), java.util.List.of(), colors));
     }
 
     public static boolean isTrophy(ItemStack stack) {

@@ -53,6 +53,9 @@ public final class ModItems {
     public static final List<RegistrySupplier<Item>> RODS = new ArrayList<>();
     // ---- Caught fish: one item + texture per species (Module 8; ÃÂ§ecology adds habitat-bound species) ----
     public static final String[] FISH_SPECIES = {
+            // §koi-genes (0.9.0): the koi. Five ids became one species whose VARIETY is three
+            // colour loci — the five stay registered so no old world loses a fish.
+            "koi_carp",
             // §scale-genes (0.9.0): the linear carp — one row of scales along the lateral line, the
             // phenotype of Sc_ Nn. The scale varieties are genotypes of `carp` now, not species.
             "linear_carp",

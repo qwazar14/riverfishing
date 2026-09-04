@@ -120,9 +120,16 @@ def model_node(model):
 FISH_TINTS = [{"type": "minecraft:custom_model_data", "index": 0, "default": -1}]
 
 
-def fish_node(model):
+# §koi-genes: a koi's icon is FOUR layers of one white sprite (ground, red hi, black sumi, tancho
+# crown) and each wants its own colour, so its models carry four tint sources instead of one.
+# FishItem.stampIcon writes all four; every other fish writes colors[0] and only layer0 is tinted.
+KOI_TINTS = [{"type": "minecraft:custom_model_data", "index": i, "default": -1} for i in range(4)]
+MULTI_TINT = {"koi_carp"}
+
+
+def fish_node(model, sp=None):
     d = model_node(model)
-    d["tints"] = FISH_TINTS
+    d["tints"] = KOI_TINTS if sp in MULTI_TINT else FISH_TINTS
     return d
 
 
@@ -276,13 +283,13 @@ def main():
                 "display": scaled,
             })
             entries.append({"threshold": s,
-                            "model": fish_node("riverfishing:item/fish_scaled/%s_%d" % (sp, i))})
+                            "model": fish_node("riverfishing:item/fish_scaled/%s_%d" % (sp, i), sp)})
         write(os.path.join(ITEMS, sp + ".json"), {"model": {
             "type": "minecraft:range_dispatch",
             "property": "minecraft:custom_model_data",
             "index": 0,
             "entries": entries,
-            "fallback": fish_node("riverfishing:item/" + sp),
+            "fallback": fish_node("riverfishing:item/" + sp, sp),
         }})
 
     print("rods: %d defs, %d layer models x2 variants; fish: %d x %d buckets" %

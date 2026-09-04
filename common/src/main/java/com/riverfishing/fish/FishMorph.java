@@ -242,6 +242,35 @@ public final class FishMorph {
                 : 0xFF000000 | lerpRgb(d.tint, mul(d.tint, a.oldTint), (float) (age * 0.5));
     }
 
+
+    /**
+     * §koi-genes: the four colours ONE white koi sprite is painted with — ground, hi (red), sumi (black)
+     * and the tancho crown — for a named variety. The three patch layers are cut out of the sprite
+     * itself (tools/gen_koi_layers.py), so a layer this fish does not wear is handed the GROUND colour
+     * and disappears into the body: that is what lets four layers paint nine varieties with one drawing.
+     *
+     * <p>Read on 1.20.1/1.21.1 through the registered item colour ({@code FishTint.itemColor}), and on
+     * 26.x through the four {@code custom_model_data} colours {@code FishItem.stampIcon} writes.
+     */
+    public static int koiTint(String variety, int layer) {
+        int[] p = KOI_PAINT.get(variety.startsWith("koi_") ? variety.substring(4) : variety);
+        if (p == null) p = KOI_PAINT.get("kohaku");     // a koi with no card yet is the archetype
+        int c = layer >= 0 && layer < p.length ? p[layer] : -1;
+        return 0xFF000000 | (c < 0 ? p[0] : c);
+    }
+
+    /** ground, hi, sumi, crown; -1 means "the ground colour", i.e. the fish does not wear that layer. */
+    private static final java.util.Map<String, int[]> KOI_PAINT = java.util.Map.of(
+            "kohaku",       new int[]{0xF4F2EC, 0xD8342A, -1, -1},
+            "taisho_sanke", new int[]{0xF4F2EC, 0xD8342A, 0x2A2622, -1},
+            "showa",        new int[]{0x4A423C, 0xC8302A, 0x1E1A18, -1},
+            "bekko",        new int[]{0xF4F2EC, -1, 0x2A2622, -1},
+            "asagi",        new int[]{0x7C93AE, -1, 0x46586E, -1},
+            "platinum",     new int[]{0xFFFDF6, -1, -1, -1},
+            "hi_utsuri",    new int[]{0x3A322C, 0xD2382A, -1, -1},
+            "karasu",       new int[]{0x2A2622, -1, -1, -1},
+            "tancho",       new int[]{0xF4F2EC, -1, -1, 0xD8342A});
+
     /** How much white to wash over the sprite, 0..1: young fish are pale, and so are pale morphs. */
     public static float pale(String speciesPath, double age, String morphId) {
         Age a = AGE.getOrDefault(speciesPath, AGE_DEFAULT);

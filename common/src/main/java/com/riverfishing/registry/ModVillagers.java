@@ -144,7 +144,8 @@ public final class ModVillagers {
             String path = key.identifier().getPath();
             int cut = path.indexOf("/buy_");
             if (path.startsWith("fisherman/") && cut > 0
-                    && !com.riverfishing.fish.Genome.isVarietyId(path.substring(cut + 5))) {
+                    && !com.riverfishing.fish.Genome.isVarietyId(path.substring(cut + 5))
+                    && !com.riverfishing.fish.Genome.isKoiId(path.substring(cut + 5))) {   // §koi-genes
                 found.add(path.substring(cut + 5));
             }
         }

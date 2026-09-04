@@ -108,7 +108,9 @@ public final class JournalData {
         CompoundTag root = get(player);
         int n = 0;
         for (String id : com.riverfishing.registry.ModItems.FISH_SPECIES) {
-            if (!id.startsWith("carp_koi") && !com.riverfishing.fish.Genome.isVarietyId(id)
+            // §koi-genes: `koi_carp` joins the five old ids as a hidden collectible — the bar is
+            // the fish the water offers everyone, and a koi is not one of them.
+            if (!com.riverfishing.fish.Genome.isKoiId(id) && !com.riverfishing.fish.Genome.isVarietyId(id)
                     && root.getCompoundOrEmpty("riverfishing:" + id).getIntOr("count", 0) > 0) n++;
         }
         return n;
@@ -120,7 +122,8 @@ public final class JournalData {
         for (String id : com.riverfishing.registry.ModItems.FISH_SPECIES) {
             // §scale-genes: a scale variety is not a species to be found — counting the three would
             // put the all-species bar out of reach for good.
-            if (!id.startsWith("carp_koi") && !com.riverfishing.fish.Genome.isVarietyId(id)) n++;
+            if (!com.riverfishing.fish.Genome.isKoiId(id)
+                    && !com.riverfishing.fish.Genome.isVarietyId(id)) n++;   // §koi-genes
         }
         return n;
     }

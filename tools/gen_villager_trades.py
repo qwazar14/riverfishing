@@ -507,7 +507,9 @@ FISH = {
         # §deep-twelve (0.9.0)
         ("blobfish", 5, 10), ("pollock", 4, 8),
         # §scale-genes (0.9.0)
-        ("linear_carp", 7, 13)],
+        ("linear_carp", 7, 13),
+        # §koi-genes (0.9.0)
+        ("koi_carp", 8, 14)],
     5: [("catfish", 12, 25), ("eel", 8, 15), ("channel_catfish", 10, 20), ("sterlet", 16, 30),
         # §florida-nine: the big saltwater four, against the mahi/wahoo/barracuda band.
         ("tarpon", 20, 32), ("snook", 11, 21), ("jack_crevalle", 12, 22), ("striped_bass", 12, 23),

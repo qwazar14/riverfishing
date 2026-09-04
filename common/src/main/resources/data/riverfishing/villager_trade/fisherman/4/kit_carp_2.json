@@ -9,7 +9,7 @@
   "given_item_modifiers": [
     {
       "function": "minecraft:set_custom_data",
-      "tag": "{Box:[{s:0,i:{id:\"riverfishing:boilie\",count:16}},{s:1,i:{id:\"riverfishing:hook_6\",count:4}},{s:2,i:{id:\"riverfishing:hook_8\",count:4}},{s:3,i:{id:\"riverfishing:corn\",count:16}},{s:4,i:{id:\"riverfishing:line_mono_030\",count:1}},{s:5,i:{id:\"riverfishing:rig_flat_feeder\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:58,LeaderLenCm:10}}}}]}"
+      "tag": "{Box:[{s:0,i:{id:\"riverfishing:boilie\",count:16}},{s:1,i:{id:\"riverfishing:hook_6\",count:4}},{s:2,i:{id:\"riverfishing:hook_8\",count:4}},{s:3,i:{id:\"riverfishing:corn\",count:16}},{s:4,i:{id:\"riverfishing:line_mono_030\",count:1}},{s:5,i:{id:\"riverfishing:rig_flat_feeder\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:59,LeaderLenCm:10}}}}]}"
     },
     {
       "function": "minecraft:set_components",

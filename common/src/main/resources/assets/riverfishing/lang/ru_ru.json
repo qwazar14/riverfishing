@@ -206,6 +206,8 @@
   "item.riverfishing.linear_carp": "Линейный карп",
   "fish.riverfishing.linear_carp": "Линейный карп",
   "fishdesc.riverfishing.linear_carp": "Карп в один ряд крупной чешуи вдоль боковой линии — и больше ничего. Это не вид, а один аллель: чешуйчатый карп, несущий ген голого. Скрестите его с зеркальным — ряд исчезнет у половины мальков; скрестите двух голых — четверть икры вообще не разовьётся. Бойлы со дна, карповое удилище, терпение.",
+  "item.riverfishing.koi_carp": "Карп кои",
+  "fish.riverfishing.koi_carp": "Карп кои",
   "item.riverfishing.bleak": "Уклейка",
   "item.riverfishing.ide": "Язь",
   "item.riverfishing.chub": "Голавль",
@@ -1426,5 +1428,15 @@
   "message.riverfishing.trap_fry_elsewhere": "Малёк поблизости — из другого водоёма",
   "screen.riverfishing.contract_board.banned": "Браконьеру работы нет. Выпускайте взрослую рыбу в дикую воду, пока долг не погашен.",
   "message.riverfishing.rep_credit": "Рыбаки видели, как рыба вернулась в воду: +%1$s репутации (сейчас %2$s)",
-  "finder.riverfishing.rep": "Репутация"
+  "finder.riverfishing.rep": "Репутация",
+  "variety.riverfishing.koi_kohaku": "Кохаку",
+  "variety.riverfishing.koi_taisho_sanke": "Тайсё Санкэ",
+  "variety.riverfishing.koi_showa": "Сёва",
+  "variety.riverfishing.koi_bekko": "Бекко",
+  "variety.riverfishing.koi_asagi": "Асаги",
+  "variety.riverfishing.koi_platinum": "Платинум",
+  "variety.riverfishing.koi_hi_utsuri": "Хи Уцури",
+  "variety.riverfishing.koi_karasu": "Карасу",
+  "variety.riverfishing.koi_tancho": "Тантё",
+  "fishdesc.riverfishing.koi_carp": "Декоративный карп, выведенный ради окраски: белый фон, алое «хи», чёрное «суми» — и именные сорта, которыми торгуют заводчики: кохаку, санкэ, сёва, бекко, асаги, хи уцури, карасу — и два, которых в дикой воде нет: платинум и тантю. Попадается на карповые снасти, чаще у цветущей сакуры; остальное выводят в аквариуме.\nкохаку  W_ R_ bb — алое по белому\nтайсё санкэ  W_ R_ B_ — алое и чёрное по белому\nсёва  ww R_ B_ — алое и белое по чёрному\nбекко  W_ rr B_ — чёрные пятна по белому\nасаги  ww rr B_ — сизая сетка на тёмном теле\nплатинум  W_ rr bb — чисто белый\nхи уцури  ww R_ bb — алое по чёрному\nкарасу  ww rr bb — чисто чёрный\nтантё  WW RR bb — одно алое пятно на лбу — чистота и по белому, и по алому"
 }

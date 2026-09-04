@@ -291,7 +291,19 @@ public final class AquariumBreeding {
     }
 
     /** The order the window's variety nibbles index — the client reads the same table. */
-    public static final String[] VARIETIES = {"scaled", "mirror", "linear", "naked"};
+    public static final String[] VARIETIES = varieties();
+
+    /**
+     * §koi-genes: the four scale varieties, then the nine koi colour varieties in Genome's own table
+     * order — one list, so the window cannot drift from the genetics. Thirteen entries still index
+     * inside the nibble each parent is packed into in {@code v[10]}.
+     */
+    private static String[] varieties() {
+        java.util.List<String> v = new java.util.ArrayList<>(
+                java.util.List.of("scaled", "mirror", "linear", "naked"));
+        for (String k : Genome.koiVarieties()) v.add("koi_" + k);
+        return v.toArray(new String[0]);
+    }
 
     // ---- helpers ----
 

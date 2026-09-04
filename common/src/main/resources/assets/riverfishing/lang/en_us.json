@@ -206,6 +206,8 @@
   "item.riverfishing.linear_carp": "Linear carp",
   "fish.riverfishing.linear_carp": "Linear carp",
   "fishdesc.riverfishing.linear_carp": "A carp wearing a single row of big scales along the lateral line and nothing else. It is not a species: it is one allele — a scaled carp that also carries the nude gene. Cross it with a mirror and the row disappears in half the fry; cross two leather carp and a quarter of the eggs never develop at all. Boilies on the bottom, a carp rod, patience.",
+  "item.riverfishing.koi_carp": "Koi carp",
+  "fish.riverfishing.koi_carp": "Koi carp",
   "item.riverfishing.bleak": "Bleak",
   "item.riverfishing.ide": "Ide",
   "item.riverfishing.chub": "Chub",
@@ -1426,5 +1428,15 @@
   "message.riverfishing.trap_fry_elsewhere": "The fry nearby belong to another water",
   "screen.riverfishing.contract_board.banned": "No work for a poacher. Release mature fish into wild water until the debt is paid off.",
   "message.riverfishing.rep_credit": "The fishermen saw the fish go back: +%1$s reputation (now %2$s)",
-  "finder.riverfishing.rep": "Reputation"
+  "finder.riverfishing.rep": "Reputation",
+  "variety.riverfishing.koi_kohaku": "Kohaku",
+  "variety.riverfishing.koi_taisho_sanke": "Taisho Sanke",
+  "variety.riverfishing.koi_showa": "Showa",
+  "variety.riverfishing.koi_bekko": "Bekko",
+  "variety.riverfishing.koi_asagi": "Asagi",
+  "variety.riverfishing.koi_platinum": "Platinum",
+  "variety.riverfishing.koi_hi_utsuri": "Hi Utsuri",
+  "variety.riverfishing.koi_karasu": "Karasu",
+  "variety.riverfishing.koi_tancho": "Tancho",
+  "fishdesc.riverfishing.koi_carp": "An ornamental carp bred for its colours: white ground, red hi, black sumi, and the named varieties every keeper trades in — kohaku, sanke, showa, bekko, asagi, hi utsuri, karasu, and the two you will not find wild, platinum and tancho. Caught by chance on carp tackle, far more often by blossom; the rest are bred in a tank.\nkohaku  W_ R_ bb — red on white\ntaisho sanke  W_ R_ B_ — red and black on white\nshowa  ww R_ B_ — red and white on black\nbekko  W_ rr B_ — black patches on white\nasagi  ww rr B_ — a blue-grey net over a dark body\nplatinum  W_ rr bb — plain white\nhi utsuri  ww R_ bb — red on black\nkarasu  ww rr bb — plain black\ntancho  WW RR bb — one red crown — pure at the white AND the red"
 }
