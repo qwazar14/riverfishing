@@ -152,6 +152,10 @@ public abstract class NetItem extends Item {
             int value = base > 0 ? com.riverfishing.fishing.MarketData.get(level).price(level, p.id.getPath(), base) : 0;
             com.riverfishing.item.StackNbt.mutate(fish, t -> t.put(com.riverfishing.fish.CatchCard.TAG,
                     com.riverfishing.fish.CatchCard.netted(sp, level, p, weightG, pos, eco, value, poachedFish)));
+            // §variety-icon: 26.x draws a fish from what its stack carries, and the koi's four tints and
+            // the carp's variety drawing are read OFF the card — so the icon has to be stamped after it.
+            // The rod does this at the end of its own catch; a net hauled fish out with no stamp at all.
+            com.riverfishing.item.FishItem.stampIcon(fish);
             if (!sp.getInventory().add(fish)) sp.drop(fish, false);
         }
 

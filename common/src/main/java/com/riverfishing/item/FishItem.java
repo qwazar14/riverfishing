@@ -227,10 +227,16 @@ public class FishItem extends Item {
                     com.riverfishing.fish.FishMorph.koiTint(variety, 2, pattern),
                     com.riverfishing.fish.FishMorph.koiTint(variety, 3, pattern));
         }
+        // §variety-icon: the scale variety, as a STRING the item definition selects the drawing on.
+        // Empty for everything that is not a carp, which is the definition's fallback: its own sprite.
+        String draw = sp == null ? "" : com.riverfishing.fish.Genome.drawnAs(sp.getPath(),
+                com.riverfishing.fish.CatchCard.of(stack).getStringOr("Variety", ""));
+        java.util.List<String> strings = sp == null || draw.equals(sp.getPath())
+                ? java.util.List.of() : java.util.List.of(draw);
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
                 new net.minecraft.world.item.component.CustomModelData(
                         java.util.List.of(getIconScale(stack)),
-                        java.util.List.of(), java.util.List.of(), colors));
+                        java.util.List.of(), strings, colors));
     }
 
     public static boolean isTrophy(ItemStack stack) {

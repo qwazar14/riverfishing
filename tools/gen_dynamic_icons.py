@@ -257,6 +257,7 @@ def main():
         }})
 
     # ---- fish ----
+    SCALE_DISPATCH = {}
     flat, lay = flat_species()
     for sp in FISH:
         base = os.path.join(MODELS, sp + ".json")
@@ -284,12 +285,28 @@ def main():
             })
             entries.append({"threshold": s,
                             "model": fish_node("riverfishing:item/fish_scaled/%s_%d" % (sp, i), sp)})
-        write(os.path.join(ITEMS, sp + ".json"), {"model": {
+        dispatch = {
             "type": "minecraft:range_dispatch",
             "property": "minecraft:custom_model_data",
             "index": 0,
             "entries": entries,
             "fallback": fish_node("riverfishing:item/" + sp, sp),
+        }
+        SCALE_DISPATCH[sp] = dispatch
+        write(os.path.join(ITEMS, sp + ".json"), {"model": dispatch})
+
+    # §variety-icon: a carp is drawn as its scale genotype. On 1.21.1 the item renderer simply looks up
+    # another icon model; here the drawing is chosen by the item definition, selecting on the variety
+    # string FishItem.stampIcon writes. Each case is that OTHER species' whole scale dispatch, so a
+    # mirror carp keeps every size bucket the scaled one has.
+    varieties = [v for v in ("mirror_carp", "linear_carp", "naked_carp") if v in SCALE_DISPATCH]
+    if "carp" in SCALE_DISPATCH and varieties:
+        write(os.path.join(ITEMS, "carp.json"), {"model": {
+            "type": "minecraft:select",
+            "property": "minecraft:custom_model_data",
+            "index": 0,
+            "cases": [{"when": v, "model": SCALE_DISPATCH[v]} for v in varieties],
+            "fallback": SCALE_DISPATCH["carp"],
         }})
 
     print("rods: %d defs, %d layer models x2 variants; fish: %d x %d buckets" %
