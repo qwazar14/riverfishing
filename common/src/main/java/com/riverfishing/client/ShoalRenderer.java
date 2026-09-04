@@ -229,7 +229,7 @@ public final class ShoalRenderer {
         float v0 = sp.getV0(), v1 = sp.getV1();
         // Amplitude at the tail, and the wave's phase speed — faster on a beat, idle on a glide.
         float amp = size * (0.05f + 0.09f * f.kick);
-        float phase = time * (0.35f + 0.45f * f.kick) + f.phase * 5f;
+        float phase = f.tail + f.phase * 5f;
         float[] zs = new float[STRIPS + 1];
         float[] xs = new float[STRIPS + 1];
         for (int i = 0; i <= STRIPS; i++) {

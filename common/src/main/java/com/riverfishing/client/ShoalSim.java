@@ -60,6 +60,12 @@ public final class ShoalSim {
      * about fourteen degrees a second, and it is nowhere near the peak most of the time.
      */
     private static final float WANDER_TURN = 0.25f;
+    /**
+     * §tail-phase: radians a TICK the tail sweeps, gliding and at full drive — the two numbers that
+     * used to sit inline in three renderers. Kept per tick because that is the clock they were tuned
+     * against; the integration below converts.
+     */
+    private static final float TAIL_BASE = 0.35f, TAIL_SWING = 0.45f;
 
     /** One fish, as it exists between frames. */
     public static final class Fish {
@@ -74,6 +80,13 @@ public final class ShoalSim {
         public float kick;
         /** §swim-inertia: metres a second, right now — eased toward what the beat asks for, never taken. */
         public double speed;
+        /**
+         * §tail-phase: where the tail is in its sweep, radians, wrapped. NOT {@code time × rate} — the
+         * rate moves with the beat, and rate × clock jumps by (change in rate) × clock the instant it
+         * moves. The clock is in the thousands, so that is a new random angle rather than a wobble, and
+         * it lands exactly when the fish speeds up. A phase is integrated; this is where.
+         */
+        public float tail;
         /** §shoal-jump: nose-up/down, degrees, while in the air; 0 in the water. */
         public float pitch;
         /** §shoal-jump: seconds into a jump, or -1 in the water. */
@@ -264,6 +277,9 @@ public final class ShoalSim {
             float beat = Mth.sin(time * 0.09f + f.phase * 4f);
             f.kick = beat > 0.3f ? (beat - 0.3f) / 0.7f : 0f;
             f.kick = f.kick * f.kick;
+            // §tail-phase: integrate the sweep at the rate the beat asks for THIS frame, and wrap it.
+            // Done here, before anything can `continue` past it, so a jumping fish keeps beating too.
+            f.tail = (f.tail + (TAIL_BASE + TAIL_SWING * f.kick) * 20f * (float) dt) % Mth.TWO_PI;
             double demand = f.cruise() * (BEAT_LOW + BEAT_SWING * f.kick);
             if (flight > 0.02f) {
                 // 2. Fright beats everything: away from the player, fast, and down.
