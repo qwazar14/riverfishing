@@ -62,6 +62,11 @@ public class BiteContext {
     public double clarity = 1.0;
     /** Biome groups at the spot (climate + terrain: cold/temperate/warm, taiga, jungle, swamp, mountain…). */
     public java.util.Set<String> biomeGroups = new java.util.HashSet<>();
+    /**
+     * §provinces: the faunal province this water is in — palearctic, nearctic, neotropic, indomalaya.
+     * Empty only where nothing set it (a test, a probe with no level), which reads as "no gate".
+     */
+    public String province = "";
     public double castDistance = 8;
 
     // ---- Fed spot (§5) ----

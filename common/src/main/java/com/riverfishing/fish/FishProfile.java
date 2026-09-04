@@ -94,6 +94,21 @@ public final class FishProfile {
     // …and only in these biome groups (group -> factor; empty = anywhere; no match = 0).
     public final Map<String, Double> biomes;
 
+    /**
+     * §provinces: the parts of the world this species lives in ({@link com.riverfishing.water.Provinces}).
+     * EMPTY MEANS EVERYWHERE, which is what every sea fish and every profile written before this wants:
+     * one ocean, one fauna. A non-empty list is a hard gate — the species is absent from every province
+     * it does not name, however right the water looks.
+     */
+    public final java.util.Set<String> provinces;
+
+    /**
+     * §biomes-require: biome groups that must ALL be present, where {@link #biomes} above is best-of.
+     * This is how a specialist is written: a taimen asks for cold AND a river AND mountains, and the
+     * old map goes on meaning what it always meant.
+     */
+    public final java.util.Set<String> biomesRequire;
+
     // §legendary (0.5.0): the species hides ONE named specimen per server (0 = none).
     public final int legendaryWeightG;
     public final double legendaryChance;
@@ -151,6 +166,8 @@ public final class FishProfile {
         this.widthMin = b.widthMin;
         this.widthMax = b.widthMax;
         this.biomes = b.biomes;
+        this.provinces = b.provinces;
+        this.biomesRequire = b.biomesRequire;
     }
 
     // ---- Lookups used by the engine ----
@@ -330,6 +347,10 @@ public final class FishProfile {
         b.widthMin = GsonHelper.getAsDouble(hab, "width_min", 0);
         b.widthMax = GsonHelper.getAsDouble(hab, "width_max", 99999);
         b.biomes = readDoubleMap(GsonHelper.getAsJsonObject(json, "biomes", new JsonObject()));
+        // §provinces §biomes-require: plain string arrays, read by the set reader this file
+        // already had for the rod and rig lists.
+        b.provinces = readStringSet(json, "provinces");
+        b.biomesRequire = readStringSet(json, "biomes_require");
         return new FishProfile(b);
     }
 
@@ -408,6 +429,8 @@ public final class FishProfile {
         int depthMin = 0, depthMax = 999;
         double widthMin = 0, widthMax = 99999;
         Map<String, Double> biomes = new HashMap<>();
+        java.util.Set<String> provinces = new java.util.HashSet<>();
+        java.util.Set<String> biomesRequire = new java.util.HashSet<>();
 
         Builder(ResourceLocation id) { this.id = id; }
     }

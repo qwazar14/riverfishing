@@ -85,6 +85,7 @@
     "width_min": 4,
     "width_max": 24
   },
+  "provinces": ["palearctic", "nearctic", "neotropic"],
   "biomes": {
     "cold": 1.2,
     "mountain": 1.3,

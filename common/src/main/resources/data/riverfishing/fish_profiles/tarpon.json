@@ -85,6 +85,7 @@
     "depth_min": 3,
     "width_min": 16
   },
+  "provinces": ["neotropic", "nearctic"],
   "biomes": {
     "warm": 1.5,
     "beach": 1.2,

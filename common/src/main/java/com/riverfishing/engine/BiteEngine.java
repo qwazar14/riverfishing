@@ -198,6 +198,21 @@ public final class BiteEngine {
             if (c.waterWidth < p.widthMin || c.waterWidth > p.widthMax) return 0.0;
         }
 
+        // §provinces: half a planet, the one gate a biome cannot express. A species that names
+        // provinces is absent from every other one — no factor, no half rate, absent. A private pond is
+        // exempt (its owner put the fish there), and §stocked-survival above already lets a settled
+        // species live outside its range at a quarter of full activity: travel to find it, or bring it
+        // home and breed it. Those are the two ways, and both of them are the point.
+        if (!c.privatePond && !p.provinces.isEmpty()
+                && !c.province.isEmpty() && !p.provinces.contains(c.province)) {
+            return 0.0;
+        }
+        // §biomes-require: every group in the list, not the best of them. A specialist says what it
+        // needs all at once — cold AND a river AND mountains — and a water missing any of it has none.
+        if (!c.privatePond && !p.biomesRequire.isEmpty() && !c.biomeGroups.containsAll(p.biomesRequire)) {
+            return 0.0;
+        }
+
         double fBiome = biomeGroupFactor(p, c);
         // §pond-biome: a private pond is out of every fish's range by definition — the owner put the
         // fish there. The gate stays for wild water; in a pond a fish out of its climate lives and
