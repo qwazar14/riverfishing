@@ -171,14 +171,23 @@ if held < 1000:
 # out of FishMorph.java. Nothing here may consult a clock or a random source, and neither may the Java.
 
 morph = io.open(MORPH, encoding="utf-8").read()
-mm = re.search(r"KOI_PAINT = java\.util\.Map\.of\((.*?)\);", morph, re.S)
+# §koi-metal took the table past ten entries, which is where Map.of stops, so it is Map.ofEntries now.
+mm = re.search(r"KOI_PAINT = java\.util\.Map\.of(?:Entries)?\((.*?)\);", morph, re.S)
 if not mm:
     sys.exit("no KOI_PAINT table in FishMorph.java")
 KOI = {}
 for name, body in re.findall(r'"(\w+)",\s*new int\[\]\{([^}]*)\}', mm.group(1)):
     KOI[name] = [int(x, 0) for x in re.findall(r"-?0x[0-9A-Fa-f]+|-?\d+", body)]
-if len(KOI) < 9:
-    die("only %d koi varieties have paint; the genetics name nine" % len(KOI))
+# every variety the genetics name must have paint, or a koi comes out of the water untinted
+GENOME = os.path.join(ROOT, "common/src/main/java/com/riverfishing/fish/Genome.java")
+gsrc = io.open(GENOME, encoding="utf-8").read()
+gt = re.search(r"String\[\] KOI_TABLE = \{(.*?)\};", gsrc, re.S)
+VARIETIES = [r.split("=")[1] for r in re.findall(r'"([^"]+=\w+)"', gt.group(1))] if gt else []
+for v in VARIETIES:
+    if v not in KOI:
+        die("the genetics name %s but FishMorph has no paint for it" % v)
+if len(KOI) < len(VARIETIES):
+    die("only %d koi varieties have paint; the genetics name %d" % (len(KOI), len(VARIETIES)))
 
 
 def hue_shift(p):

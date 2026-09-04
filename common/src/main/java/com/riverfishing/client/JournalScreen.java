@@ -45,7 +45,14 @@ import java.util.stream.Collectors;
  * same {@link FishProfile}s and recipes the game uses, so the guide can't drift from the balance.
  */
 public class JournalScreen extends Screen {
-    private static final String[] SPECIES = ModItems.FISH_SPECIES;
+    /**
+     * §koi-legacy: every registered species EXCEPT the five ids koi used to be. They are still items,
+     * still priced, still whatever is in your chest — but they stopped being species when §koi-genes
+     * made them varieties of one, and a bestiary that lists them lists the same fish six times.
+     */
+    private static final String[] SPECIES = java.util.Arrays.stream(ModItems.FISH_SPECIES)
+            .filter(sp -> !com.riverfishing.fish.Genome.isKoiId(sp) || "koi_carp".equals(sp))
+            .toArray(String[]::new);
     private static final int ROW_H = 16;
     private static final int GRID_TOP = 54;
     // §journal-room (0.8.0): the page carries four more blocks than it did, and the list grew a family
