@@ -76,6 +76,7 @@ public final class FishBounds {
         put("herring", 0.945f, 0.293f);
         put("ide", 0.973f, 0.438f);
         put("jack_crevalle", 0.945f, 0.449f);
+        put("koi_carp", 0.961f, 0.516f);
         put("kutum", 0.938f, 0.445f);
         put("largemouth_bass", 0.949f, 0.484f);
         put("lenok", 0.98f, 0.375f);

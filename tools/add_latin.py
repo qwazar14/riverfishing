@@ -17,6 +17,8 @@ LATIN = {
     "carp_koi_asagi": "Cyprinus rubrofuscus 'Asagi'", "carp_koi_bekko": "Cyprinus rubrofuscus 'Bekko'",
     "carp_koi_kohaku": "Cyprinus rubrofuscus 'Kohaku'", "carp_koi_showa_sanke": "Cyprinus rubrofuscus 'Showa Sanshoku'",
     "carp_koi_tancho_sanke": "Cyprinus rubrofuscus 'Tancho Sanke'",
+    # §koi-genes: the species the five above became — the variety is a genotype, not a name.
+    "koi_carp": "Cyprinus rubrofuscus",
     "catfish": "Silurus glanis", "channel_catfish": "Ictalurus punctatus", "char": "Salvelinus fontinalis",
     "chub": "Squalius cephalus", "cod": "Gadus morhua", "common_dace": "Leuciscus leuciscus",
     "conger": "Conger conger", "crucian_carp": "Carassius gibelio", "eel": "Anguilla anguilla",
