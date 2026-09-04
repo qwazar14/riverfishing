@@ -68,6 +68,16 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         // the same fish, wearing what its K/N pair gave it.
         String variety = c.getStringOr("Variety", "");
         if (!variety.isEmpty()) row("variety", Component.translatable("variety.riverfishing." + variety), ORANGE);
+        // §pattern: the index this fish came out at, the family it belongs to — or, one fish in 83,
+        // the gem it turned out to be, named in its own colour because that is the whole reward.
+        int pattern = CatchCard.pattern(fish);
+        if (com.riverfishing.fish.Pattern.has(pattern)) {
+            boolean gem = com.riverfishing.fish.Pattern.isGem(pattern);
+            row("pattern", Component.literal("#" + pattern + "  ").append(Component.translatable(gem
+                            ? "gem.riverfishing." + com.riverfishing.fish.Pattern.gemName(pattern)
+                            : "pattern.riverfishing." + com.riverfishing.fish.Pattern.family(pattern))),
+                    gem ? com.riverfishing.fish.Pattern.gemInk(pattern) : PINK);
+        }
         // §nature: the counter buys PRIME fish; anything else has no price there, and says so.
         if (FishItem.isPrime(fish) && c.getIntOr("Value", 0) > 0) row("value", key("emeralds", c.getIntOr("Value", 0)), GREEN);
         else row("value", Component.literal("—"), DIM);

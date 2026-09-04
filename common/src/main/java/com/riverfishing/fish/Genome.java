@@ -189,6 +189,14 @@ public final class Genome {
         }
     }
 
+    /**
+     * §pattern: the variety's multiplier and the pattern's together — one call, because every price in
+     * the mod wants both and a price that forgot one is a fish worth six times what the counter pays.
+     */
+    public static double varietyValue(String variety, int pattern) {
+        return varietyValue(variety) * Pattern.value(pattern);
+    }
+
     /** The variety a carp id names, or "" for a fish that is not a carp (nothing else has K/N). */
     public static String varietyOfSpecies(String path) {
         String v = VARIETY_OF_ID.get(path);

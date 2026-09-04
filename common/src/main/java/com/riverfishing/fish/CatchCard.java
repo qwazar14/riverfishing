@@ -66,6 +66,35 @@ public final class CatchCard {
     }
 
     /**
+     * §pattern: the index on this fish's card, or {@link Pattern#NONE} for one landed before the index
+     * existed. Read through here rather than off the tag: an absent int reads as 0 in NBT, and 0 is a
+     * perfectly good pattern — every old fish in every chest would have become a plain-band specimen.
+     */
+    public static int pattern(ItemStack fish) {
+        return pattern(has(fish) ? of(fish) : null);
+    }
+
+    /** §pattern: the same, off a card already in hand (a released fish, a pond ledger entry). */
+    public static int pattern(CompoundTag card) {
+        return card == null ? Pattern.NONE : card.getIntOr(Pattern.TAG, Pattern.NONE);
+    }
+
+    /**
+     * §pattern: the index a fish being landed HERE comes out at.
+     *
+     * <p>A wild fish is rolled off the world seed, the block it came from and the tick it came out on —
+     * the tick is in there so the same swim cannot be re-cast for the same number. A fish out of water
+     * somebody has STOCKED inherits that line's index instead, which is the whole collector's hook: fry
+     * bred toward a family and released go on breeding toward it.
+     */
+    private static int rollPattern(ServerLevel level, BlockPos where, FishProfile p, Random rng) {
+        int bred = p == null ? Pattern.NONE : com.riverfishing.fishing.StockedData.get(level)
+                .pattern(com.riverfishing.fishing.StockedData.region(where), p.id.getPath());
+        return Pattern.has(bred) ? Pattern.inherit(bred, bred, rng)
+                : Pattern.roll(level.getSeed(), where, level.getGameTime());
+    }
+
+    /**
      * The card for a fish being landed now. {@code eco} is native / settled / stocked as the stocking
      * model sees this water; {@code value} is what a fisherman pays for one today.
      */
@@ -91,10 +120,13 @@ public final class CatchCard {
         c.putString("Spot", spot == null ? "" : spot);
         c.putBoolean("Ice", s.iceFishing);
         c.putString("Eco", eco);
-        c.putInt("Value", value);
 
         Random rng = new Random(level.getGameTime() * 31L + sp.getUUID().hashCode() + weightG);
-        body(c, p, weightG, morph, rng, s.nature, s.variety);
+        // §pattern: the index is rolled before the price, because the price depends on it — a gem is
+        // six times the fish, and the top band half again.
+        int pattern = rollPattern(level, s.target, p, rng);
+        c.putInt("Value", (int) Math.round(value * Pattern.value(pattern)));
+        body(c, p, weightG, morph, rng, s.nature, s.variety, pattern);
         return c;
     }
 
@@ -121,11 +153,13 @@ public final class CatchCard {
         c.putString("Spot", "");
         c.putBoolean("Ice", false);
         c.putString("Eco", eco);
-        c.putInt("Value", value);
         c.putBoolean("Net", true);
         c.putBoolean("Poached", poached);
         Random rng = new Random(level.getGameTime() * 31L + sp.getUUID().hashCode() + weightG);
-        body(c, p, weightG, "", rng, (byte) -1, "");
+        // §pattern: a hauled fish has an index too — it came out of the same water.
+        int pattern = rollPattern(level, pos, p, rng);
+        c.putInt("Value", (int) Math.round(value * Pattern.value(pattern)));
+        body(c, p, weightG, "", rng, (byte) -1, "", pattern);
         return c;
     }
 
@@ -135,7 +169,7 @@ public final class CatchCard {
      * that arrived without one: the species' own name then says which it is).
      */
     private static void body(CompoundTag c, FishProfile p, int weightG, String morph, Random rng,
-                             byte natureIn, String variety) {
+                             byte natureIn, String variety, int pattern) {
         // What the profile knows, copied in: the client on a server never sees a profile.
         // §board-3: the size class is FishMorph.ageFraction — 0.5 at an ordinary specimen — so a
         // 1.15 kg pike is a juvenile, not a baby: the old bar measured against the record weight,
@@ -195,6 +229,7 @@ public final class CatchCard {
             c.putString("Variety", Genome.carpVariety(g.toString()));
         }
         c.putString("Genes", g.toString());
+        c.putInt(Pattern.TAG, pattern);   // §pattern
     }
 
     /** Does this fish's card meet a contract's terms? An empty term is no term. */

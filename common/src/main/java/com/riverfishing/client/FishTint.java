@@ -32,10 +32,13 @@ public final class FishTint {
         // vanishes into the body (tools/gen_koi_layers.py).
         if ("koi_carp".equals(sp.getPath())) {
             return tintIndex >= 0 && tintIndex < 4
-                    ? FishMorph.koiTint(com.riverfishing.fish.CatchCard.of(stack).getStringOr("Variety", ""), tintIndex) : -1;
+                    ? FishMorph.koiTint(com.riverfishing.fish.CatchCard.of(stack).getStringOr("Variety", ""), tintIndex,
+                            com.riverfishing.fish.CatchCard.pattern(stack)) : -1;   // §pattern
         }
         if (tintIndex != 0) return -1;
-        return FishMorph.tint(sp.getPath(), FishItem.getAge(stack), FishItem.getMorph(stack));
+        // §pattern: an ordinary index leaves a perch a perch; a gem paints it one saturated colour.
+        return FishMorph.tint(sp.getPath(), FishItem.getAge(stack), FishItem.getMorph(stack),
+                com.riverfishing.fish.CatchCard.pattern(stack));
     }
 
     /** The packed overlay UV for a stack: whiter for a young fish, and much whiter for a pale morph. */

@@ -2699,6 +2699,8 @@ public final class FishingManager {
                     weightG, crod, cbaits, eco, value, morph,
                     com.riverfishing.fishing.SoundingData.get(lvl).spotAt(where));
             com.riverfishing.item.StackNbt.mutate(fish, t -> t.put(com.riverfishing.fish.CatchCard.TAG, card));
+            // §pattern: the family goes in the journal — the collection board the index exists for.
+            JournalData.recordPattern(sp, species, com.riverfishing.fish.CatchCard.pattern(card));
             com.riverfishing.item.FishItem.stampIcon(fish);   // §koi-genes: the card carries the tint
         }
         // §fish-scale: the icon now scales purely from LENGTH (FishItem.getIconScale), no NBT needed.
@@ -3203,6 +3205,8 @@ public final class FishingManager {
         boolean mature = card != null ? card.getByteOr("Size", (byte) 0) >= 2 : sizeRatio >= 0.5;
         int sex = card == null ? -1 : card.getByteOr("Sex", (byte) 0);
         String genes = card == null ? "" : card.getStringOr("Genes", "");
+        // §pattern: a released fish puts its line on the ledger, so the water hands the family back.
+        int pattern = com.riverfishing.fish.CatchCard.pattern(card);
         // §o: the debt to the fishermen is paid in fish PUT BACK, and only into water anybody may
         // fish. A fish released into your own claimed pond is not restitution: it is still yours —
         // you stocked it, it grows for you, you catch it again — while the water a net emptied is
@@ -3215,6 +3219,7 @@ public final class FishingManager {
         release(level, pos, p, units, thrower, (stocked, region) -> {
             if (!mature) return;
             long day = StockedData.worldDay(level);
+            stocked.setPattern(region, species.getPath(), pattern);   // §pattern
             for (int i = 0; i < Math.max(1, count); i++) {
                 stocked.addBrood(region, species.getPath(), sex, day, genes, thrower == null ? null : thrower.getUUID(), weightG);   // §lm: the pond's average weight learns from what went in   // §o: the work-off is Warden.credit now, by weight
             }
@@ -3223,15 +3228,17 @@ public final class FishingManager {
 
     /** §c §breeding: a FryItem thrown into water — fry on the ledger, a sliver of stock each (fry disperse and die). */
     public static void releaseFry(ServerLevel level, BlockPos pos, Identifier species, String genome, int count,
-                                  @org.jetbrains.annotations.Nullable ServerPlayer thrower) {
+                                  @org.jetbrains.annotations.Nullable ServerPlayer thrower, int pattern) {
         FishProfile p = FishProfileManager.get().byId(species);
         if (p == null || count <= 0) return;
         // §h §breeding: fry thrown into open water are eaten — 70% make it in bare water, up to 100% with
         // snags to hide in (§F's frySurvival). Stock units and the ledger both count the survivors.
         int alive = Math.max(1, (int) Math.round(count * (0.7 + com.riverfishing.fishing.Ecosystem.frySurvival(level, pos))));
-        release(level, pos, p, alive * 0.02, thrower, (stocked, region) ->
-                stocked.addFry(region, species.getPath(), alive, StockedData.worldDay(level), genome,
-                        thrower == null ? null : thrower.getUUID()));
+        release(level, pos, p, alive * 0.02, thrower, (stocked, region) -> {
+            stocked.addFry(region, species.getPath(), alive, StockedData.worldDay(level), genome,
+                    thrower == null ? null : thrower.getUUID());
+            stocked.setPattern(region, species.getPath(), pattern);   // §pattern: the bred line
+        });
     }
 
     /**

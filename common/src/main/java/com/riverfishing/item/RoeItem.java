@@ -20,6 +20,8 @@ public class RoeItem extends Item {
     public static final String TAG_GENOME = "Genome";
     public static final String TAG_COUNT = "Count";
     public static final String TAG_LAID = "Laid";
+    /** §pattern: the index the clutch runs at — inherited from the pair, not rolled. */
+    public static final String TAG_PATTERN = com.riverfishing.fish.Pattern.TAG;
 
     public RoeItem(Properties properties) {
         super(properties.stacksTo(1));
@@ -50,6 +52,22 @@ public class RoeItem extends Item {
         return StackNbt.get(s).getIntOr(TAG_COUNT, 0);
     }
 
+    /**
+     * §pattern: the clutch's index — the parents' mean with a small mutation, written when the pair
+     * spawns and carried through the egg into the fry, because the pattern is the LINE and the line is
+     * what a breeder is working on. {@link com.riverfishing.fish.Pattern#NONE} on roe laid before this.
+     */
+    public static int pattern(ItemStack s) {
+        CompoundTag t = StackNbt.get(s);
+        return t.getIntOr(TAG_PATTERN, com.riverfishing.fish.Pattern.NONE);
+    }
+
+    public static void setPattern(ItemStack s, int pattern) {
+        if (com.riverfishing.fish.Pattern.has(pattern)) {
+            StackNbt.mutate(s, t -> t.putInt(TAG_PATTERN, pattern));
+        }
+    }
+
     /** The species' display name, the same key the fish item uses. */
     public static Component speciesName(Identifier species) {
         return Component.translatable("fish." + species.getNamespace() + "." + species.getPath());
@@ -74,6 +92,14 @@ public class RoeItem extends Item {
         tooltip.accept(Component.translatable(countKey, t.getIntOr(TAG_COUNT, 0)).withStyle(ChatFormatting.GRAY));
         tooltip.accept(Component.translatable("tooltip.riverfishing.genome", t.getStringOr(TAG_GENOME, ""))
                 .withStyle(ChatFormatting.DARK_GRAY));
+        // §pattern: the clutch's index and the family it will hatch into — what the line is FOR.
+        int pattern = pattern(stack);
+        if (com.riverfishing.fish.Pattern.has(pattern)) {
+            tooltip.accept(Component.translatable("tooltip.riverfishing.pattern", pattern,
+                    Component.translatable("pattern.riverfishing."
+                            + com.riverfishing.fish.Pattern.family(pattern)))
+                    .withStyle(ChatFormatting.DARK_GRAY));
+        }
     }
 }
 

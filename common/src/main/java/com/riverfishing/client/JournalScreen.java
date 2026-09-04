@@ -1497,6 +1497,7 @@ public class JournalScreen extends Screen {
             y += 12;
         }
         y = morphRow(g, sp, id, y);
+        y = patternRow(g, id, y);   // §pattern
         lastCatH = (y + scroll) - contentTop;
         lastViewH = contentBottom - contentTop;
         g.disableScissor();
@@ -2351,6 +2352,28 @@ public class JournalScreen extends Screen {
             y += 14;
         }
         return y;
+    }
+
+    /**
+     * §pattern: the twelve pattern families, and which of them you have landed of this species. A row of
+     * cells rather than a list of names — the index IS a collection, and a board you can see the holes
+     * in is the only thing a collection board is for. The swatch is the family's own hue turn, so the
+     * grid reads left to right as the sequence the bands actually paint.
+     */
+    private int patternRow(GuiGraphicsExtractor g, Identifier id, int y) {
+        String[] fam = com.riverfishing.fish.Pattern.families();
+        int seen = com.riverfishing.fishing.JournalData.patternsSeen(data, id);
+        y += 6;
+        g.text(this.font, Component.translatable("journal.riverfishing.patterns",
+                Integer.bitCount(seen), fam.length), left + 10, y, GuiStyle.TEXT_HINT, false);
+        y += 12;
+        for (int i = 0; i < fam.length; i++) {
+            int x = left + 10 + i * 13;
+            g.fill(x, y, x + 11, y + 11, GuiStyle.TEXT_HINT);        // the frame, so a pale band shows
+            g.fill(x + 1, y + 1, x + 10, y + 10, (seen & (1 << i)) != 0
+                    ? 0xFF000000 | com.riverfishing.fish.Pattern.swatch(i) : 0xFFE8DCC0);
+        }
+        return y + 15;
     }
 
     private int line(GuiGraphicsExtractor g, int y, String labelKey, String value) {

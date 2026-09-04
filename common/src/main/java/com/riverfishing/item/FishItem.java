@@ -130,7 +130,8 @@ public class FishItem extends Item {
                     if (stack.getItem() instanceof com.riverfishing.item.FryItem) {   // §c: fry take the same road in
                         com.riverfishing.fishing.FishingManager.releaseFry(sl, entity.blockPosition(),
                                 com.riverfishing.item.FryItem.species(stack), com.riverfishing.item.FryItem.genome(stack),
-                                com.riverfishing.item.FryItem.count(stack), thrower);
+                                com.riverfishing.item.FryItem.count(stack), thrower,
+                                com.riverfishing.item.RoeItem.pattern(stack));   // §pattern
                     }
                     Identifier released = stack.getItem() instanceof FishItem ? getSpecies(stack) : null;
                     if (released != null) {
@@ -210,8 +211,10 @@ public class FishItem extends Item {
      */
     public static void stampIcon(ItemStack stack) {
         Identifier sp = getSpecies(stack);
+        // §pattern: the index rides in with the species — a gem paints the fish whatever it is.
+        int pattern = com.riverfishing.fish.CatchCard.pattern(stack);
         int tint = sp == null ? -1
-                : com.riverfishing.fish.FishMorph.tint(sp.getPath(), getAge(stack), getMorph(stack));
+                : com.riverfishing.fish.FishMorph.tint(sp.getPath(), getAge(stack), getMorph(stack), pattern);
         java.util.List<Integer> colors = java.util.List.of(tint);
         // §koi-genes: a koi carries FOUR tints — ground, red hi, black sumi and the tancho crown — one
         // per layer of its icon, because one white sprite paints all nine named varieties. On 1.21.1
@@ -219,10 +222,10 @@ public class FishItem extends Item {
         if (sp != null && "koi_carp".equals(sp.getPath())) {
             String variety = com.riverfishing.fish.CatchCard.of(stack).getStringOr("Variety", "");
             colors = java.util.List.of(
-                    com.riverfishing.fish.FishMorph.koiTint(variety, 0),
-                    com.riverfishing.fish.FishMorph.koiTint(variety, 1),
-                    com.riverfishing.fish.FishMorph.koiTint(variety, 2),
-                    com.riverfishing.fish.FishMorph.koiTint(variety, 3));
+                    com.riverfishing.fish.FishMorph.koiTint(variety, 0, pattern),
+                    com.riverfishing.fish.FishMorph.koiTint(variety, 1, pattern),
+                    com.riverfishing.fish.FishMorph.koiTint(variety, 2, pattern),
+                    com.riverfishing.fish.FishMorph.koiTint(variety, 3, pattern));
         }
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
                 new net.minecraft.world.item.component.CustomModelData(
