@@ -36,6 +36,11 @@ TREES = [MAIN, r"C:/Users/Qwazar/wt/rf1201", r"C:/Users/Qwazar/wt/rf26"]
 A = "common/src/main/resources/assets/riverfishing"
 SP = "koi_carp"
 LAYERS = ["", "_hi", "_sumi", "_crown"]      # layer0 is the sprite itself — no second copy of it
+# §koi-eye: layer4, drawn on top and NEVER tinted — FishTint returns -1 for any layer past the
+# four the genotype paints, and the 26.x item definition lists four tint sources for the same
+# reason. Without it the eye took the ground colour with the rest of the fish and a platinum koi
+# went blank. Authored by hand, like the masks: it is not cut from anything.
+EYE = "koi_eye"
 
 # Patches as (x, y, radius) in the BODY's own box, 0..1, x from the head; the radius is a fraction of
 # the body's LENGTH. Three fields of hi over the shoulder, the back and the flank; three smaller sumi
@@ -90,6 +95,10 @@ def masks(src):
 
 
 def write_layers(tree, a, ms):
+    """Cut the three patch masks out of the sprite.
+
+    OFF by default since the author redrew them by hand: this would overwrite real artwork with a
+    generated approximation, and the loss would be silent. Pass --masks to regenerate anyway."""
     d = os.path.join(tree, A, "textures/item/fish")
     for name, m in zip(LAYERS[1:], ms):
         px = a.copy()
@@ -99,7 +108,9 @@ def write_layers(tree, a, ms):
 
 
 def layer_textures():
-    return {"layer%d" % i: "riverfishing:item/fish/" + SP + n for i, n in enumerate(LAYERS)}
+    tex = {"layer%d" % i: "riverfishing:item/fish/" + SP + n for i, n in enumerate(LAYERS)}
+    tex["layer%d" % len(LAYERS)] = "riverfishing:item/fish/" + EYE      # §koi-eye, untinted
+    return tex
 
 
 def write_models(tree):
@@ -162,10 +173,13 @@ def preview(a, ms, path):
 def main():
     src = os.path.join(MAIN, A, "textures/item/fish", SP + ".png")
     a, ms = masks(src)
+    masks_too = "--masks" in sys.argv
     for tree in TREES:
-        write_layers(tree, a, ms)
-        print("  %-28s layers %s, models %s"
-              % (os.path.basename(tree), len(LAYERS) - 1, ",".join(write_models(tree)) or "none"))
+        if masks_too:
+            write_layers(tree, a, ms)
+        print("  %-28s masks %s, models %s"
+              % (os.path.basename(tree), "rewritten" if masks_too else "left alone (hand-drawn)",
+                 ",".join(write_models(tree)) or "none"))
     if "--preview" in sys.argv:
         preview(a, ms, os.path.join(MAIN, "tools", "koi_preview.png"))
     return 0
