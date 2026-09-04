@@ -3730,6 +3730,14 @@ public final class FishingManager {
             // §chart-far: and the seed the chart paints the regions off. A scramble of the world's, on
             // purpose: the client needs the map, it does not need the world.
             w.putLong("seed", com.riverfishing.water.Provinces.mapSeed(level.getSeed()));
+            // §chart-item: and WHOSE chart this sounding belongs on. Only a full sounding carries it —
+            // the strip a rod puts on the HUD must never switch the chart under a player who is fishing
+            // with a finder in the other hand. Minting here means a finder that has never seen water
+            // has no id, so an unused one off the shelf is blank rather than pre-registered.
+            ItemStack finder = com.riverfishing.item.FinderChart.held(sp);
+            if (!finder.isEmpty()) {
+                w.putString("chart", com.riverfishing.item.FinderChart.mint(finder));
+            }
             // §o: where the angler stands with the fishermen, and how much of a kilogram is banked.
             w.putInt("rep", Contracts.rep(sp));
             w.putInt("rep_grams", Warden.repGrams(sp));
