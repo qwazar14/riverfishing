@@ -48,9 +48,9 @@ public final class PlatformHelperImpl {
 
     /**
      * §oil-brew-item: an EMPTY bottle with a fish over it, rendered into oil. Forge's brewing registry
-     * takes any recipe object, so this needs nothing from vanilla — 1.20.1 has no PotionBrewing.Builder
-     * to ask, which is the whole reason the other three trees do it in one shared line and this one does
-     * not.
+     * takes any recipe object, which is the whole reason this exists here and not in the shared code:
+     * vanilla's own tables type-check both ends as potions, so a glass bottle in and a tin of oil out
+     * is not something they will hold on any version.
      */
     private record OilMix(Item bottle, Item fish, Item oil) implements IBrewingRecipe {
         @Override
