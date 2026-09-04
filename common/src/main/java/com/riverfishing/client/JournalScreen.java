@@ -2335,6 +2335,9 @@ public class JournalScreen extends Screen {
      * grid reads left to right as the sequence the bands actually paint.
      */
     private int patternRow(GuiGraphics g, ResourceLocation id, int y) {
+        // §pattern-gate: a species that does not wear a pattern has no board to fill, and an old world
+        // whose journal recorded families for a perch simply stops drawing them.
+        if (!com.riverfishing.registry.ModItemTags.patterned(id)) return y;
         String[] fam = com.riverfishing.fish.Pattern.families();
         int seen = com.riverfishing.fishing.JournalData.patternsSeen(data, id);
         y += 6;

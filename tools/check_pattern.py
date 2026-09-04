@@ -298,6 +298,38 @@ elif (float(mv.group(1)), float(mv.group(2)), float(mv.group(3))) != (6.0, 1.5, 
         % mv.groups())
 
 
+# ---- §pattern-gate: whose fish wear one ------------------------------------------------------------
+# The index is the carps' and the koi's. Two lines in CatchCard hold that: one so nothing else is GIVEN
+# an index, one so nothing else READS one it was given before the gate. If either goes, every species
+# quietly grows the row back — which is exactly the report this gate came from.
+import json
+TAGF = ""
+for d in ("item", "items"):     # 1.21 renamed the folder to the singular; 1.20.1 still says items
+    cand = os.path.join(ROOT, "common/src/main/resources/data/riverfishing/tags", d, "patterned.json")
+    if os.path.exists(cand):
+        TAGF = cand
+if not TAGF:
+    die("no riverfishing:patterned tag — every species would wear a pattern again")
+else:
+    vals = json.load(io.open(TAGF, encoding="utf-8"))["values"]
+    if not vals:
+        die("the patterned tag is empty: nothing would ever roll an index")
+    for v in vals:
+        if "carp" not in v and "koi" not in v:
+            die("%s is in the patterned tag, but only the carps and the koi are painted by an index" % v)
+
+card = io.open(os.path.join(ROOT, "common/src/main/java/com/riverfishing/fish/CatchCard.java"),
+               encoding="utf-8").read()
+if "if (!com.riverfishing.registry.ModItemTags.patterned(fish)) return Pattern.NONE;" not in card:
+    die("CatchCard.pattern(stack) no longer gates on the tag: old cards would show rows again")
+if "!com.riverfishing.registry.ModItemTags.patterned(p.id)) return Pattern.NONE;" not in card:
+    die("CatchCard.rollPattern no longer gates on the tag: every species would roll an index again")
+tags = io.open(os.path.join(ROOT, "common/src/main/java/com/riverfishing/registry/ModItemTags.java"),
+               encoding="utf-8").read()
+if 'RiverFishing.id("patterned")' not in tags:
+    die("ModItemTags has no PATTERNED key")
+
+
 if fails:
     print("FAILED:")
     for x in fails:

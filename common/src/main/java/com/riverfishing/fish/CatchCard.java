@@ -71,6 +71,10 @@ public final class CatchCard {
      * perfectly good pattern — every old fish in every chest would have become a plain-band specimen.
      */
     public static int pattern(ItemStack fish) {
+        // §pattern-gate: only the tagged species wear one. A fish landed while every species rolled an
+        // index keeps the number in its NBT and simply stops reading it — no row, no gem paint, no
+        // price term — so an old world cleans itself up without touching a single card.
+        if (!com.riverfishing.registry.ModItemTags.patterned(fish)) return Pattern.NONE;
         return pattern(has(fish) ? of(fish) : null);
     }
 
@@ -88,6 +92,8 @@ public final class CatchCard {
      * bred toward a family and released go on breeding toward it.
      */
     private static int rollPattern(ServerLevel level, BlockPos where, FishProfile p, Random rng) {
+        // §pattern-gate: a species outside `riverfishing:patterned` is never given one in the first place.
+        if (p == null || !com.riverfishing.registry.ModItemTags.patterned(p.id)) return Pattern.NONE;
         int bred = p == null ? Pattern.NONE : com.riverfishing.fishing.StockedData.get(level)
                 .pattern(com.riverfishing.fishing.StockedData.region(where), p.id.getPath());
         return Pattern.has(bred) ? Pattern.inherit(bred, bred, rng)
