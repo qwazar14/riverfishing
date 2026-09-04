@@ -24,4 +24,18 @@ public final class PlatformHelper {
     public static boolean isModLoaded(String modId) {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
     }
+
+    /**
+     * Puts the Potion of Fish Oil into the brewing stand (§fish-oil-potion). Brewing is the one recipe type
+     * that is CODE, not JSON, in every dialect the mod ships on, and 1.20.1's two loaders do not even agree
+     * on what a brewing recipe IS — Fabric appends to vanilla's static mix table, Forge keeps a list of its
+     * own {@code IBrewingRecipe}s. So the mixes are stated once in {@code ModPotions.addMixes} and each
+     * implementation here only says how its loader is told.
+     *
+     * <p>Called once from {@link com.riverfishing.RiverFishing#init()}, after the potions are queued.
+     */
+    @ExpectPlatform
+    public static void registerBrewing() {
+        throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
+    }
 }

@@ -290,6 +290,23 @@ public final class ModVillagers {
         buyPrime(fish, 5, "sturgeon", 26, 38);
         buyPrime(fish, 5, "halibut", 22, 34);
 
+        // §scale-genes (0.9.0): priced against the fish they swim beside.
+        buyPrime(fish, 4, "linear_carp", 7, 13);
+
+        // §deep-twelve (0.9.0): priced against the fish they swim beside.
+        buyPrime(fish, 3, "mullet", 4, 7);
+        buyPrime(fish, 5, "anglerfish", 15, 27);
+        buyPrime(fish, 5, "black_marlin", 32, 46);
+        buyPrime(fish, 4, "blobfish", 5, 10);
+        buyPrime(fish, 5, "bluefin_tuna", 28, 40);
+        buyPrime(fish, 1, "loach", 1, 2);
+        buyPrime(fish, 5, "whale_shark", 40, 60);
+        buyPrime(fish, 5, "nelma", 13, 24);
+        buyPrime(fish, 5, "ocean_sunfish", 16, 28);
+        buyPrime(fish, 4, "pollock", 4, 8);
+        buyPrime(fish, 3, "red_piranha", 3, 5);
+        buyPrime(fish, 5, "tiger_shark", 26, 38);
+
         // §giants-and-minnows (0.8.0): the giants pay like the taimen tier they sit beside,
         // the minnows like the bleak they swim with.
         buyPrime(fish, 3, "kutum", 5, 9);
@@ -474,7 +491,7 @@ public final class ModVillagers {
     /** "Ss Cc Vv Ff"-style: every allele a coin, the strong one written first — shop fry are ordinary fry. */
     public static String randomGenome(net.minecraft.util.RandomSource rng) {   // §i: the warden's fry too
         StringBuilder g = new StringBuilder();
-        for (char L : com.riverfishing.fish.Genome.LOCI.toCharArray()) {
+        for (char L : com.riverfishing.fish.Genome.COMMON_LOCI.toCharArray()) {   // §scale-genes: not K/N
             char l = Character.toLowerCase(L);
             int caps = (rng.nextBoolean() ? 1 : 0) + (rng.nextBoolean() ? 1 : 0);
             if (g.length() > 0) g.append(' ');
@@ -531,7 +548,10 @@ public final class ModVillagers {
      * nobody takes. The trade table IS the answer, so there is no second list to drift.
      */
     public static java.util.List<String> buyableSpecies() {
-        return BUY_TIER.keySet().stream().sorted().toList();
+        // §scale-genes: the counter still BUYS a mirror carp out of an old chest; it just cannot
+        // order one, because no water hands one out any more.
+        return BUY_TIER.keySet().stream()
+                .filter(sp -> !com.riverfishing.fish.Genome.isVarietyId(sp)).sorted().toList();
     }
 
     /**

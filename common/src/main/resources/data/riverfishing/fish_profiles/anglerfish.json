@@ -1,0 +1,94 @@
+{
+  "display": "Морской чёрт",
+  "latin": "Lophius piscatorius",
+  "spawn": { "season": "spring", "sub": "early" },
+  "group": "sea",
+  "water_bodies": {
+    "sea": 1.0,
+    "river": 0.0,
+    "lake": 0.0,
+    "pond": 0.0,
+    "swamp": 0.0,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 2000,
+    "max": 40000,
+    "mean": 7000
+  },
+  "length_cm": {
+    "min": 40,
+    "max": 150
+  },
+  "fight": {
+    "strength": 0.5,
+    "stamina": 0.4,
+    "runs": 1,
+    "pattern": "steady",
+    "aggression": 0.2
+  },
+  "ideal": {
+    "rod": [
+      "boat",
+      "bottom"
+    ],
+    "reel_size": 10000,
+    "reel_tolerance": 2000,
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.3,
+      "tolerance_mm": 0.08
+    },
+    "rig": [
+      "catfish",
+      "grusha"
+    ],
+    "groundbait": {
+      "fraction": 0.72,
+      "nutrition": 0.8
+    },
+    "bait": {
+      "livebait": 1.1,
+      "fish_strip": 1.0
+    },
+    "hook": {
+      "ideal": 1,
+      "tolerance": 2
+    },
+    "requires_leader": true
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 0.8,
+    "autumn": 1.1,
+    "winter": 1.2
+  },
+  "time": {
+    "dawn": 0.8,
+    "day": 0.5,
+    "dusk": 1.1,
+    "night": 1.5
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.0,
+    "thunder": 0.9
+  },
+  "depth_pref": "bottom",
+  "distance_pref": {
+    "min": 20,
+    "max": 45
+  },
+  "habitat": {
+    "depth_min": 12,
+    "width_min": 24
+  },
+  "biomes": {
+    "deep": 1.4,
+    "cold": 1.2,
+    "temperate": 0.8,
+    "ocean_biome": 0.5
+  },
+  "base": 0.22,
+  "min_angler_level": 8
+}

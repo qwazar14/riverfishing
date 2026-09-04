@@ -1,0 +1,93 @@
+{
+  "display": "Китовая акула",
+  "latin": "Rhincodon typus",
+  "spawn": { "season": "summer" },
+  "group": "big_game",
+  "water_bodies": {
+    "sea": 1.0,
+    "river": 0.0,
+    "lake": 0.0,
+    "pond": 0.0,
+    "swamp": 0.0,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 500000,
+    "max": 20000000,
+    "mean": 2500000
+  },
+  "length_cm": {
+    "min": 400,
+    "max": 1200
+  },
+  "fight": {
+    "strength": 0.15,
+    "stamina": 1.0,
+    "runs": 8,
+    "pattern": "relentless",
+    "aggression": 0.1
+  },
+  "ideal": {
+    "rod": [
+      "trolling",
+      "boat"
+    ],
+    "reel_size": 14000,
+    "reel_tolerance": 1000,
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.6,
+      "tolerance_mm": 0.05
+    },
+    "rig": [
+      "catfish",
+      "grusha"
+    ],
+    "groundbait": {
+      "fraction": 1.0,
+      "nutrition": 1.0
+    },
+    "bait": {
+      "fish_strip": 0.35,
+      "livebait": 0.3
+    },
+    "hook": {
+      "ideal": 1,
+      "tolerance": 1
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 1.2,
+    "autumn": 1.0,
+    "winter": 0.6
+  },
+  "time": {
+    "dawn": 1.1,
+    "day": 1.2,
+    "dusk": 1.0,
+    "night": 0.5
+  },
+  "weather": {
+    "clear": 1.2,
+    "rain": 0.8,
+    "thunder": 0.4
+  },
+  "depth_pref": "surface",
+  "distance_pref": {
+    "min": 35,
+    "max": 45
+  },
+  "habitat": {
+    "depth_min": 14,
+    "width_min": 28
+  },
+  "biomes": {
+    "deep": 1.5,
+    "warm": 1.4,
+    "ocean_biome": 0.3
+  },
+  "base": 0.03,
+  "min_angler_level": 12
+}

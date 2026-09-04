@@ -61,7 +61,7 @@ for x in range(4, 12):
     put(x, 7, OIL_DK if x in (4, 11) else OIL_HI)
 
 
-def png(path, rows):
+def png(path, rows, w=W, h=H):
     raw = b"".join(b"\x00" + b"".join(struct.pack("4B", *p) for p in row) for row in rows)
 
     def chunk(tag, data):
@@ -71,7 +71,7 @@ def png(path, rows):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as f:
         f.write(b"\x89PNG\r\n\x1a\n")
-        f.write(chunk(b"IHDR", struct.pack(">IIBBBBB", W, H, 8, 6, 0, 0, 0)))
+        f.write(chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0)))
         f.write(chunk(b"IDAT", zlib.compress(raw, 9)))
         f.write(chunk(b"IEND", b""))
 
@@ -81,3 +81,14 @@ OUT = os.path.join(REPO, "common", "src", "main", "resources", "assets", "riverf
                    "textures", "item", "fish_oil.png")
 png(OUT, px)
 print("%s  %dx%d" % (OUT, W, H))
+
+# §fish-oil-potion: the same jar again as an 18x18 mob-effect icon, which is the size vanilla's effect
+# atlas expects — a 16x16 there would be stitched wrong, and a MISSING one draws the pink checkerboard.
+# The potion asks for showIcon=false so this never reaches the HUD; it is what the inventory effect list
+# and any status-effect readout draw. One pixel of air on every side centres the item art in the frame.
+BLANK = [(0, 0, 0, 0)] * (W + 2)
+effect = [list(BLANK)] + [[CLEAR] + row + [CLEAR] for row in px] + [list(BLANK)]
+OUT_EFFECT = os.path.join(REPO, "common", "src", "main", "resources", "assets", "riverfishing",
+                          "textures", "mob_effect", "fish_oil.png")
+png(OUT_EFFECT, effect, W + 2, H + 2)
+print("%s  %dx%d" % (OUT_EFFECT, W + 2, H + 2))

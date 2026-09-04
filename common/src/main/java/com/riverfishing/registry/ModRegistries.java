@@ -12,6 +12,8 @@ public final class ModRegistries {
     private ModRegistries() {}
 
     public static void init() {
+        ModEffects.init();       // §fish-oil-potion: before ModPotions — a Potion's effect list needs it bound
+        ModPotions.init();
         ModBlocks.init();        // also queues block-items into ModItems.REGISTER (class-load side effect)
         ModItems.init();
         ModBlockEntities.init();

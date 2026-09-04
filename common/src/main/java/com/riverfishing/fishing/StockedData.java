@@ -263,8 +263,10 @@ public final class StockedData extends SavedData {
     // them for free, and tickSettle leaves them: a settled water remembers what it was stocked with.
     private static void tally(CompoundTag t, String genome) {
         if (genome == null || genome.isEmpty()) return;
-        for (int i = 0; i < com.riverfishing.fish.Genome.LOCI.length(); i++) {
-            char l = com.riverfishing.fish.Genome.LOCI.charAt(i);
+        // §scale-genes: the four loci every fish carries, never the carp's K/N — a population
+        // has no average scale cover, and Dom4/Dom5 would be counters nothing ever reads.
+        for (int i = 0; i < com.riverfishing.fish.Genome.COMMON_LOCI.length(); i++) {
+            char l = com.riverfishing.fish.Genome.COMMON_LOCI.charAt(i);
             int dom = !com.riverfishing.fish.Genome.dominant(genome, l) ? 0
                     : com.riverfishing.fish.Genome.pure(genome, l) ? 2 : 1;
             t.putInt("Dom" + i, t.getInt("Dom" + i) + dom);
@@ -293,7 +295,7 @@ public final class StockedData extends SavedData {
         double[] s = shares(region, species);
         StringBuilder out = new StringBuilder();
         for (int i = 0; i < 4; i++) {
-            char u = com.riverfishing.fish.Genome.LOCI.charAt(i), l = Character.toLowerCase(u);
+            char u = com.riverfishing.fish.Genome.COMMON_LOCI.charAt(i), l = Character.toLowerCase(u);
             if (i > 0) out.append(' ');
             out.append(s[i] >= 0.66 ? u : l).append(s[i] >= 0.33 ? u : l);
         }
