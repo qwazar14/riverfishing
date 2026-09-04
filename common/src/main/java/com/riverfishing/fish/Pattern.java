@@ -55,7 +55,17 @@ public final class Pattern {
      * families read as a SEQUENCE — a plain fish is the sprite as drawn, and an aurora is as far from
      * it as the mod will go without becoming a different animal.
      */
-    private static final int[] HUE = {0, 8, -10, 18, -20, 28, -30, 40, -42, 55, -58, 70};
+    private static final int[] HUE = {0, 3, -4, 6, -7, 9, -11, 12, -14, 15, -17, 18};
+
+    /**
+     * §pattern-hue: and how much lighter or darker, in value. The families used to be hue alone, which
+     * meant hue had to reach ±70° to tell twelve of them apart — and 60° turns a red koi green, which
+     * is what the first test chest showed. Half the work moves here: a family is now a few degrees of
+     * hue AND a lift or a shade, so the twelve read as pale, deep, warm and cool specimens of the same
+     * fish. Same indexing as {@link #HUE} and {@link #FAMILY}.
+     */
+    private static final double[] LIFT = {0.0, 0.06, -0.06, 0.10, -0.10, 0.04,
+                                          -0.04, 0.12, -0.12, 0.08, -0.08, 0.14};
 
     /**
      * The rare zones: twelve exact indices, one inside each band, spread so no two share a family.
@@ -149,7 +159,9 @@ public final class Pattern {
      */
     public static int swatch(int familyIndex) {
         int i = Math.max(0, Math.min(HUE.length - 1, familyIndex));
-        return shift(0xC8A25A, HUE[i], 0.0);
+        // §pattern-hue: the board shows what the family actually does — its own turn AND its own lift.
+        // Exaggerating either here would make the journal promise a fish the water does not paint.
+        return shift(0xC8A25A, HUE[i], LIFT[i]);
     }
 
     /**
@@ -172,7 +184,9 @@ public final class Pattern {
         int i = familyIndex(pattern);
         int start = BAND[i], end = i + 1 < BAND.length ? BAND[i + 1] : MAX + 1;
         double t = (pattern - start) / (double) (end - start);      // 0..1 across the band
-        return HUE[i] + (t - 0.5) * 20.0;
+        // §pattern-hue: ±4° inside a band, not ±10. Neighbours are cousins; the ends of a band are a
+        // shade apart, not a colour apart.
+        return HUE[i] + (t - 0.5) * 8.0;
     }
 
     /**
@@ -240,7 +254,9 @@ public final class Pattern {
         if (!has(pattern)) return rgb;
         int gem = gemColor(pattern);
         if (gem >= 0) return gem;
-        return shift(rgb, hueShift(pattern), patch ? offset(pattern) * 0.03 : 0.0);
+        // §pattern-hue: the family's own lift, and on a PATCH the depth offset on top of it.
+        double lift = LIFT[familyIndex(pattern)] + (patch ? offset(pattern) * 0.03 : 0.0);
+        return shift(rgb, hueShift(pattern), lift);
     }
 
     /**

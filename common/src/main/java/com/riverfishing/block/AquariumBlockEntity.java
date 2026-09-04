@@ -35,7 +35,12 @@ public class AquariumBlockEntity extends BlockEntity implements net.minecraft.wo
     long spawnTicks;                 // §tank-days: world time the clutch run started, 0 = none
     long incubate;                   // §tank-days: world time incubation started, 0 = none
     ItemStack roe = ItemStack.EMPTY; // the roe slot: a RoeItem, or the FryItem it hatched into
-    int water;                       // 0..100, a fresh bucket is 100
+    /**
+     * §aq-water: 0..100. A tank starts FULL — the recipe pours a bucket of water into it, so a tank you
+     * have just placed is a tank you have just filled, and asking for a second bucket before the first
+     * fish can go in was asking twice for the same thing.
+     */
+    int water = 100;
     long waterAcc;                   // water change in percent-ticks not yet a whole percent (not saved)
     long clock;                      // world time the ticker last saw (not saved: a reload skips the gap)
     boolean oil;                     // fish oil was taken at the start of the current spawn run
@@ -186,7 +191,8 @@ public class AquariumBlockEntity extends BlockEntity implements net.minecraft.wo
         super.loadAdditional(tag);
         items.clear();
         ContainerHelper.loadAllItems(tag, items);
-        water = tag.getIntOr("Water", 0);
+        // §aq-water: an absent key is a tank that has never been saved, which is a full one.
+        water = tag.getIntOr("Water", 100);
         oil = tag.getBooleanOr("Oil", false);
         lastFood = tag.getStringOr("LastFood", "");
         fedUntil = tag.getLongOr("FedUntil", 0L);
