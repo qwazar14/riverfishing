@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "values": [
+    "riverfishing:carp",
+    "riverfishing:wild_carp",
+    "riverfishing:mirror_carp",
+    "riverfishing:linear_carp",
+    "riverfishing:naked_carp",
+    "riverfishing:koi_carp",
+    "riverfishing:carp_koi_kohaku",
+    "riverfishing:carp_koi_asagi",
+    "riverfishing:carp_koi_bekko",
+    "riverfishing:carp_koi_showa_sanke",
+    "riverfishing:carp_koi_tancho_sanke"
+  ]
+}

@@ -102,8 +102,7 @@ def main():
     return 0
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+_rc = main()
 
 
 # §recipe-result: 1.20.1 reads the result as {"item": ...}; "id" arrived in 1.20.5 and loads as
@@ -119,3 +118,37 @@ for _f in _glob.glob(_os.path.join(_os.path.dirname(_os.path.dirname(_os.path.ab
 if _bad:
     _sys.exit("result_key: these recipes use \"id\" for the result, which 1.20.1 cannot read: " + ", ".join(_bad))
 print("every recipe result uses the 1.20.1 result key")
+
+
+# §tag-folder: 1.20.1 reads item tags from data/<ns>/tags/ITEMS; 1.21.2 renamed the folder to the
+# singular. A tag file in the wrong folder is not an error anywhere — the tag simply loads EMPTY, and
+# every recipe that asks for it silently cannot be crafted. That is how `oily_fish` and `small_fish`
+# shipped in 0.9.0: the fish oil and the fish meal, and so the whole Potion of Fish Oil, did not exist
+# on this branch until this check was written.
+_data = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+                      "common", "src", "main", "resources", "data")
+_wrong = []
+for _ns in (sorted(_os.listdir(_data)) if _os.path.isdir(_data) else []):
+    _d = _os.path.join(_data, _ns, "tags", "item")
+    if _os.path.isdir(_d):
+        _wrong += [_ns + "/tags/item/" + f for f in sorted(_os.listdir(_d))]
+if _wrong:
+    _sys.exit("tag_folder: 1.20.1 reads tags/items, not tags/item — these load as EMPTY tags: "
+              + ", ".join(_wrong))
+
+# and every tag a recipe asks for must actually be a file, whatever folder it thinks it is in
+_missing = []
+for _f in _glob.glob(_os.path.join(_data, "riverfishing", "recipes", "*.json")):
+    for _t in set(_json.dumps(_json.load(open(_f, encoding="utf-8")))
+                  .split('"tag": "')[1:]):
+        _tag = _t.split('"')[0]
+        _ns, _, _name = _tag.partition(":")
+        if _ns != "riverfishing":       # vanilla's own tags are not in this folder and never will be
+            continue
+        if not _os.path.exists(_os.path.join(_data, _ns, "tags", "items", _name + ".json")):
+            _missing.append(_os.path.basename(_f) + " -> " + _tag)
+if _missing:
+    _sys.exit("tag_folder: these recipes ask for a tag with no file under tags/items: " + ", ".join(_missing))
+print("item tags live where 1.20.1 looks for them")
+
+sys.exit(_rc)
