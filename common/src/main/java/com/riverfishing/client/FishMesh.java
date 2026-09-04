@@ -140,7 +140,7 @@ public final class FishMesh {
 
         // The swimming wave, as on the flat fish: grows toward the tail, runs on the tail's beat.
         float amp = size * (0.05f + 0.09f * f.kick);
-        float phase = time * (0.35f + 0.45f * f.kick) + f.phase * 5f;
+        float phase = f.tail + f.phase * 5f;
 
         // §fish-3d-section: six vertices a ring — ridge, upper flank, lower flank, keel, each side.
         // The first cut was a four-point diamond, which put the sprite's top half on a face sloping
