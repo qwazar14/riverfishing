@@ -37,8 +37,9 @@ public final class KeepnetSale {
         if (base <= 0) return 0;
         int market = MarketData.get(level).price(level, species.getPath(), base);
         // §koi-genes: a koi's variety is most of what it is worth — a tancho is not just a big carp.
+        // §pattern: and by its pattern index — a gem is six times the fish, wherever it is sold.
         market = (int) Math.max(1, Math.round(market * com.riverfishing.fish.Genome.varietyValue(
-                CatchCard.of(fish).getString("Variety"))));
+                CatchCard.of(fish).getString("Variety"), CatchCard.pattern(fish))));
         if (FishItem.isPrime(fish)) return market;
         // §netted-card: a netted fish carries a card now, but it is still a third — nobody saw it bite.
         boolean netted = !CatchCard.has(fish) || CatchCard.of(fish).getBoolean("Net");
