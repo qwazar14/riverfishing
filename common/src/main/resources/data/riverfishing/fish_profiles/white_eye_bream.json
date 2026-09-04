@@ -23,6 +23,7 @@
   "distance_pref": { "min": 10, "max": 35 },
   "habitat": { "depth_min": 4, "width_min": 12 },
   "provinces": ["palearctic"],
+  "breeds_with": ["blue_bream", "bream", "white_bream"],
   "biomes": { "temperate": 1.1, "cold": 0.9 },
   "base": 0.8,
   "min_angler_level": 2

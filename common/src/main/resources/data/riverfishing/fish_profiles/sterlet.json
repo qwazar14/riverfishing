@@ -23,6 +23,7 @@
   "distance_pref": { "min": 12, "max": 40 },
   "habitat": { "depth_min": 5, "width_min": 18 },
   "provinces": ["palearctic"],
+  "breeds_with": ["beluga", "sturgeon"],
   "biomes": { "temperate": 1.0 },
   "base": 0.35,
   "min_angler_level": 8

@@ -16,7 +16,8 @@ Two things this catches that a successful `gradlew build` does not:
 --install disables the previous version by renaming it to `.jar.disabled` instead of deleting it, so a
 rollback mid-test is one rename. It never touches a jar that is not ours.
 """
-import glob, io, json, os, shutil, sys, zipfile
+import glob
+import time, io, json, os, shutil, sys, zipfile
 
 from collect_release import mod_version
 
@@ -71,6 +72,17 @@ def inspect(jar):
     return out
 
 
+def running(inst, within=180):
+    """§live-instance: has this instance's log been written to just now? Then the game is up."""
+    log = os.path.join(INST, inst, "minecraft", "logs", "latest.log")
+    if not os.path.exists(log):
+        log = os.path.join(INST, inst, ".minecraft", "logs", "latest.log")
+    try:
+        return os.path.exists(log) and (time.time() - os.path.getmtime(log)) < within
+    except OSError:
+        return False
+
+
 def main(install):
     bad = 0
     for inst, pat in TARGETS:
@@ -93,6 +105,15 @@ def main(install):
             print("   jar content: 3 locales, %d keys, Discord link present" % info["keys"])
 
         if install:
+            # §live-instance: swapping the jar under a RUNNING game is not a no-op. The class loader
+            # holds the zip open, so every class that has not been loaded yet becomes unreadable —
+            # `ZipException: invalid LOC header` — and the game runs on with a hole in it. It
+            # cost an hour once, reported as "on 1.20.1 Fabric you cannot open the rod": the anonymous
+            # menu provider inside RodItem had simply never been loaded before the swap.
+            if running(inst):
+                print("   RUNNING: this instance was writing its log a moment ago. The jar is being "
+                      "swapped under it, so anything it has not loaded yet will fail to load until "
+                      "it is RESTARTED.")
             for old in sorted(glob.glob(os.path.join(mods, "riverfishing-*.jar"))):
                 if os.path.basename(old) == os.path.basename(src):
                     continue

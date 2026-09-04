@@ -334,13 +334,30 @@ public final class AquariumBreeding {
             if (sp == null) continue;
             for (ItemStack m : be.getFishes()) {
                 if (m != f && CatchCard.has(m) && CatchCard.of(m).getByte("Sex") == 1
-                        && sp.equals(FishItem.getSpecies(m))) {
+                        && mates(sp, FishItem.getSpecies(m))) {
                     best = new ItemStack[]{f, m};
                     break;
                 }
             }
         }
         return best;
+    }
+
+    /**
+     * §breeds-with: whether these two will spawn together. The same id always will; beyond that a
+     * profile names the ids it accepts, and EITHER side naming the other is enough — a table written
+     * only one way round is a mistake in the data, and refusing the pair would hide it rather than
+     * report it. tools/check_breeds.py is what reports it.
+     *
+     * <p>The fry are the mother's species either way (the roe is built from {@code pair[0]}), so a
+     * cross is a way of moving BLOOD between two ids, never a way of making a third one.
+     */
+    private static boolean mates(ResourceLocation a, ResourceLocation b) {
+        if (a == null || b == null) return false;
+        if (a.equals(b)) return true;
+        FishProfile pa = profile(a), pb = profile(b);
+        return (pa != null && pa.breedsWith.contains(b.getPath()))
+                || (pb != null && pb.breedsWith.contains(a.getPath()));
     }
 
     /** Both at least an adult (Card.Size 2): babies and juveniles keep growing, they do not spawn. */
