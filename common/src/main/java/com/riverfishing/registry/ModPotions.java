@@ -69,8 +69,25 @@ public final class ModPotions {
      * vanilla's chain (gunpowder/dragon's breath swap the bottle and keep the potion) and so already work
      * for anything in the POTION registry.
      */
+    /**
+     * §oil-brew: the fish a stand will render down — the same nine as the {@code oily_fish} item tag the
+     * furnace reads. It has to be written twice: a tag is datapack-time and the brewing table is built
+     * before any datapack is read, so there is nothing to look the tag up in. tools/check_oil_brew.py
+     * is what keeps the two copies the same list.
+     */
+    private static final String[] OILY = {"herring", "mackerel", "salmon", "pink_salmon", "sabrefish",
+                                          "eel", "bluefish", "bluefin_tuna", "pollock"};
+
     public static void addMixes(PotionBrewing.Builder builder) {
         builder.addMix(Potions.WATER, ModItems.FISH_OIL.get(), FISH_OIL);
+        // §oil-brew: and the FISH itself, over an awkward base. The oil had one source, a furnace, and a
+        // smoker runs no smelting recipe — so the obvious tool for a fish did nothing and the oil looked
+        // unobtainable. The rendering step is still there for anyone who wants the ingredient.
+        for (String sp : OILY) {
+            var fish = ModItems.FISH_ITEMS.get(com.riverfishing.RiverFishing.id(sp));
+            if (fish != null) builder.addMix(Potions.AWKWARD, fish.get(), FISH_OIL);
+        }
+        builder.addMix(Potions.AWKWARD, ModItems.FISH_OIL.get(), FISH_OIL);
         builder.addMix(FISH_OIL, Items.GLOWSTONE_DUST, STRONG_FISH_OIL);
         builder.addMix(FISH_OIL, Items.REDSTONE, LONG_FISH_OIL);
     }

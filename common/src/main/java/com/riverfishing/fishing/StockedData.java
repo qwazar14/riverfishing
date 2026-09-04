@@ -290,15 +290,59 @@ public final class StockedData extends SavedData {
     // them for free, and tickSettle leaves them: a settled water remembers what it was stocked with.
     private static void tally(CompoundTag t, String genome) {
         if (genome == null || genome.isEmpty()) return;
-        // §scale-genes: the four loci every fish carries, never the carp's K/N — a population
-        // has no average scale cover, and Dom4/Dom5 would be counters nothing ever reads.
-        for (int i = 0; i < com.riverfishing.fish.Genome.COMMON_LOCI.length(); i++) {
-            char l = com.riverfishing.fish.Genome.COMMON_LOCI.charAt(i);
+        // §stocked-genes: EVERY locus, not the four common ones. The old comment said a population has
+        // no average scale cover, which is true and beside the point — a population has a scale-gene
+        // FREQUENCY, and without it nothing a player stocks about how a fish looks is written down at
+        // all. Dom0..3 keep their meaning (and the global Tot with them, for shares()); the rest are
+        // new counters with their own totals, because a locus only the carps carry is only counted on
+        // the fish that carry it.
+        String loci = com.riverfishing.fish.Genome.LOCI;
+        int pairs = com.riverfishing.fish.Genome.pairs(genome);
+        for (int i = 0; i < loci.length(); i++) {
+            if (i >= pairs) break;                       // this fish does not carry that locus
+            char l = loci.charAt(i);
             int dom = !com.riverfishing.fish.Genome.dominant(genome, l) ? 0
                     : com.riverfishing.fish.Genome.pure(genome, l) ? 2 : 1;
             t.putInt("Dom" + i, t.getInt("Dom" + i) + dom);
+            t.putInt("Tot" + i, t.getInt("Tot" + i) + 2);
         }
         t.putInt("Tot", t.getInt("Tot") + 2);
+    }
+
+    /**
+     * §stocked-genes: the rolled genome with the POOL's alleles laid over it — one independent draw
+     * per allele at the frequency this water holds, which is what makes a stocked pond give back what
+     * was stocked in it and in the proportions it was stocked. A locus nobody ever released here keeps
+     * whatever the roll gave it, so unstocked water behaves exactly as it always did.
+     */
+    public String overlay(long region, String species, String rolled, java.util.Random rng) {
+        CompoundTag t = brood.get(key(region, species));
+        if (t == null) return rolled;
+        String loci = com.riverfishing.fish.Genome.LOCI;
+        String[] had = rolled == null || rolled.isEmpty() ? new String[0] : rolled.split(" ");
+        StringBuilder out = new StringBuilder();
+        boolean any = false;
+        for (int i = 0; i < loci.length(); i++) {
+            char u = loci.charAt(i), l = Character.toLowerCase(u);
+            int tot = t.getInt("Tot" + i);
+            String pair;
+            if (tot > 0) {
+                double share = t.getInt("Dom" + i) / (double) tot;
+                char a = rng.nextDouble() < share ? u : l, b = rng.nextDouble() < share ? u : l;
+                if (a == l && b == u) { a = u; b = l; }   // dominant first, as it is written
+                pair = "" + a + b;
+                any = true;
+            } else if (i < had.length) {
+                pair = had[i];
+            } else {
+                // Never stocked and never rolled: the defaults Genome.pair() hands out for a string
+                // that stops short — a scaled carp, and the recessive of everything else.
+                pair = u == 'K' ? "KK" : u == 'N' ? "nn" : ("" + l + l);
+            }
+            if (i > 0) out.append(' ');
+            out.append(pair);
+        }
+        return any ? out.toString() : rolled;
     }
 
     /** Share of strong alleles per locus (S C V F), 0..1; all 0 where nothing was ever recorded. */

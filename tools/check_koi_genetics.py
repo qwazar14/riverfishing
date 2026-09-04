@@ -268,8 +268,14 @@ if common <= rare:
 c = io.open(CARD, encoding="utf-8").read()
 if 'Genome.koiGenome(g.toString(), v.substring(4), rng)' not in c:
     die("CatchCard no longer writes the koi's colour loci onto the card")
-if 'c.putString("Variety", "koi_" + Genome.koiVariety(g.toString()))' not in c:
+# §stocked-genes: read off the FINISHED genotype — which is the rolled one with the water's own pool
+# laid over it, so the string this reads is not always `g` any more. What matters is that the variety
+# is derived and never stored beside the alleles, and that it is derived AFTER the overlay.
+if 'c.putString("Variety", "koi_" + Genome.koiVariety(' not in c:
     die("CatchCard no longer reads the variety BACK off the genotype it just wrote")
+if "pool.apply(" in c and c.index("pool.apply(") > c.index('"koi_" + Genome.koiVariety('):
+    die("the variety is read before the water's pool is laid over the genome — a stocked pond would "
+        "name one fish and draw another")
 
 f = io.open(MANAGER, encoding="utf-8").read()
 if "Genome.wildKoi(random.nextDouble())" not in f:
