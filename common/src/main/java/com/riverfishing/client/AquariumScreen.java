@@ -28,7 +28,9 @@ public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
             "bad_water", "spawning", "roe_ready", "incubating", "fry_ready", "busy" };
     private static final int SPAWNING = 6, ROE_READY = 7, INCUBATING = 8, FRY_READY = 9;
     /** §scale-genes: the carp varieties data(10) indexes, spelled out for the same reason STATUS is. */
-    private static final String[] VARIETIES = { "scaled", "mirror", "linear", "naked" };
+    // §koi-metal: the window used to keep its own four-name list, so a koi pair in the tank showed
+    // nothing at all. One list now, the breeding rules' own, and it cannot drift again.
+    private static final String[] VARIETIES = com.riverfishing.block.AquariumBreeding.VARIETIES;
     private static final String[] SLOT_LABEL = { "fish", "fish", "fish", "fish", "fish", "fish",
             "food", "groundbait", "water", "result", "modules", "modules" };
 
@@ -94,7 +96,7 @@ public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
                 : menu.data(9) > 0 ? I18n.get(K + "clutch", menu.data(9)) : "";
         // §scale-genes: whose clutch it is — "Leather × Leather" is the whole explanation of a clutch a
         // quarter short, and of why the mirrors keep breeding true.
-        String pair = variety(menu.data(10) & 15), sire = variety(menu.data(10) >> 4);
+        String pair = variety(menu.data(10) & 255), sire = variety(menu.data(10) >> 8);
         if (!pair.isEmpty()) run = (run.isEmpty() ? "" : run + " · ") + pair + " × " + sire;
         if (!run.isEmpty()) g.drawString(font, font.plainSubstrByWidth(run, TEXT_W), 8, 88, COL_DIM, false);
 
@@ -123,7 +125,7 @@ public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
         }
     }
 
-    /** §scale-genes: one nibble of data(10) as the variety's own name, or "" when the fish is no carp. */
+    /** §scale-genes: one byte of data(10) as the variety's own name, or "" when the fish is no carp. */
     private static String variety(int nibble) {
         return nibble < 1 || nibble > VARIETIES.length ? ""
                 : I18n.get("variety.riverfishing." + VARIETIES[nibble - 1]);

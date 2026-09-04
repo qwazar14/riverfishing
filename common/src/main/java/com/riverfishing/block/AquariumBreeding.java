@@ -278,9 +278,10 @@ public final class AquariumBreeding {
         ItemStack[] pair = v[8] == 0 ? null : pair(be);
         FishProfile pp = pair == null ? null : profile(FishItem.getSpecies(pair[0]));
         v[9] = pp == null ? 0 : clutch(be, pair, pp);
-        // §scale-genes: the pair's scale varieties, ♀ then ♂, one per nibble (0 = not a carp). The
-        // window names them, so a clutch that came out a quarter short says why on its own.
-        v[10] = pair == null ? 0 : variety(pair[0]) | variety(pair[1]) << 4;
+        // §scale-genes: the pair's varieties, ♀ then ♂, one per BYTE (0 = not a carp). The window
+        // names them, so a clutch that came out a quarter short says why on its own.
+        // §koi-metal: a byte each, not a nibble — the metallic locus took the list past sixteen.
+        v[10] = pair == null ? 0 : variety(pair[0]) | variety(pair[1]) << 8;
     }
 
     /**
@@ -301,9 +302,9 @@ public final class AquariumBreeding {
     public static final String[] VARIETIES = varieties();
 
     /**
-     * §koi-genes: the four scale varieties, then the nine koi colour varieties in Genome's own table
-     * order — one list, so the window cannot drift from the genetics. Thirteen entries still index
-     * inside the nibble each parent is packed into in {@code v[10]}.
+     * §koi-genes: the four scale varieties, then every koi variety in Genome's own table order — one
+     * list, so the window cannot drift from the genetics. §koi-metal took it past sixteen, so each
+     * parent rides in a BYTE of {@code v[10]} rather than a nibble.
      */
     private static String[] varieties() {
         java.util.List<String> v = new java.util.ArrayList<>(

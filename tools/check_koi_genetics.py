@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""§koi-genes: the koi's three colour loci, checked against the Punnett squares they claim to teach.
+"""§koi-genes §koi-metal: the koi's four loci, checked against the Punnett squares they claim to teach.
 
     py -X utf8 tools/check_koi_genetics.py
 
 A koi variety is a genotype and the mod says so out loud — the journal page prints the table. So the
-table is checked here rather than trusted: every genotype names exactly one variety, all nine are
-reachable, a kohaku pair breeds kohaku plus the platinum hiding in it, a tancho needs both homozygotes
+table is checked here rather than trusted: every genotype names exactly one variety, all seventeen
+are reachable, a kohaku pair breeds kohaku plus the platinum hiding in it, a tancho needs both homozygotes
 at once, and the WILD table never rolls the two that must be bred.
 
 Like tools/check_carp_genetics.py, nothing here imports Minecraft or Java. The words, the loci string,
@@ -43,20 +43,27 @@ def table(name):
     return re.findall(r'"([^"]+)"', m.group(1))
 
 KOI_TABLE = [r.split("=") for r in table("KOI_TABLE")]
+mk = re.search(r'String KOI_LOCI = "([A-Z]+)"', src)
+KOI_LOCI = mk.group(1) if mk else "WRB"
 WILD = [(r.split("=")[0], int(r.split("=")[1])) for r in table("WILD_KOI")]
 NAMES = [v for _, v in KOI_TABLE]
 OLD = dict(re.findall(r"locus == '([WRB])' \? \"(\w\w)\"", src))
 OLD_IDS = dict(re.findall(r'"(carp_koi_\w+)", "(\w+)"', src))
 
 
-def variety(w, r, b):
-    """koiVariety, as Genome.java walks it: the FIRST row that fits names the fish."""
-    got = {"W": w, "R": r, "B": b}
+def variety(w, r, b, g="gg"):
+    """koiVariety, as Genome.java walks it: the FIRST row that fits names the fish.
+
+    §koi-metal added G, the lustre, as a fourth locus and "*" as a want that does not care — which is
+    what every row written before it carries, and why an old koi's variety cannot change."""
+    got = {"W": w, "R": r, "B": b, "G": g}
     for pat, name in KOI_TABLE:
         ok = True
-        for i, locus in enumerate("WRB"):
+        for i, locus in enumerate(KOI_LOCI):
             want, pair = pat[i * 2:i * 2 + 2], got[locus]
             dom = any(c.isupper() for c in pair)
+            if want[1] == "*":
+                continue
             if want[1] == "_":
                 ok = ok and dom
             elif want[1].isupper():
@@ -70,8 +77,10 @@ def variety(w, r, b):
 
 # ---- the table the design doc draws (docs/design/breeding-api.md, Layer 9) -------------------------
 
-if LOCI != "SCVFKNWRB":
-    die("LOCI is %r — the koi loci must be W, R then B, after the six a carp carries" % LOCI)
+if LOCI != "SCVFKNWRBG":
+    die("LOCI is %r — the koi loci must be W, R, B then G, after the six a carp carries" % LOCI)
+if KOI_LOCI != "WRBG":
+    die("KOI_LOCI is %r — the variety rows are written W R B G" % KOI_LOCI)
 if (OLD.get("W"), OLD.get("R"), OLD.get("B")) != ("WW", "Rr", "bb"):
     die("a koi card written before the colour loci defaults to %r, not WW/Rr/bb (kohaku): every koi "
         "already in a chest changes colour" % OLD)
@@ -82,20 +91,26 @@ for want_id, want_v in (("carp_koi_kohaku", "kohaku"), ("carp_koi_tancho_sanke",
         die("Genome maps the old id %s to %r, not %r — an old world's koi changes variety"
             % (want_id, OLD_IDS.get(want_id), want_v))
 
+# The eight matt varieties, the tancho above them, and §koi-metal's eight: the same eight colour bases
+# again with the lustre on. Gold is a karasu made metallic, which is the one that has to be bred for.
+METALLIC = {"kohaku": "sakura_ogon", "taisho_sanke": "yamatonishiki", "showa": "kin_showa",
+            "bekko": "gin_bekko", "asagi": "kujaku", "platinum": "ogon",
+            "hi_utsuri": "kin_hi_utsuri", "karasu": "yamabuki"}
 WANT = ["kohaku", "taisho_sanke", "showa", "bekko", "asagi", "platinum", "hi_utsuri", "karasu",
-        "tancho"]
+        "tancho"] + sorted(METALLIC.values())
 if sorted(NAMES) != sorted(WANT):
     die("the varieties are %s, the design doc names %s" % (sorted(NAMES), sorted(WANT)))
 
-# Every genotype: four ways to write each pair (both allele orders), 4^3 = 64 in all.
-PAIRS = {"W": ["WW", "Ww", "wW", "ww"], "R": ["RR", "Rr", "rR", "rr"], "B": ["BB", "Bb", "bB", "bb"]}
+# Every genotype: four ways to write each pair (both allele orders), 4^4 = 256 in all.
+PAIRS = {"W": ["WW", "Ww", "wW", "ww"], "R": ["RR", "Rr", "rR", "rr"], "B": ["BB", "Bb", "bB", "bb"],
+         "G": ["GG", "Gg", "gG", "gg"]}
 seen = {}
-for w, r, b in itertools.product(PAIRS["W"], PAIRS["R"], PAIRS["B"]):
-    v = variety(w, r, b)
+for w, r, b, g in itertools.product(PAIRS["W"], PAIRS["R"], PAIRS["B"], PAIRS["G"]):
+    v = variety(w, r, b, g)
     if v is None:
-        die("%s %s %s falls through the table and names no variety" % (w, r, b))
+        die("%s %s %s %s falls through the table and names no variety" % (w, r, b, g))
         continue
-    seen.setdefault(v, []).append((w, r, b))
+    seen.setdefault(v, []).append((w, r, b, g))
 
     # The biology, written out by hand — the doc's table, read as three yes/no questions.
     W, R, B = "W" in w, "R" in r, "B" in b
@@ -117,34 +132,46 @@ for w, r, b in itertools.product(PAIRS["W"], PAIRS["R"], PAIRS["B"]):
         want = "hi_utsuri"
     else:
         want = "karasu"
+    # §koi-metal: the lustre renames the fish it is on — except a tancho, which outranks it.
+    if "G" in g and want != "tancho":
+        want = METALLIC[want]
     if v != want:
-        die("%s %s %s reads as %r, the table says %r" % (w, r, b, v, want))
+        die("%s %s %s %s reads as %r, the table says %r" % (w, r, b, g, v, want))
 
 for name in WANT:
     if name not in seen:
         die("no genotype at all produces %s — the variety is unreachable" % name)
 
 # Tancho is the one variety that needs BOTH homozygotes; nothing else may.
-for w, r, b in seen.get("tancho", []):
+for w, r, b, g in seen.get("tancho", []):
     if (w, r, b) != ("WW", "RR", "bb"):
         die("tancho also comes out of %s %s %s — it must be WW RR bb and nothing else" % (w, r, b))
-if len(seen.get("tancho", [])) != 1:
-    die("tancho has %d genotypes, expected exactly WW RR bb" % len(seen.get("tancho", [])))
+if len(seen.get("tancho", [])) != len(PAIRS["G"]):
+    die("tancho has %d genotypes, expected WW RR bb with each of the four lustre pairs"
+        % len(seen.get("tancho", [])))
 
 
 # ---- the Punnett squares --------------------------------------------------------------------------
 
 def cross(mother, father):
-    """Every equally-likely child of two (W, R, B) parents, counted by variety."""
+    """Every equally-likely child of two (W, R, B, G) parents, counted by variety.
+
+    A three-pair parent is read as gg — matt — which is exactly how Genome.pair answers for a koi
+    card written before the lustre locus existed."""
+    m = tuple(mother) + ("gg",) * (4 - len(mother))
+    f = tuple(father) + ("gg",) * (4 - len(father))
     out = {}
-    for aw in mother[0]:
-        for bw in father[0]:
-            for ar in mother[1]:
-                for br in father[1]:
-                    for ab in mother[2]:
-                        for bb_ in father[2]:
-                            key = variety(sort(aw + bw), sort(ar + br), sort(ab + bb_))
-                            out[key] = out.get(key, 0) + 1
+    for aw in m[0]:
+        for bw in f[0]:
+            for ar in m[1]:
+                for br in f[1]:
+                    for ab in m[2]:
+                        for bb_ in f[2]:
+                            for ag in m[3]:
+                                for bg in f[3]:
+                                    key = variety(sort(aw + bw), sort(ar + br), sort(ab + bb_),
+                                                  sort(ag + bg))
+                                    out[key] = out.get(key, 0) + 1
     return out
 
 
@@ -186,10 +213,13 @@ expect("showa x kohaku", ("ww", "RR", "BB"), ("WW", "RR", "bb"), {"taisho_sanke"
 def generate(pattern, homozygous):
     """koiGenome's rule: a fixed pair where the row fixes it, otherwise the caller's coin."""
     out = []
-    for i, locus in enumerate("WRB"):
+    for i, locus in enumerate(KOI_LOCI):
         want = pattern[i * 2 + 1]
         low = locus.lower()
-        out.append(low + low if want == low else locus + (locus if want == locus or homozygous else low))
+        # §koi-metal: a locus the row does not care about is written RECESSIVE, so a wild kohaku is
+        # never accidentally metallic.
+        out.append(low + low if want in (low, "*")
+                   else locus + (locus if want == locus or homozygous else low))
     return out
 
 
@@ -199,9 +229,18 @@ for pattern, name in KOI_TABLE:
         die("a %s drawn from the water writes %s, which reads back as %r — the draw and the card "
             "disagree" % (name, " ".join(forced), variety(*forced)))
     both = generate(pattern, homozygous=True)             # the luckiest coin the loop can throw
-    if variety(*both) != name and name != "kohaku":
+    # kohaku is W_ R_ bb, and its luckiest coin is WW RR bb — the tancho above it. Sakura ogon is the
+    # same row with the lustre on, so it shades into the same place for the same reason.
+    if variety(*both) != name and name not in ("kohaku", "sakura_ogon"):
         die("%s can come out homozygous as %s, which reads as %r — only kohaku may shade into "
             "another variety (into tancho, which is the point)" % (name, " ".join(both), variety(*both)))
+
+
+# §koi-metal: two kujaku (ww rr B_ G_) — the metallic the water does give you. A sixteenth of the
+# clutch is the gold nobody can catch: bb out of the black pair, still metallic. That is the whole
+# breeding project in one square, and the reason the lustre had to be findable in the wild at all.
+expect("kujaku x kujaku (ww rr Bb Gg)", ("ww", "rr", "Bb", "Gg"), ("ww", "rr", "Bb", "Gg"),
+       {"kujaku": 0.5625, "yamabuki": 0.1875, "asagi": 0.1875, "karasu": 0.0625})
 
 
 # ---- the wild table -------------------------------------------------------------------------------
@@ -209,8 +248,9 @@ for pattern, name in KOI_TABLE:
 if not WILD:
     die("no WILD_KOI table in Genome.java")
 for name, _ in WILD:
-    if name in ("platinum", "tancho"):
-        die("the wild table rolls %s — both must be BRED, not found, or the tank is pointless" % name)
+    if name in ("platinum", "tancho", "yamabuki"):
+        die("the wild table rolls %s — the prizes must be BRED, not found, or the tank is pointless"
+            % name)
     if name not in NAMES:
         die("the wild table rolls %r, which is not a variety" % name)
 for name in ("kohaku", "taisho_sanke", "bekko"):
@@ -242,6 +282,6 @@ if fails:
     for x in fails:
         print("  " + x)
     sys.exit(1)
-print("koi genetics: %d varieties, all 64 genotypes agree with the table, tancho is WW RR bb alone, "
-      "four Punnett squares, wild %d:%d common:rare with no platinum or tancho"
-      % (len(NAMES), common, rare))
+print("koi genetics: %d varieties over %d loci, all %d genotypes agree with the table, tancho is "
+      "WW RR bb alone, five Punnett squares, wild %d:%d common:rare with none of the three prizes"
+      % (len(NAMES), len(KOI_LOCI), sum(len(v) for v in seen.values()), common, rare))

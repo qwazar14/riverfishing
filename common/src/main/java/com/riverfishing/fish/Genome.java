@@ -25,7 +25,7 @@ public final class Genome {
     // §koi-genes (0.9.0): three more, and koi alone carry them — W white ground, R red (hi),
     // B black (sumi). Nine pairs on a koi, six on a carp, four on everything else; `cross`
     // writes as many as the longer parent has, so nothing that never had them grows any.
-    public static final String LOCI = "SCVFKNWRB";
+    public static final String LOCI = "SCVFKNWRBG";
 
     /** The four loci EVERY fish carries. K and N belong to the carp alone (§scale-genes). */
     public static final String COMMON_LOCI = "SCVF";
@@ -71,16 +71,31 @@ public final class Genome {
      * both IS a tancho.
      */
     private static final String[] KOI_TABLE = {
-            "WWRRbb=tancho",
-            "W_R_bb=kohaku",
-            "W_R_B_=taisho_sanke",
-            "wwR_B_=showa",
-            "W_rrB_=bekko",
-            "wwrrB_=asagi",
-            "W_rrbb=platinum",
-            "wwR_bb=hi_utsuri",
-            "wwrrbb=karasu",
+            // §koi-metal: G is the LUSTRE, and it reads before colour — a metallic fish is named for
+            // being metallic first. A G* column means either way: the rows that carry it were the whole
+            // table before the locus existed, and a koi with no G pair written reads recessive, so every
+            // koi in every old world still names the variety it always did.
+            "WWRRbbG*=tancho",
+            "wwrrbbG_=yamabuki",
+            "W_rrbbG_=ogon",
+            "W_R_bbG_=sakura_ogon",
+            "W_R_B_G_=yamatonishiki",
+            "wwR_B_G_=kin_showa",
+            "W_rrB_G_=gin_bekko",
+            "wwrrB_G_=kujaku",
+            "wwR_bbG_=kin_hi_utsuri",
+            "W_R_bbG*=kohaku",
+            "W_R_B_G*=taisho_sanke",
+            "wwR_B_G*=showa",
+            "W_rrB_G*=bekko",
+            "wwrrB_G*=asagi",
+            "W_rrbbG*=platinum",
+            "wwR_bbG*=hi_utsuri",
+            "wwrrbbG*=karasu",
     };
+
+    /** §koi-metal: the loci a koi variety is read off, in the order the rows above write them. */
+    private static final String KOI_LOCI = "WRBG";
 
     /**
      * §koi-genes: what the WATER gives, {@code variety=weight}. Platinum and tancho are missing on
@@ -89,6 +104,10 @@ public final class Genome {
      */
     private static final String[] WILD_KOI = {
             "kohaku=8", "taisho_sanke=5", "bekko=4", "showa=2", "asagi=2", "hi_utsuri=2", "karasu=1",
+            // §koi-metal: the lustre has to come from somewhere, or nobody could ever breed a gold
+            // one. These two are its whole wild source — and the prizes (yamabuki, platinum, tancho)
+            // are still exactly what a pond will not hand you.
+            "kujaku=1", "gin_bekko=1",
     };
 
     /** §koi-genes: the five ids the water used to hand out, and the variety each of them WAS. */
@@ -132,8 +151,9 @@ public final class Genome {
     }
 
     private static boolean koiMatch(String genome, String row) {
-        for (int i = 0; i < 3; i++) {
-            char locus = "WRB".charAt(i), want = row.charAt(i * 2 + 1);
+        for (int i = 0; i < KOI_LOCI.length(); i++) {
+            char locus = KOI_LOCI.charAt(i), want = row.charAt(i * 2 + 1);
+            if (want == '*') continue;      // §koi-metal: this row does not care about that locus
             boolean dom = dominant(genome, locus);
             if (want == '_' ? !dom : want == locus ? !(dom && pure(genome, locus)) : dom) return false;
         }
@@ -157,10 +177,12 @@ public final class Genome {
         String out = head;
         for (int tries = 0; tries < 8; tries++) {
             StringBuilder b = new StringBuilder(head);
-            for (int i = 0; i < 3; i++) {
-                char L = "WRB".charAt(i), l = Character.toLowerCase(L), want = row.charAt(i * 2 + 1);
+            for (int i = 0; i < KOI_LOCI.length(); i++) {
+                char L = KOI_LOCI.charAt(i), l = Character.toLowerCase(L), want = row.charAt(i * 2 + 1);
                 boolean homo = want == L || (want == '_' && tries < 7 && rng.nextBoolean());
-                b.append(' ').append(want == l ? "" + l + l : "" + L + (homo ? L : l));
+                // §koi-metal: a locus the row does not care about gets the RECESSIVE pair — a wild
+                // kohaku must not come out metallic by accident and read as a sakura ogon on its card.
+                b.append(' ').append(want == l || want == '*' ? "" + l + l : "" + L + (homo ? L : l));
             }
             out = b.toString();
             if (koiVariety(out).equals(variety)) return out;
@@ -198,6 +220,12 @@ public final class Genome {
     public static double varietyValue(String variety) {
         switch (variety) {
             case "koi_tancho": return 4.0;
+            // §koi-metal: metallic is worth more than the same colours matt, and yamabuki — the gold
+            // one — is the fish the hobby is named for. None of the three can be netted out of a pond.
+            case "koi_yamabuki": return 3.5;
+            case "koi_ogon": case "koi_yamatonishiki": return 3.0;
+            case "koi_sakura_ogon": case "koi_kin_showa": case "koi_kujaku": return 2.5;
+            case "koi_gin_bekko": case "koi_kin_hi_utsuri": return 2.0;
             case "koi_platinum": return 3.0;
             case "koi_showa": case "koi_asagi": return 2.0;
             case "koi_taisho_sanke": case "koi_hi_utsuri": return 1.5;

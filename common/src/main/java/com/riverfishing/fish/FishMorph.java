@@ -275,16 +275,28 @@ public final class FishMorph {
     }
 
     /** ground, hi, sumi, crown; -1 means "the ground colour", i.e. the fish does not wear that layer. */
-    private static final java.util.Map<String, int[]> KOI_PAINT = java.util.Map.of(
-            "kohaku",       new int[]{0xF4F2EC, 0xD8342A, -1, -1},
-            "taisho_sanke", new int[]{0xF4F2EC, 0xD8342A, 0x2A2622, -1},
-            "showa",        new int[]{0x4A423C, 0xC8302A, 0x1E1A18, -1},
-            "bekko",        new int[]{0xF4F2EC, -1, 0x2A2622, -1},
-            "asagi",        new int[]{0x7C93AE, -1, 0x46586E, -1},
-            "platinum",     new int[]{0xFFFDF6, -1, -1, -1},
-            "hi_utsuri",    new int[]{0x3A322C, 0xD2382A, -1, -1},
-            "karasu",       new int[]{0x2A2622, -1, -1, -1},
-            "tancho",       new int[]{0xF4F2EC, -1, -1, 0xD8342A});
+    // §koi-metal: the eight metallic varieties are the same eight colour bases with the lustre on —
+    // a brighter, cleaner ground and a hotter red, which is what metallic scales do to a colour.
+    // Map.of tops out at ten pairs, so this is ofEntries now.
+    private static final java.util.Map<String, int[]> KOI_PAINT = java.util.Map.ofEntries(
+            java.util.Map.entry("kohaku",        new int[]{0xF4F2EC, 0xD8342A, -1, -1}),
+            java.util.Map.entry("taisho_sanke",  new int[]{0xF4F2EC, 0xD8342A, 0x2A2622, -1}),
+            java.util.Map.entry("showa",         new int[]{0x4A423C, 0xC8302A, 0x1E1A18, -1}),
+            java.util.Map.entry("bekko",         new int[]{0xF4F2EC, -1, 0x2A2622, -1}),
+            java.util.Map.entry("asagi",         new int[]{0x7C93AE, -1, 0x46586E, -1}),
+            java.util.Map.entry("platinum",      new int[]{0xFFFDF6, -1, -1, -1}),
+            java.util.Map.entry("hi_utsuri",     new int[]{0x3A322C, 0xD2382A, -1, -1}),
+            java.util.Map.entry("karasu",        new int[]{0x2A2622, -1, -1, -1}),
+            java.util.Map.entry("tancho",        new int[]{0xF4F2EC, -1, -1, 0xD8342A}),
+            // yamabuki: a karasu's dark ground with the lustre on comes up GOLD. That is the gold koi.
+            java.util.Map.entry("yamabuki",      new int[]{0xF0BE22, -1, -1, -1}),
+            java.util.Map.entry("ogon",          new int[]{0xEDF0F2, -1, -1, -1}),
+            java.util.Map.entry("sakura_ogon",   new int[]{0xFBF8F0, 0xE8483A, -1, -1}),
+            java.util.Map.entry("yamatonishiki", new int[]{0xFBF8F0, 0xE8483A, 0x35302B, -1}),
+            java.util.Map.entry("kin_showa",     new int[]{0x5A4C3A, 0xDC4630, 0x2A2420, -1}),
+            java.util.Map.entry("gin_bekko",     new int[]{0xF6F3EA, -1, 0x35302B, -1}),
+            java.util.Map.entry("kujaku",        new int[]{0xBFD0DE, 0xE07030, 0x51637A, -1}),
+            java.util.Map.entry("kin_hi_utsuri", new int[]{0x453B30, 0xE2622A, -1, -1}));
 
     /** How much white to wash over the sprite, 0..1: young fish are pale, and so are pale morphs. */
     public static float pale(String speciesPath, double age, String morphId) {
