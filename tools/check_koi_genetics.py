@@ -277,6 +277,26 @@ if "Genome.wildKoi(random.nextDouble())" not in f:
 if "carp_koi_kohaku" in f:
     die("FishingManager still hands out one of the five old koi ids")
 
+
+# ---- the table the patchnote prints ---------------------------------------------------------------
+# 0.9.0's note lists all seventeen with their genotypes, and a player will breed from that list. So it
+# is checked against the same rows the game reads: a variety renamed in Java, or a row whose pattern
+# changed, fails here rather than teaching somebody a cross that cannot work.
+
+NOTE = os.path.join(ROOT, "docs/patchnotes/0.9.0.md")
+if os.path.exists(NOTE):
+    note = io.open(NOTE, encoding="utf-8").read()
+    for pattern, name in KOI_TABLE:
+        want = " ".join(pattern[i * 2:i * 2 + 2] for i in range(len(KOI_LOCI))
+                        if pattern[i * 2 + 1] != "*")
+        if ("`%s`" % want) not in note:
+            die("the patchnote does not print %s as `%s` — the list a breeder works from is wrong"
+                % (name, want))
+    for name in NAMES:
+        pretty = name.replace("_", " ").title().replace("Ogon", "Ogon")
+        if pretty.lower() not in note.lower():
+            die("the patchnote never names %s" % pretty)
+
 if fails:
     print("FAILED:")
     for x in fails:
