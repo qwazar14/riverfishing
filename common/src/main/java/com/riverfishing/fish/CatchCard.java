@@ -132,7 +132,11 @@ public final class CatchCard {
         // six times the fish, and the top band half again.
         int pattern = rollPattern(level, s.target, p, rng);
         c.putInt("Value", (int) Math.round(value * Pattern.value(pattern)));
-        body(c, p, weightG, morph, rng, s.nature, s.variety, pattern);
+        // §stocked-genes: what this water has been stocked with, if anything — a no-op everywhere else.
+        java.util.function.UnaryOperator<String> pool = p == null ? null
+                : genes -> com.riverfishing.fishing.StockedData.get(level).overlay(
+                        com.riverfishing.fishing.StockedData.region(s.target), p.id.getPath(), genes, rng);
+        body(c, p, weightG, morph, rng, s.nature, s.variety, pattern, pool);
         return c;
     }
 
@@ -165,7 +169,11 @@ public final class CatchCard {
         // §pattern: a hauled fish has an index too — it came out of the same water.
         int pattern = rollPattern(level, pos, p, rng);
         c.putInt("Value", (int) Math.round(value * Pattern.value(pattern)));
-        body(c, p, weightG, "", rng, (byte) -1, "", pattern);
+        // §stocked-genes: what this water has been stocked with, if anything — a no-op everywhere else.
+        java.util.function.UnaryOperator<String> pool = p == null ? null
+                : genes -> com.riverfishing.fishing.StockedData.get(level).overlay(
+                        com.riverfishing.fishing.StockedData.region(pos), p.id.getPath(), genes, rng);
+        body(c, p, weightG, "", rng, (byte) -1, "", pattern, pool);
         return c;
     }
 
@@ -175,7 +183,8 @@ public final class CatchCard {
      * that arrived without one: the species' own name then says which it is).
      */
     private static void body(CompoundTag c, FishProfile p, int weightG, String morph, Random rng,
-                             byte natureIn, String variety, int pattern) {
+                             byte natureIn, String variety, int pattern,
+                             java.util.function.UnaryOperator<String> pool) {
         // What the profile knows, copied in: the client on a server never sees a profile.
         // §board-3: the size class is FishMorph.ageFraction — 0.5 at an ordinary specimen — so a
         // 1.15 kg pike is a juvenile, not a baby: the old bar measured against the record weight,
@@ -222,19 +231,31 @@ public final class CatchCard {
         // every named variety the hobby trades in falls straight out of them. The water draws a
         // VARIETY; what is written down is the genotype that makes it, so the tank can cross it and
         // the card can be read back instead of believed.
-        if (v.startsWith("koi_")) {
-            g = new StringBuilder(Genome.koiGenome(g.toString(), v.substring(4), rng));
-            c.putString("Variety", "koi_" + Genome.koiVariety(g.toString()));
+        // §stocked-genes: a koi SPECIES with no variety word is a netted koi — the water drew the
+        // species and nobody drew a look. It still has a genotype, and the genotype is the variety.
+        boolean koi = v.startsWith("koi_") || (p != null && Genome.isKoiId(p.id.getPath()));
+        if (koi) {
+            g = new StringBuilder(v.startsWith("koi_")
+                    ? Genome.koiGenome(g.toString(), v.substring(4), rng)
+                    : Genome.koiGenome(g.toString(), Genome.wildKoi(rng.nextDouble()), rng));
         } else if (!v.isEmpty()) {
             boolean scaled = v.equals("scaled") || v.equals("linear");
             boolean nude = v.equals("linear") || v.equals("naked");
             g.append(' ').append(scaled ? (rng.nextBoolean() ? "KK" : "Kk") : "kk");
             g.append(' ').append(nude ? "Nn" : "nn");
-            // Read back off the genotype rather than stored beside it: the card cannot then say
-            // "mirror" over a pair of alleles that spell a leather carp.
-            c.putString("Variety", Genome.carpVariety(g.toString()));
         }
-        c.putString("Genes", g.toString());
+        // §stocked-genes: and THEN the water has its say. Where this species has been stocked here the
+        // pool's alleles replace the rolled ones, locus by locus, so the fish that comes out is one of
+        // the fish that went in. The variety is read back off the finished genotype either way — the
+        // card cannot then say "mirror" over a pair of alleles that spell a leather carp, and a koi
+        // that was never given a variety word ends up with the one its genes actually make.
+        String genes = pool == null ? g.toString() : pool.apply(g.toString());
+        if (koi) {
+            c.putString("Variety", "koi_" + Genome.koiVariety(genes));
+        } else if (!v.isEmpty()) {
+            c.putString("Variety", Genome.carpVariety(genes));
+        }
+        c.putString("Genes", genes);
         c.putInt(Pattern.TAG, pattern);   // §pattern
     }
 

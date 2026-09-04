@@ -375,7 +375,7 @@ public final class Genome {
     }
 
     /** How many loci this string actually carries: 4 for anything written before §scale-genes. */
-    private static int pairs(String genome) {
+    public static int pairs(String genome) {   // §stocked-genes: the ledger counts by it too
         int n = 0;
         for (int i = 0; i < LOCI.length(); i++) if (token(genome, i) != null) n = i + 1;
         return n;
