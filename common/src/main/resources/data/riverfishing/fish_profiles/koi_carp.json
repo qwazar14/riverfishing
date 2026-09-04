@@ -82,7 +82,7 @@
     "depth_min": 1,
     "width_min": 4
   },
-  "breeds_with": ["carp", "wild_carp"],
+  "breeds_with": {"carp": 1.0, "wild_carp": 1.0},
   "biomes": {
     "cherry": 1.0
   },

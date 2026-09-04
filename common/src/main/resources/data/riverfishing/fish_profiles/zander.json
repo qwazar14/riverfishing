@@ -85,7 +85,7 @@
     "width_min": 14
   },
   "provinces": ["palearctic"],
-  "breeds_with": ["volga_zander"],
+  "breeds_with": {"volga_zander": 0.35},
   "biomes": {
     "temperate": 1.0,
     "cold": 0.8

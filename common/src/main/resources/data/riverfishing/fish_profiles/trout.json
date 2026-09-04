@@ -86,7 +86,7 @@
     "width_max": 24
   },
   "provinces": ["palearctic", "nearctic", "neotropic"],
-  "breeds_with": ["char", "salmon"],
+  "breeds_with": {"char": 0.5, "salmon": 0.5},
   "biomes": {
     "cold": 1.2,
     "mountain": 1.3,

@@ -89,7 +89,7 @@
   },
   "provinces": ["palearctic"],
   "biomes_require": ["cold"],
-  "breeds_with": ["whitefish"],
+  "breeds_with": {"whitefish": 0.3},
   "biomes": {
     "cold": 1.3,
     "taiga": 1.2,

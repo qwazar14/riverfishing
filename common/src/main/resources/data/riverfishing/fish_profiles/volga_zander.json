@@ -24,7 +24,7 @@
   "distance_pref": { "min": 10, "max": 35 },
   "habitat": { "depth_min": 5, "width_min": 14 },
   "provinces": ["palearctic"],
-  "breeds_with": ["zander"],
+  "breeds_with": {"zander": 0.35},
   "biomes": { "temperate": 1.0, "cold": 0.9 },
   "base": 0.7,
   "min_angler_level": 3
