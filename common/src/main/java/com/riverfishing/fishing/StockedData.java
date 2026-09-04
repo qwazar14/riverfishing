@@ -122,6 +122,30 @@ public final class StockedData extends SavedData {
         stamp(t, day, genome, owner);
     }
 
+    /**
+     * §pattern: the pattern index this water's line runs at, or {@link com.riverfishing.fish.Pattern#NONE}
+     * when nobody has stocked one. A fish landed out of the water inherits it, so a family bred in a tank
+     * and released keeps coming back out of the pond.
+     */
+    public int pattern(long region, String species) {
+        CompoundTag t = brood.get(key(region, species));
+        if (t == null) return com.riverfishing.fish.Pattern.NONE;
+        return t.contains("Pattern") ? t.getInt("Pattern") : com.riverfishing.fish.Pattern.NONE;
+    }
+
+    /**
+     * §pattern: what was just released moves the water's line HALFWAY toward its own index, rather than
+     * overwriting it — a pond is the fish in it, so one gem carp dropped into a stocked lake shifts the
+     * line without becoming it. The first fish sets it outright, because there is nothing to average.
+     */
+    public void setPattern(long region, String species, int pattern) {
+        if (!com.riverfishing.fish.Pattern.has(pattern)) return;
+        CompoundTag t = entry(region, species);
+        int have = t.contains("Pattern") ? t.getInt("Pattern") : com.riverfishing.fish.Pattern.NONE;
+        t.putInt("Pattern", com.riverfishing.fish.Pattern.has(have) ? (have + pattern) / 2 : pattern);
+        setDirty();
+    }
+
     /** The clock starts the first day the condition holds; a brood that merely grew keeps its date. */
     private void stamp(CompoundTag t, long day, String genome, java.util.UUID owner) {
         if (genome != null && !genome.isEmpty()) t.putString("Genome", genome);

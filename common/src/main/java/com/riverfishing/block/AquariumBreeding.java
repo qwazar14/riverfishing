@@ -156,6 +156,11 @@ public final class AquariumBreeding {
         // species can reach this.)
         for (int i = 0; i < 8 && Genome.lethal(genome); i++) genome = Genome.cross(gm, gf, RNG);
         be.roe = RoeItem.of(FishItem.getSpecies(mother), genome, clutch(be, pair, p), now / DAY);
+        // §pattern: the clutch's index is the parents' mean, plus a mutation of about twelve. That is
+        // the collector's line — a pair bred toward a family throws inside it nearly every time, and
+        // the last few points toward a gem are always work.
+        RoeItem.setPattern(be.roe, com.riverfishing.fish.Pattern.inherit(
+                CatchCard.pattern(mother), CatchCard.pattern(pair[1]), RNG));
         be.spawnTicks = 0;
         be.oil = false;
         be.sync();
@@ -229,7 +234,9 @@ public final class AquariumBreeding {
         double survival = !Genome.dominant(g, 'V') ? 0.5 : Genome.pure(g, 'V') ? 0.9 : 0.7;
         if (module(be, ModBlocks.SNAG_PILE.get())) survival = Math.min(0.95, survival + 0.15);
         int n = Math.max(1, (int) Math.round(RoeItem.count(be.roe) * survival));
+        int pattern = RoeItem.pattern(be.roe);   // §pattern: the index survives the egg
         be.roe = FryItem.of(RoeItem.species(be.roe), g, n);
+        RoeItem.setPattern(be.roe, pattern);
         be.incubate = 0;
         be.sync();
     }

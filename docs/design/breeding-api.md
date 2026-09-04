@@ -634,3 +634,54 @@ platinum, and getting a tancho takes real work. The value at the counter is the 
 Wild-caught koi keep their current rarity (`base` 0, only in cherry groves / claimed ponds); the
 genotype of a WILD koi is drawn from a table weighted toward the common varieties (kohaku, sanke,
 bekko), so platinum and tancho are effectively breed-only.
+
+---
+
+# Layer 10: the pattern index (§pattern)
+
+The author's own idea, from CS:GO knife finishes: ONE texture, and the skin is a window into it at an
+angle and an offset. A rare alignment lands on a special zone and the knife comes out a colour nobody
+can farm. That is what makes a case-hardened blue gem worth what it is, and it is exactly the
+collector's layer this mod's fish are missing — two kohaku of the same weight should not be the same
+fish.
+
+## The number
+
+Every fish landed carries `Pattern`, an int 0..999, written on the catch card beside the genes.
+- Wild fish: rolled from the world seed + the catch position + the game time, so it is not farmable
+  by re-casting the same second.
+- Bred fish (aquarium): the fry inherits `(mother + father) / 2 ± a small mutation`, so a line can be
+  bred TOWARD a pattern family the way koi breeders breed toward a mark. This is the collector's
+  hook: a pattern is heritable but never exactly.
+- The number shows on the card as `#237` next to the variety, and the tooltip names its family.
+
+## What it does to the picture
+
+`Pattern` selects, deterministically:
+1. **The family** — 0..999 maps into named bands, each with its own tint-transform on the existing
+   tint layers: e.g. `drift` (the hi field slides toward the tail), `crown` (concentrated forward),
+   `banded`, `speckled`, `mask` (the head is one colour). Twelve families, uneven widths.
+2. **The variation inside the family** — the index within the band shifts the hues by a few degrees
+   and moves the mask offset by a pixel or two, so #237 and #238 are visibly cousins, not twins.
+3. **The rare zones** — a handful of exact indices (say 12 of the 1000) are `gem` patterns: the whole
+   fish takes a single saturated colour the ordinary bands never produce (deep blue, gold, jet). One
+   in ~83 fish is a gem of some kind; a specific gem is one in a thousand.
+
+Implementation is the koi tint machinery with one more input: `FishMorph.koiTint(variety, layer)`
+becomes `koiTint(variety, layer, pattern)`, and the same call serves the shoal, the aquarium, the icon
+and the card. Nothing new is drawn — the four masks already exist. For non-koi species the pattern
+still rolls and still shows on the card, but only the gem indices change anything (a gem pike is a
+solid-colour pike); ordinary indices leave a perch a perch.
+
+## Value
+
+`Genome.varietyValue` gains a pattern term: a gem multiplies the counter price ×6, the top band ×1.5,
+everything else ×1. The journal's species page lists which patterns you have seen — the collection
+board the author is after.
+
+## Checks
+
+`tools/check_pattern.py`: the band table covers 0..999 with no gap or overlap, the gem indices are
+inside no band's special range twice, the inheritance mean stays inside 0..999, and the tint for a
+given (variety, layer, pattern) is stable across runs — a pattern that changes colour between two
+loads is the one bug this feature cannot have.

@@ -243,6 +243,18 @@ public final class FishMorph {
      * opaque — this is fed to a vanilla item tint, which multiplies.
      */
     public static int tint(String speciesPath, double age, String morphId) {
+        return tint(speciesPath, age, morphId, Pattern.NONE);
+    }
+
+    /**
+     * §pattern: the same, for a specimen carrying a pattern index. An ordinary index changes nothing —
+     * a perch is a perch, and the bands are the koi's business — but a GEM paints the whole fish one
+     * saturated colour. Multiplied over the sprite that keeps the drawing's light and shade and throws
+     * its colour away, which is exactly what a solid-colour pike should look like.
+     */
+    public static int tint(String speciesPath, double age, String morphId, int pattern) {
+        int gem = Pattern.gemColor(pattern);
+        if (gem >= 0) return 0xFF000000 | gem;
         Age a = AGE.getOrDefault(speciesPath, AGE_DEFAULT);
         // A TYPICAL fish is the sprite as drawn — untinted. Only the ends of the range move: the shading
         // has to read as "this one is young / this one is old", not as a filter over the whole mod.
@@ -264,11 +276,14 @@ public final class FishMorph {
      * <p>Read on 1.20.1/1.21.1 through the registered item colour ({@code FishTint.itemColor}), and on
      * 26.x through the four {@code custom_model_data} colours {@code FishItem.stampIcon} writes.
      */
-    public static int koiTint(String variety, int layer) {
+    public static int koiTint(String variety, int layer, int pattern) {
         int[] p = KOI_PAINT.get(variety.startsWith("koi_") ? variety.substring(4) : variety);
         if (p == null) p = KOI_PAINT.get("kohaku");     // a koi with no card yet is the archetype
         int c = layer >= 0 && layer < p.length ? p[layer] : -1;
-        return 0xFF000000 | (c < 0 ? p[0] : c);
+        // §pattern: the band turns the hue, and a gem overrides every layer at once. A layer this fish
+        // does not wear still takes the GROUND colour, painted AS ground, so it goes on vanishing into
+        // the body whatever the pattern does — otherwise a bekko would grow a red field.
+        return 0xFF000000 | Pattern.paint(c < 0 ? p[0] : c, pattern, layer > 0 && c >= 0);
     }
 
     /** ground, hi, sumi, crown; -1 means "the ground colour", i.e. the fish does not wear that layer. */

@@ -129,7 +129,8 @@ public class FishItem extends Item {
                     if (stack.getItem() instanceof com.riverfishing.item.FryItem) {   // §c: fry take the same road in
                         com.riverfishing.fishing.FishingManager.releaseFry(sl, entity.blockPosition(),
                                 com.riverfishing.item.FryItem.species(stack), com.riverfishing.item.FryItem.genome(stack),
-                                com.riverfishing.item.FryItem.count(stack), thrower);
+                                com.riverfishing.item.FryItem.count(stack), thrower,
+                                com.riverfishing.item.RoeItem.pattern(stack));   // §pattern
                     }
                     ResourceLocation released = stack.getItem() instanceof FishItem ? getSpecies(stack) : null;
                     if (released != null) {
