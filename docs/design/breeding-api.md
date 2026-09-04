@@ -488,3 +488,82 @@ existing F/M/Fry/Dom/Tot/Pos/LastGrow.
   record for the guide page); at `rep < 0` the trusted shelf is closed too.
 - The finder's water-sample view gets one line: your reputation and, when negative, the debt.
 - Lang for all of it, three languages.
+
+---
+
+# Layer 7: the carp's scales are a genotype (§scale-genes)
+
+The scale cover of a carp is a real two-locus Mendelian system and it is taught as one. The mod has
+`carp`, `mirror_carp` and `naked_carp` as three separate SPECIES, which is the same mistake as
+having three species of "person with brown hair". They become one species with a genotype:
+
+| genotype | phenotype | id it reports |
+|---|---|---|
+| `Sc_ nn` | fully scaled | `carp` |
+| `scsc nn` | mirror — big scattered scales | `mirror_carp` |
+| `Sc_ Nn` | linear — one row along the lateral line | `linear_carp` (NEW) |
+| `scsc Nn` | leather / naked | `naked_carp` |
+| `__ NN` | LETHAL — the roe never develops | — |
+
+So mirror × mirror breeds true, and naked × naked loses a quarter of the clutch and can never be
+fixed — which is exactly why a leather carp costs more. That is the lesson and the game mechanic at
+once.
+
+**Two more loci.** `Genome.LOCI` becomes `"SCVFKN"`: K = scales (`K` scaled dominant, `k` mirror),
+N = nude (`N` nude dominant but lethal when homozygous, `n` normal). The genome string grows from
+`"Ss Cc VV ff"` to `"Ss Cc VV ff Kk Nn"`. Everything that reads the string by locus letter keeps
+working; anything that assumed four pairs must be found and fixed.
+
+**Compatibility is the hard requirement — the author's words: old worlds must not lose their carp.**
+- `mirror_carp` and `naked_carp` stay REGISTERED items and stay in `FISH_SPECIES`, with their
+  profiles, art, trades and journal pages intact. A fish in a chest, a keepnet, an aquarium or a
+  stocking ledger keeps working exactly as before.
+- What changes is what the WATER gives you: the three ids are no longer rolled separately. A carp
+  landed after this update is `carp` with a K/N genotype, and its card names the variety.
+- A carp with no K/N pair in its genome (every fish caught before this release) reads as scaled, and
+  the aquarium fills the missing pair in when it breeds — one line in `Genome.cross`.
+- `linear_carp` is a NEW registered item so the variety can be held and traded like the others.
+
+**Where the variety shows.** `CatchCard` writes `Variety` (a lang key tail) beside `Genes`; the
+tooltip prints it under the latin name; the aquarium's status and the journal read the same helper
+`Genome.carpVariety(genome)`. The bite roll does not care — a carp is a carp to the fish engine.
+
+**The lethal.** `AquariumBreeding.hatch` already survives fry counts of zero: a clutch whose parents
+are both nude loses a quarter of its eggs (roll per egg, or simply `count × 0.75` — say which), and
+the tank's status says why. Roe already shows milky dead eggs on its third day; that art is the
+lethal, and now it means something.
+
+---
+
+# Layer 8: fish oil is brewed (§fish-oil-potion)
+
+Fish oil is smelted out of oily fish today and does one thing: it is a groundbait component. It stays
+that. On top of it, it becomes a BREWING ingredient — the author's design, kept whole:
+
+**Potion of Fish Oil** (water bottle + fish oil in a brewing stand):
+- Dolphin's Grace and Water Breathing, 1:30 — the oil comes out of sea fish, so it swims;
+- Regeneration I, 0:45 — the omega-3 line, health coming back slowly;
+- Resistance I, 1:30 — a body braced against a knock;
+- and it CLEARS Mining Fatigue outright — the Elder Guardian's curse, lifted by a mouthful of oil.
+
+Modifiers, vanilla-shaped:
+- **Glowstone** → Regeneration II and Resistance II, every duration cut (the strong version);
+- **Redstone** → the water effects out to 4:00 (the long version);
+- **Gunpowder** → a splash bottle: thrown at an ally or a tamed wolf it heals and braces them.
+
+Implementation notes for whoever builds it:
+- Three registries the mod does not have yet: `Potion` (three entries — base, strong, long), a
+  registered `MobEffectInstance` list is not needed (all four effects are vanilla), and brewing
+  recipes, which are NOT data-driven in 1.20.1/1.21.1 — Fabric has `FabricBrewingRecipeRegistry`
+  (1.21.1: `BrewingRecipeRegistry` events / `FabricBrewingRecipeRegistryBuilder`), NeoForge/Forge have
+  `RegisterBrewingRecipesEvent` / `BrewingRecipeRegistry.addRecipe`. On 26.x check what replaced them.
+  So: one `@ExpectPlatform` hook (`PlatformHelper.registerBrewing()`), three implementations.
+- The splash/lingering variants come free from vanilla's `PotionBrewing` chain once the base potion is
+  registered (gunpowder → splash is vanilla's own rule), so "Explosive fish oil" needs no code beyond
+  making sure the potion is in the splash chain.
+- Mining Fatigue is removed with `player.removeEffect(MobEffects.DIG_SLOWDOWN)` in the potion's own
+  effect application — a vanilla potion cannot "cure" an effect declaratively, so the potion carries a
+  custom `MobEffect` of its own ("Fish oil") whose first tick clears the fatigue and which is otherwise
+  invisible, OR the four vanilla effects are applied by an item-use hook. Pick the one that reads
+  better and say why in the code.
+- Lang: potion names in three languages, and the effect name if a custom effect is used.

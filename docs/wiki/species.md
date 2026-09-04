@@ -129,6 +129,18 @@ predator and is a cyprinid, and takes cyprinid [groundbait](groundbait.md) accor
 | 91 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/tubenose_goby.png" width="28" alt=""> Tubenose goby | `tubenose_goby` | 3 g – 30 g | 10 g | 4–11 cm | river 1.1, lake 0.7, pond 0.5, sea 0.5, swamp 0.4 | — |
 | 92 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/kutum.png" width="28" alt=""> Kutum | `kutum` | 500 g – 8 kg | 1.4 kg | 30–70 cm | river 1.1, sea 1.0, lake 0.4 | 4 |
 | 93 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/naked_carp.png" width="28" alt=""> Naked Carp | `naked_carp` | 2 kg – 20 kg | 4.5 kg | 40–105 cm | lake 1.2, pond 1.1, river 0.6, swamp 0.4 | 5 |
+| 94 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/mullet.png" width="28" alt=""> Mullet | `mullet` | 300 g – 8 kg | 900 g | 25–80 cm | sea 1.2, river 0.6, lake 0.2 | 2 |
+| 95 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/anglerfish.png" width="28" alt=""> Anglerfish | `anglerfish` | 2 kg – 40 kg | 7 kg | 40–150 cm | sea 1.0 | 8 |
+| 96 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/black_marlin.png" width="28" alt=""> Black marlin | `black_marlin` | 30 kg – 700 kg | 95 kg | 150–460 cm | sea 1.0 | 9 |
+| 97 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/blobfish.png" width="28" alt=""> Blobfish | `blobfish` | 1 kg – 10 kg | 2.5 kg | 25–70 cm | sea 1.0 | 8 |
+| 98 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/bluefin_tuna.png" width="28" alt=""> Bluefin tuna | `bluefin_tuna` | 20 kg – 400 kg | 60 kg | 100–300 cm | sea 1.0 | 8 |
+| 99 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/loach.png" width="28" alt=""> Loach | `loach` | 20 g – 150 g | 55 g | 10–30 cm | swamp 1.2, pond 1.1, river 0.8, lake 0.7, puddle 0.5 | — |
+| 100 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/whale_shark.png" width="28" alt=""> Whale shark | `whale_shark` | 500 kg – 20000 kg | 2500 kg | 400–1200 cm | sea 1.0 | 12 |
+| 101 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/nelma.png" width="28" alt=""> Nelma | `nelma` | 2 kg – 30 kg | 5 kg | 40–130 cm | river 1.1, lake 0.9, sea 0.2 | 6 |
+| 102 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/ocean_sunfish.png" width="28" alt=""> Ocean sunfish | `ocean_sunfish` | 100 kg – 1000 kg | 220 kg | 100–330 cm | sea 1.0 | 8 |
+| 103 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/pollock.png" width="28" alt=""> Pollock | `pollock` | 500 g – 15 kg | 1.8 kg | 25–90 cm | sea 1.2 | 4 |
+| 104 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/red_piranha.png" width="28" alt=""> Red piranha | `red_piranha` | 300 g – 4 kg | 900 g | 15–45 cm | river 1.1, swamp 0.9, lake 0.8, pond 0.5 | 4 |
+| 105 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/tiger_shark.png" width="28" alt=""> Tiger shark | `tiger_shark` | 50 kg – 800 kg | 140 kg | 200–500 cm | sea 1.1 | 9 |
 
 ## Ideal tackle
 
@@ -229,6 +241,18 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Tubenose goby | worm 1.0, bloodworm 0.95, maggot 0.9, fish_strip 0.4 | ultralight, pole, stick | primitive, float | №16 ±2 | 1000 ±1000 | mono 0.12 ±0.04 | 0.12 / 0.5 | — |
 | Kutum | worm 1.0, bloodworm 0.9, maggot 0.8, fish_strip 0.5, pea 0.4 | feeder, bottom | feeder, float | №8 ±3 | 4000 ±1500 | mono 0.25 ±0.06 | 0.6 / 0.7 | — |
 | Naked Carp | boilie 1.0, corn 0.85, pea 0.6, pearl_barley 0.55, dough 0.5 | carp | carp, flat_feeder | №4 ±2 | 7000 ±1000 | mono 0.35 ±0.08 | 0.75 / 0.88 | — |
+| Mullet | bread 1.0, dough 0.95, maggot 0.7, worm 0.6, corn 0.4, pea 0.3 | pole, feeder, ultralight | float, feeder | №12 ±3 | 3000 ±1000 | mono 0.18 ±0.05 | 0.45 / 0.55 | — |
+| Anglerfish | livebait 1.1, fish_strip 1.0 | boat, bottom | catfish, grusha | №1 ±2 | 10000 ±2000 | braid 0.3 ±0.08 | 0.72 / 0.8 | + |
+| Black marlin | giant_spoon 1.05, octopus_jig 1.0, swimbait 0.95, fish_strip 0.9, wobbler 0.9, silicone 0.5 | trolling | predator | №1 ±1 | 14000 ±1000 | braid 0.45 ±0.06 | 1.0 / 0.75 | + |
+| Blobfish | fish_strip 0.9, worm 0.8, bloodworm 0.7, chicken_liver 0.5 | boat, bottom | grusha, catfish | №6 ±3 | 8000 ±2000 | braid 0.25 ±0.08 | 0.55 / 0.45 | — |
+| Bluefin tuna | livebait 1.1, giant_spoon 1.0, swimbait 1.0, octopus_jig 0.9, fish_strip 0.9, castmaster 0.8, silicone 0.6 | trolling, boat | predator | №1 ±1 | 14000 ±1000 | braid 0.4 ±0.06 | 1.0 / 0.85 | — |
+| Loach | bloodworm 1.1, worm 1.0, maggot 0.8, mormyshka 0.6, dough 0.4 | pole, stick, ultralight | float, primitive | №16 ±2 | 1000 ±1000 | mono 0.12 ±0.04 | 0.2 / 0.5 | — |
+| Whale shark | fish_strip 0.35, livebait 0.3 | trolling, boat | catfish, grusha | №1 ±1 | 14000 ±1000 | braid 0.6 ±0.05 | 1.0 / 1.0 | — |
+| Nelma | spoon 1.1, spinner 1.0, livebait 0.95, castmaster 0.95, wobbler 0.85, swimbait 0.85, silicone 0.7 | spinning | predator | №4 ±2 | 4000 ±1500 | braid 0.2 ±0.05 | 0.7 / 0.6 | — |
+| Ocean sunfish | octopus_jig 1.0, silicone 0.85, fish_strip 0.6, livebait 0.35 | boat, surf | predator, grusha | №2 ±2 | 12000 ±2000 | braid 0.4 ±0.1 | 0.9 / 0.5 | — |
+| Pollock | jig 1.05, livebait 1.0, fish_strip 0.95, silicone 0.85, octopus_jig 0.85, bladebait 0.85, castmaster 0.8 | boat, sea_spin | predator, grusha | №4 ±2 | 8000 ±2000 | braid 0.22 ±0.06 | 0.7 / 0.7 | — |
+| Red piranha | fish_strip 1.1, chicken_liver 1.0, livebait 0.95, worm 0.7, silicone 0.6, spinner 0.5 | ultralight, spinning, pole | float, predator | №8 ±2 | 2000 ±1000 | mono 0.2 ±0.06 | 0.55 / 0.85 | + |
+| Tiger shark | fish_strip 1.15, livebait 1.1, swimbait 0.9, chicken_liver 0.85, octopus_jig 0.7, giant_spoon 0.6 | boat, surf, trolling | catfish, grusha | №1 ±1 | 14000 ±1000 | braid 0.45 ±0.08 | 1.0 / 0.95 | + |
 
 ## Per-species notes
 
