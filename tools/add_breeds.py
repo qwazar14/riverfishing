@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """§breeds-with: which species will spawn with which, written into the profiles.
 
-    py -X utf8 tools/add_breeds.py         # writes the field; prints the pools
+    py -X utf8 tools/add_breeds.py                 # this tree
+    py -X utf8 tools/add_breeds.py <other-root>   # …and the 1.20.1 / 26.x worktrees, which keep their
+                                                  # own copy of the profiles
 
 One table, in this file, the same shape as tools/add_provinces.py — a wrong pairing is one line to fix.
 
@@ -22,7 +24,7 @@ roach x rudd are in because they are small closed cliques; the swarm is out beca
 
 The fry are the MOTHER's species. A pool moves blood between ids; it never makes a third id.
 """
-import io, json, os, glob
+import io, json, os, glob, sys
 
 # ---- the pools -----------------------------------------------------------------------------------
 POOLS = [
@@ -45,7 +47,7 @@ POOLS = [
     ["roach", "rudd"],
 ]
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIR = os.path.join(REPO, "common", "src", "main", "resources", "data", "riverfishing", "fish_profiles")
 
 mates = {}
