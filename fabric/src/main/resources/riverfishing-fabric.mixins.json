@@ -4,7 +4,8 @@
   "package": "com.riverfishing.fabric.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "PoiTypesInvoker"
+    "PoiTypesInvoker",
+    "PotionBrewingInvoker"
   ],
   "injectors": {
     "defaultRequire": 1

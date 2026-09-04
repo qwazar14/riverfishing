@@ -102,6 +102,31 @@ public final class ModPotions {
         builder.addMix(FISH_OIL.get(), Items.REDSTONE, LONG_FISH_OIL.get());
     }
 
+    /**
+     * §oil-brew-item: where one "empty bottle + fish -> oil" recipe goes. The three numbers are the
+     * same everywhere; only the call that records them differs, and only on 1.20.1 (see the two
+     * PlatformHelperImpl.registerBrewing). Everything above this line is potion-to-potion and needs no
+     * such thing.
+     */
+    public interface OilSink {
+        void add(net.minecraft.world.item.Item bottle, net.minecraft.world.item.Item fish,
+                 net.minecraft.world.item.Item oil);
+    }
+
+    /**
+     * §oil-brew-item: the oily fish, each as a container mix from a glass bottle to the oil. Vanilla's
+     * CONTAINER table — the one that turns a potion into a splash potion — is keyed on the bottle item
+     * and outputs an item, so a non-potion output is not a special case, it is what that table does.
+     */
+    public static void addOilBrews(OilSink sink) {
+        for (String sp : OILY) {
+            var fish = ModItems.FISH_ITEMS.get(com.riverfishing.RiverFishing.id(sp));
+            if (fish != null) {
+                sink.add(Items.GLASS_BOTTLE, fish.get(), ModItems.FISH_OIL.get());
+            }
+        }
+    }
+
     private ModPotions() {}
 
     /**

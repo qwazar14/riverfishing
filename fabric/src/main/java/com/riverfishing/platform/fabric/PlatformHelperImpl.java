@@ -24,5 +24,11 @@ public final class PlatformHelperImpl {
         com.riverfishing.registry.ModPotions.addMixes((from, ingredient, to) ->
                 net.fabricmc.fabric.api.registry.FabricBrewingRecipeRegistry.registerPotionRecipe(
                         from, net.minecraft.world.item.crafting.Ingredient.of(ingredient), to));
+        // §oil-brew-item: the empty-bottle recipe, through the invoker — see PotionBrewingInvoker for
+        // why Fabric's own registerItemRecipe cannot carry it.
+        com.riverfishing.registry.ModPotions.addOilBrews((bottle, fish, oil) -> {
+            com.riverfishing.fabric.mixin.PotionBrewingInvoker.riverfishing$addContainer(bottle);
+            com.riverfishing.fabric.mixin.PotionBrewingInvoker.riverfishing$addContainerRecipe(bottle, fish, oil);
+        });
     }
 }
