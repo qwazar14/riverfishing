@@ -190,11 +190,23 @@ if len(KOI) < len(VARIETIES):
     die("only %d koi varieties have paint; the genetics name %d" % (len(KOI), len(VARIETIES)))
 
 
+# §pattern-hue: both the spread inside a band and the per-family lift are read out of the Java, so
+# retuning the palette there retunes the check with it.
+SPREAD = float(re.search(r"return HUE\[i\] \+ \(t - 0\.5\) \* ([\d.]+);", src).group(1))
+LIFT = [float(x) for x in re.findall(r"-?[\d.]+",
+        re.search(r"double\[\] LIFT = \{(.*?)\};", src, re.S).group(1))]
+if len(LIFT) != len(HUE):
+    die("%d lifts for %d families — every family needs one" % (len(LIFT), len(HUE)))
+if max(abs(h) for h in HUE) + SPREAD / 2 > 30:
+    die("a family turns a fish %d degrees; past thirty a red koi is not red any more"
+        % (max(abs(h) for h in HUE) + SPREAD / 2))
+
+
 def hue_shift(p):
     i = family_index(p)
     start = BAND[i]
     end = BAND[i + 1] if i + 1 < len(BAND) else MAX + 1
-    return HUE[i] + ((p - start) / float(end - start) - 0.5) * 20.0
+    return HUE[i] + ((p - start) / float(end - start) - 0.5) * SPREAD
 
 
 def offset(p):
@@ -235,7 +247,7 @@ def paint(rgb, p, patch):
         return rgb
     if p in GEM_AT:
         return GEM_RGB[GEM_AT.index(p)]
-    return shift(rgb, hue_shift(p), offset(p) * 0.03 if patch else 0.0)
+    return shift(rgb, hue_shift(p), LIFT[family_index(p)] + (offset(p) * 0.03 if patch else 0.0))
 
 
 def koi_tint(variety, layer, p):
