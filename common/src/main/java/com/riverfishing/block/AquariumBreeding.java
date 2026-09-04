@@ -148,13 +148,18 @@ public final class AquariumBreeding {
         if (now - be.spawnTicks < (long) spawnDays(be) * DAY) return Status.SPAWNING;
         ItemStack mother = pair[0];
         String gm = Genome.of(mother), gf = Genome.of(pair[1]);
-        String genome = Genome.cross(gm, gf, RNG);
+        // §gynogenesis: the silver crucian's trick. The male's milt only starts the egg dividing — his
+        // genes are not in it — so the clutch is the MOTHER, copied, whoever the father was. Nothing to
+        // cross and nothing that can come out lethal that was not already lethal in her.
+        String genome = p.gynogenesis ? gm : Genome.cross(gm, gf, RNG);
         // §scale-genes: the leather carp's lethal. Nn × Nn is a quarter NN, and NN never develops — so
         // the clutch is a quarter smaller and what hatches is never NN. Scaled by count rather than
         // rolled per egg because the roe carries ONE genome for the whole clutch: re-crossing until the
         // egg is viable IS the quarter that died. (Nothing else in the mod has an N pair, so no other
         // species can reach this.)
-        for (int i = 0; i < 8 && Genome.lethal(genome); i++) genome = Genome.cross(gm, gf, RNG);
+        for (int i = 0; !p.gynogenesis && i < 8 && Genome.lethal(genome); i++) {
+            genome = Genome.cross(gm, gf, RNG);
+        }
         be.roe = RoeItem.of(FishItem.getSpecies(mother), genome, clutch(be, pair, p), now / DAY);
         // §pattern: the clutch's index is the parents' mean, plus a mutation of about twelve. That is
         // the collector's line — a pair bred toward a family throws inside it nearly every time, and
@@ -185,7 +190,9 @@ public final class AquariumBreeding {
         if (Genome.dominant(Genome.of(mother), 'N') && Genome.dominant(Genome.of(pair[1]), 'N')) {
             eggs = Math.max(1, eggs * 3 / 4);
         }
-        return eggs;
+        // §breed-rate scales what is left: a cross that barely works lays a handful, never nothing.
+        double cross = rate(FishItem.getSpecies(pair[0]), FishItem.getSpecies(pair[1]));
+        return Math.max(1, (int) Math.round(cross * (eggs)));
     }
 
     /** The species' window; a warm outflow stretches it over the neighbouring thirds of the same season. */
@@ -353,11 +360,23 @@ public final class AquariumBreeding {
      * cross is a way of moving BLOOD between two ids, never a way of making a third one.
      */
     private static boolean mates(Identifier a, Identifier b) {
-        if (a == null || b == null) return false;
-        if (a.equals(b)) return true;
+        return rate(a, b) > 0.0;
+    }
+
+    /**
+     * §breed-rate: how well this cross takes, 0 for not at all and 1 for a pair of the same fish. It
+     * scales the clutch, so the difference between a carp with a sazan (one animal) and a bream with a
+     * blue bream (a rarity that survives badly) is something you read off the egg count rather than out
+     * of a wiki. The higher of the two directions wins — a table written only one way round is a
+     * mistake in the data, and refusing the pair would hide it instead of reporting it.
+     */
+    private static double rate(Identifier a, Identifier b) {
+        if (a == null || b == null) return 0.0;
+        if (a.equals(b)) return 1.0;
         FishProfile pa = profile(a), pb = profile(b);
-        return (pa != null && pa.breedsWith.contains(b.getPath()))
-                || (pb != null && pb.breedsWith.contains(a.getPath()));
+        double ra = pa == null ? 0.0 : pa.breedRates.getOrDefault(b.getPath(), 0.0);
+        double rb = pb == null ? 0.0 : pb.breedRates.getOrDefault(a.getPath(), 0.0);
+        return Math.max(ra, rb);
     }
 
     /** Both at least an adult (Card.Size 2): babies and juveniles keep growing, they do not spawn. */
