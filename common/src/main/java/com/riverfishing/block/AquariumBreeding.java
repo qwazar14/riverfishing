@@ -147,8 +147,15 @@ public final class AquariumBreeding {
         }
         if (now - be.spawnTicks < (long) spawnDays(be) * DAY) return Status.SPAWNING;
         ItemStack mother = pair[0];
-        String genome = Genome.cross(Genome.of(mother), Genome.of(pair[1]), RNG);
-        be.roe = RoeItem.of(FishItem.getSpecies(mother), genome, clutch(be, mother, p), now / DAY);
+        String gm = Genome.of(mother), gf = Genome.of(pair[1]);
+        String genome = Genome.cross(gm, gf, RNG);
+        // §scale-genes: the leather carp's lethal. Nn × Nn is a quarter NN, and NN never develops — so
+        // the clutch is a quarter smaller and what hatches is never NN. Scaled by count rather than
+        // rolled per egg because the roe carries ONE genome for the whole clutch: re-crossing until the
+        // egg is viable IS the quarter that died. (Nothing else in the mod has an N pair, so no other
+        // species can reach this.)
+        for (int i = 0; i < 8 && Genome.lethal(genome); i++) genome = Genome.cross(gm, gf, RNG);
+        be.roe = RoeItem.of(FishItem.getSpecies(mother), genome, clutch(be, pair, p), now / DAY);
         be.spawnTicks = 0;
         be.oil = false;
         be.sync();
@@ -160,11 +167,20 @@ public final class AquariumBreeding {
         return Math.max(1, SPAWN_DAYS - (be.oil ? 1 : 0) - (module(be, ModBlocks.GRAVEL_BED.get()) ? 1 : 0));
     }
 
-    /** The clutch for this mother, a quarter more when groundbait stands in the tank or the last meal was fish meal. */
-    private static int clutch(AquariumBlockEntity be, ItemStack mother, FishProfile p) {
+    /**
+     * The clutch for this pair: a quarter more when groundbait stands in the tank or the last meal was
+     * fish meal, and a quarter fewer when both parents are leather carp — Nn × Nn is a quarter NN, and
+     * an NN egg never develops. The window shows this same number, so the preview cannot lie about it.
+     */
+    private static int clutch(AquariumBlockEntity be, ItemStack[] pair, FishProfile p) {
+        ItemStack mother = pair[0];
         int eggs = Genome.clutch(Genome.of(mother), FishItem.getWeightG(mother), p, RNG);
         boolean rich = be.getItem(7).getItem() instanceof GroundbaitItem || "fish_meal".equals(be.lastFood);
-        return rich ? (int) Math.round(eggs * 1.25) : eggs;
+        if (rich) eggs = (int) Math.round(eggs * 1.25);
+        if (Genome.dominant(Genome.of(mother), 'N') && Genome.dominant(Genome.of(pair[1]), 'N')) {
+            eggs = Math.max(1, eggs * 3 / 4);
+        }
+        return eggs;
     }
 
     /** The species' window; a warm outflow stretches it over the neighbouring thirds of the same season. */
@@ -254,8 +270,28 @@ public final class AquariumBreeding {
         v[8] = be.getFishes().size();
         ItemStack[] pair = v[8] == 0 ? null : pair(be);
         FishProfile pp = pair == null ? null : profile(FishItem.getSpecies(pair[0]));
-        v[9] = pp == null ? 0 : clutch(be, pair[0], pp);
+        v[9] = pp == null ? 0 : clutch(be, pair, pp);
+        // §scale-genes: the pair's scale varieties, ♀ then ♂, one per nibble (0 = not a carp). The
+        // window names them, so a clutch that came out a quarter short says why on its own.
+        v[10] = pair == null ? 0 : variety(pair[0]) | variety(pair[1]) << 4;
     }
+
+    /**
+     * 1..4 for a carp's variety in {@link #VARIETIES} order, 0 for a fish that has none. A fish landed
+     * before §scale-genes has no {@code Variety} on its card, so its own species id answers for it —
+     * which is exactly what the three old carp ids were for.
+     */
+    private static int variety(ItemStack fish) {
+        String v = CatchCard.of(fish).getStringOr("Variety", "");
+        if (v.isEmpty()) {
+            Identifier sp = FishItem.getSpecies(fish);
+            v = sp == null ? "" : Genome.varietyOfSpecies(sp.getPath());
+        }
+        return v.isEmpty() ? 0 : java.util.Arrays.asList(VARIETIES).indexOf(v) + 1;
+    }
+
+    /** The order the window's variety nibbles index — the client reads the same table. */
+    public static final String[] VARIETIES = {"scaled", "mirror", "linear", "naked"};
 
     // ---- helpers ----
 

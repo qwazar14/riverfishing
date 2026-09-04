@@ -94,7 +94,7 @@ public final class CatchCard {
         c.putInt("Value", value);
 
         Random rng = new Random(level.getGameTime() * 31L + sp.getUUID().hashCode() + weightG);
-        body(c, p, weightG, morph, rng, s.nature);
+        body(c, p, weightG, morph, rng, s.nature, s.variety);
         return c;
     }
 
@@ -125,12 +125,17 @@ public final class CatchCard {
         c.putBoolean("Net", true);
         c.putBoolean("Poached", poached);
         Random rng = new Random(level.getGameTime() * 31L + sp.getUUID().hashCode() + weightG);
-        body(c, p, weightG, "", rng, (byte) -1);
+        body(c, p, weightG, "", rng, (byte) -1, "");
         return c;
     }
 
-    /** The half of the card that is the FISH — size class, kind, sex, nature, genes — shared by both. */
-    private static void body(CompoundTag c, FishProfile p, int weightG, String morph, Random rng, byte natureIn) {
+    /**
+     * The half of the card that is the FISH — size class, kind, sex, nature, genes — shared by both.
+     * {@code variety} is the carp scale variety the water drew ("" for everything else, and for a carp
+     * that arrived without one: the species' own name then says which it is).
+     */
+    private static void body(CompoundTag c, FishProfile p, int weightG, String morph, Random rng,
+                             byte natureIn, String variety) {
         // What the profile knows, copied in: the client on a server never sees a profile.
         // §board-3: the size class is FishMorph.ageFraction — 0.5 at an ordinary specimen — so a
         // 1.15 kg pike is a juvenile, not a baby: the old bar measured against the record weight,
@@ -167,6 +172,20 @@ public final class CatchCard {
             if (a == l && b == L) { a = L; b = l; }        // dominant first, as it is written
             if (i > 0) g.append(' ');
             g.append(a).append(b);
+        }
+        // §scale-genes: a carp carries two loci more — K scaled / k mirror, N nude (dead doubled) / n
+        // normal — and they are not a coin: they are the variety this fish IS, written back as the
+        // genotype that makes it. Every other species keeps the four pairs it always had, so nothing
+        // else on a card, in a finder or in a contract changes shape.
+        String v = variety.isEmpty() && p != null ? Genome.varietyOfSpecies(p.id.getPath()) : variety;
+        if (!v.isEmpty()) {
+            boolean scaled = v.equals("scaled") || v.equals("linear");
+            boolean nude = v.equals("linear") || v.equals("naked");
+            g.append(' ').append(scaled ? (rng.nextBoolean() ? "KK" : "Kk") : "kk");
+            g.append(' ').append(nude ? "Nn" : "nn");
+            // Read back off the genotype rather than stored beside it: the card cannot then say
+            // "mirror" over a pair of alleles that spell a leather carp.
+            c.putString("Variety", Genome.carpVariety(g.toString()));
         }
         c.putString("Genes", g.toString());
     }

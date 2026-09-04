@@ -33,6 +33,8 @@ public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
     private static final String[] STATUS = { "empty", "no_pair", "not_mature", "out_of_season", "hungry",
             "bad_water", "spawning", "roe_ready", "incubating", "fry_ready", "busy" };
     private static final int SPAWNING = 6, ROE_READY = 7, INCUBATING = 8, FRY_READY = 9;
+    /** §scale-genes: the carp varieties data(10) indexes, spelled out for the same reason STATUS is. */
+    private static final String[] VARIETIES = { "scaled", "mirror", "linear", "naked" };
     private static final String[] SLOT_LABEL = { "fish", "fish", "fish", "fish", "fish", "fish",
             "food", "groundbait", "water", "result", "modules", "modules" };
 
@@ -84,6 +86,10 @@ public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
         String run = status == SPAWNING ? I18n.get(K + "spawning", menu.data(1))
                 : status == INCUBATING ? I18n.get(K + "incubating", menu.data(2), menu.data(3))
                 : menu.data(9) > 0 ? I18n.get(K + "clutch", menu.data(9)) : "";
+        // §scale-genes: whose clutch it is — "Leather × Leather" is the whole explanation of a clutch a
+        // quarter short, and of why the mirrors keep breeding true.
+        String pair = variety(menu.data(10) & 15), sire = variety(menu.data(10) >> 4);
+        if (!pair.isEmpty()) run = (run.isEmpty() ? "" : run + " · ") + pair + " × " + sire;
         if (!run.isEmpty()) g.text(font, font.plainSubstrByWidth(run, TEXT_W), x + 8, y + 88, COL_DIM, false);
 
         // Status line, at most two lines; a third would run into the window line.
@@ -109,6 +115,12 @@ public class AquariumScreen extends AbstractContainerScreen<AquariumMenu> {
             g.text(font, font.plainSubstrByWidth(window, TEXT_W), x + 8, y + 123,
                     status == 3 ? COL_WARN : COL_DIM, false); // 3 = OUT_OF_SEASON
         }
+    }
+
+    /** §scale-genes: one nibble of data(10) as the variety's own name, or "" when the fish is no carp. */
+    private static String variety(int nibble) {
+        return nibble < 1 || nibble > VARIETIES.length ? ""
+                : I18n.get("variety.riverfishing." + VARIETIES[nibble - 1]);
     }
 
     /** An empty tank slot names itself on hover — the window has no room for labels beside 3×2 fish. */

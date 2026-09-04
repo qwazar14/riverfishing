@@ -40,7 +40,7 @@ public class AquariumBlockEntity extends BlockEntity implements net.minecraft.wo
     long clock;                      // world time the ticker last saw (not saved: a reload skips the gap)
     boolean oil;                     // fish oil was taken at the start of the current spawn run
     String lastFood = "";            // what the last feeding was ("fish_meal" makes the clutch richer)
-    final int[] view = new int[10];  // the ten ints the window reads, filled by the rules once a second
+    final int[] view = new int[11];  // the ints the window reads, filled by the rules once a second
 
     public AquariumBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.AQUARIUM.get(), pos, state);
@@ -53,7 +53,8 @@ public class AquariumBlockEntity extends BlockEntity implements net.minecraft.wo
         return out;
     }
 
-    /** Ten ints for the window (docs/design/breeding-api.md, Layer 4), filled by the rules once a second. */
+    /** The window's ints (docs/design/breeding-api.md, Layer 4; §scale-genes added the eleventh),
+     *  filled by the rules once a second. */
     public net.minecraft.world.inventory.ContainerData data() {
         return new net.minecraft.world.inventory.ContainerData() {
             @Override public int get(int i) { return view[i]; }

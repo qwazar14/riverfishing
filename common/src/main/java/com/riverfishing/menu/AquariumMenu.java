@@ -31,7 +31,7 @@ import net.minecraft.world.item.Items;
  * shift-click that lets {@link #moveItemStackTo} pick the slot by those same filters.
  */
 public class AquariumMenu extends AbstractContainerMenu {
-    public static final int TANK_SLOTS = 12, DATA_SIZE = 10;
+    public static final int TANK_SLOTS = 12, DATA_SIZE = 11;   // §scale-genes: +1, the pair's varieties
     public static final int FISH_FIRST = 0, FISH_LAST = 5, FOOD = 6, GROUNDBAIT = 7, WATER = 8, RESULT = 9,
             MODULE_FIRST = 10, MODULE_LAST = 11;
     public static final int INV_START = TANK_SLOTS;

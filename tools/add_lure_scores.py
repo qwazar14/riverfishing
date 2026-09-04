@@ -74,6 +74,16 @@ TABLE = {                       # species: (spinnerbait, bladebait, swimbait, wa
     "mako":               (0,    0,    0.95, 0),
     "bull_shark":         (0,    0,    0.90, 0),
     # marlin / sailfish / swordfish stay on their trolling spread — a swimbait is not that fishery.
+    # --- §deep-twelve (0.9.0) -----------------------------------------------------------------------
+    # The black marlin is the one billfish that breaks the rule above: it eats whole tuna, and a big
+    # jointed body trolled behind the boat is a bait it actually takes.
+    "black_marlin":       (0,    0,    0.95, 0),
+    "bluefin_tuna":       (0,    0,    1.00, 0),
+    "tiger_shark":        (0,    0,    0.90, 0),
+    "nelma":              (0,    0,    0.85, 0),     # the second salmonid big enough for one
+    "pollock":            (0,    0.85, 0.75, 0),     # jigged vertically, exactly like its cousin saithe
+    # mullet / loach / blobfish / anglerfish / ocean sunfish / whale shark / piranha: none of them
+    # chases a moving lure, so none of the four.
 }
 
 BAIT = re.compile(r'("bait"\s*:\s*\{)(.*?)(\})', re.S)      # bait values are scalars, so no nesting

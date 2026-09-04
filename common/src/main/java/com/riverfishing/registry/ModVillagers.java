@@ -133,6 +133,8 @@ public final class ModVillagers {
     private static java.util.List<String> buyable = java.util.List.of();
 
     public static java.util.List<String> buyableSpecies() {
+        // §scale-genes: the counter still BUYS a mirror carp out of an old chest; it just cannot
+        // order one, because no water hands one out any more.
         if (!buyable.isEmpty()) return buyable;
         net.minecraft.server.MinecraftServer server = dev.architectury.utils.GameInstance.getServer();
         if (server == null) return java.util.List.of();
@@ -141,7 +143,10 @@ public final class ModVillagers {
         for (var key : trades.registryKeySet()) {
             String path = key.identifier().getPath();
             int cut = path.indexOf("/buy_");
-            if (path.startsWith("fisherman/") && cut > 0) found.add(path.substring(cut + 5));
+            if (path.startsWith("fisherman/") && cut > 0
+                    && !com.riverfishing.fish.Genome.isVarietyId(path.substring(cut + 5))) {
+                found.add(path.substring(cut + 5));
+            }
         }
         buyable = java.util.List.copyOf(found);
         return buyable;
@@ -323,7 +328,7 @@ public final class ModVillagers {
     /** "Ss Cc Vv Ff"-style: every allele a coin, the strong one written first — shop fry are ordinary fry. */
     public static String randomGenome(net.minecraft.util.RandomSource rng) {   // §i: the warden's fry too
         StringBuilder g = new StringBuilder();
-        for (char L : com.riverfishing.fish.Genome.LOCI.toCharArray()) {
+        for (char L : com.riverfishing.fish.Genome.COMMON_LOCI.toCharArray()) {   // §scale-genes: not K/N
             char l = Character.toLowerCase(L);
             int caps = (rng.nextBoolean() ? 1 : 0) + (rng.nextBoolean() ? 1 : 0);
             if (g.length() > 0) g.append(' ');

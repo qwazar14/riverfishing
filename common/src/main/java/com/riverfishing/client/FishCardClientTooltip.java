@@ -64,6 +64,10 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
 
         String latin = c.getStringOr("Latin", "");
         if (!latin.isEmpty()) plain(Component.literal(latin).withStyle(ChatFormatting.ITALIC), LABEL);
+        // §scale-genes: a carp's scale cover is a genotype, so it is named on the face of the card —
+        // the same fish, wearing what its K/N pair gave it.
+        String variety = c.getStringOr("Variety", "");
+        if (!variety.isEmpty()) row("variety", Component.translatable("variety.riverfishing." + variety), ORANGE);
         // §nature: the counter buys PRIME fish; anything else has no price there, and says so.
         if (FishItem.isPrime(fish) && c.getIntOr("Value", 0) > 0) row("value", key("emeralds", c.getIntOr("Value", 0)), GREEN);
         else row("value", Component.literal("—"), DIM);

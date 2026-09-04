@@ -138,11 +138,12 @@ public final class FishingManager {
     }
 
     /** Start a fight straight from a podded line the player just grabbed during its bite window. */
-    public static void startPodFight(ServerPlayer sp, BlockPos target, Identifier species,
+    public static void startPodFight(ServerPlayer sp, BlockPos target, Identifier species, String variety,
                                      double lineStrainKg, double dragKg, boolean hasLeader, RigType rigType) {
         ServerLevel level = sp.level();
         long now = level.getGameTime();
         FishingSession session = new FishingSession(InteractionHand.MAIN_HAND, target, RodClass.BOTTOM, 0, now, species);
+        session.variety = variety == null ? "" : variety;   // §pod-variety
         session.lineStrainKg = lineStrainKg;
         session.dragKg = dragKg;
         session.hasLeader = hasLeader;
@@ -542,7 +543,12 @@ public final class FishingManager {
             return false;
         }
 
-        Identifier species = maybeKoi(outcome.pickSpecies(random), ctx, random);
+        // §scale-genes: the mirror and the leather carp were separate draws of one fish; the draw
+        // still happens on their own profiles (their waters, their rarity), but what comes ashore is
+        // a `carp` whose K/N genotype is the variety — the session carries it as far as the card.
+        Identifier drawn = maybeKoi(outcome.pickSpecies(random), ctx, random);
+        String variety = com.riverfishing.fish.Genome.varietyOfSpecies(drawn.getPath());
+        Identifier species = com.riverfishing.fish.Genome.landed(drawn);
 
         // §feed-lands-where-the-rig-does: a feeder cage empties one jar per cast, and it empties it AT THE
         // BOBBER — the landing spot, not the water in front of your boots. It is exactly the same call
@@ -619,6 +625,7 @@ public final class FishingManager {
         // ACTIVE rods only "bite" while being retrieved, so their clock starts on the first retrieve tick.
         long biteAt = (rodClass == RodClass.ACTIVE) ? -1 : now + delay;
         FishingSession session = new FishingSession(hand, waterPos, rodClass, delay, biteAt, species);
+        session.variety = variety;   // §scale-genes
         // Worn line keeps less of its strain; a dull hook is read from the rig (§3.8).
         int lineWear = WearData.get(RodData.get(rod, ComponentSlot.LINE));
         if (lineWear >= 100) {
@@ -737,7 +744,12 @@ public final class FishingManager {
             noBitesHint(sp, ctx);
             return false;
         }
-        Identifier species = maybeKoi(outcome.pickSpecies(random), ctx, random);
+        // §scale-genes: the mirror and the leather carp were separate draws of one fish; the draw
+        // still happens on their own profiles (their waters, their rarity), but what comes ashore is
+        // a `carp` whose K/N genotype is the variety — the session carries it as far as the card.
+        Identifier drawn = maybeKoi(outcome.pickSpecies(random), ctx, random);
+        String variety = com.riverfishing.fish.Genome.varietyOfSpecies(drawn.getPath());
+        Identifier species = com.riverfishing.fish.Genome.landed(drawn);
 
         FishingPressureData pressure = FishingPressureData.get(level);
         long chunkKey = ChunkPos.pack(waterPos);
@@ -746,6 +758,7 @@ public final class FishingManager {
         long delay = (long) Mth.clamp(outcome.ticksToBite / Math.max(0.1, depletion) * AnglerSkills.biteSpeedMult(sp), 200, 2400);
 
         FishingSession session = new FishingSession(hand, waterPos, RodClass.FLOAT, delay, now + delay, species);
+        session.variety = variety;   // §scale-genes
         session.iceFishing = true;
         int lineWear = WearData.get(RodData.get(rod, ComponentSlot.LINE));
         session.lineStrainKg = ctx.lineType.breakingStrainKg(ctx.lineDiameterMm) * WearData.lineStrainMultiplier(lineWear);
@@ -1523,7 +1536,9 @@ public final class FishingManager {
         // its chance every 15 s would compound a per-cast rarity into a near-guarantee over a long wait).
         if (!session.species.getPath().startsWith("carp_koi")) {
             Identifier was = session.species;
-            session.species = outcome.pickSpecies(random);
+            Identifier redrawn = outcome.pickSpecies(random);
+            session.variety = com.riverfishing.fish.Genome.varietyOfSpecies(redrawn.getPath());
+            session.species = com.riverfishing.fish.Genome.landed(redrawn);   // §scale-genes
             // §nature: this fish's temperament, decided with the fish — the take and the fight read it.
             session.nature = com.riverfishing.fish.CatchCard.rollNature(
                     FishProfileManager.get().byId(session.species), new java.util.Random(random.nextLong()));

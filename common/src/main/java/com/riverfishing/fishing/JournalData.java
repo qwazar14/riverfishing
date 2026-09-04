@@ -108,7 +108,7 @@ public final class JournalData {
         CompoundTag root = get(player);
         int n = 0;
         for (String id : com.riverfishing.registry.ModItems.FISH_SPECIES) {
-            if (!id.startsWith("carp_koi")
+            if (!id.startsWith("carp_koi") && !com.riverfishing.fish.Genome.isVarietyId(id)
                     && root.getCompoundOrEmpty("riverfishing:" + id).getIntOr("count", 0) > 0) n++;
         }
         return n;
@@ -118,7 +118,9 @@ public final class JournalData {
     public static int speciesTotal() {
         int n = 0;
         for (String id : com.riverfishing.registry.ModItems.FISH_SPECIES) {
-            if (!id.startsWith("carp_koi")) n++;
+            // §scale-genes: a scale variety is not a species to be found — counting the three would
+            // put the all-species bar out of reach for good.
+            if (!id.startsWith("carp_koi") && !com.riverfishing.fish.Genome.isVarietyId(id)) n++;
         }
         return n;
     }

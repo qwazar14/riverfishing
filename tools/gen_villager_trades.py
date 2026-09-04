@@ -480,7 +480,9 @@ FISH = {
     1: [("bleak", 1, 1), ("gudgeon", 1, 1), ("roach", 1, 1), ("bluegill", 1, 1),
         ("round_goby", 1, 1), ("common_dace", 1, 1), ("rotan", 1, 2), ("smelt", 1, 3),
         # §giants-and-minnows (0.8.0)
-        ("gorchak", 1, 1), ("verkhovka", 1, 1), ("sculpin", 1, 2), ("tubenose_goby", 1, 1)],
+        ("gorchak", 1, 1), ("verkhovka", 1, 1), ("sculpin", 1, 2), ("tubenose_goby", 1, 1),
+        # §deep-twelve (0.9.0)
+        ("loach", 1, 2)],
     2: [("crucian_carp", 2, 2), ("perch", 2, 2), ("ruffe", 1, 2), ("rudd", 2, 2), ("sabrefish", 2, 2),
         ("white_eye_bream", 2, 3), ("nase", 2, 4), ("vimba", 3, 5), ("white_bream", 2, 2),
         # §giants-and-minnows (0.8.0)
@@ -491,7 +493,9 @@ FISH = {
         # §florida-nine: the two small cichlids sit with the pan-fish of their weight.
         ("oscar", 2, 4), ("mayan_cichlid", 2, 3),
         # §giants-and-minnows (0.8.0)
-        ("kutum", 5, 9)],
+        ("kutum", 5, 9),
+        # §deep-twelve (0.9.0)
+        ("mullet", 4, 7), ("red_piranha", 3, 5)],
     4: [("carp", 6, 12), ("mirror_carp", 7, 13), ("grass_carp", 9, 14), ("zander", 6, 10),
         # §florida-nine: the mid-weight predators, priced against largemouth bass and trout.
         ("peacock_bass", 7, 13), ("bullseye_snakehead", 6, 11), ("bluefish", 6, 12),
@@ -499,7 +503,11 @@ FISH = {
         ("burbot", 5, 10), ("mackerel", 3, 6), ("herring", 2, 4), ("garfish", 3, 6),
         ("flounder", 4, 8), ("char", 6, 12), ("lenok", 6, 12), ("salmon", 10, 18),
         # §giants-and-minnows (0.8.0)
-        ("naked_carp", 8, 14)],
+        ("naked_carp", 8, 14),
+        # §deep-twelve (0.9.0)
+        ("blobfish", 5, 10), ("pollock", 4, 8),
+        # §scale-genes (0.9.0)
+        ("linear_carp", 7, 13)],
     5: [("catfish", 12, 25), ("eel", 8, 15), ("channel_catfish", 10, 20), ("sterlet", 16, 30),
         # §florida-nine: the big saltwater four, against the mahi/wahoo/barracuda band.
         ("tarpon", 20, 32), ("snook", 11, 21), ("jack_crevalle", 12, 22), ("striped_bass", 12, 23),
@@ -509,7 +517,9 @@ FISH = {
         ("sailfish", 18, 30), ("swordfish", 24, 36), ("mako", 22, 34), ("wild_carp", 14, 28),
         ("taimen", 24, 36), ("sturgeon", 26, 38), ("halibut", 22, 34),
         # §giants-and-minnows (0.8.0)
-        ("arapaima", 26, 38), ("beluga", 30, 44), ("piraiba", 22, 34), ("goliath_grouper", 24, 36), ("bull_shark", 24, 36), ("frilled_shark", 26, 38), ("golden_dorado", 12, 22)],
+        ("arapaima", 26, 38), ("beluga", 30, 44), ("piraiba", 22, 34), ("goliath_grouper", 24, 36), ("bull_shark", 24, 36), ("frilled_shark", 26, 38), ("golden_dorado", 12, 22),
+        # §deep-twelve (0.9.0)
+        ("anglerfish", 15, 27), ("black_marlin", 32, 46), ("bluefin_tuna", 28, 40), ("whale_shark", 40, 60), ("nelma", 13, 24), ("ocean_sunfish", 16, 28), ("tiger_shark", 26, 38)],
 }
 
 

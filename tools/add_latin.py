@@ -28,6 +28,7 @@ LATIN = {
     "kutum": "Rutilus kutum", "largemouth_bass": "Micropterus salmoides", "lenok": "Brachymystax lenok",
     "mackerel": "Scomber scombrus", "mahi": "Coryphaena hippurus", "mako": "Isurus oxyrinchus",
     "mayan_cichlid": "Mayaheros urophthalmus", "mirror_carp": "Cyprinus carpio var. specularis",
+    "linear_carp": "Cyprinus carpio var. linearis",
     "naked_carp": "Cyprinus carpio var. nudus", "nase": "Chondrostoma nasus", "oscar": "Astronotus ocellatus",
     "peacock_bass": "Cichla ocellaris", "perch": "Perca fluviatilis", "pike": "Esox lucius",
     "pink_salmon": "Oncorhynchus gorbuscha", "piraiba": "Brachyplatystoma filamentosum",
@@ -43,6 +44,14 @@ LATIN = {
     "volga_zander": "Sander volgensis", "wahoo": "Acanthocybium solandri", "white_bream": "Blicca bjoerkna",
     "white_eye_bream": "Ballerus sapa", "whitefish": "Coregonus lavaretus", "wild_carp": "Cyprinus carpio",
     "yellowfin_tuna": "Thunnus albacares", "zander": "Sander lucioperca",
+    # §deep-twelve (0.9.0). The pollock here is the Alaska/walleye one, NOT the saithe above —
+    # "Pollachius virens" is already spoken for, so this one keeps its own genus.
+    "mullet": "Mugil cephalus", "anglerfish": "Lophius piscatorius",
+    "black_marlin": "Istiompax indica", "blobfish": "Psychrolutes marcidus",
+    "bluefin_tuna": "Thunnus thynnus", "loach": "Misgurnus fossilis",
+    "whale_shark": "Rhincodon typus", "nelma": "Stenodus leucichthys",
+    "ocean_sunfish": "Mola mola", "pollock": "Gadus chalcogrammus",
+    "red_piranha": "Pygocentrus nattereri", "tiger_shark": "Galeocerdo cuvier",
 }
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
