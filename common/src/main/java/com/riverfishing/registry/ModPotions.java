@@ -88,8 +88,38 @@ public final class ModPotions {
             if (fish != null) builder.addMix(Potions.AWKWARD, fish.get(), FISH_OIL);
         }
         builder.addMix(Potions.AWKWARD, ModItems.FISH_OIL.get(), FISH_OIL);
+        // §oil-brew-item: and the empty bottle. addContainer makes the glass bottle something the
+        // table will look mixes up for (it is already something the stand's slots accept); the mixes
+        // themselves are the fish. Both calls are vanilla and public here, so no loader API is used.
+        builder.addContainer(Items.GLASS_BOTTLE);
+        addOilBrews((bottle, fish, oil) -> builder.addContainerRecipe(bottle, fish, oil));
         builder.addMix(FISH_OIL, Items.GLOWSTONE_DUST, STRONG_FISH_OIL);
         builder.addMix(FISH_OIL, Items.REDSTONE, LONG_FISH_OIL);
+    }
+
+    /**
+     * §oil-brew-item: where one "empty bottle + fish -> oil" recipe goes. The three numbers are the
+     * same everywhere; only the call that records them differs, and only on 1.20.1 (see the two
+     * PlatformHelperImpl.registerBrewing). Everything above this line is potion-to-potion and needs no
+     * such thing.
+     */
+    public interface OilSink {
+        void add(net.minecraft.world.item.Item bottle, net.minecraft.world.item.Item fish,
+                 net.minecraft.world.item.Item oil);
+    }
+
+    /**
+     * §oil-brew-item: the oily fish, each as a container mix from a glass bottle to the oil. Vanilla's
+     * CONTAINER table — the one that turns a potion into a splash potion — is keyed on the bottle item
+     * and outputs an item, so a non-potion output is not a special case, it is what that table does.
+     */
+    public static void addOilBrews(OilSink sink) {
+        for (String sp : OILY) {
+            var fish = ModItems.FISH_ITEMS.get(com.riverfishing.RiverFishing.id(sp));
+            if (fish != null) {
+                sink.add(Items.GLASS_BOTTLE, fish.get(), ModItems.FISH_OIL.get());
+            }
+        }
     }
 
     private ModPotions() {}
