@@ -115,7 +115,14 @@ public final class FishProfile {
      * carp and the sazan are both Cyprinus carpio, the koi is a carp in a kimono — and for the few
      * crosses that make fertile young in the water they actually share.
      */
-    public final java.util.Set<String> breedsWith;
+    public final java.util.Map<String, Double> breedRates;
+
+    /**
+     * §gynogenesis: this hen does not need the male's genes — his milt only starts her unfertilised egg
+     * dividing, and what hatches is a copy of her. True for the silver crucian, which is exactly how she
+     * displaces the golden one wherever the two meet.
+     */
+    public final boolean gynogenesis;
 
     // §legendary (0.5.0): the species hides ONE named specimen per server (0 = none).
     public final int legendaryWeightG;
@@ -176,7 +183,8 @@ public final class FishProfile {
         this.biomes = b.biomes;
         this.provinces = b.provinces;
         this.biomesRequire = b.biomesRequire;
-        this.breedsWith = b.breedsWith;
+        this.breedRates = b.breedRates;
+        this.gynogenesis = b.gynogenesis;
     }
 
     // ---- Lookups used by the engine ----
@@ -358,7 +366,16 @@ public final class FishProfile {
         b.biomes = readDoubleMap(GsonHelper.getAsJsonObject(json, "biomes", new JsonObject()));
         b.provinces = readStringSet(json, "provinces");          // §provinces
         b.biomesRequire = readStringSet(json, "biomes_require"); // §biomes-require
-        b.breedsWith = readStringSet(json, "breeds_with");        // §breeds-with
+        // §breed-rate: a map of id to how well the cross takes. Written as a bare ARRAY in the
+        // first cut of §breeds-with and by any third-party profile that copied it — those read as
+        // "everything at full strength", which is what they meant, rather than failing the load.
+        b.breedRates = new java.util.HashMap<>();
+        if (json.has("breeds_with") && json.get("breeds_with").isJsonArray()) {
+            for (String o : readStringSet(json, "breeds_with")) b.breedRates.put(o, 1.0);
+        } else {
+            b.breedRates.putAll(readDoubleMap(GsonHelper.getAsJsonObject(json, "breeds_with", new JsonObject())));
+        }
+        b.gynogenesis = GsonHelper.getAsBoolean(json, "gynogenesis", false);   // §gynogenesis
         return new FishProfile(b);
     }
 
@@ -439,7 +456,8 @@ public final class FishProfile {
         Map<String, Double> biomes = new HashMap<>();
         java.util.Set<String> provinces = new java.util.HashSet<>();
         java.util.Set<String> biomesRequire = new java.util.HashSet<>();
-        java.util.Set<String> breedsWith = new java.util.HashSet<>();
+        Map<String, Double> breedRates = new HashMap<>();
+        boolean gynogenesis;
 
         Builder(ResourceLocation id) { this.id = id; }
     }

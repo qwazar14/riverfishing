@@ -23,7 +23,7 @@
   "habitat": { "depth_min": 3, "depth_max": 14, "width_min": 10 },
   "provinces": ["palearctic", "nearctic"],
   "biomes_require": ["cold"],
-  "breeds_with": ["nelma"],
+  "breeds_with": {"nelma": 0.3},
   "biomes": { "cold": 1.3, "taiga": 1.1, "mountain": 1.1 },
   "base": 0.75,
   "min_angler_level": 4
