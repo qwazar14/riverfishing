@@ -1,5 +1,8 @@
 {
   "variants": {
-    "": { "model": "riverfishing:block/pond_sign" }
+    "facing=north": {"model": "riverfishing:block/pond_sign"},
+    "facing=east":  {"model": "riverfishing:block/pond_sign", "y": 90},
+    "facing=south": {"model": "riverfishing:block/pond_sign", "y": 180},
+    "facing=west":  {"model": "riverfishing:block/pond_sign", "y": 270}
   }
 }
