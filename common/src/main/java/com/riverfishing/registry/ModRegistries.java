@@ -13,6 +13,8 @@ public final class ModRegistries {
 
     public static void init() {
         ModComponents.init();    // registered data components (the prime-fish flag the buy-trade gates on)
+        ModEffects.init();       // §fish-oil-potion: before ModPotions — a Potion's effect list needs it bound
+        ModPotions.init();
         ModBlocks.init();        // also queues block-items into ModItems.REGISTER (class-load side effect)
         ModItems.init();
         ModBlockEntities.init();

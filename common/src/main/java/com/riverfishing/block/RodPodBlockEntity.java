@@ -77,6 +77,7 @@ public class RodPodBlockEntity extends BlockEntity {
                     FishingManager.reEvaluate(serverLevel, line.session, now);
                     line.biteAtTick = line.session.biteAtTick;
                     line.species = line.session.species;
+                    line.variety = line.session.variety;
                 }
                 // §catch-the-moment: in the last ~10 s the fish nibbles the bait — subtle stirs that
                 // ramp up toward the real take (no state change, purely a cue).
@@ -196,7 +197,7 @@ public class RodPodBlockEntity extends BlockEntity {
                 if (line.selfHooked) {
                     actionbar(sp, "message.riverfishing.pod_self_hooked", ChatFormatting.AQUA);
                 }
-                FishingManager.startPodFight(sp, line.target, line.species,
+                FishingManager.startPodFight(sp, line.target, line.species, line.variety,
                         line.lineStrainKg, line.dragKg, line.hasLeader, line.rigType);
             } else if (line != null && line.phantom) {
                 actionbar(sp, "message.riverfishing.pod_phantom", ChatFormatting.GRAY);
@@ -425,6 +426,8 @@ public class RodPodBlockEntity extends BlockEntity {
     private static final class PodLine {
         BlockPos target;
         ResourceLocation species;
+        /** §pod-variety: the carp's scale variety travels with the line — the pod is not a species pot. */
+        String variety = "";
         long biteAtTick;
         boolean bitten;
         boolean phantom;
@@ -443,6 +446,7 @@ public class RodPodBlockEntity extends BlockEntity {
             line.session = s;
             line.target = s.target;
             line.species = s.species;
+            line.variety = s.variety;
             line.biteAtTick = s.biteAtTick;
             line.bitten = s.bitten;
             line.windowEnd = s.biteWindowEnd;
@@ -457,6 +461,7 @@ public class RodPodBlockEntity extends BlockEntity {
             CompoundTag c = new CompoundTag();
             c.putLong("Target", target.asLong());
             c.putString("Species", species.toString());
+            if (!variety.isEmpty()) c.putString("Variety", variety);
             c.putLong("BiteAt", biteAtTick);
             c.putBoolean("Bitten", bitten);
             c.putBoolean("Phantom", phantom);
@@ -474,6 +479,7 @@ public class RodPodBlockEntity extends BlockEntity {
             PodLine line = new PodLine();
             line.target = BlockPos.of(c.getLong("Target"));
             line.species = ResourceLocation.tryParse(c.getString("Species"));
+            line.variety = c.getString("Variety");
             line.biteAtTick = c.getLong("BiteAt");
             line.bitten = c.getBoolean("Bitten");
             line.phantom = c.getBoolean("Phantom");

@@ -70,6 +70,9 @@ public final class Contracts {
     private static List<String> pool() {
         List<String> out = new ArrayList<>();
         for (String sp : ModItems.FISH_SPECIES) {
+            // §scale-genes: a mirror or a leather carp is a genotype of `carp` now — the water never
+            // hands one out, so an order for three of them could never be filled.
+            if (com.riverfishing.fish.Genome.isVarietyId(sp)) continue;
             if (com.riverfishing.registry.ModVillagers.baseEmeralds(sp) > 0) out.add(sp);
         }
         return out;

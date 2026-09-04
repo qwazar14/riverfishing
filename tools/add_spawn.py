@@ -35,7 +35,7 @@ SPECIES = {
     "asp": ("spring", "mid"), "ide": ("spring", "early"), "roach": ("spring", "mid"),
     "bream": ("spring", "late"), "common_dace": ("spring", "early"), "nase": ("spring", "early"),
     "carp": ("summer", "early"), "wild_carp": ("summer", "early"), "mirror_carp": ("summer", "early"),
-    "naked_carp": ("summer", "early"), "tench": ("summer", "early"),
+    "naked_carp": ("summer", "early"), "linear_carp": ("summer", "early"), "tench": ("summer", "early"),
     "crucian_carp": ("summer", "early"), "golden_crucian": ("summer", "early"),
     "grass_carp": ("summer", "early"), "silver_carp": ("summer", "early"),
     # salmonids: autumn gravel, except the spring ones
@@ -48,6 +48,14 @@ SPECIES = {
     # sea
     "cod": ("winter", "late"), "herring": ("spring", "early"), "mackerel": ("summer", None),
     "flounder": ("winter", None),
+    # §deep-twelve (0.9.0): the sea giants spawn in the warm season, the deep pair have no season at
+    # all down there, and the nelma runs upriver in late autumn like the whitefish it used to be.
+    "mullet": ("autumn", "late"), "pollock": ("winter", "mid"), "nelma": ("autumn", "late"),
+    "anglerfish": ("spring", "early"), "blobfish": ("summer", None),
+    "black_marlin": ("summer", None), "bluefin_tuna": ("summer", "early"),
+    "whale_shark": ("summer", None), "ocean_sunfish": ("summer", None),
+    "tiger_shark": ("summer", None), "red_piranha": ("summer", "early"),
+    "loach": ("spring", "late"),
 }
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

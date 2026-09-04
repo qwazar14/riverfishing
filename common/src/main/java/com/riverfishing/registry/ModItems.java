@@ -53,6 +53,14 @@ public final class ModItems {
     public static final List<RegistrySupplier<Item>> RODS = new ArrayList<>();
     // ---- Caught fish: one item + texture per species (Module 8; ÃÂ§ecology adds habitat-bound species) ----
     public static final String[] FISH_SPECIES = {
+            // §scale-genes (0.9.0): the linear carp — one row of scales along the lateral line, the
+            // phenotype of Sc_ Nn. The scale varieties are genotypes of `carp` now, not species.
+            "linear_carp",
+            // §deep-twelve (0.9.0): the abyss, the open ocean and three fresh-water oddities — twelve
+            // species the author drew, from a 20 g loach to a twenty-tonne shark.
+            "mullet", "anglerfish", "black_marlin", "blobfish",
+            "bluefin_tuna", "loach", "whale_shark", "nelma",
+            "ocean_sunfish", "pollock", "red_piranha", "tiger_shark",
             // §carp-kin (0.8.1): two more of the family — a Caspian roach that grew up, and a carp
             // that forgot to put its scales on.
             "kutum", "naked_carp",

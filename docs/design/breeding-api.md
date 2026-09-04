@@ -567,3 +567,70 @@ Implementation notes for whoever builds it:
   invisible, OR the four vanilla effects are applied by an item-use hook. Pick the one that reads
   better and say why in the code.
 - Lang: potion names in three languages, and the effect name if a custom effect is used.
+
+---
+
+# Layer 9: koi are bred, not found (§koi-genes)
+
+Koi are a selectively bred carp: every named variety is a colour genotype, and the whole hobby is
+crossing them. The mod has five koi SPECIES, which is the same error the scale varieties were. They
+become one species, `koi_carp` — the author has drawn its blank white sprite already at
+`assets/riverfishing/textures/item/fish/koi_carp.png` — and the variety is read off three colour loci.
+
+## The loci
+
+On top of `SCVFKN` (size, colour, vigour, fertility, scales, nude — the carp pair applies to koi too),
+koi carry three more, appended in this order so the string stays positional: `SCVFKN` + `WRB`.
+
+| locus | dominant | recessive |
+|---|---|---|
+| **W** white ground | `W` white body | `w` dark/steel body |
+| **R** red (hi) | `R` red field present | `r` none |
+| **B** black (sumi) | `B` black markings present | `b` none |
+
+The named varieties fall out of the combinations, and the SAME table names the fish and tints it:
+
+| genotype | variety | look |
+|---|---|---|
+| `W_ R_ bb` | **kohaku** | red on white |
+| `W_ R_ B_` | **taisho_sanke** | red and black on white |
+| `ww R_ B_` | **showa** | red and white on black |
+| `W_ rr B_` | **bekko** | black patches on white |
+| `ww rr B_` | **asagi** | blue-grey net over a dark body |
+| `W_ rr bb` | **platinum** | plain white — the blank sprite, and the rarest plain fish |
+| `ww R_ bb` | **hi_utsuri** | red on black |
+| `ww rr bb` | **karasu** | plain black |
+| any of the above with `RR` and `WW` and a `tancho` mark | **tancho** | one red crown on white — see below |
+
+**Tancho** is not a fourth locus: it is `WW RR bb` (homozygous white ground, homozygous red, no black)
+— the cross that concentrates every red pigment into a single spot. Rare because it needs both
+homozygotes at once, which is exactly why it is prized.
+
+## What the player sees
+
+- One item, `koi_carp`, one white sprite, **tinted per fish** from its genotype. The tint is not one
+  colour: the icon model gets THREE tint layers (ground, red, black) so the same sprite paints eight
+  varieties. `tools/gen_koi_layers.py` splits the author's white koi into three greyscale masks
+  (body, a red-field mask, a black-marking mask) by luminance bands, and the client colours each.
+  If a clean three-layer split is not possible from one sprite, fall back to ONE tint layer plus a
+  per-variety overlay sprite generated from the same source, and say which was done.
+- The card names the variety (`variety.riverfishing.koi_<name>`) exactly as the carp's scale variety
+  is named, and the journal page for `koi_carp` lists every variety with its genotype — the mod
+  teaches the Punnett square by showing it.
+- The five old ids (`carp_koi_asagi`, `bekko`, `kohaku`, `showa_sanke`, `tancho_sanke`) stay
+  registered, priced, profiled and journal-paged, exactly as `mirror_carp` did: **old worlds must not
+  lose their koi.** Only the draw changes — the water now gives `koi_carp` with a genotype, and
+  `Genome.landed()` maps the old ids onto it the way it maps the carp varieties.
+
+## Breeding
+
+The aquarium already crosses genomes; koi need only the loci. Two koi of any variety spawn; the fry's
+variety is whatever the cross gives, so a kohaku pair throws mostly kohaku and the occasional
+platinum, and getting a tancho takes real work. The value at the counter is the variety's rarity —
+`ModVillagers` prices `koi_carp` by variety, not by weight alone.
+
+## Rarity, so the pond stays worth farming
+
+Wild-caught koi keep their current rarity (`base` 0, only in cherry groves / claimed ponds); the
+genotype of a WILD koi is drawn from a table weighted toward the common varieties (kohaku, sanke,
+bekko), so platinum and tancho are effectively breed-only.
