@@ -157,6 +157,11 @@ public class AquariumBlockEntity extends BlockEntity implements net.minecraft.wo
     }
 
     /** The roe slot — a RoeItem while it incubates, the FryItem it hatched into after; for the renderer. */
+    /** §aqua-view: 0..100, what the renderer colours the water by. */
+    public int getWater() {
+        return water;
+    }
+
     public ItemStack getRoe() {
         return roe;
     }
