@@ -3349,6 +3349,9 @@ public final class FishingManager {
         if (stocked.tickSettle(level, region, id, p)) {
             sp.displayClientMessage(Component.translatable("message.riverfishing.stock_settled", fishName(species)).withStyle(ChatFormatting.GREEN), true);
         } else if (stocked.catchFromBrood(region, id)) {
+            // §ledger-presence: the last fish out — and the bank around it goes with the book, or a
+            // leftover would keep the species biting with nobody left in the water.
+            FishingPressureData.get(level).clearStockAround(pos.getX() >> 4, pos.getZ() >> 4, id);
             sp.displayClientMessage(Component.translatable("message.riverfishing.stock_brood_lost", fishName(species)).withStyle(ChatFormatting.RED), true);
         }
     }
@@ -3421,7 +3424,17 @@ public final class FishingManager {
             // §cull-gate: culled is culled. setCulled() only drops the species from the stocked set, so
             // without this line a species stocked and THEN culled kept biting off its temporary surplus.
             if (stocked.isCulled(region, s)) return 0.0;
-            if (!stocked.isStocked(region, s)) return Math.min(1.0, pd.surplusAround(cx, cz, s, level.getGameTime()));
+            if (!stocked.isStocked(region, s)) {
+                double bank = Math.min(1.0, pd.surplusAround(cx, cz, s, level.getGameTime()));
+                // §ledger-presence: the fish that are IN the water are the ledger's heads. The bank is a
+                // weight bank that eleven catches or half an hour empties, and it was the only thing the
+                // bite read — so a pond of 120 grown fry went "gone" with 110 still on the book. No ledger
+                // (an old save's transplant): the bank is all there is.
+                if (!stocked.hasBrood(region, s)) return bank;
+                int heads = stocked.adults(region, s);
+                if (heads <= 0) return 0.0;
+                return Math.max(bank, Math.min(1.0, heads / (double) StockedData.FRY_TO_SETTLE));
+            }
             // §n §breeding: fish the last adult out of a settled pond and the species is GONE there until
             // it grows back (§m) — a stocked water is a head count, not a permanent licence. Guarded on
             // AvgW: a ledger from before the head count, or one that settled on fry alone, has no Adults
