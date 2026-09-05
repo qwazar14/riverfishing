@@ -128,6 +128,7 @@ The five koi items of earlier versions are one species now — **koi carp** — 
 | Locus | What it paints |
 |---|---|
 | **W** | the white ground |
+| **T** | the tancho crown — recessive, `tt` shows it |
 | **R** | the red field (*hi*) |
 | **B** | the black markings (*sumi*) |
 | **G** | the metallic lustre |
@@ -140,9 +141,9 @@ The table is read **top to bottom, and the first row that fits names the fish**.
 
 | Variety | Genotype | What it looks like | Where from |
 |---|---|---|---|
-| **Tancho** | `WW RR bb` | one red crown on white | bred |
+| **Tancho** | `W_ R_ bb tt` | one red crown on white — the recessive crown, out of a tancho line | bred |
 | **Yamabuki Ogon** | `ww rr bb G_` | solid gold | bred |
-| **Ogon** | `W_ rr bb G_` | solid metallic white | bred |
+| **Platinum Ogon** | `W_ rr bb G_` | solid metallic white | bred |
 | **Sakura Ogon** | `W_ R_ bb G_` | metallic red on white | bred |
 | **Yamatonishiki** | `W_ R_ B_ G_` | metallic red and black on white | bred |
 | **Kin Showa** | `ww R_ B_ G_` | metallic red on black | bred |
@@ -154,7 +155,7 @@ The table is read **top to bottom, and the first row that fits names the fish**.
 | **Showa** | `ww R_ B_` | red on black | wild |
 | **Bekko** | `W_ rr B_` | black on white | wild, common |
 | **Asagi** | `ww rr B_` | blue-grey, netted scales | wild |
-| **Platinum** | `W_ rr bb` | plain white | bred |
+| **Shiro Muji** | `W_ rr bb` | plain white | bred |
 | **Hi Utsuri** | `ww R_ bb` | red on a dark ground | wild |
 | **Karasu** | `ww rr bb` | black | wild, rare |
 

@@ -597,14 +597,15 @@ The named varieties fall out of the combinations, and the SAME table names the f
 | `ww R_ B_` | **showa** | red and white on black |
 | `W_ rr B_` | **bekko** | black patches on white |
 | `ww rr B_` | **asagi** | blue-grey net over a dark body |
-| `W_ rr bb` | **platinum** | plain white — the blank sprite, and the rarest plain fish |
+| `W_ rr bb` | **platinum** (shown as *Shiro Muji* — platinum is the metallic white) | plain white — the blank sprite |
 | `ww R_ bb` | **hi_utsuri** | red on black |
 | `ww rr bb` | **karasu** | plain black |
 | any of the above with `RR` and `WW` and a `tancho` mark | **tancho** | one red crown on white — see below |
 
-**Tancho** is not a fourth locus: it is `WW RR bb` (homozygous white ground, homozygous red, no black)
-— the cross that concentrates every red pigment into a single spot. Rare because it needs both
-homozygotes at once, which is exactly why it is prized.
+**Tancho** is a fifth locus, T, recessive: `tt` on a kohaku puts every red pigment into a single crown.
+A kohaku line carries `TT` and cannot throw one; a tancho line breeds it true, and a tancho × kohaku
+cross carries it hidden into the second generation (§koi-lines — the first draft made it `WW RR bb`,
+which meant a kohaku could never be pure and kohaku × kohaku threw 44% not-kohaku).
 
 ## What the player sees
 
