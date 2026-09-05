@@ -24,10 +24,21 @@ public final class FishTint {
 
     /** The tint provider both loaders register for the fish items (layer 0 of the icon model). */
     public static int itemColor(ItemStack stack, int tintIndex) {
-        if (tintIndex != 0) return -1;
         Identifier sp = FishItem.getSpecies(stack);
         if (sp == null) return -1;                       // a creative-tab entry with no specimen data
-        return FishMorph.tint(sp.getPath(), FishItem.getAge(stack), FishItem.getMorph(stack));
+        // §koi-genes: one white koi sprite, four tinted layers — ground, red hi, black sumi and the
+        // tancho crown — so every named variety is painted rather than drawn. The patch masks are cut
+        // out of the sprite itself, so a layer this fish does not wear is given the ground colour and
+        // vanishes into the body (tools/gen_koi_layers.py).
+        if ("koi_carp".equals(sp.getPath())) {
+            return tintIndex >= 0 && tintIndex < 4
+                    ? FishMorph.koiTint(com.riverfishing.fish.CatchCard.of(stack).getStringOr("Variety", ""), tintIndex,
+                            com.riverfishing.fish.CatchCard.pattern(stack)) : -1;   // §pattern
+        }
+        if (tintIndex != 0) return -1;
+        // §pattern: an ordinary index leaves a perch a perch; a gem paints it one saturated colour.
+        return FishMorph.tint(sp.getPath(), FishItem.getAge(stack), FishItem.getMorph(stack),
+                com.riverfishing.fish.CatchCard.pattern(stack));
     }
 
     /** The packed overlay UV for a stack: whiter for a young fish, and much whiter for a pale morph. */

@@ -9,7 +9,7 @@
   "given_item_modifiers": [
     {
       "function": "minecraft:set_custom_data",
-      "tag": "{Box:[{s:0,i:{id:\"riverfishing:leader_titanium\",count:2}},{s:1,i:{id:\"riverfishing:octopus_jig\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:139,BalancePos:1},\"minecraft:dyed_color\":10904926}}},{s:2,i:{id:\"riverfishing:giant_spoon\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:169,BalancePos:1},\"minecraft:dyed_color\":3044727}}},{s:3,i:{id:\"riverfishing:rig_ground\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:100,LeaderLenCm:40}}}},{s:4,i:{id:\"riverfishing:hook_2\",count:3}},{s:5,i:{id:\"riverfishing:hook_4\",count:3}},{s:6,i:{id:\"riverfishing:line_braid_040\",count:1}},{s:7,i:{id:\"riverfishing:livebait\",count:4}}]}"
+      "tag": "{Box:[{s:0,i:{id:\"riverfishing:leader_titanium\",count:2}},{s:1,i:{id:\"riverfishing:octopus_jig\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:176,BalancePos:1},\"minecraft:dyed_color\":6738056}}},{s:2,i:{id:\"riverfishing:giant_spoon\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:155,BalancePos:1},\"minecraft:dyed_color\":11359128}}},{s:3,i:{id:\"riverfishing:rig_ground\",count:1,components:{\"minecraft:custom_data\":{TackleWeightG:100,LeaderLenCm:40}}}},{s:4,i:{id:\"riverfishing:hook_2\",count:3}},{s:5,i:{id:\"riverfishing:hook_4\",count:3}},{s:6,i:{id:\"riverfishing:line_braid_040\",count:1}},{s:7,i:{id:\"riverfishing:livebait\",count:4}}]}"
     },
     {
       "function": "minecraft:set_components",

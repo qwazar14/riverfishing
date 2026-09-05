@@ -9,7 +9,10 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -18,57 +21,157 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Holds up to {@link #MAX_FISH} mounted fish for an {@link AquariumBlock} (only the master cell has one). */
-public class AquariumBlockEntity extends BlockEntity {
-    public static final int MAX_FISH = 3;
+public class AquariumBlockEntity extends BlockEntity implements net.minecraft.world.Container {
+    /** Slots 0..5 hold fish (§aq-b: the window's 3x2 grid). */
+    public static final int MAX_FISH = 6;
+    /** 0-5 fish, 6 food, 7 groundbait, 8 water bucket, 9 roe/fry (the {@link #roe} field), 10-11 modules. */
+    public static final int SLOTS = 12;
 
-    private final List<ItemStack> fishes = new ArrayList<>();
+    private final NonNullList<ItemStack> items = NonNullList.withSize(SLOTS, ItemStack.EMPTY);
+
+    // §b/breeding (0.9.0): the tank is a live one — the rules are in AquariumBreeding, next door, which is the
+    // only thing that reads or writes these (package-private on purpose; no getters for one caller).
+    long fedUntil;                   // world day until which the fish count as fed (exclusive)
+    long spawnTicks;                 // §tank-days: world time the clutch run started, 0 = none
+    long incubate;                   // §tank-days: world time incubation started, 0 = none
+    ItemStack roe = ItemStack.EMPTY; // the roe slot: a RoeItem, or the FryItem it hatched into
+    /**
+     * §aq-water: 0..100. A tank starts FULL — the recipe pours a bucket of water into it, so a tank you
+     * have just placed is a tank you have just filled, and asking for a second bucket before the first
+     * fish can go in was asking twice for the same thing.
+     */
+    int water = 100;
+    long waterAcc;                   // water change in percent-ticks not yet a whole percent (not saved)
+    long clock;                      // world time the ticker last saw (not saved: a reload skips the gap)
+    boolean oil;                     // fish oil was taken at the start of the current spawn run
+    String lastFood = "";            // what the last feeding was ("fish_meal" makes the clutch richer)
+    final int[] view = new int[11];  // the ints the window reads, filled by the rules once a second
 
     public AquariumBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.AQUARIUM.get(), pos, state);
     }
 
-    /** The mounted fish (0..3), for the renderer and interaction. */
+    /** The fish in slots 0..5, the empty ones skipped — the renderer, Jade and the rules read this. */
     public List<ItemStack> getFishes() {
-        return fishes;
+        List<ItemStack> out = new ArrayList<>(MAX_FISH);
+        for (int i = 0; i < MAX_FISH; i++) if (!items.get(i).isEmpty()) out.add(items.get(i));
+        return out;
     }
 
-    public boolean isFull() {
-        return fishes.size() >= MAX_FISH;
+    /** The window's ints (docs/design/breeding-api.md, Layer 4; §scale-genes added the eleventh),
+     *  filled by the rules once a second. */
+    public net.minecraft.world.inventory.ContainerData data() {
+        return new net.minecraft.world.inventory.ContainerData() {
+            @Override public int get(int i) { return view[i]; }
+            @Override public void set(int i, int v) { view[i] = v; }
+            @Override public int getCount() { return view.length; }
+        };
     }
 
+    // ---- Container: twelve slots. Slot 9 IS the roe field — the renderer and the rules call it by
+    // name, the menu by number — so the two never disagree. ----
+
+    @Override
+    public int getContainerSize() {
+        return SLOTS;
+    }
+
+    @Override
     public boolean isEmpty() {
-        return fishes.isEmpty();
+        for (int i = 0; i < SLOTS; i++) if (!getItem(i).isEmpty()) return false;
+        return true;
     }
 
-    /** Add one fish if there's room. Returns true when it went in. */
-    public boolean addFish(ItemStack stack) {
-        if (isFull() || stack.isEmpty()) return false;
-        fishes.add(stack.copyWithCount(1));
+    @Override
+    public ItemStack getItem(int slot) {
+        return slot == 9 ? roe : items.get(slot);
+    }
+
+    @Override
+    public ItemStack removeItem(int slot, int count) {
+        ItemStack out = slot == 9 ? roe.split(count) : ContainerHelper.removeItem(items, slot, count);
+        if (!out.isEmpty()) changed(slot);
+        return out;
+    }
+
+    @Override
+    public ItemStack removeItemNoUpdate(int slot) {
+        ItemStack out = getItem(slot);
+        if (slot == 9) roe = ItemStack.EMPTY; else items.set(slot, ItemStack.EMPTY);
+        return out;
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack stack) {
+        if (slot == 9) roe = stack; else items.set(slot, stack);
+        if (stack.getCount() > getMaxStackSize()) stack.setCount(getMaxStackSize());
+        changed(slot);
+    }
+
+    /** The menu's own filters, mirrored so a hopper obeys the same table as a hand. */
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack s) {
+        if (slot < MAX_FISH) return s.getItem() instanceof com.riverfishing.item.FishItem && com.riverfishing.fish.CatchCard.has(s);
+        return switch (slot) {
+            case 6 -> s.getItem() instanceof com.riverfishing.item.BaitItem b && !b.artificial()
+                    || s.getItem() instanceof com.riverfishing.item.FishMealItem
+                    || s.getItem() instanceof com.riverfishing.item.FishOilItem;
+            case 7 -> s.getItem() instanceof com.riverfishing.item.GroundbaitItem;
+            case 8 -> s.is(net.minecraft.world.item.Items.WATER_BUCKET);
+            case 9 -> s.getItem() instanceof com.riverfishing.item.RoeItem && getFishes().isEmpty(); // roe to hatch, in an empty tank
+            default -> s.getItem() instanceof net.minecraft.world.item.BlockItem bi && bi.getBlock() instanceof WaterUpgradeBlock;
+        };
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return net.minecraft.world.Container.stillValidBlockEntity(this, player);
+    }
+
+    @Override
+    public void clearContent() {
+        items.clear();
+        roe = ItemStack.EMPTY;
+        incubate = 0;
         sync();
-        return true;
+    }
+
+    /** Fish and the roe slot are drawn in the world, so they sync; the rest only needs saving. */
+    private void changed(int slot) {
+        if (slot < MAX_FISH || slot == 9) {
+            // Roe taken out (or hatched) forgets its days; roe put in starts them on the next tick.
+            if (slot == 9 && !(roe.getItem() instanceof com.riverfishing.item.RoeItem)) incubate = 0;
+            sync();
+        } else {
+            setChanged();
+        }
     }
 
     // §26.1: the block's onRemove hook is gone — the BE now pops its own contents on removal.
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         if (level != null && !level.isClientSide()) {
-            for (ItemStack f : fishes) {
-                net.minecraft.world.level.block.Block.popResource(level, pos, f);
-            }
-            fishes.clear();
+            net.minecraft.world.Containers.dropContents(level, pos, this);
         }
         super.preRemoveSideEffects(pos, state);
     }
 
-    /** Remove and return the most-recently added fish, or EMPTY when the tank is empty. */
-    public ItemStack removeLastFish() {
-        if (fishes.isEmpty()) return ItemStack.EMPTY;
-        ItemStack out = fishes.remove(fishes.size() - 1);
-        sync();
-        return out;
+    /** The roe slot — a RoeItem while it incubates, the FryItem it hatched into after; for the renderer. */
+    /** §aqua-view: 0..100, what the renderer colours the water by. */
+    public int getWater() {
+        return water;
     }
 
-    private void sync() {
+    public ItemStack getRoe() {
+        return roe;
+    }
+
+    /** World time incubation started, 0 when it has not; the renderer picks the day's frame from it. */
+    public long getIncubate() {
+        return incubate;
+    }
+
+    void sync() {
         setChanged();
         if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
@@ -78,19 +181,34 @@ public class AquariumBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
         super.saveAdditional(tag);
-        tag.store("Fishes", ItemStack.OPTIONAL_CODEC.listOf(), java.util.List.copyOf(fishes));
+        ContainerHelper.saveAllItems(tag, items);
+        tag.putInt("Water", water);
+        tag.putBoolean("Oil", oil);
+        tag.putString("LastFood", lastFood);
+        tag.putLong("FedUntil", fedUntil);
+        tag.putLong("SpawnTicks", spawnTicks);
+        tag.putLong("Incubate", incubate);
+        tag.store("Roe", ItemStack.OPTIONAL_CODEC, roe);
     }
 
     @Override
     protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
         super.loadAdditional(tag);
-        fishes.clear();
+        items.clear();
+        ContainerHelper.loadAllItems(tag, items);
+        // §aq-water: an absent key is a tank that has never been saved, which is a full one.
+        water = tag.getIntOr("Water", 100);
+        oil = tag.getBooleanOr("Oil", false);
+        lastFood = tag.getStringOr("LastFood", "");
+        fedUntil = tag.getLongOr("FedUntil", 0L);
+        spawnTicks = tag.getLongOr("SpawnTicks", 0L);
+        incubate = tag.getLongOr("Incubate", 0L);
+        roe = tag.read("Roe", ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        int n = 0; // migrate the pre-window tank: its mounted fish (or the older single one) into the first slots
         for (ItemStack s : tag.read("Fishes", ItemStack.OPTIONAL_CODEC.listOf()).orElse(java.util.List.of())) {
-            if (!s.isEmpty() && fishes.size() < MAX_FISH) fishes.add(s);
+            if (!s.isEmpty() && n < MAX_FISH) items.set(n++, s);
         }
-        if (fishes.isEmpty()) { // migrate the old single-fish format
-            tag.read("Fish", ItemStack.OPTIONAL_CODEC).filter(s -> !s.isEmpty()).ifPresent(fishes::add);
-        }
+        if (n == 0) tag.read("Fish", ItemStack.OPTIONAL_CODEC).filter(s -> !s.isEmpty()).ifPresent(s -> items.set(0, s));
     }
 
     @Override

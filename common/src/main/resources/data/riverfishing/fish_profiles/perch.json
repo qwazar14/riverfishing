@@ -1,5 +1,7 @@
 {
   "display": "Окунь",
+  "latin": "Perca fluviatilis",
+  "spawn": { "season": "spring", "sub": "mid" },
   "group": "predator",
   "water_bodies": {
     "river": 1.0,
@@ -49,7 +51,10 @@
       "silicone": 0.95,
       "spinner": 0.9,
       "jig": 0.8,
-      "popper": 0.7
+      "popper": 0.7,
+      "spinnerbait": 0.7,
+      "bladebait": 0.95,
+      "wacky_worm": 0.85
     },
     "hook": {
       "ideal": 8,
@@ -84,6 +89,7 @@
     "depth_max": 10,
     "width_min": 4
   },
+  "provinces": ["palearctic", "nearctic"],
   "biomes": {
     "cold": 1.0,
     "temperate": 1.0,

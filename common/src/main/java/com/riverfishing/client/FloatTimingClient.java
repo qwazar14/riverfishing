@@ -16,6 +16,13 @@ public final class FloatTimingClient {
     private static float orangeStart;
     private static float orangeEnd;
 
+    /**
+     * §strike-tune: the cast gauge's sheet. The same brass frame, because this is the same instrument
+     * one moment later — the rod was aimed on it, and now the strike window is read on it.
+     */
+    private static final net.minecraft.resources.Identifier BAR =
+            com.riverfishing.RiverFishing.id("textures/gui/cast_bar.png");
+
     private FloatTimingClient() {}
 
     public static void accept(FloatTimingPacket p) {
@@ -54,27 +61,27 @@ public final class FloatTimingClient {
             return;
         }
 
-        int barW = 160;
-        int barH = 12;
-        int x = (screenW - barW) / 2;
-        int y = screenH - 88; // §qte-bar: lifted above the actionbar text (was overlapping it)
+        // §strike-tune: the cast gauge's own geometry — frame 120x16, with a 112x8 recess at (4,4).
+        final int FW = 120, FH = 16, TW = 112, TH = 8;
+        int x = (screenW - FW) / 2, y = screenH - 70;
+        int tx = x + 4, ty = y + 4;
 
-        g.fill(x - 2, y - 2, x + barW + 2, y + barH + 2, 0xD0202020);
-        g.fill(x, y, x + barW, y + barH, 0xFF3A3A3A);
+        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, x, y, 0f, 0f, FW, FH, 128, 48);
 
-        // Orange band first (25% hook), then the green zone (100%) on top — both at a random spot.
-        int os = x + (int) (orangeStart * barW);
-        int oe = x + (int) (orangeEnd * barW);
-        g.fill(os, y, oe, y + barH, 0xD0D08030);                 // orange partial zone
-        int zs = x + (int) (greenStart * barW);
-        int ze = x + (int) (greenEnd * barW);
-        g.fill(zs, y, ze, y + barH, 0xD050C050);                 // green target zone
+        // The orange band is the 25% hook, the green is the whole fish; green goes on top because
+        // where they overlap the better answer is the one the player should be aiming at.
+        int os = tx + (int) (orangeStart * TW), oe = tx + (int) (orangeEnd * TW);
+        g.fill(os, ty, oe, ty + TH, 0xE0C8862E);
+        int zs = tx + (int) (greenStart * TW), ze = tx + (int) (greenEnd * TW);
+        g.fill(zs, ty, ze, ty + TH, 0xE05FA84E);
 
-        float m = marker(t);
-        int mx = x + (int) (m * barW);
-        g.fill(mx - 1, y - 3, mx + 2, y + barH + 3, 0xFFFFE040); // moving marker
+        // The needle, through the whole frame and a little past it, so it reads over either zone.
+        int mx = tx + (int) (marker(t) * TW);
+        g.fill(mx - 2, y - 2, mx + 3, y + FH + 2, 0xC0231A10);
+        g.fill(mx - 1, y - 1, mx + 2, y + FH + 1, 0xFFFFE8A8);
 
         Component label = Component.translatable("hud.riverfishing.strike_timing");
-        g.centeredText(mc.font, label, screenW / 2, y - 12, 0xFFFFFFFF);
+        int ly = y - 12;
+        g.text(mc.font, label, screenW / 2 - mc.font.width(label) / 2, ly, 0xFFF0E6CD, true);
     }
 }

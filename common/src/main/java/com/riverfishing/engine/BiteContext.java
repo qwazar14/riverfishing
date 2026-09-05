@@ -29,6 +29,8 @@ public class BiteContext {
     public double leaderProtection; // bite-through resistance of the fitted leader (0..1)
     public double leaderStealth;    // invisibility of the fitted leader (0..1)
     public double castWeightG;      // rig mass
+    /** §livebait-3: the live baitfish on the hook, grams; 0 when none. A taker must be able to swallow it. */
+    public int livebaitG;
     public double lureWeightG;      // §lure-size (0.6.0): the tied lure's bench weight, 0 = none/untied
 
     // ---- Angler (progression gate) ----
@@ -39,7 +41,7 @@ public class BiteContext {
 
     // ---- Environment ----
     public WaterType water = WaterType.NONE;
-    public Season season;           // null when Serene Seasons is absent -> factor 1.0
+    public Season season;           // §breeding-A: SS's or Calendar's own; null only if never set -> factor 1.0
     public TimeOfDay time = TimeOfDay.DAY;
     public Weather weather = Weather.CLEAR;
     /** §weather-pressure: barometric bite multiplier (~0.7..1.35), uniform across species. 1.0 = neutral. */
@@ -52,8 +54,19 @@ public class BiteContext {
     public boolean biomeOcean;
     public double waterWidth = 32;  // max horizontal span of the water body (§4.1)
     public int waterDepth = 3;      // water-column depth (blocks) at the cast point — habitat gate
+    /** §pond: a claimed private pond — the depth and width gates are waived; a dug pit is the size its owner made it. */
+    public boolean privatePond;
+    /** §bed-bite: what the bed is under the cast, FishingManager.bedType's code; 0 = not read. */
+    public int bed;
+    /** §f §ecosystem: water clarity, 1.0 untouched; filter-feeders raise it, rooting carp lower it. */
+    public double clarity = 1.0;
     /** Biome groups at the spot (climate + terrain: cold/temperate/warm, taiga, jungle, swamp, mountain…). */
     public java.util.Set<String> biomeGroups = new java.util.HashSet<>();
+    /**
+     * §provinces: the faunal province this water is in — palearctic, nearctic, neotropic, indomalaya.
+     * Empty only where nothing set it (a test, a probe with no level), which reads as "no gate".
+     */
+    public String province = "";
     public double castDistance = 8;
 
     // ---- Fed spot (§5) ----

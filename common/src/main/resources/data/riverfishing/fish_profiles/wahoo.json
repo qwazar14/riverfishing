@@ -1,5 +1,7 @@
 {
   "display": "Ваху",
+  "latin": "Acanthocybium solandri",
+  "spawn": { "season": "summer" },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.0,
@@ -45,7 +47,8 @@
       "castmaster": 0.8,
       "silicone": 0.7,
       "octopus_jig": 1.0,
-      "giant_spoon": 1.15
+      "giant_spoon": 1.15,
+      "swimbait": 1.0
     },
     "hook": {
       "ideal": 1,

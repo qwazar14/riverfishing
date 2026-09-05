@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "riverfishing:block/feeding_station_top0",
+    "bottom": "riverfishing:block/feeding_station_bottom",
+    "side": "riverfishing:block/feeding_station_side0"
+  }
+}

@@ -36,6 +36,11 @@ public class WaterProbeItem extends Item {
         this.admin = admin;
     }
 
+    /** The creative-only hydro probe dumps diagnostics; the player's finder draws a screen. */
+    public boolean admin() {
+        return admin;
+    }
+
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
@@ -76,6 +81,16 @@ public class WaterProbeItem extends Item {
 
     /** Finds water along the player's view (24 blocks, any fluid shape) and runs the analysis. */
     private boolean scan(Level level, Player player) {
+        // §sounding: crouching turns the finder into a marker cast. One item, two jobs — a separate
+        // weight would have wanted its own model, texture, recipe and trade to say the same thing.
+        if (!admin && player.isShiftKeyDown()) {
+            if (!level.isClientSide() && player instanceof ServerPlayer sp && level instanceof ServerLevel sl) {
+                FishingManager.takeSounding(sp, sl);
+                player.getCooldowns().addCooldown(
+                        net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(this), 20);
+            }
+            return true;
+        }
         BlockPos waterPos = findWater(level, player);
         if (!level.isClientSide() && player instanceof ServerPlayer sp && level instanceof ServerLevel sl) {
             com.riverfishing.RiverFishing.LOGGER.info("[RiverFishing] probe scan by {}: admin={}, water={}",
@@ -85,7 +100,21 @@ public class WaterProbeItem extends Item {
                 sp.sendSystemMessage(Component.translatable("message.riverfishing.no_water")
                         .withStyle(ChatFormatting.RED));
             } else {
-                FishingManager.analyzeWater(sp, sl, waterPos, admin);
+                // §finder-screen: the admin probe keeps its chat dump — it is a diagnostic, and its
+                // caller is reading a log. The player-facing finder opens the screen instead.
+                if (admin) {
+                    FishingManager.analyzeWater(sp, sl, waterPos, true);
+                } else {
+                    net.minecraft.nbt.CompoundTag payload =
+                            FishingManager.finderPayload(sp, sl, waterPos);
+                    // §chart-server: the chart belongs to this sounder and lives in the world save.
+                    com.riverfishing.fishing.ChartData.record(sp, sl, payload);
+                    com.riverfishing.network.ModNetwork.toPlayer(sp,
+                            new com.riverfishing.network.FinderPacket(payload, false));
+                    sl.playSound(null, sp.blockPosition(),
+                            net.minecraft.sounds.SoundEvents.NOTE_BLOCK_BIT.value(),
+                            net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1.5f);
+                }
                 player.getCooldowns().addCooldown(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(this), 10);
             }
         }
@@ -120,5 +149,12 @@ public class WaterProbeItem extends Item {
         tooltip.accept(Component.translatable(admin
                 ? "tooltip.riverfishing.hydro_probe" : "tooltip.riverfishing.fish_finder")
                 .withStyle(ChatFormatting.DARK_GRAY));
+        // §chart-item: a surveyed sounder is worth more than a new one, so it has to be possible to
+        // tell them apart in a chest without plugging each one in.
+        String chart = FinderChart.of(stack);
+        if (!admin && !chart.isEmpty()) {
+            tooltip.accept(Component.translatable("tooltip.riverfishing.chart", chart)
+                    .withStyle(ChatFormatting.DARK_AQUA));
+        }
     }
 }

@@ -1,5 +1,7 @@
 {
   "display": "Астронотус",
+  "latin": "Astronotus ocellatus",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "lake": 1.2,
@@ -47,7 +49,8 @@
       "livebait": 1.1,
       "silicone": 0.9,
       "maggot": 0.9,
-      "jig": 0.8
+      "jig": 0.8,
+      "wacky_worm": 1.0
     },
     "hook": {
       "ideal": 8,
@@ -80,6 +83,8 @@
     "depth_min": 1,
     "width_min": 4
   },
+  "provinces": ["neotropic"],
+  "biomes_require": ["warm", "jungle"],
   "biomes": {
     "warm": 1.4,
     "swamp": 1.1

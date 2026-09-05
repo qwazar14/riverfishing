@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "riverfishing:herring",
+    "riverfishing:mackerel",
+    "riverfishing:salmon",
+    "riverfishing:pink_salmon",
+    "riverfishing:sabrefish",
+    "riverfishing:eel",
+    "riverfishing:bluefish",
+    "riverfishing:bluefin_tuna",
+    "riverfishing:pollock"
+  ]
+}

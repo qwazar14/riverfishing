@@ -5,17 +5,13 @@
       "sprite": "riverfishing:block/aquarium_glass",
       "force_translucent": true
     },
-    "water": {
-      "sprite": "minecraft:block/light_blue_stained_glass",
-      "force_translucent": true
-    },
     "gravel": "minecraft:block/gravel",
     "kelp": "minecraft:block/kelp_plant",
     "particle": "riverfishing:block/aquarium_glass"
   },
   "elements": [
     {
-      "__comment": "glass shell — omit the west face (the seam toward the left cell)",
+      "__comment": "glass shell \u2014 omit the west face (the seam toward the left cell)",
       "from": [
         0,
         0,
@@ -126,58 +122,7 @@
       }
     },
     {
-      "__comment": "water body reaches the seam — raised to y=15",
-      "from": [
-        0,
-        2,
-        0.6
-      ],
-      "to": [
-        15.4,
-        15,
-        15.4
-      ],
-      "faces": {
-        "up": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#water"
-        },
-        "north": {
-          "uv": [
-            0,
-            0,
-            16,
-            13
-          ],
-          "texture": "#water"
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            16,
-            13
-          ],
-          "texture": "#water"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            13
-          ],
-          "texture": "#water"
-        }
-      }
-    },
-    {
-      "__comment": "kelp — crossed planes",
+      "__comment": "kelp \u2014 crossed planes",
       "from": [
         5,
         2,

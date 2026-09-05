@@ -127,10 +127,17 @@ public class FishItem extends Item {
                 if (level instanceof net.minecraft.server.level.ServerLevel sl) {
                     // §stocking 2.0: presence, settling and the weight-scaled surplus all live in
                     // FishingManager.releaseFish — see there for the whole model.
-                    Identifier released = getSpecies(stack);
+                    if (stack.getItem() instanceof com.riverfishing.item.FryItem) {   // §c: fry take the same road in
+                        com.riverfishing.fishing.FishingManager.releaseFry(sl, entity.blockPosition(),
+                                com.riverfishing.item.FryItem.species(stack), com.riverfishing.item.FryItem.genome(stack),
+                                com.riverfishing.item.FryItem.count(stack), thrower,
+                                com.riverfishing.item.RoeItem.pattern(stack));   // §pattern
+                    }
+                    Identifier released = stack.getItem() instanceof FishItem ? getSpecies(stack) : null;
                     if (released != null) {
                         com.riverfishing.fishing.FishingManager.releaseFish(sl, entity.blockPosition(),
                                 released, getWeightG(stack), stack.getCount(),
+                                com.riverfishing.fish.CatchCard.has(stack) ? com.riverfishing.fish.CatchCard.of(stack) : null,   // §c
                                 thrower);
                     }
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE,
@@ -204,12 +211,66 @@ public class FishItem extends Item {
      */
     public static void stampIcon(ItemStack stack) {
         Identifier sp = getSpecies(stack);
+        // §pattern: the index rides in with the species — a gem paints the fish whatever it is.
+        int pattern = com.riverfishing.fish.CatchCard.pattern(stack);
         int tint = sp == null ? -1
-                : com.riverfishing.fish.FishMorph.tint(sp.getPath(), getAge(stack), getMorph(stack));
+                : com.riverfishing.fish.FishMorph.tint(sp.getPath(), getAge(stack), getMorph(stack), pattern);
+        java.util.List<Integer> colors = java.util.List.of(tint);
+        // §koi-genes: a koi carries FOUR tints — ground, red hi, black sumi and the tancho crown — one
+        // per layer of its icon, because one white sprite paints all nine named varieties. On 1.21.1
+        // the same four numbers come from FishTint.itemColor; here they are data on the stack.
+        if (sp != null && "koi_carp".equals(sp.getPath())) {
+            String variety = com.riverfishing.fish.CatchCard.of(stack).getStringOr("Variety", "");
+            colors = java.util.List.of(
+                    com.riverfishing.fish.FishMorph.koiTint(variety, 0, pattern),
+                    com.riverfishing.fish.FishMorph.koiTint(variety, 1, pattern),
+                    com.riverfishing.fish.FishMorph.koiTint(variety, 2, pattern),
+                    com.riverfishing.fish.FishMorph.koiTint(variety, 3, pattern));
+        }
+        // §variety-icon: the scale variety, as a STRING the item definition selects the drawing on.
+        // Empty for everything that is not a carp, which is the definition's fallback: its own sprite.
+        String draw = sp == null ? "" : com.riverfishing.fish.Genome.drawnAs(sp.getPath(),
+                com.riverfishing.fish.CatchCard.of(stack).getStringOr("Variety", ""));
+        // §pattern-mask: strings[1] is the pattern FAMILY the item definition selects the mask on, and
+        // the marking rides as one more colour — colors[4] for a koi (0..3 are its layers), [1] otherwise.
+        // A plain fish or a gem names no family, and the definition's select falls back to empty.
+        String family = com.riverfishing.fish.Pattern.familyIndex(pattern) > 0
+                && !com.riverfishing.fish.Pattern.isGem(pattern) ? com.riverfishing.fish.Pattern.family(pattern) : "";
+        java.util.List<String> strings = java.util.List.of(
+                sp == null || draw.equals(sp.getPath()) ? "" : draw, family);
+        if (sp != null && com.riverfishing.registry.ModItemTags.patterned(stack)) {
+            java.util.List<Integer> withMark = new java.util.ArrayList<>(colors);
+            withMark.add(com.riverfishing.fish.FishMorph.patternTint(sp.getPath(),
+                    com.riverfishing.fish.CatchCard.of(stack).getStringOr("Variety", ""), pattern));
+            colors = withMark;
+        }
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
                 new net.minecraft.world.item.component.CustomModelData(
                         java.util.List.of(getIconScale(stack)),
-                        java.util.List.of(), java.util.List.of(), java.util.List.of(tint)));
+                        java.util.List.of(), strings, colors));
+    }
+
+    /**
+     * §icon-topup: a fish that reached a hand without going through {@link #create} has no colours on
+     * it, and 26.x draws a fish ENTIRELY from what its stack carries — so it renders as the raw sprite.
+     * For a koi that means blank white, because the koi drawing is greyscale and every one of its
+     * seventeen varieties is painted by the four numbers {@link #stampIcon} writes.
+     *
+     * <p>A /give, a command block, a datapack loot table, or a fish that predates §koi-genes all land
+     * here. Stamping on the way past is the only place that catches every one of them; the guard means
+     * it happens once per stack and never again.
+     */
+    @Override
+    public void inventoryTick(ItemStack stack, net.minecraft.server.level.ServerLevel level,
+                              net.minecraft.world.entity.Entity entity,
+                              @Nullable net.minecraft.world.entity.EquipmentSlot slot) {
+        super.inventoryTick(stack, level, entity, slot);
+        net.minecraft.world.item.component.CustomModelData cmd =
+                stack.get(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA);
+        // §pattern-mask: a fish stamped before the mask existed has its colours but no family string —
+        // it would draw no marking for the rest of its life. Re-stamp it once; the guard is the string.
+        if (cmd == null || cmd.colors().isEmpty()
+                || (cmd.strings().size() < 2 && com.riverfishing.registry.ModItemTags.patterned(stack))) stampIcon(stack);
     }
 
     public static boolean isTrophy(ItemStack stack) {
@@ -355,6 +416,13 @@ public class FishItem extends Item {
                 .append(Component.literal(" (")).append(weightText(w)).append(Component.literal(")"));
     }
 
+    /** §catch-card: a landed fish shows its card; every other fish keeps the plain lines below. */
+    @Override
+    public java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(ItemStack stack) {
+        return com.riverfishing.fish.CatchCard.has(stack)
+                ? java.util.Optional.of(new FishCardTooltip(stack)) : java.util.Optional.empty();
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
         CompoundTag tag = StackNbt.get(stack);
@@ -386,6 +454,7 @@ public class FishItem extends Item {
             }
             return;
         }
+        if (com.riverfishing.fish.CatchCard.has(stack)) return;     // the card says all of this
         // §morph: named on its own line rather than folded into the item name. A prefix would have to
         // agree in gender with 79 species names in Russian and Ukrainian, and "Золотистый плотва" is
         // worse than no feature at all.

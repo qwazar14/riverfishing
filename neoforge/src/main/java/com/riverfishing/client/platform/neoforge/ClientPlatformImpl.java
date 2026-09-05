@@ -55,6 +55,18 @@ public final class ClientPlatformImpl {
     public static void registerRenderTypes() {
     }
 
+    /** Handled by {@link #onRegisterSpecialModelRenderers} on the mod bus. */
+    public static void registerSpecialModelRenderers() {
+    }
+
+    /** §fry-icon: the fry bucket's special model renderer, on NeoForge's own registration event. */
+    @SubscribeEvent
+    static void onRegisterSpecialModelRenderers(
+            net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent event) {
+        event.register(com.riverfishing.client.FrySpecialRenderer.ID,
+                com.riverfishing.client.FrySpecialRenderer.Unbaked.MAP_CODEC);
+    }
+
     /**
      * Register the assembly / rig screens on NeoForge's native {@link RegisterMenuScreensEvent}
      * (Architectury's deferred path fires too late on NeoForge — see the 1.21.1 port notes).
@@ -67,6 +79,7 @@ public final class ClientPlatformImpl {
         // §keepnet + §tackle-box (0.7.0): the two boxes.
         event.register(ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         event.register(ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
+        event.register(ModMenus.AQUARIUM.get(), com.riverfishing.client.AquariumScreen::new);
     }
 
     public static void registerLevelRenderer() {
@@ -90,5 +103,12 @@ public final class ClientPlatformImpl {
         //?}
         // On 26.2 this is a no-op: the stage event fires at DRAW time — too late to submit retained
         // geometry. The cast line goes through the loader-neutral common LevelRendererSubmitMixin.
+    }
+
+    /** §catch-card: the fish's tooltip component gets its renderer. */
+    @SubscribeEvent
+    static void onRegisterTooltips(net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(com.riverfishing.item.FishCardTooltip.class,
+                com.riverfishing.client.FishCardClientTooltip::new);
     }
 }

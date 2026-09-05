@@ -21,6 +21,8 @@ import net.minecraft.network.chat.Component;
  *   <li>{@code /rfrod add <ctx> <field> <delta>} — nudge a field (great for live tuning)</li>
  *   <li>{@code /rfrod show} — print current values (paste them into RodHandTransform to keep)</li>
  *   <li>{@code /rfrod reset} — back to the built-in defaults</li>
+ *   <li>{@code /rfrod rod <tx|ty|tz|rx|ry|rz|s> <value>} / {@code /rfrod rod reset} — the held rod's
+ *       own offset on top of the hand set (§rod-pose-offset)</li>
  * </ul>
  */
 public final class RodDebugCommand {
@@ -117,11 +119,33 @@ public final class RodDebugCommand {
                                 .then(arg("field", StringArgumentType.word())
                                         .then(arg("value", FloatArgumentType.floatArg())
                                                 .executes(c -> edit(c, true))))))
+                // §rod-pose-offset: the HELD rod's own nudge on top of the hand set (a short ice blank
+                // needs its grip slid into the fist). Prints paste-ready for ROD_OFFSET_DEFAULT.
+                .then(lit("rod")
+                        .executes(c -> { say(c, RodHandTransform.rodLine()); return 1; })
+                        .then(lit("reset").executes(c -> {
+                            String key = RodPhysics.heldRodKey();
+                            if (key == null) { say(c, "§chold a rod to tune its offset"); return 0; }
+                            RodHandTransform.rodReset(key);
+                            say(c, RodHandTransform.rodLine());
+                            return 1;
+                        }))
+                        .then(rodField("tx")).then(rodField("ty")).then(rodField("tz"))
+                        .then(rodField("rx")).then(rodField("ry")).then(rodField("rz")).then(rodField("s")))
                 .then(lit("cast")
                         .then(arg("field", StringArgumentType.word())
                                 .then(arg("value", FloatArgumentType.floatArg())
                                         .executes(RodDebugCommand::castEdit))))
                 // §rod-bend-3d: the chain's own switches — the 3D blank on/off and the full-load bend.
+                // §fish-3d: the rollback switch for the fish in the water.
+                .then(lit("fish3d")
+                        .executes(c -> {
+                            say(c, "§efish3d: " + (ShoalRenderer.FISH_3D ? "§aON" : "§cOFF")
+                                    + " §7(/rfrod fish3d on|off) — bodies from the sprites, or the flat wave");
+                            return 1;
+                        })
+                        .then(lit("on").executes(c -> { ShoalRenderer.FISH_3D = true; RodClientSettings.save(); say(c, "§afish3d ON"); return 1; }))
+                        .then(lit("off").executes(c -> { ShoalRenderer.FISH_3D = false; RodClientSettings.save(); say(c, "§cfish3d OFF"); return 1; })))
                 .then(lit("blank")
                         .executes(c -> {
                             say(c, String.format("§eblank3d %s §fdeg=%.0f",
@@ -261,6 +285,19 @@ public final class RodDebugCommand {
         }
         say(c, "§a" + ctx + " " + field + " = " + result);
         return 1;
+    }
+
+    /** §rod-pose-offset: one {@code /rfrod rod <field> <v>} branch editing the held rod's offset. */
+    private static com.mojang.brigadier.builder.LiteralArgumentBuilder<Object> rodField(String name) {
+        return lit(name)
+                .then(arg("v", FloatArgumentType.floatArg())
+                        .executes(c -> {
+                            String key = RodPhysics.heldRodKey();
+                            if (key == null) { say(c, "§chold a rod to tune its offset"); return 0; }
+                            RodHandTransform.rodEdit(key, name, FloatArgumentType.getFloat(c, "v"));
+                            say(c, RodHandTransform.rodLine());
+                            return 1;
+                        }));
     }
 
     private static int show(CommandContext<Object> c) {

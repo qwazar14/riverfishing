@@ -53,6 +53,31 @@ public final class ModBlocks {
             () -> new com.riverfishing.block.FishingStallBlock(
                     blockProps("fishing_stall").strength(2.0f).sound(SoundType.WOOD).noOcclusion()));
 
+    // §g §breeding (0.9.0): water-body upgrades — marks on the water that the ecosystem reads
+    // (fishing/WaterUpgrades). One class, five kinds; the kind string is what Ecosystem asks for.
+    // The bed ones may stand IN the water (waterloggable); the bank ones may not.
+    public static final RegistrySupplier<Block> AERATOR = registerSimple("aerator",
+            () -> new com.riverfishing.block.WaterUpgradeBlock("aerator", "aerator", true,
+                    blockProps("aerator").strength(1.5f).sound(SoundType.METAL)));
+    public static final RegistrySupplier<Block> SNAG_PILE = registerSimple("snag_pile",
+            () -> new com.riverfishing.block.WaterUpgradeBlock("snag_pile", "snags", true,
+                    blockProps("snag_pile").strength(1.0f).sound(SoundType.WOOD).noOcclusion()));
+    public static final RegistrySupplier<Block> GRAVEL_BED = registerSimple("gravel_bed",
+            () -> new com.riverfishing.block.WaterUpgradeBlock("gravel_bed", "gravel", true,
+                    blockProps("gravel_bed").strength(0.6f).sound(SoundType.GRAVEL)));
+    public static final RegistrySupplier<Block> WARM_OUTFLOW = registerSimple("warm_outflow",
+            () -> new com.riverfishing.block.WaterUpgradeBlock("warm_outflow", "warm_outflow", false,
+                    blockProps("warm_outflow").strength(1.5f).sound(SoundType.COPPER)));
+    public static final RegistrySupplier<Block> FEEDING_STATION = registerSimple("feeding_station",
+            () -> new com.riverfishing.block.FeedingStationBlock("feeding_station", "feeding_station", false,
+                    blockProps("feeding_station").strength(1.0f).sound(SoundType.WOOD).randomTicks()));
+
+    // §pond §breeding (0.9.0): the private-pond sign — plant it by your water and the community hash,
+    // the size gates and the poaching rule all step back from it (fishing/PondData).
+    public static final RegistrySupplier<Block> POND_SIGN = registerSimple("pond_sign",
+            () -> new com.riverfishing.block.PondSignBlock(
+                    blockProps("pond_sign").strength(0.8f).sound(SoundType.WOOD).noOcclusion().noCollision()));
+
     // Trophy stand (§15.5) — mounts a caught fish.
     public static final RegistrySupplier<Block> TROPHY_STAND = registerSimple("trophy_stand",
             () -> new TrophyStandBlock(blockProps("trophy_stand").strength(1.0f).sound(SoundType.WOOD).noOcclusion()));

@@ -14,6 +14,16 @@ public class FishingSession {
     public BlockPos target;
     /** §live-conditions: re-picked from the fresh weights while the line waits (a koi stays sticky). */
     public Identifier species;
+    /**
+     * §scale-genes: which carp is coming — "scaled", "mirror", "linear", "naked" — or "" for every
+     * other fish. The three scale varieties are one species now, so {@link #species} says {@code carp}
+     * and this says which one it is; the card turns it into the K/N genotype.
+     *
+     * <p>ponytail: a line handed over from a rod POD keeps only its species (that is all the pod
+     * saves), so a podded carp lands as the scaled one. Save it beside the species in RodPodBlockEntity
+     * if that ever matters.
+     */
+    public String variety = "";
     public final RodClass rodClass;
 
     /** Engine's sampled time-to-bite, in ticks. */
@@ -93,6 +103,8 @@ public class FishingSession {
     // Predator fight (2.1): a lure-caught fish (or any toothy predator) fights fast and sharp â harder
     // pulls, a tighter margin, and sudden head-shakes. Scaled by weight so an ultralight tiddler is fair.
     public boolean predator;
+    /** §nature: CatchCard.NATURE index rolled at the bite, -1 before one. */
+    public byte nature = -1;
     public double headShakeChance; // per-tick chance of a sudden thrash during the fight
 
     // Float strike-timing mini-game (#5). The green (100%) zone is [centerÂ±zoneHalf]; a flanking orange

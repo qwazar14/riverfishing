@@ -53,6 +53,17 @@ public final class ModItems {
     public static final List<RegistrySupplier<Item>> RODS = new ArrayList<>();
     // ---- Caught fish: one item + texture per species (Module 8; ÃÂ§ecology adds habitat-bound species) ----
     public static final String[] FISH_SPECIES = {
+            // §koi-genes (0.9.0): the koi. Five ids became one species whose VARIETY is three
+            // colour loci — the five stay registered so no old world loses a fish.
+            "koi_carp",
+            // §scale-genes (0.9.0): the linear carp — one row of scales along the lateral line, the
+            // phenotype of Sc_ Nn. The scale varieties are genotypes of `carp` now, not species.
+            "linear_carp",
+            // §deep-twelve (0.9.0): the abyss, the open ocean and three fresh-water oddities — twelve
+            // species the author drew, from a 20 g loach to a twenty-tonne shark.
+            "mullet", "anglerfish", "black_marlin", "blobfish",
+            "bluefin_tuna", "loach", "whale_shark", "nelma",
+            "ocean_sunfish", "pollock", "red_piranha", "tiger_shark",
             // §carp-kin (0.8.1): two more of the family — a Caspian roach that grew up, and a carp
             // that forgot to put its scales on.
             "kutum", "naked_carp",
@@ -122,6 +133,21 @@ public final class ModItems {
     public static final RegistrySupplier<Item> WHETSTONE;
 
     private ModItems() {}
+
+    /** §contracts-b1: the paper taken off a fisherman's board. */
+    public static final RegistrySupplier<Item> CONTRACT = reg("contract",
+            () -> new com.riverfishing.item.ContractItem(props("contract")));
+
+    // §b/breeding (0.9.0): what a live tank produces and what a net hauls. The net classes belong to the nets
+    // stream; they are registered HERE because item registration is one file's job (breeding-api.md).
+    public static final RegistrySupplier<Item> ROE = reg("roe", () -> new com.riverfishing.item.RoeItem(props("roe")));
+    public static final RegistrySupplier<Item> FRY = reg("fry", () -> new com.riverfishing.item.FryItem(props("fry")));
+    public static final RegistrySupplier<Item> SEINE_NET = reg("seine_net", () -> new com.riverfishing.item.SeineNetItem(props("seine_net")));
+    public static final RegistrySupplier<Item> CAST_NET = reg("cast_net", () -> new com.riverfishing.item.CastNetItem(props("cast_net")));
+    // §j (0.9.0): what small fish and oily fish become. Meal is bone meal on a crop and protein in the
+    // groundbait bowl; oil is scent in the bowl and nothing else. Both are pantry entries in GroundbaitMix.
+    public static final RegistrySupplier<Item> FISH_MEAL = reg("fish_meal", () -> new com.riverfishing.item.FishMealItem(props("fish_meal")));
+    public static final RegistrySupplier<Item> FISH_OIL = reg("fish_oil", () -> new com.riverfishing.item.FishOilItem(props("fish_oil")));
 
     private static RegistrySupplier<Item> reg(String name, Supplier<Item> supplier) {
         RegistrySupplier<Item> obj = REGISTER.register(name, supplier);
@@ -267,6 +293,12 @@ public final class ModItems {
         // §trolling-lures (0.7.0): heavy skirted jig and big trolling spoon.
         registerBait("octopus_jig", true);
         registerBait("giant_spoon", true);
+        // §more-lures-2 (0.9.0): the four shapes the predator box was still missing — a
+        // wire-armed spinnerbait, a vibrating blade, a paddle-tail swimbait and a wacky worm.
+        registerBait("spinnerbait", true);
+        registerBait("bladebait", true);
+        registerBait("swimbait", true);
+        registerBait("wacky_worm", true);
 
         // ----- Groundbait -----
         // §groundbait-one-jar: ONE. Grain, pellet and oil cake are gone, and so is the separate base —

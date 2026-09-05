@@ -19,6 +19,19 @@ public final class PlatformHelper {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
     }
 
+    /**
+     * Puts the Potion of Fish Oil into the brewing stand (§fish-oil-potion). Brewing is the one recipe type
+     * that is still CODE, not JSON, on 26.x too — {@code PotionBrewing.bootstrap} still fills a builder — and
+     * each loader hands that same vanilla builder out through a different door. So this is a listener
+     * registration, not the registration itself: the mixes are added whenever the game rebuilds the table.
+     *
+     * <p>Called once from {@link com.riverfishing.RiverFishing#init()}, after the potions are queued.
+     */
+    @ExpectPlatform
+    public static void registerBrewing() {
+        throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
+    }
+
     /** Whether another mod is present (used later to gate Serene Seasons / Biomes O' Plenty features). */
     @ExpectPlatform
     public static boolean isModLoaded(String modId) {

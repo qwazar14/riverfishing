@@ -1,5 +1,7 @@
 {
   "display": "Стерлядь",
+  "latin": "Acipenser ruthenus",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sturgeon",
   "water_bodies": { "river": 1.2, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 1000, "max": 16000, "mean": 3000 },
@@ -20,6 +22,8 @@
   "depth_pref": "bottom",
   "distance_pref": { "min": 12, "max": 40 },
   "habitat": { "depth_min": 5, "width_min": 18 },
+  "provinces": ["palearctic"],
+  "breeds_with": {"beluga": 0.8, "sturgeon": 0.8},
   "biomes": { "temperate": 1.0 },
   "base": 0.35,
   "min_angler_level": 8

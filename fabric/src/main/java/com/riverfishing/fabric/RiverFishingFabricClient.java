@@ -11,5 +11,9 @@ public final class RiverFishingFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientInit.init();
+        // §catch-card: the fish's tooltip component gets its renderer.
+        net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback.EVENT.register(data ->
+                data instanceof com.riverfishing.item.FishCardTooltip t
+                        ? new com.riverfishing.client.FishCardClientTooltip(t) : null);
     }
 }

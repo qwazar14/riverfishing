@@ -19,6 +19,7 @@
     "ItemEntityRenderStateMixin",
     "ItemEntitySeatMixin",
     "MerchantOrderPanelMixin",
-    "FightEdgeGuardMixin"
+    "FightEdgeGuardMixin",
+    "SpecialModelRenderersAccessor"
   ]
 }

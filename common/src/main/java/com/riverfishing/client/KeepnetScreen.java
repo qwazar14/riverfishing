@@ -201,7 +201,8 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
         FishIcon.draw(g, sp.getPath(), -side / 2, -side / 2, side,
                 com.riverfishing.fish.FishMorph.tint(sp.getPath(),
                         com.riverfishing.item.FishItem.getAge(stack),
-                        com.riverfishing.item.FishItem.getMorph(stack)));
+                        com.riverfishing.item.FishItem.getMorph(stack),
+                        com.riverfishing.fish.CatchCard.pattern(stack)));   // §pattern
         g.pose().popMatrix();
     }
 

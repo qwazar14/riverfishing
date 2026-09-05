@@ -50,6 +50,9 @@ public final class ModEvents {
                 com.riverfishing.fishing.SpookTracker.tick(sp);  // §spook: what the fish just noticed
                 com.riverfishing.fishing.ShoalTracker.tick(sp);  // §shoal: what is visible in the water
                 FishingManager.trollingTick(sp); // trolling v1 (0.5.0): boat-agnostic towing loop
+                FishingManager.finderHudTick(sp); // §finder-hud: the strip, while one is held
+                // §k §farm: once a minute, the region the player stands in pays out any spawn window that closed.
+                if (sp.tickCount % 1200 == 0) com.riverfishing.fishing.StockedData.get(sp.level()).growAround(sp.level(), sp.blockPosition());
                 announceDailyOrder(sp); // §market: one chat line per player per Minecraft day
                 if (sp.tickCount % 10 == 0) {
                     var level = sp.level();
@@ -59,9 +62,51 @@ public final class ModEvents {
             }
         });
 
+        // §k §farm: a keepnet held out to the fisherman sells everything in it that any fisherman buys —
+        // prime at the market price, carded at half, netted (no card) at a third. Before the roe block so
+        // the net is never mistaken for an ordinary right-click.
+        dev.architectury.event.events.common.InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> {
+            if (!(entity instanceof net.minecraft.world.entity.npc.villager.Villager v)) return EventResult.pass();
+            if (!(player.getItemInHand(hand).getItem() instanceof com.riverfishing.item.KeepnetItem)) return EventResult.pass();
+            if (!v.getVillagerData().profession().is(com.riverfishing.registry.ModVillagers.FISHERMAN.getKey())) return EventResult.pass();
+            if (player instanceof ServerPlayer sp) com.riverfishing.fishing.KeepnetSale.sell(sp, player.getItemInHand(hand));
+            return EventResult.interruptTrue();
+        });
+
+        // §e §breeding: roe is sold the way a contract is handed in — a trade cannot match the species
+        // inside the NBT, so right-clicking the fisherman with the clutch IS the trade.
+        dev.architectury.event.events.common.InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> {
+            if (!(entity instanceof net.minecraft.world.entity.npc.villager.Villager v)) return EventResult.pass();
+            if (!(player.getItemInHand(hand).getItem() instanceof com.riverfishing.item.RoeItem)) return EventResult.pass();
+            if (!v.getVillagerData().profession().is(com.riverfishing.registry.ModVillagers.FISHERMAN.getKey())) return EventResult.pass();
+            if (player instanceof ServerPlayer sp) com.riverfishing.fishing.RoeSale.sell(sp, player.getItemInHand(hand));
+            return EventResult.interruptTrue();
+        });
+
+        // §contracts-b1: right-click a fisherman with a contract in hand and the paper is handed in
+        // instead of the counter opening. Interrupted on both sides so the client does not open a
+        // screen the server is about to refuse.
+        dev.architectury.event.events.common.InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> {
+            if (!(entity instanceof net.minecraft.world.entity.npc.villager.Villager v)) return EventResult.pass();
+            if (!(player.getItemInHand(hand).getItem() instanceof com.riverfishing.item.ContractItem)) return EventResult.pass();
+            if (!v.getVillagerData().profession().is(com.riverfishing.registry.ModVillagers.FISHERMAN.getKey())) return EventResult.pass();
+            if (player instanceof ServerPlayer sp) com.riverfishing.fishing.Contracts.handIn(sp, player.getItemInHand(hand));
+            return EventResult.interruptTrue();
+        });
+
         PlayerEvent.PLAYER_QUIT.register(player -> {
             FishingManager.clear(player.getUUID());
             com.riverfishing.fishing.SpookTracker.forget(player.getUUID());
+        });
+
+        // §g §breeding (0.9.0): a water-body upgrade goes into the ledger the moment it is placed, so a
+        // bite never has to scan the swim for them. BREAK below takes it out again.
+        BlockEvent.PLACE.register((level, pos, state, placer) -> {
+            if (level instanceof net.minecraft.server.level.ServerLevel sl
+                    && state.getBlock() instanceof com.riverfishing.block.WaterUpgradeBlock b) {
+                com.riverfishing.fishing.WaterUpgrades.get(sl).put(pos, b.kind());
+            }
+            return EventResult.pass();
         });
 
         // Worms from digging soil with a shovel (§9.6).
@@ -72,6 +117,11 @@ public final class ModEvents {
         *///?}
             // §spook: chopping a tree on the bank is the loudest thing an angler can do by accident.
             if (!level.isClientSide()) com.riverfishing.fishing.SpookTracker.onBlockBreak(level, pos);
+            // §g: a broken upgrade leaves the ledger (see BlockEvent.PLACE above).
+            if (level instanceof net.minecraft.server.level.ServerLevel sl
+                    && state.getBlock() instanceof com.riverfishing.block.WaterUpgradeBlock) {
+                com.riverfishing.fishing.WaterUpgrades.get(sl).remove(pos);
+            }
             if (!level.isClientSide() && player != null
                     && player.getMainHandItem().getItem() instanceof ShovelItem
                     && isDiggableSoil(state)

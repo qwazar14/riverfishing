@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:slime_ball",
+    "minecraft:slime_ball",
+    "#riverfishing:hooks"
+  ],
+  "result": { "id": "riverfishing:swimbait" }
+}

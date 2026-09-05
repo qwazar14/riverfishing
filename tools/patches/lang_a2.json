@@ -1,0 +1,44 @@
+{
+  "en_us": {
+    "screen.riverfishing.aquarium.title": "Aquarium",
+    "screen.riverfishing.aquarium.label.water": "water",
+    "screen.riverfishing.aquarium.label.fish": "fish",
+    "screen.riverfishing.aquarium.label.food": "food",
+    "screen.riverfishing.aquarium.label.groundbait": "groundbait",
+    "screen.riverfishing.aquarium.label.result": "result",
+    "screen.riverfishing.aquarium.label.modules": "modules",
+    "screen.riverfishing.aquarium.feed": "next feeding in %s",
+    "screen.riverfishing.aquarium.spawning": "spawning %1$s/3",
+    "screen.riverfishing.aquarium.incubating": "incubating %1$s/%2$s",
+    "screen.riverfishing.aquarium.clutch": "clutch: %s eggs",
+    "screen.riverfishing.aquarium.window": "window: %s"
+  },
+  "ru_ru": {
+    "screen.riverfishing.aquarium.title": "Аквариум",
+    "screen.riverfishing.aquarium.label.water": "вода",
+    "screen.riverfishing.aquarium.label.fish": "рыба",
+    "screen.riverfishing.aquarium.label.food": "корм",
+    "screen.riverfishing.aquarium.label.groundbait": "прикормка",
+    "screen.riverfishing.aquarium.label.result": "результат",
+    "screen.riverfishing.aquarium.label.modules": "модули",
+    "screen.riverfishing.aquarium.feed": "кормить через %s",
+    "screen.riverfishing.aquarium.spawning": "нерест %1$s/3",
+    "screen.riverfishing.aquarium.incubating": "инкубация %1$s/%2$s",
+    "screen.riverfishing.aquarium.clutch": "кладка: %s икринок",
+    "screen.riverfishing.aquarium.window": "окно: %s"
+  },
+  "uk_ua": {
+    "screen.riverfishing.aquarium.title": "Акваріум",
+    "screen.riverfishing.aquarium.label.water": "вода",
+    "screen.riverfishing.aquarium.label.fish": "риба",
+    "screen.riverfishing.aquarium.label.food": "корм",
+    "screen.riverfishing.aquarium.label.groundbait": "підгодівля",
+    "screen.riverfishing.aquarium.label.result": "результат",
+    "screen.riverfishing.aquarium.label.modules": "модулі",
+    "screen.riverfishing.aquarium.feed": "годувати через %s",
+    "screen.riverfishing.aquarium.spawning": "нерест %1$s/3",
+    "screen.riverfishing.aquarium.incubating": "інкубація %1$s/%2$s",
+    "screen.riverfishing.aquarium.clutch": "кладка: %s ікринок",
+    "screen.riverfishing.aquarium.window": "вікно: %s"
+  }
+}

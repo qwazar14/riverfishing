@@ -73,14 +73,17 @@ public class RodItem extends Item {
         // a session; the hold only CHARGES the cast (power bar), which fires in releaseUsing().
         if (rodType.activeRetrieve()) {
             if (sessionAction) {
-                return InteractionResult.SUCCESS;
+                // §crank-swing: CONSUME, not SUCCESS. SUCCESS makes vanilla play the arm swing, and a
+                // fight is 3-5 clicks a second — so the rod was swung like a sword the whole way in.
+                // Reported twice. The cast still swings; that is sp.swing() in FishingManager.
+                return InteractionResult.CONSUME;
             }
             player.startUsingItem(hand);
             return InteractionResult.CONSUME;
         }
 
         if (sessionAction) {
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;   // §crank-swing: see above
         }
 
         // No session: begin the power-bar charge (§cast-minigame) — the cast fires on release.

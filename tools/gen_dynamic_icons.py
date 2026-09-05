@@ -120,9 +120,16 @@ def model_node(model):
 FISH_TINTS = [{"type": "minecraft:custom_model_data", "index": 0, "default": -1}]
 
 
-def fish_node(model):
+# §koi-genes: a koi's icon is FOUR layers of one white sprite (ground, red hi, black sumi, tancho
+# crown) and each wants its own colour, so its models carry four tint sources instead of one.
+# FishItem.stampIcon writes all four; every other fish writes colors[0] and only layer0 is tinted.
+KOI_TINTS = [{"type": "minecraft:custom_model_data", "index": i, "default": -1} for i in range(4)]
+MULTI_TINT = {"koi_carp"}
+
+
+def fish_node(model, sp=None):
     d = model_node(model)
-    d["tints"] = FISH_TINTS
+    d["tints"] = KOI_TINTS if sp in MULTI_TINT else FISH_TINTS
     return d
 
 
@@ -250,6 +257,7 @@ def main():
         }})
 
     # ---- fish ----
+    SCALE_DISPATCH = {}
     flat, lay = flat_species()
     for sp in FISH:
         base = os.path.join(MODELS, sp + ".json")
@@ -259,6 +267,17 @@ def main():
         if sp in flat:
             ground = dict(fish_display.get("ground", {"translation": [0, 2, 0]}))
             ground["rotation"] = [lay, 0, 0]
+            fish_display["ground"] = ground
+            d = read(base)
+            d.setdefault("display", {})["ground"] = ground
+            write(base, d)
+        elif fish_display.get("ground", {}).get("rotation", [0, 0, 0]) != [0, 0, 0]:
+            # §fish-pose-26: and a fish that is NOT flat gets the rotation taken OFF. This branch used
+            # to add and never remove, so a base model that arrived with a flatfish's display — the
+            # giants wave was templated off one — kept lying down through every regeneration: the
+            # goliath grouper, the blobfish and the sunfish lay on the bank like a halibut.
+            ground = dict(fish_display["ground"])
+            ground.pop("rotation", None)
             fish_display["ground"] = ground
             d = read(base)
             d.setdefault("display", {})["ground"] = ground
@@ -276,17 +295,42 @@ def main():
                 "display": scaled,
             })
             entries.append({"threshold": s,
-                            "model": fish_node("riverfishing:item/fish_scaled/%s_%d" % (sp, i))})
-        write(os.path.join(ITEMS, sp + ".json"), {"model": {
+                            "model": fish_node("riverfishing:item/fish_scaled/%s_%d" % (sp, i), sp)})
+        dispatch = {
             "type": "minecraft:range_dispatch",
             "property": "minecraft:custom_model_data",
             "index": 0,
             "entries": entries,
-            "fallback": fish_node("riverfishing:item/" + sp),
+            "fallback": fish_node("riverfishing:item/" + sp, sp),
+        }
+        SCALE_DISPATCH[sp] = dispatch
+        write(os.path.join(ITEMS, sp + ".json"), {"model": dispatch})
+
+    # §variety-icon: a carp is drawn as its scale genotype. On 1.21.1 the item renderer simply looks up
+    # another icon model; here the drawing is chosen by the item definition, selecting on the variety
+    # string FishItem.stampIcon writes. Each case is that OTHER species' whole scale dispatch, so a
+    # mirror carp keeps every size bucket the scaled one has.
+    varieties = [v for v in ("mirror_carp", "linear_carp", "naked_carp") if v in SCALE_DISPATCH]
+    if "carp" in SCALE_DISPATCH and varieties:
+        write(os.path.join(ITEMS, "carp.json"), {"model": {
+            "type": "minecraft:select",
+            "property": "minecraft:custom_model_data",
+            "index": 0,
+            "cases": [{"when": v, "model": SCALE_DISPATCH[v]} for v in varieties],
+            "fallback": SCALE_DISPATCH["carp"],
         }})
 
     print("rods: %d defs, %d layer models x2 variants; fish: %d x %d buckets" %
           (len(RODS), len(rod_layers()), len(FISH), len(BUCKETS)))
+
+    # §pattern-mask: the carp definitions above are written from scratch, which drops the composite
+    # that carries the pattern layer. Put it back here, every time. Once this generator ran over it
+    # and the masks vanished from a built jar; check_pattern_masks.py caught that after the fact, this
+    # line catches it before.
+    import subprocess, sys
+    wire = os.path.join(os.path.dirname(os.path.abspath(__file__)), "wire_pattern_models.py")
+    if os.path.exists(wire):
+        subprocess.run([sys.executable, "-X", "utf8", wire, ROOT, "26"], check=True)
 
 
 if __name__ == "__main__":

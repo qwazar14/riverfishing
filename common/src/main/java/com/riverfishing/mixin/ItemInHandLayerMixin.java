@@ -50,7 +50,7 @@ public class ItemInHandLayerMixin {
                         : Mth.clamp((float) com.riverfishing.item.RodData.getBend(stack)
                                 / com.riverfishing.item.RodData.BEND_BUCKETS, 0f, 1f);
                 pose.pushPose();
-                RodHandTransform.apply(pose, ctx, true);
+                RodHandTransform.apply(pose, ctx, true, rodKey);
                 boolean drew = RodChain.submit(stack, rodKey, load, ctx, pose, collector, light, overlay);
                 pose.popPose();
                 if (drew) return;   // the chain IS the rod; vanilla's flat model must not stamp over it

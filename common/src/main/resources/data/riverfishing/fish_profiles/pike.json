@@ -1,5 +1,7 @@
 {
   "display": "Щука",
+  "latin": "Esox lucius",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "river": 1.0,
@@ -47,7 +49,10 @@
       "crankbait": 0.9,
       "spinner": 0.9,
       "jig": 0.85,
-      "popper": 0.7
+      "popper": 0.7,
+      "spinnerbait": 0.9,
+      "bladebait": 0.7,
+      "swimbait": 1.0
     },
     "hook": {
       "ideal": 4,
@@ -82,6 +87,7 @@
     "depth_max": 10,
     "width_min": 8
   },
+  "provinces": ["palearctic", "nearctic"],
   "biomes": {
     "cold": 1.1,
     "temperate": 1.0,

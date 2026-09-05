@@ -1,5 +1,7 @@
 {
   "display": "Угорь",
+  "latin": "Anguilla anguilla",
+  "spawn": { "season": "winter", "sub": "late" },
   "group": "predator",
   "water_bodies": {
     "lake": 1.1,
@@ -79,6 +81,7 @@
     "depth_min": 3,
     "width_min": 10
   },
+  "provinces": ["palearctic", "indomalaya"],
   "biomes": {
     "temperate": 1.0,
     "warm": 1.1

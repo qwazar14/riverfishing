@@ -58,7 +58,7 @@ public class ItemInHandRendererMixin {
             // fallback stacked the sprite pose ON TOP of the 3D one and drew the flat rod off-screen.
             // Popping before cancel is safe: retained submission snapshots the matrices per node.
             pose.pushPose();
-            RodHandTransform.apply(pose, ctx, true);
+            RodHandTransform.apply(pose, ctx, true, rodKey);
             float load = ClientLineState.ownRodLoad();
             boolean drew = com.riverfishing.client.RodChain.submit(
                     stack, rodKey, load, ctx, pose, collector, light, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY);

@@ -1,5 +1,7 @@
 {
   "display": "Снук",
+  "latin": "Centropomus undecimalis",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,
@@ -48,7 +50,9 @@
       "wobbler": 1.05,
       "popper": 1.0,
       "jig": 0.9,
-      "fish_strip": 0.85
+      "fish_strip": 0.85,
+      "spinnerbait": 0.8,
+      "swimbait": 1.15
     },
     "hook": {
       "ideal": 2,
@@ -81,6 +85,7 @@
     "depth_min": 2,
     "width_min": 8
   },
+  "provinces": ["neotropic", "nearctic"],
   "biomes": {
     "warm": 1.4,
     "beach": 1.2,

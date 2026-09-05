@@ -1,5 +1,7 @@
 {
   "display": "Линь",
+  "latin": "Tinca tinca",
+  "spawn": { "season": "summer", "sub": "early" },
   "group": "cyprinid",
   "water_bodies": { "pond": 1.2, "swamp": 1.2, "lake": 1.0, "river": 0.2, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 300, "max": 3500, "mean": 800 },
@@ -20,6 +22,7 @@
   "depth_pref": "bottom",
   "distance_pref": { "min": 3, "max": 18 },
   "habitat": { "depth_min": 1, "depth_max": 4, "width_max": 32 },
+  "provinces": ["palearctic", "nearctic"],
   "biomes": { "warm": 1.1, "temperate": 1.0, "swamp": 1.2 },
   "base": 0.8,
   "min_angler_level": 2

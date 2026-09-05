@@ -1,5 +1,7 @@
 {
   "display": "Полосатый лаврак",
+  "latin": "Morone saxatilis",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,
@@ -50,7 +52,9 @@
       "silicone": 0.95,
       "spoon": 0.9,
       "jig": 0.85,
-      "giant_spoon": 1.05
+      "giant_spoon": 1.05,
+      "bladebait": 1.0,
+      "swimbait": 1.15
     },
     "hook": {
       "ideal": 2,
@@ -83,6 +87,7 @@
     "depth_min": 2,
     "width_min": 12
   },
+  "provinces": ["nearctic"],
   "biomes": {
     "temperate": 1.2,
     "cold": 1.0,

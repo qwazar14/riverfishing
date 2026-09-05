@@ -1,0 +1,10 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "riverfishing:item/fish/koi_carp",
+    "layer1": "riverfishing:item/fish/koi_carp_hi",
+    "layer2": "riverfishing:item/fish/koi_carp_sumi",
+    "layer3": "riverfishing:item/fish/koi_carp_crown",
+    "layer4": "riverfishing:item/fish/koi_eye"
+  }
+}

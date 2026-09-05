@@ -94,6 +94,33 @@ public final class JournalData {
                 .getCompoundOrEmpty("morphs").getBooleanOr(morphId, false);
     }
 
+
+    /**
+     * §pattern: the pattern FAMILIES the player has seen of this species, kept as a twelve-bit mask in
+     * that species' own compound — the same shape {@link #recordMorph} uses, so the collection board
+     * needs no second structure, no migration and no packet of its own.
+     *
+     * @return true the first time a family is seen for this species
+     */
+    public static boolean recordPattern(Player player, Identifier species, int pattern) {
+        if (!com.riverfishing.fish.Pattern.has(pattern)) return false;
+        int bit = 1 << com.riverfishing.fish.Pattern.familyIndex(pattern);
+        CompoundTag root = get(player);
+        CompoundTag fish = root.getCompoundOrEmpty(species.toString());
+        int seen = fish.getIntOr("patterns", 0);
+        if ((seen & bit) != 0) return false;
+        fish.putInt("patterns", seen | bit);
+        root.put(species.toString(), fish);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+        return true;
+    }
+
+    /** §pattern: the mask of families seen for this species. Reads the journal tag straight. */
+    public static int patternsSeen(CompoundTag journal, Identifier species) {
+        return journal.getCompoundOrEmpty(species.toString()).getIntOr("patterns", 0);
+    }
+
     /** True if the player has never landed this species before (call BEFORE {@link #record}). */
     public static boolean isNewSpecies(Player player, Identifier species) {
         return get(player).getCompoundOrEmpty(species.toString()).getIntOr("count", 0) == 0;
@@ -108,7 +135,9 @@ public final class JournalData {
         CompoundTag root = get(player);
         int n = 0;
         for (String id : com.riverfishing.registry.ModItems.FISH_SPECIES) {
-            if (!id.startsWith("carp_koi")
+            // §koi-genes: `koi_carp` joins the five old ids as a hidden collectible — the bar is
+            // the fish the water offers everyone, and a koi is not one of them.
+            if (!com.riverfishing.fish.Genome.isKoiId(id) && !com.riverfishing.fish.Genome.isVarietyId(id)
                     && root.getCompoundOrEmpty("riverfishing:" + id).getIntOr("count", 0) > 0) n++;
         }
         return n;
@@ -118,7 +147,10 @@ public final class JournalData {
     public static int speciesTotal() {
         int n = 0;
         for (String id : com.riverfishing.registry.ModItems.FISH_SPECIES) {
-            if (!id.startsWith("carp_koi")) n++;
+            // §scale-genes: a scale variety is not a species to be found — counting the three would
+            // put the all-species bar out of reach for good.
+            if (!com.riverfishing.fish.Genome.isKoiId(id)
+                    && !com.riverfishing.fish.Genome.isVarietyId(id)) n++;   // §koi-genes
         }
         return n;
     }

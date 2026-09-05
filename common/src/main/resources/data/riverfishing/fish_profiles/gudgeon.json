@@ -1,5 +1,7 @@
 {
   "display": "Пескарь",
+  "latin": "Gobio gobio",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "cyprinid",
   "water_bodies": { "river": 1.2, "lake": 0.3, "pond": 0.2, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 20, "max": 150, "mean": 60 },
@@ -20,6 +22,7 @@
   "depth_pref": "bottom",
   "distance_pref": { "min": 2, "max": 10 },
   "habitat": { "depth_min": 1, "depth_max": 3, "width_min": 3, "width_max": 24 },
+  "provinces": ["palearctic"],
   "biomes": { "temperate": 1.0, "cold": 0.9 },
   "base": 1.0
 }
