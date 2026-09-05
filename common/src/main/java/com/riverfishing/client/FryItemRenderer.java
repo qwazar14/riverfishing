@@ -68,6 +68,10 @@ public final class FryItemRenderer extends BlockEntityWithoutLevelRenderer {
             pose.popPose();
             return;
         }
+        // §fry-look: the tint provider reads the card off the stack it is handed, and the fry stack has
+        // none — every koi fry drew as a kohaku. Hand it the fish the fry will be.
+        ItemStack look = FryItem.look(stack);
+        if (look.isEmpty()) look = stack;
         for (int i = 0; i < FISH.length; i++) {
             float[] f = FISH[i];
             pose.pushPose();
@@ -75,7 +79,7 @@ public final class FryItemRenderer extends BlockEntityWithoutLevelRenderer {
             pose.translate(0.5 + f[0], 0.5 + f[1], 0.5 + i * 0.02);
             if (f[3] > 0f) pose.mulPose(Axis.YP.rotationDegrees(180f)); // mirror: the sprite is two-faced
             pose.scale(f[2], f[2], f[2]);
-            ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, fish);
+            ir.render(look, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, fish);
             pose.popPose();
         }
     }
