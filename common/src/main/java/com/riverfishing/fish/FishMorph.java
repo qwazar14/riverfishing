@@ -274,6 +274,27 @@ public final class FishMorph {
         return 0xFF000000 | Pattern.paint(c < 0 ? p[0] : c, pattern, layer > 0 && c >= 0);
     }
 
+    /**
+     * §pattern-mask: the colour the pattern mask over this fish is painted. The ground is the koi's own
+     * ground for a koi, and for the carp draws the mean colour of the sprite as drawn (measured by
+     * tools/gen_pattern_masks.py) — the marking is then Pattern.marking()'s cut of it.
+     */
+    public static int patternTint(String speciesPath, String variety, int pattern) {
+        int ground;
+        if ("koi_carp".equals(speciesPath)) {
+            int[] p = KOI_PAINT.get(variety.startsWith("koi_") ? variety.substring(4) : variety);
+            ground = (p == null ? KOI_PAINT.get("kohaku") : p)[0];
+        } else {
+            ground = CARP_GROUND.getOrDefault(speciesPath, 0x7D5835);
+        }
+        return 0xFF000000 | Pattern.marking(ground, pattern);
+    }
+
+    /** The mean colour of each carp draw's sprite — what a marking is cut from. */
+    private static final java.util.Map<String, Integer> CARP_GROUND = java.util.Map.of(
+            "carp", 0x7D5835, "wild_carp", 0x664B31, "mirror_carp", 0x74573E,
+            "linear_carp", 0x7D5535, "naked_carp", 0x815940);
+
     /** ground, hi, sumi, crown; -1 means "the ground colour", i.e. the fish does not wear that layer. */
     // §koi-metal: the eight metallic varieties are the same eight colour bases with the lustre on —
     // a brighter, cleaner ground and a hotter red, which is what metallic scales do to a colour.

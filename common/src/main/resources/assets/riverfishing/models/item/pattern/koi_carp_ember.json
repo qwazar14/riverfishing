@@ -1,0 +1,43 @@
+{
+  "gui_light": "front",
+  "textures": {
+    "particle": "riverfishing:item/fish/pattern/koi_carp_ember",
+    "mask": "riverfishing:item/fish/pattern/koi_carp_ember"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        7.4
+      ],
+      "to": [
+        16,
+        16,
+        8.6
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#mask",
+          "tintindex": 5
+        },
+        "north": {
+          "uv": [
+            16,
+            0,
+            0,
+            16
+          ],
+          "texture": "#mask",
+          "tintindex": 5
+        }
+      }
+    }
+  ]
+}
