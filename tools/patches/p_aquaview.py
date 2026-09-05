@@ -85,7 +85,8 @@ COMMON = """
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
-    /** §aqua-view: five faces of the water box, each wound both ways so culling cannot eat one. */
+    /** §aqua-view: five faces of the water box, wound outward once — entityTranslucent does not cull, and a second
+     *  coplanar pass z-fought the first: the tank flickered. */
     private static void waterBox(Matrix4f m, VertexConsumer vc, int r, int g, int b, int a, int light%(OVDECL)s) {
         float[][] faces = {
                 {-W_HX, W_Y1, -W_HZ, -W_HX, W_Y1, W_HZ, W_HX, W_Y1, W_HZ, W_HX, W_Y1, -W_HZ, 0f, 1f, 0f},
@@ -97,7 +98,6 @@ COMMON = """
         float[] us = {0f, 1f, 1f, 0f}, vs = {1f, 1f, 0f, 0f};
         for (float[] f : faces) {
             for (int i = 0; i < 4; i++) tv(m, vc, f[i * 3], f[i * 3 + 1], f[i * 3 + 2], us[i], vs[i], r, g, b, a, f[12], f[13], f[14], light%(OV)s);
-            for (int i = 3; i >= 0; i--) tv(m, vc, f[i * 3], f[i * 3 + 1], f[i * 3 + 2], us[i], vs[i], r, g, b, a, -f[12], -f[13], -f[14], light%(OV)s);
         }
     }
 
