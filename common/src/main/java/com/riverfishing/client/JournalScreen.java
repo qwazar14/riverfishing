@@ -940,19 +940,26 @@ public class JournalScreen extends Screen {
 
         guideGroupNow = 4;   // reading the water, and what to do with a catch
         addGuide("community", modStack("fish_finder"));
+        addGuide("geography", new ItemStack(net.minecraft.world.item.Items.FILLED_MAP));   // §provinces
         addGuide("nets", modStack("seine_net")); // §D
         addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
         addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
 
-        guideGroupNow = 5;   // under the ice — quest stage 6, and until now the only mode with no page
+        guideGroupNow = 5;   // §fish-farming: water of your own — in the order a player meets it
+        addGuide("stocking", modStack("pond_sign"));
+        addGuide("breeding", modStack("roe"));
+        addGuide("genes", modStack("koi_carp"));
+        addGuide("upgrades", modStack("aerator"));
+
+        guideGroupNow = 6;   // under the ice — quest stage 6, and until now the only mode with no page
         addGuide("icefishing", modStack("ice_auger"));
 
-        guideGroupNow = 6;   // the sea, and the fish that need a boat
+        guideGroupNow = 7;   // the sea, and the fish that need a boat
         addGuide("trolling", modStack("trolling_rod"));
         addGuide("biggame", modStack("yellowfin_tuna"));
         addGuide("legendary", modStack("blue_marlin"));
 
-        guideGroupNow = 7;   // not for anglers: whoever runs the world, and where to shout
+        guideGroupNow = 8;   // not for anglers: whoever runs the world, and where to shout
         addGuide("cull", modStack("electro_rod"));
         addGuide("discord", new ItemStack(net.minecraft.world.item.Items.PLAYER_HEAD));
         addGuide("thanks", new ItemStack(net.minecraft.world.item.Items.HEART_OF_THE_SEA));
