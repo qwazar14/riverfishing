@@ -122,7 +122,9 @@ CSS = """
 .rfgen table{border-collapse:collapse;font-size:13.5px;width:100%}
 .rfgen td,.rfgen th{padding:3px 6px;text-align:left;border-bottom:1px solid var(--rule,#d6dbd5)}
 .rfgen th{font-weight:400;color:var(--dim,#5c6660);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
-.rfgen td.n{text-align:right;font-variant-numeric:tabular-nums}
+.rfgen td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:10px}
+.rfgen td:first-child{width:38%}
+.rfgen .tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass,#8a5e1e);white-space:nowrap}
 .rfgen .bar{display:inline-block;height:8px;background:var(--brass-lift,#b0812f);vertical-align:middle;margin-right:6px;border-radius:2px}
 """
 
@@ -172,7 +174,7 @@ JS = r"""
     var D={}; ls.split('').forEach(function(loc){ D[loc]=dist(m[loc],f[loc]); });
     // 1. the loci
     var rows=ls.split('').map(function(loc){ var d=D[loc];
-      var trueLine=(d[0]>0.999||d[2]>0.999)?' · <b>'+T['true']+'</b>':'';
+      var trueLine=(d[0]>0.999||d[2]>0.999)?' <span class="tag">'+T['true']+'</span>':'';
       return '<tr><td><b>'+loc+'</b> <span class="k">'+T.L[loc]+'</span>'+trueLine+'</td>'+
         '<td class="n">'+txt(loc,2)+' '+pct(d[2])+'</td><td class="n">'+txt(loc,1)+' '+pct(d[1])+'</td><td class="n">'+txt(loc,0)+' '+pct(d[0])+'</td></tr>'; }).join('');
     var c=[];
