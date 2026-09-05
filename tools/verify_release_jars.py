@@ -85,6 +85,7 @@ def running(inst, within=180):
 
 def main(install):
     bad = 0
+    skipped = []   # §live-instance-2: instances left alone because a game was running in them
     for inst, pat in TARGETS:
         src = pat % VERSION
         mods = mods_dir(inst)
@@ -110,10 +111,15 @@ def main(install):
             # `ZipException: invalid LOC header` — and the game runs on with a hole in it. It
             # cost an hour once, reported as "on 1.20.1 Fabric you cannot open the rod": the anonymous
             # menu provider inside RodItem had simply never been loaded before the swap.
+            # §live-instance-2: warning and swapping anyway cost a second hour — 1.21.1 NeoForge, jar
+            # swapped three seconds after the world loaded, NoClassDefFoundError on the first koi the
+            # aquarium tried to tint. A running instance is SKIPPED, listed at the end, and this script
+            # is re-run once the game is closed. The jar it keeps is the one it started on.
             if running(inst):
-                print("   RUNNING: this instance was writing its log a moment ago. The jar is being "
-                      "swapped under it, so anything it has not loaded yet will fail to load until "
-                      "it is RESTARTED.")
+                print("   RUNNING: this instance was writing its log a moment ago — NOT touched. "
+                      "Close it and run --install again.")
+                skipped.append(inst)
+                continue
             for old in sorted(glob.glob(os.path.join(mods, "riverfishing-*.jar"))):
                 if os.path.basename(old) == os.path.basename(src):
                     continue
@@ -122,7 +128,9 @@ def main(install):
                     os.remove(dst)
                 os.rename(old, dst)
                 print("   disabled  %s" % os.path.basename(old))
-            shutil.copy2(src, os.path.join(mods, os.path.basename(src)))
+            # copyfile, not copy2: copy2 stamps the destination with the BUILD's mtime, so a jar swapped
+            # during a session looks older than the session and the swap cannot be seen afterwards.
+            shutil.copyfile(src, os.path.join(mods, os.path.basename(src)))
             print("   installed %s" % os.path.basename(src))
 
         # A duplicate mod id is a launch failure, so it is worth checking after every install.
@@ -137,6 +145,10 @@ def main(install):
             print("   leftover: %s" % ", ".join(os.path.basename(p) for p in stray))
 
     print("\n%s" % ("all good" if not bad else "%d problem(s) — see above" % bad))
+    if skipped:
+        print("NOT INSTALLED (game running): %s\n   close the game, then: py -X utf8 tools/verify_release_jars.py --install"
+              % ", ".join(skipped))
+        return 2
     return 1 if bad else 0
 
 
