@@ -2998,7 +2998,7 @@ public final class FishingManager {
         double biased = Math.pow(random.nextDouble(), k);
 
         // §livebait-2 (0.4.0): a predator that commits to a live baitfish is one that can swallow it —
-        // roughly 6× the bait's weight and up. A weighed livebait FLOORS the size roll there (capped at
+        // at least 4× the bait's weight. A weighed livebait FLOORS the size roll there (capped at
         // 60% of the species' range so the roll stays a roll). Only for species that actually take
         // livebait; everything else ignores it.
         // §livebait-3: every species that bit on a baitfish is floored by it, not only the ones that
@@ -3271,6 +3271,17 @@ public final class FishingManager {
         long chunk = ChunkPos.pack(pos);
         long now = level.getGameTime();
         net.minecraft.network.chat.Component name = fishName(p.id);
+        // §cull-gate: a species the electrofisher took out of this water is refused at the bank, the
+        // way hostile water refuses one. habitatContext() nulls the community factor on purpose (the
+        // fit is the water's answer alone), so the cull check inside it never runs here — and without
+        // this, a culled species could be stocked back in by anyone, settle, and clear its own cull.
+        if (StockedData.get(level).isCulled(region, id)) {
+            if (thrower != null) {
+                thrower.sendOverlayMessage(Component.translatable("message.riverfishing.cull_done", name)
+                        .withStyle(ChatFormatting.RED));
+            }
+            return;
+        }
         double fit = BiteEngine.environmentScore(p, habitatContext(level, pos, body));
         if (fit <= 0) {
             // §residency-guard: water the species cannot live in at all takes nothing — no ledger, no stock.
@@ -3418,6 +3429,9 @@ public final class FishingManager {
         int cx = waterPos.getX() >> 4, cz = waterPos.getZ() >> 4;
         return id -> {
             String s = id.getPath();
+            // §cull-gate: culled is culled. setCulled() only drops the species from the stocked set, so
+            // without this line a species stocked and THEN culled kept biting off its temporary surplus.
+            if (stocked.isCulled(region, s)) return 0.0;
             if (!stocked.isStocked(region, s)) return Math.min(1.0, pd.surplusAround(cx, cz, s, level.getGameTime()));
             // §n §breeding: fish the last adult out of a settled pond and the species is GONE there until
             // it grows back (§m) — a stocked water is a head count, not a permanent licence. Guarded on

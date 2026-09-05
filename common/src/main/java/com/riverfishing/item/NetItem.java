@@ -147,7 +147,10 @@ public abstract class NetItem extends Item {
             }
             // §netted-card: a card, so the fish can be stocked and bred — and one that says it was
             // netted, and whether it was poached. It never loses that.
-            String eco = stocked.isStocked(region, p.id.getPath()) ? "stocked" : "native";
+            // §founders: the same three answers the rod gives — an unsettled transplant is neither
+            // native nor stocked, and the card used to call it native.
+            String eco = com.riverfishing.fishing.FishingManager.nativeHere(level, pos, body, p.id) ? "native"
+                    : stocked.isStocked(region, p.id.getPath()) ? "stocked" : "";
             int base = com.riverfishing.registry.ModVillagers.baseEmeralds(p.id.getPath());
             int value = base > 0 ? com.riverfishing.fishing.MarketData.get(level).price(level, p.id.getPath(), base) : 0;
             com.riverfishing.item.StackNbt.mutate(fish, t -> t.put(com.riverfishing.fish.CatchCard.TAG,

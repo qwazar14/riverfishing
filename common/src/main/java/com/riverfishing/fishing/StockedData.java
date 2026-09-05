@@ -363,6 +363,12 @@ public final class StockedData extends SavedData {
         // equilibrium, and a recessive waits until two carriers meet instead of arriving on day one.
         ListTag pool = t.getListOrEmpty("Pool");
         if (!pool.isEmpty()) {
+            // §founders: nothing has spawned here until the brood has lived through a window, which is
+            // what settled means. Before that the fish in the water ARE the released ones, so a fish
+            // taken out is one of them — 250 kohaku fry are 250 kohaku, not their F1 on day one.
+            if (!isStocked(region, species)) {
+                return lay(pool.getStringOr(rng.nextInt(pool.size()), ""), rolled);
+            }
             String a = pool.getStringOr(rng.nextInt(pool.size()), "");
             String b = pool.getStringOr(rng.nextInt(pool.size()), "");
             String bred = com.riverfishing.fish.Genome.cross(a, b, rng);
