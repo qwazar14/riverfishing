@@ -254,19 +254,28 @@ public final class StockedData extends SavedData {
         if (stamped <= 0) { t.putLong("FryDay", day); setDirty(); return; }
         if (day - stamped < FRY_DAYS) return;
         t.remove("FryDay");
-        matureFry(t);
+        int grown = matureFry(t);
+        // §fry-bank: the fry banked nothing when they went in (FishingManager.releaseFry); the fish they
+        // have just become are banked here, at the pond, half a unit each — §stock-units' mean fish.
+        // Until this ran, the water held nothing a net could lift; now it holds these.
+        BlockPos at = broodPos(region, species);
+        if (grown > 0 && at != null) {
+            FishingPressureData.get(level).addStock(new net.minecraft.world.level.ChunkPos(at).toLong(), species,
+                    level.getGameTime(), grown * 0.5, FishingPressureData.FLOOR_TRANSPLANT);
+        }
     }
 
-    private void matureFry(CompoundTag t) {
+    private int matureFry(CompoundTag t) {
         int fry = t.getInt("Fry");
         t.remove("Fry");
-        if (fry <= 0) return;
+        if (fry <= 0) return 0;
         int mature = fry / 2;
         int adults = seedAdults(t) + mature;   // seeded before F/M take the new fish in
         t.putInt("F", t.getInt("F") + mature / 2);
         t.putInt("M", t.getInt("M") + mature - mature / 2);
         t.putInt("Adults", adults);
         setDirty();
+        return mature;   // §fry-bank: how many fish the water just gained
     }
 
     /** Anything at all on the ledger — the landing hook's cheap first question. */

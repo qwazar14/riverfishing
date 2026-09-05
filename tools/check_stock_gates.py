@@ -76,9 +76,30 @@ else:
     if "nativeHere(" not in e or '"stocked"' not in e or '""' not in e:
         fails.append("NetItem: eco must be native / stocked / \"\" — it was guessing \"native\" for an unsettled transplant")
 
+# 5. §net-ledger: the net pays the ledger through the rod's function, not a copy of half of it
+if "broodAfterCatch(level, sp, pos, p.id)" not in ni:
+    fails.append("NetItem: a netted fish must go through FishingManager.broodAfterCatch — a private copy "
+                 "of the settled half left an unsettled brood uncounted (reported: 120 fish netted, sounder unchanged)")
+if "stocked.takeAdult(" in ni:
+    fails.append("NetItem: still carries its own takeAdult — that is the copy broodAfterCatch replaces")
+fm = io.open(os.path.join(J, "fishing/FishingManager.java"), encoding="utf-8").read()
+if "public static void broodAfterCatch(" not in fm:
+    fails.append("FishingManager.broodAfterCatch is not public — NetItem cannot reach it")
+
+# 6. §fry-bank: fry bank nothing on release; the bank skips zero; maturity banks the fish
+if not re.search(r"release\(level, pos, p, 0\.0, thrower", fm):
+    fails.append("releaseFry() banks stock units on release — a water of week-old fry then nets 3 kg adults")
+before(rl, "if (units > 0)", "pressure.addStock(", "release(): addStock must be guarded on units > 0 (it floors at 0.01 otherwise)")
+sd = io.open(os.path.join(J, "fishing/StockedData.java"), encoding="utf-8").read()
+md = body(os.path.join(J, "fishing/StockedData.java"), r"public void matureIfDue\(ServerLevel level, long region, String species\)", "matureIfDue()")
+before(md, "matureFry(t)", "addStock(", "matureIfDue(): the matured fish must be banked AFTER matureFry() says how many")
+if "return mature;" not in sd:
+    fails.append("StockedData.matureFry() no longer returns the count — matureIfDue() banks nothing")
+
 if fails:
     print("FAILED:")
     for x in fails:
         print("  " + x)
     sys.exit(1)
-print("stock gates: founders before the cross, cull before the fit and before the surplus, the net's eco honest")
+print("stock gates: founders before the cross, cull before the fit and before the surplus, the net's eco honest, "
+      "the net pays the ledger, fry bank nothing until they are fish")
