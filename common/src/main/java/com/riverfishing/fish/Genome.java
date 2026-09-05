@@ -25,7 +25,7 @@ public final class Genome {
     // §koi-genes (0.9.0): three more, and koi alone carry them — W white ground, R red (hi),
     // B black (sumi). Nine pairs on a koi, six on a carp, four on everything else; `cross`
     // writes as many as the longer parent has, so nothing that never had them grows any.
-    public static final String LOCI = "SCVFKNWRBG";
+    public static final String LOCI = "SCVFKNWRBGT";   // §koi-lines: T is the tancho crown
 
     /** The four loci EVERY fish carries. K and N belong to the carp alone (§scale-genes). */
     public static final String COMMON_LOCI = "SCVF";
@@ -75,31 +75,32 @@ public final class Genome {
             // being metallic first. A G* column means either way: the rows that carry it were the whole
             // table before the locus existed, and a koi with no G pair written reads recessive, so every
             // koi in every old world still names the variety it always did.
-            "WWRRbbG*=tancho",
-            "wwrrbbG_=yamabuki",
-            "W_rrbbG_=ogon",
-            "W_R_bbG_=sakura_ogon",
-            "W_R_B_G_=yamatonishiki",
-            "wwR_B_G_=kin_showa",
-            "W_rrB_G_=gin_bekko",
-            "wwrrB_G_=kujaku",
-            "wwR_bbG_=kin_hi_utsuri",
-            "W_R_bbG*=kohaku",
-            "W_R_B_G*=taisho_sanke",
-            "wwR_B_G*=showa",
-            "W_rrB_G*=bekko",
-            "wwrrB_G*=asagi",
-            "W_rrbbG*=platinum",
-            "wwR_bbG*=hi_utsuri",
-            "wwrrbbG*=karasu",
+            "W_R_bbG*tt=tancho",   // §koi-lines: the crown is tt, a kohaku that carries it twice
+            "wwrrbbG_T*=yamabuki",
+            "W_rrbbG_T*=ogon",
+            "W_R_bbG_T*=sakura_ogon",
+            "W_R_B_G_T*=yamatonishiki",
+            "wwR_B_G_T*=kin_showa",
+            "W_rrB_G_T*=gin_bekko",
+            "wwrrB_G_T*=kujaku",
+            "wwR_bbG_T*=kin_hi_utsuri",
+            "W_R_bbG*T*=kohaku",
+            "W_R_B_G*T*=taisho_sanke",
+            "wwR_B_G*T*=showa",
+            "W_rrB_G*T*=bekko",
+            "wwrrB_G*T*=asagi",
+            "W_rrbbG*T*=platinum",
+            "wwR_bbG*T*=hi_utsuri",
+            "wwrrbbG*T*=karasu",
     };
 
     /** §koi-metal: the loci a koi variety is read off, in the order the rows above write them. */
-    private static final String KOI_LOCI = "WRBG";
+    private static final String KOI_LOCI = "WRBGT";
 
     /**
-     * §koi-genes: what the WATER gives, {@code variety=weight}. Platinum and tancho are missing on
-     * purpose — both need a homozygote a wild pond never fixes, so they are BRED, not found. That is
+     * §koi-genes: what the WATER gives, {@code variety=weight}. Shiro muji and tancho are missing on
+     * purpose — the crown is a recessive no wild line carries, and a plain white koi is a cull a
+     * breeder never lets out — so they are BRED, not found (§koi-lines). That is
      * the whole reason to keep a tank, and the reason a bred koi is worth more than a caught one.
      */
     private static final String[] WILD_KOI = {
@@ -170,29 +171,41 @@ public final class Genome {
      * "at least one dominant" locus is forced heterozygous so a kohaku can never fall out of the loop
      * still reading as the tancho above it.
      */
+    /**
+     * §koi-lines: the allele a koi carries at a locus its row does not name — the COMMON one. Matt (g)
+     * and crownless (T): a fish nobody bred for the lustre has none, and one nobody bred for the crown
+     * carries the ordinary dominant T that hides it. Indexed like {@link #KOI_LOCI}.
+     */
+    private static final String KOI_COMMON = "wrbgT";
+
+    /**
+     * §koi-lines: the loci a koi out of the water is MIXED at. Its ground and its lustre are what its
+     * line is — a kohaku pair never throws a dark fish or a metallic one — but the red and the black
+     * ride as carriers the way a real spawn's do: a kohaku line drops a shiro muji, a sanke a bekko.
+     */
+    private static final String KOI_MIXED = "RB";
+
     public static String koiGenome(String base, String variety, Random rng) {
         String head = base.trim();
         if (pairs(head) < 6) head = head + " KK nn";     // a koi is a carp, and a bred koi is scaled
         String row = koiRow(variety);
-        String out = head;
-        for (int tries = 0; tries < 8; tries++) {
-            StringBuilder b = new StringBuilder(head);
-            for (int i = 0; i < KOI_LOCI.length(); i++) {
-                char L = KOI_LOCI.charAt(i), l = Character.toLowerCase(L), want = row.charAt(i * 2 + 1);
-                boolean homo = want == L || (want == '_' && tries < 7 && rng.nextBoolean());
-                // §koi-metal: a locus the row does not care about gets the RECESSIVE pair — a wild
-                // kohaku must not come out metallic by accident and read as a sakura ogon on its card.
-                b.append(' ').append(want == l || want == '*' ? "" + l + l : "" + L + (homo ? L : l));
-            }
-            out = b.toString();
-            if (koiVariety(out).equals(variety)) return out;
+        StringBuilder b = new StringBuilder(head);
+        for (int i = 0; i < KOI_LOCI.length(); i++) {
+            char L = KOI_LOCI.charAt(i), l = Character.toLowerCase(L), want = row.charAt(i * 2 + 1);
+            String pair;
+            if (want == '*') { char c = KOI_COMMON.charAt(i); pair = "" + c + c; }
+            else if (want == l) pair = "" + l + l;
+            else if (want == L) pair = "" + L + L;
+            else pair = KOI_MIXED.indexOf(L) >= 0 && rng.nextBoolean() ? "" + L + l : "" + L + L;
+            b.append(' ').append(pair);
         }
-        return out;
+        return b.toString();
     }
 
     private static String koiRow(String variety) {
         for (String row : KOI_TABLE) if (row.endsWith("=" + variety)) return row;
-        return KOI_TABLE[1];      // kohaku: the archetype, and what an unknown name should look like
+        for (String row : KOI_TABLE) if (row.endsWith("=kohaku")) return row;   // the archetype
+        return KOI_TABLE[0];
     }
 
     /** §koi-genes: the variety a WILD koi is, drawn from {@link #WILD_KOI}; {@code roll} is in [0,1). */
@@ -309,6 +322,9 @@ public final class Genome {
         // exactly as before — while a carp caught last year, whose card stops at "ff", breeds as the
         // scaled fish it looks like: pair() hands out KK and nn for the loci it never had written down.
         int n = Math.max(4, Math.max(pairs(mother), pairs(father)));
+        // §koi-lines: a koi parent means the whole string, crown pair included — pair() answers the
+        // old-rule crown for a legacy card, and the child then carries it written down.
+        if (token(mother, LOCI.indexOf('W')) != null || token(father, LOCI.indexOf('W')) != null) n = LOCI.length();
         StringBuilder out = new StringBuilder();
         for (int i = 0; i < n; i++) {
             char locus = LOCI.charAt(i);
@@ -362,7 +378,16 @@ public final class Genome {
         // §koi-genes: and a koi card written before the colour loci reads as a kohaku — the
         // archetype, and the only reading that leaves an old red-on-white fish looking like itself.
         return locus == 'K' ? "KK" : locus == 'N' ? "nn"
-                : locus == 'W' ? "WW" : locus == 'R' ? "Rr" : locus == 'B' ? "bb" : "" + l + l;
+                : locus == 'W' ? "WW" : locus == 'R' ? "Rr" : locus == 'B' ? "bb"
+                // §koi-lines: a card from before the crown locus reads it from the rule it was written
+                // under — WW RR bb WAS a tancho, and a bred tancho must not wake up a kohaku.
+                : locus == 'T' ? (legacyTancho(genome) ? "tt" : "TT") : "" + l + l;
+    }
+
+    /** §koi-lines: four koi pairs, pure white and pure red and no black — a tancho by the old rule. */
+    private static boolean legacyTancho(String genome) {
+        return token(genome, LOCI.indexOf('T')) == null && "WW".equals(token(genome, LOCI.indexOf('W')))
+                && "RR".equals(token(genome, LOCI.indexOf('R'))) && "bb".equals(token(genome, LOCI.indexOf('B')));
     }
 
     /** The i-th locus as the string actually writes it, or null when it does not carry that pair. */
