@@ -177,7 +177,7 @@ Read the **journal** for a per-species "how to catch", or scan the water with th
 
 ## Wiki and community
 
-**[qwazar14.github.io/riverfishing](https://qwazar14.github.io/riverfishing/)** — 30 pages in **English, Russian and Ukrainian**, one URL with a language switcher. Every rod, reel, line, rig, bait, species, block and mechanic with the actual numbers, an interactive catch calculator that answers "what does a nine-kilo carp want", the genetics and the provinces, and every recipe drawn as a real crafting grid generated from the recipe files, so the wiki cannot drift from what the game loads.
+**[qwazar14.github.io/riverfishing](https://qwazar14.github.io/riverfishing/)** — 31 pages in **English, Russian and Ukrainian**, one URL with a language switcher. Every rod, reel, line, rig, bait, species, block and mechanic with the actual numbers, an interactive catch calculator that answers "what does a nine-kilo carp want", the genetics and the provinces, and every recipe drawn as a real crafting grid generated from the recipe files, so the wiki cannot drift from what the game loads.
 
 **[discord.gg/Kk2nKvsuRh](https://discord.gg/Kk2nKvsuRh)** — bug reports and catches equally welcome. Several features in this mod exist because a player asked for them by name. A report with a screenshot and your mod list gets fixed far faster than one without.
 
