@@ -32,6 +32,19 @@ public final class JournalCommand {
                         .then(Commands.literal("guide")
                                 .then(Commands.argument("page", StringArgumentType.word())
                                         .executes(JournalCommand::guide)))
+                        // §fish-give: a fish by name, made the way the water makes one — see give()
+                        .then(Commands.literal("give").requires(s -> s.hasPermission(2))
+                                .then(Commands.argument("species", StringArgumentType.word())
+                                        .executes(c -> give(c, "", 1, -1))
+                                        .then(Commands.argument("variety", StringArgumentType.word())
+                                                .executes(c -> give(c, StringArgumentType.getString(c, "variety"), 1, -1))
+                                                .then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 64))
+                                                        .executes(c -> give(c, StringArgumentType.getString(c, "variety"),
+                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "count"), -1))
+                                                        .then(Commands.argument("pattern", com.mojang.brigadier.arguments.IntegerArgumentType.integer(-1, 999))
+                                                                .executes(c -> give(c, StringArgumentType.getString(c, "variety"),
+                                                                        com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "count"),
+                                                                        com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "pattern"))))))))
                         .then(Commands.literal("unlockall")
                                 .requires(s -> s.hasPermission(2)).executes(JournalCommand::unlockAll))
                         .then(Commands.literal("reset")
@@ -50,6 +63,55 @@ public final class JournalCommand {
         com.riverfishing.network.ModNetwork.toPlayer(sp,
                 com.riverfishing.network.JournalOpenPacket.forPlayer(sp, page));
         return 1;
+    }
+
+    /**
+     * §fish-give: {@code /rffish give <species> [variety|random|all] [count] [pattern]}. The fish is built
+     * through FishItem.create and CatchCard.debug — the body() every catch goes through — so it has a
+     * genome, a sex, a nature and a size class the way a caught one does, and on 26.x it is stamped.
+     * A koi variety may be named bare ("kohaku") or as the card writes it ("koi_kohaku"); {@code all}
+     * on a koi is one of each of the seventeen; {@code random} lets the water draw.
+     */
+    private static int give(CommandContext<CommandSourceStack> c, String variety, int count, int pattern)
+            throws CommandSyntaxException {
+        ServerPlayer sp = c.getSource().getPlayerOrException();
+        net.minecraft.server.level.ServerLevel level = (net.minecraft.server.level.ServerLevel) sp.level();
+        String path = StringArgumentType.getString(c, "species");
+        var id = RiverFishing.id(path);
+        FishProfile p = FishProfileManager.get().byId(id);
+        if (p == null || ModItems.fishItem(id) == null) {
+            c.getSource().sendFailure(Component.literal("no such fish: " + path));
+            return 0;
+        }
+        boolean koi = com.riverfishing.fish.Genome.isKoiId(path);
+        java.util.List<String> varieties = new java.util.ArrayList<>();
+        if (koi && "all".equals(variety)) {
+            for (String v : com.riverfishing.fish.Genome.koiVarieties()) varieties.add("koi_" + v);
+        } else {
+            String v = "random".equals(variety) ? "" : variety;
+            if (koi && !v.isEmpty() && !v.startsWith("koi_")) v = "koi_" + v;
+            for (int i = 0; i < count; i++) varieties.add(v);
+        }
+        java.util.Random rng = new java.util.Random(level.getGameTime());
+        int made = 0;
+        for (String v : varieties) {
+            int weightG = (int) Math.round(Math.max(p.weightMin, Math.min(p.weightMax,
+                    p.weightMean * (0.6 + 0.8 * rng.nextDouble()))));
+            double t = p.weightMax > p.weightMin ? (weightG - p.weightMin) / (p.weightMax - p.weightMin) : 0.5;
+            int lengthCm = (int) Math.round(p.lengthMin + (p.lengthMax - p.lengthMin) * Math.max(0, Math.min(1, t)));
+            net.minecraft.world.item.ItemStack fish = com.riverfishing.item.FishItem.create(
+                    ModItems.fishItem(id), id, weightG, lengthCm, true);
+            final String vv = v;
+            final int ww = weightG;
+            com.riverfishing.item.StackNbt.mutate(fish, tag -> tag.put(com.riverfishing.fish.CatchCard.TAG,
+                    com.riverfishing.fish.CatchCard.debug(sp, level, p, ww, sp.blockPosition(), vv, pattern)));
+            if (!sp.getInventory().add(fish)) sp.drop(fish, false);
+            made++;
+        }
+        final int n = made;
+        c.getSource().sendSuccess(() -> Component.literal("gave " + n + " " + path
+                + (variety.isEmpty() ? "" : " (" + variety + ")")), true);
+        return n;
     }
 
     private static int unlockAll(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
