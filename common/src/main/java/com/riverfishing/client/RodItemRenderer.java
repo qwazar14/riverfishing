@@ -124,12 +124,34 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      * on the tip through zoom, lean and bend — none of which need their own correction any more.
      */
     public static final float[] TIP_NDC = new float[2];
-    /** Frame counter the NDC above was written on; stale means the rod was not drawn. */
-    public static long tipNdcFrame = Long.MIN_VALUE;
+    /** §tip-fresh: when the NDC above was written, System.nanoTime(); 0 until the rod has drawn. */
+    public static long tipNdcNanos;
+
+    /**
+     * §tip-fresh: how long a captured anchor stays usable, on the WALL CLOCK.
+     *
+     * <p>These three were measured in GAME TICKS — stamped with {@code getGameTime()} as the rod drew,
+     * accepted within one tick of now. But the capture happens once a FRAME, and the world pass that
+     * reads it runs before the hand pass that writes it, so the reader always sees the previous frame's
+     * stamp. That is fine while frames arrive at least every two ticks and wrong the moment they do
+     * not: one hitch, or anything under twenty frames a second, and the anchor reads stale for a frame.
+     * A stale anchor is not a small error — {@link com.riverfishing.client.LineRenderer} falls back to
+     * the sprite blank's constant tip, so the line visibly starts somewhere else and snaps back.
+     * Reported as "the start of the line shifts for a split second", and the report guessed the cause.
+     *
+     * <p>Frames are not ticks, so a per-frame capture cannot be aged in ticks. Three tenths of a second
+     * covers every framerate down to three, and a rod that has genuinely stopped being drawn still goes
+     * stale — which is all the test was ever for.
+     */
+    private static final long FRESH_NS = 300_000_000L;
+
+    /** True while {@code nanos} is a stamp from the last {@link #FRESH_NS}. 0 means "never captured". */
+    private static boolean fresh(long nanos) {
+        return nanos != 0L && System.nanoTime() - nanos < FRESH_NS;
+    }
 
     public static boolean tipNdcFresh() {
-        Minecraft mc = Minecraft.getInstance();
-        return mc.level != null && tipNdcFrame >= mc.level.getGameTime() - 1;
+        return fresh(tipNdcNanos);   // §tip-fresh
     }
 
     /**
@@ -139,11 +161,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      * old shoulder anchor while the bent 3D tip waved two blocks away.
      */
     public static final float[] TIP_VIEW = new float[3];
-    public static long tipViewFrame = Long.MIN_VALUE;
+    public static long tipViewNanos;
 
     public static boolean tipViewFresh() {
-        Minecraft mc = Minecraft.getInstance();
-        return mc.level != null && tipViewFrame >= mc.level.getGameTime() - 1;
+        return fresh(tipViewNanos);   // §tip-fresh
     }
 
     /**
@@ -182,7 +203,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         TIP_VIEW[0] = p.x();
         TIP_VIEW[1] = p.y();
         TIP_VIEW[2] = p.z();
-        tipViewFrame = mc.level.getGameTime();
+        tipViewNanos = System.nanoTime();   // §tip-fresh
     }
 
     /** Both joints and blank sit on this axis in model units; the chain hinges about Z through it. */
@@ -340,11 +361,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      * construction, for every rod length, through bend, whip and jerk alike. The world pass then
      * skips the local player's string (it still draws the float — that is a world object).
      */
-    public static long handLineFrame = Long.MIN_VALUE;
+    public static long handLineNanos;
 
     public static boolean handLineFresh() {
-        Minecraft mc = Minecraft.getInstance();
-        return mc.level != null && handLineFrame >= mc.level.getGameTime() - 1;
+        return fresh(handLineNanos);   // §tip-fresh
     }
 
     private static void drawHandLine(ItemStack stack, ItemDisplayContext ctx, MultiBufferSource buffers) {
@@ -355,7 +375,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         var cam0 = mc.gameRenderer.getMainCamera();
         // §hand-space: while the space is still being measured, ANY line drawn here is drawn on a
         // guess, and the frame the verdict lands on is a visible jump across the screen. Draw nothing
-        // until it is known: handLineFrame stays stale meanwhile, so the world pass keeps the line on
+        // until it is known: handLineNanos stays stale meanwhile, so the world pass keeps the line on
         // screen and the switch never shows.
         if (HAND_SPACE < 0 && !spaceDecided) {
             sampleHandSpace(new org.joml.Vector3f(TIP_VIEW[0], TIP_VIEW[1], TIP_VIEW[2]),
@@ -425,7 +445,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             }
             prev = p;
         }
-        handLineFrame = mc.level.getGameTime();
+        handLineNanos = System.nanoTime();   // §tip-fresh
     }
 
     /**
@@ -742,7 +762,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         applyCastAnim(pose, ctx);
         // The rod's hand pose lives in code (§rod-debug) so it can be tuned live with /rfrod; the
         // model's hand display is identity, so this IS the whole in-hand transform. No-op elsewhere.
-        RodHandTransform.apply(pose, ctx, chainRoot != null);
+        RodHandTransform.apply(pose, ctx, chainRoot != null, rodKey);
 
         // §rod-bend: the blank bends under live fight tension — only edge-on (in hands, where the drag
         // is being worked) and only for the LOCAL player's own held rod (others render straight; the
@@ -824,7 +844,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             int used = mc.player.getUseItem().getUseDuration(mc.player) - mc.player.getUseItemRemainingTicks();
             chargePower = RodItem.castPower(used);
         }
-        float swing = mc.player.getAttackAnim(mc.getTimer().getGameTimeDeltaPartialTick(false));
+        // §crank-swing: the whip belongs to the CAST. This read the swing unconditionally, so every
+        // crank during a fight added a casting whip on top of the arm swing — two shakes per click.
+        float swing = com.riverfishing.client.ClientLineState.active()
+                ? 0f : mc.player.getAttackAnim(mc.getTimer().getGameTimeDeltaPartialTick(false));
         float pitch = RodHandTransform.castPitch(chargePower, swing);
         if (pitch != 0f) {
             pose.mulPose(com.mojang.math.Axis.XP.rotationDegrees(pitch));
@@ -960,7 +983,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         float aspect = (float) mc.getWindow().getWidth() / Math.max(1, mc.getWindow().getHeight());
         TIP_NDC[0] = p.x / (-p.z * t * aspect);
         TIP_NDC[1] = p.y / (-p.z * t);
-        tipNdcFrame = mc.level.getGameTime();
+        tipNdcNanos = System.nanoTime();   // §tip-fresh
     }
 
     /**

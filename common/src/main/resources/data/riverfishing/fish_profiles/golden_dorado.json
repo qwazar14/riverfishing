@@ -1,5 +1,7 @@
 {
   "display": "Золотой дорадо",
+  "latin": "Salminus brasiliensis",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "river": 1.3,
@@ -51,7 +53,9 @@
       "popper": 0.85,
       "crankbait": 0.8,
       "silicone": 0.8,
-      "livebait": 0.7
+      "livebait": 0.7,
+      "spinnerbait": 0.9,
+      "swimbait": 0.95
     },
     "hook": {
       "ideal": 2,
@@ -85,6 +89,8 @@
     "depth_min": 2,
     "width_min": 10
   },
+  "provinces": ["neotropic"],
+  "biomes_require": ["warm", "river_biome"],
   "biomes": {
     "warm": 1.4,
     "swamp": 0.6

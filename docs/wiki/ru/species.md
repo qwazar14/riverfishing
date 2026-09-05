@@ -1,6 +1,6 @@
 # Виды рыб
 
-Девяносто один вид. Каждое число на этой странице взято из профиля этого вида в `data/riverfishing/fish_profiles/`, а профиль полностью переопределяется датапаком — схема описана в [`docs/FISH_PROFILES.md`](../../FISH_PROFILES.md).
+Сто семь видов. Каждое число на этой странице взято из профиля этого вида в `data/riverfishing/fish_profiles/`, а профиль полностью переопределяется датапаком — схема описана в [`docs/FISH_PROFILES.md`](../../FISH_PROFILES.md).
 
 Парная страница: **[Справочник по видам](species-reference.md)** — там жёсткие условия обитания, таблицы сезона / времени / погоды и статистика вываживания.
 
@@ -15,7 +15,7 @@
 ## Семейства
 
 Каждый вид отнесён к одному из семи семейств. Это поле `group` в профиле, и именно по нему раскладывает
-свой список [электроудочка](electrofisher.md#экран) — девяносто одно имя одним списком — это список,
+свой список [электроудочка](electrofisher.md#экран) — сто семь имён одним списком — это список,
 который никто не читает. Вид из датапака, не назвавший семейства, попадает в **Прочие**: виден и
 доступен, но не приписан молча куда попало.
 
@@ -24,13 +24,13 @@
 
 | Семейство | Виды |
 |---|---|
-| **Карповые** (27) | Белоглазка, Белый амур, Верховка, Голавль, Голый карп, Горчак, Густера, Елец, Жерех, Зеркальный карп, Золотой карась, Карась, Карп, Краснопёрка, Кутум, Лещ, Линь, Пескарь, Плотва, Подуст, Рыбец, Сазан, Синец, Толстолобик, Уклейка, Чехонь, Язь |
-| **Хищники** (19) | Астронотус, Берш, Блюгилл, Большеротый бас, Глазчатый змееголов, Ёрш, Золотой дорадо, Канальный сомик, Налим, Окунь, Павлиний окунь, Пирайба, Подкаменщик, Ротан, Сом, Судак, Угорь, Цихлазома майя, Щука |
-| **Лососёвые** (10) | Голец, Горбуша, Корюшка, Ленок, Радужная форель, Сёмга, Сиг, Таймень, Форель, Хариус |
+| **Карповые** (29) | Белоглазка, Белый амур, Верховка, Вьюн, Голавль, Голый карп, Горчак, Густера, Елец, Жерех, Зеркальный карп, Золотой карась, Карась, Карп, Краснопёрка, Кутум, Лещ, Линейный карп, Линь, Пескарь, Плотва, Подуст, Рыбец, Сазан, Синец, Толстолобик, Уклейка, Чехонь, Язь |
+| **Хищники** (20) | Астронотус, Берш, Блюгилл, Большеротый бас, Глазчатый змееголов, Ёрш, Золотой дорадо, Канальный сомик, Краснобрюхая пиранья, Налим, Окунь, Павлиний окунь, Пирайба, Подкаменщик, Ротан, Сом, Судак, Угорь, Цихлазома майя, Щука |
+| **Лососёвые** (11) | Голец, Горбуша, Корюшка, Ленок, Нельма, Радужная форель, Сёмга, Сиг, Таймень, Форель, Хариус |
 | **Осетровые** (3) | Белуга, Осётр, Стерлядь |
-| **Кои** (5) | Кои Асаги, Кои Бекко, Кои Кохаку, Кои Сёва Санке, Кои Танчо Санке |
-| **Морские** (16) | Барракуда, Бычок-кругляк, Бычок-цуцик, Камбала, Каранкс, Лаврак, Луфарь, Морской угорь, Полосатый лаврак, Сайда, Сарган, Сельдь, Скат, Скумбрия, Снук, Треска |
-| **Большая игра** (13) | Акула-мако, Арапайма, Ваху, Голиафовый групер, Голубой марлин, Желтопёрый тунец, Махи-махи, Меч-рыба, Палтус, Парусник, Плащеносная акула, Тарпон, Тупорылая акула |
+| **Кои** (6) | Карп кои, Кои Асаги, Кои Бекко, Кои Кохаку, Кои Сёва Санке, Кои Танчо Санке |
+| **Морские** (21) | Барракуда, Бычок-кругляк, Бычок-цуцик, Камбала, Каранкс, Кефаль, Лаврак, Луна-рыба, Луфарь, Минтай, Морской угорь, Морской чёрт, Полосатый лаврак, Рыба-капля, Сайда, Сарган, Сельдь, Скат, Скумбрия, Снук, Треска |
+| **Большая игра** (17) | Акула-мако, Арапайма, Ваху, Голиафовый групер, Голубой марлин, Желтопёрый тунец, Китовая акула, Махи-махи, Меч-рыба, Палтус, Парусник, Плащеносная акула, Синеперый тунец, Тарпон, Тигровая акула, Тупорылая акула, Чёрный марлин |
 
 ## Все виды
 
@@ -129,6 +129,20 @@
 | 91 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/tubenose_goby.png" width="28" alt=""> Бычок-цуцик | `tubenose_goby` | 3 г – 30 г | 10 г | 4–11 см | река 1.1, озеро 0.7, пруд 0.5, море 0.5, болото 0.4 | — |
 | 92 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/kutum.png" width="28" alt=""> Кутум | `kutum` | 500 г – 8 кг | 1.4 кг | 30–70 см | река 1.1, море 1.0, озеро 0.4 | 4 |
 | 93 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/naked_carp.png" width="28" alt=""> Голый карп | `naked_carp` | 2 кг – 20 кг | 4.5 кг | 40–105 см | озеро 1.2, пруд 1.1, река 0.6, болото 0.4 | 5 |
+| 94 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/mullet.png" width="28" alt=""> Кефаль | `mullet` | 300 г – 8 кг | 900 г | 25–80 см | море 1.2, река 0.6, озеро 0.2 | 2 |
+| 95 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/anglerfish.png" width="28" alt=""> Морской чёрт | `anglerfish` | 2 кг – 40 кг | 7 кг | 40–150 см | море 1.0 | 8 |
+| 96 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/black_marlin.png" width="28" alt=""> Чёрный марлин | `black_marlin` | 30 кг – 700 кг | 95 кг | 150–460 см | море 1.0 | 9 |
+| 97 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/blobfish.png" width="28" alt=""> Рыба-капля | `blobfish` | 1 кг – 10 кг | 2.5 кг | 25–70 см | море 1.0 | 8 |
+| 98 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/bluefin_tuna.png" width="28" alt=""> Синеперый тунец | `bluefin_tuna` | 20 кг – 400 кг | 60 кг | 100–300 см | море 1.0 | 8 |
+| 99 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/loach.png" width="28" alt=""> Вьюн | `loach` | 20 г – 150 г | 55 г | 10–30 см | болото 1.2, пруд 1.1, река 0.8, озеро 0.7, лужа 0.5 | — |
+| 100 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/whale_shark.png" width="28" alt=""> Китовая акула | `whale_shark` | 500 кг – 20000 кг | 2500 кг | 400–1200 см | море 1.0 | 12 |
+| 101 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/nelma.png" width="28" alt=""> Нельма | `nelma` | 2 кг – 30 кг | 5 кг | 40–130 см | река 1.1, озеро 0.9, море 0.2 | 6 |
+| 102 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/ocean_sunfish.png" width="28" alt=""> Луна-рыба | `ocean_sunfish` | 100 кг – 1000 кг | 220 кг | 100–330 см | море 1.0 | 8 |
+| 103 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/pollock.png" width="28" alt=""> Минтай | `pollock` | 500 г – 15 кг | 1.8 кг | 25–90 см | море 1.2 | 4 |
+| 104 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/red_piranha.png" width="28" alt=""> Краснобрюхая пиранья | `red_piranha` | 300 г – 4 кг | 900 г | 15–45 см | река 1.1, болото 0.9, озеро 0.8, пруд 0.5 | 4 |
+| 105 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/tiger_shark.png" width="28" alt=""> Тигровая акула | `tiger_shark` | 50 кг – 800 кг | 140 кг | 200–500 см | море 1.1 | 9 |
+| 106 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/koi_carp.png" width="28" alt=""> Карп кои | `koi_carp` | 800 г – 8 кг | 2.5 кг | 25–90 см | пруд 1.0, озеро 1.0, река 0.4 | 3 |
+| 107 | <img src="../../../common/src/main/resources/assets/riverfishing/textures/item/fish/linear_carp.png" width="28" alt=""> Линейный карп | `linear_carp` | 1 кг – 14 кг | 3.2 кг | 33–95 см | озеро 1.2, пруд 1.2, река 0.5, болото 0.4 | 3 |
 
 ## Идеальная снасть
 
@@ -229,6 +243,20 @@
 | Бычок-цуцик | worm 1.0, bloodworm 0.95, maggot 0.9, fish_strip 0.4 | ultralight, pole, stick | primitive, float | №16 ±2 | 1000 ±1000 | mono 0.12 ±0.04 | 0.12 / 0.5 | — |
 | Кутум | worm 1.0, bloodworm 0.9, maggot 0.8, fish_strip 0.5, pea 0.4 | feeder, bottom | feeder, float | №8 ±3 | 4000 ±1500 | mono 0.25 ±0.06 | 0.6 / 0.7 | — |
 | Голый карп | boilie 1.0, corn 0.85, pea 0.6, pearl_barley 0.55, dough 0.5 | carp | carp, flat_feeder | №4 ±2 | 7000 ±1000 | mono 0.35 ±0.08 | 0.75 / 0.88 | — |
+| Кефаль | bread 1.0, dough 0.95, maggot 0.7, worm 0.6, corn 0.4, pea 0.3 | pole, feeder, ultralight | float, feeder | №12 ±3 | 3000 ±1000 | mono 0.18 ±0.05 | 0.45 / 0.55 | — |
+| Морской чёрт | livebait 1.1, fish_strip 1.0 | boat, bottom | catfish, grusha | №1 ±2 | 10000 ±2000 | braid 0.3 ±0.08 | 0.72 / 0.8 | + |
+| Чёрный марлин | giant_spoon 1.05, octopus_jig 1.0, swimbait 0.95, fish_strip 0.9, wobbler 0.9, silicone 0.5 | trolling | predator | №1 ±1 | 14000 ±1000 | braid 0.45 ±0.06 | 1.0 / 0.75 | + |
+| Рыба-капля | fish_strip 0.9, worm 0.8, bloodworm 0.7, chicken_liver 0.5 | boat, bottom | grusha, catfish | №6 ±3 | 8000 ±2000 | braid 0.25 ±0.08 | 0.55 / 0.45 | — |
+| Синеперый тунец | livebait 1.1, giant_spoon 1.0, swimbait 1.0, octopus_jig 0.9, fish_strip 0.9, castmaster 0.8, silicone 0.6 | trolling, boat | predator | №1 ±1 | 14000 ±1000 | braid 0.4 ±0.06 | 1.0 / 0.85 | — |
+| Вьюн | bloodworm 1.1, worm 1.0, maggot 0.8, mormyshka 0.6, dough 0.4 | pole, stick, ultralight | float, primitive | №16 ±2 | 1000 ±1000 | mono 0.12 ±0.04 | 0.2 / 0.5 | — |
+| Китовая акула | fish_strip 0.35, livebait 0.3 | trolling, boat | catfish, grusha | №1 ±1 | 14000 ±1000 | braid 0.6 ±0.05 | 1.0 / 1.0 | — |
+| Нельма | spoon 1.1, spinner 1.0, livebait 0.95, castmaster 0.95, wobbler 0.85, swimbait 0.85, silicone 0.7 | spinning | predator | №4 ±2 | 4000 ±1500 | braid 0.2 ±0.05 | 0.7 / 0.6 | — |
+| Луна-рыба | octopus_jig 1.0, silicone 0.85, fish_strip 0.6, livebait 0.35 | boat, surf | predator, grusha | №2 ±2 | 12000 ±2000 | braid 0.4 ±0.1 | 0.9 / 0.5 | — |
+| Минтай | jig 1.05, livebait 1.0, fish_strip 0.95, silicone 0.85, octopus_jig 0.85, bladebait 0.85, castmaster 0.8 | boat, sea_spin | predator, grusha | №4 ±2 | 8000 ±2000 | braid 0.22 ±0.06 | 0.7 / 0.7 | — |
+| Краснобрюхая пиранья | fish_strip 1.1, chicken_liver 1.0, livebait 0.95, worm 0.7, silicone 0.6, spinner 0.5 | ultralight, spinning, pole | float, predator | №8 ±2 | 2000 ±1000 | mono 0.2 ±0.06 | 0.55 / 0.85 | + |
+| Тигровая акула | fish_strip 1.15, livebait 1.1, swimbait 0.9, chicken_liver 0.85, octopus_jig 0.7, giant_spoon 0.6 | boat, surf, trolling | catfish, grusha | №1 ±1 | 14000 ±1000 | braid 0.45 ±0.08 | 1.0 / 0.95 | + |
+| Карп кои | boilie 1.0, corn 0.8, pea 0.6, bread 0.6 | carp | carp | №6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
+| Линейный карп | boilie 1.0, corn 0.8, pea 0.6, pearl_barley 0.5 | carp | carp, flat_feeder | №6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | 0.72 / 0.85 | — |
 
 ## Заметки по видам
 
@@ -247,7 +275,7 @@
 
 ### Легендарные экземпляры
 
-У четырнадцати видов спрятан один именной экземпляр — один на весь сервер. Вся механика — в [Механике рыбалки](fishing-mechanics.md#легендарные-рыбы).
+У восьми видов спрятан один именной экземпляр — один на весь сервер. Вся механика — в [Механике рыбалки](fishing-mechanics.md#легендарные-рыбы).
 
 | Вид | Имя | Вес | Шанс |
 |---|---|---|---|

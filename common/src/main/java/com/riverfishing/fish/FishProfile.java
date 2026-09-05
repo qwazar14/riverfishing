@@ -1,6 +1,7 @@
 package com.riverfishing.fish;
 
 import com.google.gson.JsonObject;
+import com.riverfishing.engine.Calendar;
 import com.riverfishing.engine.Season;
 import com.riverfishing.engine.TimeOfDay;
 import com.riverfishing.engine.Weather;
@@ -33,6 +34,15 @@ public final class FishProfile {
      * listed and still reachable, just not silently mis-filed.
      */
     public final String group;
+    /** §cards-2: the scientific name, or empty. */
+    public final String latin;
+    /**
+     * §breeding-A: when this species spawns. Never null — a profile without a "spawn" block gets its
+     * family's habit ({@link #defaultSpawnSeason}), the same table tools/add_spawn.py wrote from.
+     */
+    public final Season spawnSeason;
+    /** §breeding-A: the third of that season, or null for the whole of it. */
+    public final Calendar.Sub spawnSub;
 
     // Presence / size
     public final Map<String, Double> waterBodies;
@@ -74,6 +84,7 @@ public final class FishProfile {
     public final Map<String, Double> season;
     public final Map<String, Double> time;
     public final Map<String, Double> weather;
+    public final Map<String, Double> bed;
     public final String depthPref;
     public final double distMin, distMax;
 
@@ -82,6 +93,36 @@ public final class FishProfile {
     public final double widthMin, widthMax;
     // …and only in these biome groups (group -> factor; empty = anywhere; no match = 0).
     public final Map<String, Double> biomes;
+
+    /**
+     * §provinces: the parts of the world this species lives in ({@link com.riverfishing.water.Provinces}).
+     * EMPTY MEANS EVERYWHERE, which is what every sea fish and every profile written before this wants:
+     * one ocean, one fauna. A non-empty list is a hard gate — the species is absent from every province
+     * it does not name, however right the water looks.
+     */
+    public final java.util.Set<String> provinces;
+
+    /**
+     * §biomes-require: biome groups that must ALL be present, where {@link #biomes} above is best-of.
+     * This is how a specialist is written: a taimen asks for cold AND a river AND mountains, and the
+     * old map goes on meaning what it always meant.
+     */
+    public final java.util.Set<String> biomesRequire;
+
+    /**
+     * §breeds-with: the other species ids this one will spawn with, by path. EMPTY MEANS ITSELF ONLY,
+     * which is what almost every fish wants. It is for the cases where two ids are one animal — the
+     * carp and the sazan are both Cyprinus carpio, the koi is a carp in a kimono — and for the few
+     * crosses that make fertile young in the water they actually share.
+     */
+    public final java.util.Map<String, Double> breedRates;
+
+    /**
+     * §gynogenesis: this hen does not need the male's genes — his milt only starts her unfertilised egg
+     * dividing, and what hatches is a copy of her. True for the silver crucian, which is exactly how she
+     * displaces the golden one wherever the two meet.
+     */
+    public final boolean gynogenesis;
 
     // §legendary (0.5.0): the species hides ONE named specimen per server (0 = none).
     public final int legendaryWeightG;
@@ -96,6 +137,9 @@ public final class FishProfile {
     private FishProfile(Builder b) {
         this.id = b.id;
         this.group = b.group;
+        this.latin = b.latin;
+        this.spawnSeason = b.spawnSeason;
+        this.spawnSub = b.spawnSub;
         this.waterBodies = b.waterBodies;
         this.weightMin = b.weightMin;
         this.weightMax = b.weightMax;
@@ -124,6 +168,7 @@ public final class FishProfile {
         this.season = b.season;
         this.time = b.time;
         this.weather = b.weather;
+        this.bed = b.bed;
         this.depthPref = b.depthPref;
         this.distMin = b.distMin;
         this.distMax = b.distMax;
@@ -136,6 +181,10 @@ public final class FishProfile {
         this.widthMin = b.widthMin;
         this.widthMax = b.widthMax;
         this.biomes = b.biomes;
+        this.provinces = b.provinces;
+        this.biomesRequire = b.biomesRequire;
+        this.breedRates = b.breedRates;
+        this.gynogenesis = b.gynogenesis;
     }
 
     // ---- Lookups used by the engine ----
@@ -154,6 +203,39 @@ public final class FishProfile {
 
     public double weatherFactor(Weather w) {
         return w == null ? 1.0 : weather.getOrDefault(w.jsonKey(), 1.0);
+    }
+
+    /** The bed codes FishingManager.bedType() hands out, by name, for the profile's own "bed" map. */
+    private static final String[] BED_KEYS = {"", "sand", "gravel", "clay", "mud", "rock", "other"};
+
+    /**
+     * §bed-bite: how much this species likes the bottom it is over. A profile may say so itself with a
+     * {@code "bed"} map; the ninety-odd that do not get their FAMILY's habit, which is the same trick
+     * the groundbait grind uses — the fallback seeds sensible numbers into every species at once
+     * instead of asking someone to hand-write ninety files.
+     *
+     * <p>A nudge, never a gate: 0.85 to 1.2. The bed decides where a carp is COMFORTABLE, not whether
+     * a carp exists — depth and water type already do that, and a second hard gate on top of them would
+     * empty half the swims in the game.
+     */
+    public double bedFactor(int bedCode) {
+        if (bedCode <= 0 || bedCode >= BED_KEYS.length) return 1.0;
+        String key = BED_KEYS[bedCode];
+        if (!bed.isEmpty()) return bed.getOrDefault(key, 1.0);
+        switch (group == null ? "" : group) {
+            case "cyprinid":                       // roots in the soft stuff
+                return switch (key) { case "mud", "clay" -> 1.15; case "rock" -> 0.85; default -> 1.0; };
+            case "predator":                       // ambushes off hard structure
+                return switch (key) { case "rock", "gravel" -> 1.12; case "mud" -> 0.9; default -> 1.0; };
+            case "salmonid":                       // gravel is where they spawn and feed
+                return switch (key) { case "gravel" -> 1.2; case "sand" -> 1.05; case "mud" -> 0.85; default -> 1.0; };
+            case "sturgeon":                       // grubs the soft bottom
+                return switch (key) { case "sand", "mud" -> 1.15; case "rock" -> 0.85; default -> 1.0; };
+            case "sea", "big_game":                // sand and rock both work; mud is a harbour
+                return switch (key) { case "sand", "rock" -> 1.1; case "mud" -> 0.9; default -> 1.0; };
+            default:
+                return 1.0;
+        }
     }
 
     public double baitScore(String baitId) {
@@ -201,6 +283,18 @@ public final class FishProfile {
         Builder b = new Builder(id);
 
         b.group = GsonHelper.getAsString(json, "group", FishGroup.OTHER);
+        b.latin = GsonHelper.getAsString(json, "latin", "");
+        // §breeding-A: "spawn": {"season": "spring", "sub": "late"}, sub optional. A block that names a season
+        // but no sub means the whole season; no block at all means the family's habit, sub included.
+        if (json.has("spawn")) {
+            JsonObject spawn = GsonHelper.getAsJsonObject(json, "spawn");
+            Season s = Calendar.seasonOf(GsonHelper.getAsString(spawn, "season", ""));
+            b.spawnSeason = s != null ? s : defaultSpawnSeason(b.group);
+            b.spawnSub = Calendar.subOf(GsonHelper.getAsString(spawn, "sub", ""));
+        } else {
+            b.spawnSeason = defaultSpawnSeason(b.group);
+            b.spawnSub = defaultSpawnSub(b.group);
+        }
         b.waterBodies = readDoubleMap(GsonHelper.getAsJsonObject(json, "water_bodies", new JsonObject()));
 
         JsonObject w = GsonHelper.getAsJsonObject(json, "weight_g", new JsonObject());
@@ -245,6 +339,8 @@ public final class FishProfile {
         b.season = readDoubleMap(GsonHelper.getAsJsonObject(json, "season", new JsonObject()));
         b.time = readDoubleMap(GsonHelper.getAsJsonObject(json, "time", new JsonObject()));
         b.weather = readDoubleMap(GsonHelper.getAsJsonObject(json, "weather", new JsonObject()));
+        // §bed-bite: optional. Absent means "my family's habit" — see bedFactor().
+        b.bed = readDoubleMap(GsonHelper.getAsJsonObject(json, "bed", new JsonObject()));
         b.depthPref = GsonHelper.getAsString(json, "depth_pref", "bottom");
 
         JsonObject dist = GsonHelper.getAsJsonObject(json, "distance_pref", new JsonObject());
@@ -268,7 +364,44 @@ public final class FishProfile {
         b.widthMin = GsonHelper.getAsDouble(hab, "width_min", 0);
         b.widthMax = GsonHelper.getAsDouble(hab, "width_max", 99999);
         b.biomes = readDoubleMap(GsonHelper.getAsJsonObject(json, "biomes", new JsonObject()));
+        // §provinces §biomes-require: plain string arrays, read by the set reader this file
+        // already had for the rod and rig lists.
+        b.provinces = readStringSet(json, "provinces");
+        b.biomesRequire = readStringSet(json, "biomes_require");
+        // §breed-rate: a map of id to how well the cross takes. Written as a bare ARRAY in the
+        // first cut of §breeds-with and by any third-party profile that copied it — those read as
+        // "everything at full strength", which is what they meant, rather than failing the load.
+        b.breedRates = new java.util.HashMap<>();
+        if (json.has("breeds_with") && json.get("breeds_with").isJsonArray()) {
+            for (String o : readStringSet(json, "breeds_with")) b.breedRates.put(o, 1.0);
+        } else {
+            b.breedRates.putAll(readDoubleMap(GsonHelper.getAsJsonObject(json, "breeds_with", new JsonObject())));
+        }
+        b.gynogenesis = GsonHelper.getAsBoolean(json, "gynogenesis", false);   // §gynogenesis
         return new FishProfile(b);
+    }
+
+    /**
+     * §breeding-A: the family's spawning window for a profile that does not say. Cyprinids, sturgeon and
+     * the inshore sea fish go on the late-spring warm-up, predators as soon as the ice is off, salmonids
+     * on the autumn gravel, the big-game fish through the summer. Mirrors the table in tools/add_spawn.py.
+     */
+    public static Season defaultSpawnSeason(String group) {
+        return switch (group == null ? "" : group) {
+            case FishGroup.SALMONID -> Season.AUTUMN;
+            case FishGroup.BIG_GAME -> Season.SUMMER;
+            default -> Season.SPRING;
+        };
+    }
+
+    /** §breeding-A: the family's sub-season, null = the whole season. */
+    public static Calendar.Sub defaultSpawnSub(String group) {
+        return switch (group == null ? "" : group) {
+            case FishGroup.PREDATOR -> Calendar.Sub.EARLY;
+            case FishGroup.SALMONID -> Calendar.Sub.MID;
+            case FishGroup.BIG_GAME -> null;
+            default -> Calendar.Sub.LATE;
+        };
     }
 
     private static Map<String, Double> readDoubleMap(JsonObject obj) {
@@ -290,6 +423,9 @@ public final class FishProfile {
     private static final class Builder {
         final ResourceLocation id;
         String group = FishGroup.OTHER;
+        String latin = "";
+        Season spawnSeason;                 // §breeding-A
+        Calendar.Sub spawnSub;
         Map<String, Double> waterBodies = new HashMap<>();
         double weightMin, weightMax, weightMean;
         boolean weightMeanSet;
@@ -310,6 +446,7 @@ public final class FishProfile {
         Map<String, Double> season = new HashMap<>();
         Map<String, Double> time = new HashMap<>();
         Map<String, Double> weather = new HashMap<>();
+        Map<String, Double> bed = new java.util.HashMap<>();
         String depthPref = "bottom";
         double distMin, distMax;
         double base = 1.0;
@@ -319,6 +456,10 @@ public final class FishProfile {
         int depthMin = 0, depthMax = 999;
         double widthMin = 0, widthMax = 99999;
         Map<String, Double> biomes = new HashMap<>();
+        java.util.Set<String> provinces = new java.util.HashSet<>();
+        java.util.Set<String> biomesRequire = new java.util.HashSet<>();
+        Map<String, Double> breedRates = new HashMap<>();
+        boolean gynogenesis;
 
         Builder(ResourceLocation id) { this.id = id; }
     }

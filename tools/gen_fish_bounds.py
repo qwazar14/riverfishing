@@ -101,9 +101,19 @@ def bounds(path):
     return (x1 - x0 + 1) / w, (y1 - y0 + 1) / h
 
 
+# A sprite in this folder is not automatically a fish: §koi-genes cut three tint MASKS out of the koi
+# drawing (koi_carp_hi/_sumi/_crown) and put them here, next to the fish, because that is where the item
+# model looks for them. A species is one with a fish profile, so ask the profiles.
+PROFILES = 'common/src/main/resources/data/riverfishing/fish_profiles'
+SPECIES = {f[:-5] for f in os.listdir(PROFILES) if f.endswith('.json')}
+
 rows = []
+skipped = []
 for name in sorted(os.listdir(TEX)):
     if not name.endswith('.png'):
+        continue
+    if name[:-4] not in SPECIES:
+        skipped.append(name[:-4])
         continue
     fw, fh = bounds(os.path.join(TEX, name))
     rows.append((name[:-4], round(fw, 3), round(fh, 3)))

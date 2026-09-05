@@ -49,11 +49,17 @@ public class JournalOpenPacket implements ModNetwork.RfPacket {
     private static CompoundTag payload(net.minecraft.server.level.ServerPlayer sp) {
         CompoundTag copy = com.riverfishing.item.JournalItem.exportFor(sp);
         copy.put("order", com.riverfishing.fishing.OrderBoard.build(sp));
+        // §contracts-b1: the papers in the bag, and the world day so the tab can say how long is left.
+        copy.put("contracts", com.riverfishing.fishing.Contracts.build(sp));
+        copy.putLong("day", com.riverfishing.fishing.Contracts.today(sp.serverLevel()));
         // §journal-card (0.8.0): the species facts ride along for exactly the reason above. The screen
         // used to read FishProfileManager directly, which only has anything in singleplayer — on a
         // dedicated server every species page lost its water, bait, tackle, season and trophy weight
         // without saying so. One table, built once per open, and the client stops needing the profiles.
         copy.put("cards", com.riverfishing.fish.FishCard.buildAll());
+        // §h §breeding: the genomes stocked in the region the player STANDS in — the client has no ledger.
+        copy.put("pop", com.riverfishing.fishing.StockedData.get(sp.serverLevel())
+                .genomes(com.riverfishing.fishing.StockedData.region(sp.blockPosition())));
         return copy;
     }
 

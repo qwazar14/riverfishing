@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "riverfishing:block/aerator_top",
+    "side": "riverfishing:block/aerator_side",
+    "bottom": "riverfishing:block/aerator_bottom"
+  }
+}

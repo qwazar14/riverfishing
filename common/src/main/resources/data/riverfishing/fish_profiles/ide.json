@@ -1,5 +1,7 @@
 {
   "display": "Язь",
+  "latin": "Leuciscus idus",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "cyprinid",
   "water_bodies": {
     "river": 1.2,
@@ -49,7 +51,10 @@
       "bread": 0.7,
       "pea": 0.6,
       "popper": 0.9,
-      "crankbait": 0.7
+      "crankbait": 0.7,
+      "spinnerbait": 0.6,
+      "bladebait": 0.6,
+      "wacky_worm": 0.6
     },
     "hook": {
       "ideal": 10,
@@ -83,6 +88,7 @@
     "depth_max": 6,
     "width_min": 8
   },
+  "provinces": ["palearctic"],
   "biomes": {
     "temperate": 1.0,
     "cold": 0.8

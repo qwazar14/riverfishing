@@ -103,13 +103,24 @@ public final class ShoalState {
      */
     private static ShoalSim.Fish[] resize(Level level, ShoalPacket.Spot s, ShoalSim.Fish[] had) {
         ShoalSim.Fish[] fresh = ShoalSim.populate(level, s);
-        int keep = Math.min(had.length, fresh.length);
-        for (int i = 0; i < keep; i++) {
-            ShoalSim.Fish was = had[i], now = fresh[i];
-            now.x = was.x;
-            now.y = was.y;
-            now.z = was.z;
-            now.heading = was.heading;
+        // §shoal-stable: a survivor is matched by WHO it is — species, lane, phase, depth — and keeps
+        // its place; index matching handed a roach's position to whatever now sat at index 3.
+        boolean[] used = new boolean[had.length];
+        for (ShoalSim.Fish now : fresh) {
+            for (int j = 0; j < had.length; j++) {
+                ShoalSim.Fish was = had[j];
+                if (used[j] || !was.entry.species().equals(now.entry.species())
+                        || was.entry.lane() != now.entry.lane() || was.entry.phase() != now.entry.phase()
+                        || was.entry.depth() != now.entry.depth()) continue;
+                used[j] = true;
+                now.x = was.x;
+                now.y = was.y;
+                now.z = was.z;
+                now.heading = was.heading;
+                now.jumpT = was.jumpT;
+                now.nextJump = was.nextJump;
+                break;
+            }
         }
         return fresh;
     }
@@ -140,6 +151,14 @@ public final class ShoalState {
         lastNanos = nanos;
         float time = level.getGameTime() + partialTick;
         Vec3 eye = mc.player == null ? Vec3.ZERO : mc.player.getEyePosition(partialTick);
+        // §shoal-look: where this player's own line meets the water, for the predators to go and see.
+        Vec3 bait = null;
+        if (mc.player != null) {
+            ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
+            if (own != null && own.target != null && !own.target.equals(net.minecraft.core.BlockPos.ZERO)) {
+                bait = new Vec3(own.target.getX() + 0.5, own.target.getY() + 0.9, own.target.getZ() + 0.5);
+            }
+        }
 
         boolean dropped = false;
         for (var it = LIVE.values().iterator(); it.hasNext(); ) {
@@ -151,8 +170,8 @@ public final class ShoalState {
             // it breaks for open water over a second, the way a shoal actually scatters. A patch that is
             // leaving flees as it goes, so the last thing you see is fish swimming off, not a fade.
             float wanted = Math.max(live.spot.spookFraction(), live.leaving ? 1f : 0f);
-            live.flight += (wanted - live.flight) * Math.min(1f, (float) dt * 1.5f);
-            ShoalSim.advance(level, live.spot, live.fish, live.flight, eye, time, dt);
+            live.flight += (wanted - live.flight) * Math.min(1f, (float) dt * 1.0f);   // a scatter, not a cut
+            ShoalSim.advance(level, live.spot, live.fish, live.flight, eye, bait, time, dt);
             if (live.leaving && live.fade <= 0.01f) {
                 it.remove();
                 dropped = true;

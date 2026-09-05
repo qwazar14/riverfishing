@@ -1,0 +1,44 @@
+{
+  "en_us": {
+    "block.riverfishing.aerator": "Aerator",
+    "block.riverfishing.snag_pile": "Snag Pile",
+    "block.riverfishing.gravel_bed": "Gravel Bed",
+    "block.riverfishing.warm_outflow": "Warm Outflow",
+    "block.riverfishing.feeding_station": "Feeding Station",
+    "tooltip.riverfishing.upgrade.aerator": "Oxygen — the summer bite, and fry survive",
+    "tooltip.riverfishing.upgrade.snag_pile": "Cover — predators hold here, fry hide here",
+    "tooltip.riverfishing.upgrade.gravel_bed": "A gravel bed under the water — where salmonids spawn",
+    "tooltip.riverfishing.upgrade.warm_outflow": "Warm water — the season comes early here",
+    "tooltip.riverfishing.upgrade.feeding_station": "Groundbait every day, while it is loaded",
+    "message.riverfishing.feeder_loaded": "Feeding station loaded: %s/%s days",
+    "message.riverfishing.feeder_full": "The feeding station is full"
+  },
+  "ru_ru": {
+    "block.riverfishing.aerator": "Аэратор",
+    "block.riverfishing.snag_pile": "Коряжник",
+    "block.riverfishing.gravel_bed": "Гравийная отмель",
+    "block.riverfishing.warm_outflow": "Тёплый сброс",
+    "block.riverfishing.feeding_station": "Кормушка-станция",
+    "tooltip.riverfishing.upgrade.aerator": "Кислород — летний клёв, и мальки выживают",
+    "tooltip.riverfishing.upgrade.snag_pile": "Укрытие — здесь стоит хищник, здесь прячется малёк",
+    "tooltip.riverfishing.upgrade.gravel_bed": "Гравий на дне — там, где нерестятся лососёвые",
+    "tooltip.riverfishing.upgrade.warm_outflow": "Тёплая вода — сезон здесь приходит раньше",
+    "tooltip.riverfishing.upgrade.feeding_station": "Прикормка каждый день, пока она заряжена",
+    "message.riverfishing.feeder_loaded": "Кормушка заряжена: %s/%s дней",
+    "message.riverfishing.feeder_full": "Кормушка уже полная"
+  },
+  "uk_ua": {
+    "block.riverfishing.aerator": "Аератор",
+    "block.riverfishing.snag_pile": "Коряжник",
+    "block.riverfishing.gravel_bed": "Гравійна мілина",
+    "block.riverfishing.warm_outflow": "Теплий скид",
+    "block.riverfishing.feeding_station": "Годівниця-станція",
+    "tooltip.riverfishing.upgrade.aerator": "Кисень — літній кльов, і мальки виживають",
+    "tooltip.riverfishing.upgrade.snag_pile": "Укриття — тут стоїть хижак, тут ховається маля",
+    "tooltip.riverfishing.upgrade.gravel_bed": "Гравій на дні — там, де нерестяться лососеві",
+    "tooltip.riverfishing.upgrade.warm_outflow": "Тепла вода — сезон тут приходить раніше",
+    "tooltip.riverfishing.upgrade.feeding_station": "Прикормка щодня, поки вона заряджена",
+    "message.riverfishing.feeder_loaded": "Годівницю заряджено: %s/%s днів",
+    "message.riverfishing.feeder_full": "Годівниця вже повна"
+  }
+}

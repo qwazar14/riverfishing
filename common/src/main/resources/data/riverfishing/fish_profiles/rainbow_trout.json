@@ -1,5 +1,7 @@
 {
   "display": "Радужная форель",
+  "latin": "Oncorhynchus mykiss",
+  "spawn": { "season": "spring", "sub": "mid" },
   "group": "salmonid",
   "water_bodies": { "river": 1.3, "lake": 0.9, "pond": 0.2, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 300, "max": 6000, "mean": 1100 },
@@ -20,6 +22,7 @@
   "depth_pref": "mid",
   "distance_pref": { "min": 4, "max": 25 },
   "habitat": { "depth_min": 2, "depth_max": 8, "width_min": 4 },
+  "provinces": ["nearctic", "palearctic", "neotropic", "indomalaya"],
   "biomes": { "cold": 1.1, "mountain": 1.2, "taiga": 1.1, "temperate": 0.8 },
   "base": 0.65,
   "min_angler_level": 4

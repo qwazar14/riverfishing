@@ -1,5 +1,7 @@
 {
   "display": "Меч-рыба",
+  "latin": "Xiphias gladius",
+  "spawn": { "season": "summer" },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.0,

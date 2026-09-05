@@ -39,12 +39,13 @@ public abstract class MerchantOrderPanelMixin {
     private void riverfishing$orderPanel(GuiGraphics g, int mouseX, int mouseY,
                                         float partialTick, CallbackInfo ci) {
         OrderState.draw(g);
+        com.riverfishing.client.ContractBoardState.draw(g, mouseX, mouseY);   // §contracts-b1
     }
 
     @Inject(method = "mouseClicked(DDI)Z", at = @At("HEAD"), cancellable = true, require = 0)
     private void riverfishing$orderClick(double mx, double my, int button,
                                          org.spongepowered.asm.mixin.injection.callback
                                                  .CallbackInfoReturnable<Boolean> cir) {
-        if (OrderState.click(mx, my)) cir.setReturnValue(true);
+        if (OrderState.click(mx, my) || com.riverfishing.client.ContractBoardState.click(mx, my)) cir.setReturnValue(true);
     }
 }

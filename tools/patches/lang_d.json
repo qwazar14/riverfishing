@@ -1,0 +1,41 @@
+{
+  "en_us": {
+    "item.riverfishing.seine_net": "Seine Net",
+    "item.riverfishing.cast_net": "Cast Net",
+    "tooltip.riverfishing.net": "Right-click water — takes fish without a bite. Legal only in water you stocked",
+    "message.riverfishing.net_haul": "%s fish in the net",
+    "message.riverfishing.net_empty": "The net came up empty",
+    "message.riverfishing.poaching": "Poaching! The fishermen saw that net go in — their trust in you drops, and the water pays twice",
+    "guide.riverfishing.nets.title": "Nets",
+    "guide.riverfishing.nets.text": "A rod takes one fish, and it takes the one that was hungry. A net takes everything at once: the fish you wanted, the fish you did not, and the brood that would have spawned next spring. Drag a seine through a pond in March and there is no April in it — that water is empty for years, not for an evening.\n\n## WHY ANGLERS ARE NOT ALLOWED ONE\nThis is the whole reason nets are banned for anglers, everywhere, and why in this mod a haul from water you did not stock is poaching. The haul still happens — a net that did not work would teach nothing. But every fisherman within earshot saw it go in: the trust the contracts run on drops by five, and the water is emptied TWICE as fast as the fish you took would account for, because the brood went with them.\n\n## WHOSE WATER IT IS\nA net is a tool for a fish farmer on his own pond. Water you stocked yourself — a pair released and settled, or fry you put in — is yours to harvest, and there the net is exactly what it is for: the seine hauls one to three fish a minute, the cast net one every fifteen seconds, and each fish comes up as a plain fish with no catch card, because it was not caught. Both tools wear out.\n\nEverywhere else, take the rod.",
+    "card.riverfishing.badge.netted": "NETTED",
+    "card.riverfishing.badge.poached": "POACHED",
+    "card.riverfishing.rod.net": "net"
+  },
+  "ru_ru": {
+    "item.riverfishing.seine_net": "Невод",
+    "item.riverfishing.cast_net": "Кастинговая сеть",
+    "tooltip.riverfishing.net": "ПКМ по воде — берёт рыбу без поклёвки. Законно только в воде, которую зарыбили вы",
+    "message.riverfishing.net_haul": "В сети: %s рыб",
+    "message.riverfishing.net_empty": "Сеть пришла пустой",
+    "message.riverfishing.poaching": "Браконьерство! Рыбаки видели, как сеть ушла в воду — доверие к вам падает, а водоём платит дважды",
+    "guide.riverfishing.nets.title": "Сети",
+    "guide.riverfishing.nets.text": "Удочка берёт одну рыбу — ту, что была голодна. Сеть берёт всё разом: рыбу, которую вы хотели, рыбу, которую не хотели, и молодь, которая отнерестилась бы следующей весной. Протащите невод по пруду в марте — и апреля в нём не будет: эта вода пуста на годы, а не на вечер.\n\n## ПОЧЕМУ РЫБОЛОВУ СЕТЬ НЕ ПОЛОЖЕНА\nИменно поэтому сети запрещены для рыболовов везде, и именно поэтому в этом моде улов из воды, которую вы не зарыбляли, — браконьерство. Улов всё равно случается: сеть, которая не работает, ничему бы не научила. Но каждый рыбак поблизости видел, как она ушла в воду: доверие, на котором держатся контракты, падает на пять, а водоём пустеет ВДВОЕ быстрее, чем стоили бы взятые рыбы, — потому что вместе с ними ушла молодь.\n\n## ЧЬЯ ЭТО ВОДА\nСеть — инструмент рыбовода на собственном пруду. Вода, которую вы зарыбили сами — выпущенная и прижившаяся пара или запущенные мальки, — ваша, и её можно собирать; там сеть ровно для того и нужна: невод берёт от одной до трёх рыб в минуту, кастинговая сеть — одну раз в пятнадцать секунд, и каждая рыба поднимается просто рыбой, без карточки улова, потому что она не была поймана. Обе снасти изнашиваются.\n\nВезде в остальных местах — берите удочку.",
+    "card.riverfishing.badge.netted": "СЕТЬ",
+    "card.riverfishing.badge.poached": "БРАКОНЬЕРСКАЯ",
+    "card.riverfishing.rod.net": "сеть"
+  },
+  "uk_ua": {
+    "item.riverfishing.seine_net": "Невід",
+    "item.riverfishing.cast_net": "Кастингова сітка",
+    "tooltip.riverfishing.net": "ПКМ по воді — бере рибу без поклювання. Законно лише у воді, яку зарибили ви",
+    "message.riverfishing.net_haul": "У сітці: %s риб",
+    "message.riverfishing.net_empty": "Сітка прийшла порожньою",
+    "message.riverfishing.poaching": "Браконьєрство! Рибалки бачили, як сітка пішла у воду — довіра до вас падає, а водойма платить двічі",
+    "guide.riverfishing.nets.title": "Сітки",
+    "guide.riverfishing.nets.text": "Вудка бере одну рибу — ту, що була голодна. Сітка бере все разом: рибу, яку ви хотіли, рибу, якої не хотіли, і молодь, що відклала б ікру наступної весни. Протягніть невід ставком у березні — і квітня в ньому не буде: ця вода порожня на роки, а не на вечір.\n\n## ЧОМУ РИБАЛЦІ СІТКА НЕ НАЛЕЖИТЬ\nСаме тому сітки заборонені для рибалок усюди, і саме тому в цьому моді улов із води, яку ви не зарибляли, — браконьєрство. Улов усе одно стається: сітка, що не працює, нічого б не навчила. Але кожен рибалка поблизу бачив, як вона пішла у воду: довіра, на якій тримаються контракти, падає на п'ять, а водойма порожніє УДВІЧІ швидше, ніж коштували б узяті риби, — бо разом із ними пішла молодь.\n\n## ЧИЯ ЦЕ ВОДА\nСітка — знаряддя рибовода на власному ставку. Вода, яку ви зарибили самі — випущена й прижита пара або запущені мальки, — ваша, і її можна збирати; там сітка саме для того й потрібна: невід бере від однієї до трьох риб за хвилину, кастингова сітка — одну раз на п'ятнадцять секунд, і кожна риба піднімається просто рибою, без картки улову, бо її не було спіймано. Обидва знаряддя зношуються.\n\nУсюди інде — беріть вудку.",
+    "card.riverfishing.badge.netted": "СІТКА",
+    "card.riverfishing.badge.poached": "БРАКОНЬЄРСЬКА",
+    "card.riverfishing.rod.net": "сітка"
+  }
+}

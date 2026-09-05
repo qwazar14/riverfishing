@@ -45,7 +45,14 @@ import java.util.stream.Collectors;
  * same {@link FishProfile}s and recipes the game uses, so the guide can't drift from the balance.
  */
 public class JournalScreen extends Screen {
-    private static final String[] SPECIES = ModItems.FISH_SPECIES;
+    /**
+     * §koi-legacy: every registered species EXCEPT the five ids koi used to be. They are still items,
+     * still priced, still whatever is in your chest — but they stopped being species when §koi-genes
+     * made them varieties of one, and a bestiary that lists them lists the same fish six times.
+     */
+    private static final String[] SPECIES = java.util.Arrays.stream(ModItems.FISH_SPECIES)
+            .filter(sp -> !com.riverfishing.fish.Genome.isKoiId(sp) || "koi_carp".equals(sp))
+            .toArray(String[]::new);
     private static final int ROW_H = 16;
     private static final int GRID_TOP = 54;
     // §journal-room (0.8.0): the page carries four more blocks than it did, and the list grew a family
@@ -633,6 +640,46 @@ public class JournalScreen extends Screen {
         return y;
     }
 
+    /**
+     * §guide-headings: a guide page is prose with SECTIONS. A paragraph written as {@code ## Something}
+     * in the lang file becomes a brass heading with air above it and a rule under it; everything else
+     * wraps as before.
+     *
+     * <p>In the lang file rather than in code for the same reason {@code .table} and {@code .bars} are:
+     * a page gains sections as a TRANSLATION job, done once per language, instead of a render method
+     * per page that only English would ever get. A translator who drops the marker loses the heading
+     * and keeps the sentence — the page still reads, it just reads flat.
+     *
+     * <p>Wrapping happens per paragraph, so the marker survives: splitting the whole page first would
+     * hand back wrapped lines with no idea which of them a paragraph began on.
+     */
+    private int guideProse(GuiGraphics g, String id, int y) {
+        String raw = I18n.get("guide.riverfishing." + id + ".text");
+        for (String para : raw.split("\n")) {
+            if (para.startsWith(HEADING)) {
+                y += 7;
+                g.drawString(this.font, para.substring(HEADING.length()).trim(), left + 10, y, 0xFFB0842C, false);
+                y += 11;
+                g.fill(left + 10, y, left + W - 14, y + 1, 0x33000000);
+                y += 5;
+                continue;
+            }
+            if (para.isEmpty()) {
+                y += 12;    // a blank line is the paragraph gap the pages were written with
+                continue;
+            }
+            for (net.minecraft.util.FormattedCharSequence seq
+                    : this.font.split(Component.literal(para), W - 24)) {
+                g.drawString(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
+                y += 12;
+            }
+        }
+        return y;
+    }
+
+    /** What marks a guide paragraph as a section heading. Markdown's, so it reads as one in the file. */
+    private static final String HEADING = "## ";
+
     private int guideBars(GuiGraphics g, String id, int y) {
         String key = "guide.riverfishing." + id + ".bars";
         if (!I18n.exists(key)) return y;
@@ -791,6 +838,8 @@ public class JournalScreen extends Screen {
     private int tab = TAB_FISH;
     private String detail;      // opened fish species, or null
     private int catDetail = -1; // opened bait/gear entry index (in the current tab's list), or -1
+    /** §craft-grid: what the cursor is over this frame — its tooltip is drawn after the whole page. */
+    private ItemStack hoverStack = ItemStack.EMPTY;
     private int scroll;
     private int lastCatH;       // measured content height of the last catalog render (for scroll clamp)
     /** Visible height of whatever the last render scrolled, so the wheel clamps to the RIGHT viewport. */
@@ -892,18 +941,26 @@ public class JournalScreen extends Screen {
 
         guideGroupNow = 4;   // reading the water, and what to do with a catch
         addGuide("community", modStack("fish_finder"));
+        addGuide("geography", new ItemStack(net.minecraft.world.item.Items.FILLED_MAP));   // §provinces
+        addGuide("nets", modStack("seine_net")); // §D
         addGuide("market", new ItemStack(net.minecraft.world.item.Items.EMERALD));
         addGuide("coop", new ItemStack(net.minecraft.world.item.Items.LEAD));
 
-        guideGroupNow = 5;   // under the ice — quest stage 6, and until now the only mode with no page
+        guideGroupNow = 5;   // §fish-farming: water of your own — in the order a player meets it
+        addGuide("stocking", modStack("pond_sign"));
+        addGuide("breeding", modStack("roe"));
+        addGuide("genes", modStack("koi_carp"));
+        addGuide("upgrades", modStack("aerator"));
+
+        guideGroupNow = 6;   // under the ice — quest stage 6, and until now the only mode with no page
         addGuide("icefishing", modStack("ice_auger"));
 
-        guideGroupNow = 6;   // the sea, and the fish that need a boat
+        guideGroupNow = 7;   // the sea, and the fish that need a boat
         addGuide("trolling", modStack("trolling_rod"));
         addGuide("biggame", modStack("yellowfin_tuna"));
         addGuide("legendary", modStack("blue_marlin"));
 
-        guideGroupNow = 7;   // not for anglers: whoever runs the world, and where to shout
+        guideGroupNow = 8;   // not for anglers: whoever runs the world, and where to shout
         addGuide("cull", modStack("electro_rod"));
         addGuide("discord", new ItemStack(net.minecraft.world.item.Items.PLAYER_HEAD));
         addGuide("thanks", new ItemStack(net.minecraft.world.item.Items.HEART_OF_THE_SEA));
@@ -1001,6 +1058,7 @@ public class JournalScreen extends Screen {
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(g, mouseX, mouseY, partialTick);
+        hoverStack = ItemStack.EMPTY;   // §craft-grid: refilled by whatever the cursor is over
         boolean scaled = uiScale < 0.999f;
         if (scaled) {
             g.pose().pushPose();
@@ -1036,6 +1094,8 @@ public class JournalScreen extends Screen {
                 renderCatalog(g, list, mouseX, mouseY);
             }
         }
+        // §craft-grid: last, so a tooltip is never drawn under the page it belongs to.
+        if (!hoverStack.isEmpty()) g.renderTooltip(this.font, hoverStack, mouseX, mouseY);
         if (scaled) g.pose().popPose();
     }
 
@@ -1380,6 +1440,13 @@ public class JournalScreen extends Screen {
                 left + 30, top + 26, GuiStyle.TEXT, false);
         CompoundTag rec = data.getCompound(key(sp));
         String recStr = "x" + rec.getInt("count") + "  •  " + weight(rec.getInt("best"));
+        // §cards-2: the scientific name after the common one, when there is room before the record.
+        String latin = card(sp).latin();
+        int nameEnd = left + 30 + this.font.width(Component.translatable("fish.riverfishing." + sp)) + 6;
+        if (!latin.isEmpty() && nameEnd + this.font.width(latin) < left + W - 14 - this.font.width(recStr)) {
+            g.drawString(this.font, Component.literal(latin).withStyle(net.minecraft.ChatFormatting.ITALIC),
+                    nameEnd, top + 26, GuiStyle.TEXT_HINT, false);
+        }
         g.drawString(this.font, recStr, left + W - 10 - this.font.width(recStr), top + 26,
                 GuiStyle.TEXT_HINT, false);
 
@@ -1411,6 +1478,8 @@ public class JournalScreen extends Screen {
         }
         y = Math.max(y, railY + 4);
         if (c.present()) {
+            String pop = data.getCompound("pop").getString(sp);   // §h: the population where the player stands
+            if (!pop.isEmpty()) y = line(g, y, "journal.riverfishing.pop_here", pop);
             y = line(g, y, "guide.riverfishing.water", waters(c));
             y = line(g, y, "guide.riverfishing.bait", baits(c));
             y = line(g, y, "guide.riverfishing.tackle", tackle(c));
@@ -1431,6 +1500,7 @@ public class JournalScreen extends Screen {
             y += 12;
         }
         y = morphRow(g, sp, id, y);
+        y = patternRow(g, id, y);   // §pattern
         lastCatH = (y + scroll) - contentTop;
         lastViewH = contentBottom - contentTop;
         g.disableScissor();
@@ -1552,6 +1622,7 @@ public class JournalScreen extends Screen {
         int y = contentTop - scroll;
         // §order-board: the day's order, written out as the recipe for catching it. First on the board
         // because it is the one task that changes every day — and the one that teaches a habitat.
+        y = contractBoard(g, y, mouseX, mouseY);
         y = orderBoard(g, y);
         int stage = -1;
         int maxStage = maxUnlockedStage();
@@ -1840,12 +1911,7 @@ public class JournalScreen extends Screen {
             scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - (contentBottom - contentTop)));
             scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
             int dy = contentTop - scroll;
-            String bk = "guide.riverfishing." + e.id() + ".text";
-            for (net.minecraft.util.FormattedCharSequence seq
-                    : this.font.split(Component.translatable(bk), W - 24)) {
-                g.drawString(this.font, seq, left + 10, dy, GuiStyle.TEXT, false);
-                dy += 12;
-            }
+            dy = guideProse(g, e.id(), dy);
             dy = guideBars(g, e.id(), dy + 4);
             dy = guideTable(g, e.id(), dy + 4);
             lastCatH = (dy + scroll) - contentTop;
@@ -1920,7 +1986,7 @@ public class JournalScreen extends Screen {
         }
 
         int y = top + 148;
-        y = obtainRender(g, y, e.stack()) + 4;
+        y = obtainRender(g, y, e.stack(), mouseX, mouseY) + 4;
 
         if (e.kind() == Kind.ROD || e.kind() == Kind.REEL || e.kind() == Kind.LINE) {
             y = compatLines(g, y, e) + 2;
@@ -1930,11 +1996,23 @@ public class JournalScreen extends Screen {
             g.drawString(this.font, Component.translatable("journal.riverfishing.bait_catches"),
                     left + 10, y, GuiStyle.TEXT_HINT, false);
             y += 12;
-            List<String> fish = fishFor(e, 12);
-            String list = fish.isEmpty() ? "—" : String.join(", ", fish);
-            for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.literal(list), W - 20)) {
-                g.drawString(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
+            // §catch-icons: the fish this bait takes, drawn as fish. Twelve names in a row is a
+            // paragraph to read, and "what do I catch on this" is the only question the page answers.
+            List<String> fish = fishIdsFor(e, 12);
+            if (fish.isEmpty()) {
+                g.drawString(this.font, "—", left + 10, y, GuiStyle.TEXT, false);
                 y += 11;
+            } else {
+                int perRow = Math.max(1, (W - 24) / 18);
+                for (int i = 0; i < fish.size(); i++) {
+                    int fx = left + 10 + (i % perRow) * 18, fy = y + (i / perRow) * 18;
+                    GuiStyle.slot(g, fx, fy);
+                    drawFishIcon(g, fish.get(i), fx, fy);
+                    if (mouseX >= fx && mouseX < fx + 16 && mouseY >= fy && mouseY < fy + 16) {
+                        hoverStack = modStack(fish.get(i));
+                    }
+                }
+                y += ((fish.size() + perRow - 1) / perRow) * 18;
             }
         }
         g.drawString(this.font, Component.translatable("guide.riverfishing.back"),
@@ -2032,18 +2110,17 @@ public class JournalScreen extends Screen {
         return y;
     }
 
-    /** "How to get": the crafting recipe's ingredients when one exists, else a generic hint. */
-    private int obtainRender(GuiGraphics g, int y, ItemStack stack) {
-        List<String> ings = craftIngredients(stack);
-        if (!ings.isEmpty()) {
+    /**
+     * §craft-grid: "how to get" is the recipe DRAWN — the slots where the bench wants them, the
+     * result past an arrow. It used to be the ingredient names in a row, which said what goes in
+     * and never where, so the answer to "how do I make this" was still a trip out to JEI.
+     */
+    private int obtainRender(GuiGraphics g, int y, ItemStack stack, int mouseX, int mouseY) {
+        Craft craft = craftOf(stack);
+        if (craft != null) {
             g.drawString(this.font, Component.translatable("journal.riverfishing.obtain_craft"),
                     left + 10, y, GuiStyle.TEXT_HINT, false);
-            y += 12;
-            for (net.minecraft.util.FormattedCharSequence seq
-                    : this.font.split(Component.literal(String.join(", ", ings)), W - 20)) {
-                g.drawString(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
-                y += 11;
-            }
+            return recipeGrid(g, left + 10, y + 12, craft, mouseX, mouseY);
         } else {
             for (net.minecraft.util.FormattedCharSequence seq
                     : this.font.split(Component.translatable("journal.riverfishing.obtain_other"), W - 20)) {
@@ -2086,22 +2163,78 @@ public class JournalScreen extends Screen {
         return t;
     }
 
-    private static List<String> fishFor(Cat e, int limit) {
+    /** The species this bait takes, keenest first — ids, so a caller can draw them. */
+    private static List<String> fishIdsFor(Cat e, int limit) {
         return FishProfileManager.get().all().stream()
                 .filter(p -> p.baitScore(e.id()) >= 0.5)
                 .sorted((a, b) -> Double.compare(b.baitScore(e.id()), a.baitScore(e.id())))
                 .limit(limit)
-                .map(p -> Component.translatable("fish.riverfishing." + p.id.getPath()).getString())
+                .map(p -> p.id.getPath())
+                .collect(Collectors.toList());
+    }
+
+    private static List<String> fishFor(Cat e, int limit) {
+        return fishIdsFor(e, limit).stream()
+                .map(sp -> Component.translatable("fish.riverfishing." + sp).getString())
                 .collect(Collectors.toList());
     }
 
     /** Distinct ingredient names of the first crafting recipe that yields this item, or empty. */
     private static List<String> craftIngredients(ItemStack stack) {
+        Craft c = craftOf(stack);
+        if (c == null) return List.of();
+        LinkedHashSet<String> names = new LinkedHashSet<>();
+        for (ItemStack[] opt : c.cells()) {
+            if (opt.length > 0) names.add(opt[0].getHoverName().getString());
+        }
+        return new ArrayList<>(names);
+    }
+
+    /** A recipe's cells in bench order, every cell holding each item its ingredient accepts. */
+    private record Craft(ItemStack[][] cells, int w, int h, ItemStack result) {}
+
+    private static final ItemStack[] EMPTY_CELL = new ItemStack[0];
+
+    /**
+     * The bench: {@code w × h} slots, an arrow, the result. A cell whose ingredient is a TAG holds
+     * every item that tag accepts and steps through them once a second, the way the recipe book
+     * does — one frozen example would read as the only thing that works.
+     *
+     * <p>Returns the y below the grid.
+     */
+    private int recipeGrid(GuiGraphics g, int x, int y, Craft c, int mouseX, int mouseY) {
+        long sec = System.currentTimeMillis() / 1000L;
+        for (int r = 0; r < c.h(); r++) {
+            for (int col = 0; col < c.w(); col++) {
+                int sx = x + col * 18, sy = y + r * 18;
+                GuiStyle.slot(g, sx, sy);
+                ItemStack[] opt = c.cells()[r * c.w() + col];
+                if (opt.length == 0) continue;
+                ItemStack it = opt[(int) Math.floorMod(sec, opt.length)];
+                g.renderItem(it, sx, sy);
+                if (mouseX >= sx && mouseX < sx + 16 && mouseY >= sy && mouseY < sy + 16) hoverStack = it;
+            }
+        }
+        int ax = x + c.w() * 18 + 4, ay = y + (c.h() * 18 - 16) / 2;
+        g.drawString(this.font, "\u2192", ax, ay + 4, GuiStyle.TEXT_HINT, false);
+        int rx = ax + 14;
+        GuiStyle.slot(g, rx, ay);
+        g.renderItem(c.result(), rx, ay);
+        if (mouseX >= rx && mouseX < rx + 16 && mouseY >= ay && mouseY < ay + 16) hoverStack = c.result();
+        return y + c.h() * 18;
+    }
+
+    /**
+     * §craft-grid: the first crafting recipe that yields this item, laid out the way the bench
+     * wants it. Shaped recipes keep their real shape; shapeless ones have none, so they pack three
+     * to a row. Nothing here is hand-written per item — the scan finds whatever the data pack
+     * defines, so a recipe changed in JSON changes the page with it.
+     *
+     * <p>The one scan behind both the grid and {@link #craftIngredients}.
+     */
+    private static Craft craftOf(ItemStack stack) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null) return List.of();
-        // §groundbait-one-jar: the jar IS craftable again — wheat + wheat seeds — so the generic scan
-        // below finds it and prints the two ingredients, the same as for any piece of gear. The oil cake's
-        // hand-written sunflower-and-piston recipe used to live here; that item no longer exists.
+        if (mc.level == null) return null;
         for (net.minecraft.world.item.crafting.RecipeHolder<?> holder : mc.level.getRecipeManager().getRecipes()) {
             ItemStack res;
             try {
@@ -2112,15 +2245,23 @@ public class JournalScreen extends Screen {
             if (res == null || res.isEmpty() || res.getItem() != stack.getItem()) continue;
             NonNullList<Ingredient> ings = holder.value().getIngredients();
             if (ings.isEmpty()) continue;
-            LinkedHashSet<String> names = new LinkedHashSet<>();
-            for (Ingredient ing : ings) {
-                if (ing.isEmpty()) continue;
-                ItemStack[] arr = ing.getItems();
-                if (arr.length > 0) names.add(arr[0].getHoverName().getString());
+            int w, h;
+            if (holder.value() instanceof net.minecraft.world.item.crafting.ShapedRecipe sr) {
+                w = sr.getWidth();
+                h = sr.getHeight();
+            } else {
+                w = Math.min(3, ings.size());
+                h = (ings.size() + w - 1) / w;
             }
-            if (!names.isEmpty()) return new ArrayList<>(names);
+            if (w <= 0 || h <= 0 || w > 3 || h > 3) continue;
+            ItemStack[][] cells = new ItemStack[w * h][];
+            for (int i = 0; i < cells.length; i++) {
+                Ingredient ing = i < ings.size() ? ings.get(i) : Ingredient.EMPTY;
+                cells[i] = ing.isEmpty() ? EMPTY_CELL : ing.getItems();
+            }
+            return new Craft(cells, w, h, res);
         }
-        return List.of();
+        return null;
     }
 
     private static String sectionKey(Kind k) {
@@ -2201,6 +2342,31 @@ public class JournalScreen extends Screen {
         return y;
     }
 
+    /**
+     * §pattern: the twelve pattern families, and which of them you have landed of this species. A row of
+     * cells rather than a list of names — the index IS a collection, and a board you can see the holes
+     * in is the only thing a collection board is for. The swatch is the family's own hue turn, so the
+     * grid reads left to right as the sequence the bands actually paint.
+     */
+    private int patternRow(GuiGraphics g, ResourceLocation id, int y) {
+        // §pattern-gate: a species that does not wear a pattern has no board to fill, and an old world
+        // whose journal recorded families for a perch simply stops drawing them.
+        if (!com.riverfishing.registry.ModItemTags.patterned(id)) return y;
+        String[] fam = com.riverfishing.fish.Pattern.families();
+        int seen = com.riverfishing.fishing.JournalData.patternsSeen(data, id);
+        y += 6;
+        g.drawString(this.font, Component.translatable("journal.riverfishing.patterns",
+                Integer.bitCount(seen), fam.length), left + 10, y, GuiStyle.TEXT_HINT, false);
+        y += 12;
+        for (int i = 0; i < fam.length; i++) {
+            int x = left + 10 + i * 13;
+            g.fill(x, y, x + 11, y + 11, GuiStyle.TEXT_HINT);        // the frame, so a pale band shows
+            g.fill(x + 1, y + 1, x + 10, y + 10, (seen & (1 << i)) != 0
+                    ? 0xFF000000 | com.riverfishing.fish.Pattern.swatch(i) : 0xFFE8DCC0);
+        }
+        return y + 15;
+    }
+
     private int line(GuiGraphics g, int y, String labelKey, String value) {
         Component label = Component.translatable(labelKey);
         g.drawString(this.font, label, left + 10, y, GuiStyle.TEXT_HINT, false);
@@ -2225,6 +2391,74 @@ public class JournalScreen extends Screen {
      * reader's own language and works on a multiplayer client, which has no fish profiles at all. The tick
      * state is a snapshot taken when the journal was opened: this is a book you consult, not a HUD.
      */
+    /**
+     * §contracts-b1: the papers in the bag, above the order of the day. Each is its terms, how many
+     * are caught under them, how many days are left, and whether the set is in the bag. Nothing here is
+     * clickable: a contract is handed to the fisherman, not to the book.
+     */
+    private int contractBoard(GuiGraphics g, int y, int mouseX, int mouseY) {
+        ListTag list = data.getList("contracts", 10);
+        if (list.isEmpty()) return y;
+        long day = data.getLong("day");
+        g.drawString(this.font, Component.translatable("journal.riverfishing.contracts"),
+                left + 10, y, 0xFFB0842C, false);
+        y += 13;
+        for (int i = 0; i < list.size(); i++) {
+            CompoundTag c = list.getCompound(i);
+            String sp = c.getString("Sp");
+            int need = c.getInt("N");
+            int have = heldFish(c);                                    // §catch-card
+            boolean ready = have >= need;
+            if (ready) g.fill(left + 8, y - 3, left + W - 8, y + 24, 0x38E8B430);
+
+            drawFishIcon(g, sp, left + 10, y - 2);
+            g.drawString(this.font, com.riverfishing.item.ContractItem.headline(c), left + 30, y,
+                    ready ? 0xFF9A6E10 : GuiStyle.TEXT, false);
+            ItemStack em = new ItemStack(net.minecraft.world.item.Items.EMERALD);
+            int ex = left + W - 26;
+            g.renderItem(em, ex, y - 4);
+            String n = String.valueOf(c.getInt("Em"));
+            g.drawString(this.font, n, ex - 4 - this.font.width(n), y, 0xFF2E7D32, false);
+
+            StringBuilder sb = new StringBuilder();
+            for (Component t : com.riverfishing.item.ContractItem.terms(c)) {
+                if (sb.length() > 0) sb.append(" · ");
+                sb.append(t.getString());
+            }
+            if (sb.length() > 0) g.drawString(this.font, sb.toString(), left + 30, y + 10, GuiStyle.TEXT_HINT, false);
+            long daysLeft = c.getLong("Exp") - day;
+            Component note = ready
+                    ? Component.translatable("journal.riverfishing.contract_ready")
+                    : Component.translatable("journal.riverfishing.contract_state", have, need, Math.max(0, daysLeft));
+            g.drawString(this.font, note, left + 30, y + 20,
+                    ready ? 0xFFB05A00 : daysLeft <= 1 ? 0xFFB03020 : GuiStyle.TEXT_HINT, false);
+            y += 34;
+        }
+        return y + 4;
+    }
+
+    /**
+     * How many of this species, at or over the bar, this player is carrying — loose or in a keepnet.
+     *
+     * <p>The counting lives in {@link com.riverfishing.fishing.Contracts#held}, which is also what the
+     * server takes with. Two implementations of "do I have three bream" would be two answers, and the
+     * one the row shows is not the one that decides.
+     */
+    private int heldFish(CompoundTag terms) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return 0;
+        if (com.riverfishing.item.ContractItem.isFry(terms)) {   // §e
+            return com.riverfishing.fishing.Contracts.fryHeld(mc.player.getInventory(), terms.getString("Sp"));
+        }
+        return com.riverfishing.fishing.Contracts.held(
+                mc.player.getInventory(), terms.getString("Sp"), terms.getInt("W"), terms).size();
+    }
+
+    /** A weight bar the way an angler says it: grams under a kilo, kilos above. */
+    private static String grams(int g) {
+        return g >= 1000 ? String.format(java.util.Locale.ROOT, "%.1f kg", g / 1000f) : g + " g";
+    }
+
     private int orderBoard(GuiGraphics g, int y) {
         CompoundTag order = data.getCompound("order");
         if (order.isEmpty() || !order.contains("rows")) return y;

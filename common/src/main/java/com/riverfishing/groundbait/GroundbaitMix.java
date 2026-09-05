@@ -118,6 +118,12 @@ public final class GroundbaitMix {
         put("bloodworm", 0.30, 0.20, "bloodworm", 0x8D2124);  // joker: the fine LIVE additive
         put("chicken_liver", 0.80, 0.65, "chicken_liver", 0x732728);
         put("fish_strip", 0.75, 0.80, "fish_strip", 0x976661); // chum: ground fish lies on the deck
+        // §j: what the grinder and the furnace make of a fish. Both read as "livebait" — the one diet
+        // word the freshwater predators (pike, zander, perch, catfish) score, and the sturgeon and the big
+        // game with them; "fish_strip" is the SEA word and pike does not answer it at all. Meal is dense
+        // protein that lies on the bottom; oil is fraction 0 on purpose — a slick, all scent and no grain.
+        put("fish_meal", 0.90, 0.30, "fish_strip", 0xC8A870); // a diet must be a bait the pantry holds
+        put("fish_oil", 0.60, 0.00, "fish_strip", 0xD89A30);
 
         // ---- vanilla, so the first mix does not wait on a farm ----
         // Reach matters more than variety here: wheat and a potato are hour-one items, corn and boilies

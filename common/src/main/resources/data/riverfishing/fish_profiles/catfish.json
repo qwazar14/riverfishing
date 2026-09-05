@@ -1,5 +1,7 @@
 {
   "display": "Сом",
+  "latin": "Silurus glanis",
+  "spawn": { "season": "summer", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "river": 1.1,
@@ -46,7 +48,8 @@
       "chicken_liver": 1.0,
       "worm": 0.7,
       "boilie": 0.6,
-      "jig": 0.85
+      "jig": 0.85,
+      "swimbait": 0.9
     },
     "hook": {
       "ideal": 4,
@@ -79,6 +82,7 @@
     "depth_min": 5,
     "width_min": 16
   },
+  "provinces": ["palearctic"],
   "biomes": {
     "temperate": 1.0,
     "warm": 1.2

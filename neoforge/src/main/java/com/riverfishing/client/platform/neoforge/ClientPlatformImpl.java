@@ -110,6 +110,7 @@ public final class ClientPlatformImpl {
         event.register(ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
         event.register(ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         event.register(ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
+        event.register(ModMenus.AQUARIUM.get(), com.riverfishing.client.AquariumScreen::new);
     }
 
     /**
@@ -134,6 +135,12 @@ public final class ClientPlatformImpl {
         for (RegistrySupplier<Item> f : ModItems.FISH_ITEMS.values()) {
             event.registerItem(fish, f.get());
         }
+        // §breeding: the fry bucket draws three of its species' sprite.
+        event.registerItem(new IClientItemExtensions() {
+            @Override public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                return com.riverfishing.client.FryItemRenderer.get();
+            }
+        }, ModItems.FRY.get());
     }
 
     /** Handled by {@link #onRegisterAdditional} on the mod bus. */
@@ -183,4 +190,11 @@ public final class ClientPlatformImpl {
         }
     }
 
+
+    /** §catch-card: the fish's tooltip component gets its renderer. */
+    @SubscribeEvent
+    static void onRegisterTooltips(net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(com.riverfishing.item.FishCardTooltip.class,
+                com.riverfishing.client.FishCardClientTooltip::new);
+    }
 }

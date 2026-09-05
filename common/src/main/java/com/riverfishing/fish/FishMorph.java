@@ -243,6 +243,18 @@ public final class FishMorph {
      * opaque — this is fed to a vanilla item tint, which multiplies.
      */
     public static int tint(String speciesPath, double age, String morphId) {
+        return tint(speciesPath, age, morphId, Pattern.NONE);
+    }
+
+    /**
+     * §pattern: the same, for a specimen carrying a pattern index. An ordinary index changes nothing —
+     * a perch is a perch, and the bands are the koi's business — but a GEM paints the whole fish one
+     * saturated colour. Multiplied over the sprite that keeps the drawing's light and shade and throws
+     * its colour away, which is exactly what a solid-colour pike should look like.
+     */
+    public static int tint(String speciesPath, double age, String morphId, int pattern) {
+        int gem = Pattern.gemColor(pattern);
+        if (gem >= 0) return 0xFF000000 | gem;
         Age a = AGE.getOrDefault(speciesPath, AGE_DEFAULT);
         // A TYPICAL fish is the sprite as drawn — untinted. Only the ends of the range move: the shading
         // has to read as "this one is young / this one is old", not as a filter over the whole mod.
@@ -253,6 +265,71 @@ public final class FishMorph {
         return d == null ? 0xFF000000 | base
                 : 0xFF000000 | lerpRgb(d.tint, mul(d.tint, a.oldTint), (float) (age * 0.5));
     }
+
+
+    /**
+     * §koi-genes: the four colours ONE white koi sprite is painted with — ground, hi (red), sumi (black)
+     * and the tancho crown — for a named variety. The three patch layers are cut out of the sprite
+     * itself (tools/gen_koi_layers.py), so a layer this fish does not wear is handed the GROUND colour
+     * and disappears into the body: that is what lets four layers paint nine varieties with one drawing.
+     *
+     * <p>Read on 1.20.1/1.21.1 through the registered item colour ({@code FishTint.itemColor}), and on
+     * 26.x through the four {@code custom_model_data} colours {@code FishItem.stampIcon} writes.
+     */
+    public static int koiTint(String variety, int layer, int pattern) {
+        int[] p = KOI_PAINT.get(variety.startsWith("koi_") ? variety.substring(4) : variety);
+        if (p == null) p = KOI_PAINT.get("kohaku");     // a koi with no card yet is the archetype
+        int c = layer >= 0 && layer < p.length ? p[layer] : -1;
+        // §pattern: the band turns the hue, and a gem overrides every layer at once. A layer this fish
+        // does not wear still takes the GROUND colour, painted AS ground, so it goes on vanishing into
+        // the body whatever the pattern does — otherwise a bekko would grow a red field.
+        return 0xFF000000 | Pattern.paint(c < 0 ? p[0] : c, pattern, layer > 0 && c >= 0);
+    }
+
+    /**
+     * §pattern-mask: the colour the pattern mask over this fish is painted. The ground is the koi's own
+     * ground for a koi, and for the carp draws the mean colour of the sprite as drawn (measured by
+     * tools/gen_pattern_masks.py) — the marking is then Pattern.marking()'s cut of it.
+     */
+    public static int patternTint(String speciesPath, String variety, int pattern) {
+        int ground;
+        if ("koi_carp".equals(speciesPath)) {
+            int[] p = KOI_PAINT.get(variety.startsWith("koi_") ? variety.substring(4) : variety);
+            ground = (p == null ? KOI_PAINT.get("kohaku") : p)[0];
+        } else {
+            ground = CARP_GROUND.getOrDefault(speciesPath, 0x7D5835);
+        }
+        return 0xFF000000 | Pattern.marking(ground, pattern);
+    }
+
+    /** The mean colour of each carp draw's sprite — what a marking is cut from. */
+    private static final java.util.Map<String, Integer> CARP_GROUND = java.util.Map.of(
+            "carp", 0x7D5835, "wild_carp", 0x664B31, "mirror_carp", 0x74573E,
+            "linear_carp", 0x7D5535, "naked_carp", 0x815940);
+
+    /** ground, hi, sumi, crown; -1 means "the ground colour", i.e. the fish does not wear that layer. */
+    // §koi-metal: the eight metallic varieties are the same eight colour bases with the lustre on —
+    // a brighter, cleaner ground and a hotter red, which is what metallic scales do to a colour.
+    // Map.of tops out at ten pairs, so this is ofEntries now.
+    private static final java.util.Map<String, int[]> KOI_PAINT = java.util.Map.ofEntries(
+            java.util.Map.entry("kohaku",        new int[]{0xF4F2EC, 0xD8342A, -1, -1}),
+            java.util.Map.entry("taisho_sanke",  new int[]{0xF4F2EC, 0xD8342A, 0x2A2622, -1}),
+            java.util.Map.entry("showa",         new int[]{0x4A423C, 0xC8302A, 0x1E1A18, -1}),
+            java.util.Map.entry("bekko",         new int[]{0xF4F2EC, -1, 0x2A2622, -1}),
+            java.util.Map.entry("asagi",         new int[]{0x7C93AE, -1, 0x46586E, -1}),
+            java.util.Map.entry("platinum",      new int[]{0xFFFDF6, -1, -1, -1}),
+            java.util.Map.entry("hi_utsuri",     new int[]{0x3A322C, 0xD2382A, -1, -1}),
+            java.util.Map.entry("karasu",        new int[]{0x2A2622, -1, -1, -1}),
+            java.util.Map.entry("tancho",        new int[]{0xF4F2EC, -1, -1, 0xD8342A}),
+            // yamabuki: a karasu's dark ground with the lustre on comes up GOLD. That is the gold koi.
+            java.util.Map.entry("yamabuki",      new int[]{0xF0BE22, -1, -1, -1}),
+            java.util.Map.entry("ogon",          new int[]{0xEDF0F2, -1, -1, -1}),
+            java.util.Map.entry("sakura_ogon",   new int[]{0xFBF8F0, 0xE8483A, -1, -1}),
+            java.util.Map.entry("yamatonishiki", new int[]{0xFBF8F0, 0xE8483A, 0x35302B, -1}),
+            java.util.Map.entry("kin_showa",     new int[]{0x5A4C3A, 0xDC4630, 0x2A2420, -1}),
+            java.util.Map.entry("gin_bekko",     new int[]{0xF6F3EA, -1, 0x35302B, -1}),
+            java.util.Map.entry("kujaku",        new int[]{0xBFD0DE, 0xE07030, 0x51637A, -1}),
+            java.util.Map.entry("kin_hi_utsuri", new int[]{0x453B30, 0xE2622A, -1, -1}));
 
     /** How much white to wash over the sprite, 0..1: young fish are pale, and so are pale morphs. */
     public static float pale(String speciesPath, double age, String morphId) {

@@ -1,5 +1,7 @@
 {
   "display": "Сазан",
+  "latin": "Cyprinus carpio",
+  "spawn": { "season": "summer", "sub": "early" },
   "group": "cyprinid",
   "water_bodies": { "river": 1.3, "lake": 0.9, "pond": 0.5, "swamp": 0.3, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 1500, "max": 18000, "mean": 4200 },
@@ -20,6 +22,8 @@
   "depth_pref": "bottom",
   "distance_pref": { "min": 15, "max": 45 },
   "habitat": { "depth_min": 2, "width_min": 14 },
+  "provinces": ["palearctic", "nearctic", "neotropic", "indomalaya"],
+  "breeds_with": {"carp": 1.0, "koi_carp": 1.0},
   "biomes": { "temperate": 1.0, "warm": 1.15 },
   "base": 0.5,
   "min_angler_level": 4,

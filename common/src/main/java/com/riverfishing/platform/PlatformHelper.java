@@ -24,4 +24,17 @@ public final class PlatformHelper {
     public static boolean isModLoaded(String modId) {
         throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
     }
+
+    /**
+     * Puts the Potion of Fish Oil into the brewing stand (§fish-oil-potion). Brewing is the one recipe type
+     * that is still CODE, not JSON, in every dialect the mod ships on, and each loader hands out the same
+     * vanilla {@code PotionBrewing.Builder} through a different door — so this is a listener registration,
+     * not the registration itself: the mixes are added whenever the game (re)builds its brewing table.
+     *
+     * <p>Called once from {@link com.riverfishing.RiverFishing#init()}, after the potions are queued.
+     */
+    @ExpectPlatform
+    public static void registerBrewing() {
+        throw new AssertionError("@ExpectPlatform stub — replaced per platform at build time");
+    }
 }

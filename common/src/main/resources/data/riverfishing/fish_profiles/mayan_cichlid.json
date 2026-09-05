@@ -1,5 +1,7 @@
 {
   "display": "Цихлазома майя",
+  "latin": "Mayaheros urophthalmus",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "lake": 1.2,
@@ -47,7 +49,8 @@
       "maggot": 1.0,
       "bloodworm": 1.0,
       "silicone": 0.8,
-      "bread": 0.7
+      "bread": 0.7,
+      "wacky_worm": 0.9
     },
     "hook": {
       "ideal": 10,
@@ -80,6 +83,8 @@
     "depth_min": 1,
     "width_min": 3
   },
+  "provinces": ["neotropic"],
+  "biomes_require": ["warm", "swamp"],
   "biomes": {
     "warm": 1.4,
     "swamp": 1.1

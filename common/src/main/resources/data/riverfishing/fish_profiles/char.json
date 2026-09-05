@@ -1,5 +1,7 @@
 {
   "display": "Голец",
+  "latin": "Salvelinus fontinalis",
+  "spawn": { "season": "autumn", "sub": "mid" },
   "group": "salmonid",
   "water_bodies": { "lake": 1.1, "river": 1.0, "pond": 0.1, "swamp": 0.0, "sea": 0.2, "puddle": 0.0 },
   "weight_g": { "min": 300, "max": 6000, "mean": 1200 },
@@ -19,6 +21,8 @@
   "depth_pref": "mid",
   "distance_pref": { "min": 5, "max": 28 },
   "habitat": { "depth_min": 2, "depth_max": 10, "width_min": 5 },
+  "provinces": ["nearctic", "palearctic"],
+  "breeds_with": {"salmon": 0.5, "trout": 0.5},
   "biomes": { "cold": 1.4, "mountain": 1.2, "taiga": 1.0 },
   "base": 0.65,
   "min_angler_level": 5

@@ -1,0 +1,23 @@
+{
+  "en_us": {
+    "screen.riverfishing.contract_board.debt": "Debt to the fishermen: %1$s · %2$s kg to the next point, %3$s kg to clear",
+    "screen.riverfishing.contract_board.banned": "No work for a poacher. Release mature fish into wild water until the debt is paid off.",
+    "message.riverfishing.rep_credit": "The fishermen saw the fish go back: +%1$s reputation (now %2$s)",
+    "finder.riverfishing.rep": "Reputation",
+    "finder.riverfishing.rep_debt": "%1$s · %2$s kg back into wild water to clear"
+  },
+  "ru_ru": {
+    "screen.riverfishing.contract_board.debt": "Долг рыбакам: %1$s · до следующего очка %2$s кг, до нуля %3$s кг",
+    "screen.riverfishing.contract_board.banned": "Браконьеру работы нет. Выпускайте взрослую рыбу в дикую воду, пока долг не погашен.",
+    "message.riverfishing.rep_credit": "Рыбаки видели, как рыба вернулась в воду: +%1$s репутации (сейчас %2$s)",
+    "finder.riverfishing.rep": "Репутация",
+    "finder.riverfishing.rep_debt": "%1$s · до нуля %2$s кг рыбы в дикую воду"
+  },
+  "uk_ua": {
+    "screen.riverfishing.contract_board.debt": "Борг рибалкам: %1$s · до наступного очка %2$s кг, до нуля %3$s кг",
+    "screen.riverfishing.contract_board.banned": "Браконьєрові роботи немає. Випускайте дорослу рибу в дику воду, доки борг не сплачено.",
+    "message.riverfishing.rep_credit": "Рибалки бачили, як риба повернулася у воду: +%1$s репутації (зараз %2$s)",
+    "finder.riverfishing.rep": "Репутація",
+    "finder.riverfishing.rep_debt": "%1$s · до нуля %2$s кг риби в дику воду"
+  }
+}

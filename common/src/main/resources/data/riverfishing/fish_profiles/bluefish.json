@@ -1,5 +1,7 @@
 {
   "display": "Луфарь",
+  "latin": "Pomatomus saltatrix",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,
@@ -50,7 +52,8 @@
       "wobbler": 1.0,
       "silicone": 0.9,
       "livebait": 0.9,
-      "giant_spoon": 1.2
+      "giant_spoon": 1.2,
+      "swimbait": 1.1
     },
     "hook": {
       "ideal": 2,

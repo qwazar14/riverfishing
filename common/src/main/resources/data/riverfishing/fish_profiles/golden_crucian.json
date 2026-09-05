@@ -1,5 +1,7 @@
 {
   "display": "Золотой карась",
+  "latin": "Carassius carassius",
+  "spawn": { "season": "summer", "sub": "early" },
   "group": "cyprinid",
   "water_bodies": {
     "river": 0.3,
@@ -87,6 +89,8 @@
     "depth_min": 1,
     "width_min": 5
   },
+  "provinces": ["palearctic"],
+  "breeds_with": {"crucian_carp": 1.0},
   "biomes": {
     "temperate": 1.0,
     "warm": 1.1,

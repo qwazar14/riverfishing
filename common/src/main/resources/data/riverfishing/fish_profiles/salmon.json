@@ -1,5 +1,7 @@
 {
   "display": "Сёмга",
+  "latin": "Salmo salar",
+  "spawn": { "season": "autumn", "sub": "mid" },
   "group": "salmonid",
   "water_bodies": { "river": 1.1, "sea": 1.0, "lake": 0.2, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 1500, "max": 25000, "mean": 5000 },
@@ -19,6 +21,8 @@
   "depth_pref": "mid",
   "distance_pref": { "min": 10, "max": 40 },
   "habitat": { "depth_min": 2, "depth_max": 10, "width_min": 8 },
+  "provinces": ["palearctic", "nearctic"],
+  "breeds_with": {"char": 0.5, "trout": 0.5},
   "biomes": { "cold": 1.2, "temperate": 0.9, "ocean_biome": 0.9 },
   "base": 0.5,
   "min_angler_level": 6

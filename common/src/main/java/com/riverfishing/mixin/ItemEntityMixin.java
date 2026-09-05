@@ -20,7 +20,9 @@ public abstract class ItemEntityMixin {
     private void riverfishing$koiRelease(CallbackInfo ci) {
         ItemEntity self = (ItemEntity) (Object) this;
         ItemStack stack = self.getItem();
-        if (stack.getItem() instanceof FishItem && FishItem.koiReleaseTick(stack, self)) {
+        // §c: a FryItem is let go the same way — koiReleaseTick branches on the item.
+        if ((stack.getItem() instanceof FishItem || stack.getItem() instanceof com.riverfishing.item.FryItem)
+                && FishItem.koiReleaseTick(stack, self)) {
             ci.cancel();
         }
     }

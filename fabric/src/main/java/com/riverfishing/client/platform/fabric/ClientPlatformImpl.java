@@ -82,6 +82,8 @@ public final class ClientPlatformImpl {
                 com.riverfishing.registry.ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.AQUARIUM.get(), com.riverfishing.client.AquariumScreen::new);
     }
 
     public static void registerItemRenderers() {
@@ -99,6 +101,10 @@ public final class ClientPlatformImpl {
         for (RegistrySupplier<Item> f : ModItems.FISH_ITEMS.values()) {
             BuiltinItemRendererRegistry.INSTANCE.register(f.get(), fish);
         }
+        // §breeding: the fry bucket draws three of its species' sprite.
+        BuiltinItemRendererRegistry.INSTANCE.register(ModItems.FRY.get(),
+                (stack, ctx, pose, buffers, light, overlay) ->
+                        com.riverfishing.client.FryItemRenderer.get().renderByItem(stack, ctx, pose, buffers, light, overlay));
     }
 
     public static void registerExtraModels() {

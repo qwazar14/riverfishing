@@ -265,7 +265,7 @@ Prices below are the **base**; see [the market](#the-market) for how they actual
 | Frilled shark | 35 kg | 26 emeralds | 38 |
 | Golden dorado | 21 kg | 12 emeralds | 22 |
 
-**The five Koi cannot be sold at all.** They are collectibles, not commerce. All 86 other species have a buy-trade somewhere in the five tiers. (Asp, White Bream and Mirror Carp were unsellable before 0.6.0 — an oversight, now on tiers 3, 2 and 4. The nine Florida species shipped catchable in 0.7.0 with no buyer anywhere: you could land a tarpon and have nowhere on earth to sell it. Fixed in the same release.)
+**The five legacy koi ids cannot be sold at all** — `carp_koi_kohaku`, `carp_koi_tancho_sanke`, `carp_koi_showa_sanke`, `carp_koi_asagi` and `carp_koi_bekko`, the items 0.9.0 [folded into one species](genetics.md#koi-are-bred-not-found). The koi carp that replaced them **is** bought, on tier 4 for 8–14 emeralds, priced against the fish it swims beside. That leaves **102 of the 107 species** with a buy-trade somewhere in the five tiers. (Asp, White Bream and Mirror Carp were unsellable before 0.6.0 — an oversight, now on tiers 3, 2 and 4. The nine Florida species shipped catchable in 0.7.0 with no buyer anywhere: you could land a tarpon and have nowhere on earth to sell it. Fixed in the same release.)
 
 ## The market
 
@@ -290,9 +290,9 @@ One species per Minecraft day is the fisherman's **order**, paying **×2.5** reg
 
 > *Fisherman's order of the day: Pike — pays ×2.5. The journal's quest page has the full recipe.*
 
-The rotation is **every species some fisherman buys** — all 86 of them — read out of the trade table itself rather than from a list kept beside it, so it can never name a fish nobody takes. The five koi are the only species left out, because nobody buys them. (Before 0.7.0 the pool was a hand-written sixteen, and the two lists had drifted: an order could and did name a species no fisherman on earth would take.)
+The rotation is **every species some fisherman buys that the day can actually produce** — 98 of the 102 — read out of the trade table itself rather than from a list kept beside it, so it can never name a fish nobody takes. Four are left out on purpose: the koi carp, which a counter buys but no water hands out on demand, and the three [carp scale varieties](genetics.md#carp-wear-their-genotype) — mirror, linear and naked — which are no longer species the water gives you at all, only genotypes a carp comes ashore wearing. (Before 0.7.0 the pool was a hand-written sixteen, and the two lists had drifted: an order could and did name a species no fisherman on earth would take.)
 
-Eighty-six species is a much wider net than sixteen, so the order will more often name a fish your nearest stall is too junior to buy. The journal's **Order of the day** panel, at the top of the Quests tab, states the requirement outright — *"Bought by a fisherman of level N"* — alongside the water, depth, season, hour, bait, rig and rod the species wants.
+Ninety-eight species is a much wider net than sixteen, so the order will more often name a fish your nearest stall is too junior to buy. The journal's **Order of the day** panel, at the top of the Quests tab, states the requirement outright — *"Bought by a fisherman of level N"* — alongside the water, depth, season, hour, bait, rig and rod the species wants.
 
 ### The order slot
 
@@ -310,7 +310,7 @@ Nothing is overwritten when the stall's tier is too low to buy today's species, 
 
 The sign hangs above the trade window, or below it when the GUI scale leaves no room above.
 
-**A stall too junior to buy today's fish still shows the sign** — with the rank that does buy it instead of a price. A Novice buys only 12 of the 86 sellable species, so a fresh stall usually cannot take the order; the sign then tells you what the order is and who to take it to, and does nothing when clicked. That is the answer to "why won't he take this" printed where the question gets asked.
+**A stall too junior to buy today's fish still shows the sign** — with the rank that does buy it instead of a price. A Novice buys only 13 of the 102 sellable species, so a fresh stall usually cannot take the order; the sign then tells you what the order is and who to take it to, and does nothing when clicked. That is the answer to "why won't he take this" printed where the question gets asked.
 
 The sign appears on our fisherman only. No other profession draws it.
 

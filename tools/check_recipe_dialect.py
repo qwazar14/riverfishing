@@ -102,5 +102,36 @@ def main():
     return 0
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+_rc = main()
+
+# §tag-folder: this tree's game reads item tags from data/<ns>/tags/ITEM (1.21.2 renamed the folder
+# from the plural). A tag file in the other folder is not an error anywhere — it simply loads EMPTY,
+# and every recipe that asks for it silently cannot be crafted. That is how oily_fish and small_fish
+# shipped on the 1.20.1 branch in 0.9.0: no fish oil, no fish meal, no Potion of Fish Oil at all.
+import os as _os, sys as _sys, json as _json, glob as _glob
+_data = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+                      "common", "src", "main", "resources", "data")
+_wrong = []
+# only this mod's own namespace: a data/forge or data/c folder is an advert to OTHER mods,
+# written in their convention, and this tree does not read it either way.
+for _ns in ("riverfishing",):
+    _d = _os.path.join(_data, _ns, "tags", "items")
+    if _os.path.isdir(_d):
+        _wrong += [_ns + "/tags/items/" + f for f in sorted(_os.listdir(_d))]
+if _wrong:
+    _sys.exit("tag_folder: this tree reads tags/item, not tags/items — these load as EMPTY tags: "
+              + ", ".join(_wrong))
+_missing = []
+for _f in _glob.glob(_os.path.join(_data, "riverfishing", "recipe", "*.json")):
+    for _t in set(_json.dumps(_json.load(open(_f, encoding="utf-8"))).split('"tag": "')[1:]):
+        _tag = _t.split('"')[0]
+        _ns, _, _name = _tag.partition(":")
+        if _ns != "riverfishing":       # vanilla's own tags are not in this folder and never will be
+            continue
+        if not _os.path.exists(_os.path.join(_data, _ns, "tags", "item", _name + ".json")):
+            _missing.append(_os.path.basename(_f) + " -> " + _tag)
+if _missing:
+    _sys.exit("tag_folder: these recipes ask for a tag with no file under tags/item: " + ", ".join(_missing))
+print("item tags live where this tree's game looks for them")
+
+sys.exit(_rc)

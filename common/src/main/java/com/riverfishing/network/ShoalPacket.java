@@ -35,7 +35,14 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
      * the surface, {@code lane} groups a shoal onto one circuit, {@code phase} places each fish on it.
      */
     public record Entry(ResourceLocation species, int weightG, int lengthCm, byte age,
-                        byte depth, byte lane, byte phase) {}
+                        byte depth, byte lane, byte phase, byte kind) {
+        /** §shoal-life: bit 0 a predator, bit 1 a jumper, bit 2 a species that moves in numbers. */
+        public static final byte PREDATOR = 1, JUMPER = 2, SHOALING = 4;
+
+        public boolean predator() { return (kind & PREDATOR) != 0; }
+        public boolean jumper() { return (kind & JUMPER) != 0; }
+        public boolean shoaling() { return (kind & SHOALING) != 0; }
+    }
 
     /**
      * One shoal, anchored to a water surface block. {@code clarity} is how well this water shows what it
@@ -90,6 +97,7 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
                 buf.writeByte(e.depth());
                 buf.writeByte(e.lane());
                 buf.writeByte(e.phase());
+                buf.writeByte(e.kind());
             }
         }
     }
@@ -112,7 +120,7 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
                 int pi = buf.readVarInt();
                 ResourceLocation id = pi >= 0 && pi < palette.size() ? palette.get(pi) : null;
                 Entry e = new Entry(id, buf.readVarInt(), buf.readVarInt(), buf.readByte(),
-                        buf.readByte(), buf.readByte(), buf.readByte());
+                        buf.readByte(), buf.readByte(), buf.readByte(), buf.readByte());
                 if (id != null) fish.add(e);
             }
             spots.add(new Spot(centre, clarity, spread, spook, fish));

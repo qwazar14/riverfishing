@@ -1,5 +1,7 @@
 {
   "display": "Белуга",
+  "latin": "Huso huso",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sturgeon",
   "water_bodies": {
     "river": 1.0,
@@ -83,6 +85,8 @@
     "depth_min": 6,
     "width_min": 26
   },
+  "provinces": ["palearctic"],
+  "breeds_with": {"sterlet": 0.8, "sturgeon": 0.8},
   "biomes": {
     "temperate": 1.0,
     "cold": 1.0,

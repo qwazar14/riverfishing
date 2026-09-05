@@ -1,5 +1,7 @@
 {
   "display": "Сарган",
+  "latin": "Belone belone",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sea",
   "water_bodies": { "sea": 1.1, "river": 0.0, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 300, "max": 1500, "mean": 600 },
@@ -19,6 +21,7 @@
   "depth_pref": "surface",
   "distance_pref": { "min": 12, "max": 40 },
   "habitat": { "depth_min": 2, "width_min": 12 },
+  "provinces": ["palearctic"],
   "biomes": { "ocean_biome": 1.0, "warm": 1.2, "temperate": 1.0 },
   "base": 0.8,
   "min_angler_level": 4

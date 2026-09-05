@@ -26,6 +26,7 @@ public final class RiverFishing {
         com.riverfishing.groundbait.GroundbaitMix.selfCheck();
         com.riverfishing.config.ConfigLoader.load();    // §config: before anything reads a multiplier
         ModRegistries.init();
+        PlatformHelper.registerBrewing();       // §fish-oil-potion: brewing is code, not JSON, on every loader
         // §farm-feed: the mod's seeds compost like any other seed — which also feeds the WORM FARM,
         // because that block asks the vanilla composter what counts as organic matter rather than
         // keeping a list of its own. Registered through listen() so it runs when the item actually

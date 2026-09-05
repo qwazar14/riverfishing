@@ -1,0 +1,35 @@
+{
+  "en_us": {
+    "ecosystem.riverfishing.grass_carp": "Grass carp: weed eaten, clearer",
+    "ecosystem.riverfishing.silver_carp": "Silver carp: water filtered clear",
+    "ecosystem.riverfishing.carp": "Carp: bed silted, water muddy",
+    "ecosystem.riverfishing.predator": "Predators: fewer minnows, bigger bream",
+    "ecosystem.riverfishing.aerator": "Aerator: oxygen, summer bite",
+    "ecosystem.riverfishing.snags": "Snags: predators and fry hide",
+    "ecosystem.riverfishing.gravel": "Gravel bed laid",
+    "ecosystem.riverfishing.warm_outflow": "Warm outflow: water warmer",
+    "ecosystem.riverfishing.feeding_station": "Feeding station: swim fed"
+  },
+  "ru_ru": {
+    "ecosystem.riverfishing.grass_carp": "Амур: трава съедена, чище",
+    "ecosystem.riverfishing.silver_carp": "Толстолобик: вода фильтруется",
+    "ecosystem.riverfishing.carp": "Карп: дно заилено, вода мутная",
+    "ecosystem.riverfishing.predator": "Хищники: меньше мелочи, крупнее лещ",
+    "ecosystem.riverfishing.aerator": "Аэратор: кислород, летний клёв",
+    "ecosystem.riverfishing.snags": "Коряжник: укрытие хищнику и малькам",
+    "ecosystem.riverfishing.gravel": "Отсыпано гравийное дно",
+    "ecosystem.riverfishing.warm_outflow": "Тёплый сброс: вода теплее",
+    "ecosystem.riverfishing.feeding_station": "Кормушка: точка прикормлена"
+  },
+  "uk_ua": {
+    "ecosystem.riverfishing.grass_carp": "Амур: траву з'їдено, чистіше",
+    "ecosystem.riverfishing.silver_carp": "Товстолоб: вода фільтрується",
+    "ecosystem.riverfishing.carp": "Короп: дно замулене, вода каламутна",
+    "ecosystem.riverfishing.predator": "Хижаки: менше дрібноти, більший лящ",
+    "ecosystem.riverfishing.aerator": "Аератор: кисень, літній кльов",
+    "ecosystem.riverfishing.snags": "Корчі: сховок хижаку й малькам",
+    "ecosystem.riverfishing.gravel": "Відсипано гравійне дно",
+    "ecosystem.riverfishing.warm_outflow": "Теплий скид: вода тепліша",
+    "ecosystem.riverfishing.feeding_station": "Годівниця: точку прикормлено"
+  }
+}

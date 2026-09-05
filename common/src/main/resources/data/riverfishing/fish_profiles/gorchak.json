@@ -1,5 +1,7 @@
 {
   "display": "Горчак",
+  "latin": "Rhodeus amarus",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "cyprinid",
   "water_bodies": {
     "river": 0.9,
@@ -82,6 +84,7 @@
     "depth_max": 3,
     "width_min": 4
   },
+  "provinces": ["palearctic"],
   "biomes": {
     "temperate": 1.0,
     "warm": 1.1,

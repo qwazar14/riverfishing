@@ -20,8 +20,13 @@ import java.util.List;
  */
 public class TackleStationScreen extends AbstractContainerScreen<TackleStationMenu> {
     private static final int GRID_X = 14, GRID_Y = 30, CELL = 22;
-    /** Four across: ten predator forms in three rows rather than four, which is what overran the label. */
-    private static final int COLS = 4;
+    /**
+     * Five across. Four fitted the ten predator forms in three rows; fourteen would need four
+     * rows, and the fourth row pushes the advanced drawer straight down into the material
+     * wells at y=149. Five keeps every tab at three rows and the text column still fits the
+     * longest Russian cost line in two lines.
+     */
+    private static final int COLS = 5;
     private static final int TRACK_X = 116, TRACK_W = 70;
     /** §hook-pick: the well the hook SLOT used to occupy, now the size picker. */
     private static final int HOOK_X = 38;
@@ -52,7 +57,7 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
     }
 
     /**
-     * The y of the "advanced" toggle: under the grid, wherever the grid ends. The predator tab has ten
+     * The y of the "advanced" toggle: under the grid, wherever the grid ends. The predator tab has fourteen
      * forms and the peaceful six, so a literal here is a literal that is wrong on one of the two tabs.
      */
     private int advY() {

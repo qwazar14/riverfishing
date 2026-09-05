@@ -4,7 +4,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.riverfishing.RiverFishing;
+import com.riverfishing.item.FishItem;
+import com.riverfishing.item.StackNbt;
 import com.riverfishing.network.ShoalPacket;
+import com.riverfishing.registry.ModItems;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -24,6 +29,10 @@ import java.util.Map;
 
 /**
  * §shoal render: the fish the water actually holds, drifting under the surface.
+ *
+ * <p>§fish-item (0.9.0): by default each fish is now the dropped ITEM — the baked {@code item/generated}
+ * model through the item renderer, sized to its length — see {@link #FISH_ITEM}. What follows describes
+ * the flat path that {@code /rfrod fishitem off} brings back.
  *
  * <p>Each fish is ONE textured quad carrying its own item sprite — not the item model. That distinction is
  * the whole reason this can show seventy fish at once: the fish icons are 256px, and vanilla's
@@ -114,10 +123,12 @@ public final class ShoalRenderer {
                 // Small fish thin out with distance, the way they actually do: a 20 cm roach 30 blocks off
                 // is two pixels of noise, while a metre of pike is worth seeing from the far bank. The
                 // server drops these too — this is here because a fish list outlives the walk that made it.
-                if (dist > 40 && e.lengthCm() < 90) continue;
-                if (dist > 26 && e.lengthCm() < 35) continue;
-                TextureAtlasSprite sprite = spriteFor(atlas, e.species());
-                if (sprite == null) continue;
+                // §shoal-far: a loner too small to see at this range is skipped; a fish in a school is
+                // drawn, because the school is what you see.
+                if (!e.shoaling() && dist > 40 && e.lengthCm() < 90) continue;
+                if (!e.shoaling() && dist > 26 && e.lengthCm() < 35) continue;
+                TextureAtlasSprite sprite = FISH_ITEM ? null : spriteFor(atlas, e.species());
+                if (!FISH_ITEM && sprite == null) continue;
 
                 double x = f.x, y = f.y, z = f.z;
 
@@ -136,7 +147,7 @@ public final class ShoalRenderer {
                 // to a seventh of its own length and back on every beat. One sine, and it does more for
                 // a fish swimming at you than any amount of geometry would.
                 float yaw = 180f - (float) Math.toDegrees(f.heading)
-                        + Mth.sin(time * 0.22f + f.phase) * 7f;
+                        + Mth.sin(time * 0.22f + f.phase) * (3f + 4f * f.kick);   // §shoal-kick: the wave does the rest
 
                 pose.pushPose();
                 pose.translate(x - cam.x, y - cam.y, z - cam.z);
@@ -150,7 +161,30 @@ public final class ShoalRenderer {
                 }
                 // Local Z is the fish's own left-right axis now, so this is a nose-up, nose-down pitch
                 // rather than the screen-plane roll it used to be. It reads better, and it is free.
-                pose.mulPose(Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + f.phase) * 3f));
+                pose.mulPose(Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + f.phase) * 3f + f.pitch));   // §shoal-jump
+                if (FISH_ITEM) {
+                    // §fish-item: the fish is the ITEM — the same baked item/generated model as the one
+                    // you drop on the bank, a sixteenth thick with coloured edges — posed where the flat
+                    // quad was. The item model cannot bend, so the swimming wave becomes a beat: the
+                    // whole body swings ±6° at the wave's own rhythm, on top of the §fish-beat above.
+                    // The FIXED display turns the model 180° about Y (head to +X); one more 180° here
+                    // puts the head back on −X so the yaw derivation, the lay and the pitch sign all
+                    // hold unchanged.
+                    pose.mulPose(Axis.YP.rotationDegrees(180f
+                            + Mth.sin(f.tail + f.phase * 5f) * 6f));
+                    if (f.stack == null) f.stack = stackFor(e);
+                    // Size rides the length, which the server derived from the weight it rolled — so
+                    // the picture is the weight, and the fish keeps it between packets.
+                    FishItemRenderer.gridScale = itemSize(e.lengthCm());
+                    ALPHA.alpha = alpha;
+                    ALPHA.vc = vc;
+                    mc.getItemRenderer().renderStatic(f.stack, ItemDisplayContext.FIXED, LightTexture.FULL_BRIGHT,
+                            OverlayTexture.NO_OVERLAY, pose, ALPHA_SOURCE, mc.level, 0);
+                    FishItemRenderer.gridScale = 0f;
+                    pose.popPose();
+                    drew = true;
+                    continue;
+                }
                 float size = spriteSize(e.lengthCm());
                 // §morph: the fish in the water are painted by the same table as the one in your hand.
                 double age = e.age() / 100.0;
@@ -163,9 +197,14 @@ public final class ShoalRenderer {
                 // same fish at yaw 180 has it pointing back at the camera.
                 Matrix4f m = pose.last().pose();
                 boolean plusNear = m.m20() * m.m30() + m.m21() * m.m31() + m.m22() * m.m32() < 0f;
-                lens(m, vc, sprite, size, plusNear ? size * THICK : -size * THICK, alpha,
-                        com.riverfishing.fish.FishMorph.tint(path, age, ""),
-                        FishTint.whiten(com.riverfishing.fish.FishMorph.pale(path, age, "")));
+                int tintNow = com.riverfishing.fish.FishMorph.tint(path, age, "");
+                int overlayNow = FishTint.whiten(com.riverfishing.fish.FishMorph.pale(path, age, ""));
+                // §fish-3d first; a species whose sprite could not be read is drawn flat, as before.
+                // §fish-3d-fins: the slab is the body; the flat sprite still draws — down the centreline,
+                // without its bulge — and that is where the fins, the fork and every thin thing come
+                // from. Inside the body the flanks cover it; outside, it is the fin.
+                boolean slab = FISH_3D && FishMesh.emit(m, vc, sprite, e.species(), size, f, time, alpha, tintNow, overlayNow);
+                body(m, vc, sprite, size, slab ? 0f : (plusNear ? 1f : -1f), f, time, alpha, tintNow, overlayNow);
                 pose.popPose();
                 drew = true;
             }
@@ -192,44 +231,112 @@ public final class ShoalRenderer {
     }
 
     /**
-     * §fish-lens: the fish as one CREASED surface rather than one flat one — pinched to the centreline
-     * at nose and tail, standing {@code t} proud of it at mid-body, always bulging toward the viewer.
+     * §fish-wave: the fish as a ribbon of strips with a swimming wave running down it.
      *
-     * <p>It is thickness that cannot ghost, and that is the entire design. A dropped fish is solid
-     * because {@code item/generated} extrudes its sprite into a mesh — front face, back face, and a
-     * side quad traced round the silhouette — and we cannot have that one: measured against our own
-     * sprites it is 241x this quad count on 1.20.1 and 1.21.1 and 909x on 26.x, where the baker emits
-     * a side quad per edge TEXEL, to draw a rim one 256th of a sprite wide. Nor can we have the cheap
-     * six-quad version of it, because a dropped item is OPAQUE and these fish are not: two translucent
-     * surfaces at alpha read as 1-(1-alpha)^2, so a front and a back would silently double the density
-     * of every fish and wreck the fade, and where the two failed to overlap you would get §shoal-ghost
-     * back. Nor can that be dodged by choosing the draw order — the batch is sorted far-to-near on
-     * upload on all four versions, so the order is not ours to choose.
+     * <p>The lens was one crease at mid-body — thickness that could not ghost, and it still cannot,
+     * but a crease is a crease: from the bank every fish looked folded. So the same single surface is
+     * cut into {@link #STRIPS} along the body, and each strip is displaced sideways by a wave that
+     * starts at nothing behind the head and grows toward the tail, travelling nose-to-tail at a rate
+     * set by the tail's own beat (§shoal-kick). That is what a swimming fish's outline does, and it is
+     * eight quads instead of two.
      *
-     * <p>One surface has nothing to blend against, so all of that goes away. Broadside it is the same
-     * silhouette it always was; the bulge is along the line of sight, which is exactly where it is
-     * free. End-on the fish stops being a rasterised line and becomes a band as wide as it is thick.
-     *
-     * <p>The crease sits at mid-body, and so does the split in the uv, so each half maps linearly and
-     * nothing is stretched. On a flatfish, which §fish-pose has already laid horizontal, local Z is
-     * vertical and the same code gives it a back that stands proud of its edges — which is what a
-     * flatfish is.
+     * <p>The thickness rides the same strips: a body profile that peaks a third of the way back and
+     * tapers to nothing at nose and tail, bulging toward the viewer as before. Every strip's uv is a
+     * linear slice of the sprite, so nothing is stretched.
      */
-    private static void lens(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, float t,
-                             int alpha, int tint, int overlay) {
+    private static final int STRIPS = 8;
+
+    /**
+     * §fish-3d: bodies pulled out of the sprites (FishMesh) instead of the flat wave. OFF by default
+     * after testing — the flat wave is the shipped look; {@code /rfrod fish3d on} tries the bodies,
+     * persisted, no rebuild.
+     */
+    public static boolean FISH_3D = false;
+
+    /**
+     * §fish-item: the fish in the water drawn as the dropped ITEM would be — the baked
+     * {@code item/generated} model, a sixteenth thick, edges and all. ON by default; {@code /rfrod
+     * fishitem off} is the flat wave (and FISH_3D under it) for a live comparison.
+     *
+     * <p>The header's cost argument still stands: a 256px sprite bakes to on the order of a thousand
+     * quads, and the fish list can hold seventy. ponytail: it is drawn through the item renderer and
+     * measured by eye, not profiled; if a full shoal shows in the frame time, bake one distance-capped
+     * model per species (a 64px downsample of the sprite) and draw that past ten blocks.
+     */
+    public static boolean FISH_ITEM = false;   // off by default: a 256 px sprite bakes to ~1k quads, 70 fish tanked the FPS
+
+    /**
+     * The item renderer writes every vertex at alpha 1 and with the quad's own normal. The shoal's
+     * whole visibility model is alpha — clarity, distance, spook, the arrival fade — and its lighting
+     * is a constant up-normal so a fish does not brighten and darken as it turns (see {@link #vertex}).
+     * This sits between the item renderer and the shoal's translucent buffer and imposes both.
+     */
+    private static final class AlphaConsumer implements VertexConsumer {
+        VertexConsumer vc;
+        int alpha;
+
+        @Override public VertexConsumer addVertex(float x, float y, float z) { vc.addVertex(x, y, z); return this; }
+        @Override public VertexConsumer setColor(int r, int g, int b, int a) { vc.setColor(r, g, b, alpha); return this; }
+        @Override public VertexConsumer setUv(float u, float v) { vc.setUv(u, v); return this; }
+        @Override public VertexConsumer setUv1(int u, int v) { vc.setUv1(u, v); return this; }
+        @Override public VertexConsumer setUv2(int u, int v) { vc.setUv2(u, v); return this; }
+        @Override public VertexConsumer setNormal(float x, float y, float z) { vc.setNormal(0f, 1f, 0f); return this; }
+    }
+
+    private static final AlphaConsumer ALPHA = new AlphaConsumer();
+    /** Whatever layer the item renderer asks for, it gets the shoal's own (see §shoal-layer). */
+    private static final MultiBufferSource ALPHA_SOURCE = type -> ALPHA;
+
+    /**
+     * §fish-item: the stack the item renderer paints. Species, weight, length and age are what the
+     * packet knows, and they are all FishItemRenderer and FishTint read — so a young roach in the
+     * water is as pale as the one in your hand, by the same code. No morph: the packet does not carry one.
+     */
+    private static ItemStack stackFor(ShoalPacket.Entry e) {
+        ItemStack stack = new ItemStack(ModItems.fishItem(e.species()));
+        StackNbt.mutate(stack, tag -> {
+            tag.putString(FishItem.TAG_SPECIES, e.species().toString());
+            tag.putInt(FishItem.TAG_WEIGHT, e.weightG());
+            tag.putInt(FishItem.TAG_LENGTH, e.lengthCm());
+            tag.putByte(FishItem.TAG_AGE, e.age());
+        });
+        return stack;
+    }
+
+    /**
+     * §fish-item: true length, one block per metre — the icons are drawn full-length across the sprite,
+     * so the model's width IS the fish. A 15 cm bleak is 0.15 of a block and a metre of pike a block;
+     * the floor keeps a fry visible at all. Shared with the aquarium, which caps it to its tank.
+     */
+    public static float itemSize(int lengthCm) {
+        return Mth.clamp(lengthCm / 100f, 0.12f, 4.5f);
+    }
+
+    private static void body(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, float side,
+                             ShoalSim.Fish f, float time, int alpha, int tint, int overlay) {
         float r = size / 2f;
-        float u0 = sp.getU0(), u1 = sp.getU1(), um = (u0 + u1) * 0.5f;
+        float u0 = sp.getU0(), u1 = sp.getU1();
         float v0 = sp.getV0(), v1 = sp.getV1();
-        // Head half: from the nose on the centreline back to the crease.
-        vertex(m, vc, -r, -r, 0f, u0, v1, alpha, tint, overlay);
-        vertex(m, vc, 0f, -r, t, um, v1, alpha, tint, overlay);
-        vertex(m, vc, 0f, r, t, um, v0, alpha, tint, overlay);
-        vertex(m, vc, -r, r, 0f, u0, v0, alpha, tint, overlay);
-        // Tail half: from the crease back to the tail, returning to the centreline.
-        vertex(m, vc, 0f, -r, t, um, v1, alpha, tint, overlay);
-        vertex(m, vc, r, -r, 0f, u1, v1, alpha, tint, overlay);
-        vertex(m, vc, r, r, 0f, u1, v0, alpha, tint, overlay);
-        vertex(m, vc, 0f, r, t, um, v0, alpha, tint, overlay);
+        // Amplitude at the tail, and the wave's phase speed — faster on a beat, idle on a glide.
+        float amp = size * (0.05f + 0.09f * f.kick);
+        float phase = f.tail + f.phase * 5f;
+        float[] zs = new float[STRIPS + 1];
+        float[] xs = new float[STRIPS + 1];
+        for (int i = 0; i <= STRIPS; i++) {
+            float t = i / (float) STRIPS;               // 0 nose .. 1 tail
+            xs[i] = -r + t * size;
+            float body = (float) Math.sin(Math.PI * Math.pow(t, 0.75));   // peaks at about a third back
+            float thick = side * size * THICK * body;
+            float wave = amp * t * t * Mth.sin(phase - t * 6.5f);       // grows toward the tail
+            zs[i] = thick + wave;
+        }
+        for (int i = 0; i < STRIPS; i++) {
+            float ua = u0 + (u1 - u0) * (i / (float) STRIPS), ub = u0 + (u1 - u0) * ((i + 1) / (float) STRIPS);
+            vertex(m, vc, xs[i], -r, zs[i], ua, v1, alpha, tint, overlay);
+            vertex(m, vc, xs[i + 1], -r, zs[i + 1], ub, v1, alpha, tint, overlay);
+            vertex(m, vc, xs[i + 1], r, zs[i + 1], ub, v0, alpha, tint, overlay);
+            vertex(m, vc, xs[i], r, zs[i], ua, v0, alpha, tint, overlay);
+        }
     }
 
     private static void vertex(Matrix4f m, VertexConsumer vc, float x, float y, float z, float u, float v,

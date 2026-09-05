@@ -126,10 +126,18 @@ public class FishItem extends Item {
                 if (level instanceof net.minecraft.server.level.ServerLevel sl) {
                     // §stocking 2.0: presence, settling and the weight-scaled surplus all live in
                     // FishingManager.releaseFish — see there for the whole model.
-                    ResourceLocation released = getSpecies(stack);
+                    if (stack.getItem() instanceof com.riverfishing.item.FryItem) {   // §c: fry take the same road in
+                        com.riverfishing.fishing.FishingManager.releaseFry(sl, entity.blockPosition(),
+                                com.riverfishing.item.FryItem.species(stack), com.riverfishing.item.FryItem.genome(stack),
+                                com.riverfishing.item.FryItem.count(stack), thrower,
+                                com.riverfishing.item.RoeItem.pattern(stack));   // §pattern
+                    }
+                    ResourceLocation released = stack.getItem() instanceof FishItem ? getSpecies(stack) : null;
                     if (released != null) {
                         com.riverfishing.fishing.FishingManager.releaseFish(sl, entity.blockPosition(),
-                                released, getWeightG(stack), stack.getCount(), thrower);
+                                released, getWeightG(stack), stack.getCount(),
+                                com.riverfishing.fish.CatchCard.has(stack) ? com.riverfishing.fish.CatchCard.of(stack) : null,   // §c
+                                thrower);
                     }
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE,
                             entity.getX(), entity.getY() + 0.1, entity.getZ(), 14, 0.25, 0.1, 0.25, 0.02);
@@ -323,6 +331,13 @@ public class FishItem extends Item {
                 .append(Component.literal(" (")).append(weightText(w)).append(Component.literal(")"));
     }
 
+    /** §catch-card: a landed fish shows its card; every other fish keeps the plain lines below. */
+    @Override
+    public java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(ItemStack stack) {
+        return com.riverfishing.fish.CatchCard.has(stack)
+                ? java.util.Optional.of(new FishCardTooltip(stack)) : java.util.Optional.empty();
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         CompoundTag tag = StackNbt.get(stack);
@@ -354,6 +369,7 @@ public class FishItem extends Item {
             }
             return;
         }
+        if (com.riverfishing.fish.CatchCard.has(stack)) return;     // the card says all of this
         // §morph: named on its own line rather than folded into the item name. A prefix would have to
         // agree in gender with 79 species names in Russian and Ukrainian, and "Золотистый плотва" is
         // worse than no feature at all.
