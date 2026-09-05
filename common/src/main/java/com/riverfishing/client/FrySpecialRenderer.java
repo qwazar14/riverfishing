@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  * Each fish is the species' own client item, resolved and submitted like any other stack: the sprite
  * the inventory draws for a pike is the sprite the fry bucket draws three of.
  */
-public final class FrySpecialRenderer implements SpecialModelRenderer<Identifier> {
+public final class FrySpecialRenderer implements SpecialModelRenderer<ItemStack> {   // §fry-look
     public static final Identifier ID = RiverFishing.id("fry");
 
     /**
@@ -47,7 +47,7 @@ public final class FrySpecialRenderer implements SpecialModelRenderer<Identifier
     };
 
     /** The data-driven half: {@code {"type": "riverfishing:fry"}} in a client item definition. */
-    public record Unbaked() implements SpecialModelRenderer.Unbaked<Identifier> {
+    public record Unbaked() implements SpecialModelRenderer.Unbaked<ItemStack> {
         public static final MapCodec<Unbaked> MAP_CODEC = MapCodec.unit(new Unbaked());
 
         @Override
@@ -56,27 +56,27 @@ public final class FrySpecialRenderer implements SpecialModelRenderer<Identifier
         }
 
         @Override
-        public SpecialModelRenderer<Identifier> bake(BakingContext context) {
+        public SpecialModelRenderer<ItemStack> bake(BakingContext context) {
             return new FrySpecialRenderer();
         }
     }
 
     @Override
-    public Identifier extractArgument(ItemStack stack) {
-        return FryItem.species(stack);
+    public ItemStack extractArgument(ItemStack stack) {
+        // §fry-look: the fish the fry will be, card and all — a species id alone drew a white koi
+        return FryItem.look(stack);
     }
 
     @Override
-    public void submit(Identifier species, PoseStack pose, SubmitNodeCollector collector,
+    public void submit(ItemStack look, PoseStack pose, SubmitNodeCollector collector,
                        int light, int overlay, boolean foil, int outlineColor) {
         Minecraft mc = Minecraft.getInstance();
-        RegistrySupplier<Item> fish = species == null ? null : ModItems.FISH_ITEMS.get(species);
-        if (fish == null) {
+        if (look == null || look.isEmpty()) {
             // Custom data without a species: a fresh fry stack has none and falls to the static icon.
             submitStack(mc, new ItemStack(ModItems.FRY.get()), pose, collector, light, overlay, outlineColor);
             return;
         }
-        ItemStack stack = new ItemStack(fish.get());
+        ItemStack stack = look;
         for (int i = 0; i < FISH.length; i++) {
             float[] f = FISH[i];
             pose.pushPose();

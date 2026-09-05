@@ -229,7 +229,9 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
                             Direction cw, double tankX, double tankZ, State s) {
         Identifier sp = FryItem.species(fryStack);
         if (sp == null) return;
-        ItemStack fish = FishItem.create(com.riverfishing.registry.ModItems.fishItem(sp), sp, 1, 5, true);
+        // §fry-look: the fish the fry will be — variety, genes, pattern — not a bare species stack.
+        ItemStack fish = FryItem.look(fryStack);
+        if (fish.isEmpty()) return;
         boolean flat = com.riverfishing.fish.FishPose.isFlat(sp.getPath());
         itemModelResolver.updateForTopItem(s.fryItem, fish, ItemDisplayContext.FIXED, be.getLevel(), null, 0);
         int n = Math.min(FRY_MAX, FryItem.count(fryStack) / 4 + 1);

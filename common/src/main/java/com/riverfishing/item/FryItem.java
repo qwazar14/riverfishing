@@ -32,6 +32,34 @@ public class FryItem extends Item {
         return RoeItem.species(s);
     }
 
+    /**
+     * §fry-look: the fish this fry will be, as a stack the renderers can draw — the species' own item
+     * with a card carrying the variety read off the genome, the genes and the inherited pattern. A bare
+     * species stack drew a white koi on 26.x and a kohaku for every koi on 1.21.1; this is what a
+     * showa's fry looks like. EMPTY when the fry names no species (a creative-tab bucket).
+     */
+    public static ItemStack look(ItemStack fry) {
+        var sp = species(fry);
+        if (sp == null) return ItemStack.EMPTY;
+        var item = com.riverfishing.registry.ModItems.fishItem(sp);
+        if (item == null) return ItemStack.EMPTY;
+        String path = sp.getPath(), genome = genome(fry);
+        String variety = com.riverfishing.fish.Genome.isKoiId(path)
+                ? "koi_" + com.riverfishing.fish.Genome.koiVariety(genome)
+                : com.riverfishing.fish.Genome.varietyOfSpecies(path).isEmpty() ? ""
+                : com.riverfishing.fish.Genome.carpVariety(genome);
+        net.minecraft.nbt.CompoundTag t = StackNbt.get(fry);
+        int pattern = t.getIntOr(com.riverfishing.fish.Pattern.TAG, com.riverfishing.fish.Pattern.NONE);
+        ItemStack s = com.riverfishing.item.FishItem.create(item, sp, 1, 5, true);
+        net.minecraft.nbt.CompoundTag card = new net.minecraft.nbt.CompoundTag();
+        if (!variety.isEmpty()) card.putString("Variety", variety);
+        card.putString("Genes", genome);
+        card.putInt(com.riverfishing.fish.Pattern.TAG, pattern);
+        StackNbt.mutate(s, tag -> tag.put(com.riverfishing.fish.CatchCard.TAG, card));
+        com.riverfishing.item.FishItem.stampIcon(s);   // 26.x: the icon is the stack
+        return s;
+    }
+
     public static String genome(ItemStack s) {
         return RoeItem.genome(s);
     }
