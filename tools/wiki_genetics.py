@@ -18,13 +18,23 @@ not a description of them:
   * pattern: floor((m + f) / 2) + round(gaussian x 12), clamped 0..999                 — Pattern.inherit
 
 The names of varieties, families and gems are read from the lang files at build time, so the widget
-calls a fish what the game calls it in that language.
+calls a fish what the game calls it in that language. The pictures are the game's too: the seventeen
+koi are one white sprite painted with FishMorph.KOI_PAINT exactly as koiTint paints it, and the four
+carp varieties are the sprites the bundle already embeds for the species tables.
 """
-import io, json, os
+import base64, io, json, os, re, struct, sys, zlib
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from gen_pattern_masks import read as read_png   # the raw PNG reader every art tool here shares
+import wiki_art
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LANG = os.path.join(REPO, "common/src/main/resources/assets/riverfishing/lang")
 LOCALE = {"en": "en_us", "ru": "ru_ru", "uk": "uk_ua"}
+TEX = os.path.join(REPO, "common/src/main/resources/assets/riverfishing/textures/item/fish")
+JAVA = os.path.join(REPO, "common/src/main/java/com/riverfishing/fish/FishMorph.java")
+KOI_LAYERS = ["koi_carp", "koi_carp_hi", "koi_carp_sumi", "koi_carp_crown", "koi_eye"]
+CARP_SPRITES = {"scaled": "carp", "mirror": "mirror_carp", "linear": "linear_carp", "naked": "naked_carp"}
 
 # Genome.KOI_TABLE, verbatim: W R B G T, '_' at least one dominant, lowercase none, '*' either way.
 KOI_TABLE = [
@@ -38,6 +48,60 @@ BAND = [0, 90, 200, 290, 400, 480, 560, 640, 710, 780, 850, 930]
 FAMILY = ["plain", "drift", "crown", "banded", "speckled", "mask", "marbled", "veined", "dappled", "ghost", "ember", "aurora"]
 GEM_AT = [13, 127, 239, 341, 439, 512, 601, 677, 733, 811, 887, 971]
 GEM = ["sapphire", "gold", "emerald", "jet", "amethyst", "pearl", "ruby", "copper", "jade", "amber", "opal", "obsidian"]
+
+
+def koi_paint():
+    """FishMorph.KOI_PAINT, read out of the Java so the wiki cannot drift from the game."""
+    src = io.open(JAVA, encoding="utf-8").read()
+    pat = re.compile(r'Map\.entry\("(\w+)",\s*new int\[\]\{([^}]*)\}')
+    return {m.group(1): [int(x, 16) if x != "-1" else -1 for x in re.findall(r"-1|0x[0-9A-Fa-f]+", m.group(2))]
+            for m in pat.finditer(src)}
+
+
+def _png(rows):
+    h, w = len(rows), len(rows[0])
+    raw = b"".join(bytes([0]) + bytes(c for px in r for c in px) for r in rows)
+
+    def chunk(t, d):
+        return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xFFFFFFFF)
+    sig = bytes([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+    return (sig + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0))
+            + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
+
+
+_KOI_URIS = None
+
+
+def koi_uris(size=64):
+    """The seventeen varieties painted the way FishMorph.koiTint paints one white sprite — ground, hi,
+    sumi and crown layers each multiplied by the variety's colour (a layer the fish does not wear takes
+    the ground), the eye untinted — then shrunk with nearest neighbour so the pixels stay pixels.
+    Built once, ~2 KB a fish."""
+    global _KOI_URIS
+    if _KOI_URIS is not None:
+        return _KOI_URIS
+    paint = koi_paint()
+    imgs = [read_png(os.path.join(TEX, n + ".png")) for n in KOI_LAYERS]
+    W, H = imgs[0][0], imgs[0][1]
+    out = {}
+    for row in KOI_TABLE:
+        v = row.split("=")[1]
+        p = paint.get(v) or paint["kohaku"]
+        px = [[(0, 0, 0, 0)] * W for _ in range(H)]
+        for li, (w, h, rows) in enumerate(imgs):
+            tint = 0xFFFFFF if li >= 4 else (p[0] if p[li] < 0 else p[li])
+            tr, tg, tb = (tint >> 16) & 255, (tint >> 8) & 255, tint & 255
+            for y in range(h):
+                for x in range(w):
+                    r, g, b, a = rows[y][x]
+                    if a >= 8:
+                        px[y][x] = (r * tr // 255, g * tg // 255, b * tb // 255, 255)
+        k = W // size
+        small = [[px[y * k][x * k] for x in range(size)] for y in range(size)]
+        out[v] = "data:image/png;base64," + base64.b64encode(_png(small)).decode("ascii")
+    _KOI_URIS = out
+    return out
+
 
 T = {
     "en": {
@@ -106,6 +170,8 @@ T = {
 }
 
 CSS = """
+.rfgen .rfg-fish{display:inline-block;width:40px;height:40px;background-size:contain;background-repeat:no-repeat;background-position:center;vertical-align:middle;margin-right:8px;image-rendering:pixelated}
+.rfgen .rfg-big{display:block;width:128px;height:128px;margin:4px auto 10px;background-size:contain;background-repeat:no-repeat;background-position:center;image-rendering:pixelated}
 .rfcalc.rfgen .row>div{min-width:0;max-width:100%}
 .rfcalc.rfgen .wbox{min-width:0}
 .rfgen .parents{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:8px}
@@ -130,7 +196,7 @@ CSS = """
 
 JS = r"""
 (function(){
-  var T=RFGEN_T, L=RFGEN_LANG, N=RFGEN_NAMES, KT=RFGEN_KOI, BAND=RFGEN_BAND, FAM=RFGEN_FAM, GEM_AT=RFGEN_GEM_AT, GEM=RFGEN_GEM;
+  var T=RFGEN_T, L=RFGEN_LANG, N=RFGEN_NAMES, KT=RFGEN_KOI, BAND=RFGEN_BAND, FAM=RFGEN_FAM, GEM_AT=RFGEN_GEM_AT, GEM=RFGEN_GEM, CARP=RFGEN_CARP;
   var KIND={any:"SCVF",carp:"SCVFKN",koi:"SCVFKNWRBGT"};
   // Genome.pair(): what a card that does not carry the locus reads as. 2 = XX, 1 = Xx, 0 = xx.
   var DEF={S:1,C:1,V:1,F:1,K:2,N:0,W:2,R:1,B:0,G:0,T:2};
@@ -140,6 +206,7 @@ JS = r"""
       pm=root.querySelector('.pm'), pf=root.querySelector('.pf');
   function loci(){ return KIND[kindSel.value]; }
   function txt(loc,st){ var u=loc,l=loc.toLowerCase(); return st==2?u+u:st==1?u+l:l+l; }
+  function fishCls(sp){ return 'f-'+sp.replace(/_/g,'-'); }
   function buildParent(box){
     var grid=box.querySelector('.loci'); grid.innerHTML='';
     loci().split('').forEach(function(loc){
@@ -179,14 +246,16 @@ JS = r"""
         '<td class="n">'+txt(loc,2)+' '+pct(d[2])+'</td><td class="n">'+txt(loc,1)+' '+pct(d[1])+'</td><td class="n">'+txt(loc,0)+' '+pct(d[0])+'</td></tr>'; }).join('');
     var c=[];
     c.push([T.child,'<table><tr><th>'+T.loci+'</th><th></th><th></th><th></th></tr>'+rows+'</table>']);
-    // 2. phenotype
+    // 2. phenotype — with the picture the game would draw
     var ph='';
     ["S","C","V","F"].forEach(function(loc){ var d=D[loc]; ph+='<p><b>'+loc+'</b> <span class="k">'+T.L[loc]+':</span> '+T.dom+' '+pct(d[1]+d[2])+', '+T.rec+' '+pct(d[0])+'</p>'; });
     var dead=0, note='';
-    if(kindSel.value!=='any'){
+    if(kindSel.value==='carp'){   // a koi is scaled by its line; its picture is its colour
       var K=D.K, Nn=D.N; dead=Nn[2]; var alive=1-dead;
       var vs={scaled:(K[1]+K[2])*Nn[0]/alive, linear:(K[1]+K[2])*Nn[1]/alive, mirror:K[0]*Nn[0]/alive, naked:K[0]*Nn[1]/alive};
-      ph+='<table>'+["scaled","mirror","linear","naked"].map(function(v){return '<tr><td>'+N.variety[v]+'</td><td class="n">'+bar(vs[v])+pct(vs[v])+'</td></tr>';}).join('')+
+      var vorder=["scaled","mirror","linear","naked"];
+      if(kindSel.value==='carp'){ var topc=vorder.slice().sort(function(a,b){return vs[b]-vs[a];})[0]; ph+='<i class="rfg-big '+fishCls(CARP[topc])+'"></i>'; }
+      ph+='<table>'+vorder.map(function(v){return '<tr><td><i class="rfg-fish '+fishCls(CARP[v])+'"></i>'+N.variety[v]+'</td><td class="n">'+bar(vs[v])+pct(vs[v])+'</td></tr>';}).join('')+
         (dead>0?'<tr><td class="k">'+T.dead+'</td><td class="n">'+pct(dead)+'</td></tr>':'')+'</table>';
       if(m.N>0&&f.N>0) note=T.note_lethal;
     }
@@ -195,7 +264,8 @@ JS = r"""
       (function rec(i,st,p){ if(i==5){ var v=koiName(st); acc[v]=(acc[v]||0)+p; return; }
         var d=D[K5[i]]; for(var s=0;s<3;s++) if(d[s]>0){ st[K5[i]]=s; rec(i+1,st,p*d[s]); } })(0,{},1);
       var ks=Object.keys(acc).sort(function(a,b){return acc[b]-acc[a];});
-      ph+='<table>'+ks.map(function(v){return '<tr><td>'+N.koi[v]+'</td><td class="n">'+bar(acc[v])+pct(acc[v])+'</td></tr>';}).join('')+'</table>';
+      ph+='<i class="rfg-big rfg-koi-'+ks[0]+'"></i>';
+      ph+='<table>'+ks.map(function(v){return '<tr><td><i class="rfg-fish rfg-koi-'+v+'"></i>'+N.koi[v]+'</td><td class="n">'+bar(acc[v])+pct(acc[v])+'</td></tr>';}).join('')+'</table>';
       ph+='<p class="k">'+T.note_koi+'</p>';
     }
     c.push([T.pheno,ph]);
@@ -245,13 +315,16 @@ def names(lang):
 def widget(lang, emit_css=True):
     t = T.get(lang, T["en"])
     j = lambda x: json.dumps(x, ensure_ascii=False, separators=(",", ":"))
+    for sp in CARP_SPRITES.values():
+        wiki_art._used_fish.add(sp)          # the bundle emits .f-<id> for every species it saw used
+    koi_css = "".join(".rfgen .rfg-koi-%s{background-image:url(%s)}\n" % (v, u) for v, u in koi_uris().items())
     pools = "".join('<option value="%s">%s</option>' % (k, v) for k, v in t["pool"].items())
 
     def parent(cls, label):
         return ('<div class="parent %s"><h4>%s</h4><div class="loci"></div>'
                 '<div class="paste"><input type="text" placeholder="%s" spellcheck="false"></div></div>' % (cls, label, t["paste"]))
     return (
-        ("<style>" + CSS + "</style>\n" if emit_css else "") +
+        ("<style>" + CSS + koi_css + "</style>\n" if emit_css else "") +
         '<div class="rfcalc rfgen" id="rfg-' + lang + '">\n'
         '  <p>' + t["blurb"] + '</p>\n'
         '  <div class="row"><div><label>' + t["kind"] + '</label><select class="kind">'
@@ -269,20 +342,22 @@ def widget(lang, emit_css=True):
         '  <div class="rfg-out" id="rfg-out-' + lang + '"></div>\n'
         '</div>\n'
         "<script>\nvar RFGEN_LANG=" + j(lang) + ";var RFGEN_T=" + j(t) + ";var RFGEN_NAMES=" + j(names(lang)) +
-        ";var RFGEN_KOI=" + j(KOI_TABLE) + ";var RFGEN_BAND=" + j(BAND) + ";var RFGEN_FAM=" + j(FAMILY) +
+        ";var RFGEN_CARP=" + j(CARP_SPRITES) + ";var RFGEN_KOI=" + j(KOI_TABLE) + ";var RFGEN_BAND=" + j(BAND) + ";var RFGEN_FAM=" + j(FAMILY) +
         ";var RFGEN_GEM_AT=" + j(GEM_AT) + ";var RFGEN_GEM=" + j(GEM) + ";\n" + JS + "</script>\n")
 
 
 if __name__ == "__main__":
-    # a runnable check: the koi table names every variety, and the widget builds in three languages
-    import re
+    # a runnable check: the koi table names every variety, the seventeen renders differ, the widget builds in three languages
+    import re as _re
     ids = {r.split("=")[1] for r in KOI_TABLE}
     assert len(ids) == 17, ids
+    u = koi_uris()
+    assert len(u) == 17 and len(set(u.values())) == 17, "the seventeen koi renders must all differ"
+    assert all(len(x) < 12000 for x in u.values()), "a koi render is heavier than it should be"
     for lang in ("en", "ru", "uk"):
         w = widget(lang)
-        assert 'id="rfg-%s"' % lang in w and "RFGEN_NAMES" in w
+        assert 'id="rfg-%s"' % lang in w and "RFGEN_NAMES" in w and "rfg-koi-tancho{" in w
         n = names(lang)
         assert len(n["koi"]) == 17 and len(n["pattern"]) == 12 and len(n["gem"]) == 12
-        # every lang key resolved to a real name, not its id
-        assert all(re.search(r"[A-Za-zА-Яа-яЇїІіЄєҐґ]", v) for v in n["koi"].values())
-    print("wiki_genetics: 17 varieties, 12 families, 12 gems, widgets in en/ru/uk")
+        assert all(_re.search(r"[A-Za-zА-Яа-яЇїІіЄєҐґ]", v) for v in n["koi"].values())
+    print("wiki_genetics: 17 varieties (rendered), 12 families, 12 gems, widgets in en/ru/uk")
