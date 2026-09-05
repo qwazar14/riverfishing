@@ -86,6 +86,14 @@ Size follows the fish: a giant is a giant partly because it was born with the al
 
 **Water you have stocked ignores all of that.** If the water keeps a brood ledger for the species, each allele is drawn instead at the frequency *that water* holds — so a pond you filled with `SS` fish hands `SS` fish back. That is the whole point of a bloodline, and it is why a pond kept for a year is not the pond next door.
 
+## Breeding calculator
+
+> **This page is interactive on the published wiki.** On GitHub you are reading the markdown source, where nothing can run — open the [published wiki](https://qwazar14.github.io/riverfishing/) for the working version.
+
+Set both parents the way their cards write them and the calculator answers what the roe will carry: the odds at every locus, the carp or koi variety the clutch comes out as, how many eggs and how many fry, and where the pattern index lands. Every rule is the game's own — `Genome.cross`, `Genome.clutch`, the hatch table and `Pattern.inherit` — not a copy of them.
+
+<!-- GENETICS -->
+
 ## Inheritance
 
 Mendel and nothing more. One allele taken at random from each parent, per locus. **No linkage, no mutation, no drift.** The only thing that drifts between generations is the [pattern index](#the-pattern-index).
