@@ -231,8 +231,19 @@ public class FishItem extends Item {
         // Empty for everything that is not a carp, which is the definition's fallback: its own sprite.
         String draw = sp == null ? "" : com.riverfishing.fish.Genome.drawnAs(sp.getPath(),
                 com.riverfishing.fish.CatchCard.of(stack).getStringOr("Variety", ""));
-        java.util.List<String> strings = sp == null || draw.equals(sp.getPath())
-                ? java.util.List.of() : java.util.List.of(draw);
+        // §pattern-mask: strings[1] is the pattern FAMILY the item definition selects the mask on, and
+        // the marking rides as one more colour — colors[4] for a koi (0..3 are its layers), [1] otherwise.
+        // A plain fish or a gem names no family, and the definition's select falls back to empty.
+        String family = com.riverfishing.fish.Pattern.familyIndex(pattern) > 0
+                && !com.riverfishing.fish.Pattern.isGem(pattern) ? com.riverfishing.fish.Pattern.family(pattern) : "";
+        java.util.List<String> strings = java.util.List.of(
+                sp == null || draw.equals(sp.getPath()) ? "" : draw, family);
+        if (sp != null && com.riverfishing.registry.ModItemTags.patterned(stack)) {
+            java.util.List<Integer> withMark = new java.util.ArrayList<>(colors);
+            withMark.add(com.riverfishing.fish.FishMorph.patternTint(sp.getPath(),
+                    com.riverfishing.fish.CatchCard.of(stack).getStringOr("Variety", ""), pattern));
+            colors = withMark;
+        }
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
                 new net.minecraft.world.item.component.CustomModelData(
                         java.util.List.of(getIconScale(stack)),

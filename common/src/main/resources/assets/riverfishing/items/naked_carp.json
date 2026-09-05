@@ -1,14 +1,184 @@
 {
   "model": {
-    "type": "minecraft:range_dispatch",
-    "property": "minecraft:custom_model_data",
-    "index": 0,
-    "entries": [
+    "type": "minecraft:composite",
+    "models": [
       {
-        "threshold": 0.45,
-        "model": {
+        "type": "minecraft:range_dispatch",
+        "property": "minecraft:custom_model_data",
+        "index": 0,
+        "entries": [
+          {
+            "threshold": 0.45,
+            "model": {
+              "type": "minecraft:model",
+              "model": "riverfishing:item/fish_scaled/naked_carp_0",
+              "tints": [
+                {
+                  "type": "minecraft:custom_model_data",
+                  "index": 0,
+                  "default": -1
+                }
+              ]
+            }
+          },
+          {
+            "threshold": 0.6,
+            "model": {
+              "type": "minecraft:model",
+              "model": "riverfishing:item/fish_scaled/naked_carp_1",
+              "tints": [
+                {
+                  "type": "minecraft:custom_model_data",
+                  "index": 0,
+                  "default": -1
+                }
+              ]
+            }
+          },
+          {
+            "threshold": 0.75,
+            "model": {
+              "type": "minecraft:model",
+              "model": "riverfishing:item/fish_scaled/naked_carp_2",
+              "tints": [
+                {
+                  "type": "minecraft:custom_model_data",
+                  "index": 0,
+                  "default": -1
+                }
+              ]
+            }
+          },
+          {
+            "threshold": 0.9,
+            "model": {
+              "type": "minecraft:model",
+              "model": "riverfishing:item/fish_scaled/naked_carp_3",
+              "tints": [
+                {
+                  "type": "minecraft:custom_model_data",
+                  "index": 0,
+                  "default": -1
+                }
+              ]
+            }
+          },
+          {
+            "threshold": 1.05,
+            "model": {
+              "type": "minecraft:model",
+              "model": "riverfishing:item/fish_scaled/naked_carp_4",
+              "tints": [
+                {
+                  "type": "minecraft:custom_model_data",
+                  "index": 0,
+                  "default": -1
+                }
+              ]
+            }
+          },
+          {
+            "threshold": 1.25,
+            "model": {
+              "type": "minecraft:model",
+              "model": "riverfishing:item/fish_scaled/naked_carp_5",
+              "tints": [
+                {
+                  "type": "minecraft:custom_model_data",
+                  "index": 0,
+                  "default": -1
+                }
+              ]
+            }
+          },
+          {
+            "threshold": 1.55,
+            "model": {
+              "type": "minecraft:model",
+              "model": "riverfishing:item/fish_scaled/naked_carp_6",
+              "tints": [
+                {
+                  "type": "minecraft:custom_model_data",
+                  "index": 0,
+                  "default": -1
+                }
+              ]
+            }
+          },
+          {
+            "threshold": 2.0,
+            "model": {
+              "type": "minecraft:model",
+              "model": "riverfishing:item/fish_scaled/naked_carp_7",
+              "tints": [
+                {
+                  "type": "minecraft:custom_model_data",
+                  "index": 0,
+                  "default": -1
+                }
+              ]
+            }
+          },
+          {
+            "threshold": 2.5,
+            "model": {
+              "type": "minecraft:model",
+              "model": "riverfishing:item/fish_scaled/naked_carp_8",
+              "tints": [
+                {
+                  "type": "minecraft:custom_model_data",
+                  "index": 0,
+                  "default": -1
+                }
+              ]
+            }
+          },
+          {
+            "threshold": 3.2,
+            "model": {
+              "type": "minecraft:model",
+              "model": "riverfishing:item/fish_scaled/naked_carp_9",
+              "tints": [
+                {
+                  "type": "minecraft:custom_model_data",
+                  "index": 0,
+                  "default": -1
+                }
+              ]
+            }
+          },
+          {
+            "threshold": 4.0,
+            "model": {
+              "type": "minecraft:model",
+              "model": "riverfishing:item/fish_scaled/naked_carp_10",
+              "tints": [
+                {
+                  "type": "minecraft:custom_model_data",
+                  "index": 0,
+                  "default": -1
+                }
+              ]
+            }
+          },
+          {
+            "threshold": 5.0,
+            "model": {
+              "type": "minecraft:model",
+              "model": "riverfishing:item/fish_scaled/naked_carp_11",
+              "tints": [
+                {
+                  "type": "minecraft:custom_model_data",
+                  "index": 0,
+                  "default": -1
+                }
+              ]
+            }
+          }
+        ],
+        "fallback": {
           "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/naked_carp_0",
+          "model": "riverfishing:item/naked_carp",
           "tints": [
             {
               "type": "minecraft:custom_model_data",
@@ -19,170 +189,2094 @@
         }
       },
       {
-        "threshold": 0.6,
-        "model": {
-          "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/naked_carp_1",
-          "tints": [
-            {
-              "type": "minecraft:custom_model_data",
+        "type": "minecraft:select",
+        "property": "minecraft:custom_model_data",
+        "index": 1,
+        "cases": [
+          {
+            "when": "drift",
+            "model": {
+              "type": "minecraft:range_dispatch",
+              "property": "minecraft:custom_model_data",
               "index": 0,
-              "default": -1
+              "entries": [
+                {
+                  "threshold": 0.45,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_drift_0",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.6,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_drift_1",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.75,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_drift_2",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.9,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_drift_3",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.05,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_drift_4",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.25,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_drift_5",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.55,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_drift_6",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_drift_7",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.5,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_drift_8",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 3.2,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_drift_9",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 4.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_drift_10",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 5.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_drift_11",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                }
+              ],
+              "fallback": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/pattern/naked_carp_drift",
+                "tints": [
+                  {
+                    "type": "minecraft:custom_model_data",
+                    "index": 1,
+                    "default": -1
+                  }
+                ]
+              }
             }
-          ]
-        }
-      },
-      {
-        "threshold": 0.75,
-        "model": {
-          "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/naked_carp_2",
-          "tints": [
-            {
-              "type": "minecraft:custom_model_data",
+          },
+          {
+            "when": "crown",
+            "model": {
+              "type": "minecraft:range_dispatch",
+              "property": "minecraft:custom_model_data",
               "index": 0,
-              "default": -1
+              "entries": [
+                {
+                  "threshold": 0.45,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_crown_0",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.6,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_crown_1",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.75,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_crown_2",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.9,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_crown_3",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.05,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_crown_4",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.25,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_crown_5",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.55,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_crown_6",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_crown_7",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.5,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_crown_8",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 3.2,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_crown_9",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 4.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_crown_10",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 5.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_crown_11",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                }
+              ],
+              "fallback": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/pattern/naked_carp_crown",
+                "tints": [
+                  {
+                    "type": "minecraft:custom_model_data",
+                    "index": 1,
+                    "default": -1
+                  }
+                ]
+              }
             }
-          ]
-        }
-      },
-      {
-        "threshold": 0.9,
-        "model": {
-          "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/naked_carp_3",
-          "tints": [
-            {
-              "type": "minecraft:custom_model_data",
+          },
+          {
+            "when": "banded",
+            "model": {
+              "type": "minecraft:range_dispatch",
+              "property": "minecraft:custom_model_data",
               "index": 0,
-              "default": -1
+              "entries": [
+                {
+                  "threshold": 0.45,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_banded_0",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.6,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_banded_1",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.75,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_banded_2",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.9,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_banded_3",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.05,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_banded_4",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.25,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_banded_5",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.55,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_banded_6",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_banded_7",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.5,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_banded_8",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 3.2,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_banded_9",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 4.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_banded_10",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 5.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_banded_11",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                }
+              ],
+              "fallback": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/pattern/naked_carp_banded",
+                "tints": [
+                  {
+                    "type": "minecraft:custom_model_data",
+                    "index": 1,
+                    "default": -1
+                  }
+                ]
+              }
             }
-          ]
-        }
-      },
-      {
-        "threshold": 1.05,
-        "model": {
-          "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/naked_carp_4",
-          "tints": [
-            {
-              "type": "minecraft:custom_model_data",
+          },
+          {
+            "when": "speckled",
+            "model": {
+              "type": "minecraft:range_dispatch",
+              "property": "minecraft:custom_model_data",
               "index": 0,
-              "default": -1
+              "entries": [
+                {
+                  "threshold": 0.45,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_speckled_0",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.6,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_speckled_1",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.75,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_speckled_2",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.9,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_speckled_3",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.05,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_speckled_4",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.25,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_speckled_5",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.55,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_speckled_6",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_speckled_7",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.5,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_speckled_8",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 3.2,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_speckled_9",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 4.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_speckled_10",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 5.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_speckled_11",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                }
+              ],
+              "fallback": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/pattern/naked_carp_speckled",
+                "tints": [
+                  {
+                    "type": "minecraft:custom_model_data",
+                    "index": 1,
+                    "default": -1
+                  }
+                ]
+              }
             }
-          ]
-        }
-      },
-      {
-        "threshold": 1.25,
-        "model": {
-          "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/naked_carp_5",
-          "tints": [
-            {
-              "type": "minecraft:custom_model_data",
+          },
+          {
+            "when": "mask",
+            "model": {
+              "type": "minecraft:range_dispatch",
+              "property": "minecraft:custom_model_data",
               "index": 0,
-              "default": -1
+              "entries": [
+                {
+                  "threshold": 0.45,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_mask_0",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.6,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_mask_1",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.75,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_mask_2",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.9,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_mask_3",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.05,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_mask_4",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.25,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_mask_5",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.55,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_mask_6",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_mask_7",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.5,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_mask_8",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 3.2,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_mask_9",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 4.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_mask_10",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 5.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_mask_11",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                }
+              ],
+              "fallback": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/pattern/naked_carp_mask",
+                "tints": [
+                  {
+                    "type": "minecraft:custom_model_data",
+                    "index": 1,
+                    "default": -1
+                  }
+                ]
+              }
             }
-          ]
-        }
-      },
-      {
-        "threshold": 1.55,
-        "model": {
-          "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/naked_carp_6",
-          "tints": [
-            {
-              "type": "minecraft:custom_model_data",
+          },
+          {
+            "when": "marbled",
+            "model": {
+              "type": "minecraft:range_dispatch",
+              "property": "minecraft:custom_model_data",
               "index": 0,
-              "default": -1
+              "entries": [
+                {
+                  "threshold": 0.45,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_marbled_0",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.6,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_marbled_1",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.75,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_marbled_2",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.9,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_marbled_3",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.05,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_marbled_4",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.25,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_marbled_5",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.55,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_marbled_6",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_marbled_7",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.5,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_marbled_8",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 3.2,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_marbled_9",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 4.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_marbled_10",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 5.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_marbled_11",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                }
+              ],
+              "fallback": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/pattern/naked_carp_marbled",
+                "tints": [
+                  {
+                    "type": "minecraft:custom_model_data",
+                    "index": 1,
+                    "default": -1
+                  }
+                ]
+              }
             }
-          ]
-        }
-      },
-      {
-        "threshold": 2.0,
-        "model": {
-          "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/naked_carp_7",
-          "tints": [
-            {
-              "type": "minecraft:custom_model_data",
+          },
+          {
+            "when": "veined",
+            "model": {
+              "type": "minecraft:range_dispatch",
+              "property": "minecraft:custom_model_data",
               "index": 0,
-              "default": -1
+              "entries": [
+                {
+                  "threshold": 0.45,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_veined_0",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.6,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_veined_1",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.75,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_veined_2",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.9,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_veined_3",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.05,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_veined_4",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.25,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_veined_5",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.55,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_veined_6",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_veined_7",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.5,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_veined_8",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 3.2,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_veined_9",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 4.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_veined_10",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 5.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_veined_11",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                }
+              ],
+              "fallback": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/pattern/naked_carp_veined",
+                "tints": [
+                  {
+                    "type": "minecraft:custom_model_data",
+                    "index": 1,
+                    "default": -1
+                  }
+                ]
+              }
             }
-          ]
-        }
-      },
-      {
-        "threshold": 2.5,
-        "model": {
-          "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/naked_carp_8",
-          "tints": [
-            {
-              "type": "minecraft:custom_model_data",
+          },
+          {
+            "when": "dappled",
+            "model": {
+              "type": "minecraft:range_dispatch",
+              "property": "minecraft:custom_model_data",
               "index": 0,
-              "default": -1
+              "entries": [
+                {
+                  "threshold": 0.45,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_dappled_0",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.6,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_dappled_1",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.75,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_dappled_2",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.9,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_dappled_3",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.05,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_dappled_4",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.25,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_dappled_5",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.55,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_dappled_6",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_dappled_7",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.5,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_dappled_8",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 3.2,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_dappled_9",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 4.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_dappled_10",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 5.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_dappled_11",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                }
+              ],
+              "fallback": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/pattern/naked_carp_dappled",
+                "tints": [
+                  {
+                    "type": "minecraft:custom_model_data",
+                    "index": 1,
+                    "default": -1
+                  }
+                ]
+              }
             }
-          ]
-        }
-      },
-      {
-        "threshold": 3.2,
-        "model": {
-          "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/naked_carp_9",
-          "tints": [
-            {
-              "type": "minecraft:custom_model_data",
+          },
+          {
+            "when": "ghost",
+            "model": {
+              "type": "minecraft:range_dispatch",
+              "property": "minecraft:custom_model_data",
               "index": 0,
-              "default": -1
+              "entries": [
+                {
+                  "threshold": 0.45,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ghost_0",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.6,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ghost_1",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.75,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ghost_2",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.9,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ghost_3",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.05,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ghost_4",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.25,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ghost_5",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.55,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ghost_6",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ghost_7",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.5,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ghost_8",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 3.2,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ghost_9",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 4.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ghost_10",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 5.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ghost_11",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                }
+              ],
+              "fallback": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/pattern/naked_carp_ghost",
+                "tints": [
+                  {
+                    "type": "minecraft:custom_model_data",
+                    "index": 1,
+                    "default": -1
+                  }
+                ]
+              }
             }
-          ]
-        }
-      },
-      {
-        "threshold": 4.0,
-        "model": {
-          "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/naked_carp_10",
-          "tints": [
-            {
-              "type": "minecraft:custom_model_data",
+          },
+          {
+            "when": "ember",
+            "model": {
+              "type": "minecraft:range_dispatch",
+              "property": "minecraft:custom_model_data",
               "index": 0,
-              "default": -1
+              "entries": [
+                {
+                  "threshold": 0.45,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ember_0",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.6,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ember_1",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.75,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ember_2",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.9,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ember_3",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.05,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ember_4",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.25,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ember_5",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.55,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ember_6",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ember_7",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.5,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ember_8",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 3.2,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ember_9",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 4.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ember_10",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 5.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_ember_11",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                }
+              ],
+              "fallback": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/pattern/naked_carp_ember",
+                "tints": [
+                  {
+                    "type": "minecraft:custom_model_data",
+                    "index": 1,
+                    "default": -1
+                  }
+                ]
+              }
             }
-          ]
-        }
-      },
-      {
-        "threshold": 5.0,
-        "model": {
-          "type": "minecraft:model",
-          "model": "riverfishing:item/fish_scaled/naked_carp_11",
-          "tints": [
-            {
-              "type": "minecraft:custom_model_data",
+          },
+          {
+            "when": "aurora",
+            "model": {
+              "type": "minecraft:range_dispatch",
+              "property": "minecraft:custom_model_data",
               "index": 0,
-              "default": -1
+              "entries": [
+                {
+                  "threshold": 0.45,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_aurora_0",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.6,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_aurora_1",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.75,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_aurora_2",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 0.9,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_aurora_3",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.05,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_aurora_4",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.25,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_aurora_5",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 1.55,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_aurora_6",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_aurora_7",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 2.5,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_aurora_8",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 3.2,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_aurora_9",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 4.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_aurora_10",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "threshold": 5.0,
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/pattern_scaled/naked_carp_aurora_11",
+                    "tints": [
+                      {
+                        "type": "minecraft:custom_model_data",
+                        "index": 1,
+                        "default": -1
+                      }
+                    ]
+                  }
+                }
+              ],
+              "fallback": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/pattern/naked_carp_aurora",
+                "tints": [
+                  {
+                    "type": "minecraft:custom_model_data",
+                    "index": 1,
+                    "default": -1
+                  }
+                ]
+              }
             }
-          ]
+          }
+        ],
+        "fallback": {
+          "type": "minecraft:empty"
         }
       }
-    ],
-    "fallback": {
-      "type": "minecraft:model",
-      "model": "riverfishing:item/naked_carp",
-      "tints": [
-        {
-          "type": "minecraft:custom_model_data",
-          "index": 0,
-          "default": -1
-        }
-      ]
-    }
+    ]
   }
 }
