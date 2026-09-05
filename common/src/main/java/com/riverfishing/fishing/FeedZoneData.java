@@ -53,8 +53,10 @@ public class FeedZoneData extends SavedData {
      *
      * <pre>
      *   plain jar (0.50 nutrition, 1 part)      -> 0.475
-     *   base + worm + maggot + barley           -> ~0.80
-     *   five parts, rich                        -> 1.00
+     *   base + worm + maggot + barley           -> ~0.76
+     *   base + four rich parts                  -> 0.94, and no legal 3x3 mix goes higher: the base is
+     *                                              mandatory at 0.50 nutrition, so the mean never
+     *                                              reaches the 1.00 the formula would need
      * </pre>
      */
     public static double ceiling(GroundbaitMix mix) {
