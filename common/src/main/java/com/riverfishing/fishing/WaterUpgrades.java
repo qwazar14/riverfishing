@@ -58,6 +58,24 @@ public final class WaterUpgrades extends SavedData {
         if (entries.remove(pos.asLong()) != null) setDirty();
     }
 
+    /**
+     * §feeder-fill: settle one station's day-decay and hand back what is left. {@link #at} does this
+     * for every entry it walks; FeedingStationBlock asks about its own, so the block can show the count.
+     */
+    public int settle(BlockPos pos) {
+        Entry e = entries.get(pos.asLong());
+        return e == null ? 0 : settle(e);
+    }
+
+    private int settle(Entry e) {
+        if (e.charges > 0 && day > e.lastDay) {
+            e.charges = (int) Math.max(0, e.charges - (day - e.lastDay));
+            e.lastDay = day;
+            setDirty();
+        }
+        return e.charges;
+    }
+
     public int charges(BlockPos pos) {
         Entry e = entries.get(pos.asLong());
         return e == null ? 0 : e.charges;
@@ -81,7 +99,6 @@ public final class WaterUpgrades extends SavedData {
      */
     public static Set<String> at(ServerLevel level, BlockPos waterPos) {
         WaterUpgrades data = get(level);
-        long day = data.day;
         Set<String> kinds = new HashSet<>();
         Iterator<Map.Entry<Long, Entry>> it = data.entries.entrySet().iterator();
         while (it.hasNext()) {
@@ -97,12 +114,8 @@ public final class WaterUpgrades extends SavedData {
                 continue;
             }
             Entry e = me.getValue();
-            if (e.charges > 0 && day > e.lastDay) {           // one charge per world day, settled on read
-                e.charges = (int) Math.max(0, e.charges - (day - e.lastDay));
-                e.lastDay = day;
-                data.setDirty();
-            }
-            if (com.riverfishing.block.WaterUpgradeBlock.FEEDING_STATION.equals(e.kind) && e.charges <= 0) continue;
+            int charges = data.settle(e);                     // one charge per world day, settled on read
+            if (com.riverfishing.block.WaterUpgradeBlock.FEEDING_STATION.equals(e.kind) && charges <= 0) continue;
             kinds.add(e.kind);
         }
         return kinds;
