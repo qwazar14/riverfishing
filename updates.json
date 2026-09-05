@@ -1,12 +1,30 @@
 {
   "_comment": "River Fishing update feed (§update-check). Served raw from the mc-1.21.1 branch; the in-game checker compares 'latest' for the running MC version and prints up to 3 bullets per missed release. Bump 'latest' ONLY when a release is actually published.",
   "latest": {
-    "1.20.1": "0.8.0",
-    "1.21.1": "0.8.0",
-    "26.1.2": "0.8.0",
-    "26.2": "0.8.0"
+    "1.20.1": "0.9.0",
+    "1.21.1": "0.9.0",
+    "26.1.2": "0.9.0",
+    "26.2": "0.9.0"
   },
   "changelog": [
+    {
+      "version": "0.9.0",
+      "ru": [
+        "У каждой рыбы свои гены: икра, мальки, живой аквариум и 17 пород кои — их выводят, а не ловят",
+        "У мира появилась география: четыре фаунистические провинции; контракты с доски рыбака, частные пруды и сети",
+        "Двенадцать новых рыб, четыре приманки, эхолот стал настоящим прибором — и белугу снова можно вытащить"
+      ],
+      "uk": [
+        "У кожної риби свої гени: ікра, мальки, живий акваріум і 17 порід кої — їх виводять, а не ловлять",
+        "У світу з'явилася географія: чотири фауністичні провінції; контракти з дошки рибалки, приватні стави й сітки",
+        "Дванадцять нових риб, чотири приманки, ехолот став справжнім приладом — і білугу знову можна витягти"
+      ],
+      "en": [
+        "Every fish carries its genes: roe, fry, a live aquarium, and 17 koi varieties you breed, not find",
+        "The world has geography: four faunal provinces; contracts from the fisherman's board, private ponds and nets",
+        "Twelve new species, four lures, the fish finder as an instrument — and the beluga can be landed"
+      ]
+    },
     {
       "version": "0.8.2",
       "ru": [

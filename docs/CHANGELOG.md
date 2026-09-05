@@ -5,6 +5,24 @@ Full patchnotes. The short three-bullet form the in-game update checker shows li
 
 ---
 
+## 0.9.0 — a pond you keep, and a world with geography
+
+**Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.
+
+Full patchnote: [`docs/patchnotes/0.9.0.md`](patchnotes/0.9.0.md).
+
+The breeding patch. Every fish now carries a card with its genes, its nature and where and how it was
+caught; contracts read it, the counter prices by it, and the aquarium breeds from it — roe, fry, a live
+tank, spawning windows for all 105 species, Mendelian inheritance. Koi are bred, not found: one fish,
+five colour loci, seventeen varieties, tancho out of a tancho line. Every carp and koi wears a pattern
+index, and twelve of a thousand are gems. The world has geography at last — four faunal provinces cut
+by the seed, a species absent outside its own. The fisherman's board posts contracts and keeps a
+reputation; nets and private ponds make a stocked water a farm; the fish finder is an instrument, with
+a section, a sounding and a chart. Twelve new species, four lures, a potion of fish oil — and the
+beluga can be landed again.
+
+---
+
 ## 0.8.2 — the giants can be fought, the groundbait can be made
 
 **Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.
