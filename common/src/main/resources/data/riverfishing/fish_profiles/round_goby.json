@@ -1,5 +1,7 @@
 {
   "display": "Бычок-кругляк",
+  "latin": "Neogobius melanostomus",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "sea",
   "water_bodies": { "river": 1.0, "lake": 0.6, "pond": 0.2, "swamp": 0.0, "sea": 1.1, "puddle": 0.0 },
   "weight_g": { "min": 10, "max": 380, "mean": 100 },
@@ -20,6 +22,7 @@
   "depth_pref": "bottom",
   "distance_pref": { "min": 2, "max": 20 },
   "habitat": { "depth_min": 1, "width_min": 6 },
+  "provinces": ["palearctic"],
   "biomes": { "temperate": 1.0, "warm": 1.2, "beach": 1.2, "ocean_biome": 0.9 },
   "base": 1.0
 }

@@ -5,8 +5,8 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 
 /**
- * §tackle-station (0.6.0): the catalog of forms the Tackle Station ties. Two tabs of nine — peaceful
- * rigs and predator tackle. Each form limits its sensible weight range; the WEIGHT is the player's
+ * §tackle-station (0.6.0): the catalog of forms the Tackle Station ties. Two tabs — six peaceful
+ * rigs and fourteen predator lures. Each form limits its sensible weight range; the WEIGHT is the player's
  * main decision (iron cost, cast distance, sink speed — §cast-weight reads the same grams later).
  * v1 is a hardcoded list — the numbers are being playtested; JSON-ify once they settle.
  */
@@ -34,7 +34,15 @@ public enum TackleForm {
     // ladders START above the heaviest older lure (the 180 g spoon), because that is the
     // gap — the boat blank tests to 400 g and the trolling blank to 600 g.
     OCTOPUS_JIG("octopus_jig", true, false, true, new int[]{60, 120, 250, 400}, 0),
-    GIANT_SPOON("giant_spoon", true, false, true, new int[]{80, 160, 300, 500}, 0);
+    GIANT_SPOON("giant_spoon", true, false, true, new int[]{80, 160, 300, 500}, 0),
+    // §more-lures-2 (0.9.0): four more forms, and unlike the trolling pair these fill in
+    // BETWEEN the old ladders rather than above them. The wacky worm at 4 g is the lightest
+    // thing the bench ties — ultralight water — and the swimbait is the only form that runs
+    // from a spinning rod all the way up to the boat blank in one ladder.
+    SPINNERBAIT("spinnerbait", true, false, true, new int[]{10, 18, 28, 45}, 0),
+    BLADEBAIT("bladebait", true, false, true, new int[]{8, 14, 22, 35}, 0),
+    SWIMBAIT("swimbait", true, false, true, new int[]{12, 25, 45, 90, 180}, 0),
+    WACKY_WORM("wacky_worm", true, false, true, new int[]{4, 7, 12}, 0);
 
     /** NBT keys on the tied tackle. */
     public static final String TAG_WEIGHT = "TackleWeightG";

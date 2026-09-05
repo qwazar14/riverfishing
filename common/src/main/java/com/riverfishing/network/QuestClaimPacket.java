@@ -36,6 +36,7 @@ public class QuestClaimPacket implements ModNetwork.RfPacket {
 
     public void handleServer(NetworkManager.PacketContext ctx) {
         if (ctx.getPlayer() instanceof ServerPlayer sp) {
+            // §contracts-b1: contracts are papers handed to the fisherman, not journal rows.
             Quests.claim(sp, sp.serverLevel(), questId);
         }
     }

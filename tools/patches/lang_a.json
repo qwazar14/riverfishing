@@ -1,0 +1,53 @@
+{
+  "en_us": {
+    "calendar.riverfishing.sub.early": "early",
+    "calendar.riverfishing.sub.mid": "mid",
+    "calendar.riverfishing.sub.late": "late",
+    "calendar.riverfishing.name.early_spring": "early spring",
+    "calendar.riverfishing.name.mid_spring": "mid-spring",
+    "calendar.riverfishing.name.late_spring": "late spring",
+    "calendar.riverfishing.name.early_summer": "early summer",
+    "calendar.riverfishing.name.mid_summer": "midsummer",
+    "calendar.riverfishing.name.late_summer": "late summer",
+    "calendar.riverfishing.name.early_autumn": "early autumn",
+    "calendar.riverfishing.name.mid_autumn": "mid-autumn",
+    "calendar.riverfishing.name.late_autumn": "late autumn",
+    "calendar.riverfishing.name.early_winter": "early winter",
+    "calendar.riverfishing.name.mid_winter": "midwinter",
+    "calendar.riverfishing.name.late_winter": "late winter"
+  },
+  "ru_ru": {
+    "calendar.riverfishing.sub.early": "ранняя",
+    "calendar.riverfishing.sub.mid": "средняя",
+    "calendar.riverfishing.sub.late": "поздняя",
+    "calendar.riverfishing.name.early_spring": "ранняя весна",
+    "calendar.riverfishing.name.mid_spring": "середина весны",
+    "calendar.riverfishing.name.late_spring": "поздняя весна",
+    "calendar.riverfishing.name.early_summer": "раннее лето",
+    "calendar.riverfishing.name.mid_summer": "середина лета",
+    "calendar.riverfishing.name.late_summer": "позднее лето",
+    "calendar.riverfishing.name.early_autumn": "ранняя осень",
+    "calendar.riverfishing.name.mid_autumn": "середина осени",
+    "calendar.riverfishing.name.late_autumn": "поздняя осень",
+    "calendar.riverfishing.name.early_winter": "ранняя зима",
+    "calendar.riverfishing.name.mid_winter": "середина зимы",
+    "calendar.riverfishing.name.late_winter": "поздняя зима"
+  },
+  "uk_ua": {
+    "calendar.riverfishing.sub.early": "рання",
+    "calendar.riverfishing.sub.mid": "середня",
+    "calendar.riverfishing.sub.late": "пізня",
+    "calendar.riverfishing.name.early_spring": "рання весна",
+    "calendar.riverfishing.name.mid_spring": "середина весни",
+    "calendar.riverfishing.name.late_spring": "пізня весна",
+    "calendar.riverfishing.name.early_summer": "раннє літо",
+    "calendar.riverfishing.name.mid_summer": "середина літа",
+    "calendar.riverfishing.name.late_summer": "пізнє літо",
+    "calendar.riverfishing.name.early_autumn": "рання осінь",
+    "calendar.riverfishing.name.mid_autumn": "середина осені",
+    "calendar.riverfishing.name.late_autumn": "пізня осінь",
+    "calendar.riverfishing.name.early_winter": "рання зима",
+    "calendar.riverfishing.name.mid_winter": "середина зими",
+    "calendar.riverfishing.name.late_winter": "пізня зима"
+  }
+}

@@ -1,5 +1,7 @@
 {
   "display": "Судак",
+  "latin": "Sander lucioperca",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "predator",
   "water_bodies": {
     "river": 1.1,
@@ -45,7 +47,10 @@
       "silicone": 1.0,
       "jig": 0.95,
       "crankbait": 0.85,
-      "wobbler": 0.8
+      "wobbler": 0.8,
+      "spinnerbait": 0.6,
+      "bladebait": 1.0,
+      "swimbait": 0.8
     },
     "hook": {
       "ideal": 4,
@@ -79,6 +84,8 @@
     "depth_min": 4,
     "width_min": 14
   },
+  "provinces": ["palearctic"],
+  "breeds_with": {"volga_zander": 0.35},
   "biomes": {
     "temperate": 1.0,
     "cold": 0.8

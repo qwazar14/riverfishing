@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [ " l ", "hhh", "nhn" ],
+  "key": {
+    "l": { "item": "minecraft:lead" },
+    "h": { "item": "minecraft:string" },
+    "n": { "item": "minecraft:iron_nugget" }
+  },
+  "result": { "item": "riverfishing:cast_net" }
+}

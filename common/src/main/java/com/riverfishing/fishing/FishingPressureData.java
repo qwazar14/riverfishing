@@ -94,6 +94,23 @@ public class FishingPressureData extends SavedData {
         return best;
     }
 
+    /**
+     * §ledger-presence: forget a species' stock in the 3x3 chunks around a spot — the last fish of a
+     * brood was taken and the book is empty, so the bank must be too. Pressure (a positive number)
+     * stays; only the stock (a negative one) is dropped.
+     */
+    public void clearStockAround(int chunkX, int chunkZ, String species) {
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                Map<String, Entry> per = chunks.get(net.minecraft.world.level.ChunkPos.asLong(chunkX + dx, chunkZ + dz));
+                if (per == null) continue;
+                Entry e = per.get(species);
+                if (e != null && e.pressure() < 0) per.put(species, new Entry(0.0, e.tick()));
+            }
+        }
+        setDirty();
+    }
+
     private void add(long chunkKey, String key, long gameTime, double base) {
         double current = currentPressure(chunkKey, key, gameTime, 1.0);
         double amount = base * com.riverfishing.config.RiverFishingConfig.depletionMultiplier();

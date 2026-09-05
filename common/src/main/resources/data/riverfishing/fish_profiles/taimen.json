@@ -1,5 +1,7 @@
 {
   "display": "Таймень",
+  "latin": "Hucho taimen",
+  "spawn": { "season": "spring", "sub": "mid" },
   "group": "salmonid",
   "water_bodies": { "river": 1.3, "lake": 0.4, "pond": 0.0, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 3000, "max": 60000, "mean": 11000 },
@@ -10,7 +12,7 @@
     "reel_size": 6000, "reel_tolerance": 2000,
     "line": { "type": "braid", "diameter_mm": 0.35, "tolerance_mm": 0.08 },
     "rig": ["predator"], "groundbait": { "fraction": 0.87, "nutrition": 0.50 },
-    "bait": { "wobbler": 1.0, "spoon": 0.9, "popper": 0.85, "livebait": 0.8, "crankbait": 0.8 },
+    "bait": { "wobbler": 1.0, "spoon": 0.9, "popper": 0.85, "livebait": 0.8, "crankbait": 0.8, "swimbait": 0.95 },
     "hook": { "ideal": 2, "tolerance": 2 },
     "requires_leader": true
   },
@@ -20,6 +22,8 @@
   "depth_pref": "mid",
   "distance_pref": { "min": 15, "max": 45 },
   "habitat": { "depth_min": 3, "depth_max": 12, "width_min": 12 },
+  "provinces": ["palearctic"],
+  "biomes_require": ["cold", "river_biome"],
   "biomes": { "taiga": 1.3, "mountain": 1.3, "cold": 1.1 },
   "base": 0.3,
   "min_angler_level": 8

@@ -93,6 +93,20 @@
     "riverfishing:tarpon",
     "riverfishing:snook",
     "riverfishing:kutum",
-    "riverfishing:naked_carp"
+    "riverfishing:naked_carp",
+    "riverfishing:mullet",
+    "riverfishing:anglerfish",
+    "riverfishing:black_marlin",
+    "riverfishing:blobfish",
+    "riverfishing:bluefin_tuna",
+    "riverfishing:loach",
+    "riverfishing:whale_shark",
+    "riverfishing:nelma",
+    "riverfishing:ocean_sunfish",
+    "riverfishing:pollock",
+    "riverfishing:red_piranha",
+    "riverfishing:tiger_shark",
+    "riverfishing:linear_carp",
+    "riverfishing:koi_carp"
   ]
 }

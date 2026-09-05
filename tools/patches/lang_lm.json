@@ -1,0 +1,11 @@
+{
+  "en_us": {
+    "message.riverfishing.pond_grew": "%1$s grew in your pond: %2$s fish, %3$s on average · stock %4$s%%"
+  },
+  "ru_ru": {
+    "message.riverfishing.pond_grew": "%1$s подрос в вашем пруду: %2$s шт., в среднем %3$s · запас %4$s%%"
+  },
+  "uk_ua": {
+    "message.riverfishing.pond_grew": "%1$s підріс у вашому ставку: %2$s шт., у середньому %3$s · запас %4$s%%"
+  }
+}

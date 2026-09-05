@@ -1,5 +1,7 @@
 {
   "display": "Павлиний окунь",
+  "latin": "Cichla ocellaris",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "lake": 1.2,
@@ -48,7 +50,10 @@
       "silicone": 0.95,
       "spinner": 0.9,
       "livebait": 0.85,
-      "jig": 0.8
+      "jig": 0.8,
+      "spinnerbait": 0.9,
+      "swimbait": 1.05,
+      "wacky_worm": 0.9
     },
     "hook": {
       "ideal": 4,
@@ -82,6 +87,8 @@
     "depth_max": 10,
     "width_min": 6
   },
+  "provinces": ["neotropic"],
+  "biomes_require": ["warm", "jungle"],
   "biomes": {
     "warm": 1.4
   },

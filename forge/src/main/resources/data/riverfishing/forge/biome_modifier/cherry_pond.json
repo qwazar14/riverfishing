@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#riverfishing:is_cherry",
+  "features": "riverfishing:cherry_pond",
+  "step": "lakes"
+}

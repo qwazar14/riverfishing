@@ -1,5 +1,7 @@
 {
   "display": "Пирайба",
+  "latin": "Brachyplatystoma filamentosum",
+  "spawn": { "season": "spring", "sub": "early" },
   "group": "predator",
   "water_bodies": {
     "river": 1.3,
@@ -50,7 +52,8 @@
       "livebait": 1.0,
       "fish_strip": 0.95,
       "chicken_liver": 0.85,
-      "worm": 0.5
+      "worm": 0.5,
+      "swimbait": 0.7
     },
     "hook": {
       "ideal": 1,
@@ -84,6 +87,8 @@
     "depth_min": 5,
     "width_min": 18
   },
+  "provinces": ["neotropic"],
+  "biomes_require": ["warm", "jungle"],
   "biomes": {
     "warm": 1.4,
     "swamp": 0.8

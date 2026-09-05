@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [ "lll", "hhh", "shs" ],
+  "key": {
+    "l": { "item": "minecraft:lead" },
+    "h": { "item": "minecraft:string" },
+    "s": { "item": "minecraft:stick" }
+  },
+  "result": { "item": "riverfishing:seine_net" }
+}

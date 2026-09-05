@@ -70,6 +70,10 @@ public final class ModVillagers {
                     ImmutableSet.of(), ImmutableSet.of(),
                     SoundEvents.VILLAGER_WORK_FISHERMAN));
 
+    // §i §breeding (0.9.0): the warden — the profession fishing/Warden looks for within reach of a
+    // poached haul. His post is a plain block; his two trades are built beside the hook (Warden.trades)
+
+
     /**
      * §order-tier: which fisherman level buys each species, recorded as the trades are built so it cannot
      * drift from them. The order-of-the-day board prints it — the standing complaint that an order can
@@ -286,6 +290,26 @@ public final class ModVillagers {
         buyPrime(fish, 5, "sturgeon", 26, 38);
         buyPrime(fish, 5, "halibut", 22, 34);
 
+        // §koi-genes (0.9.0): priced against the fish they swim beside.
+        buyPrime(fish, 4, "koi_carp", 8, 14);
+
+        // §scale-genes (0.9.0): priced against the fish they swim beside.
+        buyPrime(fish, 4, "linear_carp", 7, 13);
+
+        // §deep-twelve (0.9.0): priced against the fish they swim beside.
+        buyPrime(fish, 3, "mullet", 4, 7);
+        buyPrime(fish, 5, "anglerfish", 15, 27);
+        buyPrime(fish, 5, "black_marlin", 32, 46);
+        buyPrime(fish, 4, "blobfish", 5, 10);
+        buyPrime(fish, 5, "bluefin_tuna", 28, 40);
+        buyPrime(fish, 1, "loach", 1, 2);
+        buyPrime(fish, 5, "whale_shark", 40, 60);
+        buyPrime(fish, 5, "nelma", 13, 24);
+        buyPrime(fish, 5, "ocean_sunfish", 16, 28);
+        buyPrime(fish, 4, "pollock", 4, 8);
+        buyPrime(fish, 3, "red_piranha", 3, 5);
+        buyPrime(fish, 5, "tiger_shark", 26, 38);
+
         // §giants-and-minnows (0.8.0): the giants pay like the taimen tier they sit beside,
         // the minnows like the bleak they swim with.
         buyPrime(fish, 3, "kutum", 5, 9);
@@ -394,6 +418,8 @@ public final class ModVillagers {
         if (villager.getVillagerData().getProfession() != FISHERMAN.get()) return;
         MerchantOffers offers = villager.getOffers();
         orderSlot(villager, level, offers);
+        frySlot(villager, level, offers);   // §e
+        trustedSlots(villager, player, offers);
         var market = com.riverfishing.fishing.MarketData.get(level);
         for (MerchantOffer offer : offers) {
             if (!(offer.getCostA().getItem() instanceof FishItem fish)) continue;
@@ -406,6 +432,7 @@ public final class ModVillagers {
             pay.setCount(Math.min(pay.getMaxStackSize(), market.price(level, species, base)));
         }
         sendOrder(level, offers, player);
+        sendBoard(villager, level, player);
     }
 
     /**
@@ -419,6 +446,84 @@ public final class ModVillagers {
      * <p>It goes out during startTrading HEAD, which is before openTradingScreen builds the screen
      * packet on the same connection — so the client always has the order before it has a window.
      */
+    /**
+     * §contracts-b1: the shelf a fisherman keeps for anglers he knows. One item per reputation step,
+     * appended to the counter for a player who has earned it and to nobody else. Half the price of
+     * the same thing anywhere else — the point of reputation is that it buys something.
+     */
+    private static final Object[][] TRUSTED = {
+            {com.riverfishing.fishing.Contracts.TRUST_STEPS[0], "digital_alarm", 6},
+            {com.riverfishing.fishing.Contracts.TRUST_STEPS[1], "fish_finder", 10},
+            {com.riverfishing.fishing.Contracts.TRUST_STEPS[2], "reel_10000", 14},
+    };
+
+    private static void trustedSlots(Villager villager, net.minecraft.world.entity.player.Player player,
+                                     MerchantOffers offers) {
+        int rep = com.riverfishing.fishing.Contracts.rep(player);
+        for (Object[] row : TRUSTED) {
+            if (rep < (int) row[0]) continue;
+            VillagerTrades.ItemListing listing = sellOf((String) row[1], (int) row[2], 1, 20);
+            if (listing == null) continue;
+            MerchantOffer offer = listing.getOffer(villager, villager.getRandom());
+            if (offer != null && !duplicates(offers, offer)) offers.add(offer);
+        }
+    }
+
+    /**
+     * §e §breeding: a bucket of fry of today's order species, beside the order seat. The seat is found
+     * again by its RESULT item, never by position, so a level-up appending behind it changes nothing;
+     * it is kept while it still names today's species (its uses are the daily limit) and replaced when
+     * the order moves on. A stall too junior for today's species sells no fry, and yesterday's go too.
+     */
+    private static final int FRY_EMERALDS = 8, FRY_PER_BUCKET = 10;
+
+    private static void frySlot(Villager villager, ServerLevel level, MerchantOffers offers) {
+        String order = com.riverfishing.fishing.MarketData.orderOfTheDay(level);
+        boolean sells = baseEmeralds(order) > 0 && buyTier(order) <= villager.getVillagerData().getLevel();
+        for (int i = offers.size() - 1; i >= 0; i--) {
+            ItemStack r = offers.get(i).getResult();
+            if (!(r.getItem() instanceof com.riverfishing.item.FryItem)) continue;
+            if (sells && RiverFishing.id(order).equals(com.riverfishing.item.FryItem.species(r))) return;
+            offers.remove(i);
+        }
+        if (!sells) return;
+        ItemStack fry = com.riverfishing.item.FryItem.of(RiverFishing.id(order), randomGenome(villager.getRandom()), FRY_PER_BUCKET);
+        offers.add(new MerchantOffer(new ItemStack(net.minecraft.world.item.Items.EMERALD, FRY_EMERALDS), fry, 8, 6, 0.05f));
+    }
+
+    /** "Ss Cc Vv Ff"-style: every allele a coin, the strong one written first — shop fry are ordinary fry. */
+    public static String randomGenome(net.minecraft.util.RandomSource rng) {   // §i: the warden's fry too
+        StringBuilder g = new StringBuilder();
+        for (char L : com.riverfishing.fish.Genome.COMMON_LOCI.toCharArray()) {   // §scale-genes: not K/N
+            char l = Character.toLowerCase(L);
+            int caps = (rng.nextBoolean() ? 1 : 0) + (rng.nextBoolean() ? 1 : 0);
+            if (g.length() > 0) g.append(' ');
+            g.append(caps > 0 ? L : l).append(caps > 1 ? L : l);
+        }
+        return g.toString();
+    }
+
+    /** §contracts-b1: this fisherman's three posts, for the player who just opened his counter. */
+    public static void sendBoard(Villager villager, ServerLevel level, net.minecraft.world.entity.player.Player player) {   // §board-3
+        if (!(player instanceof net.minecraft.server.level.ServerPlayer sp)) return;
+        net.minecraft.nbt.CompoundTag t = new net.minecraft.nbt.CompoundTag();
+        t.putInt("vid", villager.getId());
+        t.putInt("rep", com.riverfishing.fishing.Contracts.rep(player));
+        // §i: a poacher's board is blank — the flag tells the client why, the empty list tells it what.
+        boolean banned = com.riverfishing.fishing.Warden.banned(sp);
+        t.putBoolean("banned", banned);
+        t.putInt("rep_grams", com.riverfishing.fishing.Warden.repGrams(player));   // §o: what the debt costs, in kilograms
+        net.minecraft.nbt.ListTag posts = new net.minecraft.nbt.ListTag();
+        net.minecraft.nbt.CompoundTag ledger = com.riverfishing.fishing.Contracts.ledger(sp, level);   // §board-taken
+        for (net.minecraft.nbt.CompoundTag post : banned ? java.util.List.<net.minecraft.nbt.CompoundTag>of()   // §i
+                : com.riverfishing.fishing.Contracts.posts(villager, level)) {
+            post.putBoolean("taken", com.riverfishing.fishing.Contracts.taken(sp, ledger, post.getString("Id")));
+            posts.add(post);
+        }
+        t.put("posts", posts);
+        com.riverfishing.network.ModNetwork.toPlayer(sp, new com.riverfishing.network.ContractBoardPacket(t));
+    }
+
     private static void sendOrder(ServerLevel level, MerchantOffers offers,
                                   net.minecraft.world.entity.player.Player player) {
         if (!(player instanceof net.minecraft.server.level.ServerPlayer sp)) return;
@@ -446,7 +551,13 @@ public final class ModVillagers {
      * nobody takes. The trade table IS the answer, so there is no second list to drift.
      */
     public static java.util.List<String> buyableSpecies() {
-        return BUY_TIER.keySet().stream().sorted().toList();
+        // §scale-genes: the counter still BUYS a mirror carp out of an old chest; it just cannot
+        // order one, because no water hands one out any more.
+        return BUY_TIER.keySet().stream()
+                // §koi-genes: the counter BUYS a koi (see the trade table) but never orders one —
+                // the order of the day has to be a fish the day can actually produce.
+                .filter(sp -> !com.riverfishing.fish.Genome.isVarietyId(sp)
+                        && !com.riverfishing.fish.Genome.isKoiId(sp)).sorted().toList();
     }
 
     /**
@@ -595,6 +706,16 @@ public final class ModVillagers {
         // §market-live: the same call that knows the tier knows the price. Two facts, one owner.
         BASE_PRICE.put(path, new int[]{emeralds, xp});
         t.get(level).add(buyPrimeOf(path, emeralds, xp));
+    }
+
+    /**
+     * §contracts: what a counter pays for one prime specimen, {emeralds, xp}, or null for a species no
+     * fisherman buys. The same map the order panel prints its multiplier from — a contract that priced
+     * a fish separately would be a second opinion on what a bream is worth.
+     */
+    public static int baseEmeralds(String species) {
+        int[] p = BASE_PRICE.get(species);
+        return p == null ? 0 : p[0];
     }
 
     private static VillagerTrades.ItemListing buyPrimeOf(String path, int emeralds, int xp) {

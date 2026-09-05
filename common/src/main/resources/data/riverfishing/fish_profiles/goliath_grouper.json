@@ -1,5 +1,7 @@
 {
   "display": "Голиафовый групер",
+  "latin": "Epinephelus itajara",
+  "spawn": { "season": "summer" },
   "group": "big_game",
   "water_bodies": {
     "river": 0.0,
@@ -49,7 +51,8 @@
       "livebait": 1.0,
       "fish_strip": 0.95,
       "octopus_jig": 0.8,
-      "giant_spoon": 0.5
+      "giant_spoon": 0.5,
+      "swimbait": 0.8
     },
     "hook": {
       "ideal": 1,

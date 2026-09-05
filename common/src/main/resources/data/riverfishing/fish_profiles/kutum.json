@@ -1,5 +1,7 @@
 {
   "display": "Кутум",
+  "latin": "Rutilus kutum",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "cyprinid",
   "water_bodies": {
     "river": 1.1,
@@ -84,6 +86,7 @@
     "depth_max": 12,
     "width_min": 10
   },
+  "provinces": ["palearctic"],
   "biomes": {
     "temperate": 1.1,
     "warm": 1.0,

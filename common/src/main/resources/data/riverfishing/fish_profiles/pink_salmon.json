@@ -1,5 +1,7 @@
 {
   "display": "Горбуша",
+  "latin": "Oncorhynchus gorbuscha",
+  "spawn": { "season": "autumn", "sub": "mid" },
   "group": "salmonid",
   "water_bodies": { "sea": 1.1, "river": 1.0, "lake": 0.1, "pond": 0.0, "swamp": 0.0, "puddle": 0.0 },
   "weight_g": { "min": 800, "max": 3500, "mean": 1400 },
@@ -19,6 +21,7 @@
   "depth_pref": "mid",
   "distance_pref": { "min": 8, "max": 35 },
   "habitat": { "depth_min": 2, "depth_max": 8, "width_min": 6 },
+  "provinces": ["palearctic", "nearctic"],
   "biomes": { "cold": 1.3, "ocean_biome": 1.0 },
   "base": 0.9,
   "min_angler_level": 3

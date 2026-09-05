@@ -95,6 +95,32 @@ Companion page: **[Species reference](species-reference.md)** holds the habitat 
 | 77 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/snook.png" width="28" alt=""> Snook | `snook` | 700 g – 25 kg | 3.5 kg | 35–140 cm | sea 1.2, river 0.5, swamp 0.3 | 7 |
 | 78 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/striped_bass.png" width="28" alt=""> Striped bass | `striped_bass` | 500 g – 35 kg | 4 kg | 30–130 cm | sea 1.2, river 0.5, swamp 0.3 | 6 |
 | 79 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/tarpon.png" width="28" alt=""> Tarpon | `tarpon` | 5 kg – 130 kg | 30 kg | 90–250 cm | sea 1.2, river 0.5, swamp 0.3 | 9 |
+| 80 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/mullet.png" width="28" alt=""> Mullet | `mullet` | 300 g – 8 kg | 900 g | 25–80 cm | sea 1.2, river 0.6, lake 0.2 | 2 |
+| 81 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/anglerfish.png" width="28" alt=""> Anglerfish | `anglerfish` | 2 kg – 40 kg | 7 kg | 40–150 cm | sea 1.0 | 8 |
+| 82 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/black_marlin.png" width="28" alt=""> Black marlin | `black_marlin` | 30 kg – 700 kg | 95 kg | 150–460 cm | sea 1.0 | 9 |
+| 83 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/blobfish.png" width="28" alt=""> Blobfish | `blobfish` | 1 kg – 10 kg | 2.5 kg | 25–70 cm | sea 1.0 | 8 |
+| 84 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/bluefin_tuna.png" width="28" alt=""> Bluefin tuna | `bluefin_tuna` | 20 kg – 400 kg | 60 kg | 100–300 cm | sea 1.0 | 8 |
+| 85 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/loach.png" width="28" alt=""> Loach | `loach` | 20 g – 150 g | 55 g | 10–30 cm | swamp 1.2, pond 1.1, river 0.8, lake 0.7, puddle 0.5 | — |
+| 86 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/whale_shark.png" width="28" alt=""> Whale shark | `whale_shark` | 500 kg – 20000 kg | 2500 kg | 400–1200 cm | sea 1.0 | 12 |
+| 87 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/nelma.png" width="28" alt=""> Nelma | `nelma` | 2 kg – 30 kg | 5 kg | 40–130 cm | river 1.1, lake 0.9, sea 0.2 | 6 |
+| 88 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/ocean_sunfish.png" width="28" alt=""> Ocean sunfish | `ocean_sunfish` | 100 kg – 1000 kg | 220 kg | 100–330 cm | sea 1.0 | 8 |
+| 89 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/pollock.png" width="28" alt=""> Pollock | `pollock` | 500 g – 15 kg | 1.8 kg | 25–90 cm | sea 1.2 | 4 |
+| 90 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/red_piranha.png" width="28" alt=""> Red piranha | `red_piranha` | 300 g – 4 kg | 900 g | 15–45 cm | river 1.1, swamp 0.9, lake 0.8, pond 0.5 | 4 |
+| 91 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/tiger_shark.png" width="28" alt=""> Tiger shark | `tiger_shark` | 50 kg – 800 kg | 140 kg | 200–500 cm | sea 1.1 | 9 |
+| 92 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/kutum.png" width="28" alt=""> Kutum | `kutum` | 500 g – 8 kg | 1.4 kg | 30–70 cm | river 1.1, sea 1.0, lake 0.4 | 4 |
+| 93 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/naked_carp.png" width="28" alt=""> Naked Carp | `naked_carp` | 2 kg – 20 kg | 4.5 kg | 40–105 cm | lake 1.2, pond 1.1, river 0.6, swamp 0.4 | 5 |
+| 94 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/arapaima.png" width="28" alt=""> Arapaima | `arapaima` | 20 kg – 180 kg | 45 kg | 120–300 cm | river 1.2, lake 1.0, swamp 0.9, pond 0.3 | 10 |
+| 95 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/beluga.png" width="28" alt=""> Beluga sturgeon | `beluga` | 40 kg – 600 kg | 90 kg | 150–500 cm | river 1.0, sea 1.0, lake 0.3 | 12 |
+| 96 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/piraiba.png" width="28" alt=""> Piraiba | `piraiba` | 15 kg – 160 kg | 32 kg | 100–280 cm | river 1.3, lake 0.5, swamp 0.4, pond 0.1 | 10 |
+| 97 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/goliath_grouper.png" width="28" alt=""> Goliath grouper | `goliath_grouper` | 20 kg – 320 kg | 55 kg | 100–250 cm | sea 1.2 | 10 |
+| 98 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/bull_shark.png" width="28" alt=""> Bull shark | `bull_shark` | 30 kg – 230 kg | 65 kg | 150–350 cm | sea 1.1, river 0.6, lake 0.25 | 9 |
+| 99 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/frilled_shark.png" width="28" alt=""> Frilled shark | `frilled_shark` | 8 kg – 50 kg | 16 kg | 90–200 cm | sea 1.0 | 11 |
+| 100 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/golden_dorado.png" width="28" alt=""> Golden dorado | `golden_dorado` | 1.5 kg – 30 kg | 5.5 kg | 40–120 cm | river 1.3, lake 0.6, swamp 0.3, pond 0.2 | 6 |
+| 101 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/golden_crucian.png" width="28" alt=""> Golden crucian | `golden_crucian` | 60 g – 3 kg | 350 g | 12–45 cm | pond 1.4, swamp 1.3, lake 0.9, puddle 0.5, river 0.3 | 2 |
+| 102 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/gorchak.png" width="28" alt=""> Bitterling | `gorchak` | 3 g – 30 g | 9 g | 3–9 cm | pond 1.2, lake 1.0, river 0.9, swamp 0.8, puddle 0.4 | — |
+| 103 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/verkhovka.png" width="28" alt=""> Sunbleak | `verkhovka` | 2 g – 18 g | 6 g | 3–8 cm | pond 1.4, lake 1.0, swamp 0.9, puddle 0.9, river 0.4 | — |
+| 104 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/sculpin.png" width="28" alt=""> Sculpin | `sculpin` | 5 g – 90 g | 25 g | 5–16 cm | river 1.3, lake 0.4, pond 0.1 | — |
+| 105 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/tubenose_goby.png" width="28" alt=""> Tubenose goby | `tubenose_goby` | 3 g – 30 g | 10 g | 4–11 cm | river 1.1, lake 0.7, pond 0.5, sea 0.5, swamp 0.4 | — |
 
 ## Ideal tackle
 
@@ -181,6 +207,32 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Jack crevalle | popper 1.25, castmaster 1.1, spoon 1.1, livebait 1, silicone 1, wobbler 0.95 | boat, sea_spin, surf | predator | No.1 ±2 | 8000 ±2000 | braid 0.35 ±0.08 | — | — |
 | Tarpon | livebait 1.3, fish_strip 1.1, popper 1, silicone 1, jig 0.9 | boat, sea_spin, surf | catfish, predator | No.1 ±2 | 10000 ±3000 | braid 0.45 ±0.1 | — | — |
 | Snook | livebait 1.25, silicone 1.1, wobbler 1.05, popper 1, jig 0.9, fish_strip 0.85 | sea_spin, spinning, surf | predator | No.2 ±2 | 6000 ±2000 | braid 0.3 ±0.08 | — | — |
+| Mullet | bread 1.0, dough 0.95, maggot 0.7, worm 0.6, corn 0.4, pea 0.3 | pole, feeder, ultralight | float, feeder | №12 ±3 | 3000 ±1000 | mono 0.18 ±0.05 | 0.45 / 0.55 | — |
+| Anglerfish | livebait 1.1, fish_strip 1.0 | boat, bottom | catfish, grusha | №1 ±2 | 10000 ±2000 | braid 0.3 ±0.08 | 0.72 / 0.8 | + |
+| Black marlin | giant_spoon 1.05, octopus_jig 1.0, swimbait 0.95, fish_strip 0.9, wobbler 0.9, silicone 0.5 | trolling | predator | №1 ±1 | 14000 ±1000 | braid 0.45 ±0.06 | 1.0 / 0.75 | + |
+| Blobfish | fish_strip 0.9, worm 0.8, bloodworm 0.7, chicken_liver 0.5 | boat, bottom | grusha, catfish | №6 ±3 | 8000 ±2000 | braid 0.25 ±0.08 | 0.55 / 0.45 | — |
+| Bluefin tuna | livebait 1.1, giant_spoon 1.0, swimbait 1.0, octopus_jig 0.9, fish_strip 0.9, castmaster 0.8, silicone 0.6 | trolling, boat | predator | №1 ±1 | 14000 ±1000 | braid 0.4 ±0.06 | 1.0 / 0.85 | — |
+| Loach | bloodworm 1.1, worm 1.0, maggot 0.8, mormyshka 0.6, dough 0.4 | pole, stick, ultralight | float, primitive | №16 ±2 | 1000 ±1000 | mono 0.12 ±0.04 | 0.2 / 0.5 | — |
+| Whale shark | fish_strip 0.35, livebait 0.3 | trolling, boat | catfish, grusha | №1 ±1 | 14000 ±1000 | braid 0.6 ±0.05 | 1.0 / 1.0 | — |
+| Nelma | spoon 1.1, spinner 1.0, livebait 0.95, castmaster 0.95, wobbler 0.85, swimbait 0.85, silicone 0.7 | spinning | predator | №4 ±2 | 4000 ±1500 | braid 0.2 ±0.05 | 0.7 / 0.6 | — |
+| Ocean sunfish | octopus_jig 1.0, silicone 0.85, fish_strip 0.6, livebait 0.35 | boat, surf | predator, grusha | №2 ±2 | 12000 ±2000 | braid 0.4 ±0.1 | 0.9 / 0.5 | — |
+| Pollock | jig 1.05, livebait 1.0, fish_strip 0.95, silicone 0.85, octopus_jig 0.85, bladebait 0.85, castmaster 0.8 | boat, sea_spin | predator, grusha | №4 ±2 | 8000 ±2000 | braid 0.22 ±0.06 | 0.7 / 0.7 | — |
+| Red piranha | fish_strip 1.1, chicken_liver 1.0, livebait 0.95, worm 0.7, silicone 0.6, spinner 0.5 | ultralight, spinning, pole | float, predator | №8 ±2 | 2000 ±1000 | mono 0.2 ±0.06 | 0.55 / 0.85 | + |
+| Tiger shark | fish_strip 1.15, livebait 1.1, swimbait 0.9, chicken_liver 0.85, octopus_jig 0.7, giant_spoon 0.6 | boat, surf, trolling | catfish, grusha | №1 ±1 | 14000 ±1000 | braid 0.45 ±0.08 | 1.0 / 0.95 | + |
+| Kutum | worm 1.0, bloodworm 0.9, maggot 0.8, fish_strip 0.5, pea 0.4 | feeder, bottom | feeder, float | №8 ±3 | 4000 ±1500 | mono 0.25 ±0.06 | 0.6 / 0.7 | — |
+| Naked Carp | boilie 1.0, corn 0.85, pea 0.6, pearl_barley 0.55, dough 0.5 | carp | carp, flat_feeder | №4 ±2 | 7000 ±1000 | mono 0.35 ±0.08 | 0.75 / 0.88 | — |
+| Arapaima | livebait 1.0, fish_strip 0.9, giant_spoon 0.85, swimbait 0.85, wobbler 0.75, silicone 0.6 | boat, sea_spin | predator, catfish | №1 ±2 | 10000 ±2000 | braid 0.45 ±0.08 | 0.95 / 0.8 | + |
+| Beluga sturgeon | livebait 1.0, fish_strip 0.9, chicken_liver 0.85, worm 0.5 | boat, bottom | catfish, grusha | №1 ±1 | 14000 ±2000 | braid 0.55 ±0.1 | 0.98 / 0.82 | + |
+| Piraiba | livebait 1.0, fish_strip 0.95, chicken_liver 0.85, swimbait 0.7, worm 0.5 | bottom, carp, boat | catfish, grusha | №1 ±2 | 10000 ±2000 | braid 0.5 ±0.08 | 0.96 / 0.8 | + |
+| Goliath grouper | livebait 1.0, fish_strip 0.95, octopus_jig 0.8, swimbait 0.8, giant_spoon 0.5 | boat, surf | catfish, predator | №1 ±1 | 12000 ±2000 | braid 0.55 ±0.1 | 0.97 / 0.78 | + |
+| Bull shark | livebait 1.0, fish_strip 1.0, swimbait 0.9, octopus_jig 0.75, giant_spoon 0.7 | boat, surf, trolling | predator, catfish | №1 ±1 | 12000 ±2000 | braid 0.5 ±0.08 | 1.0 / 0.76 | + |
+| Frilled shark | fish_strip 1.0, octopus_jig 0.95, livebait 0.85 | boat | catfish, predator | №1 ±2 | 10000 ±2000 | braid 0.4 ±0.08 | 0.9 / 0.7 | + |
+| Golden dorado | wobbler 1.0, swimbait 0.95, spoon 0.9, spinner 0.9, spinnerbait 0.9, popper 0.85, crankbait 0.8 | spinning, sea_spin | predator | №2 ±2 | 4000 ±1000 | braid 0.28 ±0.06 | 0.6 / 0.7 | + |
+| Golden crucian | worm 1.0, bread 0.9, dough 0.9, maggot 0.85, corn 0.7, pearl_barley 0.6 | pole, stick, bamboo, feeder | float, primitive, feeder | №12 ±2 | 2000 ±1000 | mono 0.18 ±0.05 | 0.35 / 0.6 | — |
+| Bitterling | bloodworm 1.0, maggot 1.0, bread 0.8, dough 0.7 | pole, stick, ultralight | float, primitive | №16 ±1 | 1000 ±1000 | mono 0.1 ±0.03 | 0.1 / 0.4 | — |
+| Sunbleak | maggot 1.0, bread 0.95, bloodworm 0.85, dough 0.8 | pole, stick, ultralight | float, primitive | №16 ±1 | 1000 ±1000 | mono 0.1 ±0.03 | 0.08 / 0.38 | — |
+| Sculpin | worm 1.0, bloodworm 0.9, maggot 0.8, livebait 0.3 | ultralight, pole, stick | primitive, float | №14 ±2 | 1000 ±1000 | mono 0.14 ±0.04 | 0.12 / 0.5 | — |
+| Tubenose goby | worm 1.0, bloodworm 0.95, maggot 0.9, fish_strip 0.4 | ultralight, pole, stick | primitive, float | №16 ±2 | 1000 ±1000 | mono 0.12 ±0.04 | 0.12 / 0.5 | — |
 
 ## Per-species notes
 

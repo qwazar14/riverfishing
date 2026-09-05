@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "fill=0": {
+      "model": "riverfishing:block/feeding_station"
+    },
+    "fill=1": {
+      "model": "riverfishing:block/feeding_station_1"
+    },
+    "fill=2": {
+      "model": "riverfishing:block/feeding_station_2"
+    },
+    "fill=3": {
+      "model": "riverfishing:block/feeding_station_3"
+    }
+  }
+}

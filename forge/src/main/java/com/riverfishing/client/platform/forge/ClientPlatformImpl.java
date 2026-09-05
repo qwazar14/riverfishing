@@ -32,6 +32,9 @@ public final class ClientPlatformImpl {
                 com.riverfishing.registry.ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
+        // §aquarium-window (0.9.0): the tank.
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.AQUARIUM.get(), com.riverfishing.client.AquariumScreen::new);
     }
 
     /**
@@ -96,6 +99,7 @@ public final class ClientPlatformImpl {
 
     public static void registerExtraModels() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientPlatformImpl::onRegisterAdditional);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientPlatformImpl::onRegisterTooltips);   // §catch-card
     }
 
     private static void onRegisterAdditional(ModelEvent.RegisterAdditional event) {
@@ -123,5 +127,11 @@ public final class ClientPlatformImpl {
     /** Forge patches {@code getModel(ResourceLocation)} straight onto the model manager. */
     public static BakedModel bakedModel(ResourceLocation loc) {
         return Minecraft.getInstance().getModelManager().getModel(loc);
+    }
+
+    /** §catch-card: the fish's tooltip component gets its renderer. */
+    private static void onRegisterTooltips(net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(com.riverfishing.item.FishCardTooltip.class,
+                com.riverfishing.client.FishCardClientTooltip::new);
     }
 }

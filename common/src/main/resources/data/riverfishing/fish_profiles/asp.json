@@ -1,5 +1,7 @@
 {
   "display": "Жерех",
+  "latin": "Leuciscus aspius",
+  "spawn": { "season": "spring", "sub": "mid" },
   "group": "cyprinid",
   "water_bodies": {
     "river": 1.2,
@@ -46,7 +48,11 @@
       "wobbler": 0.9,
       "popper": 0.85,
       "spinner": 0.8,
-      "crankbait": 0.7
+      "crankbait": 0.7,
+      "spinnerbait": 0.85,
+      "bladebait": 0.7,
+      "swimbait": 0.7,
+      "wacky_worm": 0.5
     },
     "hook": {
       "ideal": 6,
@@ -81,6 +87,7 @@
     "depth_max": 6,
     "width_min": 14
   },
+  "provinces": ["palearctic"],
   "biomes": {
     "temperate": 1.0
   },

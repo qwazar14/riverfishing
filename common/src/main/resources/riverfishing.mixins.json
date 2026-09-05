@@ -13,6 +13,7 @@
   },
   "client": [
     "MerchantOrderPanelMixin",
-    "FightEdgeGuardMixin"
+    "FightEdgeGuardMixin",
+    "TooltipFrameMixin"
   ]
 }

@@ -1,5 +1,7 @@
 {
   "display": "Парусник",
+  "latin": "Istiophorus platypterus",
+  "spawn": { "season": "summer" },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.0,

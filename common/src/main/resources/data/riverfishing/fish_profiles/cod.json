@@ -1,5 +1,7 @@
 {
   "display": "Треска",
+  "latin": "Gadus morhua",
+  "spawn": { "season": "winter", "sub": "late" },
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,
@@ -48,7 +50,9 @@
       "livebait": 0.9,
       "silicone": 0.7,
       "octopus_jig": 1.0,
-      "giant_spoon": 0.8
+      "giant_spoon": 0.8,
+      "bladebait": 0.85,
+      "swimbait": 0.8
     },
     "hook": {
       "ideal": 2,

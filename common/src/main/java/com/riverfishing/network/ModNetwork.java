@@ -38,6 +38,11 @@ public final class ModNetwork {
             QuestClaimPacket p = QuestClaimPacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));
         });
+        // §contracts-b1: a click on a post at the fisherman's board.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, ContractTakePacket.TYPE, (buf, ctx) -> {
+            ContractTakePacket p = ContractTakePacket.decode(buf);
+            ctx.queue(() -> p.handleServer(ctx));
+        });
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, SkillUnlockPacket.TYPE, (buf, ctx) -> {
             SkillUnlockPacket p = SkillUnlockPacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));
@@ -84,6 +89,10 @@ public final class ModNetwork {
             OrderPacket p = OrderPacket.decode(buf);
             ctx.queue(p::handleClient);
         });
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, ContractBoardPacket.TYPE, (buf, ctx) -> {
+            ContractBoardPacket p = ContractBoardPacket.decode(buf);
+            ctx.queue(p::handleClient);
+        });
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, ShoalPacket.TYPE, (buf, ctx) -> {
             ShoalPacket p = ShoalPacket.decode(buf);
             ctx.queue(p::handleClient);
@@ -95,6 +104,11 @@ public final class ModNetwork {
         });
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, RodWarningPacket.TYPE, (buf, ctx) -> {
             RodWarningPacket p = RodWarningPacket.decode(buf);
+            ctx.queue(p::handleClient);
+        });
+        // §finder-screen: a sounding, for the screen and for the strip that runs while it is held.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, FinderPacket.TYPE, (buf, ctx) -> {
+            FinderPacket p = FinderPacket.decode(buf);
             ctx.queue(p::handleClient);
         });
     }

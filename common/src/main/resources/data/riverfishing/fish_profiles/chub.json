@@ -1,5 +1,7 @@
 {
   "display": "Голавль",
+  "latin": "Squalius cephalus",
+  "spawn": { "season": "spring", "sub": "late" },
   "group": "cyprinid",
   "water_bodies": {
     "river": 1.2,
@@ -51,7 +53,10 @@
       "wobbler": 0.9,
       "spinner": 0.8,
       "crankbait": 0.75,
-      "castmaster": 0.7
+      "castmaster": 0.7,
+      "spinnerbait": 0.7,
+      "bladebait": 0.6,
+      "wacky_worm": 0.6
     },
     "hook": {
       "ideal": 8,
@@ -86,6 +91,7 @@
     "width_min": 6,
     "width_max": 40
   },
+  "provinces": ["palearctic"],
   "biomes": {
     "temperate": 1.0,
     "warm": 0.8

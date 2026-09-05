@@ -1,5 +1,7 @@
 {
   "display": "Арапайма",
+  "latin": "Arapaima gigas",
+  "spawn": { "season": "summer" },
   "group": "big_game",
   "water_bodies": {
     "river": 1.2,
@@ -50,7 +52,8 @@
       "fish_strip": 0.9,
       "giant_spoon": 0.85,
       "wobbler": 0.75,
-      "silicone": 0.6
+      "silicone": 0.6,
+      "swimbait": 0.85
     },
     "hook": {
       "ideal": 1,
@@ -84,6 +87,8 @@
     "depth_min": 3,
     "width_min": 14
   },
+  "provinces": ["neotropic"],
+  "biomes_require": ["warm", "jungle"],
   "biomes": {
     "warm": 1.4,
     "swamp": 1.0

@@ -65,11 +65,11 @@ public final class ShoalTracker {
      * the water gets the two fish that are actually big enough to make out from there.
      */
     private static final int NEAR = 12, MID = 26, FAR = 40;
-    private static final int WANT_NEAR = 7, WANT_MID = 4, WANT_FAR = 2;
+    private static final int WANT_NEAR = 9, WANT_MID = 8, WANT_FAR = 6;
     /** Length below which a fish is not worth sending at all from {@link #MID} / {@link #FAR} away. */
     private static final int SEE_MID_CM = 35, SEE_FAR_CM = 90;
     /** Total across all shoals — the render cost is per sprite, and this is the only place to bound it. */
-    private static final int MAX_FISH_TOTAL = 96;
+    private static final int MAX_FISH_TOTAL = 160;
     /** A lake 30 blocks below the clifftop you are standing on is not the water you are looking at. */
     private static final int Y_BAND = 20;
     /** Spook at which a patch shows no fish at all; below it the shoal thins in proportion. */
@@ -145,7 +145,7 @@ public final class ShoalTracker {
             WaterBody body = WaterBodyCache.forLevel(level).get(level, surface);
             if (body == null || body.type() == WaterType.NONE) continue;
             BiteContext env = FishingManager.environmentAt(level, surface, body);
-            Pool pool = poolFor(env, surface, pressure, now);
+            Pool pool = poolFor(env, surface, pressure, now, hour);
             if (pool.total <= 0) continue;
 
             // §spook: frightened fish leave, and that is the only readout this mechanic ever gets — you
@@ -155,7 +155,13 @@ public final class ShoalTracker {
             byte spookByte = (byte) Mth.clamp((int) Math.round(spook / SPOOK_GONE * 100.0), 0, 100);
 
             RandomSource rng = RandomSource.create(surface.asLong() * 31L + hour);
-            List<ShoalPacket.Entry> fish = pick(pool, env.waterDepth, Math.min(want, budget), minLen, rng);
+            // §shoal-stable: the draw must not depend on the budget. It did: nearer cells eat the
+            // budget first, so a step that reordered the cells changed this cell's cap, which changed
+            // how many draws it made, which changed WHICH species came out — and the client put the
+            // new species into the old fish's positions. Startle a shoal and it turned into a
+            // different shoal. So the cell draws its own shoal, and the budget only trims the tail.
+            List<ShoalPacket.Entry> fish = pick(pool, env.waterDepth, want, minLen, rng);
+            if (fish.size() > budget) fish = new ArrayList<>(fish.subList(0, budget));
             if (fish.isEmpty()) continue;
             budget -= fish.size();
             // Circuits have to stay inside the cell, or two neighbouring shoals swim through each other
@@ -199,7 +205,13 @@ public final class ShoalTracker {
      * <p>Pressure is applied on top, so a hammered swim visibly empties: {@code surplus} is negative
      * where the stock has been fished down.
      */
-    private static Pool poolFor(BiteContext env, BlockPos surface, FishingPressureData pressure, long now) {
+    /** Below this bite rate a species is RARE: shown in passes, not as furniture (§shoal-rare). */
+    private static final double RARE_BASE = 0.3;
+    /** ...and a pass is one hour in this many, per cell. */
+    private static final int RARE_ONE_IN = 4;
+
+    private static Pool poolFor(BiteContext env, BlockPos surface, FishingPressureData pressure, long now,
+                                long hour) {
         int sx = SectionPos.blockToSectionCoord(surface.getX());
         int sz = SectionPos.blockToSectionCoord(surface.getZ());
         Map<ResourceLocation, Double> weights = new HashMap<>();
@@ -207,6 +219,18 @@ public final class ShoalTracker {
         for (FishProfile p : FishProfileManager.get().all()) {
             double w = BiteEngine.environmentScore(p, env);
             if (w <= 1e-4) continue;
+            // §shoal-honest: the shoal was weighted by how well the water SUITS a species and never by
+            // how often it TAKES. A beluga at base 0.1 and a roach at 1.0 came up equally often, so
+            // the water was full of the fish you never catch and empty of the ones you do. The bite
+            // is base × environment; so is the shoal now.
+            w *= p.base;
+            // §shoal-rare: a species that takes once in ten stays rare on the screen too — it passes
+            // through one hour in four, seeded per cell, so "I saw a beluga" is an event and not a
+            // permanent fixture that cheapens the catch.
+            if (p.base < RARE_BASE) {
+                RandomSource gate = RandomSource.create(surface.asLong() * 7L + hour * 13L + p.id.hashCode());
+                if (gate.nextInt(RARE_ONE_IN) != 0) continue;
+            }
             // §shoal-pressure: fewer fish where the fishing has been heavy.
             w *= Mth.clamp(1.0 + pressure.surplusAround(sx, sz, p.id.getPath(), now), 0.05, 2.5);
             if (w > 1e-4) {
@@ -230,15 +254,20 @@ public final class ShoalTracker {
             if (pickId == null) break;
             FishProfile p = FishProfileManager.get().byId(pickId);
             if (p == null) continue;
-            // Too small to make out from where the player is standing: do not spend a lane, or bandwidth,
-            // on a fish the client would only throw away again.
-            if (p.lengthMax < minLen) continue;
             double mean = p.weightMeanSet ? p.weightMean : (p.weightMin + p.weightMax) / 2.0;
-
             // §shoal-groups: bleak and roach move in numbers; a pike does not. Sharing a lane puts the
             // group on one circuit, and near-identical phases keep it together instead of strung out.
             boolean shoaling = mean < SHOAL_UNDER_G;
-            int n = Math.min(shoaling ? 3 + rng.nextInt(4) : 1, want - out.size());
+            // §shoal-far: a lone small fish is not worth sending to a far cell — the client could not
+            // draw it big enough to see. A SCHOOL of them is: you cannot make out one bleak from the
+            // far bank, but you can make out a shimmer of eight. So the length cut applies to loners
+            // only, and the small species reach the far water as the groups they actually move in.
+            boolean far = p.lengthMax < minLen;
+            if (far && !shoaling) continue;
+            int n = Math.min(shoaling ? (far ? 5 + rng.nextInt(4) : 3 + rng.nextInt(4)) : 1, want - out.size());
+            byte kind = (byte) (("predator".equals(p.group) ? ShoalPacket.Entry.PREDATOR : 0)
+                    | (JUMPERS.contains(p.id.getPath()) ? ShoalPacket.Entry.JUMPER : 0)
+                    | (shoaling ? ShoalPacket.Entry.SHOALING : 0));
             int basePhase = rng.nextInt(64);
             int baseDepth = depthFor(p, waterDepth, rng);
 
@@ -254,7 +283,7 @@ public final class ShoalTracker {
                 // one dark old one look like what they are.
                 byte age = (byte) Math.round(com.riverfishing.fish.FishMorph.ageFraction(p, grams) * 100);
                 out.add(new ShoalPacket.Entry(pickId, grams, Math.max(1, lengthCm), age,
-                        (byte) dd, lane, (byte) ph));
+                        (byte) dd, lane, (byte) ph, kind));
             }
             lane++;
         }
@@ -263,6 +292,24 @@ public final class ShoalTracker {
 
     /** Ниже этой массы вид выходит СТАЕЙ, а не одиночкой. */
     private static final int SHOAL_UNDER_G = 900;
+
+    /**
+     * §shoal-jump: the species that clear the water. Carp roll, salmon and trout leap, asp and taimen
+     * hit the surface chasing. A name here that is not a species is a jumper nobody will ever see, so
+     * the set is checked against the profiles once and the strays are logged.
+     */
+    private static final java.util.Set<String> JUMPERS = jumpers();
+
+    private static java.util.Set<String> jumpers() {
+        String[] want = {"carp", "mirror_carp", "wild_carp", "grass_carp", "silver_carp", "salmon",
+                "rainbow_trout", "trout", "char", "pink_salmon", "grayling", "asp", "taimen", "tarpon", "sturgeon", "beluga"};
+        java.util.Set<String> out = new java.util.HashSet<>();
+        for (String s : want) {
+            if (java.util.Arrays.asList(com.riverfishing.registry.ModItems.FISH_SPECIES).contains(s)) out.add(s);
+            else com.riverfishing.RiverFishing.LOGGER.debug("§shoal-jump: no species '{}', skipped", s);
+        }
+        return out;
+    }
 
     /** A species pool for one kind of water, reused across every cell that answers the same. */
     private record Pool(List<ResourceLocation> ids, Map<ResourceLocation, Double> weights, double total) {

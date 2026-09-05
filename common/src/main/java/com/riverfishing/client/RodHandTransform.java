@@ -10,8 +10,10 @@ import org.joml.Quaternionf;
  * transform — what you see in game maps 1:1 to what you'd bake into a model's display block.
  *
  * <p>Fields are {@code {tx, ty, tz, rx, ry, rz, scale}}: translation in 1/16-block units (like a model
- * JSON), rotation in degrees (XYZ order), uniform scale. Every hand has its OWN explicit values —
- * left is NOT auto-mirrored (the arm's own mirror makes negation misbehave), so tune each directly.
+ * JSON), rotation in degrees (XYZ order), uniform scale. Every hand has its OWN explicit values, and
+ * NOTHING mirrors them for the left hand: the rod model's display block is identity and the left
+ * arm frame is the right one moved over (same axes), so a left pose is the right pose with tx
+ * negated and the SAME rotation — negating ry/rz as well turns the rod butt-up (§offhand-pose).
  *
  * <p>To bake a tuned pose: run {@code /rfrod show}, then paste the printed numbers over the DEFAULT
  * arrays below and rebuild the jar.
@@ -34,9 +36,9 @@ public final class RodHandTransform {
     // at scale 1 and needs its own set. These came straight out of Blockbench's display tab, which
     // maps 1:1 onto these arrays: both apply translate, then rotationXYZ, then scale, in that order.
     public static final float[] TP3  = {0.75f,  17f,   -0.5f, 5f, -90f, -90f, 1f}; // third person, right
-    public static final float[] TPL3 = {-0.75f, 17f,   -0.5f, 5f,  90f,  90f, 1f}; // third person, left
+    public static final float[] TPL3 = {-0.75f, 17f,   -0.5f, 5f, -90f, -90f, 1f}; // third person, left: TP3, tx mirrored
     public static final float[] FP3  = {7.5f,   3.75f, -14f,  0f, -90f, -45f, 1f}; // first person, right
-    public static final float[] FPL3 = {7.5f,   3.75f, -14f,  0f,  90f,  45f, 1f}; // first person, left
+    public static final float[] FPL3 = {-7.5f,  3.75f, -14f,  0f, -90f, -45f, 1f}; // first person, left: FP3, tx mirrored
     // =================================================================
 
     private static final float[] TP_DEFAULT = TP.clone();
@@ -47,6 +49,54 @@ public final class RodHandTransform {
     private static final float[] TPL3_DEFAULT = TPL3.clone();
     private static final float[] FP3_DEFAULT = FP3.clone();
     private static final float[] FPL3_DEFAULT = FPL3.clone();
+
+    // ===== §rod-pose-offset: a rod's OWN nudge on top of the 3D hand set =====
+    /**
+     * Same seven fields, applied in the ROD's frame after the hand pose: tx runs along the blank
+     * (negative = tip-ward), so ONE entry serves both hands and both persons. Translation added,
+     * rotation composed, scale multiplied; a rod absent here is identity. Every blank ends its grip at
+     * model x=32, so a short one (winter: 10 units, tip at 21.9) sits where the feeder's butt cap is —
+     * a block below the fist — until it is slid tip-ward. Tune live with {@code /rfrod rod <field> <v>},
+     * paste the {@code /rfrod show} line over ROD_OFFSET_DEFAULT. 3D set only: sprites are all 16 wide.
+     */
+    public static final java.util.Map<String, float[]> ROD_OFFSET = new java.util.HashMap<>();
+    private static final java.util.Map<String, float[]> ROD_OFFSET_DEFAULT = java.util.Map.of(
+            "winter", new float[]{-11f, 0f, 0f, 0f, 0f, 0f, 1f});
+    private static final float[] NO_OFFSET = {0f, 0f, 0f, 0f, 0f, 0f, 1f};
+    static { rodResetAll(); }
+
+    public static float[] rodOffset(String rodKey) {
+        float[] o = rodKey == null ? null : ROD_OFFSET.get(rodKey);
+        return o == null ? NO_OFFSET : o;
+    }
+
+    /** Sets one field of a rod's offset. NaN if the field is unknown. */
+    public static float rodEdit(String rodKey, String field, float value) {
+        int i = index(field);
+        if (i < 0) return Float.NaN;
+        return ROD_OFFSET.computeIfAbsent(rodKey, k -> NO_OFFSET.clone())[i] = value;
+    }
+
+    public static void rodReset(String rodKey) {
+        float[] d = ROD_OFFSET_DEFAULT.get(rodKey);
+        if (d == null) ROD_OFFSET.remove(rodKey); else ROD_OFFSET.put(rodKey, d.clone());
+    }
+
+    private static void rodResetAll() {
+        ROD_OFFSET.clear();
+        ROD_OFFSET_DEFAULT.forEach((k, v) -> ROD_OFFSET.put(k, v.clone()));
+    }
+
+    /** The held rod's offset, paste-ready for ROD_OFFSET_DEFAULT. */
+    public static String rodLine() {
+        String key = RodPhysics.heldRodKey();
+        if (key == null) return "§bROD §7— hold a rod to see its offset (/rfrod rod <field> <v>)";
+        float[] o = rodOffset(key);
+        return String.format("§bROD §f\"%s\", new float[]{%s, %s, %s, %s, %s, %s, %s} §7(rod frame; "
+                + "/rfrod rod tx|ty|tz|rx|ry|rz|s <v> | reset)",
+                key, n(o[0]), n(o[1]), n(o[2]), n(o[3]), n(o[4]), n(o[5]), n(o[6]));
+    }
+    // =====================================================================
 
     // ===== CAST ANIMATION (§cast-anim) — tunable live with /rfrod cast load|whip <deg> =====
     /** Degrees the rod loads BACK as the cast charges (wind-up); tracks the power bar. */
@@ -111,7 +161,7 @@ public final class RodHandTransform {
      * Applies the hand transform for a hand context (no-op otherwise). Each hand uses its own array;
      * {@code blank3d} picks the true-scale set used when the rod is drawn as a segmented 3D chain.
      */
-    public static void apply(PoseStack pose, ItemDisplayContext ctx, boolean blank3d) {
+    public static void apply(PoseStack pose, ItemDisplayContext ctx, boolean blank3d, String rodKey) {
         float[] a = switch (ctx) {
             case THIRD_PERSON_RIGHT_HAND -> blank3d ? TP3 : TP;
             case THIRD_PERSON_LEFT_HAND -> blank3d ? TPL3 : TPL;
@@ -141,7 +191,14 @@ public final class RodHandTransform {
                 (float) Math.toRadians(a[3] + lean[1]),
                 (float) Math.toRadians(a[4] + lean[0]),
                 (float) Math.toRadians(a[5])));
-        pose.scale(a[6], a[6], a[6]);
+        // §rod-pose-offset: the rod's own nudge, in the rod's frame the hand pose just set up
+        float[] o = blank3d ? rodOffset(rodKey) : NO_OFFSET;
+        if (o != NO_OFFSET) {
+            pose.translate(o[0] / 16f, o[1] / 16f, o[2] / 16f);
+            pose.mulPose(new Quaternionf().rotationXYZ(
+                    (float) Math.toRadians(o[3]), (float) Math.toRadians(o[4]), (float) Math.toRadians(o[5])));
+        }
+        pose.scale(a[6] * o[6], a[6] * o[6], a[6] * o[6]);
     }
 
     // ---- edit API for the /rfrod command ----
@@ -202,6 +259,7 @@ public final class RodHandTransform {
         System.arraycopy(FPL3_DEFAULT, 0, FPL3, 0, FPL3.length);
         CAST_LOAD = CAST_LOAD_DEFAULT;
         CAST_WHIP = CAST_WHIP_DEFAULT;
+        rodResetAll();
     }
 
     /** Human-readable current values, ready to paste back into the arrays above. Shows the live set. */
@@ -215,6 +273,7 @@ public final class RodHandTransform {
                 fmt("TPL", d3 ? TPL3 : TPL),
                 fmt("FP ", d3 ? FP3 : FP),
                 fmt("FPL", d3 ? FPL3 : FPL),
+                rodLine(),
                 String.format("§bCAST §fload=%s whip=%s §7(/rfrod cast load|whip <deg>)", n(CAST_LOAD), n(CAST_WHIP)),
                 "§8paste over " + (d3 ? "TP3/TPL3/FP3/FPL3" : "TP/TPL/FP/FPL")
                         + " (and CAST_LOAD/CAST_WHIP) in RodHandTransform.java, then rebuild");

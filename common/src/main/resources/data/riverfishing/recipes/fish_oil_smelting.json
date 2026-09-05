@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": { "tag": "riverfishing:oily_fish" },
+  "result": { "item": "riverfishing:fish_oil"},
+  "experience": 0.35,
+  "cookingtime": 200
+}

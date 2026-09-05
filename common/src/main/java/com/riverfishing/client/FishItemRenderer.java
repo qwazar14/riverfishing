@@ -39,9 +39,25 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         super(dispatcher, models);
     }
 
-    /** Icon model location for a species (registered as an additional model). */
+    /**
+     * Icon model location for a species (registered as an additional model).
+     *
+     * <p>§nbt-read: memoised. It is asked for once per fish per frame, and a string concat plus a
+     * ResourceLocation is pure garbage when the answer is one of a hundred and seven fixed values.
+     * Render-thread only, like ShoalRenderer's texture map.
+     */
+    private static final java.util.Map<String, ResourceLocation> ICON = new java.util.HashMap<>();
+
+    /** §pattern-mask: the sprites that carry a pattern mask — the koi and the five carp draws. */
+    public static final String[] PATTERN_DRAWS = {"koi_carp", "carp", "wild_carp", "mirror_carp", "linear_carp", "naked_carp"};
+
+    /** §pattern-mask: the flat mask model for one draw and one family — models/item/pattern/. */
+    public static ResourceLocation patternModel(String draw, String family) {
+        return RiverFishing.id("item/pattern/" + draw + "_" + family);
+    }
+
     public static ResourceLocation iconModel(String speciesPath) {
-        return RiverFishing.id("item/fish_icon/" + speciesPath);
+        return ICON.computeIfAbsent(speciesPath, sp -> RiverFishing.id("item/fish_icon/" + sp));
     }
 
     @Override
@@ -51,7 +67,11 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         if (sp == null) return;
         Minecraft mc = Minecraft.getInstance();
         ModelManager mm = mc.getModelManager();
-        BakedModel model = com.riverfishing.client.platform.ClientPlatform.bakedModel(iconModel(sp.getPath()));
+        // §variety-icon: a carp is drawn as the scale variety on its card — mirror, linear or leather.
+        // Its own model if the card says nothing, which is every fish that is not a carp.
+        String draw = com.riverfishing.fish.Genome.drawnAs(sp.getPath(),
+                com.riverfishing.fish.CatchCard.of(stack).getString("Variety"));
+        BakedModel model = com.riverfishing.client.platform.ClientPlatform.bakedModel(iconModel(draw));
         if (model == null || model == mm.getMissingModel()) return;
 
         // §keepnet: in the grid a fish is sized by the CELLS IT OCCUPIES, not by its length — the
@@ -100,6 +120,22 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         int ov = FishTint.overlay(stack);
         ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light,
                 ov == net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY ? overlay : ov, model);
+        // §pattern-mask: the family's marking, a second flat model at the same pose. Its quad sits just
+        // outside the sprite's slab (z 7.4..8.6 against 7.5..8.5) so nothing z-fights, and its tintindex
+        // 5 is what FishTint paints with the marking. Plain and gem draw nothing: plain has no mask, and
+        // a gem has already painted the whole fish.
+        int pat = com.riverfishing.fish.CatchCard.pattern(stack);
+        if (com.riverfishing.fish.Pattern.familyIndex(pat) > 0 && !com.riverfishing.fish.Pattern.isGem(pat)) {
+            BakedModel mask = com.riverfishing.client.platform.ClientPlatform.bakedModel(
+                    patternModel(draw, com.riverfishing.fish.Pattern.family(pat)));
+            if (mask != null && mask != mm.getMissingModel()) {
+                pose.pushPose();
+                // offset(): a notch along the body — ±2 texels of 256 — so neighbours are not twins
+                pose.translate(com.riverfishing.fish.Pattern.offset(pat) / 256f, 0f, 0f);
+                ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, mask);
+                pose.popPose();
+            }
+        }
         pose.popPose();
     }
 }

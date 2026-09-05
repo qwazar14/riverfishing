@@ -184,15 +184,40 @@ public final class BiteEngine {
     }
 
     private static double naturalScore(FishProfile p, BiteContext c) {
+        // §livebait-3: a 29 g rotan does not take a 125 g baitfish. A species whose biggest specimen
+        // could not swallow the bait (three times its weight, generously) is not a taker at all.
+        if (c.livebaitG > 0 && p.weightMax < c.livebaitG * 3.0) return 0.0;
         double fWater = p.waterFactor(c.water);
         if (fWater <= 0) return 0.0; // the fish does not live in this water body
 
         // Habitat hard gates (§ecology): wrong depth or wrong-sized water = the fish simply isn't here.
-        if (c.waterDepth < p.depthMin || c.waterDepth > p.depthMax) return 0.0;
-        if (c.waterWidth < p.widthMin || c.waterWidth > p.widthMax) return 0.0;
+        // §pond: not in a private pond — a 2x5x2 pit holds whatever its owner put in it, and the water type,
+        // climate and biome gates below still say whether the fish can live there at all.
+        if (!c.privatePond) {
+            if (c.waterDepth < p.depthMin || c.waterDepth > p.depthMax) return 0.0;
+            if (c.waterWidth < p.widthMin || c.waterWidth > p.widthMax) return 0.0;
+        }
+
+        // §provinces: half a planet, the one gate a biome cannot express. A species that names
+        // provinces is absent from every other one — no factor, no half rate, absent. A private pond is
+        // exempt (its owner put the fish there), and §stocked-survival above already lets a settled
+        // species live outside its range at a quarter of full activity: travel to find it, or bring it
+        // home and breed it. Those are the two ways, and both of them are the point.
+        if (!c.privatePond && !p.provinces.isEmpty()
+                && !c.province.isEmpty() && !p.provinces.contains(c.province)) {
+            return 0.0;
+        }
+        // §biomes-require: every group in the list, not the best of them. A specialist says what it
+        // needs all at once — cold AND a river AND mountains — and a water missing any of it has none.
+        if (!c.privatePond && !p.biomesRequire.isEmpty() && !c.biomeGroups.containsAll(p.biomesRequire)) {
+            return 0.0;
+        }
 
         double fBiome = biomeGroupFactor(p, c);
-        if (fBiome <= 0) return 0.0; // wrong climate/terrain — not this fish's range
+        // §pond-biome: a private pond is out of every fish's range by definition — the owner put the
+        // fish there. The gate stays for wild water; in a pond a fish out of its climate lives and
+        // bites at half rate, which is what a koi in a forest pit deserves.
+        if (fBiome <= 0) { if (!c.privatePond) return 0.0; fBiome = 0.5; }
 
         // §community (0.5.0): THIS water's own species set — the seed decides which species a given
         // lake/river patch actually holds (0 = simply not here, 1.8 = the water's signature fish).
@@ -206,7 +231,9 @@ public final class BiteEngine {
         double fWeather = p.weatherFactor(c.weather);
         double fDist = distanceFactor(p, c);
 
-        return fWater * fSeason * fTime * fWeather * Math.pow(fBiome, BIOME_POW) * fDist * fCommunity;
+        // §bed-bite: the bottom under the cast, a nudge of 0.85..1.2 — see FishProfile.bedFactor.
+        double fBed = p.bedFactor(c.bed);
+        return fWater * fSeason * fTime * fWeather * Math.pow(fBiome, BIOME_POW) * fDist * fCommunity * fBed;
     }
 
     /**

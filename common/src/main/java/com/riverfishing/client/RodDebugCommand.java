@@ -19,6 +19,8 @@ import net.minecraft.network.chat.Component;
  *   <li>{@code /rfrod add <ctx> <field> <delta>} — nudge a field (great for live tuning)</li>
  *   <li>{@code /rfrod show} — print current values (paste them into RodHandTransform to keep)</li>
  *   <li>{@code /rfrod reset} — back to the built-in defaults</li>
+ *   <li>{@code /rfrod rod <tx|ty|tz|rx|ry|rz|s> <value>} / {@code /rfrod rod reset} — the held rod's
+ *       own offset on top of the hand set (§rod-pose-offset)</li>
  * </ul>
  */
 public final class RodDebugCommand {
@@ -125,6 +127,25 @@ public final class RodDebugCommand {
                 // §rod-bend-3d: the switch for the bone chain, plus its one look-at-it number — total
                 // tip deflection at full tension. Turning it on also swaps /rfrod onto the 3D pose set
                 // (TP3/TPL3/FP3/FPL3), so tp/tpl/fp/fpl keep tuning whatever is actually on screen.
+                // §fish-3d: the rollback switch for the fish in the water.
+                .then(ClientCommandRegistrationEvent.literal("fish3d")
+                        .executes(c -> {
+                            say(c, "§efish3d: " + (ShoalRenderer.FISH_3D ? "§aON" : "§cOFF")
+                                    + " §7(/rfrod fish3d on|off) — bodies from the sprites, or the flat wave");
+                            return 1;
+                        })
+                        .then(ClientCommandRegistrationEvent.literal("on").executes(c -> {
+                            ShoalRenderer.FISH_3D = true;
+                            RodClientSettings.save();
+                            say(c, "§afish3d ON §7— fish in the water have bodies");
+                            return 1;
+                        }))
+                        .then(ClientCommandRegistrationEvent.literal("off").executes(c -> {
+                            ShoalRenderer.FISH_3D = false;
+                            RodClientSettings.save();
+                            say(c, "§cfish3d OFF §7— back to the flat swimming sprite");
+                            return 1;
+                        })))
                 .then(ClientCommandRegistrationEvent.literal("blank")
                         .executes(c -> {
                             say(c, String.format("§eblank3d: %s §edeg=%.1f §7(/rfrod blank on|off|deg <v>)",
@@ -264,6 +285,19 @@ public final class RodDebugCommand {
                                 .then(ClientCommandRegistrationEvent.argument("field", StringArgumentType.word())
                                         .then(ClientCommandRegistrationEvent.argument("value", FloatArgumentType.floatArg())
                                                 .executes(c -> edit(c, true))))))
+                // §rod-pose-offset: the HELD rod's own nudge on top of the hand set (a short ice blank
+                // needs its grip slid into the fist). Prints paste-ready for ROD_OFFSET_DEFAULT.
+                .then(ClientCommandRegistrationEvent.literal("rod")
+                        .executes(c -> { say(c, RodHandTransform.rodLine()); return 1; })
+                        .then(ClientCommandRegistrationEvent.literal("reset").executes(c -> {
+                            String key = RodPhysics.heldRodKey();
+                            if (key == null) { say(c, "§chold a rod to tune its offset"); return 0; }
+                            RodHandTransform.rodReset(key);
+                            say(c, RodHandTransform.rodLine());
+                            return 1;
+                        }))
+                        .then(rodField("tx")).then(rodField("ty")).then(rodField("tz"))
+                        .then(rodField("rx")).then(rodField("ry")).then(rodField("rz")).then(rodField("s")))
                 .then(ClientCommandRegistrationEvent.literal("cast")
                         .then(ClientCommandRegistrationEvent.argument("field", StringArgumentType.word())
                                 .then(ClientCommandRegistrationEvent.argument("value", FloatArgumentType.floatArg())
@@ -328,6 +362,19 @@ public final class RodDebugCommand {
                         .executes(c -> {
                             RodPhysics.edit(name, FloatArgumentType.getFloat(c, "v"));
                             say(c, RodPhysics.describe());
+                            return 1;
+                        }));
+    }
+
+    /** §rod-pose-offset: one {@code /rfrod rod <field> <v>} branch editing the held rod's offset. */
+    private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ClientCommandSourceStack> rodField(String name) {
+        return ClientCommandRegistrationEvent.literal(name)
+                .then(ClientCommandRegistrationEvent.argument("v", FloatArgumentType.floatArg())
+                        .executes(c -> {
+                            String key = RodPhysics.heldRodKey();
+                            if (key == null) { say(c, "§chold a rod to tune its offset"); return 0; }
+                            RodHandTransform.rodEdit(key, name, FloatArgumentType.getFloat(c, "v"));
+                            say(c, RodHandTransform.rodLine());
                             return 1;
                         }));
     }
