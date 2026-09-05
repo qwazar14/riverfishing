@@ -114,12 +114,15 @@ public class WaterUpgradeBlock extends Block implements SimpleWaterloggedBlock {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (!(level instanceof ServerLevel sl)) return InteractionResult.PASS;
         WaterUpgrades data = WaterUpgrades.get(sl);
-        if (data.charges(pos) >= WaterUpgrades.MAX_CHARGES) {
+        // §feeder-fill: settle the decay first — a station last topped up a week ago used to
+        // report itself full and refuse the jar until somebody happened to cast near it.
+        if (data.settle(pos) >= WaterUpgrades.MAX_CHARGES) {
             player.sendOverlayMessage(Component.translatable("message.riverfishing.feeder_full"));
             return InteractionResult.CONSUME;
         }
         data.put(pos, kind);      // a station placed before the ledger existed is still a station
         data.load(pos, CHARGES_PER_JAR);
+        FeedingStationBlock.sync(sl, pos, data.charges(pos));   // §feeder-fill: the window fills
         if (!player.getAbilities().instabuild) stack.shrink(1);
         player.sendOverlayMessage(Component.translatable("message.riverfishing.feeder_loaded",
                 data.charges(pos), WaterUpgrades.MAX_CHARGES));

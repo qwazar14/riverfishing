@@ -69,8 +69,8 @@ public final class ModBlocks {
             () -> new com.riverfishing.block.WaterUpgradeBlock("warm_outflow", "warm_outflow", false,
                     blockProps("warm_outflow").strength(1.5f).sound(SoundType.COPPER)));
     public static final RegistrySupplier<Block> FEEDING_STATION = registerSimple("feeding_station",
-            () -> new com.riverfishing.block.WaterUpgradeBlock("feeding_station", "feeding_station", false,
-                    blockProps("feeding_station").strength(1.0f).sound(SoundType.WOOD)));
+            () -> new com.riverfishing.block.FeedingStationBlock("feeding_station", "feeding_station", false,
+                    blockProps("feeding_station").strength(1.0f).sound(SoundType.WOOD).randomTicks()));
 
     // §pond §breeding (0.9.0): the private-pond sign — plant it by your water and the community hash,
     // the size gates and the poaching rule all step back from it (fishing/PondData).
