@@ -262,7 +262,12 @@ Sorted finest first, which is also smallest first — that is what the star mean
 
 | Species | Fraction | Nutrition |
 |---|---|---|
+| Sunbleak | 0.08 — fine, clouds | 0.38 — moderate |
+| Bitterling | 0.10 — fine, clouds | 0.40 — moderate |
+| Sculpin | 0.12 — fine, clouds | 0.50 — moderate |
+| Tubenose goby | 0.12 — fine, clouds | 0.50 — moderate |
 | Bleak | 0.14 — fine, clouds | 0.46 — moderate |
+| Loach | 0.20 — fine, clouds | 0.50 — moderate |
 | Gudgeon | 0.22 — fine, clouds | 0.54 — moderate |
 | Ruffe | 0.22 — fine, clouds | 0.54 — moderate |
 | Smelt | 0.22 — fine, clouds | 0.56 — moderate |
@@ -272,6 +277,7 @@ Sorted finest first, which is also smallest first — that is what the star mean
 | Roach | 0.31 — mixed | 0.47 — moderate |
 | Bluegill | 0.34 — mixed | 0.61 — moderate |
 | Common dace | 0.34 — mixed | 0.52 — moderate |
+| Golden crucian | 0.35 — mixed | 0.60 — moderate |
 | Crucian Carp | 0.40 — mixed | 0.63 — moderate |
 | Herring | 0.40 — mixed | 0.57 — moderate |
 | Perch | 0.40 — mixed | 0.70 — rich |
@@ -279,6 +285,7 @@ Sorted finest first, which is also smallest first — that is what the star mean
 | White Bream | 0.42 — mixed | 0.57 — moderate |
 | White-eye bream | 0.42 — mixed | 0.61 — moderate |
 | Blue bream | 0.44 — mixed | 0.55 — moderate |
+| Mullet | 0.45 — mixed | 0.55 — moderate |
 | Nase | 0.46 — mixed | 0.59 — moderate |
 | Sabrefish | 0.46 — mixed | 0.56 — moderate |
 | Oscar | 0.47 — mixed | 0.68 — moderate |
@@ -290,6 +297,8 @@ Sorted finest first, which is also smallest first — that is what the star mean
 | Vimba bream | 0.53 — mixed | 0.60 — moderate |
 | Ide | 0.54 — mixed | 0.66 — moderate |
 | Tench | 0.54 — mixed | 0.63 — moderate |
+| Blobfish | 0.55 — mixed | 0.45 — moderate |
+| Red piranha | 0.55 — mixed | 0.85 — rich |
 | Bream | 0.56 — mixed | 0.68 — moderate |
 | Eel | 0.56 — mixed | 0.74 — rich |
 | Flounder | 0.56 — mixed | 0.71 — rich |
@@ -297,6 +306,8 @@ Sorted finest first, which is also smallest first — that is what the star mean
 | Whitefish | 0.57 — mixed | 0.52 — moderate |
 | Rainbow trout | 0.58 — mixed | 0.70 — rich |
 | Arctic char | 0.59 — mixed | 0.70 — rich |
+| Golden dorado | 0.60 — mixed | 0.70 — rich |
+| Kutum | 0.60 — mixed | 0.70 — rich |
 | Pink salmon | 0.61 — mixed | 0.75 — rich |
 | Bullseye snakehead | 0.62 — mixed | 0.70 — rich |
 | Burbot | 0.62 — mixed | 0.75 — rich |
@@ -313,13 +324,19 @@ Sorted finest first, which is also smallest first — that is what the star mean
 | Koi Kohaku | 0.69 — coarse, holds big fish | 0.75 — rich |
 | Koi Showa Sanke | 0.69 — coarse, holds big fish | 0.75 — rich |
 | Koi Tancho Sanke | 0.69 — coarse, holds big fish | 0.75 — rich |
+| Koi carp | 0.69 — coarse, holds big fish | 0.75 — rich |
+| Nelma | 0.70 — coarse, holds big fish | 0.60 — moderate |
+| Pollock | 0.70 — coarse, holds big fish | 0.70 — rich |
 | Saithe | 0.71 — coarse, holds big fish | 0.75 — rich |
 | Sterlet | 0.71 — coarse, holds big fish | 0.56 — moderate |
+| Anglerfish | 0.72 — coarse, holds big fish | 0.80 — rich |
+| Linear carp | 0.72 — coarse, holds big fish | 0.85 — rich |
 | Mirror Carp | 0.72 — coarse, holds big fish | 0.85 — rich |
 | Carp | 0.73 — coarse, holds big fish | 0.85 — rich |
 | Channel catfish | 0.73 — coarse, holds big fish | 0.77 — rich |
 | Snook | 0.73 — coarse, holds big fish | 0.75 — rich |
 | Striped bass | 0.74 — coarse, holds big fish | 0.75 — rich |
+| Naked Carp | 0.75 — coarse, holds big fish | 0.88 — rich |
 | Wild Carp | 0.75 — coarse, holds big fish | 0.84 — rich |
 | Jack crevalle | 0.76 — coarse, holds big fish | 0.50 — moderate |
 | Grass Carp | 0.77 — coarse, holds big fish | 0.66 — moderate |
@@ -333,14 +350,25 @@ Sorted finest first, which is also smallest first — that is what the star mean
 | Conger eel | 0.84 — coarse, holds big fish | 0.74 — rich |
 | Taimen | 0.87 — coarse, holds big fish | 0.50 — moderate |
 | Wahoo | 0.88 — coarse, holds big fish | 0.50 — moderate |
+| Frilled shark | 0.90 — coarse, holds big fish | 0.70 — rich |
+| Ocean sunfish | 0.90 — coarse, holds big fish | 0.50 — moderate |
 | Halibut | 0.93 — coarse, holds big fish | 0.75 — rich |
+| Arapaima | 0.95 — coarse, holds big fish | 0.80 — rich |
 | Sturgeon | 0.95 — coarse, holds big fish | 0.79 — rich |
+| Piraiba | 0.96 — coarse, holds big fish | 0.80 — rich |
+| Goliath grouper | 0.97 — coarse, holds big fish | 0.78 — rich |
+| Beluga sturgeon | 0.98 — coarse, holds big fish | 0.82 — rich |
 | Tarpon | 0.99 — coarse, holds big fish | 0.75 — rich |
 | Yellowfin tuna | 0.99 — coarse, holds big fish | 0.75 — rich |
+| Black marlin | 1.00 — coarse, holds big fish | 0.75 — rich |
 | Blue marlin | 1.00 — coarse, holds big fish | 0.75 — rich |
+| Bluefin tuna | 1.00 — coarse, holds big fish | 0.85 — rich |
+| Bull shark | 1.00 — coarse, holds big fish | 0.76 — rich |
 | Mako shark | 1.00 — coarse, holds big fish | 0.75 — rich |
 | Sailfish | 1.00 — coarse, holds big fish | 0.50 — moderate |
 | Swordfish | 1.00 — coarse, holds big fish | 0.75 — rich |
+| Tiger shark | 1.00 — coarse, holds big fish | 0.95 — rich |
+| Whale shark | 1.00 — coarse, holds big fish | 1.00 — rich |
 
 ---
 

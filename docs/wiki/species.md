@@ -1,6 +1,6 @@
 # Species
 
-Ninety-one species. Every number on this page comes from that species' profile in `data/riverfishing/fish_profiles/`, which is fully datapack-overridable — see [`docs/FISH_PROFILES.md`](../FISH_PROFILES.md) for the schema.
+A hundred and seven species. Every number on this page comes from that species' profile in `data/riverfishing/fish_profiles/`, which is fully datapack-overridable — see [`docs/FISH_PROFILES.md`](../FISH_PROFILES.md) for the schema.
 
 Companion page: **[Species reference](species-reference.md)** holds the habitat gates, the season / time / weather tables and the fight statistics.
 
@@ -15,7 +15,7 @@ Companion page: **[Species reference](species-reference.md)** holds the habitat 
 ## Families
 
 Every species is filed under one of seven families. It is the `group` field in the profile, and it is
-what the [electrofisher](electrofisher.md#the-screen) lays its picker out by — ninety-one names in one
+what the [electrofisher](electrofisher.md#the-screen) lays its picker out by — a hundred and seven names in one
 flat list is a list nobody reads. A datapack species that names no family is filed under **Other**, listed
 and reachable but never silently mis-filed.
 
@@ -24,13 +24,13 @@ predator and is a cyprinid, and takes cyprinid [groundbait](groundbait.md) accor
 
 | Family | Species |
 |---|---|
-| **Carp family** (27) | Asp, Bitterling, Bleak, Blue bream, Bream, Carp, Chub, Common dace, Crucian Carp, Golden crucian, Grass Carp, Gudgeon, Ide, Kutum, Mirror Carp, Naked Carp, Nase, Roach, Rudd, Sabrefish, Silver carp, Sunbleak, Tench, Vimba bream, White Bream, White-eye bream, Wild Carp |
-| **Predators** (19) | Bluegill, Bullseye snakehead, Burbot, Catfish, Channel catfish, Eel, Golden dorado, Largemouth bass, Mayan cichlid, Oscar, Peacock bass, Perch, Pike, Piraiba, Rotan, Ruffe, Sculpin, Volga zander, Zander |
-| **Salmon & trout** (10) | Arctic char, Atlantic salmon, Grayling, Lenok, Pink salmon, Rainbow trout, Smelt, Taimen, Trout, Whitefish |
+| **Carp family** (29) | Asp, Bitterling, Bleak, Blue bream, Bream, Carp, Chub, Common dace, Crucian Carp, Golden crucian, Grass Carp, Gudgeon, Ide, Kutum, Linear carp, Loach, Mirror Carp, Naked Carp, Nase, Roach, Rudd, Sabrefish, Silver carp, Sunbleak, Tench, Vimba bream, White Bream, White-eye bream, Wild Carp |
+| **Predators** (20) | Bluegill, Bullseye snakehead, Burbot, Catfish, Channel catfish, Eel, Golden dorado, Largemouth bass, Mayan cichlid, Oscar, Peacock bass, Perch, Pike, Piraiba, Red piranha, Rotan, Ruffe, Sculpin, Volga zander, Zander |
+| **Salmon & trout** (11) | Arctic char, Atlantic salmon, Grayling, Lenok, Nelma, Pink salmon, Rainbow trout, Smelt, Taimen, Trout, Whitefish |
 | **Sturgeons** (3) | Beluga sturgeon, Sterlet, Sturgeon |
-| **Koi** (5) | Koi Asagi, Koi Bekko, Koi Kohaku, Koi Showa Sanke, Koi Tancho Sanke |
-| **Sea fish** (16) | Barracuda, Bluefish, Cod, Conger eel, Flounder, Garfish, Herring, Jack crevalle, Mackerel, Ray, Round goby, Saithe, Sea bass, Snook, Striped bass, Tubenose goby |
-| **Big game** (13) | Arapaima, Blue marlin, Bull shark, Frilled shark, Goliath grouper, Halibut, Mahi-mahi, Mako shark, Sailfish, Swordfish, Tarpon, Wahoo, Yellowfin tuna |
+| **Koi** (6) | Koi Asagi, Koi Bekko, Koi carp, Koi Kohaku, Koi Showa Sanke, Koi Tancho Sanke |
+| **Sea fish** (21) | Anglerfish, Barracuda, Blobfish, Bluefish, Cod, Conger eel, Flounder, Garfish, Herring, Jack crevalle, Mackerel, Mullet, Ocean sunfish, Pollock, Ray, Round goby, Saithe, Sea bass, Snook, Striped bass, Tubenose goby |
+| **Big game** (17) | Arapaima, Black marlin, Blue marlin, Bluefin tuna, Bull shark, Frilled shark, Goliath grouper, Halibut, Mahi-mahi, Mako shark, Sailfish, Swordfish, Tarpon, Tiger shark, Wahoo, Whale shark, Yellowfin tuna |
 
 ## All species
 
@@ -141,6 +141,8 @@ predator and is a cyprinid, and takes cyprinid [groundbait](groundbait.md) accor
 | 103 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/pollock.png" width="28" alt=""> Pollock | `pollock` | 500 g – 15 kg | 1.8 kg | 25–90 cm | sea 1.2 | 4 |
 | 104 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/red_piranha.png" width="28" alt=""> Red piranha | `red_piranha` | 300 g – 4 kg | 900 g | 15–45 cm | river 1.1, swamp 0.9, lake 0.8, pond 0.5 | 4 |
 | 105 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/tiger_shark.png" width="28" alt=""> Tiger shark | `tiger_shark` | 50 kg – 800 kg | 140 kg | 200–500 cm | sea 1.1 | 9 |
+| 106 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/koi_carp.png" width="28" alt=""> Koi carp | `koi_carp` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
+| 107 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/linear_carp.png" width="28" alt=""> Linear carp | `linear_carp` | 1 kg – 14 kg | 3.2 kg | 33–95 cm | lake 1.2, pond 1.2, river 0.5, swamp 0.4 | 3 |
 
 ## Ideal tackle
 
@@ -253,6 +255,8 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Pollock | jig 1.05, livebait 1.0, fish_strip 0.95, silicone 0.85, octopus_jig 0.85, bladebait 0.85, castmaster 0.8 | boat, sea_spin | predator, grusha | №4 ±2 | 8000 ±2000 | braid 0.22 ±0.06 | 0.7 / 0.7 | — |
 | Red piranha | fish_strip 1.1, chicken_liver 1.0, livebait 0.95, worm 0.7, silicone 0.6, spinner 0.5 | ultralight, spinning, pole | float, predator | №8 ±2 | 2000 ±1000 | mono 0.2 ±0.06 | 0.55 / 0.85 | + |
 | Tiger shark | fish_strip 1.15, livebait 1.1, swimbait 0.9, chicken_liver 0.85, octopus_jig 0.7, giant_spoon 0.6 | boat, surf, trolling | catfish, grusha | №1 ±1 | 14000 ±1000 | braid 0.45 ±0.08 | 1.0 / 0.95 | + |
+| Koi carp | boilie 1.0, corn 0.8, pea 0.6, bread 0.6 | carp | carp | №6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
+| Linear carp | boilie 1.0, corn 0.8, pea 0.6, pearl_barley 0.5 | carp | carp, flat_feeder | №6 ±2 | 6000 ±1000 | mono 0.3 ±0.08 | 0.72 / 0.85 | — |
 
 ## Per-species notes
 

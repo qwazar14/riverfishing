@@ -118,6 +118,8 @@ These four columns are **hard gates** — outside them the fish is simply absent
 | Pollock | 4+ | 16+ | cold 1.4, deep 1.1, ocean_biome 0.9, temperate 0.6 | mid | 15–45 |
 | Red piranha | 1–12 | 5+ | jungle 1.4, warm 1.3, swamp 1.0 | mid | 3–20 |
 | Tiger shark | 8+ | 24+ | warm 1.3, ocean_biome 1.0, deep 1.0, beach 0.9 | mid | 20–45 |
+| Koi carp | 1+ | 4+ | cherry 1.0 | bottom | 6–30 |
+| Linear carp | 2+ | 10+ | warm 1.2, temperate 1.0 | bottom | 12–40 |
 
 ## Season, time and weather
 
@@ -232,6 +234,8 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Pollock | 1.1 | 0.8 | 1.2 | 1.3 | 1.2 | 1.0 | 1.2 | 0.8 | 0.9 | 1.1 | 1.0 |
 | Red piranha | 1.0 | 1.2 | 1.0 | 0.4 | 1.1 | 1.3 | 1.1 | 0.4 | 1.1 | 1.0 | 0.8 |
 | Tiger shark | 1.0 | 1.3 | 1.1 | 0.4 | 1.2 | 0.7 | 1.3 | 1.5 | 1.0 | 1.1 | 0.9 |
+| Koi carp | 1.0 | 1.0 | 1.0 | 0.3 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 |
+| Linear carp | 0.8 | 1.4 | 0.9 | 0.05 | 1.2 | 0.9 | 1.2 | 1.0 | 0.9 | 1.2 | 0.8 |
 
 ## Fight statistics
 
@@ -349,6 +353,8 @@ Remember the exponents: the season factor is raised to the power **1.5** and the
 | Pollock | active_then_passive | 0.7 | 2 | 0.5 | 0.75 | — |
 | Red piranha | aggressive | 0.65 | 3 | 1.0 | 0.7 | — |
 | Tiger shark | relentless | 0.85 | 5 | 0.9 | 0.2 | — |
+| Koi carp | burst | 0.7 | 3 | 0.6 | 0.0 | — |
+| Linear carp | burst | 0.8 | 3 | 0.75 | 0.45 | — |
 
 ## See also
 
