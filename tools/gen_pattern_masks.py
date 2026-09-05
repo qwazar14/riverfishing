@@ -195,8 +195,12 @@ def masks_for(sprite_path, eye_path=None):
             if not left: u = 1.0 - u
             v = (y - y0) / bh
             if shape(fam, u, v, x, y, colv(x, y)):
-                g = int(round(255 * max(0.0, min(1.0, lit[(x, y)] / mean_l * LEVEL))))
-                px[y][x] = (g, g, g, 255); n += 1
+                # §pattern-chroma: the sprite's own COLOUR, scaled — not its grey. A grey mask under a
+                # brown marking drained the carp to a blue-grey wash; keeping the hue and saturation
+                # of the texel underneath is what makes the marking a darker carp, not a stain.
+                k = LEVEL / mean_l
+                r0, g0, b0 = rows[y][x][:3]
+                px[y][x] = (int(min(255, r0 * k)), int(min(255, g0 * k)), int(min(255, b0 * k)), 255); n += 1
         out[fam] = (px, n)
     mean = tuple(sum(rows[y][x][i] for (x, y) in body) // len(body) for i in range(3))
     return w, h, rows, out, left, mean
@@ -226,8 +230,8 @@ def main(argv):
                         if a > 8:
                             cell[y][x] = (r, g, b, 255)
                             if fam != "plain" and out[fam][0][y][x][3]:
-                                m = out[fam][0][y][x][0] / 255.0
-                                cell[y][x] = (int(tint[0] * m), int(tint[1] * m), int(tint[2] * m), 255)
+                                mr, mg, mb = [c / 255.0 for c in out[fam][0][y][x][:3]]
+                                cell[y][x] = (int(tint[0] * mr), int(tint[1] * mg), int(tint[2] * mb), 255)
                 row.append(cell)
             for y in range(h):
                 strip.append(sum((c[y] + [(255, 0, 255, 255)] * 4 for c in row), []))
