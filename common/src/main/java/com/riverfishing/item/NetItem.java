@@ -130,10 +130,11 @@ public abstract class NetItem extends Item {
             int weightG = rollWeight(p, rng);
             ItemStack fish = FishItem.create(ModItems.fishItem(p.id), p.id, weightG, lengthCm(p, weightG, rng), true);
             pressure.addCatch(chunk, p.id.getPath(), now);
-            // §n §breeding: out of a settled water, a netted fish costs a head like a landed one.
-            if (stocked.isStocked(region, p.id.getPath()) && stocked.adults(region, p.id.getPath()) > 0) {
-                stocked.takeAdult(region, p.id.getPath());
-            }
+            // §net-ledger: a netted fish pays the ledger exactly as a landed one does — a settled water
+            // from its head count, an unsettled brood from F/M, and the last one out ends the attempt.
+            // This used to be a copy of the settled half only, so 120 matured-but-unsettled fish could
+            // be netted out one by one while the sounder went on counting every one of them.
+            com.riverfishing.fishing.FishingManager.broodAfterCatch(level, sp, pos, p.id);
 
             // POACHING: a net is legal only in water YOU stocked. A native species is in nobody's book
             // (owner null) — nobody stocked it, so nobody may net it. The haul still happens: this is

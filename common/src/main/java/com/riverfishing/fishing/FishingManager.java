@@ -3229,7 +3229,10 @@ public final class FishingManager {
         // §h §breeding: fry thrown into open water are eaten — 70% make it in bare water, up to 100% with
         // snags to hide in (§F's frySurvival). Stock units and the ledger both count the survivors.
         int alive = Math.max(1, (int) Math.round(count * (0.7 + com.riverfishing.fishing.Ecosystem.frySurvival(level, pos))));
-        release(level, pos, p, alive * 0.02, thrower, (stocked, region) -> {
+        // §fry-bank: fry bank NOTHING. The stock units a release banks are what the net hauls from, at
+        // adult weights, and a water that holds only fry holds nothing a net can lift. The fish they
+        // become are banked in StockedData.matureIfDue(), on the day they become them.
+        release(level, pos, p, 0.0, thrower, (stocked, region) -> {
             stocked.addFry(region, species.getPath(), alive, StockedData.worldDay(level), genome,
                     thrower == null ? null : thrower.getUUID());
             stocked.setPattern(region, species.getPath(), pattern);   // §pattern: the bred line
@@ -3288,8 +3291,10 @@ public final class FishingManager {
         FishingPressureData pressure = FishingPressureData.get(level);
         // §residency: how deep the bank goes depends on the species' standing HERE —
         // native 250%, settled transplant 150%, an unsettled one builds a 0..100% temp population.
-        pressure.addStock(chunk, id, now, units, nativeHere ? FishingPressureData.FLOOR_NATIVE
-                : resident ? FishingPressureData.FLOOR_SETTLED : FishingPressureData.FLOOR_TRANSPLANT);
+        if (units > 0) {   // §fry-bank: addStock floors at 0.01 units, and fry are not that
+            pressure.addStock(chunk, id, now, units, nativeHere ? FishingPressureData.FLOOR_NATIVE
+                    : resident ? FishingPressureData.FLOOR_SETTLED : FishingPressureData.FLOOR_TRANSPLANT);
+        }
         boolean settledNow = false;
         if (!nativeHere) {   // §k §farm: a settled pond keeps its ledger — every mature fish put in is brood
             ledger.accept(stocked, region);
@@ -3327,7 +3332,7 @@ public final class FishingManager {
      * in to wake it. Then the bill: an unsettled species IS its brood, so every fish landed comes off
      * the ledger, and fishing the last one out before the window closes ends the attempt.
      */
-    private static void broodAfterCatch(ServerLevel level, ServerPlayer sp, BlockPos pos, ResourceLocation species) {
+    public static void broodAfterCatch(ServerLevel level, ServerPlayer sp, BlockPos pos, ResourceLocation species) {
         FishProfile p = FishProfileManager.get().byId(species);
         if (p == null) return;
         String id = species.getPath();
