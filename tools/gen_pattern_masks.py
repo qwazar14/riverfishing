@@ -154,7 +154,20 @@ def shape(fam, u, v, x, y, vc=None):
     return False
 
 
-def masks_for(sprite_path):
+INK = 0.15        # a texel this dark is outline or pupil: left unmasked, so it shows through
+LEVEL = 0.78      # the mask's mean brightness after normalising — the marking colour sets the rest
+
+
+def lum(p):
+    return (0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2]) / 255.0
+
+
+def masks_for(sprite_path, eye_path=None):
+    """§pattern-shade: the mask is not white. Where it marks, its RGB is the SPRITE's own brightness,
+    normalised so the body's mean comes out at LEVEL — the marking colour then multiplies over it and
+    the scales, the shading and the fin rays survive underneath. A flat white mask painted a flat
+    patch: the first build turned a ghost carp into a beige silhouette and put a grey blind over the
+    kohaku's eye. Outline-dark texels and the koi's eye layer are holes, so the ink stays ink."""
     w, h, rows = read(sprite_path)
     body = silhouette(rows)
     xs, ys = [p[0] for p in body], [p[1] for p in body]
@@ -164,17 +177,26 @@ def masks_for(sprite_path):
     # the rim: a texel within RIM of the outside is never marked — hard clip, not a feather
     inner = {(x, y) for (x, y) in body
              if all((x + dx, y + dy) in body for dx in range(-RIM, RIM + 1) for dy in range(-RIM, RIM + 1))}
+    eye = set()
+    if eye_path and os.path.exists(eye_path):
+        eye = silhouette(read(eye_path)[2])
+        eye = {(x + dx, y + dy) for (x, y) in eye for dx in (-1, 0, 1) for dy in (-1, 0, 1)}
+    lit = {p: lum(rows[p[1]][p[0]]) for p in inner}
+    mean_l = max(0.05, sum(lit.values()) / max(1, len(lit)))
     out = {}
     colv = column_v(body)
     for fam in FAMILIES:
         px = [[(0, 0, 0, 0)] * w for _ in range(h)]
         n = 0
         for (x, y) in inner:
+            if (x, y) in eye or lit[(x, y)] < INK:
+                continue
             u = (x - x0) / bw
             if not left: u = 1.0 - u
             v = (y - y0) / bh
             if shape(fam, u, v, x, y, colv(x, y)):
-                px[y][x] = (255, 255, 255, 255); n += 1
+                g = int(round(255 * max(0.0, min(1.0, lit[(x, y)] / mean_l * LEVEL))))
+                px[y][x] = (g, g, g, 255); n += 1
         out[fam] = (px, n)
     mean = tuple(sum(rows[y][x][i] for (x, y) in body) // len(body) for i in range(3))
     return w, h, rows, out, left, mean
@@ -186,7 +208,7 @@ def main(argv):
     strip = []
     for draw in DRAWS:
         src = os.path.join(HERE, REL, draw + ".png")
-        w, h, rows, out, left, mean = masks_for(src)
+        w, h, rows, out, left, mean = masks_for(src, os.path.join(HERE, REL, "koi_eye.png") if draw == "koi_carp" else None)
         print("%-12s head %s  mean #%02X%02X%02X  " % (draw, "left " if left else "right", *mean)
               + " ".join("%s:%d" % (f[:3], out[f][1]) for f in FAMILIES))
         for root in roots:
@@ -196,13 +218,16 @@ def main(argv):
             row = []
             for fam in ["plain"] + FAMILIES:
                 cell = [[(255, 0, 255, 255)] * w for _ in range(h)]
+                # the preview paints the way the game does: marking colour × the mask's own RGB
+                tint = (0x8A, 0x4A, 0x38)
                 for y in range(h):
                     for x in range(w):
                         r, g, b, a = rows[y][x]
                         if a > 8:
                             cell[y][x] = (r, g, b, 255)
                             if fam != "plain" and out[fam][0][y][x][3]:
-                                cell[y][x] = (int(r * 0.45), int(g * 0.35), int(b * 0.35), 255)
+                                m = out[fam][0][y][x][0] / 255.0
+                                cell[y][x] = (int(tint[0] * m), int(tint[1] * m), int(tint[2] * m), 255)
                 row.append(cell)
             for y in range(h):
                 strip.append(sum((c[y] + [(255, 0, 255, 255)] * 4 for c in row), []))
