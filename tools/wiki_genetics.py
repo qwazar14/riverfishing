@@ -106,17 +106,19 @@ T = {
 }
 
 CSS = """
+.rfcalc.rfgen .row>div{min-width:0;max-width:100%}
+.rfcalc.rfgen .wbox{min-width:0}
 .rfgen .parents{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:8px}
 .rfgen .parent{border:1px solid var(--rule,#d6dbd5);border-radius:5px;padding:10px 12px;background:var(--paper,#f2f4f1)}
 .rfgen .parent h4{margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass,#8a5e1e)}
 .rfgen .loci{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 10px}
-.rfgen .loci label{font-size:11px;margin-bottom:2px;text-transform:none;letter-spacing:0}
-.rfgen select{min-width:0;font-size:14px;padding:4px 6px;width:100%}
-.rfgen input[type=text],.rfgen input[type=number]{font:inherit;font-size:14px;padding:5px 8px;border:1px solid var(--rule,#d6dbd5);
+.rfcalc.rfgen .loci label{font-size:11px;margin-bottom:2px;text-transform:none;letter-spacing:0}
+.rfcalc.rfgen select{min-width:0;font-size:14px;padding:4px 6px;width:100%}
+.rfcalc.rfgen input[type=text],.rfcalc.rfgen input[type=number]{font:inherit;font-size:14px;padding:5px 8px;border:1px solid var(--rule,#d6dbd5);
  border-radius:4px;background:var(--paper,#f2f4f1);color:var(--ink,#171c1a);width:100%;box-sizing:border-box}
 .rfgen .paste{margin-top:8px}
 .rfgen .opts{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:14px}
-.rfgen .opts label{display:inline;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink,#171c1a)}
+.rfcalc.rfgen .opts label{display:inline;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink,#171c1a)}
 .rfgen table{border-collapse:collapse;font-size:13.5px;width:100%}
 .rfgen td,.rfgen th{padding:3px 6px;text-align:left;border-bottom:1px solid var(--rule,#d6dbd5)}
 .rfgen th{font-weight:400;color:var(--dim,#5c6660);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
@@ -262,7 +264,7 @@ def widget(lang, emit_css=True):
         '  <div class="row" style="margin-top:10px"><div><label>' + t["pm"] + '</label><input type="number" class="pm" min="0" max="999" placeholder="—"></div>'
         '<div><label>' + t["pf"] + '</label><input type="number" class="pf" min="0" max="999" placeholder="—"></div>'
         '<div class="k" style="font-size:12px;color:var(--dim,#5c6660)">' + t["nopat"] + '</div></div>\n'
-        '  <div class="out" id="rfg-out-' + lang + '"></div>\n'
+        '  <div class="rfg-out" id="rfg-out-' + lang + '"></div>\n'
         '</div>\n'
         "<script>\nvar RFGEN_LANG=" + j(lang) + ";var RFGEN_T=" + j(t) + ";var RFGEN_NAMES=" + j(names(lang)) +
         ";var RFGEN_KOI=" + j(KOI_TABLE) + ";var RFGEN_BAND=" + j(BAND) + ";var RFGEN_FAM=" + j(FAMILY) +
