@@ -34,6 +34,12 @@ DRAWS = ["koi_carp", "carp", "wild_carp", "mirror_carp", "linear_carp", "naked_c
 # band order from Pattern.FAMILY, minus "plain" which is no mask at all
 FAMILIES = ["drift", "crown", "banded", "speckled", "mask", "marbled", "veined", "dappled", "ghost", "ember", "aurora"]
 RIM = 3
+# §pattern-hand: the koi's mask, banded and aurora are the AUTHOR'S drawings, not this script's. The
+# generator never overwrites them — it copies them to the other trees — and banded and aurora are
+# also the TEMPLATES for the five carps: the drawing is re-projected into each carp's body space
+# (u along the body, v down the column), so a banded carp wears the koi's bands, not a sine wave.
+HAND = ["mask", "banded", "aurora"]
+TEMPLATED = ["banded", "aurora"]
 
 
 # ---- png in / out (palette + rgba, no PIL) ---------------------------------------------------------
@@ -136,6 +142,27 @@ def column_v(body):
     return lambda x, y: (y - top[x]) / max(1, bot[x] - top[x])
 
 
+def template(fam):
+    """The author's koi_carp_<fam> as a function of body coordinates (u, vc), sampled nearest."""
+    kw, kh, krows = read(os.path.join(HERE, REL, "koi_carp.png"))
+    body = silhouette(krows)
+    xs = [p[0] for p in body]
+    x0, x1 = min(xs), max(xs)
+    left = head_on_left(body, x0, x1, min(p[1] for p in body), max(p[1] for p in body))
+    top, bot = {}, {}
+    for (x, y) in body:
+        top[x] = min(top.get(x, y), y); bot[x] = max(bot.get(x, y), y)
+    mask = silhouette(read(os.path.join(HERE, REL, "pattern", "koi_carp_%s.png" % fam))[2])
+
+    def hit(u, vc):
+        if not left: u = 1.0 - u
+        kx = x0 + int(round(u * (x1 - x0)))
+        if kx not in top: return False
+        ky = top[kx] + int(round(vc * (bot[kx] - top[kx])))
+        return (kx, ky) in mask
+    return hit
+
+
 def shape(fam, u, v, x, y, vc=None):
     """Hard shapes in body space. u: head 0 → tail 1. v: back 0 → belly 1 over the BOX; vc the same
     over this column alone (crown and ember use it — fins make the box lie). x,y: texels, for noise."""
@@ -162,7 +189,7 @@ def lum(p):
     return (0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2]) / 255.0
 
 
-def masks_for(sprite_path, eye_path=None):
+def masks_for(sprite_path, eye_path=None, templates=None):
     """§pattern-shade: the mask is not white. Where it marks, its RGB is the SPRITE's own brightness,
     normalised so the body's mean comes out at LEVEL — the marking colour then multiplies over it and
     the scales, the shading and the fin rays survive underneath. A flat white mask painted a flat
@@ -194,7 +221,7 @@ def masks_for(sprite_path, eye_path=None):
             u = (x - x0) / bw
             if not left: u = 1.0 - u
             v = (y - y0) / bh
-            if shape(fam, u, v, x, y, colv(x, y)):
+            if (templates[fam](u, colv(x, y)) if templates and fam in templates else shape(fam, u, v, x, y, colv(x, y))):
                 # §pattern-chroma: the sprite's own COLOUR, scaled — not its grey. A grey mask under a
                 # brown marking drained the carp to a blue-grey wash; keeping the hue and saturation
                 # of the texel underneath is what makes the marking a darker carp, not a stain.
@@ -210,9 +237,14 @@ def main(argv):
     preview = "--preview" in argv
     roots = [a for a in argv if not a.startswith("--")] or TREES
     strip = []
+    templates = {fam: template(fam) for fam in TEMPLATED}
     for draw in DRAWS:
         src = os.path.join(HERE, REL, draw + ".png")
-        w, h, rows, out, left, mean = masks_for(src, os.path.join(HERE, REL, "koi_eye.png") if draw == "koi_carp" else None)
+        w, h, rows, out, left, mean = masks_for(src, os.path.join(HERE, REL, "koi_eye.png") if draw == "koi_carp" else None, templates)
+        if draw == "koi_carp":
+            for fam in HAND:
+                hp = read(os.path.join(HERE, REL, "pattern", "koi_carp_%s.png" % fam))[2]
+                out[fam] = (hp, sum(1 for r in hp for px in r if px[3]))
         print("%-12s head %s  mean #%02X%02X%02X  " % (draw, "left " if left else "right", *mean)
               + " ".join("%s:%d" % (f[:3], out[f][1]) for f in FAMILIES))
         for root in roots:
