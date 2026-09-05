@@ -55,6 +55,11 @@ for draw in DRAWS:
             fails.append("%s_%s marks %d texels outside the fish" % (draw, fam, off))
         if not any(px[3] == 255 for r in mrows for px in r):
             fails.append("%s_%s is empty — the family draws nothing on this fish" % (draw, fam))
+        # §pattern-shade: a mask carries the sprite's shading in its RGB. A flat white one paints a flat
+        # patch — a ghost carp became a beige silhouette, a kohaku got a grey blind over its eye.
+        greys = {px[0] for r in mrows for px in r if px[3] == 255}
+        if len(greys) < 8:
+            fails.append("%s_%s is flat (%d grey levels) — it must carry the sprite's shading, not paint over it" % (draw, fam, len(greys)))
         checked += 1
 
 # 3 / 4: the wiring
