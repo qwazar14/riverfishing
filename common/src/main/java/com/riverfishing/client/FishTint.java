@@ -26,6 +26,11 @@ public final class FishTint {
     public static int itemColor(ItemStack stack, int tintIndex) {
         ResourceLocation sp = FishItem.getSpecies(stack);
         if (sp == null) return -1;                       // a creative-tab entry with no specimen data
+        // §pattern-mask: tintindex 5 is the family's mask, drawn by FishItemRenderer over the body.
+        if (tintIndex == 5) {
+            return FishMorph.patternTint(sp.getPath(), com.riverfishing.fish.CatchCard.of(stack).getString("Variety"),
+                    com.riverfishing.fish.CatchCard.pattern(stack));
+        }
         // §koi-genes: one white koi sprite, four tinted layers — ground, red hi, black sumi and the
         // tancho crown — so every named variety is painted rather than drawn. The patch masks are cut
         // out of the sprite itself, so a layer this fish does not wear is given the ground colour and

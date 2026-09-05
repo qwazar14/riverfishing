@@ -266,6 +266,36 @@ public final class Pattern {
      * leaving half the varieties pattern-blind, a colour with almost no saturation is given a little:
      * 7% of the family's own hue, which is the faintest cast the eye still catches on white.
      */
+    /**
+     * §pattern-mask: the colour the family's MASK is painted, given the fish's ground colour. The mask
+     * says where; this says what. A light fish takes a darker cut of its own ground and a dark one a
+     * paler cut, so the marking always reads against the body; ghost is a pale wash whatever the
+     * fish, ember is warm, aurora is the ground turned round the wheel by where the index sits in its
+     * band. Then the family's own hue and lift, and the in-band turn — so two neighbours differ.
+     * A gem returns the gem: the whole fish is already that colour and the mask must vanish into it.
+     */
+    public static int marking(int ground, int pattern) {
+        int gem = gemColor(pattern);
+        if (gem >= 0) return gem;
+        int fam = familyIndex(pattern);
+        if (fam == 0) return ground;
+        double lum = (0.299 * ((ground >> 16) & 0xFF) + 0.587 * ((ground >> 8) & 0xFF) + 0.114 * (ground & 0xFF)) / 255.0;
+        String name = FAMILY[fam];
+        int base;
+        if ("ghost".equals(name)) base = mix(ground, 0xF6F2EA, 0.62);
+        else if ("ember".equals(name)) base = mix(ground, 0xE8702A, 0.72);
+        else if ("aurora".equals(name)) base = shift(mix(ground, 0x60B8FF, 0.55), (pattern % 70) * 360.0 / 70.0, 0.10);
+        else base = lum > 0.42 ? mix(ground, 0x241A12, 0.55) : mix(ground, 0xF0E6D2, 0.45);
+        return shift(base, hueShift(pattern) - HUE[fam], LIFT[fam]) & 0xFFFFFF;
+    }
+
+    private static int mix(int a, int b, double t) {
+        int r = (int) Math.round(((a >> 16) & 0xFF) * (1 - t) + ((b >> 16) & 0xFF) * t);
+        int g = (int) Math.round(((a >> 8) & 0xFF) * (1 - t) + ((b >> 8) & 0xFF) * t);
+        int bl = (int) Math.round((a & 0xFF) * (1 - t) + (b & 0xFF) * t);
+        return (r << 16) | (g << 8) | bl;
+    }
+
     private static int shift(int rgb, double degrees, double lift) {
         double r = ((rgb >> 16) & 0xFF) / 255.0, g = ((rgb >> 8) & 0xFF) / 255.0, b = (rgb & 0xFF) / 255.0;
         double max = Math.max(r, Math.max(g, b)), min = Math.min(r, Math.min(g, b)), d = max - min;

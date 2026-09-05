@@ -24,6 +24,13 @@ public final class ClientModels {
             list.add(FishItemRenderer.iconModel(sp));
         }
         list.add(FryItemRenderer.FALLBACK); // §breeding: the static fry icon the procedural one falls back to
+        // §pattern-mask: one flat mask model per patterned draw per family. Unlisted here they would
+        // never be baked, and the renderer would draw the missing model — which is nothing, silently.
+        for (String draw : FishItemRenderer.PATTERN_DRAWS) {
+            for (String fam : com.riverfishing.fish.Pattern.families()) {
+                if (!"plain".equals(fam)) list.add(FishItemRenderer.patternModel(draw, fam));
+            }
+        }
         return list;
     }
 
