@@ -96,10 +96,19 @@ before(md, "matureFry(t)", "addStock(", "matureIfDue(): the matured fish must be
 if "return mature;" not in sd:
     fails.append("StockedData.matureFry() no longer returns the count — matureIfDue() banks nothing")
 
+# 7. §ledger-presence: an unsettled brood is counted by its book; the last fish out empties the bank too
+before(sp, "hasBrood(region, s)", "return Math.max(bank", "stockedPresence(): an unsettled species with a ledger must be counted by its HEADS, not the bank alone")
+if "if (heads <= 0) return 0.0;" not in sp:
+    fails.append("stockedPresence(): a ledger with no heads must read 0 whatever the bank still holds")
+bac = body(os.path.join(J, "fishing/FishingManager.java"), r"public static void broodAfterCatch\(", "broodAfterCatch()")
+before(bac, "catchFromBrood(region, id)", "clearStockAround(", "broodAfterCatch(): the bank must be cleared AFTER catchFromBrood says the brood is gone")
+if "stockedPresence(level, pos).applyAsDouble(p.id)" not in ni:
+    fails.append("NetItem: an unsettled brood with a dry bank must be weighed by stockedPresence — the net and the sounder disagreed")
+
 if fails:
     print("FAILED:")
     for x in fails:
         print("  " + x)
     sys.exit(1)
 print("stock gates: founders before the cross, cull before the fit and before the surplus, the net's eco honest, "
-      "the net pays the ledger, fry bank nothing until they are fish")
+      "the net pays the ledger, fry bank nothing until they are fish, an unsettled brood is its book")

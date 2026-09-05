@@ -111,6 +111,11 @@ public abstract class NetItem extends Item {
             // the bite engine honest about that, so the net asks it too.
             if (BiteEngine.environmentScore(p, FishingManager.habitatContext(level, pos, body)) <= 0) continue;
             int pct = pressure.stockPercent(chunk, id, now);
+            // §ledger-presence: an unsettled brood is counted by its book, not by a weight bank that
+            // eleven hauls empty — the same function the bite reads, so the net and the sounder agree.
+            if (pct <= 0 && !stocked.isStocked(region, id)) {
+                pct = (int) Math.round(100 * FishingManager.stockedPresence(level, pos).applyAsDouble(p.id));
+            }
             if (pct <= 0) continue;
             pool.add(p);
             weights.add(pct);
