@@ -123,7 +123,7 @@ The **sazan** (`wild_carp`) is the exception and stays its own species. It is th
 
 ## Koi are bred, not found
 
-The five koi items of earlier versions are one species now — **koi carp** — with four colour loci on top of the carp's two, and **seventeen** varieties fall out of the combinations.
+The five koi items of earlier versions are one species now — **koi carp** — with five colour loci on top of the carp's two, and **seventeen** varieties fall out of the combinations.
 
 | Locus | What it paints |
 |---|---|

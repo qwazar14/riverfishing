@@ -64,10 +64,10 @@ GROUPS = [
     ("Start", ["getting-started"]),
     ("Gear", ["rods", "reels-and-lines", "rigs-and-baits", "groundbait", "tackle-station", "crafting",
               "tools", "blocks", "keepnet", "tackle-box"]),
-    ("Playing", ["fishing-mechanics", "water-and-conditions", "shoal", "ice-fishing", "sea-fishing",
-                 "stocking"]),
+    ("Playing", ["fishing-mechanics", "water-and-conditions", "provinces", "shoal", "ice-fishing",
+                 "sea-fishing", "stocking", "breeding", "genetics"]),
     ("Reference", ["species", "species-reference", "calculator", "progression", "villager",
-                   "order-board", "config", "electrofisher", "compatibility"]),
+                   "order-board", "contracts", "config", "electrofisher", "compatibility"]),
 ]
 
 

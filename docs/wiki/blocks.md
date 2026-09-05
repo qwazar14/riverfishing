@@ -158,11 +158,12 @@ Despite the item id `trophy_stand`, this is a desktop tank: a small pedestal wit
 
 ## Aquarium
 
-A proper display tank: **2 blocks wide × 2 tall × 1 deep**, glass on top, wooden base with a nameplate below. All four cells place and break together, and it fails to place if there is not room for all four.
+**2 blocks wide × 2 tall × 1 deep**, glass on top, wooden base with a nameplate below. All four cells place and break together, and it fails to place if there is not room for all four. As a block it is unchanged since 0.6; as a thing, since 0.9.0, it is a **tank**.
 
-- Holds up to **3 fish** of **any size**.
-- Right-click with a fish to add, empty-handed to remove the last one.
-- The bottom-left cell is the master and holds the contents; break any cell and the whole thing comes down, dropping one aquarium plus every fish inside.
+- Right-click **any** cell and it opens: **six fish slots**, food, groundbait, water, result and **two module slots**. The old right-click-with-a-fish verbs are gone — everything goes through the slots.
+- A mature ♀ and ♂ of one species in their spawning window, fed and in clean water, give **roe** in three days; take the parents out and it **incubates** on the tank floor into **fry**. The whole procedure — feeding, water, the clutch, the hatch, the modules — is on the [Breeding](breeding.md) page.
+- The water is drawn as it is: clear blue at 100 %, green murk at 50 % (nothing spawns below that), brown at 0 %; the modules in the slots stand as blocks in the back corners; six fish swim as six fish.
+- The bottom-left cell is the master and holds the contents; break any cell and the whole thing comes down, dropping one aquarium plus what it held.
 
 ---
 
@@ -193,6 +194,35 @@ Break an immature crop and you just get the seed back.
 **Getting seeds:** each of the three drops from **grass and tall grass** at 5 %, exactly like vanilla wheat seeds but a little rarer. The [fisherman](villager.md) also sells 3 seeds of a rotating type for 1 emerald at novice tier.
 
 All three crops are registered into **Serene Seasons**' spring, summer and autumn crop tags, so they respect the seasons if that mod is installed.
+
+---
+
+## Water upgrades
+
+New in **0.9.0**: five blocks for a pond of your own. None does anything right where it sits — each puts a **mark** on the water, and every cast within **24 blocks** horizontally (six up or down) fishes over improved water. A second block of the same kind is only a second block, not a stacking bonus. The sample view of the [fish finder](tools.md) lists the upgrades in reach.
+
+| Block | In the water | Recipe |
+|---|---|---|
+| Aerator | Slightly clears the water, so the sight hunters — pike, asp, perch, chub, trout — feed about a quarter harder all year; in summer every species bites ×1.15 on top; wild fry survive +10 %. Bubbles like a magma block, without the burn. | iron ingots, redstone, a magma block |
+| Snag Pile | Cover: predators bite ×1.2 over it, and wild fry survive +15 %. | logs and sticks |
+| Gravel Bed | Overrides the bed as gravel for the whole swim: salmonids bite +20 %, predators +12.5 % — but carp lose their silt and sturgeon their sand. Four per craft. | gravel, iron nuggets |
+| Warm Outflow | In open water it only shifts the thermometer; its purpose is the tank, where it cuts incubation to four days whatever the climate. | a copper block, blaze powder, a bucket (shapeless) |
+| Feeding Station | Right-click with groundbait: one jar feeds the swim for four days, the station holds eight days' worth, and the model shows the fill level. Kept fed: bite ×1.6, waits −25 %, stocked fish gain weight +25 % a season. It does not decide *who* comes — that is the mix you throw by hand. | planks around a hopper |
+
+The aerator, the snag pile and the gravel bed are waterlogged blocks placed on the bottom; the other two do not hold water. All five double as [aquarium modules](breeding.md#the-five-modules), where each means something narrower.
+
+---
+
+## Private pond sign
+
+New in **0.9.0**. A sign placed within **three blocks** of water claims that body — up to **600 blocks** of water: a dug pit or a village pond, never a river (a bigger body is refused). It is a board on a post, it faces whoever plants it, and its hitbox is the board.
+
+- **No wild fish move in.** Nothing lives in a claimed pond but what you put in it.
+- The **depth, width, biome and [province](provinces.md) gates step back** — a carp lives in a dug pit, an arapaima in your garden.
+- **Your own net is legal** here, and the wait between hauls is a third of the wild one; anyone else's net is poaching the lot.
+- Break the sign and the water turns wild again.
+
+Recipe: any sign plus planks, shapeless. What a claimed pond does to the stocking ledger is on the [Stocking](stocking.md) page.
 
 ---
 
