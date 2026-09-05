@@ -60,7 +60,10 @@ s = s.replace(anchor, """    /**
         super.inventoryTick(stack, level, entity, slot);
         net.minecraft.world.item.component.CustomModelData cmd =
                 stack.get(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA);
-        if (cmd == null || cmd.colors().isEmpty()) stampIcon(stack);
+        // §pattern-mask: a fish stamped before the mask existed has its colours but no family string —
+        // it would draw no marking for the rest of its life. Re-stamp it once; the guard is the string.
+        if (cmd == null || cmd.colors().isEmpty()
+                || (cmd.strings().size() < 2 && com.riverfishing.registry.ModItemTags.patterned(stack))) stampIcon(stack);
     }
 
 """ + anchor, 1)
