@@ -27,7 +27,14 @@ covers the lot — the audit found the net carrying its own copy of the cull che
 import io, os, sys
 
 ROOT = sys.argv[1]
+D = sys.argv[2] if len(sys.argv) > 2 else "1211"
 P = os.path.join(ROOT, "common/src/main/java/com/riverfishing/fishing/FishingManager.java")
+
+# 26.x renamed the action-bar overlay: displayClientMessage(msg, true) -> sendOverlayMessage(msg)
+OVERLAY = ("thrower.sendOverlayMessage(Component.translatable(\"message.riverfishing.cull_done\", name)\n"
+           "                        .withStyle(ChatFormatting.RED));") if D == "26" else \
+          ("thrower.displayClientMessage(Component.translatable(\"message.riverfishing.cull_done\", name)\n"
+           "                        .withStyle(ChatFormatting.RED), true);")
 
 s = io.open(P, encoding="utf-8").read()
 if "cull-gate" in s:
@@ -46,13 +53,12 @@ s = s.replace(old, """        net.minecraft.network.chat.Component name = fishNa
         // this, a culled species could be stocked back in by anyone, settle, and clear its own cull.
         if (StockedData.get(level).isCulled(region, id)) {
             if (thrower != null) {
-                thrower.displayClientMessage(Component.translatable("message.riverfishing.cull_done", name)
-                        .withStyle(ChatFormatting.RED), true);
+                %s
             }
             return;
         }
         double fit = BiteEngine.environmentScore(p, habitatContext(level, pos, body));
-        if (fit <= 0) {""", 1)
+        if (fit <= 0) {""" % OVERLAY, 1)
 
 # ---- 2. …and it has no presence, temporary or otherwise ------------------------------------------
 old = """        return id -> {
