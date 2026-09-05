@@ -4,7 +4,7 @@
 
 Nothing bites by luck. A data-driven bite engine weighs your whole setup against every one of **107 species** under the current conditions, and decides both *what* takes and *how long you wait*. Mismatched gear catches nothing, a line that is too visible spooks small wary fish, big fish demand a near-perfect kit, and every water in the world holds its own species community fixed by the world seed.
 
-- **Version 0.7.0**, on four Minecraft versions:
+- **Version 0.9.0**, on four Minecraft versions:
   - **1.20.1** — Fabric & Forge
   - **1.21.1** — Fabric & NeoForge
   - **26.1.2** — Fabric & NeoForge
