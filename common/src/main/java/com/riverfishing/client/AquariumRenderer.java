@@ -54,7 +54,6 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
                        MultiBufferSource buffers, int light, int overlay) {
         java.util.List<ItemStack> fishes = be.getFishes();
         ItemStack roe = be.getRoe();
-        if (fishes.isEmpty() && roe.isEmpty()) return;
 
         Direction facing = be.getBlockState().hasProperty(AquariumBlock.FACING)
                 ? be.getBlockState().getValue(AquariumBlock.FACING) : Direction.NORTH;
@@ -64,6 +63,11 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         // Centre of the 2-wide × 1-tall glass tank (upper row), relative to the master cell corner.
         double tankX = 0.5 + cw.getStepX() * 0.5;
         double tankZ = 0.5 + cw.getStepZ() * 0.5;
+
+        // §aqua-view: the water and the modules first — an empty tank still has water in it.
+        renderWater(be, facing, tankX, tankZ, pose, buffers, light, overlay);
+        renderModules(be, facing, tankX, tankZ, pose, buffers, light, overlay);
+        if (fishes.isEmpty() && roe.isEmpty()) return;
 
         if (!roe.isEmpty()) renderRoe(be, roe, time, facing, cw, tankX, tankZ, pose, buffers, light, overlay);
         if (fishes.isEmpty()) return;
@@ -220,6 +224,85 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
                 .uv2(light)
                 .normal(0f, 1f, 0f)
                 .endVertex();
+    }
+
+
+    // §aqua-view: the water is drawn here, not by the block model, so its colour can say how the tank
+    // is doing. The box is the size the model's water element was: 0.6/16 in from the glass, 2/16 to
+    // 15/16 up the upper cell, across both cells.
+    private static final ResourceLocation WATER_TEX = RiverFishing.id("textures/block/aquarium_water.png");
+    private static final RenderType WATER_LAYER = RenderType.entityTranslucent(WATER_TEX);
+    private static final float W_HX = 1f - 0.6f / 16f, W_HZ = 0.5f - 0.6f / 16f, W_Y0 = 1f + 2f / 16f, W_Y1 = 1f + 15f / 16f;
+    /** §aqua-view: the two module slots, drawn as their block items in the back corners of the gravel. */
+    private static final float MOD_X = 0.72f, MOD_Z = -0.28f, MOD_Y = 1f + 2f / 16f + 0.13f, MOD_SCALE = 0.5f;
+
+    /**
+     * §aqua-view: ARGB for a water percentage. Three stops — clear blue at 100, green murk at 50 (the
+     * line under which nothing spawns, so the colour crosses into "wrong" exactly there), brown at 0 —
+     * and the alpha climbs as it fouls: dirty water is also water you cannot see through.
+     */
+    public static int waterColor(int water) {
+        float t = Mth.clamp(water / 100f, 0f, 1f);
+        int[] good = {0x6F, 0xC0, 0xF0, 0x6C}, mid = {0x7A, 0xB4, 0x8A, 0x8C}, bad = {0x6E, 0x58, 0x2E, 0xC0};
+        int[] from = t >= 0.5f ? mid : bad, to = t >= 0.5f ? good : mid;
+        float k = t >= 0.5f ? (t - 0.5f) * 2f : t * 2f;
+        int r = Math.round(from[0] + (to[0] - from[0]) * k), g = Math.round(from[1] + (to[1] - from[1]) * k);
+        int b = Math.round(from[2] + (to[2] - from[2]) * k), a = Math.round(from[3] + (to[3] - from[3]) * k);
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    /** §aqua-view: five faces of the water box, each wound both ways so culling cannot eat one. */
+    private static void waterBox(Matrix4f m, VertexConsumer vc, int r, int g, int b, int a, int light, int overlay) {
+        float[][] faces = {
+                {-W_HX, W_Y1, -W_HZ, -W_HX, W_Y1, W_HZ, W_HX, W_Y1, W_HZ, W_HX, W_Y1, -W_HZ, 0f, 1f, 0f},
+                {-W_HX, W_Y0, W_HZ, W_HX, W_Y0, W_HZ, W_HX, W_Y1, W_HZ, -W_HX, W_Y1, W_HZ, 0f, 0f, 1f},
+                {W_HX, W_Y0, -W_HZ, -W_HX, W_Y0, -W_HZ, -W_HX, W_Y1, -W_HZ, W_HX, W_Y1, -W_HZ, 0f, 0f, -1f},
+                {-W_HX, W_Y0, -W_HZ, -W_HX, W_Y0, W_HZ, -W_HX, W_Y1, W_HZ, -W_HX, W_Y1, -W_HZ, -1f, 0f, 0f},
+                {W_HX, W_Y0, W_HZ, W_HX, W_Y0, -W_HZ, W_HX, W_Y1, -W_HZ, W_HX, W_Y1, W_HZ, 1f, 0f, 0f},
+        };
+        float[] us = {0f, 1f, 1f, 0f}, vs = {1f, 1f, 0f, 0f};
+        for (float[] f : faces) {
+            for (int i = 0; i < 4; i++) tv(m, vc, f[i * 3], f[i * 3 + 1], f[i * 3 + 2], us[i], vs[i], r, g, b, a, f[12], f[13], f[14], light, overlay);
+            for (int i = 3; i >= 0; i--) tv(m, vc, f[i * 3], f[i * 3 + 1], f[i * 3 + 2], us[i], vs[i], r, g, b, a, -f[12], -f[13], -f[14], light, overlay);
+        }
+    }
+
+    private static void tv(Matrix4f m, VertexConsumer vc, float x, float y, float z, float u, float v, int r, int g, int b, int a, float nx, float ny, float nz, int light, int overlay) {
+        vc.vertex(m, x, y, z)
+                .color(r, g, b, a)
+                .uv(u, v)
+                .overlayCoords(overlay)
+                .uv2(light)
+                .normal(nx, ny, nz)
+                .endVertex();
+    }
+
+    private void renderWater(AquariumBlockEntity be, Direction facing, double tankX, double tankZ,
+                             PoseStack pose, MultiBufferSource buffers, int light, int overlay) {
+        int water = be.getWater();
+        if (water <= 0) return;
+        int c = waterColor(water);
+        pose.pushPose();
+        pose.translate(tankX, 0, tankZ);
+        pose.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
+        waterBox(pose.last().pose(), buffers.getBuffer(WATER_LAYER),
+                (c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF, (c >>> 24) & 0xFF, light, overlay);
+        pose.popPose();
+    }
+
+    private void renderModules(AquariumBlockEntity be, Direction facing, double tankX, double tankZ,
+                               PoseStack pose, MultiBufferSource buffers, int light, int overlay) {
+        for (int slot = 10; slot <= 11; slot++) {
+            ItemStack m = be.getItem(slot);
+            if (m.isEmpty()) continue;
+            pose.pushPose();
+            pose.translate(tankX, MOD_Y, tankZ);
+            pose.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
+            pose.translate(slot == 10 ? -MOD_X : MOD_X, 0, MOD_Z);
+            pose.scale(MOD_SCALE, MOD_SCALE, MOD_SCALE);
+            itemRenderer.renderStatic(m, ItemDisplayContext.FIXED, light, overlay, pose, buffers, be.getLevel(), 0);
+            pose.popPose();
+        }
     }
 
     private void renderNameplate(AquariumBlockEntity be, java.util.List<ItemStack> fishes, Direction facing,
