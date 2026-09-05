@@ -239,6 +239,26 @@ public class FishItem extends Item {
                         java.util.List.of(), strings, colors));
     }
 
+    /**
+     * §icon-topup: a fish that reached a hand without going through {@link #create} has no colours on
+     * it, and 26.x draws a fish ENTIRELY from what its stack carries — so it renders as the raw sprite.
+     * For a koi that means blank white, because the koi drawing is greyscale and every one of its
+     * seventeen varieties is painted by the four numbers {@link #stampIcon} writes.
+     *
+     * <p>A /give, a command block, a datapack loot table, or a fish that predates §koi-genes all land
+     * here. Stamping on the way past is the only place that catches every one of them; the guard means
+     * it happens once per stack and never again.
+     */
+    @Override
+    public void inventoryTick(ItemStack stack, net.minecraft.server.level.ServerLevel level,
+                              net.minecraft.world.entity.Entity entity,
+                              @Nullable net.minecraft.world.entity.EquipmentSlot slot) {
+        super.inventoryTick(stack, level, entity, slot);
+        net.minecraft.world.item.component.CustomModelData cmd =
+                stack.get(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA);
+        if (cmd == null || cmd.colors().isEmpty()) stampIcon(stack);
+    }
+
     public static boolean isTrophy(ItemStack stack) {
         return StackNbt.get(stack).getBooleanOr(TAG_TROPHY, false);
     }
