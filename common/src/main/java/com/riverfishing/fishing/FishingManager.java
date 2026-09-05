@@ -3208,7 +3208,10 @@ public final class FishingManager {
         // no fuller than it was. Kilograms rather than fish, because five kilos is five kilos
         // whether it comes as one carp or ten roach; mature only, the same size class the ledger
         // takes as brood, so a bucket of undersized fish buys no pardon.
-        if (thrower != null && mature && !PondData.isClaimed(level, pos)) {
+        // §poach-credit: a fish the card says was POACHED was never yours to give — net it out of a
+        // stocked pond and throw it back, and the haul that cost five points must not pay them back.
+        boolean poached = card != null && card.getBoolean("Poached");
+        if (thrower != null && mature && !poached && !PondData.isClaimed(level, pos)) {
             Warden.credit(thrower, weightG * Math.max(1, count));
         }
         release(level, pos, p, units, thrower, (stocked, region) -> {
