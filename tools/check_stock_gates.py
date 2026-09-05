@@ -96,6 +96,10 @@ before(md, "matureFry(t)", "addStock(", "matureIfDue(): the matured fish must be
 if "return mature;" not in sd:
     fails.append("StockedData.matureFry() no longer returns the count — matureIfDue() banks nothing")
 
+# 8. §poach-credit: a poached fish put back buys no pardon
+if 'Poached' not in fm or "!poached && !PondData.isClaimed" not in fm:
+    fails.append("releaseFish(): Warden.credit must be gated on the card NOT saying Poached — netting a stocked pond and throwing the haul back paid the points back")
+
 # 7. §ledger-presence: an unsettled brood is counted by its book; the last fish out empties the bank too
 before(sp, "hasBrood(region, s)", "return Math.max(bank", "stockedPresence(): an unsettled species with a ledger must be counted by its HEADS, not the bank alone")
 if "if (heads <= 0) return 0.0;" not in sp:
