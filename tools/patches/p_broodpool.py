@@ -4,15 +4,22 @@
     py -X utf8 tools/patches/p_broodpool.py <root> [1211|1201|26]
 
 Reported: a pond stocked with kin hi utsuri and kohaku handed back a PLATINUM. Simulating the pond by
-the game's own rules showed the platinum was the least of it —
+the game's own rules — including koiGenome's re-roll, which is what stops a kohaku written WW RR bb from
+reading as a tancho — showed the platinum was the least of it:
 
-    stocked: 10 kin hi utsuri, 10 kohaku
-    sakura_ogon 33.6%   kin_hi_utsuri 20.4%   kohaku 19.0%   tancho 12.3%   hi_utsuri 11.6%
-    ogon 1.3%   platinum 0.7%   yamabuki 0.7%   karasu 0.4%
+    stocked: 10 kin hi utsuri, 10 kohaku          BEFORE (H-W)   AFTER (cross)
+        kohaku            <- released                  15.2%          45.4%
+        hi_utsuri         (their honest F1)            16.0%          13.0%
+        sakura_ogon       (nobody released this)       26.9%          10.9%
+        kin_hi_utsuri     <- released                  28.6%           9.9%
+        tancho                                          4.4%           9.7%
+        platinum          (what was reported)           1.7%           7.4%
 
-— the commonest fish in that water is a variety nobody released, and a third of the haul is varieties
-nobody released. The platinum itself is honest (it is W_ rr bb; both parents show R_, and koiGenome
-writes such a pair as RR or Rr on a coin, so both can carry a hidden r) but 33% sakura ogon is not.
+The platinum is honest either way: it is W_ rr bb, the kohaku supplies W, and both parents show R_,
+which koiGenome writes as RR or Rr on a coin — so both can carry a hidden r and one F1 in twelve is rr.
+What was not honest is the column beside it. Sakura ogon, which nobody released and which needs the
+utsuri's metallic G to meet the kohaku's W, was the SECOND commonest fish in the pond, and the two
+varieties actually released were together under half the haul.
 
 §stocked-genes counted alleles and drew each locus INDEPENDENTLY from the population's frequencies.
 That is Hardy-Weinberg, and Hardy-Weinberg is the equilibrium a large randomly-mating population
