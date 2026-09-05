@@ -271,6 +271,17 @@ def main():
             d = read(base)
             d.setdefault("display", {})["ground"] = ground
             write(base, d)
+        elif fish_display.get("ground", {}).get("rotation", [0, 0, 0]) != [0, 0, 0]:
+            # §fish-pose-26: and a fish that is NOT flat gets the rotation taken OFF. This branch used
+            # to add and never remove, so a base model that arrived with a flatfish's display — the
+            # giants wave was templated off one — kept lying down through every regeneration: the
+            # goliath grouper, the blobfish and the sunfish lay on the bank like a halibut.
+            ground = dict(fish_display["ground"])
+            ground.pop("rotation", None)
+            fish_display["ground"] = ground
+            d = read(base)
+            d.setdefault("display", {})["ground"] = ground
+            write(base, d)
         entries = []
         for i, s in enumerate(BUCKETS):
             scaled = {}
@@ -311,6 +322,15 @@ def main():
 
     print("rods: %d defs, %d layer models x2 variants; fish: %d x %d buckets" %
           (len(RODS), len(rod_layers()), len(FISH), len(BUCKETS)))
+
+    # §pattern-mask: the carp definitions above are written from scratch, which drops the composite
+    # that carries the pattern layer. Put it back here, every time. Once this generator ran over it
+    # and the masks vanished from a built jar; check_pattern_masks.py caught that after the fact, this
+    # line catches it before.
+    import subprocess, sys
+    wire = os.path.join(os.path.dirname(os.path.abspath(__file__)), "wire_pattern_models.py")
+    if os.path.exists(wire):
+        subprocess.run([sys.executable, "-X", "utf8", wire, ROOT, "26"], check=True)
 
 
 if __name__ == "__main__":
