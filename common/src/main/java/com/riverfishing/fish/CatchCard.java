@@ -178,6 +178,38 @@ public final class CatchCard {
     }
 
     /**
+     * §fish-give: a card for a fish an operator asked for by name — the same body() every catch goes
+     * through, with the variety and the pattern named instead of drawn. No water overlay: a debug fish
+     * is exactly what was asked for. A pattern under 0 is rolled the way a catch's is.
+     */
+    public static CompoundTag debug(ServerPlayer sp, ServerLevel level, FishProfile p, int weightG,
+                                    BlockPos pos, String variety, int pattern) {
+        CompoundTag c = new CompoundTag();
+        c.putString("Angler", sp.getGameProfile().name());
+        c.putLong("Day", level.getServer().overworld().getOverworldClockTime() / 24000L);
+        c.putString("Date", java.time.LocalDate.now().toString());
+        c.putString("Rod", "debug");
+        c.putString("RodItem", "");
+        c.putString("Bait", "");
+        c.putString("Water", com.riverfishing.water.WaterBodyCache.forLevel(level).get(level, pos).type().key());
+        c.putString("Biome", level.getBiome(pos).unwrapKey().map(k -> k.identifier().toString()).orElse(""));
+        c.putString("Time", com.riverfishing.engine.TimeOfDay.fromDayTime(level.getOverworldClockTime()).jsonKey());
+        c.putString("Season", com.riverfishing.engine.Calendar.season(level).jsonKey());
+        c.putString("Weather", level.isThundering() ? "thunder" : level.isRaining() ? "rain" : "clear");
+        c.putString("Bed", "");
+        c.putString("Spot", "");
+        c.putBoolean("Ice", false);
+        c.putString("Eco", "");
+        c.putInt("Value", 0);
+        Random rng = new Random(level.getGameTime() * 31L + sp.getUUID().hashCode() + weightG + variety.hashCode());
+        int rolled = rollPattern(level, pos, p, rng);
+        boolean patterned = Pattern.has(rolled);    // the roll already knows whether this species wears one
+        int pat = patterned && Pattern.has(pattern) ? pattern : rolled;
+        body(c, p, weightG, "", rng, (byte) -1, variety, pat, null);
+        return c;
+    }
+
+    /**
      * The half of the card that is the FISH — size class, kind, sex, nature, genes — shared by both.
      * {@code variety} is the carp scale variety the water drew ("" for everything else, and for a carp
      * that arrived without one: the species' own name then says which it is).
