@@ -49,6 +49,7 @@ public final class HookedFishRenderer {
             }
             state.wasInAir = inAir;
         }
+        state.depth = surfaceY - at.y;
 
         pose.translate(at.x, at.y, at.z);
         // Sprite head is on local −X (ShoalRenderer's derivation): a Y turn of 180 − heading sends it
@@ -85,6 +86,7 @@ public final class HookedFishRenderer {
                         net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_ITEMS);
                 com.mojang.blaze3d.vertex.VertexConsumer vc = buffers.getBuffer(layer);
                 org.joml.Matrix4f m = pose.last().pose();
+                light = depthLight(state.depth);
                 float u0 = sp.getU0(), u1 = sp.getU1(), v0 = sp.getV0(), v1 = sp.getV1();
                 // the item model is a unit sprite centred on the origin, head on −X after the 180 above
                 for (int side = 0; side < 2; side++) {
@@ -103,20 +105,32 @@ public final class HookedFishRenderer {
         vtx(m, vc, xb, 0.5f, z, ub, v0);  vtx(m, vc, xa, 0.5f, z, ua, v0);
     }
 
+    private static int light;   // §hooked-dim: set per draw from the fish's depth
+
     private static void vtx(org.joml.Matrix4f m, com.mojang.blaze3d.vertex.VertexConsumer vc,
                             float x, float y, float z, float u, float v) {
         vc.addVertex(m, x, y, z).setColor(255, 255, 255, 255).setUv(u, v)
-                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(0xF000F0).setNormal(0f, 1f, 0f);
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0f, 1f, 0f);
     }
     //?} else {
     /*public static void submit(Minecraft mc, PoseStack pose, net.minecraft.client.renderer.SubmitNodeCollector collector,
                               ClientLineState.Line state, Vec3 at, float pt) {
         pose.pushPose();
         ItemStackRenderState rs = pose(mc, pose, state, at, pt);
-        if (rs != null) rs.submit(pose, collector, 0xF000F0, OverlayTexture.NO_OVERLAY, 0);
+        if (rs != null) rs.submit(pose, collector, depthLight(state.depth), OverlayTexture.NO_OVERLAY, 0);
         pose.popPose();
     }
     *///?}
+
+    /**
+     * §hooked-dim: a fish under water is lit by the water above it. Full bright at the surface, down to
+     * a quarter six blocks under — a sounding fish goes dark, a breaching one comes up into the light.
+     * Packed the way LightTexture.pack does it: sky in the high half, block in the low.
+     */
+    static int depthLight(double depth) {
+        int l = Math.round(15f * Mth.clamp(1f - (float) Math.max(0.0, depth) / 6f, 0.25f, 1f));
+        return (l << 20) | (l << 4);
+    }
 
     /** The item the fish is drawn as — rebuilt only when the species on the line changes. */
     private static ItemStack stackFor(ClientLineState.Line state) {

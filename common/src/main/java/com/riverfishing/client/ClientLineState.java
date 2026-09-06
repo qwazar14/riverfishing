@@ -66,6 +66,7 @@ public final class ClientLineState {
         public net.minecraft.world.item.ItemStack stack;   // the drawn item, rebuilt when the species changes
         public String stackSpecies = "";
         public boolean wasInAir;         // for the splash on the way out and the way back
+        public double depth;             // §hooked-dim: blocks under the surface this frame
 
         /**
          * §hooked-fish: one frame of the body. {@code fwd} points from the angler to the water end,
