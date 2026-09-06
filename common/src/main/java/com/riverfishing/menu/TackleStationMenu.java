@@ -36,6 +36,10 @@ public class TackleStationMenu extends AbstractContainerMenu {
     private static final int C_IRON = 1;
     private static final int C_STRING = 2;
     private static final int C_DYE = 3;
+    /** §tying: the bench's store — nine container indices after the form wells, for tying materials. */
+    private static final int C_STORE = 4;
+    public static final int STORE_SLOTS = 9;
+    public static final int CONTAINER_SIZE = C_STORE + STORE_SLOTS;
     /** §tying: the slot index of the result well — the one slot a tie must never pay from. */
     public static final int RESULT_SLOT = 3;
 
@@ -45,7 +49,8 @@ public class TackleStationMenu extends AbstractContainerMenu {
     public static final int SLOT_STRING = 1;
     public static final int SLOT_DYE = 2;
     public static final int SLOT_RESULT = 3;
-    private static final int INV_START = 4;
+    private static final int STORE_START = 4;
+    private static final int INV_START = STORE_START + STORE_SLOTS;
 
     private final Player player;
     private final BlockPos pos;
@@ -58,6 +63,8 @@ public class TackleStationMenu extends AbstractContainerMenu {
     private final DataSlot balancePos = DataSlot.standalone();
     /** §hook-pick: the hook is CHOSEN, not fed in — index into {@link TackleForm#HOOK_SIZES}. */
     private final DataSlot hookIndex = DataSlot.standalone();
+    /** §tying: which page is open — the form wells are live on the form pages, the store on the Tie page. */
+    private boolean tying;
 
     public TackleStationMenu(int id, Inventory inv, BlockPos pos) {
         super(ModMenus.TACKLE_STATION.get(), id);
@@ -67,7 +74,7 @@ public class TackleStationMenu extends AbstractContainerMenu {
         // client mirrors through menu slot sync, so a dummy container there is fine.
         this.materials = inv.player.level().getBlockEntity(pos)
                 instanceof com.riverfishing.block.TackleStationBlockEntity be
-                ? be.items() : new SimpleContainer(4);
+                ? be.items() : new SimpleContainer(CONTAINER_SIZE);
         // §hook-pick migration: the hook slot is gone, so anything still sitting in it goes back to the
         // player the first time this bench is opened. Server only — the client's copy is a mirror, and
         // handing the same stack back on both sides is how you print one. Runs BEFORE the listener below,
@@ -82,22 +89,35 @@ public class TackleStationMenu extends AbstractContainerMenu {
         // material row keeps its shape and the hook stays where players already look for it.
         addSlot(new Slot(materials, C_IRON, 76, 150) {
             @Override public boolean mayPlace(ItemStack s) { return s.is(Items.IRON_INGOT); }
+            @Override public boolean isActive() { return !tying; }
         });
         addSlot(new Slot(materials, C_STRING, 100, 150) {
             @Override public boolean mayPlace(ItemStack s) { return s.is(Items.STRING); }
+            @Override public boolean isActive() { return !tying; }
         });
         addSlot(new Slot(materials, C_DYE, 124, 150) {
             @Override public boolean mayPlace(ItemStack s) { return s.getItem() instanceof DyeItem; }
+            @Override public boolean isActive() { return !tying; }
         });
         addSlot(new Slot(result, 0, 176, 150) {
             @Override public boolean mayPlace(ItemStack s) { return false; }
             @Override public boolean mayPickup(Player p) { return !getItem().isEmpty(); }
+            @Override public boolean isActive() { return tying ? false : true; }
             @Override public void onTake(Player p, ItemStack taken) {
                 consumeMaterials();
                 super.onTake(p, taken);
                 updateResult();
             }
         });
+
+        // §tying: the store — nine wells in the same row, live on the Tie page only. Anything a tie can
+        // pay with goes in; the bench keeps it while it stands, like the form wells.
+        for (int i = 0; i < STORE_SLOTS; i++) {
+            addSlot(new Slot(materials, C_STORE + i, 76 + i * 18, 150) {
+                @Override public boolean mayPlace(ItemStack s) { return com.riverfishing.network.TieLurePacket.STORABLE.test(s); }
+                @Override public boolean isActive() { return tying; }
+            });
+        }
 
         // Player inventory + hotbar.
         for (int row = 0; row < 3; row++) {
@@ -148,7 +168,11 @@ public class TackleStationMenu extends AbstractContainerMenu {
         return f.ironFor(weightGrams()) + TackleForm.hookIngots(hookIdx(), f.hooksNeeded());
     }
 
-    /** 0..N = form; 100+i = weight step; 200+cm = leader length (§tackle-adv); 400+i = balance; 500+i = hook. */
+    public boolean tying() { return tying; }
+    /** §tying: the client flips this for its own slot picking and sends 600/601 so the server agrees. */
+    public void setTying(boolean tying) { this.tying = tying; }
+
+    /** 0..N = form; 100+i = weight step; 200+cm = leader length (§tackle-adv); 400+i = balance; 500+i = hook; 600/601 = page. */
     @Override
     public boolean clickMenuButton(Player p, int id) {
         if (id >= 0 && id < TackleForm.values().length) {
@@ -175,6 +199,7 @@ public class TackleStationMenu extends AbstractContainerMenu {
             updateResult();
             return true;
         }
+        if (id == 600 || id == 601) { tying = id == 601; return true; }
         if (id >= 500 && id < 500 + TackleForm.HOOK_SIZES.length) {
             hookIndex.set(id - 500);
             updateResult();
@@ -249,10 +274,15 @@ public class TackleStationMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stack, INV_START, slots.size(), false)) return ItemStack.EMPTY;
         } else {
             // Hooks are no longer a material (§hook-pick), so shift-clicking one here does nothing.
-            int target = stack.is(Items.IRON_INGOT) ? SLOT_IRON
-                    : stack.is(Items.STRING) ? SLOT_STRING
-                    : stack.getItem() instanceof DyeItem ? SLOT_DYE : -1;
-            if (target < 0 || !moveItemStackTo(stack, target, target + 1, false)) return ItemStack.EMPTY;
+            if (tying) {   // §tying: on the Tie page a material shift-clicks into the store
+                if (!com.riverfishing.network.TieLurePacket.STORABLE.test(stack)
+                        || !moveItemStackTo(stack, STORE_START, INV_START, false)) return ItemStack.EMPTY;
+            } else {
+                int target = stack.is(Items.IRON_INGOT) ? SLOT_IRON
+                        : stack.is(Items.STRING) ? SLOT_STRING
+                        : stack.getItem() instanceof DyeItem ? SLOT_DYE : -1;
+                if (target < 0 || !moveItemStackTo(stack, target, target + 1, false)) return ItemStack.EMPTY;
+            }
         }
         if (stack.isEmpty()) slot.set(ItemStack.EMPTY); else slot.setChanged();
         return before;

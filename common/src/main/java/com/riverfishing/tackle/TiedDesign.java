@@ -40,6 +40,16 @@ public final class TiedDesign {
             "white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray",
             "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black"};
 
+    /** The hook's steel on the canvas and in the icon. */
+    public static final int HOOK_RGB = 0x9AA3AA;
+
+    /** What shows at (x, y): the drawing where there is one, the hook under it, -1 for nothing. */
+    public static int pixelRgb(byte[] design, int x, int y) {
+        int px = design[y * SIZE + x];
+        if (px != 0) return rgb(px);
+        return HOOK[y][x] ? HOOK_RGB : -1;
+    }
+
     public static int rgb(int px) {
         if (px >= THREAD0 && px < THREAD0 + 16) return THREAD_RGB[px - THREAD0];
         return switch (px) {

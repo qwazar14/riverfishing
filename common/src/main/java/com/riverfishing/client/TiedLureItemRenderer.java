@@ -56,14 +56,13 @@ public final class TiedLureItemRenderer extends BlockEntityWithoutLevelRenderer 
         NativeImage img = new NativeImage(TiedDesign.SIZE, TiedDesign.SIZE, false);
         for (int y = 0; y < TiedDesign.SIZE; y++) {
             for (int x = 0; x < TiedDesign.SIZE; x++) {
-                int px = design[y * TiedDesign.SIZE + x];
-                int rgb = TiedDesign.rgb(px);
-                // NativeImage is ABGR; a thin darker edge where a pixel meets nothing reads as an outline
-                boolean edge = px != 0 && (x == 0 || y == 0 || x == 15 || y == 15
-                        || design[y * 16 + x - 1] == 0 || design[y * 16 + x + 1] == 0
-                        || design[(y - 1) * 16 + x] == 0 || design[(y + 1) * 16 + x] == 0);
+                int rgb = TiedDesign.pixelRgb(design, x, y);
+                // a thin darker edge where a pixel meets nothing reads as an outline
+                boolean edge = rgb >= 0 && (x == 0 || y == 0 || x == 15 || y == 15
+                        || TiedDesign.pixelRgb(design, x - 1, y) < 0 || TiedDesign.pixelRgb(design, x + 1, y) < 0
+                        || TiedDesign.pixelRgb(design, x, y - 1) < 0 || TiedDesign.pixelRgb(design, x, y + 1) < 0);
                 if (edge) rgb = ((rgb >> 16 & 255) * 3 / 4) << 16 | ((rgb >> 8 & 255) * 3 / 4) << 8 | (rgb & 255) * 3 / 4;
-                int abgr = px == 0 ? 0 : 0xFF000000 | (rgb & 0xFF) << 16 | (rgb & 0xFF00) | (rgb >> 16 & 0xFF);
+                int abgr = rgb < 0 ? 0 : 0xFF000000 | (rgb & 0xFF) << 16 | (rgb & 0xFF00) | (rgb >> 16 & 0xFF);
                 img.setPixelRGBA(x, y, abgr);
             }
         }
