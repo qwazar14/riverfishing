@@ -481,7 +481,7 @@
   "message.riverfishing.foul_hooked": "Багор! Зачепилася за тіло — буде важко",
   "message.riverfishing.caught_multi": "Спіймано: %s ×%s!",
   "message.riverfishing.fed_spot": "Точку прикормлено",
-  "message.riverfishing.hooked": "На гачку! Мотай — але не перетягни!",
+  "message.riverfishing.hooked": "На гачку!",
   "message.riverfishing.line_break_gone": "Обрив! Риба й оснастка пішли.",
   "message.riverfishing.line_break": "Обрив! Риба й оснастка пішли — там було близько %s",
   "message.riverfishing.line_break_load": "Обрив під ~%s кг! Риба й оснастка втрачені",
