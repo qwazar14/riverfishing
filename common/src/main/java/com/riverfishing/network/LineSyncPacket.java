@@ -43,6 +43,7 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
     public final boolean jumping;
     public final boolean shaking;
     public final float fatigue;
+    public final boolean snagged;   // §line-snag: the string lies across a block
 
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
                           byte floatKind) {
@@ -70,14 +71,15 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
                           byte floatKind, boolean biting, float tension, float rodLoad,
                           boolean fighting, boolean running, byte course) {
         this(playerId, active, target, progress, color, floatKind, biting, tension, rodLoad, fighting,
-                running, course, "", 0, 0, false, false, 0f);
+                running, course, "", 0, 0, false, false, 0f, false);
     }
 
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
                           byte floatKind, boolean biting, float tension, float rodLoad,
                           boolean fighting, boolean running, byte course,
                           String species, int weightG, int lengthCm, boolean jumping, boolean shaking,
-                          float fatigue) {
+                          float fatigue, boolean snagged) {
+        this.snagged = snagged;
         this.species = species == null ? "" : species;
         this.weightG = weightG;
         this.lengthCm = lengthCm;
@@ -123,6 +125,7 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
         buf.writeBoolean(jumping);
         buf.writeBoolean(shaking);
         buf.writeFloat(fatigue);
+        buf.writeBoolean(snagged);
     }
 
     public static LineSyncPacket decode(FriendlyByteBuf buf) {
@@ -130,7 +133,7 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
                 buf.readFloat(), buf.readInt(), buf.readByte(), buf.readBoolean(), buf.readFloat(),
                 buf.readFloat(), buf.readBoolean(), buf.readBoolean(), buf.readByte(),
                 buf.readUtf(), buf.readVarInt(), buf.readVarInt(), buf.readBoolean(), buf.readBoolean(),
-                buf.readFloat());
+                buf.readFloat(), buf.readBoolean());
     }
 
     public void handleClient() {
