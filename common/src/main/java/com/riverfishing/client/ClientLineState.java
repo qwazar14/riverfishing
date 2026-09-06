@@ -142,6 +142,8 @@ public final class ClientLineState {
         /** The breach's lift above the eased offset — kept apart so the arc is not eased away. */
         public float fyJump;
         public double jx, jz;            // the shudder, this frame
+        /** §line-calm: the kink as DRAWN — chases the clipped point instead of jumping to it. */
+        public net.minecraft.world.phys.Vec3 kinkShown;
 
         /** Where the body is this frame, given the line's water end. */
         public net.minecraft.world.phys.Vec3 fishAt(net.minecraft.world.phys.Vec3 end) {

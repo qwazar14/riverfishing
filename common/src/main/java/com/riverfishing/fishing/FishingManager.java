@@ -2202,6 +2202,10 @@ public final class FishingManager {
         boolean snagged = hit.getType() == HitResult.Type.BLOCK
                 && hit.getLocation().subtract(sp.getX(), hit.getLocation().y, sp.getZ()).horizontalDistanceSqr() > 2.5 * 2.5
                 && !level.getFluidState(hit.getBlockPos()).is(net.minecraft.tags.FluidTags.WATER);
+        // §line-calm: a fish shaking beside a ledge crosses the clip line every other check; the flag
+        // used to follow it and the kink flickered. It lets go only after three clear checks in a row.
+        if (snagged) session.snagMiss = 0;
+        else if (session.lineSnagged && ++session.snagMiss < 3) snagged = true;
         session.lineSnagged = snagged;
         if (!snagged) return;
         addLineWear(sessionRod(sp, session), (int) Math.max(1, Math.round(2 * lineWearScaled())));

@@ -113,16 +113,17 @@ public final class LineRenderer {
             double dx = tip.x - end.x, dy = tip.y - end.y, dz = tip.z - end.z;
             // §line-snag: the string is caught on a block — draw it KINKED over the point it rubs,
             // two straight legs, which is exactly what a snagged line looks like from the bank.
-            Vec3 kink = state.snagged ? snagPoint(mc, tip, end) : null;
+            Vec3 kink = kinkFor(mc, state, tip, end);
             if (kink != null) {
                 Vec3 a = end, b = kink; line(sv, m, nrm, a, b, cr, cg, cb, alpha);
                 a = kink; b = tip; line(sv, m, nrm, a, b, cr, cg, cb, alpha);
             } else {
-            Vec3 prev = end.add(0, hangOffset(state, dy, 0.0, time), 0);
+            double chord = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            Vec3 prev = end.add(0, hangOffset(state, dy, chord, 0.0, time), 0);
             for (int k = 1; k <= 16; k++) {
                 double f = k / 16.0;
                 Vec3 p = new Vec3(end.x + dx * f,
-                        end.y + hangOffset(state, dy, f, time),
+                        end.y + hangOffset(state, dy, chord, f, time),
                         end.z + dz * f);
                 line(sv, m, nrm, prev, p, cr, cg, cb, alpha);
                 prev = p;
@@ -146,6 +147,14 @@ public final class LineRenderer {
      * waves, pulled toward the angler as reel-in progress rises. Shared by the world pass and the
      * first-person hand pass ({@link RodItemRenderer}), so the two can never disagree on the far end.
      */
+    /** §line-calm: the kink to draw this frame — the clipped point, eased, or null when the string is free. */
+    static Vec3 kinkFor(Minecraft mc, ClientLineState.Line state, Vec3 tip, Vec3 end) {
+        Vec3 raw = state.snagged ? snagPoint(mc, tip, end) : null;
+        if (raw == null) { state.kinkShown = null; return null; }
+        state.kinkShown = state.kinkShown == null ? raw : state.kinkShown.lerp(raw, 0.25);
+        return state.kinkShown;
+    }
+
     /** §line-snag: where the string meets the block, clipped the way the server clipped it. */
     static Vec3 snagPoint(Minecraft mc, Vec3 tip, Vec3 end) {
         var hit = mc.level.clip(new net.minecraft.world.level.ClipContext(tip, end,
@@ -191,18 +200,24 @@ public final class LineRenderer {
      * Shared by the world pass and the first-person hand pass, so every observer sees one line.
      */
     static double hangOffset(ClientLineState.Line state, double dy, double f, double time) {
+        return hangOffset(state, dy, 6.0, f, time);
+    }
+
+    /** As above, with the chord's length: a short line hangs a short loop — never a block of string on two blocks of chord. */
+    static double hangOffset(ClientLineState.Line state, double dy, double chord, double f, double time) {
+        double sc = Math.min(1.0, chord / 5.0);   // §line-calm
         // §line-taut-eased: the hang reads the DISPLAYED taut/slack, which tickSmoothing chases
         // asymmetrically (snaps tight, relaxes at cable speed) over a wide tension band — so between
         // the dead string and the deep belly lives a continuous scale of partial droop, and every
         // transition is a movement, not a switch.
         float taut = state != null ? state.dispTaut : 0f;
         float slack = state != null ? state.dispSlack : 0f;
-        double sag = dy * (f * f + f) * 0.5 + 0.25 * (1.0 - f);   // the vanilla hang, lift included
+        double sag = dy * (f * f + f) * 0.5 + 0.25 * sc * (1.0 - f);   // the vanilla hang, lift included
         double straight = dy * f;
         // even a string under full load keeps a few percent of catenary — a laser line reads fake
         double y = straight + (sag - straight) * (1.0 - taut * 0.96);
         if (slack > 0f) {
-            y -= slack * 0.6 * 4.0 * f * (1.0 - f);               // deepest mid-span, zero at both ends
+            y -= slack * 0.6 * sc * 4.0 * f * (1.0 - f);          // deepest mid-span, zero at both ends
         }
         if (taut > 0.7f) {
             // a loaded string trembles — fading in with taut, growing with real nearness to breaking

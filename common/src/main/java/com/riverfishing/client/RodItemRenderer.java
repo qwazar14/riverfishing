@@ -440,15 +440,15 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         org.joml.Matrix3f nid = new org.joml.Matrix3f();   // §1.20.1: normal() wants a matrix too
         double time = mc.level.getGameTime() + pt;
         // §line-snag: caught on a block, the string runs end -> kink -> tip in two straight legs
-        net.minecraft.world.phys.Vec3 kink = own.snagged ? LineRenderer.snagPoint(mc, tipW, end) : null;
+        net.minecraft.world.phys.Vec3 kink = LineRenderer.kinkFor(mc, own, tipW, end);
         org.joml.Vector3f prev = toNode(
-                end.add(0, kink != null ? 0.0 : LineRenderer.hangOffset(own, dy, 0.0, time), 0), cp, q, warp, space);
+                end.add(0, kink != null ? 0.0 : LineRenderer.hangOffset(own, dy, Math.sqrt(dx * dx + dy * dy + dz * dz), 0.0, time), 0), cp, q, warp, space);
         for (int k = 1; k <= 16; k++) {
             double f = k / 16.0;
             net.minecraft.world.phys.Vec3 w = kink != null
                     ? (f < 0.5 ? end.lerp(kink, f * 2.0) : kink.lerp(tipW, (f - 0.5) * 2.0))
                     : new net.minecraft.world.phys.Vec3(end.x + dx * f,
-                            end.y + LineRenderer.hangOffset(own, dy, f, time),   // §line-taut
+                            end.y + LineRenderer.hangOffset(own, dy, Math.sqrt(dx * dx + dy * dy + dz * dz), f, time),   // §line-taut
                             end.z + dz * f);
             org.joml.Vector3f p = toNode(w, cp, q, warp, space)
                     .add((float) (dtx * f), (float) (dty * f), (float) (dtz * f));
