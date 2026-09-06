@@ -170,9 +170,14 @@ public final class ClientLineState {
             // whole straightening arc), then chase them — tightening 3x faster than relaxing.
             float tautTarget = 0f, slackTarget = 0f;
             if (fighting) {
+                // §line-rest: with the fish itself on the line, the angler HOLDS it — the string stays
+                // most of the way straight to the body between runs, and never bellies. The slack belly
+                // was the "it is coming at you" read from before the fish was drawn; the body is that
+                // read now, and a two-block loop of string on a resting fish was all the belly said.
+                boolean hooked = !species.isEmpty();
                 tautTarget = running ? 1f
-                        : smoothstep(Mth.clamp((smoothTension - 0.02f) / 0.33f, 0f, 1f));
-                slackTarget = running ? 0f : Mth.clamp((0.10f - smoothTension) / 0.10f, 0f, 1f);
+                        : Math.max(hooked ? 0.6f : 0f, smoothstep(Mth.clamp((smoothTension - 0.02f) / 0.33f, 0f, 1f)));
+                slackTarget = running || hooked ? 0f : Mth.clamp((0.10f - smoothTension) / 0.10f, 0f, 1f);
             }
             float kUp = Math.min(1f, frameSeconds * 12f);   // a jerk snaps the line tight
             float kDown = Math.min(1f, frameSeconds * 3f);  // slack develops at cable speed
