@@ -1914,7 +1914,6 @@ public final class FishingManager {
         dullSharpestHook(rod, hookWearAmount());
 
         level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 1.0f, 0.8f);
-        actionbar(sp, Component.translatable("message.riverfishing.hooked").withStyle(ChatFormatting.AQUA));
     }
 
     /**
@@ -1937,7 +1936,6 @@ public final class FishingManager {
             session.pullWindowEnd = now + session.floatPeriod * 2L + 20;
             beginTiming(sp, session, now, (int) (session.pullWindowEnd - now));
             level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.8f, 0.7f);
-            actionbar(sp, Component.translatable("message.riverfishing.hooked").withStyle(ChatFormatting.AQUA));
             return;
         }
 
@@ -1967,7 +1965,6 @@ public final class FishingManager {
         session.bossBar.setProgress(0.0f);
         session.bossBar.addPlayer(sp);
         level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.8f, 0.7f);
-        actionbar(sp, Component.translatable("message.riverfishing.hooked").withStyle(ChatFormatting.AQUA));
     }
 
     /** Bycatch (прилов): junk drags the mood down, treasure makes the day. Ends the session either way. */
