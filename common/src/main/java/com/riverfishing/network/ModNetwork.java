@@ -47,6 +47,11 @@ public final class ModNetwork {
             SkillUnlockPacket p = SkillUnlockPacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));
         });
+        // §tying: the canvas comes up; the server re-reads the hook, the materials and the drawing.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, TieLurePacket.TYPE, (buf, ctx) -> {
+            TieLurePacket p = TieLurePacket.decode(buf);
+            ctx.queue(() -> p.handleServer(ctx));
+        });
         // §keepnet: the grid asks, the server decides.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeepnetActionPacket.TYPE, (buf, ctx) -> {
             KeepnetActionPacket p = KeepnetActionPacket.decode(buf);

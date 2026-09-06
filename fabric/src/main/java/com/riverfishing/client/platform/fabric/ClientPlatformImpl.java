@@ -81,6 +81,8 @@ public final class ClientPlatformImpl {
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.TYING_VISE.get(), com.riverfishing.client.TyingViseScreen::new);   // §tying
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
         // §aquarium-window (0.9.0): the tank.
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
@@ -103,6 +105,9 @@ public final class ClientPlatformImpl {
             BuiltinItemRendererRegistry.INSTANCE.register(f.get(), fish);
         }
         // §breeding: the fry bucket draws three of its species' sprite.
+        BuiltinItemRendererRegistry.INSTANCE.register(ModItems.TIED_LURE.get(),
+                (stack, ctx, pose, buffers, light, overlay) ->
+                        com.riverfishing.client.TiedLureItemRenderer.get().renderByItem(stack, ctx, pose, buffers, light, overlay));   // §tying
         BuiltinItemRendererRegistry.INSTANCE.register(ModItems.FRY.get(),
                 (stack, ctx, pose, buffers, light, overlay) ->
                         com.riverfishing.client.FryItemRenderer.get().renderByItem(stack, ctx, pose, buffers, light, overlay));

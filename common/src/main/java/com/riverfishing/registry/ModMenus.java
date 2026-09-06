@@ -28,6 +28,11 @@ public final class ModMenus {
             REGISTER.register("tackle_station",
                     () -> MenuRegistry.ofExtended(com.riverfishing.menu.TackleStationMenu::fromNetwork));
 
+    // §tying (0.9.1): the vise — a canvas, a hook, a result.
+    public static final RegistrySupplier<MenuType<com.riverfishing.menu.TyingViseMenu>> TYING_VISE =
+            REGISTER.register("tying_vise",
+                    () -> MenuRegistry.ofExtended(com.riverfishing.menu.TyingViseMenu::fromNetwork));
+
     // §keepnet (0.7.0): the spatial catch box.
     public static final RegistrySupplier<MenuType<com.riverfishing.menu.KeepnetMenu>> KEEPNET =
             REGISTER.register("keepnet",
