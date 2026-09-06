@@ -125,9 +125,27 @@ public final class RigData {
     }
 
     /** §lure-color: the dyed RGB of an artificial lure loaded in a lure/bait slot, or -1 if none/undyed. */
+    /** §tying: the tied lure loaded on the rig, analysed, or null. */
+    public static com.riverfishing.tackle.TiedDesign.Analysis tiedLure(ItemStack rig) {
+        com.riverfishing.tackle.TiedDesign.Analysis[] found = { null };
+        forEachFilled(rig, (role, stack) -> {
+            if (found[0] == null && stack.getItem() instanceof com.riverfishing.item.TiedLureItem
+                    && com.riverfishing.tackle.TiedDesign.design(stack) != null) {
+                found[0] = com.riverfishing.tackle.TiedDesign.analyse(stack);
+            }
+        });
+        return found[0];
+    }
+
     public static int lureColorRgb(ItemStack rig) {
         int[] found = { -1 };
         forEachFilled(rig, (role, stack) -> {
+            // §tying: a tied lure's colour is the mean of its drawing — the same colour-vs-light read
+            if (found[0] < 0 && stack.getItem() instanceof com.riverfishing.item.TiedLureItem
+                    && com.riverfishing.tackle.TiedDesign.design(stack) != null) {
+                found[0] = com.riverfishing.tackle.TiedDesign.analyse(stack).meanRgb();
+                return;
+            }
             if (found[0] < 0 && (role == SlotRole.LURE || role == SlotRole.BAIT)
                     && stack.getItem() instanceof BaitItem b && b.artificial()) {
                 net.minecraft.world.item.component.DyedItemColor dc =

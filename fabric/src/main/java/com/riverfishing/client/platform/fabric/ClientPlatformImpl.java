@@ -81,6 +81,8 @@ public final class ClientPlatformImpl {
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.riverfishing.registry.ModMenus.TYING_VISE.get(), com.riverfishing.client.TyingViseScreen::new);   // §tying
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.riverfishing.registry.ModMenus.AQUARIUM.get(), com.riverfishing.client.AquariumScreen::new);
@@ -101,6 +103,10 @@ public final class ClientPlatformImpl {
         for (RegistrySupplier<Item> f : ModItems.FISH_ITEMS.values()) {
             BuiltinItemRendererRegistry.INSTANCE.register(f.get(), fish);
         }
+        // §tying: a tied lure's icon is its drawing.
+        BuiltinItemRendererRegistry.INSTANCE.register(ModItems.TIED_LURE.get(),
+                (stack, ctx, pose, buffers, light, overlay) ->
+                        com.riverfishing.client.TiedLureItemRenderer.get().renderByItem(stack, ctx, pose, buffers, light, overlay));
         // §breeding: the fry bucket draws three of its species' sprite.
         BuiltinItemRendererRegistry.INSTANCE.register(ModItems.FRY.get(),
                 (stack, ctx, pose, buffers, light, overlay) ->

@@ -108,6 +108,7 @@ public final class ClientPlatformImpl {
         event.register(ModMenus.ROD_ASSEMBLY.get(), RodAssemblyScreen::new);
         event.register(ModMenus.RIG.get(), RigScreen::new);
         event.register(ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
+        event.register(ModMenus.TYING_VISE.get(), com.riverfishing.client.TyingViseScreen::new);   // §tying
         event.register(ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         event.register(ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
         event.register(ModMenus.AQUARIUM.get(), com.riverfishing.client.AquariumScreen::new);
@@ -135,6 +136,12 @@ public final class ClientPlatformImpl {
         for (RegistrySupplier<Item> f : ModItems.FISH_ITEMS.values()) {
             event.registerItem(fish, f.get());
         }
+        // §tying: a tied lure's icon is its drawing.
+        event.registerItem(new IClientItemExtensions() {
+            @Override public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                return com.riverfishing.client.TiedLureItemRenderer.get();
+            }
+        }, ModItems.TIED_LURE.get());
         // §breeding: the fry bucket draws three of its species' sprite.
         event.registerItem(new IClientItemExtensions() {
             @Override public BlockEntityWithoutLevelRenderer getCustomRenderer() {

@@ -44,6 +44,9 @@ public final class BiteEngine {
         for (String bait : c.baits) {
             best = Math.max(best, p.baitScore(bait));
         }
+        // §tying: a tied lure fishes as its template says for this fish's family — an ant is food to
+        // a roach and a curiosity to a pike; a streamer the other way round.
+        if (c.tied != null) best *= c.tied.affinity(p.group);
         return best;
     }
 
