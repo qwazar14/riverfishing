@@ -3226,7 +3226,7 @@ public final class FishingManager {
             for (int i = 0; i < Math.max(1, count); i++) {
                 stocked.addBrood(region, species.getPath(), sex, day, genes, thrower == null ? null : thrower.getUUID(), weightG);   // §lm: the pond's average weight learns from what went in   // §o: the work-off is Warden.credit now, by weight
             }
-        });
+        }, card != null && card.contains("At") ? BlockPos.of(card.getLong("At")) : null);
     }
 
     /** §c §breeding: a FryItem thrown into water — fry on the ledger, a sliver of stock each (fry disperse and die). */
@@ -3244,7 +3244,7 @@ public final class FishingManager {
             stocked.addFry(region, species.getPath(), alive, StockedData.worldDay(level), genome,
                     thrower == null ? null : thrower.getUUID());
             stocked.setPattern(region, species.getPath(), pattern);   // §pattern: the bred line
-        });
+        }, null);
     }
 
     /**
@@ -3254,7 +3254,8 @@ public final class FishingManager {
      */
     private static void release(ServerLevel level, BlockPos pos, FishProfile p, double units,
                                 @org.jetbrains.annotations.Nullable ServerPlayer thrower,
-                                java.util.function.ObjLongConsumer<StockedData> ledger) {
+                                java.util.function.ObjLongConsumer<StockedData> ledger,
+                                @org.jetbrains.annotations.Nullable BlockPos caughtAt) {
         // A floating item sits in the AIR block above the surface — resolve to the actual water.
         if (!level.getFluidState(pos).is(net.minecraft.tags.FluidTags.WATER)) {
             if (level.getFluidState(pos.below()).is(net.minecraft.tags.FluidTags.WATER)) pos = pos.below();
@@ -3278,6 +3279,13 @@ public final class FishingManager {
             return;
         }
         double fit = BiteEngine.environmentScore(p, habitatContext(level, pos, body));
+        // §home-water: a fish released within reach of the spot it came out of is judged by THAT
+        // water too — it lived there. The bank at the angler's feet is not where the fish will live.
+        if (fit <= 0 && caughtAt != null && caughtAt.closerThan(pos, 96.0)
+                && level.getFluidState(caughtAt).is(net.minecraft.tags.FluidTags.WATER)) {
+            WaterBody home = WaterBodyCache.forLevel(level).get(level, caughtAt);
+            if (home.type() != WaterType.NONE) fit = Math.max(fit, BiteEngine.environmentScore(p, habitatContext(level, caughtAt, home)));
+        }
         if (fit <= 0) {
             // §residency-guard: water the species cannot live in at all takes nothing — no ledger, no stock.
             // §provinces: and when the ONLY thing wrong is the part of the world, say that instead —
