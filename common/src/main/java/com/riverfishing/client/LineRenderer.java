@@ -212,8 +212,10 @@ public final class LineRenderer {
         // transition is a movement, not a switch.
         float taut = state != null ? state.dispTaut : 0f;
         float slack = state != null ? state.dispSlack : 0f;
-        double sag = dy * (f * f + f) * 0.5 + 0.25 * sc * (1.0 - f);   // the vanilla hang, lift included
         double straight = dy * f;
+        // §line-rest: the hang is BELOW the chord whichever end is higher — the vanilla parabola
+        // assumed the hook end was the low one and bulged upward when the tip sat below the fish
+        double sag = straight - Math.abs(dy) * (f - f * f) * 0.5 + 0.25 * sc * (1.0 - f);
         // even a string under full load keeps a few percent of catenary — a laser line reads fake
         double y = straight + (sag - straight) * (1.0 - taut * 0.96);
         if (slack > 0f) {
