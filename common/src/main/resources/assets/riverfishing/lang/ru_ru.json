@@ -1495,8 +1495,7 @@
   "gem.riverfishing.opal": "Опал",
   "gem.riverfishing.obsidian": "Обсидиан",
   "item.riverfishing.tied_lure": "Самодельная приманка",
-  "block.riverfishing.tying_vise": "Вязальные тиски",
-  "tooltip.riverfishing.tied_lure": "Связана в тисках — ловит как мормышка",
+  "tooltip.riverfishing.tied_lure": "Связана на верстаке — ловит как мормышка",
   "tooltip.riverfishing.tied_size": "%s мм, %s г",
   "tooltip.riverfishing.tied_hook": "Крючок №%s",
   "tooltip.riverfishing.tied_eyes": "Глазки — хищник присматривается",
@@ -1535,5 +1534,7 @@
   "material.riverfishing.thread_brown": "Нить, коричневая",
   "material.riverfishing.thread_green": "Нить, зелёная",
   "material.riverfishing.thread_red": "Нить, красная",
-  "material.riverfishing.thread_black": "Нить, чёрная"
+  "material.riverfishing.thread_black": "Нить, чёрная",
+  "screen.riverfishing.tackle_station.tab_tie": "Вязание",
+  "gui.riverfishing.tie_stamp": "Наложить"
 }

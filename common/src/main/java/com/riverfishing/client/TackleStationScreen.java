@@ -36,6 +36,9 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
     /** Where the right-hand column starts, and how much room it has — both derived, never guessed. */
     private static final int TEXT_X = GRID_X + COLS * CELL + 10;
     private boolean predatorTab;
+    /** §tying: the third page — the hook in the vise and the canvas over it. */
+    private boolean tying;
+    private final TyingCanvas canvas = new TyingCanvas();
     private boolean advanced;
     private boolean draggingLeader;
     private int pendingLeader = -1;                 // local value while dragging; -1 = use menu's
@@ -86,8 +89,15 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         g.fill(x + 1, y + 1, x + imageWidth - 1, y + imageHeight - 1, 0xFF3a3227);
         g.fill(x + 2, y + 2, x + imageWidth - 2, y + imageHeight - 2, 0xFF57493a);
 
-        drawTab(g, x + 10, y + 8, !predatorTab, I18n.get("screen.riverfishing.tackle_station.tab_peaceful"));
-        drawTab(g, x + 84, y + 8, predatorTab, I18n.get("screen.riverfishing.tackle_station.tab_predator"));
+        drawTab(g, x + 10, y + 8, !predatorTab && !tying, I18n.get("screen.riverfishing.tackle_station.tab_peaceful"));
+        drawTab(g, x + 84, y + 8, predatorTab && !tying, I18n.get("screen.riverfishing.tackle_station.tab_predator"));
+        drawTab(g, x + 158, y + 8, tying, I18n.get("screen.riverfishing.tackle_station.tab_tie"));
+        if (tying) {   // §tying: the page is the canvas; the hook picker and the wells below stay
+            canvas.draw(g, font, x, y, mouseX, mouseY, canvas.canTie(minecraft.player.getInventory(), true));
+            canvas.markBrush(g, x, y);
+            drawHookPicker(g, x, y);
+            return;
+        }
 
         // Form grid.
         List<TackleForm> forms = tabForms();
@@ -203,6 +213,25 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         g.drawCenteredString(font, glyph, bx + HOOK_BTN_W / 2, by + 5, live ? 0xFFFFE6B0 : 0xFF6b6257);
     }
 
+    /** §tying: the hook picker alone — the Tie page keeps it, because the hook is what you tie on. */
+    private void drawHookPicker(GuiGraphics g, int x, int y) {
+        g.fill(x + HOOK_X - 1, y + 149, x + HOOK_X + 17, y + 167, 0xFF463b2d);
+        g.renderItem(new ItemStack(ModItems.HOOKS.get(menu.hookIdx()).get()), x + HOOK_X, y + 150);
+        drawHookArrow(g, x + HOOK_DOWN_X, y + HOOK_Y, "◄", menu.hookIdx() > 0);
+        drawHookArrow(g, x + HOOK_UP_X, y + HOOK_Y, "►", menu.hookIdx() < TackleForm.HOOK_SIZES.length - 1);
+        g.drawCenteredString(font, "#" + menu.hookSize(), x + HOOK_X + 8, y + 169, 0xFFFFD97A);
+    }
+
+    private boolean hookPickerClick(double mx, double my) {
+        int x = leftPos, y = topPos;
+        if (my >= y + HOOK_Y && my < y + HOOK_Y + HOOK_BTN_H && mx >= x + HOOK_DOWN_X && mx < x + HOOK_UP_X + HOOK_BTN_W) {
+            int cur = menu.hookIdx();
+            clickButton(500 + (mx < x + HOOK_X + 8 ? Math.max(0, cur - 1) : Math.min(TackleForm.HOOK_SIZES.length - 1, cur + 1)));
+            return true;
+        }
+        return false;
+    }
+
     private void drawTab(GuiGraphics g, int x, int y, boolean active, String label) {
         int w = 64;
         g.fill(x, y, x + w, y + 14, active ? 0xFF6e5a3a : 0xFF2a241c);
@@ -213,8 +242,17 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
     public boolean mouseClicked(double mx, double my, int button) {
         int x = leftPos, y = topPos;
         if (my >= y + 8 && my < y + 22) {
-            if (mx >= x + 10 && mx < x + 74) { predatorTab = false; return true; }
-            if (mx >= x + 84 && mx < x + 148) { predatorTab = true; return true; }
+            if (mx >= x + 10 && mx < x + 74) { predatorTab = false; tying = false; return true; }
+            if (mx >= x + 84 && mx < x + 148) { predatorTab = true; tying = false; return true; }
+            if (mx >= x + 158 && mx < x + 222) { tying = true; return true; }
+        }
+        if (tying) {   // §tying: the canvas takes the click; the hook picker below it still works
+            if (canvas.click(x, y, mx, my, button, () -> {
+                if (canvas.canTie(minecraft.player.getInventory(), true))
+                    com.riverfishing.network.ModNetwork.toServer(new com.riverfishing.network.TieLurePacket(canvas.design.clone()));
+            })) return true;
+            if (hookPickerClick(mx, my)) return true;
+            return super.mouseClicked(mx, my, button);
         }
         List<TackleForm> forms = tabForms();
         for (int i = 0; i < forms.size(); i++) {
@@ -273,6 +311,7 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
 
     @Override
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+        if (tying && canvas.drag(leftPos, topPos, mx, my)) return true;
         if (draggingLeader) {
             pendingLeader = leaderAt(mx);
             return true;
@@ -282,6 +321,7 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
 
     @Override
     public boolean mouseReleased(double mx, double my, int button) {
+        canvas.release();
         if (draggingLeader) {
             draggingLeader = false;
             clickButton(200 + pendingLeader);
@@ -315,6 +355,7 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
     public void render(GuiGraphics g, int mouseX, int mouseY, float pt) {
         super.render(g, mouseX, mouseY, pt);
         renderTooltip(g, mouseX, mouseY);
+        if (tying) { canvas.paletteTooltip(g, font, leftPos, topPos, mouseX, mouseY); return; }
         // Hover names for the form grid — the icon alone shouldn't be a guessing game.
         List<TackleForm> forms = tabForms();
         for (int i = 0; i < forms.size(); i++) {
