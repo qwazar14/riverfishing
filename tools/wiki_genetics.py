@@ -103,6 +103,41 @@ def koi_uris(size=64):
     return out
 
 
+_ART = None
+MASK_DIR = os.path.join(TEX, "pattern")
+DRAWS = ["koi_carp", "carp", "wild_carp", "mirror_carp", "linear_carp", "naked_carp"]
+# FishMorph.CARP_GROUND — what a carp's marking is cut from; a koi's ground is its variety's own.
+CARP_GROUND = {"carp": 0x7D5835, "wild_carp": 0x664B31, "mirror_carp": 0x74573E, "linear_carp": 0x7D5535, "naked_carp": 0x815940}
+# Pattern.HUE / LIFT / GEM_RGB, verbatim
+HUE = [0, 3, -4, 6, -7, 9, -11, 12, -14, 15, -17, 18]
+LIFT = [0.0, 0.06, -0.06, 0.10, -0.10, 0.04, -0.04, 0.12, -0.12, 0.08, -0.08, 0.14]
+GEM_RGB = [0x1B3FCF, 0xF2B01E, 0x0FA05A, 0x141218, 0x8A3FD0, 0xF2EDE0, 0xD2143C, 0xC1642A, 0x2FB79A, 0xFF9A16, 0x9FE8E0, 0x241A2E]
+
+
+def _uri64(path, size=64):
+    w, h, rows = read_png(path)
+    k = w // size
+    small = [[rows[y * k][x * k] for x in range(size)] for y in range(size)]
+    return "data:image/png;base64," + base64.b64encode(_png(small)).decode("ascii")
+
+
+def art():
+    """§pattern-overlay: what the browser needs to draw a fish the way FishItem draws it — the five koi
+    layers and FishMorph.KOI_PAINT (so the body can take Pattern.paint's hue turn per family), the four
+    carp sprites, and the 66 pattern masks of tools/gen_pattern_masks.py, all at 64 px nearest. The
+    colour maths (marking, paint, shift, the gems) is ported into the JS below, line for line."""
+    global _ART
+    if _ART is None:
+        _ART = {
+            "koi_layers": [_uri64(os.path.join(TEX, n + ".png")) for n in KOI_LAYERS],
+            "koi_paint": koi_paint(),
+            "carp": {d: _uri64(os.path.join(TEX, d + ".png")) for d in DRAWS if d != "koi_carp"},
+            "masks": {d: {f: _uri64(os.path.join(MASK_DIR, "%s_%s.png" % (d, f))) for f in FAMILY[1:]} for d in DRAWS},
+            "ground": CARP_GROUND, "hue": HUE, "lift": LIFT, "gem_rgb": GEM_RGB,
+        }
+    return _ART
+
+
 T = {
     "en": {
         "blurb": "Set the two parents the way their cards write them and the calculator answers what the roe "
@@ -172,6 +207,8 @@ T = {
 CSS = """
 .rfgen .rfg-fish{display:inline-block;width:40px;height:40px;background-size:contain;background-repeat:no-repeat;background-position:center;vertical-align:middle;margin-right:8px;image-rendering:pixelated}
 .rfgen .rfg-big{display:block;width:128px;height:128px;margin:4px auto 10px;background-size:contain;background-repeat:no-repeat;background-position:center;image-rendering:pixelated}
+.rfgen canvas.rfg-big{width:192px;height:192px;image-rendering:pixelated;background:none}
+.rfgen .rfg-cap{text-align:center;font-size:12px;color:var(--dim,#5c6660);margin:-4px 0 10px}
 .rfcalc.rfgen .row>div{min-width:0;max-width:100%}
 .rfcalc.rfgen .wbox{min-width:0}
 .rfgen .parents{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:8px}
@@ -229,6 +266,45 @@ JS = r"""
   function erf(x){ var s=x<0?-1:1; x=Math.abs(x); var t=1/(1+0.3275911*x);
     var y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x); return s*y; }
   function cdf(z){ return 0.5*(1+erf(z/Math.SQRT2)); }
+  // ---- Pattern.java, ported: what colour a body layer and the marking take at an index ----
+  var A=RFGEN_ART, IMG={};
+  function img(uri,cb){ if(IMG[uri]){ if(IMG[uri].complete) cb(IMG[uri]); else IMG[uri].addEventListener('load',function(){cb(IMG[uri]);}); return; }
+    var i=new Image(); IMG[uri]=i; i.addEventListener('load',function(){cb(i);}); i.src=uri; }
+  function famIdx(p){ var i=BAND.length-1; while(i>0&&p<BAND[i]) i--; return i; }
+  function gemOf(p){ var i=GEM_AT.indexOf(p); return i<0?-1:A.gem_rgb[i]; }
+  function hueShift(p){ var i=famIdx(p), st=BAND[i], en=i+1<BAND.length?BAND[i+1]:1000; return A.hue[i]+((p-st)/(en-st)-0.5)*8; }
+  function offset(p){ return (p*7+Math.floor(p/13))%5-2; }
+  function hsv(h,s,v){ var c=v*s, x=c*(1-Math.abs((h/60)%2-1)), m=v-c, r,g,b, k=Math.floor(h/60)%6;
+    if(k==0){r=c;g=x;b=0;}else if(k==1){r=x;g=c;b=0;}else if(k==2){r=0;g=c;b=x;}else if(k==3){r=0;g=x;b=c;}else if(k==4){r=x;g=0;b=c;}else{r=c;g=0;b=x;}
+    function B(u){return Math.max(0,Math.min(255,Math.round((u+m)*255)));} return B(r)<<16|B(g)<<8|B(b); }
+  function shift(rgb,deg,lift){ var r=((rgb>>16)&255)/255,g=((rgb>>8)&255)/255,b=(rgb&255)/255, mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn, h;
+    if(d<=0) h=0; else if(mx==r) h=((g-b)/d+6)%6; else if(mx==g) h=(b-r)/d+2; else h=(r-g)/d+4;
+    var s=mx<=0?0:d/mx; h=((h*60+deg)%360+360)%360; if(s<0.08) s=Math.min(0.07,s+0.07); return hsv(h,s,Math.max(0,Math.min(1,mx+lift))); }
+  function mix(a,b,t){ function ch(sh){return Math.round(((a>>sh)&255)*(1-t)+((b>>sh)&255)*t);} return ch(16)<<16|ch(8)<<8|ch(0); }
+  function paint(rgb,p,patch){ if(p==null) return rgb; var gem=gemOf(p); if(gem>=0) return gem; return shift(rgb,hueShift(p),A.lift[famIdx(p)]+(patch?offset(p)*0.03:0)); }
+  function marking(ground,p){ var gem=gemOf(p); if(gem>=0) return gem; var fi=famIdx(p); if(fi==0) return ground;
+    var lum=(0.299*((ground>>16)&255)+0.587*((ground>>8)&255)+0.114*(ground&255))/255, name=FAM[fi], base;
+    if(name=='ghost') base=mix(ground,0xF6F2EA,0.62); else if(name=='ember') base=mix(ground,0xE8702A,0.72);
+    else if(name=='aurora') base=shift(mix(ground,0x60B8FF,0.55),(p%70)*360/70,0.10);
+    else base=lum>0.42?mix(ground,0x241A12,0.55):mix(ground,0xF0E6D2,0.45);
+    return shift(base,hueShift(p)-A.hue[fi],A.lift[fi]); }
+  function css(rgb){ return '#'+('000000'+(rgb&0xFFFFFF).toString(16)).slice(-6); }
+  // draw `im` multiplied by `rgb` onto ctx, keeping im's own alpha — the item-tint the game applies
+  function tinted(ctx,im,rgb){ var o=document.createElement('canvas'); o.width=o.height=64; var c=o.getContext('2d');
+    c.drawImage(im,0,0,64,64); c.globalCompositeOperation='multiply'; c.fillStyle=css(rgb); c.fillRect(0,0,64,64);
+    c.globalCompositeOperation='destination-in'; c.drawImage(im,0,0,64,64); ctx.drawImage(o,0,0); }
+  // the fish as the game would draw it: koi layers under koiTint, or a carp sprite under FishMorph.tint,
+  // then the family's mask under patternTint (Pattern.marking of the ground) — the §pattern-mask layer
+  function drawFish(cv,kind,variety,draw,p){
+    var ctx=cv.getContext('2d'); ctx.clearRect(0,0,64,64); ctx.imageSmoothingEnabled=false;
+    var steps=[], ground;
+    if(kind=='koi'){ var pp=A.koi_paint[variety]||A.koi_paint.kohaku; ground=pp[0];
+      for(var li=0;li<4;li++){ var c=pp[li]; steps.push([A.koi_layers[li], paint(c<0?pp[0]:c,p,li>0&&c>=0)]); }
+      steps.push([A.koi_layers[4], 0xFFFFFF]); }
+    else { ground=A.ground[draw]; var gem=p==null?-1:gemOf(p); steps.push([A.carp[draw], gem>=0?gem:0xFFFFFF]); }
+    if(p!=null && gemOf(p)<0 && famIdx(p)>0) steps.push([A.masks[draw][FAM[famIdx(p)]], marking(ground,p)]);
+    (function next(i){ if(i>=steps.length) return; img(steps[i][0],function(im){ tinted(ctx,im,steps[i][1]); next(i+1); }); })(0);
+  }
   function koiName(states){ // states: {W,R,B,G,T} -> variety id, Genome.koiMatch on each row
     for(var r=0;r<KT.length;r++){ var row=KT[r].split('=')[0], ok=true; "WRBGT".split('').forEach(function(loc,i){
         var want=row[i*2+1], dom=states[loc]>0; if(want==='*') return; if(want==='_'?!dom:dom) ok=false; });
@@ -239,6 +315,12 @@ JS = r"""
     var m=readParent(root.querySelector('.mother')), f=readParent(root.querySelector('.father')), ls=loci();
     wn.textContent='× '+(+wr.value).toFixed(2);
     var D={}; ls.split('').forEach(function(loc){ D[loc]=dist(m[loc],f[loc]); });
+    // the pattern index the picture is drawn at: the parents' mean, as Pattern.inherit centres it
+    var a=pm.value.trim(), b=pf.value.trim(), pidx=null;
+    if(a!==''||b!==''){ var ia=a===''?null:Math.max(0,Math.min(999,+a|0)), ib=b===''?null:Math.max(0,Math.min(999,+b|0));
+      if(ia===null) ia=ib; if(ib===null) ib=ia; pidx=Math.floor((ia+ib)/2); }
+    function big(kind,v,draw){ return '<canvas class="rfg-big" width="64" height="64" data-kind="'+kind+'" data-v="'+v+'" data-draw="'+draw+'"></canvas>'+
+      (pidx!=null?'<p class="rfg-cap">'+N.pattern[FAM[famIdx(pidx)]]+' · #'+pidx+(gemOf(pidx)>=0?' · '+N.gem[GEM[GEM_AT.indexOf(pidx)]]:'')+'</p>':''); }
     // 1. the loci
     var rows=ls.split('').map(function(loc){ var d=D[loc];
       var trueLine=(d[0]>0.999||d[2]>0.999)?' <span class="tag">'+T['true']+'</span>':'';
@@ -254,7 +336,7 @@ JS = r"""
       var K=D.K, Nn=D.N; dead=Nn[2]; var alive=1-dead;
       var vs={scaled:(K[1]+K[2])*Nn[0]/alive, linear:(K[1]+K[2])*Nn[1]/alive, mirror:K[0]*Nn[0]/alive, naked:K[0]*Nn[1]/alive};
       var vorder=["scaled","mirror","linear","naked"];
-      if(kindSel.value==='carp'){ var topc=vorder.slice().sort(function(a,b){return vs[b]-vs[a];})[0]; ph+='<i class="rfg-big '+fishCls(CARP[topc])+'"></i>'; }
+      var topc=vorder.slice().sort(function(a,b){return vs[b]-vs[a];})[0]; ph+=big('carp',topc,CARP[topc]);
       ph+='<table>'+vorder.map(function(v){return '<tr><td><i class="rfg-fish '+fishCls(CARP[v])+'"></i>'+N.variety[v]+'</td><td class="n">'+bar(vs[v])+pct(vs[v])+'</td></tr>';}).join('')+
         (dead>0?'<tr><td class="k">'+T.dead+'</td><td class="n">'+pct(dead)+'</td></tr>':'')+'</table>';
       if(m.N>0&&f.N>0) note=T.note_lethal;
@@ -264,7 +346,7 @@ JS = r"""
       (function rec(i,st,p){ if(i==5){ var v=koiName(st); acc[v]=(acc[v]||0)+p; return; }
         var d=D[K5[i]]; for(var s=0;s<3;s++) if(d[s]>0){ st[K5[i]]=s; rec(i+1,st,p*d[s]); } })(0,{},1);
       var ks=Object.keys(acc).sort(function(a,b){return acc[b]-acc[a];});
-      ph+='<i class="rfg-big rfg-koi-'+ks[0]+'"></i>';
+      ph+=big('koi',ks[0],'koi_carp');
       ph+='<table>'+ks.map(function(v){return '<tr><td><i class="rfg-fish rfg-koi-'+v+'"></i>'+N.koi[v]+'</td><td class="n">'+bar(acc[v])+pct(acc[v])+'</td></tr>';}).join('')+'</table>';
       ph+='<p class="k">'+T.note_koi+'</p>';
     }
@@ -279,10 +361,7 @@ JS = r"""
       hs+='<p>'+txt('V',s)+' <span class="k">'+pct(V[s])+':</span> '+T.hatch+' '+pct(surv[s])+' → <b>'+n+'</b> '+T.fry+'</p>'; }
     c.push([T.clutch,'<p><b>'+eggs+'</b> '+T.eggs+'</p>'+hs+'<p><span class="k">'+T.expected+':</span> <b>'+Math.round(exp)+'</b> '+T.fry+'</p>']);
     // 4. the pattern — Pattern.inherit: floor((m+f)/2) + round(N(0,12)), clamped
-    var a=pm.value.trim(), b=pf.value.trim();
-    if(a!==''||b!==''){ var ia=a===''?null:Math.max(0,Math.min(999,+a|0)), ib=b===''?null:Math.max(0,Math.min(999,+b|0));
-      if(ia===null) ia=ib; if(ib===null) ib=ia;
-      var mean=Math.floor((ia+ib)/2), SD=12;
+    if(pidx!=null){ var mean=pidx, SD=12;
       var fam=BAND.map(function(lo,i){ var hi=(i+1<BAND.length?BAND[i+1]:1000)-1;
         var pLo=lo==0?0:cdf((lo-0.5-mean)/SD), pHi=hi==999?1:cdf((hi+0.5-mean)/SD); return [FAM[i],pHi-pLo]; })
         .filter(function(x){return x[1]>0.0005;}).sort(function(x,y){return y[1]-x[1];});
@@ -293,6 +372,7 @@ JS = r"""
     }
     out.innerHTML='<div class="cards">'+c.map(function(x){return '<div class="card"><h4>'+x[0]+'</h4>'+x[1]+'</div>';}).join('')+'</div>'+
       (note?'<div class="note warn">'+note+'</div>':'');
+    out.querySelectorAll('canvas.rfg-big').forEach(function(cv){ drawFish(cv,cv.dataset.kind,cv.dataset.v,cv.dataset.draw,pidx); });
   }
   function rebuild(){ buildParent(root.querySelector('.mother')); buildParent(root.querySelector('.father')); render(); }
   kindSel.addEventListener('change',rebuild);
@@ -324,7 +404,7 @@ def widget(lang, emit_css=True):
         return ('<div class="parent %s"><h4>%s</h4><div class="loci"></div>'
                 '<div class="paste"><input type="text" placeholder="%s" spellcheck="false"></div></div>' % (cls, label, t["paste"]))
     return (
-        ("<style>" + CSS + koi_css + "</style>\n" if emit_css else "") +
+        ("<style>" + CSS + koi_css + "</style>\n<script>var RFGEN_ART=" + j(art()) + ";</script>\n" if emit_css else "") +
         '<div class="rfcalc rfgen" id="rfg-' + lang + '">\n'
         '  <p>' + t["blurb"] + '</p>\n'
         '  <div class="row"><div><label>' + t["kind"] + '</label><select class="kind">'
@@ -354,6 +434,10 @@ if __name__ == "__main__":
     u = koi_uris()
     assert len(u) == 17 and len(set(u.values())) == 17, "the seventeen koi renders must all differ"
     assert all(len(x) < 12000 for x in u.values()), "a koi render is heavier than it should be"
+    a = art()
+    assert len(a["koi_layers"]) == 5 and len(a["carp"]) == 5 and all(len(m) == 11 for m in a["masks"].values()) and len(a["masks"]) == 6
+    assert len(a["koi_paint"]) == 17, "KOI_PAINT did not parse out of FishMorph.java"
+    assert len(json.dumps(a)) < 400_000, "the art payload grew past what one page should carry"
     for lang in ("en", "ru", "uk"):
         w = widget(lang)
         assert 'id="rfg-%s"' % lang in w and "RFGEN_NAMES" in w and "rfg-koi-tancho{" in w
