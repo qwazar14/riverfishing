@@ -64,10 +64,19 @@ public final class HookedFishRenderer {
         // the item's FIXED display turns the model 180° about Y; one more here puts the head back on −X
         pose.mulPose(Axis.YP.rotationDegrees(180f + Mth.sin(state.tail * 1.0f) * 6f));
         FishItemRenderer.gridScale = Mth.clamp(state.lengthCm / 100f, 0.12f, 4.5f);   // true length, one block a metre
-        mc.getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, LightTexture.FULL_BRIGHT,
+        mc.getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, depthLight(surfaceY - at.y),
                 OverlayTexture.NO_OVERLAY, pose, buffers, mc.level, 0);
         FishItemRenderer.gridScale = 0f;
         pose.popPose();
+    }
+
+    /**
+     * §hooked-dim: a fish under water is lit by the water above it. Full bright at the surface, down to
+     * a quarter six blocks under — a sounding fish goes dark, a breaching one comes up into the light.
+     */
+    static int depthLight(double depth) {
+        int l = Math.round(15f * Mth.clamp(1f - (float) Math.max(0.0, depth) / 6f, 0.25f, 1f));
+        return LightTexture.pack(l, l);
     }
 
     /** The item the fish is drawn as — rebuilt only when the species on the line changes. */
