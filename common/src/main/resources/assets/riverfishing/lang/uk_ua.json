@@ -1537,5 +1537,7 @@
   "material.riverfishing.thread_red": "Нитка, червона",
   "material.riverfishing.thread_black": "Нитка, чорна",
   "screen.riverfishing.tackle_station.tab_tie": "В'язання",
-  "gui.riverfishing.tie_stamp": "Накласти"
+  "gui.riverfishing.tie_stamp": "Накласти",
+  "gui.riverfishing.tie_bill": "Матеріали",
+  "material.riverfishing.dye": "Барвник"
 }

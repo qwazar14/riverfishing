@@ -101,7 +101,7 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
             canvas.draw(g, font, x, y, mouseX, mouseY, menu);
             canvas.markBrush(g, x, y);
             drawHookPicker(g, x, y);
-            drawWells(g, x, y);
+            drawWells(g, x, y, true);
             return;
         }
 
@@ -212,12 +212,13 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         }
         g.text(font, "→", x + 158, y + 154, 0xFFB8AE9A, false);
 
-        drawWells(g, x, y);
+        drawWells(g, x, y, false);
     }
 
     /** The material wells and the player's inventory — every page has them; a tie pays out of both. */
-    private void drawWells(GuiGraphicsExtractor g, int x, int y) {
-        for (int wx : new int[] {76, 100, 124, 176}) g.fill(x + wx - 1, y + 149, x + wx + 17, y + 167, 0xFF2a241c);
+    private void drawWells(GuiGraphicsExtractor g, int x, int y, boolean store) {
+        if (store) for (int i = 0; i < TackleStationMenu.STORE_SLOTS; i++) g.fill(x + 75 + i * 18, y + 149, x + 93 + i * 18, y + 167, 0xFF2a241c);
+        else for (int wx : new int[] {76, 100, 124, 176}) g.fill(x + wx - 1, y + 149, x + wx + 17, y + 167, 0xFF2a241c);
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 g.fill(x + 42 + col * 18, y + 179 + row * 18, x + 60 + col * 18, y + 197 + row * 18, 0xFF2a241c);
@@ -243,6 +244,14 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         g.centeredText(font, "#" + menu.hookSize(), x + HOOK_X + 8, y + 169, 0xFFFFD97A);
     }
 
+    /** §tying: both sides must agree which wells are live, so the flip goes to the menu and the server. */
+    private void setTying(boolean on) {
+        if (tying == on) return;
+        tying = on;
+        menu.setTying(on);
+        clickButton(on ? 601 : 600);
+    }
+
     private boolean hookPickerClick(double mx, double my) {
         int x = leftPos, y = topPos;
         if (my >= y + HOOK_Y && my < y + HOOK_Y + HOOK_BTN_H && mx >= x + HOOK_DOWN_X && mx < x + HOOK_UP_X + HOOK_BTN_W) {
@@ -264,9 +273,9 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         double mx = event.x(), my = event.y();
         int x = leftPos, y = topPos;
         if (my >= y + 8 && my < y + 22) {
-            if (mx >= x + 10 && mx < x + 74) { predatorTab = false; tying = false; return true; }
-            if (mx >= x + 84 && mx < x + 148) { predatorTab = true; tying = false; return true; }
-            if (mx >= x + 158 && mx < x + 222) { tying = true; return true; }
+            if (mx >= x + 10 && mx < x + 74) { predatorTab = false; setTying(false); return true; }
+            if (mx >= x + 84 && mx < x + 148) { predatorTab = true; setTying(false); return true; }
+            if (mx >= x + 158 && mx < x + 222) { setTying(true); return true; }
         }
         if (tying) {   // §tying: the canvas takes the click; the hook picker below it still works
             if (canvas.click(x, y, mx, my, event.button(), () -> {
@@ -378,7 +387,7 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         // §26.1: super already extracts the background, the slots and the hovered-slot tooltip — the old
         // explicit renderTooltip() call is gone.
         super.extractRenderState(g, mouseX, mouseY, partialTick);
-        if (tying) { canvas.paletteTooltip(g, font, leftPos, topPos, mouseX, mouseY); return; }
+        if (tying) { canvas.paletteTooltip(g, font, leftPos, topPos, mouseX, mouseY, menu); return; }
         // Hover names for the form grid — the icon alone shouldn't be a guessing game.
         List<TackleForm> forms = tabForms();
         for (int i = 0; i < forms.size(); i++) {

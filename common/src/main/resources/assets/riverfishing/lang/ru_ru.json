@@ -1537,5 +1537,7 @@
   "material.riverfishing.thread_red": "Нить, красная",
   "material.riverfishing.thread_black": "Нить, чёрная",
   "screen.riverfishing.tackle_station.tab_tie": "Вязание",
-  "gui.riverfishing.tie_stamp": "Наложить"
+  "gui.riverfishing.tie_stamp": "Наложить",
+  "gui.riverfishing.tie_bill": "Материалы",
+  "material.riverfishing.dye": "Краситель"
 }
