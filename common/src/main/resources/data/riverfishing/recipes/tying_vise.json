@@ -1,1 +1,0 @@
-{ "type": "minecraft:crafting_shaped", "pattern": [ " i ", "iii", "ppp" ], "key": { "i": { "item": "minecraft:iron_ingot" }, "p": { "tag": "minecraft:planks" } }, "result": { "item": "riverfishing:tying_vise" } }

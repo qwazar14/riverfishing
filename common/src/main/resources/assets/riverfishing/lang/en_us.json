@@ -1495,8 +1495,7 @@
   "gem.riverfishing.opal": "Opal",
   "gem.riverfishing.obsidian": "Obsidian",
   "item.riverfishing.tied_lure": "Tied Lure",
-  "block.riverfishing.tying_vise": "Tying Vise",
-  "tooltip.riverfishing.tied_lure": "Tied at the vise — fishes as a winter jig",
+  "tooltip.riverfishing.tied_lure": "Tied at the station — fishes as a winter jig",
   "tooltip.riverfishing.tied_size": "%s mm, %s g",
   "tooltip.riverfishing.tied_hook": "Hook №%s",
   "tooltip.riverfishing.tied_eyes": "Eyes — predators look twice",
@@ -1535,5 +1534,7 @@
   "material.riverfishing.thread_brown": "Brown thread",
   "material.riverfishing.thread_green": "Green thread",
   "material.riverfishing.thread_red": "Red thread",
-  "material.riverfishing.thread_black": "Black thread"
+  "material.riverfishing.thread_black": "Black thread",
+  "screen.riverfishing.tackle_station.tab_tie": "Tie",
+  "gui.riverfishing.tie_stamp": "Stamp"
 }
