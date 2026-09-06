@@ -64,6 +64,7 @@ public final class HookedFishRenderer {
         pose.mulPose(Axis.YP.rotationDegrees(180f + Mth.sin(state.tail * 1.0f) * 6f));
         float s = Mth.clamp(state.lengthCm / 100f, 0.12f, 4.5f);   // true length, one block a metre
         pose.scale(s, s, s);
+        pose.translate(0.5, 0, 0);   // §hooked-mouth: the head is on -X; the line ends at the mouth
         ItemStackRenderState rs = new ItemStackRenderState();
         mc.getItemModelResolver().updateForTopItem(rs, stack, ItemDisplayContext.FIXED, mc.level, null, 0);
         return rs;
