@@ -1536,5 +1536,7 @@
   "material.riverfishing.thread_red": "Red thread",
   "material.riverfishing.thread_black": "Black thread",
   "screen.riverfishing.tackle_station.tab_tie": "Tie",
-  "gui.riverfishing.tie_stamp": "Stamp"
+  "gui.riverfishing.tie_stamp": "Stamp",
+  "gui.riverfishing.tie_bill": "Materials",
+  "material.riverfishing.dye": "Dye"
 }

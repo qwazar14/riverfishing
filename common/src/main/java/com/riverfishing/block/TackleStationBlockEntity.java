@@ -1,6 +1,7 @@
 package com.riverfishing.block;
 
 import com.riverfishing.registry.ModBlockEntities;
+import com.riverfishing.menu.TackleStationMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -14,7 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * re-tie without re-feeding it. Contents drop on break.
  */
 public class TackleStationBlockEntity extends BlockEntity {
-    private final SimpleContainer items = new SimpleContainer(4);
+    private final SimpleContainer items = new SimpleContainer(TackleStationMenu.CONTAINER_SIZE);
 
     public TackleStationBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.TACKLE_STATION.get(), pos, state);

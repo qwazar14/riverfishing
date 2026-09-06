@@ -32,6 +32,14 @@ public class TieLurePacket implements ModNetwork.RfPacket {
 
     /** The hook: a nugget of iron, the way the station makes one. */
     public static final Predicate<ItemStack> HOOK = s -> s.is(Items.IRON_NUGGET);
+    /** Everything the store accepts: every ingredient, every dye, the nugget. */
+    public static final Predicate<ItemStack> STORABLE = s -> {
+        if (s.isEmpty()) return false;
+        if (HOOK.test(s)) return true;
+        for (int px = 1; px <= TiedDesign.LAST; px++) if (ingredient(px).test(s)) return true;
+        for (int px = TiedDesign.THREAD0 + 1; px < TiedDesign.THREAD0 + 16; px++) if (dyeFor(px).test(s)) return true;
+        return false;
+    };
 
     private final byte[] design;
 
