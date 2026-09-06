@@ -73,7 +73,7 @@ item = io.open(os.path.join(J, "item/TiedLureItem.java"), encoding="utf-8").read
 if 'super("mormyshka", true' not in item:
     fails.append("TiedLureItem must be a mormyshka to the rigs, or the winter rod refuses it")
 pk = io.open(os.path.join(J, "network/TieLurePacket.java"), encoding="utf-8").read()
-for must in ("affordable(inv, design)", "menu.result().isEmpty()", "TiedDesign.valid(design)"):
+for must in ("affordable(inv, design)", "count(inv, HOOK) < 1 + cost[TiedDesign.BEAD_IRON]", "TiedDesign.valid(design)", "instanceof TackleStationMenu menu"):
     if must not in pk:
         fails.append("TieLurePacket.handleServer must check %s — the client is not trusted" % must)
 
@@ -82,4 +82,8 @@ if fails:
     for f in fails:
         print("  " + f)
     sys.exit(1)
+hook = re.search(r'String\[\] h = \{(.*?)\};', src).group(1)
+rows = re.findall(r'"([.#]{16})"', hook)
+if len(rows) != 16 or rows[7][1:14].count("#") < 10:
+    fails.append("the hook must lie along row 7 of the canvas, eye on the left — the templates are tied on it")
 print("tying: 8 templates, each its own shape (self 1.0, nearest other under 0.70), engine/rig/item/packet wired")

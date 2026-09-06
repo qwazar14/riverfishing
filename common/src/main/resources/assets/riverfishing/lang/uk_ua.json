@@ -1496,8 +1496,7 @@
   "gem.riverfishing.opal": "Опал",
   "gem.riverfishing.obsidian": "Обсидіан",
   "item.riverfishing.tied_lure": "Саморобна принада",
-  "block.riverfishing.tying_vise": "В'язальні лещата",
-  "tooltip.riverfishing.tied_lure": "Зв'язана в лещатах — ловить як мормишка",
+  "tooltip.riverfishing.tied_lure": "Зв'язана на верстаку — ловить як мормишка",
   "tooltip.riverfishing.tied_size": "%s мм, %s г",
   "tooltip.riverfishing.tied_hook": "Гачок №%s",
   "tooltip.riverfishing.tied_eyes": "Очка — хижак придивляється",
@@ -1536,5 +1535,7 @@
   "material.riverfishing.thread_brown": "Нитка, коричнева",
   "material.riverfishing.thread_green": "Нитка, зелена",
   "material.riverfishing.thread_red": "Нитка, червона",
-  "material.riverfishing.thread_black": "Нитка, чорна"
+  "material.riverfishing.thread_black": "Нитка, чорна",
+  "screen.riverfishing.tackle_station.tab_tie": "В'язання",
+  "gui.riverfishing.tie_stamp": "Накласти"
 }

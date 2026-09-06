@@ -74,10 +74,6 @@ public final class ModBlocks {
 
     // §pond §breeding (0.9.0): the private-pond sign — plant it by your water and the community hash,
     // the size gates and the poaching rule all step back from it (fishing/PondData).
-    // §tying: the vise you tie jigs and flies on.
-    public static final RegistrySupplier<Block> TYING_VISE = registerSimple("tying_vise",
-            () -> new com.riverfishing.block.TyingViseBlock(
-                    BlockBehaviour.Properties.of().strength(1.2f).sound(SoundType.METAL).noOcclusion()));
     public static final RegistrySupplier<Block> POND_SIGN = registerSimple("pond_sign",
             () -> new com.riverfishing.block.PondSignBlock(
                     blockProps("pond_sign").strength(0.8f).sound(SoundType.WOOD).noOcclusion().noCollision()));

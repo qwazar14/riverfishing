@@ -77,8 +77,6 @@ public final class ClientPlatformImpl {
     static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.ROD_ASSEMBLY.get(), RodAssemblyScreen::new);
         event.register(ModMenus.RIG.get(), RigScreen::new);
-        event.register(ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
-        event.register(ModMenus.TYING_VISE.get(), com.riverfishing.client.TyingViseScreen::new);   // §tying
         // §keepnet + §tackle-box (0.7.0): the two boxes.
         event.register(ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         event.register(ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
