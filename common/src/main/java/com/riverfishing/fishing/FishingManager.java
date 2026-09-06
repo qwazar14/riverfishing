@@ -2173,7 +2173,7 @@ public final class FishingManager {
         double sx = -fz, sz = fx;
         double reach = Mth.clamp(2.5 + session.lengthCm / 50.0, 2.0, 6.0) * (1.0 - 0.45 * session.fatigue);
         boolean running = session.runTicksLeft > 0;
-        double ox = fx * 0.6, oy = -0.35, oz = fz * 0.6;
+        double ox = 0.0, oy = -0.2, oz = 0.0;   // at rest it hangs on the line, just under
         if (running) {
             switch (session.course) {
                 case LEFT -> { ox = -sx * reach; oz = -sz * reach; oy = -0.5; }
