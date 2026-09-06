@@ -734,14 +734,14 @@ public final class RodChain {
         // computed eagerly, drawn deferred — the callback runs when the frame flushes
         org.joml.Vector3f[] pts = new org.joml.Vector3f[17];
         // §line-snag: caught on a block, the string runs end -> kink -> tip in two straight legs
-        net.minecraft.world.phys.Vec3 kink = own.snagged ? LineRenderer.snagPoint(mc, tipW, end) : null;
-        pts[0] = toNode(end.add(0, kink != null ? 0.0 : LineRenderer.hangOffset(own, dy, 0.0, time), 0), cp, q, warp, space);
+        net.minecraft.world.phys.Vec3 kink = LineRenderer.kinkFor(mc, own, tipW, end);
+        pts[0] = toNode(end.add(0, kink != null ? 0.0 : LineRenderer.hangOffset(own, dy, Math.sqrt(dx * dx + dy * dy + dz * dz), 0.0, time), 0), cp, q, warp, space);
         for (int k = 1; k <= 16; k++) {
             double f = k / 16.0;
             net.minecraft.world.phys.Vec3 w = kink != null
                     ? (f < 0.5 ? end.lerp(kink, f * 2.0) : kink.lerp(tipW, (f - 0.5) * 2.0))
                     : new net.minecraft.world.phys.Vec3(end.x + dx * f,
-                            end.y + LineRenderer.hangOffset(own, dy, f, time),   // §line-taut
+                            end.y + LineRenderer.hangOffset(own, dy, Math.sqrt(dx * dx + dy * dy + dz * dz), f, time),   // §line-taut
                             end.z + dz * f);
             pts[k] = toNode(w, cp, q, warp, space)
                     .add((float) (dtx * f), (float) (dty * f), (float) (dtz * f));
