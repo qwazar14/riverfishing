@@ -109,6 +109,13 @@ public final class LineRenderer {
             // tension straightens the string, a fish running at the angler bellies it.
             double time = mc.level.getGameTime() + pt;
             double dx = tip.x - end.x, dy = tip.y - end.y, dz = tip.z - end.z;
+            // §line-snag: the string is caught on a block — draw it KINKED over the point it rubs,
+            // two straight legs, which is exactly what a snagged line looks like from the bank.
+            Vec3 kink = state.snagged ? snagPoint(mc, tip, end) : null;
+            if (kink != null) {
+                Vec3 a = end, b = kink; line(sv, m, nrm, a, b, cr, cg, cb, alpha);
+                a = kink; b = tip; line(sv, m, nrm, a, b, cr, cg, cb, alpha);
+            } else {
             Vec3 prev = end.add(0, hangOffset(state, dy, 0.0, time), 0);
             for (int k = 1; k <= 16; k++) {
                 double f = k / 16.0;
@@ -118,6 +125,7 @@ public final class LineRenderer {
                 line(sv, m, nrm, prev, p, cr, cg, cb, alpha);
                 prev = p;
             }
+            }   // §line-snag
         }
 
         // The bobber (§bobber-render): only float rigs show one — a red antenna over a white body.
@@ -136,6 +144,14 @@ public final class LineRenderer {
      * waves, pulled toward the angler as reel-in progress rises. Shared by the world pass and the
      * first-person hand pass ({@link RodItemRenderer}), so the two can never disagree on the far end.
      */
+    /** §line-snag: where the string meets the block, clipped the way the server clipped it. */
+    static Vec3 snagPoint(Minecraft mc, Vec3 tip, Vec3 end) {
+        var hit = mc.level.clip(new net.minecraft.world.level.ClipContext(tip, end,
+                net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                net.minecraft.world.level.ClipContext.Fluid.NONE, mc.player));
+        return hit.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK ? hit.getLocation() : null;
+    }
+
     static Vec3 lineEnd(Minecraft mc, Player player, ClientLineState.Line state, float pt) {
         float bobT = mc.level.getGameTime() + pt;
         double bob;
