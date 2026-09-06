@@ -64,6 +64,7 @@ public final class HookedFishRenderer {
         // the item's FIXED display turns the model 180° about Y; one more here puts the head back on −X
         pose.mulPose(Axis.YP.rotationDegrees(180f + Mth.sin(state.tail * 1.0f) * 6f));
         FishItemRenderer.gridScale = ShoalRenderer.itemSize(state.lengthCm);
+        pose.translate(FishItemRenderer.gridScale * 0.5, 0, 0);   // §hooked-mouth: the head is on -X; the line ends at the mouth
         mc.getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, depthLight(surfaceY - at.y),
                 OverlayTexture.NO_OVERLAY, pose, buffers, mc.level, 0);
         FishItemRenderer.gridScale = 0f;

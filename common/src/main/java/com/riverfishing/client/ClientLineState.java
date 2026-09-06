@@ -81,7 +81,7 @@ public final class ClientLineState {
             // where the fish is trying to be: a run pulls it out along its course, rest leaves it
             // hanging just under the surface a little beyond the line's end
             double reach = Mth.clamp(2.5 + lengthCm / 50.0, 2.0, 6.0) * (1.0 - 0.45 * fatigue);
-            double tx = fwdX * 0.6, ty = -0.35, tz = fwdZ * 0.6, tPitch = 0f;
+            double tx = 0.0, ty = -0.2, tz = 0.0, tPitch = 0f;   // at rest it hangs on the line, just under
             if (running && course == 1) { tx = -sideX * reach; tz = -sideZ * reach; ty = -0.5; }
             else if (running && course == 2) { tx = sideX * reach; tz = sideZ * reach; ty = -0.5; }
             else if (running && course == 3) { tx = fwdX * reach * 0.5; tz = fwdZ * reach * 0.5; ty = -reach * 0.8; tPitch = 28f; }
@@ -93,10 +93,14 @@ public final class ClientLineState {
                 jumpT += dt / 0.75f;
                 if (jumpT >= 1f) jumpT = jumping ? 0.999f : -1f;
             }
-            // §line-snag: held on a block — the body stays where the line stopped it, and strains
-            float k = snagged ? 0f : Math.min(1f, dt * (running ? 2.6f : 1.6f));
+            // §fish-speed: a run is a SWIM, not a lerp — the body moves toward where it is going at a
+            // fish's pace (a big fish is faster; a tired one slower) and never jumps blocks in a frame.
+            // §line-snag: held on a block — the body stays where the line stopped it, and strains.
             double ox = fx, oz = fz;
-            fx = Mth.lerp(k, fx, tx); fz = Mth.lerp(k, fz, tz);
+            double ddx = tx - fx, ddz = tz - fz, dd = Math.sqrt(ddx * ddx + ddz * ddz);
+            double speed = (running ? 2.2 + lengthCm / 60.0 : 1.4) * (1.0 - 0.4 * fatigue);
+            double step = snagged ? 0.0 : Math.min(dd, speed * dt);
+            if (dd > 1e-6) { fx += ddx / dd * step; fz += ddz / dd * step; }
             fy = Mth.lerp(Math.min(1f, dt * 2.2f), fy, ty);
             // a head-shake, or straining on a snag: a hard sideways shudder — a DISPLAY offset, never
             // folded into the eased position (folded in, a held fish crept sideways every frame)
