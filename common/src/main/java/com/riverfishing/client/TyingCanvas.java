@@ -2,11 +2,10 @@ package com.riverfishing.client;
 
 import com.riverfishing.network.TieLurePacket;
 import com.riverfishing.tackle.TiedDesign;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 
 /**
  * §tying: the canvas, as a page of the Tackle Station. The hook is already there — drawn from the
@@ -26,7 +25,7 @@ public final class TyingCanvas {
     public static final int PAT_Y = CANVAS_Y + SIDE + 4, PAT_W = 12;   // the eight stencils, one row
     public static final int BTN_Y = MAT_Y + PAL_CELL + 4, BTN_W = 36;
     public static final int READ_Y = PAT_Y + 14;
-    public static final int TIE_X = 196, TIE_Y = 150, TIE_W = 46, TIE_H = 18;
+    public static final int TIE_X = 196, TIE_Y = 128, TIE_W = 46, TIE_H = 18;
     private static final int[] MATERIALS = {TiedDesign.HACKLE, TiedDesign.FUR, TiedDesign.BEAD_IRON, TiedDesign.BEAD_GOLD, TiedDesign.TINSEL, TiedDesign.EYE};
     private static final TiedDesign.Template[] STENCILS = {
             TiedDesign.Template.PELLET, TiedDesign.Template.DROP, TiedDesign.Template.DEVIL, TiedDesign.Template.ANT,
@@ -63,9 +62,10 @@ public final class TyingCanvas {
         return mx >= x && mx < x + w && my >= y && my < y + h;
     }
 
-    public boolean canTie(Inventory inv, boolean resultFree) {
-        return resultFree && TiedDesign.valid(design) && TieLurePacket.affordable(inv, design)
-                && TieLurePacket.count(inv, TieLurePacket.HOOK) >= 1;
+    /** The station wells and the inventory together pay — the same walk the server does. */
+    public boolean canTie(AbstractContainerMenu menu) {
+        return TiedDesign.valid(design) && TieLurePacket.affordable(menu, design)
+                && TieLurePacket.count(menu, TieLurePacket.HOOK) >= 1 + TiedDesign.cost(design)[TiedDesign.BEAD_IRON];
     }
 
     /** A click on the page. Returns true when it was ours. {@code button}: 0 paint, 1 erase. */
@@ -107,7 +107,7 @@ public final class TyingCanvas {
                 design[(TiedDesign.SIZE - 1 - y) * TiedDesign.SIZE + x] = design[y * TiedDesign.SIZE + x];
     }
 
-    public void draw(GuiGraphics g, Font font, int left, int top, int mouseX, int mouseY, boolean canTie) {
+    public void draw(GuiGraphics g, Font font, int left, int top, int mouseX, int mouseY, AbstractContainerMenu menu) {
         int cx = left + CANVAS_X, cy = top + CANVAS_Y;
         // the board and the hook in the vise — the hook is not yours to paint, it is what you tie on
         g.fill(cx - 2, cy - 2, cx + SIDE + 2, cy + SIDE + 2, 0xFF1C1814);
@@ -140,9 +140,8 @@ public final class TyingCanvas {
         }
         // the palette: sixteen threads, then the six materials; greyed red when the inventory cannot pay
         int[] cost = TiedDesign.cost(design);
-        Inventory inv = Minecraft.getInstance().player.getInventory();
-        for (int i = 0; i < 16; i++) paletteCell(g, left + PAL_X + (i % 4) * PAL_CELL, top + PAL_Y + (i / 4) * PAL_CELL, TiedDesign.THREAD0 + i, cost, inv);
-        for (int i = 0; i < MATERIALS.length; i++) paletteCell(g, left + PAL_X + i * PAL_CELL, top + MAT_Y, MATERIALS[i], cost, inv);
+        for (int i = 0; i < 16; i++) paletteCell(g, left + PAL_X + (i % 4) * PAL_CELL, top + PAL_Y + (i / 4) * PAL_CELL, TiedDesign.THREAD0 + i, cost, menu);
+        for (int i = 0; i < MATERIALS.length; i++) paletteCell(g, left + PAL_X + i * PAL_CELL, top + MAT_Y, MATERIALS[i], cost, menu);
         // stamp / clear / mirror
         int bx = left + PAL_X, by = top + BTN_Y;
         button(g, font, bx, by, BTN_W, I18n("gui.riverfishing.tie_stamp"), stencil >= 0);
@@ -155,16 +154,20 @@ public final class TyingCanvas {
                 + "  ·  " + Component.translatable("tooltip.riverfishing.tied_size", a.sizeMm(),
                 String.format(java.util.Locale.ROOT, "%.1f", a.weightG())).getString();
         g.drawString(font, read, cx, top + READ_Y, 0xFFE8DCC0, false);
-        button(g, font, left + TIE_X, top + TIE_Y, TIE_W, I18n("gui.riverfishing.tie"), canTie, TIE_H);
+        button(g, font, left + TIE_X, top + TIE_Y, TIE_W, I18n("gui.riverfishing.tie"), canTie(menu), TIE_H);
+        // the hook is a nugget of iron — say so beside the result well, red when there is none to take
+        int nuggets = 1 + cost[TiedDesign.BEAD_IRON], have = TieLurePacket.count(menu, TieLurePacket.HOOK);
+        g.renderFakeItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_NUGGET), left + TIE_X, top + 150);
+        g.drawString(font, "×" + nuggets, left + TIE_X + 18, top + 154, have >= nuggets ? 0xFF9a8d78 : 0xFFE06050, false);
     }
 
-    private static void paletteCell(GuiGraphics g, int x0, int y0, int px, int[] cost, Inventory inv) {
+    private static void paletteCell(GuiGraphics g, int x0, int y0, int px, int[] cost, AbstractContainerMenu menu) {
         g.fill(x0, y0, x0 + PAL_CELL - 1, y0 + PAL_CELL - 1, 0xFF2a241c);
         g.fill(x0 + 3, y0 + 3, x0 + PAL_CELL - 4, y0 + PAL_CELL - 4, 0xFF000000 | TiedDesign.rgb(px));
         if (px == TiedDesign.EYE) g.fill(x0 + 7, y0 + 7, x0 + 11, y0 + 11, 0xFFFFFFFF);
         if (px == TiedDesign.HACKLE) for (int k = 0; k < 4; k++) g.fill(x0 + 4 + k * 3, y0 + 4, x0 + 5 + k * 3, y0 + 14, 0xFF3B2A18);
-        boolean afford = cost[px] == 0 || (TieLurePacket.count(inv, TieLurePacket.ingredient(px)) >= cost[px]
-                && (TieLurePacket.dyeFor(px) == null || TieLurePacket.count(inv, TieLurePacket.dyeFor(px)) >= cost[px]));
+        boolean afford = cost[px] == 0 || (TieLurePacket.count(menu, TieLurePacket.ingredient(px)) >= cost[px]
+                && (TieLurePacket.dyeFor(px) == null || TieLurePacket.count(menu, TieLurePacket.dyeFor(px)) >= cost[px]));
         if (!afford) g.fill(x0 + 1, y0 + 1, x0 + PAL_CELL - 2, y0 + PAL_CELL - 2, 0x90B02020);
     }
 

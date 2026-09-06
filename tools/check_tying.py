@@ -73,7 +73,7 @@ item = io.open(os.path.join(J, "item/TiedLureItem.java"), encoding="utf-8").read
 if 'super("mormyshka", true' not in item:
     fails.append("TiedLureItem must be a mormyshka to the rigs, or the winter rod refuses it")
 pk = io.open(os.path.join(J, "network/TieLurePacket.java"), encoding="utf-8").read()
-for must in ("affordable(inv, design)", "count(inv, HOOK) < 1 + cost[TiedDesign.BEAD_IRON]", "TiedDesign.valid(design)", "instanceof TackleStationMenu menu"):
+for must in ("affordable(menu, design)", "count(menu, HOOK) < 1 + cost[TiedDesign.BEAD_IRON]", "TiedDesign.valid(design)", "instanceof TackleStationMenu menu"):
     if must not in pk:
         fails.append("TieLurePacket.handleServer must check %s — the client is not trusted" % must)
 
