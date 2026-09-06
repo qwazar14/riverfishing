@@ -98,9 +98,10 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         drawTab(g, x + 84, y + 8, predatorTab && !tying, I18n.get("screen.riverfishing.tackle_station.tab_predator"));
         drawTab(g, x + 158, y + 8, tying, I18n.get("screen.riverfishing.tackle_station.tab_tie"));
         if (tying) {   // §tying: the page is the canvas; the hook picker and the wells below stay
-            canvas.draw(g, font, x, y, mouseX, mouseY, canvas.canTie(minecraft.player.getInventory(), true));
+            canvas.draw(g, font, x, y, mouseX, mouseY, menu);
             canvas.markBrush(g, x, y);
             drawHookPicker(g, x, y);
+            drawWells(g, x, y);
             return;
         }
 
@@ -211,7 +212,12 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         }
         g.text(font, "→", x + 158, y + 154, 0xFFB8AE9A, false);
 
-        // Player inventory wells.
+        drawWells(g, x, y);
+    }
+
+    /** The material wells and the player's inventory — every page has them; a tie pays out of both. */
+    private void drawWells(GuiGraphicsExtractor g, int x, int y) {
+        for (int wx : new int[] {76, 100, 124, 176}) g.fill(x + wx - 1, y + 149, x + wx + 17, y + 167, 0xFF2a241c);
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 g.fill(x + 42 + col * 18, y + 179 + row * 18, x + 60 + col * 18, y + 197 + row * 18, 0xFF2a241c);
@@ -264,7 +270,7 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         }
         if (tying) {   // §tying: the canvas takes the click; the hook picker below it still works
             if (canvas.click(x, y, mx, my, event.button(), () -> {
-                if (canvas.canTie(minecraft.player.getInventory(), true))
+                if (canvas.canTie(menu))
                     com.riverfishing.network.ModNetwork.toServer(new com.riverfishing.network.TieLurePacket(canvas.design.clone()));
             })) return true;
             if (hookPickerClick(mx, my)) return true;
