@@ -3608,6 +3608,7 @@ public final class FishingManager {
             ctx.hookSizes = RigData.hookSizes(rigStack);
             ctx.baits = RigData.baitIds(rigStack);
             ctx.livebaitG = RigData.livebaitWeightG(rigStack);   // §livebait-3
+            ctx.tied = RigData.tiedLure(rigStack);   // §tying
             int lureRgb = RigData.lureColorRgb(rigStack);
             ctx.lureColor = lureRgb >= 0 ? com.riverfishing.engine.LureColor.fromRgb(lureRgb) : null;
             ctx.hasLeader = RigData.hasLeader(rigStack);

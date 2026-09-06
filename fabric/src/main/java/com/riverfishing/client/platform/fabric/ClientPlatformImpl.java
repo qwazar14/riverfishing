@@ -31,6 +31,8 @@ public final class ClientPlatformImpl {
         net.minecraft.client.gui.screens.MenuScreens.register(
                 com.riverfishing.registry.ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         net.minecraft.client.gui.screens.MenuScreens.register(
+                com.riverfishing.registry.ModMenus.TYING_VISE.get(), com.riverfishing.client.TyingViseScreen::new);   // §tying
+        net.minecraft.client.gui.screens.MenuScreens.register(
                 com.riverfishing.registry.ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);
         net.minecraft.client.gui.screens.MenuScreens.register(
                 com.riverfishing.registry.ModMenus.AQUARIUM.get(), com.riverfishing.client.AquariumScreen::new);
@@ -58,5 +60,8 @@ public final class ClientPlatformImpl {
         com.riverfishing.mixin.SpecialModelRenderersAccessor.riverfishing$idMapper().put(
                 com.riverfishing.client.FrySpecialRenderer.ID,
                 com.riverfishing.client.FrySpecialRenderer.Unbaked.MAP_CODEC);
+        com.riverfishing.mixin.SpecialModelRenderersAccessor.riverfishing$idMapper().put(
+                com.riverfishing.client.TiedLureSpecialRenderer.ID,
+                com.riverfishing.client.TiedLureSpecialRenderer.Unbaked.MAP_CODEC);   // §tying
     }
 }

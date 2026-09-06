@@ -42,6 +42,9 @@ public final class ModNetwork {
         // §tackle-box: the name field types straight onto the box the player has open.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, TackleBoxRenamePacket.TYPE,
                 TackleBoxRenamePacket.STREAM_CODEC, (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §tying: the canvas comes up; the server re-reads the hook, the materials and the drawing.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, TieLurePacket.TYPE, TieLurePacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
         // §keepnet: the grid asks, the server decides.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeepnetActionPacket.TYPE, KeepnetActionPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));

@@ -65,6 +65,8 @@ public final class ClientPlatformImpl {
             net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent event) {
         event.register(com.riverfishing.client.FrySpecialRenderer.ID,
                 com.riverfishing.client.FrySpecialRenderer.Unbaked.MAP_CODEC);
+        event.register(com.riverfishing.client.TiedLureSpecialRenderer.ID,
+                com.riverfishing.client.TiedLureSpecialRenderer.Unbaked.MAP_CODEC);   // §tying
     }
 
     /**
@@ -76,6 +78,7 @@ public final class ClientPlatformImpl {
         event.register(ModMenus.ROD_ASSEMBLY.get(), RodAssemblyScreen::new);
         event.register(ModMenus.RIG.get(), RigScreen::new);
         event.register(ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
+        event.register(ModMenus.TYING_VISE.get(), com.riverfishing.client.TyingViseScreen::new);   // §tying
         // §keepnet + §tackle-box (0.7.0): the two boxes.
         event.register(ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);
         event.register(ModMenus.TACKLE_BOX.get(), com.riverfishing.client.TackleBoxScreen::new);

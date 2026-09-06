@@ -24,6 +24,8 @@ public class BiteContext {
     public RigType rig;
     public List<Integer> hookSizes = new ArrayList<>(); // from the rig's hook slots
     public List<String> baits = new ArrayList<>();        // from the rig's bait / lure slots
+    /** §tying: the tied lure on the rig, read once per cast — null when the rig carries none. */
+    public com.riverfishing.tackle.TiedDesign.Analysis tied;
     public LureColor lureColor;     // §lure-color: painted lure's colour class, or null (undyed / no lure)
     public boolean hasLeader;
     public double leaderProtection; // bite-through resistance of the fitted leader (0..1)

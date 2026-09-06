@@ -1,0 +1,16 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "property": "minecraft:has_component",
+    "component": "minecraft:custom_data",
+    "on_true": {
+      "type": "minecraft:special",
+      "base": "riverfishing:item/tied_lure",
+      "model": { "type": "riverfishing:tied_lure" }
+    },
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "riverfishing:item/tied_lure_icon"
+    }
+  }
+}
