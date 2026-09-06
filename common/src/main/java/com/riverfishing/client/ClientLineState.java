@@ -56,7 +56,7 @@ public final class ClientLineState {
         // own fish — so the body moves at frame rate and nothing on the wire changed cadence.
         public String species = "";
         public int weightG, lengthCm;
-        public boolean jumping, shaking;
+        public boolean jumping, shaking, snagged;
         public float fatigue;
         public double fx, fy, fz;        // offset from the line's water end, blocks
         public float heading;            // radians, world; which way the body points
@@ -95,14 +95,15 @@ public final class ClientLineState {
                 jumpT += dt / 0.75f;
                 if (jumpT >= 1f) jumpT = jumping ? 0.999f : -1f;
             }
-            float k = Math.min(1f, dt * (running ? 2.6f : 1.6f));
+            // §line-snag: held on a block — the body stays where the line stopped it, and strains
+            float k = snagged ? 0f : Math.min(1f, dt * (running ? 2.6f : 1.6f));
             double ox = fx, oz = fz;
             fx = Mth.lerp(k, fx, tx); fz = Mth.lerp(k, fz, tz);
             fy = Mth.lerp(Math.min(1f, dt * 2.2f), fy, ty);
-            if (shaking) {   // a head-shake: a hard sideways shudder, eight a second
-                double j = Math.sin(tail * 9.0) * 0.28;
-                fx += sideX * j; fz += sideZ * j;
-            }
+            // a head-shake, or straining on a snag: a hard sideways shudder — a DISPLAY offset, never
+            // folded into the eased position (folded in, a held fish crept sideways every frame)
+            double j = (shaking || snagged) ? Math.sin(tail * 9.0) * 0.28 : 0.0;
+            jx = sideX * j; jz = sideZ * j;
             double jumpY = jumpT >= 0f ? Math.sin(Math.PI * jumpT) * (1.0 + lengthCm / 120.0) : 0.0;
             if (jumpT >= 0f) { fy = Math.max(fy, -0.05) ; tPitch = jumpT < 0.5f ? -40f : 25f; }
             // heading: the way it moved this frame when it moved, else away from the angler
@@ -119,10 +120,11 @@ public final class ClientLineState {
 
         /** The breach's lift above the eased offset — kept apart so the arc is not eased away. */
         public float fyJump;
+        public double jx, jz;            // the shudder, this frame
 
         /** Where the body is this frame, given the line's water end. */
         public net.minecraft.world.phys.Vec3 fishAt(net.minecraft.world.phys.Vec3 end) {
-            return end.add(fx, fy + fyJump, fz);
+            return end.add(fx + jx, fy + fyJump, fz + jz);
         }
 
         /** Eases the rendered progress toward the server value; call once per frame. */
@@ -194,6 +196,7 @@ public final class ClientLineState {
         line.jumping = p.jumping;
         line.shaking = p.shaking;
         line.fatigue = p.fatigue;
+        line.snagged = p.snagged;
         line.lastUpdate = Minecraft.getInstance().level != null
                 ? Minecraft.getInstance().level.getGameTime() : 0;
     }

@@ -39,9 +39,21 @@ if not os.path.exists(os.path.join(J, "client/HookedFishRenderer.java")):
     fails.append("HookedFishRenderer.java is missing")
 if "public void tickFish(" not in cs or "public net.minecraft.world.phys.Vec3 fishAt(" not in cs:
     fails.append("ClientLineState.Line lacks tickFish/fishAt")
+# §line-snag: the server clips the line every fourth tick, BEFORE the crank reads lineSnagged; the
+# client draws the kink from the same clip
+if "tickSnag(sp, level, session, now);" not in fm or "private static void tickSnag(" not in fm:
+    fails.append("the fight tick must clip the line (tickSnag) — the snag is server-authoritative")
+if "(session.lineSnagged ? 0.0 : 1.0)" not in fm or "(session.lineSnagged ? 1.6 : 1.0)" not in fm:
+    fails.append("a snagged line must hold the crank (gain 0) and rub (tension x1.6)")
+if "horizontalDistanceSqr() > 2.5 * 2.5" not in fm:
+    fails.append("a hit within 2.5 blocks of the angler is his own pier and must not count")
+if "snagPoint(mc, tip, end)" not in lr or "static Vec3 snagPoint(" not in lr:
+    fails.append("LineRenderer must draw the kink from its own clip when the packet says snagged")
+if "jx = sideX * j" not in cs:
+    fails.append("the shudder must be a display offset (jx/jz), never folded into the eased position")
 if fails:
     print("FAILED:")
     for f in fails:
         print("  " + f)
     sys.exit(1)
-print("hooked fish: packet symmetric, sent on the hook, body integrated before the line, line ends on the fish, renderer wired")
+print("hooked fish: packet symmetric, sent on the hook, body integrated before the line, line ends on the fish, renderer wired; the snag is clipped on the server, held at the crank, kinked on the client")

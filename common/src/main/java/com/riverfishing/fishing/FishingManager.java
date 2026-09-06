@@ -2105,6 +2105,7 @@ public final class FishingManager {
         double wrongWay = directed ? 2.2 - 1.7 * align : 1.0;
         double armStrength = 0.35 + 0.65 * session.anglerStamina;
         session.tension += (inRun ? session.runTensionPulse : session.calmTensionPulse) * tired * wrongWay
+                * (session.lineSnagged ? 1.6 : 1.0)   // §line-snag: winding against a block rubs
                 * (1.0 + 0.5 * (1.0 - session.anglerStamina));
         // …and the payoff. Winding INTO a run has always been near-useless (0.2x); winding while leaning on
         // the fish from the right side gains most of a normal crank. That is the whole mechanic in one
@@ -2113,7 +2114,8 @@ public final class FishingManager {
                 session.landProgress + session.landPulse
                         * (!inRun ? 1.0 : directed ? 0.2 + 0.5 * align : 0.2)
                         * (1.0 + 0.6 * session.fatigue) * armStrength
-                        * (session.outclassed ? 0.35 : 1.0), 0.0, 1.0);   // §outclassed: a crank cannot win this one
+                        * (session.outclassed ? 0.35 : 1.0)
+                        * (session.lineSnagged ? 0.0 : 1.0), 0.0, 1.0);   // §line-snag: held — nothing comes   // §outclassed: a crank cannot win this one
         // A crank is work whether it gains anything or not.
         session.anglerStamina = Math.max(0.0, session.anglerStamina - (inRun ? 0.030 * wrongWay : 0.014));
         session.tension = Math.max(0.0, session.tension);
@@ -2155,6 +2157,59 @@ public final class FishingManager {
         }
     }
 
+    /**
+     * §line-snag: where the fish is, as the server reckons it — the same arithmetic the client eases
+     * its drawing toward ({@code ClientLineState.Line.tickFish}), without the easing. Good enough to
+     * ask the world whether a block stands between the rod and it.
+     */
+    private static net.minecraft.world.phys.Vec3 fishEstimate(ServerPlayer sp, FishingSession session) {
+        BlockPos t = session.target;
+        net.minecraft.world.phys.Vec3 water = new net.minecraft.world.phys.Vec3(t.getX() + 0.5, t.getY() + 0.95, t.getZ() + 0.5);
+        net.minecraft.world.phys.Vec3 bank = sp.position().add(sp.getViewVector(1f).scale(1.2)).add(0, 0.1, 0);
+        net.minecraft.world.phys.Vec3 end = water.lerp(bank, Mth.clamp(session.landProgress * 0.85, 0.0, 0.9));
+        double fx = water.x - sp.getX(), fz = water.z - sp.getZ(), fl = Math.sqrt(fx * fx + fz * fz);
+        if (fl > 1e-3) { fx /= fl; fz /= fl; } else { fx = 1; fz = 0; }
+        double sx = -fz, sz = fx;
+        double reach = Mth.clamp(2.5 + session.lengthCm / 50.0, 2.0, 6.0) * (1.0 - 0.45 * session.fatigue);
+        boolean running = session.runTicksLeft > 0;
+        double ox = fx * 0.6, oy = -0.35, oz = fz * 0.6;
+        if (running) {
+            switch (session.course) {
+                case LEFT -> { ox = -sx * reach; oz = -sz * reach; oy = -0.5; }
+                case RIGHT -> { ox = sx * reach; oz = sz * reach; oy = -0.5; }
+                case DOWN -> { ox = fx * reach * 0.5; oz = fz * reach * 0.5; oy = -reach * 0.8; }
+                case UP -> { ox = fx * reach * 0.4; oz = fz * reach * 0.4; oy = -0.1; }
+                default -> { ox = fx * reach * 0.7; oz = fz * reach * 0.7; oy = -0.6; }
+            }
+        }
+        return end.add(ox, oy, oz);
+    }
+
+    /**
+     * §line-snag: every fourth tick, is there a block between the rod and the fish? A hit within two
+     * and a half blocks of the angler is the pier under his own feet and does not count — a line
+     * always leaves over the edge of something. Past that it is a snag: the line chafes, a running
+     * fish rubs it, and until the segment clears (feet, the side you hold, the fish's next course)
+     * a crank gains nothing. A scrape once a second says so; the client draws the kink.
+     */
+    private static void tickSnag(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
+        if (now % 4 != 0) return;
+        net.minecraft.world.phys.Vec3 from = sp.getEyePosition(), to = fishEstimate(sp, session);
+        net.minecraft.world.phys.BlockHitResult hit = level.clip(new net.minecraft.world.level.ClipContext(
+                from, to, net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                net.minecraft.world.level.ClipContext.Fluid.NONE, sp));
+        boolean snagged = hit.getType() == HitResult.Type.BLOCK
+                && hit.getLocation().subtract(sp.getX(), hit.getLocation().y, sp.getZ()).horizontalDistanceSqr() > 2.5 * 2.5
+                && !level.getFluidState(hit.getBlockPos()).is(net.minecraft.tags.FluidTags.WATER);
+        session.lineSnagged = snagged;
+        if (!snagged) return;
+        addLineWear(sessionRod(sp, session), (int) Math.max(1, Math.round(2 * lineWearScaled())));
+        if (session.runTicksLeft > 0) session.tension += 0.015;
+        if (now % 20 == 0) {
+            level.playSound(null, hit.getBlockPos(), SoundEvents.GRINDSTONE_USE, SoundSource.PLAYERS, 0.35f, 1.5f);
+        }
+    }
+
     private static void tickFight(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
         RandomSource random = level.getRandom();
 
@@ -2174,6 +2229,7 @@ public final class FishingManager {
         brace(sp, true);   // §fight-brace: you are anchored to the rod for as long as it is bent
 
         session.landProgress = Math.max(0.0, session.landProgress - 0.0008);
+        tickSnag(sp, level, session, now);   // §line-snag
 
         // §fight-footwork: where the angler's feet went since last tick, before anything reads the tension.
         if (footwork(sp, level, session)) return;
@@ -2455,7 +2511,7 @@ public final class FishingManager {
                     // §hooked-fish: what is on the line, and what it is doing this tick
                     session.species == null ? "" : session.species.getPath(), session.weightG, session.lengthCm,
                     now < session.jumpWindowEnd, session.runTicksLeft > 0 && !session.course.isRun(),
-                    (float) session.fatigue));
+                    (float) session.fatigue, session.lineSnagged));
             // §rod-bend (26.x): the bucket goes onto the ROD, not just into the packet — the item
             // definition range_dispatches the blank sprite on it, so the load is visible to every
             // player tracking this angler. setBend no-ops unless the bucket actually moved.

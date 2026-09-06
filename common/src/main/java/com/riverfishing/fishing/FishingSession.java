@@ -127,6 +127,7 @@ public class FishingSession {
      * ceiling, it slows how fast everything fills it.
      */
     public double tackleMargin = 1.0;
+    public boolean lineSnagged;     // §line-snag: the string lies across a block between the tip and the fish
     public boolean outclassed;      // §outclassed: the line is weaker than the pull — play it out, never reel it
     // Â§tackle-stress (0.4.0): crossing the limit no longer snaps instantly â a per-tick break chance
     // grows with the overshoot and with how long the line has been held over it.
