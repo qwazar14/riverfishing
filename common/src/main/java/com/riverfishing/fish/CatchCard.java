@@ -117,6 +117,7 @@ public final class CatchCard {
         c.putString("Bait", baits.isEmpty() ? "" : baits.get(0));
         var ctx = s.ctx;
         c.putString("Water", ctx == null ? "" : ctx.water.key());
+        c.putLong("At", s.target.asLong());   // §home-water: where it came out, for the release
         c.putString("Biome", level.getBiome(s.target).unwrapKey().map(k -> k.location().toString()).orElse(""));
         c.putString("Time", ctx == null ? "" : ctx.time.jsonKey());
         c.putString("Season", ctx == null || ctx.season == null ? "" : ctx.season.jsonKey());
@@ -155,6 +156,7 @@ public final class CatchCard {
         c.putString("RodItem", "");
         c.putString("Bait", "");
         c.putString("Water", com.riverfishing.water.WaterBodyCache.forLevel(level).get(level, pos).type().key());
+        c.putLong("At", pos.asLong());   // §home-water
         c.putString("Biome", level.getBiome(pos).unwrapKey().map(k -> k.location().toString()).orElse(""));
         c.putString("Time", com.riverfishing.engine.TimeOfDay.fromDayTime(level.getDayTime()).jsonKey());
         c.putString("Season", com.riverfishing.engine.Calendar.season(level).jsonKey());
@@ -192,6 +194,7 @@ public final class CatchCard {
         c.putString("RodItem", "");
         c.putString("Bait", "");
         c.putString("Water", com.riverfishing.water.WaterBodyCache.forLevel(level).get(level, pos).type().key());
+        c.putLong("At", pos.asLong());   // §home-water
         c.putString("Biome", level.getBiome(pos).unwrapKey().map(k -> k.location().toString()).orElse(""));
         c.putString("Time", com.riverfishing.engine.TimeOfDay.fromDayTime(level.getDayTime()).jsonKey());
         c.putString("Season", com.riverfishing.engine.Calendar.season(level).jsonKey());
