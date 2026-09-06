@@ -1738,6 +1738,7 @@ public final class FishingManager {
                 baseTolerance / RiverFishingConfig.breakSensitivity() * session.overloadPenalty
                         * AnglerSkills.lineToleranceMult(sp), 0.1, 1.0);
         session.requiredKg = requiredKg; // §tackle-stress: for the break-load message
+        session.outclassed = session.tackleMargin < 0.85;   // §outclassed
         // §rod-load: how hard THIS fish loads THIS blank. Tension above is the line's break-risk, and
         // §tackle-margin deliberately starves it on over-gunned gear — which left a trolling blank
         // arrow-straight over a 2 kg bass. The rod must read the fight even with the line nowhere
@@ -1796,6 +1797,10 @@ public final class FishingManager {
                         : "relentless".equals(profile.fightPattern) ? 500
                         : "sounding".equals(profile.fightPattern) ? 700      // §big-game: dives eat time
                         : "greyhounding".equals(profile.fightPattern) ? 400 : 0), 900, 3400);
+        // §outclassed: a fish the line cannot hold is played out, not reeled — give it the time.
+        if (session.outclassed) {
+            session.fightTimeout = (long) (session.fightTimeout * Mth.clamp(1.0 / Math.max(0.05, session.tackleMargin), 1.0, 6.0));
+        }
 
         // §tire-within-the-fight: the clock above grows with mass forever while fightTimeout is CLAMPED
         // at 3400 ticks, so past a certain size a fish could not reach fatigue inside its own fight at
@@ -2082,6 +2087,11 @@ public final class FishingManager {
             return;
         }
         boolean inRun = session.runTicksLeft > 0;
+        // §outclassed: winding into a run on a line the fish out-pulls is the line, gone — straight to
+        // overstress; the bar goes red and the snap follows unless the drag opens now.
+        if (session.outclassed && inRun && session.course.isRun()) {
+            session.tension = Math.max(session.tension, session.breakTension * 1.02);
+        }
         // Reeling in a run spikes tension and barely gains line — you should ease off during runs.
         // §fish-fatigue: a tired fish pulls softer and comes in faster.
         double tired = 1.0 - 0.55 * session.fatigue;
@@ -2103,7 +2113,8 @@ public final class FishingManager {
         session.landProgress = Mth.clamp(
                 session.landProgress + session.landPulse
                         * (!inRun ? 1.0 : directed ? 0.2 + 0.5 * align : 0.2)
-                        * (1.0 + 0.6 * session.fatigue) * armStrength, 0.0, 1.0);
+                        * (1.0 + 0.6 * session.fatigue) * armStrength
+                        * (session.outclassed ? 0.35 : 1.0), 0.0, 1.0);   // §outclassed: a crank cannot win this one
         // A crank is work whether it gains anything or not.
         session.anglerStamina = Math.max(0.0, session.anglerStamina - (inRun ? 0.030 * wrongWay : 0.014));
         session.tension = Math.max(0.0, session.tension);
@@ -2223,8 +2234,14 @@ public final class FishingManager {
             session.tension = Math.max(0.0, session.tension - session.relaxTick * 3.0);
             // §drag-cost (0.5.1): an open drag ALWAYS pays out line — even a resting fish swims off with
             // it. Camping shift between runs is no longer free tension immunity; runs drain extra.
-            session.landProgress = Math.max(0.0, session.landProgress
-                    - (session.runTicksLeft > 0 ? 0.004 : 0.0025));
+            // §outclassed: the open drag is the only way to win — the fish plays itself out against
+            // it, and what it loses is what you gain, faster with the rod held across the run.
+            if (session.outclassed && session.runTicksLeft > 0) {
+                session.landProgress = Math.min(1.0, session.landProgress + session.fatigueRunTick * 0.55 * courseGain);
+            } else {
+                session.landProgress = Math.max(0.0, session.landProgress
+                        - (session.runTicksLeft > 0 ? 0.004 : 0.0025));
+            }
         }
 
         double progress = session.landProgress;
