@@ -481,7 +481,6 @@
   "message.riverfishing.foul_hooked": "Багор! Рыба засеклась за тело — будет тяжело",
   "message.riverfishing.caught_multi": "Поймано: %s ×%s!",
   "message.riverfishing.fed_spot": "Точка закормлена",
-  "message.riverfishing.hooked": "На крючке!",
   "message.riverfishing.line_break_gone": "Обрыв! Рыба и оснастка ушли.",
   "message.riverfishing.line_break": "Обрыв! Рыба и оснастка ушли — там было около %s",
   "message.riverfishing.line_break_load": "Обрыв под нагрузкой ~%s кг! Рыба и оснастка потеряны",

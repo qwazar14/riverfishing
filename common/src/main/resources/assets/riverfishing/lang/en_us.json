@@ -481,7 +481,6 @@
   "message.riverfishing.foul_hooked": "Foul-hooked! Snagged by the body — this'll be tough",
   "message.riverfishing.caught_multi": "Caught: %s ×%s!",
   "message.riverfishing.fed_spot": "Spot fed",
-  "message.riverfishing.hooked": "Hooked!",
   "message.riverfishing.line_break_gone": "Snap! Fish and rig gone.",
   "message.riverfishing.line_break": "Snap! Fish and rig lost — around %s of it",
   "message.riverfishing.line_break_load": "Snapped under ~%s kg! Fish and rig lost",
