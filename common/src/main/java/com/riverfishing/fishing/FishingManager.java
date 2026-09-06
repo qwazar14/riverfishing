@@ -2291,7 +2291,6 @@ public final class FishingManager {
             if (session.runTicksLeft % 25 == 0) {
                 level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.DRAG_LONG.get(),
                         SoundSource.PLAYERS, 0.7f, 0.8f);
-                actionbar(sp, Component.translatable("message.riverfishing.sounding").withStyle(ChatFormatting.AQUA));
             }
         }
         if ("greyhounding".equals(session.fightPattern) && session.runTicksLeft == 0

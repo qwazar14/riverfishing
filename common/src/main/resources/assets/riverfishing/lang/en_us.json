@@ -485,7 +485,6 @@
   "message.riverfishing.line_break": "Snap! Fish and rig lost — around %s of it",
   "message.riverfishing.line_break_load": "Snapped under ~%s kg! Fish and rig lost",
   "message.riverfishing.tackle_limit": "Tackle at its limit — ease off!",
-  "message.riverfishing.sounding": "Sounding — pump it back between dives!",
   "message.riverfishing.fish_jumps": "It jumps — give slack, do not reel!",
   "message.riverfishing.jump_thrown": "Thrown the hook on the jump...",
   "message.riverfishing.trolling_start": "Trolling: line is out behind the boat",
