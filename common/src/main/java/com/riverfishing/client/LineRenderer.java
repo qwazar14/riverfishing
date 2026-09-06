@@ -57,7 +57,12 @@ public final class LineRenderer {
             }
             if (!(mc.level.getEntity(entry.getKey()) instanceof Player player)) continue;
             state.tickSmoothing(frameSeconds);
+            // §hooked-fish: the body integrates before the line is drawn, so the string ends on it
+            double fdx = state.target.getX() + 0.5 - player.getX(), fdz = state.target.getZ() + 0.5 - player.getZ();
+            double fl = Math.sqrt(fdx * fdx + fdz * fdz);
+            state.tickFish(frameSeconds, fl > 1e-3 ? fdx / fl : 1.0, fl > 1e-3 ? fdz / fl : 0.0);
             renderLine(mc, buffers, m, nrm, player, state, pt);
+            HookedFishRenderer.draw(mc, pose, buffers, state, lineEnd(mc, player, state, pt), pt);
             drew = true;
         }
 
@@ -146,7 +151,9 @@ public final class LineRenderer {
         BlockPos t = state.target;
         Vec3 water = new Vec3(t.getX() + 0.5, t.getY() + 0.95 + bob, t.getZ() + 0.5);
         Vec3 bank = player.position().add(player.getViewVector(pt).scale(1.2)).add(0, 0.1, 0);
-        return water.lerp(bank, Mth.clamp(state.smoothProgress * 0.85f, 0f, 0.9f));
+        Vec3 end = water.lerp(bank, Mth.clamp(state.smoothProgress * 0.85f, 0f, 0.9f));
+        // §hooked-fish: with a fish on, the line ends on the FISH — wherever its run has taken it
+        return state.fighting && !state.species.isEmpty() ? state.fishAt(end) : end;
     }
 
     /**

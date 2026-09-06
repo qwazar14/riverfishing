@@ -2441,7 +2441,8 @@ public final class FishingManager {
         // §jump-cue: every tick while a jump is open, not every fifth. The window is 15 ticks, so a
         // 5-tick cadence loses up to a third of it at each edge — and the packet on the closing tick IS
         // the all-clear. Everywhere else the cadence is fine and the traffic stays where it was.
-        if (now % 5 == 0 || now <= session.jumpWindowEnd) {
+        // §hooked-fish: and on the hook's first two ticks, so the body is on the line straight away.
+        if (now % 5 == 0 || now <= session.jumpWindowEnd || now - session.fightStartTick < 2) {
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     (float) Mth.clamp(session.landProgress, 0.0, 1.0), session.lineColor,
                     session.floatKind, false, fightStress(session), rodLoad(session),
@@ -2449,7 +2450,11 @@ public final class FishingManager {
                     // used to read the run alone, so during a jump it showed a green "reel" directly
                     // under the red "do not reel", and the mod contradicted itself on one screen.
                     true, session.runTicksLeft > 0 || now < session.jumpWindowEnd,
-                    (byte) session.course.ordinal())); // §fight-course: which way the tip gets dragged
+                    (byte) session.course.ordinal(), // §fight-course: which way the tip gets dragged
+                    // §hooked-fish: what is on the line, and what it is doing this tick
+                    session.species == null ? "" : session.species.getPath(), session.weightG, session.lengthCm,
+                    now < session.jumpWindowEnd, session.runTicksLeft > 0 && !session.course.isRun(),
+                    (float) session.fatigue));
         }
     }
 

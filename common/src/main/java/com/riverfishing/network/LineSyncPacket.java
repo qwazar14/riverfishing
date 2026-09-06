@@ -32,6 +32,17 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
     public final boolean running;
     /** §fight-course: FightCourse.ordinal() — which way this run goes, so the rod can lean into it. */
     public final byte course;
+    /**
+     * §hooked-fish: the fish on the end of the line, from the moment it is hooked — species path ("" for
+     * none), its size, and the two moments the body must act out: a breach and a head-shake. The client
+     * carries the fish's position itself; the server only says what it is and what it is doing.
+     */
+    public final String species;
+    public final int weightG;
+    public final int lengthCm;
+    public final boolean jumping;
+    public final boolean shaking;
+    public final float fatigue;
 
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
                           byte floatKind) {
@@ -58,6 +69,21 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
                           byte floatKind, boolean biting, float tension, float rodLoad,
                           boolean fighting, boolean running, byte course) {
+        this(playerId, active, target, progress, color, floatKind, biting, tension, rodLoad, fighting,
+                running, course, "", 0, 0, false, false, 0f);
+    }
+
+    public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
+                          byte floatKind, boolean biting, float tension, float rodLoad,
+                          boolean fighting, boolean running, byte course,
+                          String species, int weightG, int lengthCm, boolean jumping, boolean shaking,
+                          float fatigue) {
+        this.species = species == null ? "" : species;
+        this.weightG = weightG;
+        this.lengthCm = lengthCm;
+        this.jumping = jumping;
+        this.shaking = shaking;
+        this.fatigue = fatigue;
         this.playerId = playerId;
         this.active = active;
         this.target = target == null ? BlockPos.ZERO : target;
@@ -91,12 +117,20 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
         buf.writeBoolean(fighting);
         buf.writeBoolean(running);
         buf.writeByte(course);
+        buf.writeUtf(species);          // §hooked-fish
+        buf.writeVarInt(weightG);
+        buf.writeVarInt(lengthCm);
+        buf.writeBoolean(jumping);
+        buf.writeBoolean(shaking);
+        buf.writeFloat(fatigue);
     }
 
     public static LineSyncPacket decode(FriendlyByteBuf buf) {
         return new LineSyncPacket(buf.readVarInt(), buf.readBoolean(), buf.readBlockPos(),
                 buf.readFloat(), buf.readInt(), buf.readByte(), buf.readBoolean(), buf.readFloat(),
-                buf.readFloat(), buf.readBoolean(), buf.readBoolean(), buf.readByte());
+                buf.readFloat(), buf.readBoolean(), buf.readBoolean(), buf.readByte(),
+                buf.readUtf(), buf.readVarInt(), buf.readVarInt(), buf.readBoolean(), buf.readBoolean(),
+                buf.readFloat());
     }
 
     public void handleClient() {

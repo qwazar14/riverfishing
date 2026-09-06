@@ -49,6 +49,80 @@ public final class ClientLineState {
         public float dispSlack;
         public long lastUpdate;        // client game time of the last packet (staleness check)
 
+        // §hooked-fish: the fish on the line. The server says WHAT it is and what it is doing (a run
+        // and its course, a breach, a head-shake, how spent it is); the client carries WHERE it is —
+        // an offset from the line's water end, integrated every frame the way the shoal carries its
+        // own fish — so the body moves at frame rate and nothing on the wire changed cadence.
+        public String species = "";
+        public int weightG, lengthCm;
+        public boolean jumping, shaking;
+        public float fatigue;
+        public double fx, fy, fz;        // offset from the line's water end, blocks
+        public float heading;            // radians, world; which way the body points
+        public float tail;               // tail phase
+        public float jumpT = -1f;        // -1 idle; 0..1 through a breach
+        public float pitch;              // degrees, nose up (-) / down (+)
+        public net.minecraft.world.item.ItemStack stack;   // the drawn item, rebuilt when the species changes
+        public String stackSpecies = "";
+        public boolean wasInAir;         // for the splash on the way out and the way back
+
+        /**
+         * §hooked-fish: one frame of the body. {@code fwd} points from the angler to the water end,
+         * horizontal and unit; {@code side} is its left-hand perpendicular — "LEFT" on a course means
+         * the angler's left, which is what the rod lean and the bar already mean by it.
+         */
+        public void tickFish(float dt, double fwdX, double fwdZ) {
+            if (!fighting || species.isEmpty()) {
+                fx *= Math.max(0f, 1f - dt * 4f); fy *= Math.max(0f, 1f - dt * 4f); fz *= Math.max(0f, 1f - dt * 4f);
+                jumpT = -1f;
+                return;
+            }
+            double sideX = -fwdZ, sideZ = fwdX;
+            // where the fish is trying to be: a run pulls it out along its course, rest leaves it
+            // hanging just under the surface a little beyond the line's end
+            double reach = Mth.clamp(2.5 + lengthCm / 50.0, 2.0, 6.0) * (1.0 - 0.45 * fatigue);
+            double tx = fwdX * 0.6, ty = -0.35, tz = fwdZ * 0.6, tPitch = 0f;
+            if (running && course == 1) { tx = -sideX * reach; tz = -sideZ * reach; ty = -0.5; }
+            else if (running && course == 2) { tx = sideX * reach; tz = sideZ * reach; ty = -0.5; }
+            else if (running && course == 3) { tx = fwdX * reach * 0.5; tz = fwdZ * reach * 0.5; ty = -reach * 0.8; tPitch = 28f; }
+            else if (running && course == 4) { tx = fwdX * reach * 0.4; tz = fwdZ * reach * 0.4; ty = -0.1; tPitch = -25f; }
+            else if (running) { tx = fwdX * reach * 0.7; tz = fwdZ * reach * 0.7; ty = -0.6; }   // a course-less surge: straight away
+            // a breach: an arc over three quarters of a second, then back to the surface
+            if (jumping && jumpT < 0f) jumpT = 0f;
+            if (jumpT >= 0f) {
+                jumpT += dt / 0.75f;
+                if (jumpT >= 1f) jumpT = jumping ? 0.999f : -1f;
+            }
+            float k = Math.min(1f, dt * (running ? 2.6f : 1.6f));
+            double ox = fx, oz = fz;
+            fx = Mth.lerp(k, fx, tx); fz = Mth.lerp(k, fz, tz);
+            fy = Mth.lerp(Math.min(1f, dt * 2.2f), fy, ty);
+            if (shaking) {   // a head-shake: a hard sideways shudder, eight a second
+                double j = Math.sin(tail * 9.0) * 0.28;
+                fx += sideX * j; fz += sideZ * j;
+            }
+            double jumpY = jumpT >= 0f ? Math.sin(Math.PI * jumpT) * (1.0 + lengthCm / 120.0) : 0.0;
+            if (jumpT >= 0f) { fy = Math.max(fy, -0.05) ; tPitch = jumpT < 0.5f ? -40f : 25f; }
+            // heading: the way it moved this frame when it moved, else away from the angler
+            double vx = fx - ox, vz = fz - oz;
+            float want = (vx * vx + vz * vz) > 1e-6 ? (float) Math.atan2(vz, vx) : (float) Math.atan2(fwdZ, fwdX);
+            float d = want - heading;
+            while (d > Math.PI) d -= (float) (2 * Math.PI);
+            while (d < -Math.PI) d += (float) (2 * Math.PI);
+            heading += d * Math.min(1f, dt * (running ? 6f : 3f));
+            pitch = Mth.lerp(Math.min(1f, dt * 6f), pitch, (float) tPitch);
+            tail += dt * (running ? 13f : 6f) * (1f - 0.5f * fatigue);
+            fyJump = (float) jumpY;
+        }
+
+        /** The breach's lift above the eased offset — kept apart so the arc is not eased away. */
+        public float fyJump;
+
+        /** Where the body is this frame, given the line's water end. */
+        public net.minecraft.world.phys.Vec3 fishAt(net.minecraft.world.phys.Vec3 end) {
+            return end.add(fx, fy + fyJump, fz);
+        }
+
         /** Eases the rendered progress toward the server value; call once per frame. */
         public void tickSmoothing(float frameSeconds) {
             smoothProgress = Mth.lerp(Math.min(1f, frameSeconds * 6f), smoothProgress, progress);
@@ -112,6 +186,12 @@ public final class ClientLineState {
         line.fighting = p.fighting;
         line.running = p.running;
         line.course = p.course;
+        line.species = p.species;        // §hooked-fish
+        line.weightG = p.weightG;
+        line.lengthCm = p.lengthCm;
+        line.jumping = p.jumping;
+        line.shaking = p.shaking;
+        line.fatigue = p.fatigue;
         line.lastUpdate = Minecraft.getInstance().level != null
                 ? Minecraft.getInstance().level.getGameTime() : 0;
     }
