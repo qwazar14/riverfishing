@@ -10,7 +10,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
@@ -68,32 +69,41 @@ public class TieLurePacket implements ModNetwork.RfPacket {
         return s -> s.getItem() instanceof DyeItem d && d.getDyeColor() == c;
     }
 
-    public static int count(Inventory inv, Predicate<ItemStack> test) {
+    /** Every slot the station shows — its three material wells and the player's inventory; never the result well. */
+    private static boolean payable(AbstractContainerMenu menu, Slot slot) {
+        return slot.index != TackleStationMenu.RESULT_SLOT;
+    }
+
+    public static int count(AbstractContainerMenu menu, Predicate<ItemStack> test) {
         int n = 0;
-        for (int i = 0; i < inv.getContainerSize(); i++) {
-            ItemStack s = inv.getItem(i);
+        for (Slot slot : menu.slots) {
+            if (!payable(menu, slot)) continue;
+            ItemStack s = slot.getItem();
             if (test.test(s)) n += s.getCount();
         }
         return n;
     }
 
-    private static void take(Inventory inv, Predicate<ItemStack> test, int n) {
-        for (int i = 0; i < inv.getContainerSize() && n > 0; i++) {
-            ItemStack s = inv.getItem(i);
+    private static void take(AbstractContainerMenu menu, Predicate<ItemStack> test, int n) {
+        for (Slot slot : menu.slots) {
+            if (n <= 0) break;
+            if (!payable(menu, slot)) continue;
+            ItemStack s = slot.getItem();
             if (!test.test(s)) continue;
             int t = Math.min(n, s.getCount());
             s.shrink(t); n -= t;
+            slot.setChanged();
         }
     }
 
-    /** True when the inventory can pay for the drawing's materials (the hook is asked for separately). */
-    public static boolean affordable(Inventory inv, byte[] design) {
+    /** True when the wells and the inventory can pay for the drawing's materials (the hook is asked for separately). */
+    public static boolean affordable(AbstractContainerMenu menu, byte[] design) {
         int[] cost = TiedDesign.cost(design);
         for (int px = 1; px <= TiedDesign.LAST; px++) {
             if (cost[px] == 0) continue;
-            if (count(inv, ingredient(px)) < cost[px]) return false;
+            if (count(menu, ingredient(px)) < cost[px]) return false;
             Predicate<ItemStack> dye = dyeFor(px);
-            if (dye != null && count(inv, dye) < cost[px]) return false;
+            if (dye != null && count(menu, dye) < cost[px]) return false;
         }
         return true;
     }
@@ -102,17 +112,16 @@ public class TieLurePacket implements ModNetwork.RfPacket {
         if (!(ctx.getPlayer() instanceof ServerPlayer sp)) return;
         if (!(sp.containerMenu instanceof TackleStationMenu menu)) return;
         if (!TiedDesign.valid(design)) return;
-        Inventory inv = sp.getInventory();
         // the bead nuggets and the hook nugget come out of the same pile — ask for both at once
         int[] cost = TiedDesign.cost(design);
-        if (count(inv, HOOK) < 1 + cost[TiedDesign.BEAD_IRON] || !affordable(inv, design)) return;
+        if (count(menu, HOOK) < 1 + cost[TiedDesign.BEAD_IRON] || !affordable(menu, design)) return;
         for (int px = 1; px <= TiedDesign.LAST; px++) {
             if (cost[px] == 0) continue;
-            take(inv, ingredient(px), cost[px]);
+            take(menu, ingredient(px), cost[px]);
             Predicate<ItemStack> dye = dyeFor(px);
-            if (dye != null) take(inv, dye, cost[px]);
+            if (dye != null) take(menu, dye, cost[px]);
         }
-        take(inv, HOOK, 1);
+        take(menu, HOOK, 1);
         ItemStack lure = new ItemStack(ModItems.TIED_LURE.get());
         byte[] d = design.clone();
         int size = menu.hookSize();
@@ -122,7 +131,7 @@ public class TieLurePacket implements ModNetwork.RfPacket {
             tag.putInt(TiedDesign.TAG_HOOK, size);
             tag.putString(TiedDesign.TAG_MAKER, maker);
         });
-        if (!inv.add(lure)) sp.drop(lure, false);
+        if (!sp.getInventory().add(lure)) sp.drop(lure, false);
         sp.level().playSound(null, sp.blockPosition(), net.minecraft.sounds.SoundEvents.BUNDLE_INSERT,
                 net.minecraft.sounds.SoundSource.PLAYERS, 0.8f, 1.1f);
     }

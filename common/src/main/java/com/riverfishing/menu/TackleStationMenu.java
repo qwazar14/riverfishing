@@ -36,6 +36,8 @@ public class TackleStationMenu extends AbstractContainerMenu {
     private static final int C_IRON = 1;
     private static final int C_STRING = 2;
     private static final int C_DYE = 3;
+    /** §tying: the slot index of the result well — the one slot a tie must never pay from. */
+    public static final int RESULT_SLOT = 3;
 
     // Menu slot order — what quickMoveStack and the screen index by. No longer the same numbers as the
     // container above, which is the whole reason they are now two named sets instead of one.
