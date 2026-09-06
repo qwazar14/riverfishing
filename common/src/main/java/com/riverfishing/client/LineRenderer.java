@@ -71,6 +71,8 @@ public final class LineRenderer {
         if (drew) {
             buffers.endBatch(net.minecraft.client.renderer.rendertype.RenderTypes.lines());
         }
+        forEachHooked(mc, pt, (player, state, end) -> HookedFishRenderer.render(mc, pose, buffers, state, end, pt));   // §hooked-fish
+        buffers.endBatch();
         pose.popPose();
     }
     //?} else {
@@ -84,9 +86,22 @@ public final class LineRenderer {
         pose.translate(-cam.x, -cam.y, -cam.z);
         collector.submitCustomGeometry(pose, net.minecraft.client.renderer.rendertype.RenderTypes.lines(),
                 (posePose, vc) -> drawAll(mc, vc, posePose.pose(), posePose.normal(), pt));
+        forEachHooked(mc, pt, (player, state, end) -> HookedFishRenderer.submit(mc, pose, collector, state, end, pt));   // §hooked-fish
         pose.popPose();
     }
     *///?}
+
+    /** §hooked-fish: every line with a fish on it, and where that fish is this frame. */
+    private interface Hooked { void accept(Player player, ClientLineState.Line state, Vec3 end); }
+
+    private static void forEachHooked(Minecraft mc, float pt, Hooked f) {
+        for (var entry : ClientLineState.lines().entrySet()) {
+            ClientLineState.Line state = entry.getValue();
+            if (!state.fighting || state.species.isEmpty()) continue;
+            if (!(mc.level.getEntity(entry.getKey()) instanceof Player player)) continue;
+            f.accept(player, state, lineEnd(mc, player, state, pt));
+        }
+    }
 
     /** The shared per-frame loop: expire stale lines, smooth, draw. Returns true when anything drew. */
     private static boolean drawAll(Minecraft mc, VertexConsumer vc, Matrix4f m, Matrix3f nrm, float pt) {
@@ -104,6 +119,10 @@ public final class LineRenderer {
             }
             if (!(mc.level.getEntity(entry.getKey()) instanceof Player player)) continue;
             state.tickSmoothing(frameSeconds);
+            // §hooked-fish: the body integrates before the line is drawn, so the string ends on it
+            double fdx = state.target.getX() + 0.5 - player.getX(), fdz = state.target.getZ() + 0.5 - player.getZ();
+            double fl = Math.sqrt(fdx * fdx + fdz * fdz);
+            state.tickFish(frameSeconds, fl > 1e-3 ? fdx / fl : 1.0, fl > 1e-3 ? fdz / fl : 0.0);
             renderLine(mc, vc, m, nrm, player, state, pt);
             drew = true;
         }
@@ -181,7 +200,9 @@ public final class LineRenderer {
         BlockPos t = state.target;
         Vec3 water = new Vec3(t.getX() + 0.5, t.getY() + 0.95 + bob, t.getZ() + 0.5);
         Vec3 bank = player.position().add(player.getViewVector(pt).scale(1.2)).add(0, 0.1, 0);
-        return water.lerp(bank, Mth.clamp(state.smoothProgress * 0.85f, 0f, 0.9f));
+        Vec3 end = water.lerp(bank, Mth.clamp(state.smoothProgress * 0.85f, 0f, 0.9f));
+        // §hooked-fish: with a fish on, the line ends on the FISH — wherever its run has taken it
+        return state.fighting && !state.species.isEmpty() ? state.fishAt(end) : end;
     }
 
     /**
