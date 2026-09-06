@@ -73,7 +73,12 @@ public final class ClientLineState {
          * horizontal and unit; {@code side} is its left-hand perpendicular — "LEFT" on a course means
          * the angler's left, which is what the rod lean and the bar already mean by it.
          */
-        public void tickFish(float dt, double fwdX, double fwdZ) {
+        /** A point in the world: is it water? The client's level answers; the body never leaves it. */
+        public interface WaterTest { boolean at(double x, double y, double z); }
+
+        public double swimSpeed;         // blocks/s this frame — ramps, so a run starts like a fish, not a bullet
+
+        public void tickFish(float dt, double fwdX, double fwdZ, WaterTest water, net.minecraft.world.phys.Vec3 base) {
             if (!fighting || species.isEmpty()) {
                 fx *= Math.max(0f, 1f - dt * 4f); fy *= Math.max(0f, 1f - dt * 4f); fz *= Math.max(0f, 1f - dt * 4f);
                 jumpT = -1f;
@@ -82,8 +87,13 @@ public final class ClientLineState {
             double sideX = -fwdZ, sideZ = fwdX;
             // where the fish is trying to be: a run pulls it out along its course, rest leaves it
             // hanging just under the surface a little beyond the line's end
-            double reach = Mth.clamp(2.5 + lengthCm / 50.0, 2.0, 6.0) * (1.0 - 0.45 * fatigue);
-            double tx = 0.0, ty = -0.2, tz = 0.0, tPitch = 0f;   // at rest it hangs on the line, just under
+            // how far a run can take it: a big fish farther, a tired one less — and a SHORT line less: near
+            // the bank the angler holds most of the string, and the fish can only take what is left
+            double reach = Mth.clamp(2.5 + lengthCm / 50.0, 2.0, 6.0) * (1.0 - 0.45 * fatigue)
+                    * (0.3 + 0.7 * (1.0 - Mth.clamp(smoothProgress, 0f, 1f)));
+            // at rest it does not swim home: it holds where the run left it, just under, and the reel
+            // brings it in — the line's end itself walks to the bank with progress
+            double tx = fx, ty = -0.2, tz = fz, tPitch = 0f;
             if (running && course == 1) { tx = -sideX * reach; tz = -sideZ * reach; ty = -0.5; }
             else if (running && course == 2) { tx = sideX * reach; tz = sideZ * reach; ty = -0.5; }
             else if (running && course == 3) { tx = fwdX * reach * 0.5; tz = fwdZ * reach * 0.5; ty = -reach * 0.8; tPitch = 28f; }
@@ -100,13 +110,22 @@ public final class ClientLineState {
             // §line-snag: held on a block — the body stays where the line stopped it, and strains.
             double ox = fx, oz = fz;
             double ddx = tx - fx, ddz = tz - fz, dd = Math.sqrt(ddx * ddx + ddz * ddz);
-            double speed = (running ? 2.2 + lengthCm / 60.0 : 1.4) * (1.0 - 0.4 * fatigue);
-            double step = snagged ? 0.0 : Math.min(dd, speed * dt);
-            if (dd > 1e-6) { fx += ddx / dd * step; fz += ddz / dd * step; }
+            // §fish-accel: the pace it WANTS, and the pace it HAS — a run builds over a third of a second
+            // and dies the same way, so the body never snaps between standing and full speed
+            double pace = dd < 0.05 || snagged ? 0.0 : (running ? 2.2 + lengthCm / 60.0 : 0.6) * (1.0 - 0.4 * fatigue);
+            swimSpeed += (pace - swimSpeed) * Math.min(1.0, dt * 3.0);
+            double step = Math.min(dd, swimSpeed * dt);
+            if (dd > 1e-6 && step > 0.0) {
+                double nx = fx + ddx / dd * step, nz = fz + ddz / dd * step;
+                // §fish-water: it swims where there is water to swim in; the bank stops a run cold
+                if (water == null || water.at(base.x + nx, base.y + fy, base.z + nz)) { fx = nx; fz = nz; }
+                else swimSpeed = 0.0;
+            }
             fy = Mth.lerp(Math.min(1f, dt * 2.2f), fy, ty);
-            // a head-shake, or straining on a snag: a hard sideways shudder — a DISPLAY offset, never
-            // folded into the eased position (folded in, a held fish crept sideways every frame)
-            double j = (shaking || snagged) ? Math.sin(tail * 9.0) * 0.28 : 0.0;
+            // a head-shake, or straining on a snag: a sideways shudder at a fish's rate — a few beats a
+            // second, wider on a big fish — a DISPLAY offset, never folded into the eased position
+            // (folded in, a held fish crept sideways every frame)
+            double j = (shaking || snagged) ? Math.sin(tail * 2.4) * (0.10 + lengthCm / 700.0) : 0.0;
             jx = sideX * j; jz = sideZ * j;
             double jumpY = jumpT >= 0f ? Math.sin(Math.PI * jumpT) * (1.0 + lengthCm / 120.0) : 0.0;
             if (jumpT >= 0f) { fy = Math.max(fy, -0.05) ; tPitch = jumpT < 0.5f ? -40f : 25f; }
