@@ -874,7 +874,9 @@ public final class FishingManager {
             // Ice is the one thing it must fall through: the ice check just below this call is what
             // says "drill a hole", and stopping here would answer a frozen lake with "no water".
             net.minecraft.world.level.block.state.BlockState st = level.getBlockState(p);
-            if (com.riverfishing.item.IceAugerItem.isIce(st)) continue;
+            if (com.riverfishing.item.IceAugerItem.isIce(st)
+                    // §ice-hole-cast: the drilled hole is the way DOWN to the water, not a floor
+                    || st.getBlock() instanceof com.riverfishing.block.IceHoleBlock) continue;
             if (!st.getCollisionShape(level, p).isEmpty()) return null;
         }
         return null;
