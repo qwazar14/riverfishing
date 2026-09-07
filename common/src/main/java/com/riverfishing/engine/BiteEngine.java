@@ -45,6 +45,9 @@ public final class BiteEngine {
             best = Math.max(best, p.baitScore(bait));
         }
         // §tying: a tied lure fishes as its template says for this fish's family.
+        // §fly-bait: on a fly rod the fly is the bait. The tied lure's bait id is the winter jig's, which
+        // most species never scored — so the baseline is the fly itself, and the template says the rest.
+        if (c.tied != null && c.rod == com.riverfishing.component.RodType.FLY) best = Math.max(best, 0.8);
         if (c.tied != null) best *= c.tied.affinity(p.group);
         // §fly: match the hatch — the right kind at the right size is the fly they are taking today
         if (c.tied != null && c.rod == com.riverfishing.component.RodType.FLY) best *= Hatch.factor(c.hatch, c.tied);
