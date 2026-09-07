@@ -42,8 +42,8 @@ So 1000 → 1 kg up to 7000 → 7 kg, then 8000 → 9.5 kg, 10000 → 14.5 kg, 1
 What the drag actually does in the fight:
 
 - Adds `0.5 × drag` on top of your line's breaking strain when working out the break tolerance.
-- **Gives line faster** when you ease off: `relaxTick = 0.010 + clamp(drag/10, 0, 0.5) × 0.02`. A big reel bleeds tension roughly three times as fast as a 1000.
-- **Reel feel**: small reels are twitchy, big ones are coarse but absorbing. `sensitivity = clamp(1 + (4000 − size)/4000 × 0.5, 0.6, 1.5)`. A 1000 sits at 1.375, a 4000 at 1.0, a 14000 at the 0.6 floor. A **reel-less** rod is the twitchiest of all at 1.3.
+- **Gives line faster** when you ease off: `relaxTick = 0.010 + clamp(drag/10, 0, 0.5) × 0.02`. A big reel bleeds tension **1.67 times** as fast as a 1000; the clamp tops out at 5 kg of drag, so every reel from 5000 up bleeds alike.
+- **Reel feel**: small reels are twitchy, big ones are coarse but absorbing. `sensitivity = clamp(1 + (4000 − size)/4000 × 0.5, 0.6, 1.5)`. A 1000 sits at 1.375, a 4000 at 1.0, a 14000 at the 0.6 floor. A **reel-less** rod is a hard-coded 1.3 — twitchy, but just short of the 1000.
 - Slightly speeds up landing: `landPulse` carries a `0.9 + size/14000` term.
 
 ### The spool-diameter rule
@@ -115,10 +115,10 @@ spool ceiling reaches that diameter, by the [spool-diameter rule](#the-spool-dia
 | Mono Line 0.25 | `line_mono_025` | **6.3 kg** | 2000 |
 | Mono Line 0.30 | `line_mono_030` | **9.0 kg** | 3000 |
 | Mono Line 0.40 | `line_mono_040` | **16.0 kg** | 5000 |
-| Mono line 0.50 | `line_mono_050` | **25.0 kg** | 7000 |
-| Mono line 0.60 | `line_mono_060` | **36.0 kg** | 10000 |
-| Mono line 0.70 | `line_mono_070` | **49.0 kg** | 12000 |
-| Mono line 0.80 | `line_mono_080` | **64.0 kg** | 14000 |
+| Mono Line 0.50 | `line_mono_050` | **25.0 kg** | 7000 |
+| Mono Line 0.60 | `line_mono_060` | **36.0 kg** | 10000 |
+| Mono Line 0.70 | `line_mono_070` | **49.0 kg** | 12000 |
+| Mono Line 0.80 | `line_mono_080` | **64.0 kg** | 14000 |
 
 #### Braid — 7 diameters
 
@@ -128,9 +128,9 @@ spool ceiling reaches that diameter, by the [spool-diameter rule](#the-spool-dia
 | Braided Line 0.20 | `line_braid_020` | **12.0 kg** | 1000 |
 | Braided Line 0.25 | `line_braid_025` | **18.8 kg** | 2000 |
 | Braided Line 0.30 | `line_braid_030` | **27.0 kg** | 3000 |
-| Braid line 0.40 | `line_braid_040` | **48.0 kg** | 5000 |
-| Braid line 0.50 | `line_braid_050` | **75.0 kg** | 7000 |
-| Braid line 0.60 | `line_braid_060` | **108.0 kg** | 10000 |
+| Braided Line 0.40 | `line_braid_040` | **48.0 kg** | 5000 |
+| Braided Line 0.50 | `line_braid_050` | **75.0 kg** | 7000 |
+| Braided Line 0.60 | `line_braid_060` | **108.0 kg** | 10000 |
 
 #### Fluorocarbon — 6 diameters
 
@@ -146,8 +146,6 @@ spool ceiling reaches that diameter, by the [spool-diameter rule](#the-spool-dia
 Thick fluorocarbon does not exist in the mod (impractical in reality). Braid stops at 0.60 mm, mono runs all the way to 0.80 mm. At any shared diameter braid is exactly 3× mono and fluorocarbon 1.1× mono — that is the whole of the material factor.
 
 There is **no 9000 reel item**, so 0.60 mm needs a 10000: the 8000's spool tops out at 0.55 mm.
-
-Their in-game names are not perfectly consistent, as the tables show — the thin end of each ladder was added before the heavy tier, so the capital letter and the word *Braided* were quietly dropped at 0.50 and 0.40 respectively. Same items, same behaviour.
 
 ### Line visibility
 
@@ -209,7 +207,7 @@ The [fisherman](villager.md) also sells 0.14 and 0.18 mono at low tiers, braid 0
 
 ## Leaders
 
-A leader is a separate item that goes into the **leader slot** of a Predator or Catfish rig. Seven species are toothy enough to bite straight through a bare line — pike, zander, conger eel, wahoo, barracuda, mako shark and taimen.
+A leader is a separate item that goes into the **leader slot** of a Predator or Catfish rig. Fifteen species are toothy enough to bite straight through a bare line — pike, zander, conger eel, wahoo, barracuda, mako shark, taimen, arapaima, beluga sturgeon, bluefish, bull shark, frilled shark, golden dorado, goliath grouper and piraiba.
 
 | Leader | Item id | Bite-through protection | Stealth | Recipe |
 |---|---|---|---|---|

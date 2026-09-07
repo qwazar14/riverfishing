@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": {
+      "id": "riverfishing:keepnet_small"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.keepnet_sale.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.keepnet_sale.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

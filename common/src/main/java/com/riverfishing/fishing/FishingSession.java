@@ -68,6 +68,8 @@ public class FishingSession {
 
     // ---- Ice fishing (Â§ice-jig): jig the mormyshka in a steady rhythm to draw fish through the hole ----
     public boolean iceFishing;
+    public boolean flyTight;   // §progression: this cast unrolled without a splash
+    public int jigBest;        // §progression: the best jig combo of this session
     public long lastJigTick;
 
     // ---- bite window ----

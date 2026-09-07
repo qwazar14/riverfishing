@@ -19,7 +19,7 @@ Missing keys simply keep their defaults, so a three-line file with nothing but `
 
 `preset` sets all nine of the frustrating mechanics at once, and it is the only line most packs ever need to touch. Four values: `arcade`, `realism`, `hardcore`, `custom`.
 
-**`realism` is the default**, and it is what every number elsewhere in this wiki assumes. `arcade` cuts the harsh multipliers to roughly a third. `hardcore` raises them by 60–70 %. `custom` ignores the table below and reads the nine individual values instead.
+**`realism` is the default**, and it is what every number elsewhere in this wiki assumes. `arcade` cuts the harsh multipliers to roughly a third. `hardcore` raises them by 60–70 % — except snags, which it raises by only 30 %. `custom` ignores the table below and reads the nine individual values instead.
 
 | Knob | Key | arcade | realism | hardcore |
 |---|---|---|---|---|
@@ -29,7 +29,7 @@ Missing keys simply keep their defaults, so a three-line file with nothing but `
 | Leader bite-off chance | `leader_biteoff` | 0.30 | 0.75 | 0.95 |
 | Line wear rate | `line_wear` | ×0.3 | ×1.0 | ×1.7 |
 | Hook wear rate | `hook_wear` | ×0.3 | ×1.0 | ×1.7 |
-| Snag chance | `snag` | ×0.3 | ×1.0 | ×1.6 |
+| Snag chance | `snag` | ×0.3 | ×1.0 | ×1.3 |
 | Foul-hook chance | `foul` | ×0.4 | ×1.0 | ×1.6 |
 | Spook rate | `spook` | ×0.35 | ×1.0 | ×1.6 |
 
@@ -48,7 +48,7 @@ Read **only** when `preset` is `"custom"`. Anything else and the file's numbers 
 | `depletion` | 1.0 | 0 – 5 | How much fishing pressure a cast and a kept fish add to the chunk. At 0 a spot never [fishes out](water-and-conditions.md#spot-depletion). |
 | `leader_biteoff` | 0.75 | 0 – 1 | A **chance, not a multiplier**: how often a species that requires a leader bites clean through the line. Reduced by the leader you actually fitted. |
 | `line_wear` | 1.0 | 0 – 5 | Line wear per cast, base 0.1 points × this. Fluorocarbon wears at 0.6 of the rate. A fraction of a point becomes a probability, so wear still accumulates over many casts. |
-| `hook_wear` | 1.0 | 0 – 5 | How much the sharpest hook blunts on a hooked fish (and on a strike a blunt hook slipped). `round(2 × rate ÷ 1.5)` — so at ×1.0 it is 1 point, at hardcore 2, and at arcade the rounding lands on **0: hooks never blunt**. |
+| `hook_wear` | 1.0 | 0 – 5 | How much the sharpest hook blunts on a hooked fish (and on a strike a blunt hook slipped). `max(1, round(2 × rate ÷ 1.5))` — so at ×1.0 it is 1 point, at hardcore 2, and at arcade the floor holds it at 1: **only `hook_wear: 0` stops hooks blunting at all**. |
 | `snag` | 1.0 | 0 – 5 | Scales both snag odds per fishing action: 3 % dead (you lose the rig) and 10 % total (the rest tug free). Ice fishing keeps its flat, unscaled 1 %. |
 | `foul` | 1.0 | 0 – 5 | Scales the flat 1 % per spinning retrieve of [foul-hooking](fishing-mechanics.md#foul-hooking) a fish in the body. Lure rods only. |
 | `spook` | 1.0 | 0 – 5 | How sharply fish react to the angler — it scales every noise source: footsteps, sprinting, jumping, wading, a moving boat, your shadow on the water, a block broken nearby, and the cast landing. **At 0 the mechanic is switched off entirely.** |

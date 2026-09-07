@@ -61,6 +61,36 @@ public final class Quests {
         return j -> j.getCompoundOrEmpty(key).getIntOr("best", 0) >= minGrams;
     }
 
+    // §progression: the traits the journal counts at the catch (JournalData.recordTraits) — a quest can
+    // ask for "three peaceful feeders" or "a five-kilo fish" wherever on the planet the angler stands
+    private static Goal counter(String key, int n) {
+        return new Goal() {
+            public boolean complete(CompoundTag j) { return j.getIntOr(key, 0) >= n; }
+            public String progress(CompoundTag j) { return Math.min(n, j.getIntOr(key, 0)) + "/" + n; }
+        };
+    }
+
+    private static Goal diet(String diet, int n) { return counter("diet." + diet, n); }
+    private static Goal group(String group, int n) { return counter("grp." + group, n); }
+    private static Goal fly(int n) { return counter(JournalData.FLY, n); }
+    private static Goal bestAny(int grams) { return j -> j.getIntOr("best_any", 0) >= grams; }
+    private static Goal bestDiet(String diet, int grams) { return j -> j.getIntOr("dbest." + diet, 0) >= grams; }
+    private static Goal bestGroup(String group, int grams) { return j -> j.getIntOr("gbest." + group, 0) >= grams; }
+
+    /** Families (journal groups) with at least one fish in them. */
+    private static Goal families(int n) {
+        return new Goal() {
+            public boolean complete(CompoundTag j) { return familyCount(j) >= n; }
+            public String progress(CompoundTag j) { return Math.min(n, familyCount(j)) + "/" + n; }
+        };
+    }
+
+    private static int familyCount(CompoundTag j) {
+        int c = 0;
+        for (String k : j.keySet()) if (k.startsWith("grp.") && j.getIntOr(k, 0) > 0) c++;
+        return c;
+    }
+
     private static Goal distinct(int n) {
         return new Goal() {
             public boolean complete(CompoundTag j) { return distinctCount(j) >= n; }
@@ -186,41 +216,40 @@ public final class Quests {
     // ---- the chain ----
 
     public static final List<Quest> ALL = List.of(
+            // §progression (0.10.0): the chain asks for what the water ANYWHERE holds — a diet, a family, a
+            // weight — never for a roach, because half the planet has never seen one.
             // Stage 1 — first casts at the pond
             new Quest("q_first_fish", 1, total(1), item("worm", 8), 15),
-            new Quest("q_roach", 1, species("roach", 1), item("maggot", 8), 15),
+            new Quest("q_peaceful", 1, diet("peaceful", 1), item("maggot", 8), 15),
             new Quest("q_species3", 1, distinct(3), item("hook_12", 4), 30),
-            new Quest("q_crucian", 1, species("crucian_carp", 1), item("groundbait_powder", 4), 20),
+            new Quest("q_peaceful3", 1, diet("peaceful", 3), item("groundbait_powder", 4), 20),
             new Quest("q_ten_fish", 1, total(10), item("bait_trap", 1), 25),
             new Quest("q_stage1_done", 1, stageComplete(1), emeralds(12), 40),
             // Stage 2 — float & feeder
-            new Quest("q_bream", 2, species("bream", 1), item("hook_8", 3), 25),
-            // §groundbait-one-jar: the reward ladder teaches the PANTRY now that there is only one jar.
-            // Ballast, then something coarse — the two things a beginner has no idea they want.
-            new Quest("q_rudd", 2, species("rudd", 1), item("groundbait_soil", 6), 20),
-            new Quest("q_tench", 2, species("tench", 1), item("boilie", 6), 35),
-            new Quest("q_bream_big", 2, weight("bream", 2000), emeralds(6), 40),
+            new Quest("q_omnivore", 2, diet("omnivore", 1), item("hook_8", 3), 25),
+            new Quest("q_peaceful10", 2, diet("peaceful", 10), item("boilie", 6), 35),
+            new Quest("q_kilo", 2, bestAny(1000), emeralds(6), 40),
+            new Quest("q_families3", 2, families(3), emeralds(6), 30),
             new Quest("q_species8", 2, distinct(8), item("spinning_rod", 1), 60),
             new Quest("q_stage2_done", 2, stageComplete(2), item("reel_3000", 1), 60),
             // Stage 3 — predators
-            new Quest("q_perch", 3, species("perch", 1), item("spinner", 2), 25),
-            new Quest("q_pike", 3, species("pike", 1), item("leader", 2), 40),
-            new Quest("q_pike_big", 3, weight("pike", 5000), emeralds(10), 70),
-            new Quest("q_zander", 3, species("zander", 1), item("wobbler", 1), 45),
-            new Quest("q_asp", 3, species("asp", 1), emeralds(6), 45),
+            new Quest("q_predator", 3, diet("predator", 1), item("spinner", 2), 25),
+            new Quest("q_predators5", 3, diet("predator", 5), item("leader", 2), 40),
+            new Quest("q_predator_big", 3, bestDiet("predator", 3000), emeralds(10), 70),
+            new Quest("q_predators15", 3, diet("predator", 15), item("wobbler", 1), 45),
+            new Quest("q_families5", 3, families(5), emeralds(6), 45),
             new Quest("q_stage3_done", 3, stageComplete(3), item("leader_titanium", 1), 80),
             // Stage 4 — heavy tackle
-            new Quest("q_carp", 4, species("carp", 1), item("boilie", 8), 50),
-            new Quest("q_carp_big", 4, weight("carp", 8000), emeralds(10), 80),
-            new Quest("q_catfish", 4, species("catfish", 1), item("leader_titanium", 1), 80),
-            new Quest("q_catfish_big", 4, weight("catfish", 20000), emeralds(20), 120),
-            new Quest("q_trout", 4, species("trout", 1), emeralds(6), 50),
+            new Quest("q_five_kilo", 4, bestAny(5000), item("boilie", 8), 50),
+            new Quest("q_ten_kilo", 4, bestAny(10000), item("leader_titanium", 1), 80),
+            new Quest("q_twenty_kilo", 4, bestAny(20000), emeralds(20), 120),
+            new Quest("q_families6", 4, families(6), emeralds(6), 50),
             new Quest("q_hundred", 4, total(100), item("reel_5000", 1), 90),
             new Quest("q_stage4_done", 4, stageComplete(4), emeralds(32), 120),
             // Stage 5 — master
             new Quest("q_species15", 5, distinct(15), item("reel_7000", 1), 100),
-            new Quest("q_sterlet", 5, species("sterlet", 1), emeralds(16), 100),
-            new Quest("q_grayling", 5, species("grayling", 1), emeralds(10), 70),
+            new Quest("q_species30", 5, distinct(30), emeralds(16), 100),
+            new Quest("q_forty_kilo", 5, bestAny(40000), emeralds(10), 70),
             new Quest("q_koi", 5, koi(), emeralds(12), 80),
             new Quest("q_trophy", 5, trophies(1), emeralds(8), 60),
             new Quest("q_trophy5", 5, trophies(5), emeralds(24), 140),
@@ -230,20 +259,18 @@ public final class Quests {
             // Stage 6 — under the ice (§winter-quests)
             new Quest("q_ice_first", 6, ice(1), item("mormyshka", 2), 40),
             new Quest("q_ice_burbot", 6, species("burbot", 1), item("chicken_liver", 4), 60),
-            new Quest("q_ice_ruffe", 6, species("ruffe", 1), item("maggot", 12), 30),
+            new Quest("q_ice_five", 6, ice(5), item("maggot", 12), 30),
             new Quest("q_ice_ten", 6, ice(10), item("winter_rod", 1), 80),
             new Quest("q_ice_thirty", 6, ice(30), emeralds(24), 160),
             new Quest("q_stage6_done", 6, stageComplete(6), emeralds(50), 200),
-            // Stage 7 — the north wave (§north): taiga rivers, the salmon run, the taimen.
-            // Rewards hand out the exact lure the NEXT quest's fish wants — the stage teaches itself.
-            new Quest("q_rotan", 7, species("rotan", 1), item("spinner", 1), 20),
-            new Quest("q_nase", 7, species("nase", 1), item("maggot", 12), 30),
-            new Quest("q_vimba", 7, species("vimba", 1), item("pearl_barley", 8), 40),
-            new Quest("q_whitefish", 7, species("whitefish", 1), item("bloodworm", 12), 50),
-            new Quest("q_char", 7, species("char", 1), item("castmaster", 1), 60),
-            new Quest("q_lenok", 7, species("lenok", 1), item("wobbler", 1), 70),
-            new Quest("q_salmon", 7, species("salmon", 1), item("spoon", 2), 90),
-            new Quest("q_taimen", 7, weight("taimen", 15000), emeralds(30), 160),
+            // Stage 7 — cold water and the fly (§fly): the salmonids, and the rod that was made for them
+            new Quest("q_fly_first", 7, fly(1), emeralds(10), 40),
+            new Quest("q_salmonid", 7, group("salmonid", 1), item("spoon", 2), 50),
+            new Quest("q_fly_ten", 7, fly(10), emeralds(24), 90),
+            new Quest("q_salmonids3", 7, group("salmonid", 3), item("castmaster", 1), 60),
+            new Quest("q_insectivores5", 7, diet("insectivore", 5), item("bloodworm", 12), 50),
+            new Quest("q_salmonid_big", 7, bestGroup("salmonid", 5000), emeralds(30), 160),
+            new Quest("q_fly_thirty", 7, fly(30), emeralds(30), 120),
             new Quest("q_stage7_done", 7, stageComplete(7), item("surf_rod", 1), 180),
             // Stage 8 — the sea and big game (§ocean): coast → shelf → the pelagic monsters.
             new Quest("q_seabass", 8, species("seabass", 1), item("castmaster", 1), 50),

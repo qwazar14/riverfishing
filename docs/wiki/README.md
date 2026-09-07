@@ -2,9 +2,9 @@
 
 **River Fishing** turns fishing into a process instead of a click on the water. You assemble a rod from a blank, a reel, a line and a rig; you match bait, hook size, groundbait and leader to the fish you actually want; you read the water, the season, the hour and the barometer; and then you fight what takes.
 
-Nothing bites by luck. A data-driven bite engine weighs your whole setup against every one of **79 species** under the current conditions, and decides both *what* takes and *how long you wait*. Mismatched gear catches nothing, a line that is too visible spooks small wary fish, big fish demand a near-perfect kit, and every water in the world holds its own species community fixed by the world seed.
+Nothing bites by luck. A data-driven bite engine weighs your whole setup against every one of **107 species** under the current conditions, and decides both *what* takes and *how long you wait*. Mismatched gear catches nothing, a line that is too visible spooks small wary fish, big fish demand a near-perfect kit, and every water in the world holds its own species community fixed by the world seed.
 
-- **Version 0.7.0**, on four Minecraft versions:
+- **Version 0.9.0**, on four Minecraft versions:
   - **1.20.1** — Fabric & Forge
   - **1.21.1** — Fabric & NeoForge
   - **26.1.2** — Fabric & NeoForge
@@ -12,6 +12,7 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 - **Required:** [Architectury API](https://www.curseforge.com/minecraft/mc-mods/architectury-api); on Fabric also Fabric API
 - **Recommended:** Serene Seasons (unlocks the seasonal bite), Biomes O' Plenty (richer habitat model)
 - **Also integrates with:** Farmer's Delight, Jade, JEI
+- **Exact tested versions of all of the above:** [Compatibility](compatibility.md)
 - **Discord:** [discord.gg/Kk2nKvsuRh](https://discord.gg/Kk2nKvsuRh) — questions, bug reports, catches
 - **This wiki also in:** [русском](ru/README.md) · [українською](uk/README.md)
 - **Online, all three languages in one page:** [qwazar14.github.io/riverfishing](https://qwazar14.github.io/riverfishing/)
@@ -23,6 +24,7 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 | Page | What's in it |
 |---|---|
 | **[Getting started](getting-started.md)** | Bait, your first rod, your first cast, your first fish, and how to read the HUD |
+| [Compatibility](compatibility.md) | The exact loader, Architectury, Biomes O' Plenty and Serene Seasons versions every build is tested with |
 
 ## Gear
 
@@ -30,7 +32,8 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 |---|---|
 | [Rods](rods.md) | All 13 blanks — reel bands, cast-weight windows, reach, built-in rigs, durability, repair, recipes |
 | [Reels and lines](reels-and-lines.md) | 11 reels and the spool-diameter rule, 23 lines with breaking strains, line visibility and wear, the three leaders |
-| [Rigs and baits](rigs-and-baits.md) | 11 rigs and their slot layouts, 9 hooks, the float and its depth slider, 13 natural baits, 8 lures, 4 groundbaits |
+| [Rigs and baits](rigs-and-baits.md) | 11 rigs and their slot layouts, 9 hooks, the float and its depth slider, 13 natural baits, 8 lures, the one groundbait and its pantry |
+| [Groundbait](groundbait.md) | The base and a pantry: fraction, nutrition, the menu, variety — and what all 107 species want |
 | [Tackle Station](tackle-station.md) | The 0.6.0 bench: forms, the weight stepper, costs, dyeing, and which knobs do nothing yet |
 | [Crafting](crafting.md) | Every recipe in the mod, in one place |
 | [Tools and processing](tools.md) | Journal, fish finder, knife, whetstone, auger, alarms, fillets, live bait, pack integrations |
@@ -44,23 +47,27 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 |---|---|
 | [Fishing mechanics](fishing-mechanics.md) | The bite engine, casting, the three flows, hook-set timing, the fight, line breaks, snags, foul-hooking, gear wear, difficulty |
 | [Water and conditions](water-and-conditions.md) | Water bodies, depth and width, biome groups, time, weather, seasons, barometric pressure, frenzies, depletion, communities |
+| [Faunal provinces](provinces.md) | Four provinces cut by the seed, who lives where, what happens outside a species' range, the two ways round it, `biomes_require`, biome groups, modded biomes |
 | [Fish in the water](shoal.md) | The shoals you can see before you cast: how many are shown, how clearly, and how they react to you |
 | [Ice fishing](ice-fishing.md) | Drilling, jigging, what bites under the ice |
 | [Fly fishing](fly-fishing.md) | The fly rod, the rhythm cast, the drift and the mend, the rise and the delayed set, the hatch table, which fish take a fly |
 | [Sea fishing](sea-fishing.md) | The saltwater tier, ocean zones, trolling, big-game fights |
 | [Stocking](stocking.md) | Releasing fish, the residency model, settling, stock levels |
+| [Breeding](breeding.md) | The tank: slots, feeding, water, the clutch, roe and incubation, fry, the five modules, which species cross, the pond that grows itself |
+| [Genetics](genetics.md) | The four loci on every fish, the carp's scale genes and the lethal allele, the koi's colour loci and seventeen varieties, the pattern index and its gems, inheritance |
 
 ## Reference
 
 | Page | What's in it |
 |---|---|
-| [Species](species.md) | All 79 species: sizes, home waters, level gates, best baits, ideal tackle, plus notes on the unusual ones |
+| [Species](species.md) | All 107 species: sizes, home waters, level gates, best baits, ideal tackle, plus notes on the unusual ones |
 | [Species reference](species-reference.md) | Habitat gates, season / time / weather tables, fight statistics |
 | [Progression](progression.md) | Angler XP, levels and ranks, the skill tree, the 8-stage quest chain, all 22 advancements, the journal |
 | [Villager](villager.md) | The Fisherman, the Fishing Stall, all five trade tiers, the prime-fish rule, the dynamic market |
 | [Order board](order-board.md) | The journal panel that turns the order of the day into a recipe, and the six rewards it pays out |
+| [Contracts](contracts.md) | The fisherman's board: three jobs a day, the paper's terms, pay and reputation, fry orders — and nets, poaching and restitution |
 | [Configuration](config.md) | `config/riverfishing.json` — the three presets and every knob, with its range |
-| [Electrofisher](electrofisher.md) | Creative only: taking a species out of a body of water for good |
+| [Electrofisher](electrofisher.md) | Creative only: deciding what lives in a body of water |
 
 ---
 

@@ -20,6 +20,7 @@ public final class AnglerSkills {
         QUICK_BITE("quick_bite", "sense"),
         NATURALIST("naturalist", "knowledge"),
         STRONG_LINE("strong_line", "hand"),
+        SNAG_SENSE("snag_sense", "hand"),   // §snag-sense
         ANGLERS_LUCK("anglers_luck", "fortune"),
         FINESSE("finesse", "skill");
 
@@ -97,6 +98,16 @@ public final class AnglerSkills {
     /** Крепкая рука: line break-tolerance multiplier (+5%/rank). */
     public static double lineToleranceMult(Player player) {
         return 1.0 + rank(player, Perk.STRONG_LINE) * 0.05;
+    }
+
+    /** §snag-sense Чутьё дна: snag-chance multiplier (−8%/rank); a dead snag takes it twice. */
+    public static double snagMult(Player player) {
+        return 1.0 - rank(player, Perk.SNAG_SENSE) * 0.08;
+    }
+
+    /** §snag-sense: the over-strain break roll's multiplier (−5%/rank). */
+    public static double breakMult(Player player) {
+        return 1.0 - rank(player, Perk.SNAG_SENSE) * 0.05;
     }
 
     /** Рыбацкая удача: flat trophy-chance bonus added to the roll (+1%/rank). */

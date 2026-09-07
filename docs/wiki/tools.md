@@ -17,11 +17,11 @@ The items that aren't tackle: how you read the water, keep your gear sharp, and 
 
 ## Fishing Journal
 
-Right-click to read. Six tabs — **Fish**, **Baits & Lures**, **Gear**, **Quests**, **Skills** and **Guides** — covered in [Progression](progression.md#the-fishing-journal).
+Right-click to read. Eight tabs — **Fish**, **Bait & feed**, **Lures**, **Gear**, **Quests**, **Skills**, **Records** and **Guides** — covered in [Progression](progression.md#the-fishing-journal).
 
 The Fish tab is a live bestiary: every species you have caught, with its count, your personal best, and a "how to catch" page listing its water bodies, depth, width, biomes, best season and time, baits and tackle — all read from the **same profile the bite engine uses**, so the advice can never drift from the balance.
 
-The Guides shelf holds twelve written pages: the drag, tackle stress, live bait, *every water is its own*, working the lure, topwater, trolling, sea giants, legendary fish, the market and the daily order, fishing together, and the tackle bench.
+The Guides shelf holds twenty-four written pages, in the order the shelf itself runs: the wait on float and bottom, how the fish notice you before they notice the bait, tackle stress, the drag; groundbait in four pages — the base, the numbers, feeding, the recipes — and the keepnet; working the lure, topwater, live bait; the tackle bench and where the tackle lives; *every water is its own*, the market and the daily order, fishing together; ice fishing; trolling, sea giants, legendary fish; and last the electrofisher, Discord and the thanks.
 
 Your records survive death.
 
@@ -48,6 +48,8 @@ Pressure: 1004 hPa ↓  —  bite: frenzy
 | *Stock:* | Every species whose [stock level](stocking.md) is more than 10 % off normal. **(temp)** marks an unsettled transplant |
 | *Pressure:* | The [barometer](water-and-conditions.md#barometric-pressure): reading, trend arrow, and a colour-coded outlook (frenzy / active / fair / slow / dead) |
 
+The same sounding is also **drawn**: the finder's screen shows the water in **section** along the line you are aiming down — the real bed metre by metre, the surface over it, and each fish drawn where its depth is actually met. From 0.10.0 the section reads **36 m out from the rod (2–37 m)** instead of 23, and draws **up to 16 fish** instead of 10; the rest are in the species list beside it.
+
 The Fish Finder is sold by a journeyman [fisherman](villager.md) for 14 emeralds, and is the reward-shaped item you want before committing to a long bottom session.
 
 ---
@@ -73,7 +75,7 @@ Right-clicking a **Fishing Stall** with the tablet instead reports that block's 
 Hold the knife, put a **caught fish in your other hand**, and right-click.
 
 ```
-fillets = max(1, fishWeightGrams / 300)
+fillets = max(1, fishWeightGrams / 200)
 ```
 
 The fish is consumed, the knife loses 1 durability (of 128), and you get that many **Raw Fish Fillets** — stackable food, unlike the unique catch.
@@ -168,5 +170,5 @@ All of these are loot-table injections, so they behave identically on both loade
 - [Rigs and baits](rigs-and-baits.md) · [Blocks](blocks.md)
 - [Keepnet](keepnet.md) · [Tackle box](tackle-box.md) — where the catch and the tackle go
 - [Progression](progression.md) · [Water and conditions](water-and-conditions.md)
-- [Electrofisher](electrofisher.md) — the creative-only tool that is not tackle
+- [Electrofisher](electrofisher.md) — the creative-only tool that is not tackle: it decides what lives in a water
 - [Crafting](crafting.md)

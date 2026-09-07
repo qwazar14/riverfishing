@@ -41,6 +41,50 @@ public final class JournalData {
         PlayerData.markDirty(player);
     }
 
+    public static final String FLY = "fly";   // §progression: fish landed on the fly rod
+
+    /** §progression: a fish landed on the fly rod — the counter the stage-7 quests read. */
+    public static void addFlyCatch(Player player) {
+        CompoundTag root = get(player);
+        root.putInt(FLY, root.getIntOr(FLY, 0) + 1);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+    }
+
+    /**
+     * §progression: the family, the diet and the weight of a catch, counted in the journal itself —
+     * {@code grp.<group>}, {@code diet.<diet>}, {@code gbest.<group>}, {@code dbest.<diet>}, {@code best_any}
+     * — so a quest can ask for "three peaceful feeders" without a profile lookup on the client.
+     */
+    public static void recordTraits(Player player, String group, String diet, int weightG) {
+        CompoundTag root = get(player);
+        if (group != null && !group.isEmpty()) {
+            root.putInt("grp." + group, root.getIntOr("grp." + group, 0) + 1);
+            root.putInt("gbest." + group, Math.max(root.getIntOr("gbest." + group, 0), weightG));
+        }
+        if (diet != null && !diet.isEmpty()) {
+            root.putInt("diet." + diet, root.getIntOr("diet." + diet, 0) + 1);
+            root.putInt("dbest." + diet, Math.max(root.getIntOr("dbest." + diet, 0), weightG));
+        }
+        root.putInt("best_any", Math.max(root.getIntOr("best_any", 0), weightG));
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+    }
+
+    /** §progression: the faunal province a fish was taken in. */
+    public static void recordProvince(Player player, String province) {
+        CompoundTag root = get(player);
+        CompoundTag provs = root.getCompoundOrEmpty("provinces");
+        provs.putBoolean(province, true);
+        root.put("provinces", provs);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+    }
+
+    public static int provincesSeen(Player player) {
+        return get(player).getCompoundOrEmpty("provinces").keySet().size();
+    }
+
     /** Records a fish landed through the ice (§winter-quests): a counter for winter-fishing goals. */
     public static void addIceCatch(Player player) {
         CompoundTag root = get(player);

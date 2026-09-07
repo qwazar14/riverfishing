@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " S ",
+    "SLS",
+    " S "
+  ],
+  "key": {
+    "S": "minecraft:string",
+    "L": "riverfishing:line_mono_025"
+  },
+  "result": {
+    "id": "riverfishing:line_mono_025",
+    "count": 1
+  }
+}

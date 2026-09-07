@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/ice_burbot",
+  "display": {
+    "icon": {
+      "id": "riverfishing:mormyshka"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.ice_rhythm.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.ice_rhythm.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

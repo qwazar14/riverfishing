@@ -459,6 +459,7 @@ public final class FishingManager {
     private static void flyLanded(ServerPlayer sp, FishingSession session, int quality) {
         if (session == null) return;
         if (quality == 0) {
+            session.flyTight = true;   // §progression
             actionbar(sp, Component.translatable("message.riverfishing.fly_tight").withStyle(ChatFormatting.GREEN));
             return;
         }
@@ -727,7 +728,7 @@ public final class FishingManager {
             case FLOAT -> Math.max(140, delay);
             // Long cast: from ~33 s, PLUS a big random spread so several rods cast in a row don't all
             // fire at once (§bite-window — the "three rods bite together" fix).
-            case BOTTOM -> Math.max(660, (long) (delay * 1.5)) + level.getRandom().nextInt(900);
+            case BOTTOM -> Math.max(660, (long) (delay * 1.5)) + level.getRandom().nextInt(1200);   // §bite-spread: 0..60 s, was 0..45
             default -> Math.max(40, delay); // ACTIVE: the clock only runs while retrieving anyway
         };
 
@@ -772,9 +773,9 @@ public final class FishingManager {
             session.retrieveMax = (int) Mth.clamp(castDistance * coeff, 80, cap);
             // §snag: decide this retrieve's snag fate up front — 3% dead (lose rig), 7% recoverable. If
             // snagged, it strikes somewhere in the second half of the retrieve, as the lure nears the bank.
-            double sc = RiverFishingConfig.snagChance();
+            double sc = RiverFishingConfig.snagChance() * AnglerSkills.snagMult(sp);   // §snag-sense
             double sroll = random.nextDouble();
-            session.snagOutcome = sroll < SNAG_DEAD_CHANCE * sc ? 2 : (sroll < SNAG_TOTAL_CHANCE * sc ? 1 : 0);
+            session.snagOutcome = sroll < SNAG_DEAD_CHANCE * sc * AnglerSkills.snagMult(sp) ? 2 : (sroll < SNAG_TOTAL_CHANCE * sc ? 1 : 0);
             if (session.snagOutcome != 0) {
                 session.snagAtTick = (int) (session.retrieveMax * (0.5 + random.nextDouble() * 0.45));
             }
@@ -880,7 +881,7 @@ public final class FishingManager {
         long chunkKey = ChunkPos.pack(waterPos);
         double depletion = pressure.attractiveness(chunkKey, now, spawnRegen(level));
         // A patient winter wait — jigging the mormyshka in a steady rhythm is what pulls the bite in.
-        long delay = (long) Mth.clamp(outcome.ticksToBite / Math.max(0.1, depletion) * AnglerSkills.biteSpeedMult(sp), 200, 2400);
+        long delay = (long) Mth.clamp(outcome.ticksToBite / Math.max(0.1, depletion) * AnglerSkills.biteSpeedMult(sp), 200, 3200);   // §bite-spread: 160 s, was 120
 
         FishingSession session = new FishingSession(hand, waterPos, RodClass.FLOAT, delay, now + delay, species);
         session.variety = variety;   // §scale-genes
@@ -927,6 +928,7 @@ public final class FishingManager {
      */
     private static void iceJig(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
         int combo = FlyCast.jigBeat(sp, now);
+        session.jigBest = Math.max(session.jigBest, combo);   // §progression
         boolean good = combo > 0;
         session.lastJigTick = now;
         if (session.biteAtTick > now) {
@@ -1337,7 +1339,7 @@ public final class FishingManager {
     }
 
     /** Where the finder's bed profile starts and how far it reads, metres out from the rod. */
-    public static final int PROFILE_FROM = 2, PROFILE_N = 23;
+    public static final int PROFILE_FROM = 2, PROFILE_N = 36;   // §finder-reach: 36 m, was 23
     /** The map window, blocks either side of the spot. The face draws it at three pixels a block. */
     public static final int MAP_REACH = 18;
 
@@ -1670,7 +1672,8 @@ public final class FishingManager {
         }
         if (session.biteSpeed <= 0.0) {
             // Dead water came back to life — restart the clock with a fresh sample at the new rate.
-            session.biteAtTick = now + Math.max(100L,
+            // §bite-spread: plus a phase of its own, or every line on a pod re-clocks from the same tick
+            session.biteAtTick = now + random.nextInt(300) + Math.max(100L,
                     (long) (-(BiteEngine.T_MIN_TICKS / sNew) * Math.log(1.0 - random.nextDouble())));
         } else {
             long remaining = Math.max(10L, session.biteAtTick - now);
@@ -1809,7 +1812,7 @@ public final class FishingManager {
         // Foul-hooking (багрение) is NOT rolled here — a fish only gets snagged in the body on a
         // moving lure, so it's a spinning-rod thing only (handled in retrieveTick).
         if (!session.foulHooked && session.rodClass != RodClass.ACTIVE) {
-            double sc = RiverFishingConfig.snagChance();
+            double sc = RiverFishingConfig.snagChance() * AnglerSkills.snagMult(sp);   // §snag-sense
             double sroll = random.nextDouble();
             // §ice-snag: fishing vertically into a clean hole almost never snags — a flat 1% total, and
             // that 1% is only the recoverable "tug free" kind (the mormyshka comes back).
@@ -1819,7 +1822,7 @@ public final class FishingManager {
                     return;
                 }
             } else {
-            if (sroll < SNAG_DEAD_CHANCE * sc) {          // 3% dead (глухой) — lose the rig
+            if (sroll < SNAG_DEAD_CHANCE * sc * AnglerSkills.snagMult(sp)) {   // 3% dead (глухой) — lose the rig
                 handleSnag(sp, level, session, true);
                 return;
             }
@@ -2152,6 +2155,18 @@ public final class FishingManager {
         if (sp2.equals("burbot") && session.iceFishing) {
             com.riverfishing.quest.AnglerAdvancements.grant(sp, "ice_burbot");
         }
+        // §progression (0.10.0)
+        if (rodType == RodType.FLY) {
+            com.riverfishing.quest.AnglerAdvancements.grant(sp, "fly_first");
+            if (session.flyTight) com.riverfishing.quest.AnglerAdvancements.grant(sp, "fly_tight");
+        }
+        if (session.weightG >= 50000) com.riverfishing.quest.AnglerAdvancements.grant(sp, "heavyweight");
+        FishProfile prof = FishProfileManager.get().byId(session.species);
+        if (prof != null && !prof.hybridOf.isEmpty()) com.riverfishing.quest.AnglerAdvancements.grant(sp, "hybrid");
+        if (session.iceFishing && session.jigBest >= FlyCast.JIG_MAX) com.riverfishing.quest.AnglerAdvancements.grant(sp, "ice_rhythm");
+        int provs = JournalData.provincesSeen(sp);
+        if (provs >= 2) com.riverfishing.quest.AnglerAdvancements.grant(sp, "far_shore");
+        if (provs >= 5) com.riverfishing.quest.AnglerAdvancements.grant(sp, "five_provinces");
         // Funny/hard: a trophy landed on a reel-less POLE rod (no reel at all — just nerve). Gate on the
         // rod TYPE, not session.reelSize (bottom rods can read 0 mid-flow → the old false positive).
         if (session.trophy && (rodType == RodType.POLE || rodType == RodType.BAMBOO || rodType == RodType.STICK)) {
@@ -2676,15 +2691,17 @@ public final class FishingManager {
         // species' top weight makes fewer of them (40 % at nothing, all of them at the top), so the
         // table can give a giant eight runs without a 20 kg juvenile out-diving its own clock
         double size = Mth.clamp(0.4 + 0.6 * weightKg / Math.max(0.001, profile.weightMax / 1000.0), 0.4, 1.0);
-        int runs = Math.max(1, (int) Math.round(profile.fightRuns * size));
-        switch (profile.fightPattern) {
-            case "aggressive" -> runs += 2;
-            case "relentless" -> runs += 3; // §grass-carp: the amur just keeps charging
-            case "burst" -> runs = Math.max(2, runs);
-            case "sounding" -> runs += 3;      // §big-game: tuna dives, again and again
-            case "greyhounding" -> runs += 2;  // §big-game: billfish jump series
-            default -> { /* steady / active_then_passive use the profile value */ }
-        }
+        // §runs-by-size-2: the pattern's extra runs are the full-grown fish's too — a 72 g barbel with
+        // the amur's +3 was still a five-run fight
+        int bonus = switch (profile.fightPattern) {
+            case "aggressive" -> 2;
+            case "relentless" -> 3;   // §grass-carp: the amur just keeps charging
+            case "sounding" -> 3;     // §big-game: tuna dives, again and again
+            case "greyhounding" -> 2; // §big-game: billfish jump series
+            default -> 0;             // steady / burst / active_then_passive use the profile value
+        };
+        int runs = Math.max(1, (int) Math.round((profile.fightRuns + bonus) * size));
+        if ("burst".equals(profile.fightPattern)) runs = Math.max(2, runs);
         if (weightKg > 2.0) runs += 1; // a big specimen has an extra run in it
         return runs;
     }
@@ -2792,6 +2809,14 @@ public final class FishingManager {
             GuideNudge.success(sp, session.rodClass);
             if (GuideNudge.consumeHint(sp)) JournalData.markHinted(sp, session.species);
             if (session.iceFishing) JournalData.addIceCatch(sp); // §winter-quests
+            {   // §progression: the traits, the province and the fly rod, counted before the quests look
+                FishProfile pr = FishProfileManager.get().byId(session.species);
+                if (pr != null) JournalData.recordTraits(sp, pr.group, pr.diet, session.weightG);
+                JournalData.recordProvince(sp, com.riverfishing.water.Provinces.at(level.getSeed(),
+                        session.target.getX(), session.target.getZ()));
+                ItemStack rodNow = sessionRod(sp, session);
+                if (rodNow.getItem() instanceof RodItem ri && ri.rodType() == RodType.FLY) JournalData.addFlyCatch(sp);
+            }
             // §species-advancements (0.5.0): tiered + "all species" are CODE-counted — the old JSON
             // hand-listed 25 criteria and drifted from the real roster with every content wave.
             if (newSpecies) {
@@ -2799,6 +2824,8 @@ public final class FishingManager {
                 if (n >= 10) com.riverfishing.quest.AnglerAdvancements.grant(sp, "species_10");
                 if (n >= 25) com.riverfishing.quest.AnglerAdvancements.grant(sp, "species_25");
                 if (n >= 50) com.riverfishing.quest.AnglerAdvancements.grant(sp, "species_50");
+                if (n >= 100) com.riverfishing.quest.AnglerAdvancements.grant(sp, "species_100");   // §progression
+                if (n >= 200) com.riverfishing.quest.AnglerAdvancements.grant(sp, "species_200");
                 if (n >= JournalData.speciesTotal()) com.riverfishing.quest.AnglerAdvancements.grant(sp, "all_species");
             }
             awardAnglerXp(sp, level, session.weightG, session.lengthCm, newSpecies, personalBest, session.trophy);
@@ -2868,6 +2895,7 @@ public final class FishingManager {
             level.playSound(null, sp.blockPosition(), SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.7f, 1.0f);
             sp.sendSystemMessage(Component.translatable("message.riverfishing.level_up", after)
                     .withStyle(ChatFormatting.GOLD));
+            if (after >= 50) com.riverfishing.quest.AnglerAdvancements.grant(sp, "grandmaster");   // §progression
             String rankBefore = JournalData.rankKey(before);
             String rankAfter = JournalData.rankKey(after);
             if (!rankBefore.equals(rankAfter)) {
@@ -3032,7 +3060,8 @@ public final class FishingManager {
             addLineWear(sessionRod(sp, session), 1);
         }
         double chance = Math.min(0.5,
-                (0.008 + 0.055 * overshoot + 0.028 * session.overStress) * RiverFishingConfig.breakSensitivity());
+                (0.008 + 0.055 * overshoot + 0.028 * session.overStress) * RiverFishingConfig.breakSensitivity()
+                        * AnglerSkills.breakMult(sp));   // §snag-sense
         if (random.nextDouble() < chance) {
             breakLine(sp, level, session, false);
             return true;

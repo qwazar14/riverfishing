@@ -81,7 +81,7 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         row("weight", FishItem.weightText(FishItem.getWeightG(fish)), WHITE);
         row("length", Component.literal(FishItem.getLengthCm(fish) + " cm"), WHITE);
         rule();
-        if (!c.getStringOr("Group", "").isEmpty()) row("group", key("group." + c.getStringOr("Group", "")), GREEN);
+        if (!c.getStringOr("Group", "").isEmpty()) row("group", Component.translatable(com.riverfishing.fish.FishGroup.nameKey(c.getStringOr("Group", ""))), GREEN);   // §card-group
         if (!c.getStringOr("Life", "").isEmpty()) row("lifestyle", key("life." + c.getStringOr("Life", "")), BLUE);
         String eco = c.getStringOr("Eco", "");
         if (!eco.isEmpty()) row("ecosystem", key("eco." + eco), eco.equals("native") ? GREEN : eco.equals("settled") ? YELLOW : ORANGE);
