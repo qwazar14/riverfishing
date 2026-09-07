@@ -898,6 +898,7 @@ public final class FishingManager {
         session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
         SESSIONS.put(sp.getUUID(), session);
         pressure.addCast(chunkKey, now);
+        FlyCast.beginJig(sp, now);   // §ice-rhythm: the needle starts with the line down the hole
         // §ice-fishing: no float on the line under the ice — the line just drops into the hole (bobber=false).
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, waterPos, 0f, session.lineColor, (byte) 0));
         level.playSound(null, waterPos, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.5f, 1.4f);
@@ -910,19 +911,24 @@ public final class FishingManager {
      * ~0.4–1.0 s) draws fish in fast; frantic spamming or lazy jigging barely helps. The bite (the кивок
      * twitch) then triggers the normal strike/pull QTE — the "phase 2" nod strike.
      */
+    /**
+     * §ice-rhythm: a jig click is a stop on the needle — the lift or the drop. On the beat the combo
+     * grows and the bite is pulled in, harder the longer it runs; off the beat the mormyshka jerks,
+     * the combo is gone and the fish back off a little. The gauge is the feedback; no text.
+     */
     private static void iceJig(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
-        long gap = now - session.lastJigTick;
-        boolean steady = session.lastJigTick == 0 || (gap >= 8 && gap <= 20);
+        int combo = FlyCast.jigBeat(sp, now);
+        boolean good = combo > 0;
         session.lastJigTick = now;
         if (session.biteAtTick > now) {
-            session.biteAtTick = Math.max(now + 10, session.biteAtTick - (steady ? 34 : 8));
+            session.biteAtTick = good
+                    ? Math.max(now + 10, session.biteAtTick - (20 + 6L * combo))
+                    : session.biteAtTick + 15;
         }
         level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS,
-                steady ? 0.35f : 0.25f, steady ? 1.7f : 1.3f);
+                good ? 0.35f : 0.25f, good ? 1.3f + 0.06f * combo : 0.9f);
         level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
-                session.target.getZ() + 0.5, steady ? 3 : 1, 0.1, 0.02, 0.1, 0.02);
-        actionbar(sp, Component.translatable(steady
-                ? "message.riverfishing.jig_good" : "message.riverfishing.jig").withStyle(ChatFormatting.AQUA));
+                session.target.getZ() + 0.5, good ? 2 + combo / 2 : 1, 0.1, 0.02, 0.1, 0.02);
     }
 
     /**
@@ -1537,6 +1543,7 @@ public final class FishingManager {
             }
             if (now >= session.biteAtTick && !spooked(level, session, now)) {
                 session.bitten = true;
+                if (session.iceFishing) FlyCast.cancel(sp);   // §ice-rhythm: the strike bar takes the needle's place
                 session.biteWindowEnd = now + Math.round(biteWindow(session.rodClass)
                         * com.riverfishing.fish.CatchCard.dial(session.nature, com.riverfishing.fish.CatchCard.BITE_WINDOW));
                 // §silent-bite: NO audible cue without an alarm — watch the float / the line.
@@ -3058,6 +3065,7 @@ public final class FishingManager {
         if (session.floatPeriod > 0) {
             clearFloatTiming(sp); // hide the strike-timing HUD (float or lure §strike-qte)
         }
+        if (session.iceFishing) FlyCast.cancel(sp);   // §ice-rhythm: the needle goes with the line
         SESSIONS.remove(sp.getUUID());
         // Clear the line for everyone who can see this angler (§line-multiplayer).
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), false, null, 0f, 0, (byte) 0));
