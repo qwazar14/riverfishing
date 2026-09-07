@@ -23,9 +23,11 @@ public class FlyCastPacket implements ModNetwork.RfPacket {
     public final boolean openLoop;
     /** The end the last good beat landed on (0 left, 1 right), -1 when either is next. */
     public final byte lastEnd;
+    /** 0 = the fly cast, 1 = the winter rod's jig (§ice-rhythm). */
+    public final byte mode;
 
     public FlyCastPacket(boolean active, long startTick, int period, float zoneHalf, int beats,
-                         int maxBeats, boolean openLoop, byte lastEnd) {
+                         int maxBeats, boolean openLoop, byte lastEnd, byte mode) {
         this.active = active;
         this.startTick = startTick;
         this.period = period;
@@ -34,6 +36,7 @@ public class FlyCastPacket implements ModNetwork.RfPacket {
         this.maxBeats = maxBeats;
         this.openLoop = openLoop;
         this.lastEnd = lastEnd;
+        this.mode = mode;
     }
 
     @Override
@@ -51,11 +54,12 @@ public class FlyCastPacket implements ModNetwork.RfPacket {
         buf.writeInt(maxBeats);
         buf.writeBoolean(openLoop);
         buf.writeByte(lastEnd);
+        buf.writeByte(mode);
     }
 
     public static FlyCastPacket decode(FriendlyByteBuf buf) {
         return new FlyCastPacket(buf.readBoolean(), buf.readLong(), buf.readInt(), buf.readFloat(),
-                buf.readInt(), buf.readInt(), buf.readBoolean(), buf.readByte());
+                buf.readInt(), buf.readInt(), buf.readBoolean(), buf.readByte(), buf.readByte());
     }
 
     public void handleClient() {

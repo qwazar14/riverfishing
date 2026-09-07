@@ -44,6 +44,8 @@ public final class FlyCast {
         boolean openLoop;
         /** The end the last GOOD beat landed on (0 or 1), -1 when either end is fair game. */
         int lastEnd = -1;
+        /** 0 = the fly cast, 1 = the jig (§ice-rhythm). */
+        int mode;
     }
 
     private static final Map<UUID, State> STATES = new HashMap<>();
@@ -134,7 +136,35 @@ public final class FlyCast {
         send(sp, s == null ? new State() : s, false);
     }
 
+    // ---- §ice-rhythm: the winter rod's jig on the same needle — the stops are the LIFT and the DROP ----
+    public static final int JIG_PERIOD = 16, JIG_MAX = 8;
+
+    /** The line is down the hole: the needle starts, and every click is judged against it. */
+    public static void beginJig(ServerPlayer sp, long now) {
+        State s = new State();
+        s.start = now;
+        s.maxBeats = JIG_MAX;
+        s.mode = 1;
+        STATES.put(sp.getUUID(), s);
+        send(sp, s, true);
+    }
+
+    /** A jig click: the combo after it when it landed on a stop, 0 when the jig jerked (the combo is gone). */
+    public static int jigBeat(ServerPlayer sp, long now) {
+        State s = STATES.get(sp.getUUID());
+        if (s == null || s.mode != 1) return 0;
+        float m = marker(now - s.start, JIG_PERIOD);
+        int end = m < 0.5f ? 0 : 1;
+        float off = Math.min(m, 1f - m);
+        boolean good = off <= ZONE_HALF && end != s.lastEnd;
+        if (good) { s.beats = Math.min(s.maxBeats, s.beats + 1); s.openLoop = false; s.lastEnd = end; }
+        else { s.beats = 0; s.openLoop = true; s.lastEnd = -1; }
+        send(sp, s, true);
+        return good ? s.beats : 0;
+    }
+
     private static void send(ServerPlayer sp, State s, boolean active) {
-        ModNetwork.toPlayer(sp, new FlyCastPacket(active, s.start, PERIOD, ZONE_HALF, s.beats, s.maxBeats, s.openLoop, (byte) s.lastEnd));
+        ModNetwork.toPlayer(sp, new FlyCastPacket(active, s.start, s.mode == 1 ? JIG_PERIOD : PERIOD, ZONE_HALF,
+                s.beats, s.maxBeats, s.openLoop, (byte) s.lastEnd, (byte) s.mode));
     }
 }

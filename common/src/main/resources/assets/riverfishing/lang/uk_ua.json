@@ -1559,5 +1559,7 @@
   "hatch.riverfishing.scud": "Бокоплав",
   "hatch.riverfishing.baitfish": "Малько",
   "gui.riverfishing.fly_hint": "ЛКМ на краях · відпусти на краю",
-  "gui.riverfishing.fly_hint2": "Світлий край — наступна зупинка · відпусти там"
+  "gui.riverfishing.fly_hint2": "Світлий край — наступна зупинка · відпусти там",
+  "gui.riverfishing.jig_hint": "ПКМ на краях: ▲ підйом · ▼ скид",
+  "gui.riverfishing.jig_beats": "змахів у ритмі: %s"
 }
