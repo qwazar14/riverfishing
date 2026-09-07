@@ -14,14 +14,19 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * §fly: the rhythm gauge — the cast bar's brass frame with a green stop at BOTH ends, the needle
- * sweeping between them, a pip above the bar for every false cast in the air, and the metres the line
- * will land at on the plaque. The attack button's down-edge is the beat; the server judges it.
+ * §fly-2: the fly rod's HUD, three states on one packet.
  *
- * <p>§fly-juice: a hit has to be FELT. Every good beat punches the whole gauge up in size and it
- * settles back over half a second, the frame shakes for the first few frames, the stops glow from
- * green toward white the longer the combo runs, a halo grows around the frame with it, and a note
- * climbs in pitch with each beat. A bad beat drops the size back, shakes harder and flashes red.
+ * <p><b>The cast</b> (mode 0): the cast bar's frame with the needle sweeping from the backcast stop (left)
+ * to the forward stop (right) — the rod false-casting on its own while use is held. The right end is green:
+ * release there. A whoosh on every stop, the metres on the plaque growing two at a time, a left-click on
+ * a stop hauling two more with a zip and a punch of the whole gauge. Nothing here can be failed by
+ * clicking; the release is the only judgement.
+ *
+ * <p><b>The drift</b> (mode 2): a line under the crosshair that says what the fly is doing — dead drift,
+ * dragging (mend!), the line straight below you — and, when the fly is over a rising fish, that the take
+ * is coming. The controls sit under it in small print until they have been used.
+ *
+ * <p><b>The jig</b> (mode 1, §ice-rhythm) keeps its two-stop rhythm on the same frame.
  */
 public final class FlyCastClient {
     private static boolean active;
@@ -33,9 +38,10 @@ public final class FlyCastClient {
     private static boolean openLoop;
     private static boolean attackWas;
     private static int lastEnd = -1;
-    private static int mode;   // 0 the fly cast, 1 the jig (§ice-rhythm)
-    /** Wall-clock of the last good beat / the last collapse, for the punch and the shake. */
+    private static int mode;   // 0 the fly cast, 1 the jig, 2 the drift
     private static long hitNanos = -1L, missNanos = -1L;
+    private static int lastStroke = -1;
+    private static int mendsSeen;
 
     private static final net.minecraft.resources.Identifier BAR =
             com.riverfishing.RiverFishing.id("textures/gui/cast_bar.png");
@@ -44,9 +50,9 @@ public final class FlyCastClient {
 
     public static void accept(FlyCastPacket p) {
         Minecraft mc = Minecraft.getInstance();
-        boolean hit = p.active && p.beats > beats;
-        boolean miss = p.active && p.openLoop && (!openLoop || p.beats < beats);
-        if (!active && p.active) { hitNanos = -1L; missNanos = -1L; }
+        boolean hit = p.active && p.mode != 2 && p.beats > beats && mode == p.mode;
+        boolean miss = p.active && p.mode == 1 && p.openLoop && (!openLoop || p.beats < beats);
+        if (!active && p.active) { hitNanos = -1L; missNanos = -1L; lastStroke = -1; }
         active = p.active;
         startTick = p.startTick;
         period = p.period;
@@ -58,18 +64,28 @@ public final class FlyCastClient {
         mode = p.mode;
         if (hit) {
             hitNanos = System.nanoTime();
-            if (mc.player != null) mc.player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.55f, 0.9f + 0.09f * Math.min(beats, 12));
+            if (mc.player != null) mc.player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.6f, mode == 0 ? 1.4f : 0.9f + 0.09f * Math.min(beats, 12));
         } else if (miss) {
             missNanos = System.nanoTime();
             if (mc.player != null) mc.player.playSound(SoundEvents.FISHING_BOBBER_SPLASH, 0.5f, 0.7f);
         }
     }
 
+    /** The cast or the jig gauge is up (the drift's line is not a gauge: the charge bar may not yield to it). */
     public static boolean isActive() {
-        return active;
+        return active && mode != 2;
     }
 
-    /** Triangle wave 0..1 with the given period; matches the server's marker. */
+    /** A fly rod is in the hand — the strike bar labels itself for it. */
+    public static boolean flyHeld() {
+        return !heldFlyRod(Minecraft.getInstance()).isEmpty();
+    }
+
+    /** A fly line is on the water and the drift status is showing. */
+    public static boolean isDrifting() {
+        return active && mode == 2;
+    }
+
     private static float marker(float t) {
         if (period <= 0) return 0.5f;
         float phase = (t % period) / period;
@@ -77,35 +93,42 @@ public final class FlyCastClient {
         return phase < 0.5f ? phase * 2f : 2f - phase * 2f;
     }
 
-    /** The fly rod being held on the charge, or EMPTY when the hold is over (slot switch, hand change). */
     private static ItemStack heldFlyRod(Minecraft mc) {
-        if (mc.player == null || !mc.player.isUsingItem()) return ItemStack.EMPTY;
-        ItemStack use = mc.player.getUseItem();
-        return use.getItem() instanceof RodItem ri && ri.rodType() == RodType.FLY ? use : ItemStack.EMPTY;
+        if (mc.player == null) return ItemStack.EMPTY;
+        ItemStack main = mc.player.getMainHandItem();
+        if (main.getItem() instanceof RodItem ri && ri.rodType() == RodType.FLY) return main;
+        ItemStack off = mc.player.getOffhandItem();
+        return off.getItem() instanceof RodItem ri2 && ri2.rodType() == RodType.FLY ? off : ItemStack.EMPTY;
     }
 
-    /** Client tick: the attack button's down-edge while the gauge is up is a beat. */
+    /** Client tick: the attack button's down-edge is a haul while casting and a mend while drifting. */
     public static void tick(Minecraft mc) {
         if (!active) {
             attackWas = false;
             return;
         }
         if (mode == 1) return;   // §ice-rhythm: the jig's beats are the clicks the server already sees
-        if (heldFlyRod(mc).isEmpty()) {
-            // The hold ended without a release (a slot switch): the server never hears a release, so
-            // the gauge comes down here — the next use begins a fresh rhythm anyway.
-            active = false;
+        if (heldFlyRod(mc).isEmpty() || (mode == 0 && !mc.player.isUsingItem())) {
+            active = false;   // the hold ended without a release (a slot switch): the gauge comes down here
             return;
         }
-        // §fly-key: the beat is the ATTACK button — sneak crouched the camera on every stop. Vanilla queues
-        // attack clicks while an item is in use and fires them all on release, so they are eaten here.
         boolean down = mc.options.keyAttack.isDown();
-        if (down && !attackWas) ModNetwork.toServer(new FlyBeatPacket());
+        if (down && !attackWas) {
+            ModNetwork.toServer(new FlyBeatPacket());
+            if (mode == 2) mendsSeen++;
+        }
         attackWas = down;
-        while (mc.options.keyAttack.consumeClick()) { /* drained */ }
+        while (mc.options.keyAttack.consumeClick()) { /* drained: no arm swing, no block hit */ }
+        // the whoosh: the rod reaching a stop, on the client's own clock
+        if (mode == 0 && mc.level != null) {
+            int st = (int) Math.floorDiv(mc.level.getGameTime() - startTick, (long) Math.max(1, period / 2));
+            if (st != lastStroke) {
+                if (lastStroke >= 0) mc.player.playSound(SoundEvents.FISHING_BOBBER_THROW, 0.45f, st % 2 == 0 ? 1.1f : 1.35f);
+                lastStroke = st;
+            }
+        }
     }
 
-    /** Seconds since a wall-clock stamp, or a large number when there is none. */
     private static float since(long nanos) {
         return nanos < 0 ? 99f : (System.nanoTime() - nanos) / 1.0e9f;
     }
@@ -121,22 +144,27 @@ public final class FlyCastClient {
     public static void render(GuiGraphicsExtractor g, int screenW, int screenH, float partialTick) {
         if (!active) return;
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null) return;
+        //? if <26.2 {
+        if (mc.level == null || mc.options.hideGui) return;
+        //?} else {
+        /*if (mc.level == null || mc.gui.hud.isHidden()) return;
+        *///?}
+        if (mode == 2) { renderDrift(g, mc, screenW, screenH); return; }
         ItemStack rod = mode == 1 ? ItemStack.EMPTY : heldFlyRod(mc);
         if (mode != 1 && rod.isEmpty()) return;
         float t = (mc.level.getGameTime() - startTick) + partialTick;
 
-        // §fly-juice: the punch (a hit), the collapse (a miss), and the combo's steady growth
         float dh = since(hitNanos), dm = since(missNanos);
-        float punch = (float) Math.exp(-dh * 6.0);          // 1 at the hit, gone in half a second
+        float punch = (float) Math.exp(-dh * 6.0);
         float crash = (float) Math.exp(-dm * 5.0);
-        float combo = maxBeats > 0 ? Mth.clamp(beats / (float) maxBeats, 0f, 1f) : 0f;
-        float scale = (1f + 0.06f * Math.min(beats, 10)) * (1f + 0.45f * punch) * (1f - 0.12f * crash);
-        float shake = punch * 3f * Mth.sin(dh * 90f) + crash * 6f * Mth.sin(dm * 70f);
-        int stopRgb = lerpRgb(0x5FA84E, 0xFFF4C0, combo * 0.9f);        // green → warm white with the combo
+        double metres = mode == 0 ? FlyCast.lineOut(mc.level.getGameTime() - startTick, beats, maxBeats) : 0;
+        float combo = mode == 1 ? (maxBeats > 0 ? Mth.clamp(beats / (float) maxBeats, 0f, 1f) : 0f)
+                : (float) Mth.clamp((metres - FlyCast.PICKUP) / Math.max(1.0, maxBeats - FlyCast.PICKUP), 0.0, 1.0);
+        float scale = (1f + 0.05f * Math.min(beats, 8)) * (1f + 0.35f * punch) * (1f - 0.12f * crash);
+        float shake = punch * 2.5f * Mth.sin(dh * 90f) + crash * 6f * Mth.sin(dm * 70f);
+        int stopRgb = lerpRgb(0x5FA84E, 0xFFF4C0, combo * 0.9f);
         int haloRgb = lerpRgb(0x5FA84E, 0xFFD34A, combo);
 
-        // The cast gauge's own geometry — frame 120x16, with a 112x8 recess at (4,4).
         final int FW = 120, FH = 16, TW = 112, TH = 8;
         int x = (screenW - FW) / 2, y = screenH - 70;
         int cx = x + FW / 2, cy = y + FH / 2;
@@ -146,7 +174,6 @@ public final class FlyCastClient {
         g.pose().scale(scale, scale);
         g.pose().translate(-cx, -cy);
 
-        // the halo: wider and brighter as the combo runs, and a burst of it on every hit
         int haloA = (int) (40 + 120 * combo + 80 * punch);
         int spread = 3 + (int) (4 * combo + 10 * punch);
         g.fill(x - spread, y - spread, x + FW + spread, y + FH + spread, (Math.min(255, haloA) << 24) | haloRgb);
@@ -155,65 +182,96 @@ public final class FlyCastClient {
         int tx = x + 4, ty = y + 4;
         g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, x, y, 0f, 0f, FW, FH, 128, 48);
 
-        // The two stops: as wide as the server's zone, glowing with the combo, flaring on the hit.
         int zw = (int) (zoneHalf * TW);
         int stopA = (int) (200 + 55 * punch);
-        // the NEXT stop is the lit one — after a beat on one end the delivery is on the other, and
-        // the bar says so instead of leaving the rule to be guessed
-        int nextEnd = lastEnd < 0 ? -1 : 1 - lastEnd;
-        int aL = nextEnd == 1 ? 60 : stopA, aR = nextEnd == 0 ? 60 : stopA;
-        g.fill(tx, ty, tx + zw, ty + TH, (aL << 24) | stopRgb);
-        g.fill(tx + TW - zw, ty, tx + TW, ty + TH, (aR << 24) | stopRgb);
-        if (mode == 1) {   // §ice-rhythm: the two stops are the lift and the drop
-            g.centeredText(mc.font, Component.literal("\u25B2"), tx + zw / 2, ty, 0xFF1C1814);
-            g.centeredText(mc.font, Component.literal("\u25BC"), tx + TW - zw / 2, ty, 0xFF1C1814);
+        if (mode == 1) {
+            int nextEnd = lastEnd < 0 ? -1 : 1 - lastEnd;
+            int aL = nextEnd == 1 ? 60 : stopA, aR = nextEnd == 0 ? 60 : stopA;
+            g.fill(tx, ty, tx + zw, ty + TH, (aL << 24) | stopRgb);
+            g.fill(tx + TW - zw, ty, tx + TW, ty + TH, (aR << 24) | stopRgb);
+            g.centeredText(mc.font, Component.literal("▲"), tx + zw / 2, ty, 0xFF1C1814);
+            g.centeredText(mc.font, Component.literal("▼"), tx + TW - zw / 2, ty, 0xFF1C1814);
+        } else {
+            // the forward stop is the green; the open band before it amber; the backcast end a dim mark
+            int ow = (int) (FlyCast.OPEN_HALF * TW);
+            g.fill(tx + TW - ow, ty, tx + TW - zw, ty + TH, 0xB0C8862E);
+            g.fill(tx + TW - zw, ty, tx + TW, ty + TH, (stopA << 24) | stopRgb);
+            g.fill(tx, ty, tx + zw / 2, ty + TH, 0x60231A10);
         }
-        if (punch > 0.05f) {   // the hit's flash across the whole tube
-            g.fill(tx, ty, tx + TW, ty + TH, ((int) (110 * punch) << 24) | 0xFFFFFF);
-        }
+        if (punch > 0.05f) g.fill(tx, ty, tx + TW, ty + TH, ((int) (110 * punch) << 24) | 0xFFFFFF);
 
-        // The needle, through the whole frame and a little past it.
         int mx = tx + (int) (marker(t) * TW);
         g.fill(mx - 2, y - 2, mx + 3, y + FH + 2, 0xC0231A10);
         g.fill(mx - 1, y - 1, mx + 2, y + FH + 1, openLoop ? 0xFFE05A4A : 0xFFFFE8A8);
 
-        // One pip per false cast in the air — the newest one big and bright — red when the loop has
-        // collapsed, hollow up to the rod's max.
-        int px0 = x + (FW - maxBeats * 6) / 2, py0 = y - 7;
-        for (int i = 0; i < maxBeats; i++) {
-            int px = px0 + i * 6;
-            boolean lit = i < beats;
-            int grow = lit && i == beats - 1 ? (int) (2 * punch) : 0;
-            int c = lit ? (openLoop ? 0xFFE05A4A : lerpRgb(0xFFC83C, 0xFFFFFF, punch) | 0xFF000000) : 0x60231A10;
-            g.fill(px - grow, py0 - grow, px + 4 + grow, py0 + 4 + grow, c);
+        if (mode == 1) {
+            int px0 = x + (FW - maxBeats * 6) / 2, py0 = y - 7;
+            for (int i = 0; i < maxBeats; i++) {
+                int px = px0 + i * 6;
+                boolean lit = i < beats;
+                int grow = lit && i == beats - 1 ? (int) (2 * punch) : 0;
+                int c = lit ? (openLoop ? 0xFFE05A4A : lerpRgb(0xFFC83C, 0xFFFFFF, punch) | 0xFF000000) : 0x60231A10;
+                g.fill(px - grow, py0 - grow, px + 4 + grow, py0 + 4 + grow, c);
+            }
         }
         g.pose().popMatrix();
 
-        // The metres on the plaque: the pickup plus the false casts, capped at what the rod carries.
         int px = x + (FW - 48) / 2, py = y - 30;
-        if (mode != 1) {   // the metres plaque is the cast's; the jig has none
-        double metres = Math.min(FlyCast.PICKUP + beats, com.riverfishing.fishing.FishingManager.castRangeMax(rod));
-        String label = String.format(java.util.Locale.ROOT, "%.1f m", metres);
-        int lw = mc.font.width(label);
-        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, px, py, 0f, 32f, 48, 16, 128, 48);
-        g.text(mc.font, label, px + (48 - lw) / 2, py + 4, 0xFF3A2A18, false);
+        if (mode == 0) {
+            // the metres on the plaque — the line in the air, growing on every stop and every haul
+            String label = String.format(java.util.Locale.ROOT, "%.0f m", metres);
+            int lw = mc.font.width(label);
+            g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, px, py, 0f, 32f, 48, 16, 128, 48);
+            g.text(mc.font, label, px + (48 - lw) / 2, py + 4, 0xFF3A2A18, false);
+            String cap = String.format(java.util.Locale.ROOT, "/ %d", maxBeats);
+            g.text(mc.font, cap, px + 50, py + 4, 0xFFB08D3C, true);
+            boolean full = metres >= maxBeats - 1e-6;
+            g.centeredText(mc.font, Component.translatable(full ? "gui.riverfishing.fly_full" : "gui.riverfishing.fly_hint"),
+                    screenW / 2, y + FH + 8, full ? 0xFFB8E8A0 : 0xFFB8AE9A);
+            if (!full) g.centeredText(mc.font, Component.translatable("gui.riverfishing.fly_haul"), screenW / 2, y + FH + 18, 0xFF8E8676);
+            if (beats > 0) {
+                String haul = Component.translatable("gui.riverfishing.fly_hauls", beats).getString();
+                float cs = 1f + 0.4f * punch;
+                g.pose().pushMatrix();
+                g.pose().translate(screenW / 2f, py - 8);
+                g.pose().scale(cs, cs);
+                g.centeredText(mc.font, haul, 0, -4, lerpRgb(0xF0E6CD, 0xFFE070, punch) | 0xFF000000);
+                g.pose().popMatrix();
+            }
+        } else {
+            if (beats == 0 && hitNanos < 0) {
+                g.centeredText(mc.font, Component.translatable("gui.riverfishing.jig_hint"), screenW / 2, y + FH + 8, 0xFFB8AE9A);
+            }
+            g.centeredText(mc.font, Component.translatable("gui.riverfishing.jig_beats", beats),
+                    screenW / 2, py - 24, openLoop ? 0xFFE05A4A : 0xFFF0E6CD);
         }
-        // the combo, big, growing with the beats and jumping on each
-        if (beats > 0) {
-            String comboText = "×" + beats;
-            float cs = 1f + 0.08f * Math.min(beats, 10) + 0.5f * punch;
-            g.pose().pushMatrix();
-            g.pose().translate(cx, py - 10);
-            g.pose().scale(cs, cs);
-            g.centeredText(mc.font, comboText, 0, -4, openLoop ? 0xFFE05A4A : lerpRgb(0xF0E6CD, 0xFFE070, combo) | 0xFF000000);
-            g.pose().popMatrix();
+    }
+
+    /** The drift: one line that says what the fly is doing, the controls under it in small print. */
+    private static void renderDrift(GuiGraphicsExtractor g, Minecraft mc, int screenW, int screenH) {
+        if (heldFlyRod(mc).isEmpty()) return;
+        long t = mc.level.getGameTime();
+        String key;
+        int col;
+        if (openLoop) {            // on a rising fish: the take is coming
+            key = "hud.riverfishing.fly_on_fish";
+            col = ((t / 6) % 2 == 0) ? 0xFF9CF08C : 0xFF5FD070;
+        } else if (beats == 2) {
+            key = "hud.riverfishing.fly_straight"; col = 0xFFB8AE9A;
+        } else if (beats == 1) {
+            key = "hud.riverfishing.fly_drag"; col = 0xFFFFC850;
+        } else {
+            key = "hud.riverfishing.fly_dead_drift"; col = 0xFF7CE07C;
         }
-        if (beats == 0 && hitNanos < 0) {   // §fly-key: the one line that teaches the cast
-            g.centeredText(mc.font, Component.translatable(mode == 1 ? "gui.riverfishing.jig_hint" : "gui.riverfishing.fly_hint"), screenW / 2, y + FH + 8, 0xFFB8AE9A);
-        } else if (!openLoop) {
-            g.centeredText(mc.font, Component.translatable("gui.riverfishing.fly_hint2"), screenW / 2, y + FH + 8, 0xFFB8AE9A);
+        String text = Component.translatable(key).getString();
+        int cx = screenW / 2, y = screenH / 2 + 14;
+        int w = mc.font.width(text);
+        g.fill(cx - w / 2 - 4, y - 3, cx + w / 2 + 4, y + 11, 0x66000000);
+        g.centeredText(mc.font, text, cx, y, col);
+        String m = maxBeats + " m";
+        g.text(mc.font, m, cx + w / 2 + 8, y, 0xFFB08D3C, true);
+        if (mendsSeen < 3 || beats == 2) {
+            g.centeredText(mc.font, Component.translatable("hud.riverfishing.fly_controls"), cx, y + 13, 0xFF8E8676);
         }
-        g.centeredText(mc.font, Component.translatable(mode == 1 ? "gui.riverfishing.jig_beats" : "gui.riverfishing.fly_beats", beats),
-                screenW / 2, py - 24, openLoop ? 0xFFE05A4A : 0xFFF0E6CD);
     }
 }

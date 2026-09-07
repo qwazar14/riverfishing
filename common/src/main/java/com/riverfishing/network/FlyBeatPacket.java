@@ -36,7 +36,7 @@ public class FlyBeatPacket implements ModNetwork.RfPacket {
 
     public void handleServer(NetworkManager.PacketContext ctx) {
         if (ctx.getPlayer() instanceof ServerPlayer sp) {
-            FlyCast.beat(sp, sp.level().getGameTime());
+            com.riverfishing.fishing.FishingManager.flyBeat(sp);   // §fly-2: a haul or a mend
         }
     }
 }

@@ -61,6 +61,18 @@ public class RodItem extends Item {
         }
         // With an ACTIVE session the click is a strike / reel pulse (server-side); the client guesses
         // session state from its own line renderer so both sides agree on hold behaviour.
+        // §fly-2: with a fly line on the water and nothing biting, the click is a HOLD — a tap strips, a hold
+        // picks the line up and false-casts; both resolve in releaseUsing and the server tick
+        if (rodType == RodType.FLY && lineOut) {
+            boolean calm = !level.isClientSide()
+                    ? player instanceof ServerPlayer fsp && FishingManager.flyCalm(fsp)
+                    : dev.architectury.utils.EnvExecutor.getEnvSpecific(
+                            () -> () -> com.riverfishing.client.ClientLineState.selfCalm(), () -> () -> false);
+            if (calm) {
+                player.startUsingItem(hand);
+                return InteractionResult.CONSUME;
+            }
+        }
         boolean sessionAction;
         if (!level.isClientSide()) {
             sessionAction = FishingManager.handleRodUse(player, hand);
@@ -141,6 +153,7 @@ public class RodItem extends Item {
     public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
         if (level.isClientSide() || !(entity instanceof ServerPlayer sp)) return false;
         if (FishingManager.hasSession(sp)) {
+            if (FishingManager.flyTap(sp)) return true;   // §fly-2: a short hold on a calm fly line is the strip
             // Was holding a retrieve — or, on a lure rod, letting go during the take sets the hook (2.4).
             FishingManager.onRetrieveStop(sp);
             return true;

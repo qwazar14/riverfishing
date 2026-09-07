@@ -317,6 +317,14 @@ public final class ClientLineState {
         return LINES;
     }
 
+    /** §fly-2: our own line is out and nothing is happening on it — a click on the fly rod is a hold. */
+    public static boolean selfCalm() {
+        var mc = Minecraft.getInstance();
+        if (mc.player == null) return false;
+        Line l = LINES.get(mc.player.getId());
+        return l != null && !l.biting && !l.fighting;
+    }
+
     /** Whether OUR OWN line is out — drives rod hold behaviour and the cast-power HUD. */
     /**
      * How loaded THIS player's blank is, 0..1, eased. Zero when nothing is on — a rod at rest is
