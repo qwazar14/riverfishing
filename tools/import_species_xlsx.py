@@ -141,6 +141,10 @@ def build_profile(row, old):
     if num(row["Width max"]) is not None: hab["width_max"] = int(num(row["Width max"], int))
     p["habitat"] = hab
     p["provinces"] = listing(row["Provinces"])
+    # §sea-roamers: the oceans carry a sea species everywhere — no provinces, whatever the column says
+    wb = p["water_bodies"]
+    if (wb.get("sea", 0) > 0 and all(wb.get(k, 0) <= 0 for k in ("river", "lake", "pond", "swamp", "puddle"))) \n            or sid in ("bull_shark", "jack_crevalle", "mullet"):
+        p["provinces"] = []
     p["biomes"] = weights(row["Biomes"])
     req = listing(row["Biomes require"])
     if req: p["biomes_require"] = req

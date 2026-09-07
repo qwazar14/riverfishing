@@ -109,6 +109,7 @@ And two more **hard gates** on top of the environment ones:
 
 - **No bait the fish wants** on the rig → W = 0.
 - **Hook score below 0.34** → W = 0. The wrong hook size band means the fish will not take, full stop.
+- **The hook has a mouth.** The smallest hook on the rig names the smallest fish that can take it: 40 g at #8, halving every two sizes down (#16: 2.5 g) and doubling every two up (#2: 320 g). A species whose biggest specimen is smaller than that does not take at all, and for every other species the weight roll is floored there (capped at 60 % of the range), the same rule a lure's mass already applies.
 
 ### Time to bite
 
@@ -308,7 +309,8 @@ Your **feet** are tackle too, read whether or not you know it. Backing away from
 
 ```
 fightMass       = weightKg ≤ 20 ? weightKg : 20 × (weightKg/20)^0.55
-requiredKg      = max(0.5, fightStrength × (1 + fightMass) × 2)
+sizeStrength    = clamp(√(weightG / weightMean), 0.35, 1)        — the profile's strength is a mean specimen's
+requiredKg      = max(0.5, fightStrength × sizeStrength × (1 + fightMass) × 2)
 effectiveStrain = lineStrainKg + 0.5 × fightDrag
 breakTension    = clamp(effectiveStrain / requiredKg, 0.2, 1) / breakSensitivity
                         × overloadPenalty × steadyHandMultiplier      (clamped 0.1 … 1.0)

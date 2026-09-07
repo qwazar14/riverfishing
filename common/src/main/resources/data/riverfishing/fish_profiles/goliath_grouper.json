@@ -82,9 +82,5 @@
   "base": 0.2,
   "min_angler_level": 42,
   "diet": "predator",
-  "provinces": [
-    "nearctic",
-    "neotropic",
-    "afrotropical"
-  ]
+  "provinces": []
 }
