@@ -12,5 +12,6 @@
 	"surf":       { "stiffness": 95,  "damping": 9,   "whip": 1.7 },
 	"sea_spin":   { "stiffness": 130, "damping": 10,  "whip": 1.5 },
 	"boat":       { "stiffness": 190, "damping": 12,  "whip": 0.9 },
-	"trolling":   { "stiffness": 230, "damping": 13,  "whip": 0.7 }
+	"trolling":   { "stiffness": 230, "damping": 13,  "whip": 0.7 },
+	"fly":        { "stiffness": 72,  "damping": 6.5, "whip": 3.2 }
 }

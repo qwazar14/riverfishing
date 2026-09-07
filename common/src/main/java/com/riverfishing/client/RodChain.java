@@ -52,6 +52,8 @@ public final class RodChain {
             java.util.Map.entry("boat", new float[]{10.94f, 5.39f, -0.16f, -5.66f, -11.16f}),
             java.util.Map.entry("bottom", new float[]{12.99f, 5.59f, -1.81f, -9.21f}),
             java.util.Map.entry("trolling", new float[]{10.31f, 2.21f, -2.54f}),
+            // §fly-3d: three sections on a cork handle, the lightest chain in the fleet
+            java.util.Map.entry("fly", new float[]{19.0f, 11.0f, 2.975f}),
             java.util.Map.entry("sea_spin",
                     new float[]{9.15f, 3.15f, -3.15f, -7.95f, -10.95f, -12.95f, -14.58f}),
             java.util.Map.entry("bamboo", new float[]{19.667f, 13.333f, 7f, 0.667f, -5.667f}));
@@ -68,7 +70,7 @@ public final class RodChain {
             java.util.Map.entry("winter", 21.9f), java.util.Map.entry("sea_spin", -16f),
             java.util.Map.entry("bottom", -16f), java.util.Map.entry("carp", -16f),
             java.util.Map.entry("surf", -16f), java.util.Map.entry("boat", -15.7f),
-            java.util.Map.entry("trolling", -5.7f));
+            java.util.Map.entry("trolling", -5.7f), java.util.Map.entry("fly", -5.225f));
 
     /**
      * §reel-3d: how far each rod's reel-seat centre sits from the feeder's {@code {dx, dy}}, in model
@@ -82,7 +84,8 @@ public final class RodChain {
             "ultralight", new float[]{0.8f, 0.4f},
             "sea_spin", new float[]{1.25f, 0f}, "bottom", new float[]{3f, 0.52f},
             "carp", new float[]{4.25f, 0.4f}, "surf", new float[]{4f, 0.6f},
-            "boat", new float[]{2.75f, 0.8f}, "trolling", new float[]{4.15f, 0f});
+            "boat", new float[]{2.75f, 0.8f}, "trolling", new float[]{4.15f, 0f},
+            "fly", new float[]{4.65f, 0f});   // §fly-3d: the trolling handle's seat, half a unit further up the shifted blank
 
     /** Both joints and blank sit on this axis in model units; the chain hinges about Z through it. */
     private static final float AXIS_Y = 10.5f, AXIS_Z = 8.5f;

@@ -50,11 +50,8 @@ public enum RodType {
     }
 
     public String jsonKey() { return jsonKey; }
-    /**
-     * §fly: the rod whose sprites and 3D blank this rod is drawn with. ponytail: the fly rod borrows
-     * the ultralight blank until phase 3 draws its own — then this returns jsonKey for it too.
-     */
-    public String modelKey() { return this == FLY ? "ultralight" : jsonKey; }
+    /** §fly: the rod whose sprites and 3D blank this rod is drawn with — its own, since §fly-3d. */
+    public String modelKey() { return jsonKey; }
     public double baseDistance() { return baseDistance; }
     public boolean takesReel() { return takesReel; }
     public int minReel() { return minReel; }
