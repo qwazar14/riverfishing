@@ -1560,5 +1560,7 @@
   "hatch.riverfishing.scud": "Scud",
   "hatch.riverfishing.baitfish": "Baitfish",
   "gui.riverfishing.fly_hint": "Left-click on the ends · release on an end",
-  "gui.riverfishing.fly_hint2": "The lit end is the next stop · release there"
+  "gui.riverfishing.fly_hint2": "The lit end is the next stop · release there",
+  "gui.riverfishing.jig_hint": "Right-click on the ends: ▲ lift · ▼ drop",
+  "gui.riverfishing.jig_beats": "%s strokes in rhythm"
 }

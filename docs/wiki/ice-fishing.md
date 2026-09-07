@@ -53,14 +53,14 @@ The wait is clamped to **200–2400 ticks** (10 seconds to 2 minutes) — a pati
 
 ### Jigging
 
-While you are waiting, **every right-click works the jig**. The rhythm matters:
+While you are waiting, **every right-click works the jig** — and the jig is a rhythm. A needle sweeps a bar at the bottom of the screen between two stops: **▲ the lift** on the left and **▼ the drop** on the right. Click when the needle is on a stop, alternating: lift, drop, lift, drop.
 
-| Cadence | Message | Effect |
+| Click | The gauge | The fish |
 |---|---|---|
-| A jig every **8–20 ticks** (0.4–1.0 s) — steady | *"Steady rhythm - fish are coming!"* | Pulls the bite **34 ticks closer** |
-| Frantic spamming or lazy jigging | *"Jigging the mormyshka…"* | Pulls it only **8 ticks** closer |
+| On a stop, the other one than last time | The gauge punches, a pip lights, the note climbs, the combo counts | The bite is pulled **20 ticks + 6 per combo** closer (up to 8 in the combo) |
+| Off the stops, or the same stop twice | The gauge collapses red, the combo goes to zero | The mormyshka jerked — the bite is pushed **15 ticks** out |
 
-The bite can never be dragged closer than 10 ticks away. Each jig plays a soft retrieve click and throws splash particles at the hole — three for a good rhythm, one for a bad one.
+The lit stop is the next one. The bite can never be dragged closer than 10 ticks away. Each stroke plays a soft click and throws splash particles at the hole, more of them the longer the combo runs. When the nod finally twitches, the needle gives way to the strike bar.
 
 ### The take
 

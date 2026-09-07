@@ -33,6 +33,7 @@ public final class FlyCastClient {
     private static boolean openLoop;
     private static boolean attackWas;
     private static int lastEnd = -1;
+    private static int mode;   // 0 the fly cast, 1 the jig (§ice-rhythm)
     /** Wall-clock of the last good beat / the last collapse, for the punch and the shake. */
     private static long hitNanos = -1L, missNanos = -1L;
 
@@ -54,6 +55,7 @@ public final class FlyCastClient {
         maxBeats = p.maxBeats;
         openLoop = p.openLoop;
         lastEnd = p.lastEnd;
+        mode = p.mode;
         if (hit) {
             hitNanos = System.nanoTime();
             if (mc.player != null) mc.player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.55f, 0.9f + 0.09f * Math.min(beats, 12));
@@ -88,6 +90,7 @@ public final class FlyCastClient {
             attackWas = false;
             return;
         }
+        if (mode == 1) return;   // §ice-rhythm: the jig's beats are the clicks the server already sees
         if (heldFlyRod(mc).isEmpty()) {
             // The hold ended without a release (a slot switch): the server never hears a release, so
             // the gauge comes down here — the next use begins a fresh rhythm anyway.
@@ -119,8 +122,8 @@ public final class FlyCastClient {
         if (!active) return;
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
-        ItemStack rod = heldFlyRod(mc);
-        if (rod.isEmpty()) return;
+        ItemStack rod = mode == 1 ? ItemStack.EMPTY : heldFlyRod(mc);
+        if (mode != 1 && rod.isEmpty()) return;
         float t = (mc.level.getGameTime() - startTick) + partialTick;
 
         // §fly-juice: the punch (a hit), the collapse (a miss), and the combo's steady growth
@@ -161,6 +164,10 @@ public final class FlyCastClient {
         int aL = nextEnd == 1 ? 60 : stopA, aR = nextEnd == 0 ? 60 : stopA;
         g.fill(tx, ty, tx + zw, ty + TH, (aL << 24) | stopRgb);
         g.fill(tx + TW - zw, ty, tx + TW, ty + TH, (aR << 24) | stopRgb);
+        if (mode == 1) {   // §ice-rhythm: the two stops are the lift and the drop
+            g.centeredText(mc.font, Component.literal("\u25B2"), tx + zw / 2, ty, 0xFF1C1814);
+            g.centeredText(mc.font, Component.literal("\u25BC"), tx + TW - zw / 2, ty, 0xFF1C1814);
+        }
         if (punch > 0.05f) {   // the hit's flash across the whole tube
             g.fill(tx, ty, tx + TW, ty + TH, ((int) (110 * punch) << 24) | 0xFFFFFF);
         }
@@ -183,12 +190,14 @@ public final class FlyCastClient {
         g.pose().popMatrix();
 
         // The metres on the plaque: the pickup plus the false casts, capped at what the rod carries.
+        int px = x + (FW - 48) / 2, py = y - 30;
+        if (mode != 1) {   // the metres plaque is the cast's; the jig has none
         double metres = Math.min(FlyCast.PICKUP + beats, com.riverfishing.fishing.FishingManager.castRangeMax(rod));
         String label = String.format(java.util.Locale.ROOT, "%.1f m", metres);
         int lw = mc.font.width(label);
-        int px = x + (FW - 48) / 2, py = y - 30;
         g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, px, py, 0f, 32f, 48, 16, 128, 48);
         g.text(mc.font, label, px + (48 - lw) / 2, py + 4, 0xFF3A2A18, false);
+        }
         // the combo, big, growing with the beats and jumping on each
         if (beats > 0) {
             String comboText = "×" + beats;
@@ -200,11 +209,11 @@ public final class FlyCastClient {
             g.pose().popMatrix();
         }
         if (beats == 0 && hitNanos < 0) {   // §fly-key: the one line that teaches the cast
-            g.centeredText(mc.font, Component.translatable("gui.riverfishing.fly_hint"), screenW / 2, y + FH + 8, 0xFFB8AE9A);
+            g.centeredText(mc.font, Component.translatable(mode == 1 ? "gui.riverfishing.jig_hint" : "gui.riverfishing.fly_hint"), screenW / 2, y + FH + 8, 0xFFB8AE9A);
         } else if (!openLoop) {
             g.centeredText(mc.font, Component.translatable("gui.riverfishing.fly_hint2"), screenW / 2, y + FH + 8, 0xFFB8AE9A);
         }
-        g.centeredText(mc.font, Component.translatable("gui.riverfishing.fly_beats", beats),
+        g.centeredText(mc.font, Component.translatable(mode == 1 ? "gui.riverfishing.jig_beats" : "gui.riverfishing.fly_beats", beats),
                 screenW / 2, py - 24, openLoop ? 0xFFE05A4A : 0xFFF0E6CD);
     }
 }
