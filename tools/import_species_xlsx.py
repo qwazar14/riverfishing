@@ -222,7 +222,7 @@ def wire_tree(tree, rows, old_main):
             shutil.copy(src, dst); n_tex += 1
     made.append("textures +%d" % n_tex)
     n_models = 0
-    for sub in ("models/item", "items"):
+    for sub in ("models/item", "models/item/fish_icon", "items"):   # fish_icon: the inventory icon's own model
         donor = os.path.join(assets, sub, DONOR + ".json")
         if not os.path.exists(donor): continue
         src = rd(donor)
