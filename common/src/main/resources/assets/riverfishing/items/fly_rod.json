@@ -17,48 +17,48 @@
                   "threshold": 1,
                   "model": {
                     "type": "minecraft:model",
-                    "model": "riverfishing:item/rod_layer/blank_spinning_bend1"
+                    "model": "riverfishing:item/rod_layer/blank_fly_bend1"
                   }
                 },
                 {
                   "threshold": 2,
                   "model": {
                     "type": "minecraft:model",
-                    "model": "riverfishing:item/rod_layer/blank_spinning_bend2"
+                    "model": "riverfishing:item/rod_layer/blank_fly_bend2"
                   }
                 },
                 {
                   "threshold": 3,
                   "model": {
                     "type": "minecraft:model",
-                    "model": "riverfishing:item/rod_layer/blank_spinning_bend3"
+                    "model": "riverfishing:item/rod_layer/blank_fly_bend3"
                   }
                 },
                 {
                   "threshold": 4,
                   "model": {
                     "type": "minecraft:model",
-                    "model": "riverfishing:item/rod_layer/blank_spinning_bend4"
+                    "model": "riverfishing:item/rod_layer/blank_fly_bend4"
                   }
                 },
                 {
                   "threshold": 5,
                   "model": {
                     "type": "minecraft:model",
-                    "model": "riverfishing:item/rod_layer/blank_spinning_bend5"
+                    "model": "riverfishing:item/rod_layer/blank_fly_bend5"
                   }
                 },
                 {
                   "threshold": 6,
                   "model": {
                     "type": "minecraft:model",
-                    "model": "riverfishing:item/rod_layer/blank_spinning_bend6"
+                    "model": "riverfishing:item/rod_layer/blank_fly_bend6"
                   }
                 }
               ],
               "fallback": {
                 "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer/blank_spinning"
+                "model": "riverfishing:item/rod_layer/blank_fly"
               }
             },
             {
@@ -169,48 +169,48 @@
                     "threshold": 1,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend1"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend1"
                     }
                   },
                   {
                     "threshold": 2,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend2"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend2"
                     }
                   },
                   {
                     "threshold": 3,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend3"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend3"
                     }
                   },
                   {
                     "threshold": 4,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend4"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend4"
                     }
                   },
                   {
                     "threshold": 5,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend5"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend5"
                     }
                   },
                   {
                     "threshold": 6,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend6"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend6"
                     }
                   }
                 ],
                 "fallback": {
                   "type": "minecraft:model",
-                  "model": "riverfishing:item/rod_layer_m/blank_spinning"
+                  "model": "riverfishing:item/rod_layer_m/blank_fly"
                 }
               },
               {
@@ -314,48 +314,48 @@
                     "threshold": 1,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend1"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend1"
                     }
                   },
                   {
                     "threshold": 2,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend2"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend2"
                     }
                   },
                   {
                     "threshold": 3,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend3"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend3"
                     }
                   },
                   {
                     "threshold": 4,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend4"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend4"
                     }
                   },
                   {
                     "threshold": 5,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend5"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend5"
                     }
                   },
                   {
                     "threshold": 6,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend6"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend6"
                     }
                   }
                 ],
                 "fallback": {
                   "type": "minecraft:model",
-                  "model": "riverfishing:item/rod_layer_m/blank_spinning"
+                  "model": "riverfishing:item/rod_layer_m/blank_fly"
                 }
               },
               {
@@ -578,48 +578,48 @@
                     "threshold": 1,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend1"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend1"
                     }
                   },
                   {
                     "threshold": 2,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend2"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend2"
                     }
                   },
                   {
                     "threshold": 3,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend3"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend3"
                     }
                   },
                   {
                     "threshold": 4,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend4"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend4"
                     }
                   },
                   {
                     "threshold": 5,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend5"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend5"
                     }
                   },
                   {
                     "threshold": 6,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend6"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend6"
                     }
                   }
                 ],
                 "fallback": {
                   "type": "minecraft:model",
-                  "model": "riverfishing:item/rod_layer_m/blank_spinning"
+                  "model": "riverfishing:item/rod_layer_m/blank_fly"
                 }
               },
               {
@@ -723,48 +723,48 @@
                     "threshold": 1,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend1"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend1"
                     }
                   },
                   {
                     "threshold": 2,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend2"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend2"
                     }
                   },
                   {
                     "threshold": 3,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend3"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend3"
                     }
                   },
                   {
                     "threshold": 4,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend4"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend4"
                     }
                   },
                   {
                     "threshold": 5,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend5"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend5"
                     }
                   },
                   {
                     "threshold": 6,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend6"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend6"
                     }
                   }
                 ],
                 "fallback": {
                   "type": "minecraft:model",
-                  "model": "riverfishing:item/rod_layer_m/blank_spinning"
+                  "model": "riverfishing:item/rod_layer_m/blank_fly"
                 }
               },
               {
@@ -987,48 +987,48 @@
                     "threshold": 1,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend1"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend1"
                     }
                   },
                   {
                     "threshold": 2,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend2"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend2"
                     }
                   },
                   {
                     "threshold": 3,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend3"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend3"
                     }
                   },
                   {
                     "threshold": 4,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend4"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend4"
                     }
                   },
                   {
                     "threshold": 5,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend5"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend5"
                     }
                   },
                   {
                     "threshold": 6,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend6"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend6"
                     }
                   }
                 ],
                 "fallback": {
                   "type": "minecraft:model",
-                  "model": "riverfishing:item/rod_layer_m/blank_spinning"
+                  "model": "riverfishing:item/rod_layer_m/blank_fly"
                 }
               },
               {
@@ -1132,48 +1132,48 @@
                     "threshold": 1,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend1"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend1"
                     }
                   },
                   {
                     "threshold": 2,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend2"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend2"
                     }
                   },
                   {
                     "threshold": 3,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend3"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend3"
                     }
                   },
                   {
                     "threshold": 4,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend4"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend4"
                     }
                   },
                   {
                     "threshold": 5,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend5"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend5"
                     }
                   },
                   {
                     "threshold": 6,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend6"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend6"
                     }
                   }
                 ],
                 "fallback": {
                   "type": "minecraft:model",
-                  "model": "riverfishing:item/rod_layer_m/blank_spinning"
+                  "model": "riverfishing:item/rod_layer_m/blank_fly"
                 }
               },
               {
@@ -1396,48 +1396,48 @@
                     "threshold": 1,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend1"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend1"
                     }
                   },
                   {
                     "threshold": 2,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend2"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend2"
                     }
                   },
                   {
                     "threshold": 3,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend3"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend3"
                     }
                   },
                   {
                     "threshold": 4,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend4"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend4"
                     }
                   },
                   {
                     "threshold": 5,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend5"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend5"
                     }
                   },
                   {
                     "threshold": 6,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend6"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend6"
                     }
                   }
                 ],
                 "fallback": {
                   "type": "minecraft:model",
-                  "model": "riverfishing:item/rod_layer_m/blank_spinning"
+                  "model": "riverfishing:item/rod_layer_m/blank_fly"
                 }
               },
               {
@@ -1541,48 +1541,48 @@
                     "threshold": 1,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend1"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend1"
                     }
                   },
                   {
                     "threshold": 2,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend2"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend2"
                     }
                   },
                   {
                     "threshold": 3,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend3"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend3"
                     }
                   },
                   {
                     "threshold": 4,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend4"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend4"
                     }
                   },
                   {
                     "threshold": 5,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend5"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend5"
                     }
                   },
                   {
                     "threshold": 6,
                     "model": {
                       "type": "minecraft:model",
-                      "model": "riverfishing:item/rod_layer_m/blank_spinning_bend6"
+                      "model": "riverfishing:item/rod_layer_m/blank_fly_bend6"
                     }
                   }
                 ],
                 "fallback": {
                   "type": "minecraft:model",
-                  "model": "riverfishing:item/rod_layer_m/blank_spinning"
+                  "model": "riverfishing:item/rod_layer_m/blank_fly"
                 }
               },
               {
@@ -1800,48 +1800,48 @@
               "threshold": 1,
               "model": {
                 "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer/blank_spinning_bend1"
+                "model": "riverfishing:item/rod_layer/blank_fly_bend1"
               }
             },
             {
               "threshold": 2,
               "model": {
                 "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer/blank_spinning_bend2"
+                "model": "riverfishing:item/rod_layer/blank_fly_bend2"
               }
             },
             {
               "threshold": 3,
               "model": {
                 "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer/blank_spinning_bend3"
+                "model": "riverfishing:item/rod_layer/blank_fly_bend3"
               }
             },
             {
               "threshold": 4,
               "model": {
                 "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer/blank_spinning_bend4"
+                "model": "riverfishing:item/rod_layer/blank_fly_bend4"
               }
             },
             {
               "threshold": 5,
               "model": {
                 "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer/blank_spinning_bend5"
+                "model": "riverfishing:item/rod_layer/blank_fly_bend5"
               }
             },
             {
               "threshold": 6,
               "model": {
                 "type": "minecraft:model",
-                "model": "riverfishing:item/rod_layer/blank_spinning_bend6"
+                "model": "riverfishing:item/rod_layer/blank_fly_bend6"
               }
             }
           ],
           "fallback": {
             "type": "minecraft:model",
-            "model": "riverfishing:item/rod_layer/blank_spinning"
+            "model": "riverfishing:item/rod_layer/blank_fly"
           }
         },
         {

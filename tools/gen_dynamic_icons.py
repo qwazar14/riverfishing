@@ -22,11 +22,11 @@ MODELS = os.path.join(ASSETS, "models", "item")
 ITEMS = os.path.join(ASSETS, "items")
 
 RODS = ["stick", "bamboo", "pole", "ultralight", "spinning", "feeder", "bottom", "carp", "winter",
-        "boat", "sea_spin", "surf", "trolling"]  # +sea quartet (0.5.0)
+        "boat", "sea_spin", "surf", "trolling", "fly"]  # +sea quartet (0.5.0), +fly (0.10)
 REELS = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 10000, 12000, 14000]
 LINE_TYPES = ["mono", "braid", "fluoro"]
 RIG_SPRITES = ["rig_primitive", "rig_float", "rig_grusha", "rig_feeder", "rig_flat_feeder",
-               "rig_ground", "rig_predator", "rig_carp", "rig_catfish"]
+               "rig_ground", "rig_predator", "rig_carp", "rig_catfish", "rig_fly"]
 BEND_BUCKETS = 6  # §rod-bend: must match RodData.BEND_BUCKETS and tools/GenRodBend.java's AMP length
 # depth lift per overlay category so coplanar composite layers don't z-fight
 Z_OFF = {"blank": 0.0, "reel": 0.03, "line": 0.06, "rig": 0.09}

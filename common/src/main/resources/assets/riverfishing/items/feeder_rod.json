@@ -543,6 +543,13 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/rig_catfish"
                     }
+                  },
+                  {
+                    "when": "rig_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/rig_fly"
+                    }
                   }
                 ],
                 "fallback": {
@@ -944,6 +951,13 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/rig_catfish"
+                    }
+                  },
+                  {
+                    "when": "rig_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/rig_fly"
                     }
                   }
                 ],
@@ -1347,6 +1361,13 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/rig_catfish"
                     }
+                  },
+                  {
+                    "when": "rig_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/rig_fly"
+                    }
                   }
                 ],
                 "fallback": {
@@ -1749,6 +1770,13 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/rig_catfish"
                     }
+                  },
+                  {
+                    "when": "rig_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/rig_fly"
+                    }
                   }
                 ],
                 "fallback": {
@@ -2000,6 +2028,13 @@
               "model": {
                 "type": "minecraft:model",
                 "model": "riverfishing:item/rod_layer/rig_catfish"
+              }
+            },
+            {
+              "when": "rig_fly",
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/rig_fly"
               }
             }
           ],
