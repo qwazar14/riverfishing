@@ -422,7 +422,7 @@ Rolled exactly **once**, at the moment the bank is reached. A failed roll is a q
 ### Timeout
 
 ```
-fightTimeout = clamp(700 + weightKg × 80 + patternBonus, 900, 3400) ticks
+fightTimeout = clamp(700 + weightKg × 80 + patternBonus, 900, 6000) ticks
 patternBonus: burst 300, greyhounding 400, relentless 500, sounding 700
              (+300 more for any predator fight)
 ```

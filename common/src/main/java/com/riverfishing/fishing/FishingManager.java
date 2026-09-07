@@ -1929,14 +1929,14 @@ public final class FishingManager {
                         + ("burst".equals(profile.fightPattern) ? 300
                         : "relentless".equals(profile.fightPattern) ? 500
                         : "sounding".equals(profile.fightPattern) ? 700      // §big-game: dives eat time
-                        : "greyhounding".equals(profile.fightPattern) ? 400 : 0), 900, 3400);
+                        : "greyhounding".equals(profile.fightPattern) ? 400 : 0), 900, 6000);   // §fight-clock: 6000, was 3400 — the giants keep every run the table gives them
         // §outclassed: a fish the line cannot hold is played out, not reeled — give it the time.
         if (session.outclassed) {
             session.fightTimeout = (long) (session.fightTimeout * Mth.clamp(1.0 / Math.max(0.05, session.tackleMargin), 1.0, 6.0));
         }
 
         // §tire-within-the-fight: the clock above grows with mass forever while fightTimeout is CLAMPED
-        // at 3400 ticks, so past a certain size a fish could not reach fatigue inside its own fight at
+        // at 6000 ticks (3400 before §fight-clock), so past a certain size a fish could not reach fatigue inside its own fight at
         // all — a 90 kg beluga ended a full 170-second fight at 0.11 spent, a 600 kg one at 0.03. That
         // is not a hard fish, it is a fish with no second act: fatigue shortens runs, thins them out and
         // lifts the angler's gain, and none of it ever arrived. Reported twice after 0.8.1 as a beluga
@@ -2654,7 +2654,11 @@ public final class FishingManager {
     // ---- per-fish fight patterns (#3) ----
 
     private static int fightRunCount(FishProfile profile, double weightKg) {
-        int runs = Math.max(1, profile.fightRuns);
+        // §runs-by-size: the profile's runs are the full-grown fish's — a specimen well under its
+        // species' top weight makes fewer of them (40 % at nothing, all of them at the top), so the
+        // table can give a giant eight runs without a 20 kg juvenile out-diving its own clock
+        double size = Mth.clamp(0.4 + 0.6 * weightKg / Math.max(0.001, profile.weightMax / 1000.0), 0.4, 1.0);
+        int runs = Math.max(1, (int) Math.round(profile.fightRuns * size));
         switch (profile.fightPattern) {
             case "aggressive" -> runs += 2;
             case "relentless" -> runs += 3; // §grass-carp: the amur just keeps charging

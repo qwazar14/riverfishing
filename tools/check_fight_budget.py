@@ -91,14 +91,18 @@ def fight_mass(kg):
 
 
 # ---- one fight, tick by tick ------------------------------------------------------------------------
-def fight(kg, pattern, runs_field, stamina_field, leader, reel, shake_dives, rng, trace=None):
+def fight(kg, pattern, runs_field, stamina_field, leader, reel, shake_dives, rng, trace=None, max_kg=1e9):
     """Returns (landed, ticks, bars_needed) for a competent angler. Mirrors tickFight + reelPulse."""
+    # §species-table: no ideal reel on the profile any more — the competent angler brings the reel the
+    # fish ON THE HOOK wants, which for the top-weight roll is a bigger one than the species' mean asks
+    reel = 2000 if kg < 2 else 4000 if kg < 8 else 6000 if kg < 30 else 10000 if kg < 100 else 14000
     weight_stress = min(2.0, max(0.2, kg / 5.0))
     sens = 1.3 if reel == 0 else min(1.5, max(0.6, 1.0 + (4000 - reel) / 4000.0 * 0.5))
     land_pulse = 0.05 / (0.7 + 0.6 * weight_stress) * (0.9 + reel / 14000.0)
-    timeout = min(3400.0, max(900.0, 700 + kg * 80 + pick(TIMEOUT_BONUS, pattern, 0)))
+    timeout = min(6000.0, max(900.0, 700 + kg * 80 + pick(TIMEOUT_BONUS, pattern, 0)))   # §fight-clock
 
-    runs = max(1, runs_field) + RUNS_BONUS.get(pattern, 0) + (1 if kg > 2.0 else 0)
+    # §runs-by-size: the table's runs are the full-grown fish's; a small specimen makes fewer
+    runs = max(1, round(runs_field * min(1.0, max(0.4, 0.4 + 0.6 * kg / max(0.001, max_kg))))) + RUNS_BONUS.get(pattern, 0) + (1 if kg > 2.0 else 0)
     predator = leader                      # a bottom rod: ACTIVE tackle would only add to this
     shake_chance = 0.0
     if predator:
@@ -210,16 +214,18 @@ for f in sorted(glob.glob(os.path.join(PROF, "*.json"))):
     fi, ideal = d.get("fight", {}), d.get("ideal", {})
     pattern = fi.get("pattern", "steady")
     w = d.get("weight_g", {})
-    reel = ideal.get("reel_size", 3000)
+    # §species-table: the profile no longer names a reel — a competent angler brings one that fits the fish
+    kg_ref = w.get("mean", 1000) / 1000.0
+    reel = 2000 if kg_ref < 2 else 4000 if kg_ref < 8 else 6000 if kg_ref < 30 else 10000 if kg_ref < 100 else 14000
     leader = bool(ideal.get("requires_leader", False))
     for label in ("min", "mean", "max"):
         kg = w.get(label, w.get("mean", 1000)) / 1000.0
         rng = random.Random(hash((sp, label)) & 0xFFFF)
-        won = sum(fight(kg, pattern, fi.get("runs", 3), fi.get("stamina", 0.7), leader, reel, False, rng)[0]
+        won = sum(fight(kg, pattern, fi.get("runs", 3), fi.get("stamina", 0.7), leader, reel, False, rng, max_kg=w.get("max", 1e9) / 1000.0)[0]
                   for _ in range(40))
         if won < 34:                    # a competent angler should land it at least 85 times in 100
             landed, ticks, need = fight(kg, pattern, fi.get("runs", 3), fi.get("stamina", 0.7),
-                                        leader, reel, False, random.Random(1))
+                                        leader, reel, False, random.Random(1), max_kg=w.get("max", 1e9) / 1000.0)
             fails.append("%s at %.0f kg (%s): landed %d of 40 — the bar needs %.1f fills in %.0f s"
                          % (sp, kg, pattern, won, need, ticks / 20.0))
         if only:

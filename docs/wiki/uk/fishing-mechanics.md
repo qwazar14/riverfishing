@@ -410,7 +410,7 @@ fatigue += running ? 1/(20 × (4 + 2.5 × weightKg)) : one fifth of that      (c
 ### Таймаут
 
 ```
-fightTimeout = clamp(700 + weightKg × 80 + patternBonus, 700, 3000) ticks
+fightTimeout = clamp(700 + weightKg × 80 + patternBonus, 900, 6000) ticks
 patternBonus: burst 300, greyhounding 400, relentless 500, sounding 700
              (+300 more for any predator fight)
 ```

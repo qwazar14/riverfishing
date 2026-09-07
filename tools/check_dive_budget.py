@@ -53,8 +53,9 @@ def land_pulse(kg, reel=14000):
 
 def budget(p, kg):
     pat = p["fight"].get("pattern", "steady")
-    runs = max(1, p["fight"]["runs"]) + EXTRA_RUNS.get(pat, 0) + (1 if kg > 2 else 0)
-    timeout = clamp(700 + kg * 80 + PATTERN_BONUS.get(pat, 0), 900, 3400)
+    max_kg = p["weight_g"]["max"] / 1000.0
+    runs = max(1, round(p["fight"]["runs"] * min(1.0, max(0.4, 0.4 + 0.6 * kg / max(0.001, max_kg))))) + EXTRA_RUNS.get(pat, 0) + (1 if kg > 2 else 0)   # §runs-by-size
+    timeout = clamp(700 + kg * 80 + PATTERN_BONUS.get(pat, 0), 900, 6000)   # §fight-clock
     run_mean = sum(RAW_RUN[pat]) / 2.0
     gap_mean = sum(GAP[pat]) / 2.0
 
@@ -80,7 +81,7 @@ def fatigue_reached(p, kg):
     pat = f.get("pattern", "steady")
     fac = clamp(f["stamina"] / 0.70, 0.5, 1.6)
     timeout = clamp(700 + kg * 80 + BONUS.get(pat, 0), 900, 3400)
-    runs = max(1, f["runs"]) + EXTRA.get(pat, 0) + (1 if kg > 2 else 0)
+    runs = max(1, round(f["runs"] * min(1.0, max(0.4, 0.4 + 0.6 * kg / max(0.001, p["weight_g"]["max"] / 1000.0))))) + EXTRA.get(pat, 0) + (1 if kg > 2 else 0)   # §runs-by-size
     run, gap = RUN_MEAN[pat], GAP_MEAN[pat]
     running = min(runs * run, timeout * run / (run + gap))
     burn = min(20.0 * (10.4 + 6.5 * kg) * fac, timeout * FATIGUE_FIGHT_SHARE * fac)

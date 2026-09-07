@@ -27,7 +27,7 @@
   "fight": {
     "strength": 1.0,
     "stamina": 1.0,
-    "runs": 6,
+    "runs": 7,
     "pattern": "sounding",
     "aggression": 0.35
   },
