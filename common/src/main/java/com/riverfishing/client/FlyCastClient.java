@@ -32,6 +32,7 @@ public final class FlyCastClient {
     private static int maxBeats;
     private static boolean openLoop;
     private static boolean attackWas;
+    private static int lastEnd = -1;
     /** Wall-clock of the last good beat / the last collapse, for the punch and the shake. */
     private static long hitNanos = -1L, missNanos = -1L;
 
@@ -52,6 +53,7 @@ public final class FlyCastClient {
         beats = p.beats;
         maxBeats = p.maxBeats;
         openLoop = p.openLoop;
+        lastEnd = p.lastEnd;
         if (hit) {
             hitNanos = System.nanoTime();
             if (mc.player != null) mc.player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.55f, 0.9f + 0.09f * Math.min(beats, 12));
@@ -153,8 +155,12 @@ public final class FlyCastClient {
         // The two stops: as wide as the server's zone, glowing with the combo, flaring on the hit.
         int zw = (int) (zoneHalf * TW);
         int stopA = (int) (200 + 55 * punch);
-        g.fill(tx, ty, tx + zw, ty + TH, (stopA << 24) | stopRgb);
-        g.fill(tx + TW - zw, ty, tx + TW, ty + TH, (stopA << 24) | stopRgb);
+        // the NEXT stop is the lit one — after a beat on one end the delivery is on the other, and
+        // the bar says so instead of leaving the rule to be guessed
+        int nextEnd = lastEnd < 0 ? -1 : 1 - lastEnd;
+        int aL = nextEnd == 1 ? 60 : stopA, aR = nextEnd == 0 ? 60 : stopA;
+        g.fill(tx, ty, tx + zw, ty + TH, (aL << 24) | stopRgb);
+        g.fill(tx + TW - zw, ty, tx + TW, ty + TH, (aR << 24) | stopRgb);
         if (punch > 0.05f) {   // the hit's flash across the whole tube
             g.fill(tx, ty, tx + TW, ty + TH, ((int) (110 * punch) << 24) | 0xFFFFFF);
         }
@@ -195,6 +201,8 @@ public final class FlyCastClient {
         }
         if (beats == 0 && hitNanos < 0) {   // §fly-key: the one line that teaches the cast
             g.drawCenteredString(mc.font, Component.translatable("gui.riverfishing.fly_hint"), screenW / 2, y + FH + 8, 0xFFB8AE9A);
+        } else if (!openLoop) {
+            g.drawCenteredString(mc.font, Component.translatable("gui.riverfishing.fly_hint2"), screenW / 2, y + FH + 8, 0xFFB8AE9A);
         }
         g.drawCenteredString(mc.font, Component.translatable("gui.riverfishing.fly_beats", beats),
                 screenW / 2, py - 24, openLoop ? 0xFFE05A4A : 0xFFF0E6CD);

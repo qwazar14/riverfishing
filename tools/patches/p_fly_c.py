@@ -69,7 +69,7 @@ patch("common/src/main/java/com/riverfishing/engine/BiteEngine.java", "§fly", [
 FM = "common/src/main/java/com/riverfishing/fishing/FishingManager.java"
 p = os.path.join(ROOT, FM)
 s = rd(p)
-if "§fly" in s:
+if "startFlyRise" in s:
     print("  %s: already patched" % FM)
 else:
     # the weather line sits in buildContext AND reEvaluate; the hatch follows it in both

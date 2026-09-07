@@ -1543,10 +1543,10 @@
   "item.riverfishing.rig_fly": "Нахлистова оснастка",
   "tooltip.riverfishing.rod_class.fly": "Нахлистова — шнур несе мушку: тримай ПКМ, ЛКМ у такт, відпускай на такті",
   "message.riverfishing.fly_straight": "Шнур витягнувся прямо під вами — підніміть і закиньте знову",
-  "message.riverfishing.fly_pickup": "Шнур піднято",
-  "message.riverfishing.fly_tight": "Вузька петля",
-  "message.riverfishing.fly_splash": "Ляпас — петля розкрилася",
-  "message.riverfishing.fly_knot": "Вітровий вузол",
+  "message.riverfishing.fly_pickup": "Шнур вибрано — закидай знову",
+  "message.riverfishing.fly_tight": "Вузька петля — відпущено на зупинці",
+  "message.riverfishing.fly_splash": "Ляпас — відпущено між зупинками, петля розкрилася",
+  "message.riverfishing.fly_knot": "Вітровий вузол — ритм збито, шнур упав між зупинками",
   "gui.riverfishing.fly_beats": "холостих змахів: %s",
   "message.riverfishing.fly_drag": "Волочіння — переклади шнур",
   "message.riverfishing.fly_too_fast": "Зарано — вирвав із рота",
@@ -1558,5 +1558,6 @@
   "hatch.riverfishing.terrestrial": "Наземні комахи",
   "hatch.riverfishing.scud": "Бокоплав",
   "hatch.riverfishing.baitfish": "Малько",
-  "gui.riverfishing.fly_hint": "ЛКМ на краях · відпусти на краю"
+  "gui.riverfishing.fly_hint": "ЛКМ на краях · відпусти на краю",
+  "gui.riverfishing.fly_hint2": "Світлий край — наступна зупинка · відпусти там"
 }

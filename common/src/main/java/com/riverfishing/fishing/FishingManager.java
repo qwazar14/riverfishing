@@ -8,6 +8,7 @@ import com.riverfishing.component.RodType;
 import com.riverfishing.config.RiverFishingConfig;
 import com.riverfishing.engine.BiteContext;
 import com.riverfishing.engine.BiteEngine;
+import com.riverfishing.engine.Hatch;   // §fly
 import com.riverfishing.engine.TimeOfDay;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -503,19 +504,35 @@ public final class FishingManager {
         }
     }
 
-    /** §fly: a click on a drifting fly line — sneak picks up, otherwise it is a mend. */
+    /**
+     * §fly-strip: a click on a drifting fly line STRIPS a block of it in — the fly comes toward you, the
+     * way every other rod's click brings the line in — and at your feet the cast is over. Sneak + click
+     * is the MEND: the line flipped upstream, the drag gone; a third mend in one drift slaps the water.
+     */
     private static void flyUse(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
         if (sp.isShiftKeyDown()) {
+            session.flyDrag = 0;
+            session.flyMends++;
+            session.flyDragWarned = false;
+            level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_THROW, SoundSource.PLAYERS, 0.35f, 1.6f);
+            if (session.flyMends >= 3) SpookTracker.onCastLanded(level, session.target, 0.15);
+            return;
+        }
+        double dx = sp.getX() - (session.target.getX() + 0.5), dz = sp.getZ() - (session.target.getZ() + 0.5);
+        double dist = Math.sqrt(dx * dx + dz * dz);
+        BlockPos next = dist > 2.5
+                ? findWaterColumn(level, session.target.getX() + 0.5 + dx / dist, session.target.getY() + 1.0, session.target.getZ() + 0.5 + dz / dist)
+                : null;
+        if (next == null) {
             endSession(sp, session);
             actionbar(sp, Component.translatable("message.riverfishing.fly_pickup"));
             return;
         }
-        session.flyDrag = 0;
-        session.flyMends++;
+        session.target = next;
+        session.flyDrag = Math.max(0, session.flyDrag - 30);   // a strip straightens the line a little
         session.flyDragWarned = false;
-        level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_THROW, SoundSource.PLAYERS, 0.35f, 1.6f);
-        // A third flip of the line in one drift is a line slapped on the water: the fish under it notice.
-        if (session.flyMends >= 3) SpookTracker.onCastLanded(level, session.target, 0.15);
+        level.playSound(null, next, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.25f, 1.4f);
+        ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, next, 0f, session.lineColor, session.floatKind, false));
     }
 
     private static boolean startCast(ServerPlayer sp, ServerLevel level, InteractionHand hand, long now, double power) {
@@ -1533,10 +1550,13 @@ public final class FishingManager {
                         session.lineColor, session.floatKind, true));
                 // Only ONE QTE per catch (§pull-qte): reel-less rods save their timing for the
                 // pull-out, so their strike is a plain click; reeled float rods keep the strike QTE.
-                if (session.rodClass == RodClass.FLOAT && session.reelSize > 0) {
+                if (session.ctx != null && session.ctx.rod == RodType.FLY) {   // §fly: the rise — a timed set, not a random zone
+                    startFlyRise(sp, session, now);
+                } else if (session.rodClass == RodClass.FLOAT && session.reelSize > 0) {
                     startFloatTiming(sp, session, now);
                 }
             } else if (now % 20 == 0) {
+                if (session.ctx != null && session.ctx.hatch != null) session.ctx.hatch.particles(level, session.target);   // §fly: the water shows the hatch
                 level.sendParticles(ParticleTypes.FISHING,
                         session.target.getX() + 0.5, session.target.getY() + 1.0, session.target.getZ() + 0.5,
                         1, 0.1, 0.0, 0.1, 0.0);
@@ -1607,6 +1627,7 @@ public final class FishingManager {
         ctx.season = ctx.iceHole ? com.riverfishing.engine.Season.WINTER : SeasonProvider.getSeason(level);
         ctx.time = TimeOfDay.fromDayTime(level.getDayTime());
         ctx.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
+        ctx.hatch = ctx.rod == RodType.FLY ? Hatch.now(ctx.season, ctx.time, ctx.weather, ctx.water) : null;   // §fly
         ctx.pressureFactor = com.riverfishing.engine.BarometricPressure.biteFactor(level);
         FishingPressureData popData = FishingPressureData.get(level);
         long popChunk = new ChunkPos(session.target).toLong();
@@ -3090,6 +3111,44 @@ public final class FishingManager {
         return false;
     }
 
+    /**
+     * §fly: the rise. A trout comes up under the fly and turns down with it; lift before it has
+     * turned and the fly comes out of its mouth, lift after it has felt the hook and it has spat it.
+     * So the strike bar is TIME here, not a sweep: the marker climbs once across the window and the
+     * green is the species' own delay — a grayling turns fast, a chub slowly. The centre is never
+     * random (beginTiming's is), which is why this does not call it.
+     */
+    private static void startFlyRise(ServerPlayer sp, FishingSession session, long now) {
+        FishProfile p = FishProfileManager.get().byId(session.species);
+        double aggression = p != null ? p.fightAggression : 0.5;
+        int delayMin = (int) Math.round(4 + (1 - aggression) * 8);
+        int delayMax = delayMin + 8 + (int) Math.round((1 - aggression) * 6);
+        int window = delayMax + 6;
+        session.floatPeriod = 2 * window;                 // marker(t) = t / window: the bar is a clock
+        float c = (delayMin + delayMax) / 2f / window;
+        // §skills FINESSE widens the green here as it does on the float
+        float g = (delayMax - delayMin) / 2f / window * (1f + (float) AnglerSkills.strikeZoneBonus(sp));
+        float o = g + 0.06f;
+        session.floatZoneCenter = c;
+        session.floatZoneHalf = g;
+        session.floatOrangeHalf = o;
+        session.floatStart = now;
+        session.biteWindowEnd = now + window;
+        ModNetwork.toPlayer(sp, new FloatTimingPacket(true, now, window, session.floatPeriod, c - g, c + g, c - o, c + o));
+        // the fish itself, so every client can draw it coming up under the fly
+        ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target, 0f, session.lineColor,
+                session.floatKind, true, 0f, 0f, false, false, (byte) 0,
+                session.species == null ? "" : session.species.getPath(), session.weightG, session.lengthCm,
+                false, false, 0f, false));
+        // the ring: the take is on the surface, and everyone on the bank sees it
+        // §fly-splash: the take is on the surface — a boil of water and the slurp, for everyone on the bank
+        sp.serverLevel().sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
+                session.target.getZ() + 0.5, 16 + session.lengthCm / 5, 0.45, 0.15, 0.45, 0.25);
+        sp.serverLevel().playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.9f, 1.05f);
+        sp.serverLevel().sendParticles(ParticleTypes.FISHING, session.target.getX() + 0.5, session.target.getY() + 1.0,
+                session.target.getZ() + 0.5, 8, 0.3, 0.0, 0.3, 0.05);
+    }
+
     private static void clearFloatTiming(ServerPlayer sp) {
         ModNetwork.toPlayer(sp, new FloatTimingPacket(false, 0, 0, 0, 0f, 0f, 0f, 0f));
     }
@@ -3115,9 +3174,17 @@ public final class FishingManager {
         if (inZone(session, m, level.getRandom())) {
             hookUp(sp, level, session, now);
         } else {
+            String miss = "message.riverfishing.mistimed";
+            if (session.ctx != null && session.ctx.rod == RodType.FLY) {
+                // §fly: before the green the fly came out of its mouth, after it the fish spat it —
+                // and either way it is put down: that lie is quiet for twenty seconds or so
+                miss = m < session.floatZoneCenter - session.floatZoneHalf
+                        ? "message.riverfishing.fly_too_fast" : "message.riverfishing.fly_too_slow";
+                SpookData.of(level).disturb(level, session.target, 0.5, 3.0, now);
+            }
             eatBait(sp, session);   // §consumables: a mistimed strike still loses the bait
             endSession(sp, session);
-            actionbar(sp, Component.translatable("message.riverfishing.mistimed").withStyle(ChatFormatting.GRAY));
+            actionbar(sp, Component.translatable(miss).withStyle(ChatFormatting.GRAY));
             GuideNudge.failure(sp, session.rodClass, GuideNudge.MISSED);
         }
     }
@@ -3738,6 +3805,7 @@ public final class FishingManager {
         ctx.season = SeasonProvider.getSeason(level);
         ctx.time = TimeOfDay.fromDayTime(level.getDayTime());
         ctx.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
+        ctx.hatch = ctx.rod == RodType.FLY ? Hatch.now(ctx.season, ctx.time, ctx.weather, ctx.water) : null;   // §fly
         ctx.pressureFactor = com.riverfishing.engine.BarometricPressure.biteFactor(level);
         ctx.biomeTemperature = level.getBiome(waterPos).value().getBaseTemperature();
         ctx.waterDepth = measureDepth(level, waterPos);
