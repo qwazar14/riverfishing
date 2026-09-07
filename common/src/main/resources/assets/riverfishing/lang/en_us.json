@@ -1543,10 +1543,10 @@
   "item.riverfishing.rig_fly": "Fly Rig",
   "tooltip.riverfishing.rod_class.fly": "Fly rod — the line carries the fly: hold use, left-click on the beats, release on a beat",
   "message.riverfishing.fly_straight": "Line's straight below you — pick up and cast again",
-  "message.riverfishing.fly_pickup": "Picked up the line",
-  "message.riverfishing.fly_tight": "Tight loop",
-  "message.riverfishing.fly_splash": "Splash — open loop",
-  "message.riverfishing.fly_knot": "Wind knot",
+  "message.riverfishing.fly_pickup": "Line's in — cast again",
+  "message.riverfishing.fly_tight": "Tight loop — released on the stop",
+  "message.riverfishing.fly_splash": "Splash — released between the stops, the loop opened",
+  "message.riverfishing.fly_knot": "Wind knot — the rhythm broke and the line dumped between the stops",
   "gui.riverfishing.fly_beats": "%s false casts",
   "message.riverfishing.fly_too_fast": "Too fast — pulled it out of its mouth",
   "message.riverfishing.fly_too_slow": "Too slow — it spat the fly",
@@ -1558,5 +1558,6 @@
   "hatch.riverfishing.scud": "Scud",
   "hatch.riverfishing.baitfish": "Baitfish",
   "message.riverfishing.fly_drag": "Drag — mend the line",
-  "gui.riverfishing.fly_hint": "Left-click on the ends · release on an end"
+  "gui.riverfishing.fly_hint": "Left-click on the ends · release on an end",
+  "gui.riverfishing.fly_hint2": "The lit end is the next stop · release there"
 }
