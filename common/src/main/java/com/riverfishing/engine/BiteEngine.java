@@ -59,7 +59,8 @@ public final class BiteEngine {
         if (c.hookSizes.isEmpty()) {
             // A predator lure's treble and a winter mormyshka carry their own hook — no separate hook slot.
             return (c.rig == com.riverfishing.component.RigType.PREDATOR
-                    || c.rig == com.riverfishing.component.RigType.WINTER) ? 0.85 : 0.0;
+                    || c.rig == com.riverfishing.component.RigType.WINTER
+                    || c.rig == com.riverfishing.component.RigType.FLY) ? 0.85 : 0.0;   // §fly: the fly carries its own hook
         }
         double best = 0.0;
         for (int size : c.hookSizes) {
