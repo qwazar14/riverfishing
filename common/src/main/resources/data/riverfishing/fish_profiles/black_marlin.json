@@ -1,7 +1,10 @@
 {
   "display": "Чёрный марлин",
   "latin": "Istiompax indica",
-  "spawn": { "season": "summer" },
+  "spawn": {
+    "season": "summer",
+    "sub": "late"
+  },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.0,
@@ -17,8 +20,8 @@
     "mean": 95000
   },
   "length_cm": {
-    "min": 150,
-    "max": 460
+    "min": 150.0,
+    "max": 460.0
   },
   "fight": {
     "strength": 0.95,
@@ -28,19 +31,11 @@
     "aggression": 1.0
   },
   "ideal": {
-    "rod": [
-      "trolling"
-    ],
-    "reel_size": 14000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.45,
       "tolerance_mm": 0.06
     },
-    "rig": [
-      "predator"
-    ],
     "groundbait": {
       "fraction": 1.0,
       "nutrition": 0.75
@@ -54,8 +49,7 @@
       "swimbait": 0.95
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 1
+      "ideal": 1
     },
     "requires_leader": true
   },
@@ -77,10 +71,6 @@
     "thunder": 0.5
   },
   "depth_pref": "surface",
-  "distance_pref": {
-    "min": 32,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 12,
     "width_min": 24
@@ -91,5 +81,11 @@
     "ocean_biome": 0.4
   },
   "base": 0.18,
-  "min_angler_level": 9
+  "min_angler_level": 38,
+  "diet": "predator",
+  "provinces": [
+    "neotropic",
+    "indomalaya",
+    "afrotropical"
+  ]
 }

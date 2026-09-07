@@ -54,7 +54,7 @@ public final class BiteEngine {
             // any bait; a species that says nothing takes the family's generic affinity for the template.
             Double own = p.baitScores.get("fly_" + c.tied.template().key);
             if (own != null) best = own;
-            else best *= c.tied.affinity(p.group);
+            else best *= c.tied.affinity(p.diet, p.group);   // §species-table: by what it eats
         }
         // §fly: match the hatch — the right kind at the right size is the fly they are taking today
         if (c.tied != null && c.rod == com.riverfishing.component.RodType.FLY) best *= Hatch.factor(c.hatch, c.tied);
@@ -99,19 +99,15 @@ public final class BiteEngine {
     public static double matchScore(FishProfile p, BiteContext c) {
         double sBait = baitScore(p, c);
         double sGround = groundbaitScore(p, c);
-        double sRig = c.rig != null && p.idealRigs.contains(c.rig.jsonKey()) ? 1.0 : 0.15;
-        double sRod = p.idealRods.contains(c.rod.jsonKey()) ? 1.0 : 0.35;
+        // §species-table: the rod, the rig and the reel left the match — a species asks for bait, feed,
+        // line and hook, and how you deliver them is your business
         double sLine = lineScore(p, c);
         double sHook = hookScore(p, c);
-        double sReel = reelScore(p, c);
 
-        return 0.30 * sBait
-                + 0.15 * sGround
-                + 0.13 * sRig
-                + 0.12 * sRod
-                + 0.12 * sLine
-                + 0.10 * sHook
-                + 0.08 * sReel;
+        return 0.45 * sBait
+                + 0.20 * sGround
+                + 0.20 * sLine
+                + 0.15 * sHook;
     }
 
     /**
@@ -273,15 +269,9 @@ public final class BiteEngine {
         if (c.rod.longRange() && c.waterWidth < 12) {
             return 0.4;
         }
-        double d = c.castDistance;
-        if (d < p.distMin) {
-            double t = p.distMin <= 0 ? 1.0 : d / p.distMin;
-            return 0.6 + 0.4 * Math.max(0.0, Math.min(1.0, t));
-        }
-        if (d > p.distMax) {
-            return 0.85;
-        }
-        return 1.1;
+        // §species-table: the species' own distance band is gone — where the fish holds is the water's
+        // business (depth, width, bed), not a number per profile
+        return 1.0;
     }
 
     // ---- Species attractiveness W (§1.4) ----
@@ -372,9 +362,11 @@ public final class BiteEngine {
         // species' recommendation roughly halves its bite weight (×0.6 per level, floored at 3%). A novice
         // CAN still fluke a trophy on the right gear in the right place, just rarely; the seasoned angler
         // catches it steadily. Capability (tackle/bait/hook/leader) + location still gate on top of this.
+        // §species-table: the ladder runs 0-50 now and the level never forbids — short of the rung the bite
+        // thins in proportion, to a floor of 15 %, so a novice CAN fluke the fish and a veteran fishes it steadily
         if (p.minAnglerLevel > 0 && c.anglerLevel < p.minAnglerLevel) {
-            int deficit = p.minAnglerLevel - c.anglerLevel;
-            w *= Math.max(0.03, Math.pow(0.6, deficit));
+            double deficit = (p.minAnglerLevel - c.anglerLevel) / (double) p.minAnglerLevel;
+            w *= Math.max(0.15, 1.0 - 0.85 * deficit);
         }
         return Math.max(0.0, w);
     }

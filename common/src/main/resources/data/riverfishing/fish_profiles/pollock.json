@@ -1,7 +1,10 @@
 {
   "display": "Минтай",
   "latin": "Gadus chalcogrammus",
-  "spawn": { "season": "winter", "sub": "mid" },
+  "spawn": {
+    "season": "winter",
+    "sub": "mid"
+  },
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,
@@ -17,8 +20,8 @@
     "mean": 1800
   },
   "length_cm": {
-    "min": 25,
-    "max": 90
+    "min": 25.0,
+    "max": 90.0
   },
   "fight": {
     "strength": 0.7,
@@ -28,21 +31,11 @@
     "aggression": 0.5
   },
   "ideal": {
-    "rod": [
-      "boat",
-      "sea_spin"
-    ],
-    "reel_size": 8000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.22,
       "tolerance_mm": 0.06
     },
-    "rig": [
-      "predator",
-      "grusha"
-    ],
     "groundbait": {
       "fraction": 0.7,
       "nutrition": 0.7
@@ -59,8 +52,7 @@
       "swimbait": 0.75
     },
     "hook": {
-      "ideal": 4,
-      "tolerance": 2
+      "ideal": 4
     },
     "requires_leader": false
   },
@@ -82,10 +74,6 @@
     "thunder": 1.0
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 15,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 4,
     "width_min": 16
@@ -97,5 +85,10 @@
     "temperate": 0.6
   },
   "base": 0.75,
-  "min_angler_level": 4
+  "min_angler_level": 17,
+  "diet": "predator",
+  "provinces": [
+    "palearctic",
+    "nearctic"
+  ]
 }

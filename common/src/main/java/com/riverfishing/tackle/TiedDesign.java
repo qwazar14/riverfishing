@@ -142,6 +142,21 @@ public final class TiedDesign {
             this.cyprinid = cyprinid; this.predator = predator; this.salmonid = salmonid; this.sea = sea;
         }
 
+        /** §species-table: the diet says it first — a predator takes the streamer whatever family it is filed under. */
+        double family(String diet, String group) {
+            if ("sea".equals(group)) return sea;
+            if (diet != null) {
+                switch (diet) {
+                    case "predator": return predator;
+                    case "insectivore": return salmonid;
+                    case "peaceful": return cyprinid;
+                    case "omnivore": return (cyprinid + predator) / 2.0;
+                    default: break;
+                }
+            }
+            return family(group);
+        }
+
         double family(String group) {
             if (group == null) return (cyprinid + predator + salmonid) / 3.0;
             return switch (group) {
@@ -190,6 +205,15 @@ public final class TiedDesign {
         /** The bite factor for a species of {@code group}: the template's family table, scaled by how well the drawing matched it. */
         public double affinity(String group) {
             double base = template == Template.NONE ? 0.6 : template.family(group) * (0.6 + 0.4 * match);
+            boolean hunter = "predator".equals(group) || "big_game".equals(group) || "sea".equals(group);
+            if (eyes && hunter) base *= 1.10;                       // a lure with eyes gets looked at
+            base *= 1.0 + flash * (hunter ? 0.15 : "salmonid".equals(group) ? 0.10 : 0.0);
+            return base;
+        }
+
+        /** §species-table: by diet first, family second. */
+        public double affinity(String diet, String group) {
+            double base = template == Template.NONE ? 0.6 : template.family(diet, group) * (0.6 + 0.4 * match);
             boolean hunter = "predator".equals(group) || "big_game".equals(group) || "sea".equals(group);
             if (eyes && hunter) base *= 1.10;                       // a lure with eyes gets looked at
             base *= 1.0 + flash * (hunter ? 0.15 : "salmonid".equals(group) ? 0.10 : 0.0);

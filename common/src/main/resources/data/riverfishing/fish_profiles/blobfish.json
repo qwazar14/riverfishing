@@ -1,7 +1,10 @@
 {
   "display": "Рыба-капля",
   "latin": "Psychrolutes marcidus",
-  "spawn": { "season": "summer" },
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
   "group": "sea",
   "water_bodies": {
     "sea": 1.0,
@@ -17,8 +20,8 @@
     "mean": 2500
   },
   "length_cm": {
-    "min": 25,
-    "max": 70
+    "min": 25.0,
+    "max": 70.0
   },
   "fight": {
     "strength": 0.15,
@@ -28,21 +31,11 @@
     "aggression": 0.05
   },
   "ideal": {
-    "rod": [
-      "boat",
-      "bottom"
-    ],
-    "reel_size": 8000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.25,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "grusha",
-      "catfish"
-    ],
     "groundbait": {
       "fraction": 0.55,
       "nutrition": 0.45
@@ -54,8 +47,7 @@
       "chicken_liver": 0.5
     },
     "hook": {
-      "ideal": 6,
-      "tolerance": 3
+      "ideal": 6
     },
     "requires_leader": false
   },
@@ -77,10 +69,6 @@
     "thunder": 1.0
   },
   "depth_pref": "bottom",
-  "distance_pref": {
-    "min": 25,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 12,
     "width_min": 24
@@ -92,5 +80,9 @@
     "ocean_biome": 0.15
   },
   "base": 0.16,
-  "min_angler_level": 8
+  "min_angler_level": 33,
+  "diet": "predator",
+  "provinces": [
+    "indomalaya"
+  ]
 }

@@ -1,7 +1,10 @@
 {
   "display": "Китовая акула",
   "latin": "Rhincodon typus",
-  "spawn": { "season": "summer" },
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.0,
@@ -17,8 +20,8 @@
     "mean": 2500000
   },
   "length_cm": {
-    "min": 400,
-    "max": 1200
+    "min": 400.0,
+    "max": 1200.0
   },
   "fight": {
     "strength": 0.15,
@@ -28,21 +31,11 @@
     "aggression": 0.1
   },
   "ideal": {
-    "rod": [
-      "trolling",
-      "boat"
-    ],
-    "reel_size": 14000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.6,
       "tolerance_mm": 0.05
     },
-    "rig": [
-      "catfish",
-      "grusha"
-    ],
     "groundbait": {
       "fraction": 1.0,
       "nutrition": 1.0
@@ -52,8 +45,7 @@
       "livebait": 0.3
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 1
+      "ideal": 1
     },
     "requires_leader": false
   },
@@ -75,10 +67,6 @@
     "thunder": 0.4
   },
   "depth_pref": "surface",
-  "distance_pref": {
-    "min": 35,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 14,
     "width_min": 28
@@ -89,5 +77,12 @@
     "ocean_biome": 0.3
   },
   "base": 0.03,
-  "min_angler_level": 12
+  "min_angler_level": 50,
+  "diet": "predator",
+  "provinces": [
+    "nearctic",
+    "neotropic",
+    "indomalaya",
+    "afrotropical"
+  ]
 }

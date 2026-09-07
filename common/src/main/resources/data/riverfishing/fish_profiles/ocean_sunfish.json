@@ -1,7 +1,10 @@
 {
   "display": "Луна-рыба",
   "latin": "Mola mola",
-  "spawn": { "season": "summer" },
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
   "group": "sea",
   "water_bodies": {
     "sea": 1.0,
@@ -17,8 +20,8 @@
     "mean": 220000
   },
   "length_cm": {
-    "min": 100,
-    "max": 330
+    "min": 100.0,
+    "max": 330.0
   },
   "fight": {
     "strength": 0.35,
@@ -28,21 +31,11 @@
     "aggression": 0.1
   },
   "ideal": {
-    "rod": [
-      "boat",
-      "surf"
-    ],
-    "reel_size": 12000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.4,
       "tolerance_mm": 0.1
     },
-    "rig": [
-      "predator",
-      "grusha"
-    ],
     "groundbait": {
       "fraction": 0.9,
       "nutrition": 0.5
@@ -54,8 +47,7 @@
       "livebait": 0.35
     },
     "hook": {
-      "ideal": 2,
-      "tolerance": 2
+      "ideal": 2
     },
     "requires_leader": false
   },
@@ -77,10 +69,6 @@
     "thunder": 0.5
   },
   "depth_pref": "surface",
-  "distance_pref": {
-    "min": 25,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 10,
     "width_min": 24
@@ -92,5 +80,13 @@
     "ocean_biome": 0.5
   },
   "base": 0.2,
-  "min_angler_level": 8
+  "min_angler_level": 33,
+  "diet": "predator",
+  "provinces": [
+    "palearctic",
+    "nearctic",
+    "neotropic",
+    "indomalaya",
+    "afrotropical"
+  ]
 }

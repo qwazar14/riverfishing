@@ -82,7 +82,7 @@ def row_habitat(sp, p, loc, name):
     h = p.get("habitat", {})
     d = rng(h.get("depth_min", 0), h.get("depth_max"))
     w = rng(h.get("width_min", 0), h.get("width_max"))
-    dp = p.get("distance_pref", {})
+    dp = p.get("distance_pref", {})   # §species-table: gone from the profiles; the column stays for the old rows
     return "| %s | %s | %s | %s | %s | %d–%d |" % (
         name, d, w, biomes(p), DEPTH[loc][p["depth_pref"]], dp.get("min", 0), dp.get("max", 0))
 
@@ -108,18 +108,16 @@ HOOK = {"en": "No.", "ru": "№", "uk": "№"}
 
 
 def row_tackle(sp, p, loc, name):
+    # §species-table: rod, rig, reel and the hook's tolerance left the species' asks
     i = p["ideal"]
     baits = ", ".join("%s %g" % (k, v) for k, v in
                       sorted(i.get("bait", {}).items(), key=lambda kv: (-kv[1], kv[0]))) or "—"
     ln = i["line"]
-    return "| %s | %s | %s | %s | %s%d ±%d | %d ±%d | %s %g ±%g | %s | %s |" % (
-        name, baits,
-        ", ".join(sorted(i.get("rod", []))) or "—",
-        ", ".join(sorted(i.get("rig", []))) or "—",
-        HOOK[loc], i["hook"]["ideal"], i["hook"]["tolerance"],
-        i["reel_size"], i["reel_tolerance"],
-        ln["type"], ln["diameter_mm"], ln["tolerance_mm"],
-        ", ".join(sorted(i.get("groundbait", []))) or "—",
+    gb = i.get("groundbait", {})
+    gbs = ("%g / %g" % (gb["fraction"], gb["nutrition"])) if isinstance(gb, dict) and "fraction" in gb else "—"
+    return "| %s | %s | %s%d | %s %g ±%g | %s | %s |" % (
+        name, baits, HOOK[loc], i["hook"]["ideal"],
+        ln["type"], ln["diameter_mm"], ln.get("tolerance_mm", 0.06), gbs,
         "**yes**" if i.get("requires_leader") else "—")
 
 

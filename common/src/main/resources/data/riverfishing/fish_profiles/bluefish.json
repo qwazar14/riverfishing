@@ -1,7 +1,10 @@
 {
   "display": "Луфарь",
   "latin": "Pomatomus saltatrix",
-  "spawn": { "season": "spring", "sub": "late" },
+  "spawn": {
+    "season": "spring",
+    "sub": "late"
+  },
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,
@@ -17,8 +20,8 @@
     "mean": 2000
   },
   "length_cm": {
-    "min": 30,
-    "max": 110
+    "min": 30.0,
+    "max": 110.0
   },
   "fight": {
     "strength": 0.8,
@@ -28,22 +31,15 @@
     "aggression": 1.0
   },
   "ideal": {
-    "rod": [
-      "sea_spin",
-      "surf",
-      "boat"
-    ],
-    "reel_size": 6000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.28,
       "tolerance_mm": 0.07
     },
-    "rig": [
-      "predator"
-    ],
-    "groundbait": { "fraction": 0.66, "nutrition": 0.75 },
+    "groundbait": {
+      "fraction": 0.66,
+      "nutrition": 0.75
+    },
     "requires_leader": true,
     "bait": {
       "spoon": 1.2,
@@ -56,8 +52,7 @@
       "swimbait": 1.1
     },
     "hook": {
-      "ideal": 2,
-      "tolerance": 2
+      "ideal": 2
     }
   },
   "season": {
@@ -78,10 +73,6 @@
     "thunder": 1.1
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 10,
-    "max": 50
-  },
   "habitat": {
     "depth_min": 2,
     "width_min": 14
@@ -93,5 +84,12 @@
     "warm": 1.0
   },
   "base": 0.6,
-  "min_angler_level": 6
+  "min_angler_level": 25,
+  "diet": "predator",
+  "provinces": [
+    "palearctic",
+    "nearctic",
+    "neotropic",
+    "afrotropical"
+  ]
 }

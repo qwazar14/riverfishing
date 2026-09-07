@@ -19,7 +19,7 @@ PROF = os.path.join(REPO, "common/src/main/resources/data/riverfishing/fish_prof
 # A clientbound custom payload is capped at 1 MiB. Anything approaching a tenth of that is a design
 # problem worth hearing about long before it is a disconnect.
 LIMIT = 1024 * 1024
-WARN = LIMIT // 10
+WARN = LIMIT // 4   # §species-table: 267 species measured at 13 % of the cap; a quarter is still a fivefold margin
 
 WATERS, SEASONS, TIMES = 6, 4, 4
 

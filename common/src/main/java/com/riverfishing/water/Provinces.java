@@ -20,7 +20,9 @@ package com.riverfishing.water;
 public final class Provinces {
 
     /** In table order; a profile names these, and lang keys are {@code province.riverfishing.<id>}. */
-    public static final String[] ALL = {"palearctic", "nearctic", "neotropic", "indomalaya"};
+    public static final String[] ALL = {"palearctic", "nearctic", "neotropic", "indomalaya", "afrotropical"};
+    /** §species-table: the four the map was first cut into — the fifth is carved out of two of them, below. */
+    private static final int FIRST_FOUR = 4;
 
     /**
      * Cell size in blocks. Three thousand is a journey and not an expedition: a player who walks a
@@ -62,7 +64,11 @@ public final class Provinces {
                 long d = ddx * ddx + ddz * ddz;
                 if (d < best) {
                     best = d;
-                    pick = (int) Math.floorMod(h, ALL.length);
+                    pick = (int) Math.floorMod(h, FIRST_FOUR);
+                    // §species-table: Afrotropical is a third of what used to be Neotropic and Indomalaya, off
+                    // another slice of the same hash — so a world's Palearctic and Nearctic cells are exactly
+                    // where they were, and two warm cells in three are too
+                    if (pick >= 2 && Math.floorMod(h >>> 9, 3) == 0) pick = 4;
                 }
             }
         }

@@ -75,6 +75,7 @@ public final class FishCard {
         c.putInt("wdmin", (int) Math.round(p.widthMin));
         c.putInt("wdmax", (int) Math.round(Math.min(p.widthMax, 99999)));
         c.putInt("lvl", p.minAnglerLevel);
+        c.putString("diet", p.diet);   // §species-table
 
         c.putFloat("fs", (float) p.fightStrength);
         c.putFloat("fst", (float) p.fightStamina);
@@ -86,9 +87,7 @@ public final class FishCard {
         c.put("time", floats(p.time, TIMES));
         c.put("bio", keyed(p.biomes));
         c.put("bait", keyed(p.baitScores));
-        c.put("rod", strings(p.idealRods));
-        c.put("rig", strings(p.idealRigs));
-        c.putInt("reel", p.reelSize);
+        c.putInt("hook", p.hookIdeal);   // §species-table: rod, rig and reel left the species' asks
         c.putString("line", p.lineType);
         c.putFloat("dia", (float) p.lineDiameter);
         return c;
@@ -143,6 +142,7 @@ public final class FishCard {
     public int fightRuns() { return tag.getInt("fr"); }
     public String fightPattern() { return tag.contains("fp") ? tag.getString("fp") : "steady"; }
     public int reelSize() { return tag.getInt("reel"); }
+    public String diet() { return tag.getString("diet"); }   // §species-table
     public String lineType() { return tag.contains("line") ? tag.getString("line") : "mono"; }
     public float lineDiameter() { return tag.getFloat("dia"); }
 
@@ -150,6 +150,7 @@ public final class FishCard {
     public float[] seasons() { return readFloats("season", SEASONS.length); }
     public float[] times() { return readFloats("time", TIMES.length); }
 
+    public int hookIdeal() { return tag.getInt("hook"); }   // §species-table
     public List<String> rods() { return readStrings("rod"); }
     public List<String> rigs() { return readStrings("rig"); }
 

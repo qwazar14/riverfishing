@@ -1,7 +1,10 @@
 {
   "display": "Голубой марлин",
   "latin": "Makaira nigricans",
-  "spawn": { "season": "summer" },
+  "spawn": {
+    "season": "summer",
+    "sub": "late"
+  },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.0,
@@ -17,8 +20,8 @@
     "mean": 110000
   },
   "length_cm": {
-    "min": 200,
-    "max": 450
+    "min": 200.0,
+    "max": 450.0
   },
   "fight": {
     "strength": 1.0,
@@ -28,30 +31,26 @@
     "aggression": 0.95
   },
   "ideal": {
-    "rod": [
-      "trolling"
-    ],
-    "reel_size": 14000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.4,
       "tolerance_mm": 0.06
     },
-    "rig": [
-      "predator"
-    ],
-    "groundbait": { "fraction": 1.00, "nutrition": 0.75 },
+    "groundbait": {
+      "fraction": 1.0,
+      "nutrition": 0.75
+    },
     "bait": {
       "wobbler": 1.0,
       "silicone": 0.6,
-      "octopus_jig": 1.0, "fish_strip": 1.1,
+      "octopus_jig": 1.0,
+      "fish_strip": 1.1,
       "giant_spoon": 0.95
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 1
-    }
+      "ideal": 1
+    },
+    "requires_leader": false
   },
   "season": {
     "spring": 0.9,
@@ -71,10 +70,6 @@
     "thunder": 0.6
   },
   "depth_pref": "surface",
-  "distance_pref": {
-    "min": 32,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 10,
     "width_min": 24
@@ -85,9 +80,15 @@
     "temperate": 0.5
   },
   "base": 0.25,
-  "min_angler_level": 7,
+  "min_angler_level": 29,
   "legendary": {
     "weight_g": 380000,
     "chance": 0.008
-  }
+  },
+  "diet": "predator",
+  "provinces": [
+    "nearctic",
+    "neotropic",
+    "afrotropical"
+  ]
 }

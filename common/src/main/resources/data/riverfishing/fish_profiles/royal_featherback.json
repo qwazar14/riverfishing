@@ -1,0 +1,92 @@
+{
+  "display": "Royal featherback",
+  "latin": "Chitala blanci",
+  "group": "predator",
+  "diet": "predator",
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
+  "water_bodies": {
+    "river": 0.8,
+    "lake": 0.8,
+    "pond": 1.1,
+    "swamp": 1.4,
+    "sea": 0.0,
+    "puddle": 0.2
+  },
+  "weight_g": {
+    "min": 96,
+    "max": 12000,
+    "mean": 729
+  },
+  "length_cm": {
+    "min": 25.0,
+    "max": 125.0
+  },
+  "fight": {
+    "strength": 0.69,
+    "stamina": 0.74,
+    "runs": 4,
+    "pattern": "burst",
+    "aggression": 0.7
+  },
+  "ideal": {
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.22,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.05,
+      "nutrition": 0.17
+    },
+    "bait": {
+      "livebait": 1.0,
+      "fish_strip": 0.9,
+      "wobbler": 0.9,
+      "jig": 0.85,
+      "swimbait": 0.8
+    },
+    "hook": {
+      "ideal": 5
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 1.1,
+    "autumn": 1.0,
+    "winter": 0.3
+  },
+  "time": {
+    "dawn": 1.0,
+    "day": 0.4,
+    "dusk": 1.2,
+    "night": 1.5
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.0,
+    "thunder": 1.0
+  },
+  "depth_pref": "mid",
+  "habitat": {
+    "depth_min": 5,
+    "width_min": 10
+  },
+  "provinces": [
+    "indomalaya"
+  ],
+  "biomes": {
+    "temperate": 0.5,
+    "warm": 1.2,
+    "swamp": 1.3,
+    "jungle": 1.2
+  },
+  "biomes_require": [
+    "warm"
+  ],
+  "base": 0.74,
+  "min_angler_level": 17
+}

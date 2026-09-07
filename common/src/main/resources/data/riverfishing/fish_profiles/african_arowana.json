@@ -1,0 +1,94 @@
+{
+  "display": "African arowana",
+  "latin": "Heterotis niloticus",
+  "group": "exotic",
+  "diet": "peaceful",
+  "spawn": {
+    "season": "summer",
+    "sub": "early"
+  },
+  "water_bodies": {
+    "river": 0.8,
+    "lake": 0.8,
+    "pond": 1.1,
+    "swamp": 1.4,
+    "sea": 0.0,
+    "puddle": 0.2
+  },
+  "weight_g": {
+    "min": 82,
+    "max": 10200,
+    "mean": 620
+  },
+  "length_cm": {
+    "min": 20.0,
+    "max": 100.0
+  },
+  "fight": {
+    "strength": 0.75,
+    "stamina": 0.68,
+    "runs": 4,
+    "pattern": "burst",
+    "aggression": 0.8
+  },
+  "ideal": {
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.21,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.23,
+      "nutrition": 0.39
+    },
+    "bait": {
+      "dough": 1.0,
+      "corn": 0.9,
+      "bread": 0.9,
+      "worm": 0.85,
+      "pea": 0.8,
+      "fly_pellet": 0.7
+    },
+    "hook": {
+      "ideal": 5
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 1.1,
+    "autumn": 1.0,
+    "winter": 0.3
+  },
+  "time": {
+    "dawn": 1.1,
+    "day": 1.2,
+    "dusk": 1.0,
+    "night": 0.4
+  },
+  "weather": {
+    "clear": 1.1,
+    "rain": 0.9,
+    "thunder": 0.8
+  },
+  "depth_pref": "surface",
+  "habitat": {
+    "depth_min": 4,
+    "depth_max": 12,
+    "width_min": 10
+  },
+  "provinces": [
+    "afrotropical"
+  ],
+  "biomes": {
+    "temperate": 0.6,
+    "warm": 1.2,
+    "swamp": 1.2,
+    "jungle": 1.4
+  },
+  "biomes_require": [
+    "jungle"
+  ],
+  "base": 0.61,
+  "min_angler_level": 18
+}
