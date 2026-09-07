@@ -144,6 +144,19 @@ const RODS = {
       { name: 's7', members: ['blank_8', 'tip_top'], joint: -14.58 },
     ],
   },
+  // §fly-3d: three sections and a tip top on a short cork handle; joints at the section-overlap
+  // centres (blank_1/2/3 overlap by 0.35–0.4u). The authored butt stopped at 31.5 — the source in
+  // 3D/rods/fly is the artist's model shifted +0.5 so the hand grips x=32 like every other blank.
+  fly: {
+    src: '3D/rods/fly/blank_fly.json',
+    texRef: 'riverfishing:item/rod/blank_fly_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip'] },
+      { name: 's1', members: ['blank_1'], joint: 19.0 },
+      { name: 's2', members: ['blank_2'], joint: 11.0 },
+      { name: 's3', members: ['blank_3', 'tip_top'], joint: 2.975 },
+    ],
+  },
   bamboo: {
     src: '3D/rods/bamboo/blank_bamboo.json',
     texRef: 'riverfishing:item/rod/blank_bamboo_3d',

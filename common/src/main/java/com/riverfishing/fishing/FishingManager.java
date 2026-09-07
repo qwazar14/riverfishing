@@ -555,9 +555,23 @@ public final class FishingManager {
             actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
             return false;
         }
+        if (type == RodType.FLY) {   // §fly-aim: the fly lands where the crosshair meets the water, as far as the line reaches
+            net.minecraft.world.phys.Vec3 eye = sp.getEyePosition();
+            net.minecraft.world.phys.BlockHitResult aimHit = level.clip(new net.minecraft.world.level.ClipContext(eye, eye.add(look.scale(28.0)),
+                    net.minecraft.world.level.ClipContext.Block.OUTLINE, net.minecraft.world.level.ClipContext.Fluid.SOURCE_ONLY, sp));
+            if (aimHit.getType() == HitResult.Type.BLOCK) {
+                double ax = aimHit.getLocation().x - sp.getX(), az = aimHit.getLocation().z - sp.getZ();
+                double aim = Math.sqrt(ax * ax + az * az);
+                if (aim >= 2.0) throwDist = Math.min(throwDist, aim);
+            }
+        }
         double px = sp.getX() + (look.x / hl) * throwDist;
         double pz = sp.getZ() + (look.z / hl) * throwDist;
         BlockPos waterPos = findWaterColumn(level, px, sp.getEyeY() + 2.0, pz);
+        // §fly-aim: a fly that would come down on the bank drops onto the last water under the line instead
+        for (double d = throwDist - 1.0; type == RodType.FLY && waterPos == null && d >= 2.0; d -= 1.0) {
+            waterPos = findWaterColumn(level, sp.getX() + (look.x / hl) * d, sp.getEyeY() + 2.0, sp.getZ() + (look.z / hl) * d);
+        }
         if (waterPos == null) {
             actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
             return false;

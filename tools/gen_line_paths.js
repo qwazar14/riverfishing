@@ -7,7 +7,7 @@
 const fs = require('fs');
 
 const RODS = ['stick', 'bamboo', 'pole', 'winter', 'ultralight', 'spinning', 'feeder',
-              'bottom', 'carp', 'surf', 'sea_spin', 'boat', 'trolling'];
+              'bottom', 'carp', 'surf', 'sea_spin', 'boat', 'trolling', 'fly'];
 const OUT = 'common/src/main/resources/assets/riverfishing/rod_line_paths.json';
 const r = n => Math.round(n * 1000) / 1000;
 

@@ -9,8 +9,8 @@
 const fs = require('fs');
 
 const RODS = ['stick', 'bamboo', 'pole', 'winter', 'ultralight', 'spinning', 'feeder',
-              'bottom', 'carp', 'surf', 'sea_spin', 'boat', 'trolling'];
-const SEGMENTED = { feeder: 5, pole: 5, bamboo: 6, spinning: 5, ultralight: 5, surf: 5, carp: 5, boat: 6, bottom: 5, trolling: 4, sea_spin: 8 };          // kind -> piece count
+              'bottom', 'carp', 'surf', 'sea_spin', 'boat', 'trolling', 'fly'];
+const SEGMENTED = { feeder: 5, pole: 5, bamboo: 6, spinning: 5, ultralight: 5, surf: 5, carp: 5, boat: 6, bottom: 5, trolling: 4, sea_spin: 8, fly: 4 };          // kind -> piece count
 const ASSETS = 'common/src/main/resources/assets/riverfishing';
 const RENDERER = 'common/src/main/java/com/riverfishing/client/RodItemRenderer.java';
 const LAYERS = 'common/src/main/java/com/riverfishing/client/RodModelLayers.java';
