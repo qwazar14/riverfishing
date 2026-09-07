@@ -107,8 +107,12 @@ public final class FlyCast {
             float m = marker(now - s.start, PERIOD);
             int end = m < 0.5f ? 0 : 1;
             float off = Math.min(m, 1f - m);
-            if (off > KNOT_OFF) quality = 2;
-            else if (off > ZONE_HALF || end == s.lastEnd || s.openLoop) quality = 1;
+            // the delivery is the NEXT stop: on it with the rhythm intact = tight; anything else dumps the
+            // line (a splash); and a rhythm already broken, dumped between the stops, knots the tippet
+            boolean onStop = off <= ZONE_HALF && end != s.lastEnd;
+            if (onStop && !s.openLoop) quality = 0;
+            else if (s.openLoop && off > KNOT_OFF) quality = 2;
+            else quality = 1;
             distance = Math.min(PICKUP + s.beats, max);
             if (quality != 0) distance *= 0.6;
             send(sp, s, false);
@@ -131,6 +135,6 @@ public final class FlyCast {
     }
 
     private static void send(ServerPlayer sp, State s, boolean active) {
-        ModNetwork.toPlayer(sp, new FlyCastPacket(active, s.start, PERIOD, ZONE_HALF, s.beats, s.maxBeats, s.openLoop));
+        ModNetwork.toPlayer(sp, new FlyCastPacket(active, s.start, PERIOD, ZONE_HALF, s.beats, s.maxBeats, s.openLoop, (byte) s.lastEnd));
     }
 }

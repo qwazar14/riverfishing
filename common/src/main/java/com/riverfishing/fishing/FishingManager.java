@@ -508,19 +508,35 @@ public final class FishingManager {
         }
     }
 
-    /** §fly: a click on a drifting fly line — sneak picks up, otherwise it is a mend. */
+    /**
+     * §fly-strip: a click on a drifting fly line STRIPS a block of it in — the fly comes toward you, the
+     * way every other rod's click brings the line in — and at your feet the cast is over. Sneak + click
+     * is the MEND: the line flipped upstream, the drag gone; a third mend in one drift slaps the water.
+     */
     private static void flyUse(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
         if (sp.isShiftKeyDown()) {
+            session.flyDrag = 0;
+            session.flyMends++;
+            session.flyDragWarned = false;
+            level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_THROW, SoundSource.PLAYERS, 0.35f, 1.6f);
+            if (session.flyMends >= 3) SpookTracker.onCastLanded(level, session.target, 0.15);
+            return;
+        }
+        double dx = sp.getX() - (session.target.getX() + 0.5), dz = sp.getZ() - (session.target.getZ() + 0.5);
+        double dist = Math.sqrt(dx * dx + dz * dz);
+        BlockPos next = dist > 2.5
+                ? findWaterColumn(level, session.target.getX() + 0.5 + dx / dist, session.target.getY() + 1.0, session.target.getZ() + 0.5 + dz / dist)
+                : null;
+        if (next == null) {
             endSession(sp, session);
             actionbar(sp, Component.translatable("message.riverfishing.fly_pickup"));
             return;
         }
-        session.flyDrag = 0;
-        session.flyMends++;
+        session.target = next;
+        session.flyDrag = Math.max(0, session.flyDrag - 30);   // a strip straightens the line a little
         session.flyDragWarned = false;
-        level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_THROW, SoundSource.PLAYERS, 0.35f, 1.6f);
-        // A third flip of the line in one drift is a line slapped on the water: the fish under it notice.
-        if (session.flyMends >= 3) SpookTracker.onCastLanded(level, session.target, 0.15);
+        level.playSound(null, next, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.25f, 1.4f);
+        ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, next, 0f, session.lineColor, session.floatKind, false));
     }
 
     private static boolean startCast(ServerPlayer sp, ServerLevel level, InteractionHand hand, long now, double power) {
@@ -3138,6 +3154,10 @@ public final class FishingManager {
                 session.species == null ? "" : session.species.getPath(), session.weightG, session.lengthCm,
                 false, false, 0f, false));
         // the ring: the take is on the surface, and everyone on the bank sees it
+        // §fly-splash: the take is on the surface — a boil of water and the slurp, for everyone on the bank
+        sp.level().sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
+                session.target.getZ() + 0.5, 16 + session.lengthCm / 5, 0.45, 0.15, 0.45, 0.25);
+        sp.level().playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.9f, 1.05f);
         sp.level().sendParticles(ParticleTypes.FISHING, session.target.getX() + 0.5, session.target.getY() + 1.0,
                 session.target.getZ() + 0.5, 8, 0.3, 0.0, 0.3, 0.05);
     }
