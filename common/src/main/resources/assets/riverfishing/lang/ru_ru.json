@@ -1541,7 +1541,7 @@
   "material.riverfishing.dye": "Краситель",
   "item.riverfishing.fly_rod": "Нахлыстовое удилище",
   "item.riverfishing.rig_fly": "Нахлыстовая оснастка",
-  "tooltip.riverfishing.rod_class.fly": "Нахлыстовая — шнур несёт мушку: жми «присесть» в такт, отпускай на такте",
+  "tooltip.riverfishing.rod_class.fly": "Нахлыстовая — шнур несёт мушку: держи ПКМ, ЛКМ в такт, отпускай на такте",
   "message.riverfishing.fly_straight": "Шнур вытянулся прямо под вами — поднимите и перезабросьте",
   "message.riverfishing.fly_pickup": "Шнур поднят",
   "message.riverfishing.fly_tight": "Узкая петля",
@@ -1557,5 +1557,6 @@
   "hatch.riverfishing.caddis": "Ручейник",
   "hatch.riverfishing.terrestrial": "Наземные насекомые",
   "hatch.riverfishing.scud": "Бокоплав",
-  "hatch.riverfishing.baitfish": "Малёк"
+  "hatch.riverfishing.baitfish": "Малёк",
+  "gui.riverfishing.fly_hint": "ЛКМ на краях · отпусти на краю"
 }

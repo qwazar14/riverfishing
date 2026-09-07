@@ -157,6 +157,8 @@ public final class FishingManager {
      */
     private static byte floatKind(RodClass rodClass, boolean iceFishing, ItemStack rig) {
         if (rodClass != RodClass.FLOAT || iceFishing) return 0;
+        // §fly-nofloat: a fly rod runs the FLOAT flow but there is nothing on the water but the fly
+        if (RigData.rigType(rig) == com.riverfishing.component.RigType.FLY) return 0;
         return RigData.hasFloat(rig) ? (byte) 2 : (byte) 1;
     }
 

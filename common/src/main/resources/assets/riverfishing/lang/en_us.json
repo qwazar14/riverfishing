@@ -1541,7 +1541,7 @@
   "material.riverfishing.dye": "Dye",
   "item.riverfishing.fly_rod": "Fly Rod",
   "item.riverfishing.rig_fly": "Fly Rig",
-  "tooltip.riverfishing.rod_class.fly": "Fly rod — the line carries the fly; tap sneak on the beats, release on a beat",
+  "tooltip.riverfishing.rod_class.fly": "Fly rod — the line carries the fly: hold use, left-click on the beats, release on a beat",
   "message.riverfishing.fly_straight": "Line's straight below you — pick up and cast again",
   "message.riverfishing.fly_pickup": "Picked up the line",
   "message.riverfishing.fly_tight": "Tight loop",
@@ -1557,5 +1557,6 @@
   "hatch.riverfishing.caddis": "Caddis",
   "hatch.riverfishing.terrestrial": "Terrestrials",
   "hatch.riverfishing.scud": "Scud",
-  "hatch.riverfishing.baitfish": "Baitfish"
+  "hatch.riverfishing.baitfish": "Baitfish",
+  "gui.riverfishing.fly_hint": "Left-click on the ends · release on an end"
 }

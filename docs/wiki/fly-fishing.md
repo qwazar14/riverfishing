@@ -18,7 +18,7 @@ The fly rod is a Float-class rod with a reel: the wait-for-the-bite flow, the st
 
 Hold use with no line out and the rod goes back: a needle sweeps a bar, and the two ends of the sweep are the two stops of a fly cast — the stop of the backcast, the stop of the forward cast.
 
-- **Tap sneak on each end.** A tap with the needle near an end that has not been tapped this sweep is a **good beat**: one false cast, one more block of line in the air. A tap anywhere else, or on the same end twice, is a **bad beat**: the loop opens and the count goes back to zero.
+- **Left-click on each end.** A tap with the needle near an end that has not been tapped this sweep is a **good beat**: one false cast, one more block of line in the air. A tap anywhere else, or on the same end twice, is a **bad beat**: the loop opens and the count goes back to zero.
 - **Release use to deliver.** Released on a beat with the loop still closed = a **tight loop**: full distance, a soft landing. Released off the beat, or with the loop open = a **splash**: 60 % of the distance, and the fish there are spooked for about five seconds. Released well past an end = a **wind knot**: the splash plus line wear.
 - **Distance is aim.** Six blocks of line to start, plus a block per good beat, up to the rod's 18; the fly lands where your crosshair meets the water at that distance.
 

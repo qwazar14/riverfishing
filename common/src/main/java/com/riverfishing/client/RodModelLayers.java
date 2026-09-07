@@ -26,11 +26,9 @@ import java.util.Locale;
 public final class RodModelLayers {
     private RodModelLayers() {}
 
-    // §fly: no "fly" here on purpose — the fly rod is drawn with the ultralight's layers
-    // (RodType.modelKey), which are already listed. Add it when it gets a blank of its own.
     public static final String[] ROD_KEYS =
             {"stick", "bamboo", "pole", "winter", "ultralight", "spinning", "feeder", "bottom", "carp",
-             "surf", "sea_spin", "boat", "trolling"};
+             "surf", "sea_spin", "boat", "trolling", "fly"};
     public static final int[] REEL_SIZES = {1000, 2000, 3000, 4000, 5000, 6000, 7000,
             8000, 10000, 12000, 14000};
 
