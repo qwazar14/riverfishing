@@ -1,0 +1,35 @@
+{
+  "en_us": {
+    "message.riverfishing.fly_too_fast": "Too fast — pulled it out of its mouth",
+    "message.riverfishing.fly_too_slow": "Too slow — it spat the fly",
+    "hatch.riverfishing.midge": "Midge",
+    "hatch.riverfishing.stonefly": "Stonefly",
+    "hatch.riverfishing.mayfly": "Mayfly",
+    "hatch.riverfishing.caddis": "Caddis",
+    "hatch.riverfishing.terrestrial": "Terrestrials",
+    "hatch.riverfishing.scud": "Scud",
+    "hatch.riverfishing.baitfish": "Baitfish"
+  },
+  "ru_ru": {
+    "message.riverfishing.fly_too_fast": "Слишком рано — вырвали изо рта",
+    "message.riverfishing.fly_too_slow": "Слишком поздно — выплюнула мушку",
+    "hatch.riverfishing.midge": "Мотыль-комар",
+    "hatch.riverfishing.stonefly": "Веснянка",
+    "hatch.riverfishing.mayfly": "Подёнка",
+    "hatch.riverfishing.caddis": "Ручейник",
+    "hatch.riverfishing.terrestrial": "Наземные насекомые",
+    "hatch.riverfishing.scud": "Бокоплав",
+    "hatch.riverfishing.baitfish": "Малёк"
+  },
+  "uk_ua": {
+    "message.riverfishing.fly_too_fast": "Зарано — вирвав із рота",
+    "message.riverfishing.fly_too_slow": "Запізно — виплюнула мушку",
+    "hatch.riverfishing.midge": "Мотиль-комар",
+    "hatch.riverfishing.stonefly": "Веснянка",
+    "hatch.riverfishing.mayfly": "Одноденка",
+    "hatch.riverfishing.caddis": "Волохокрилець",
+    "hatch.riverfishing.terrestrial": "Наземні комахи",
+    "hatch.riverfishing.scud": "Бокоплав",
+    "hatch.riverfishing.baitfish": "Малько"
+  }
+}

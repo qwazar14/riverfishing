@@ -616,7 +616,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
                                        int light, int overlay) {
         if (!BLANK_3D) return false;
         if (!(stack.getItem() instanceof RodItem rod)) return false;
-        String rodKey = rod.rodType().jsonKey();
+        String rodKey = rod.rodType().modelKey();   // §fly: the fly rod borrows the ultralight blank
         Minecraft mc = Minecraft.getInstance();
         ModelManager mm = mc.getModelManager();
         BakedModel missing = mm.getMissingModel();
@@ -737,7 +737,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         ModelManager mm = mc.getModelManager();
         ItemRenderer ir = mc.getItemRenderer();
         BakedModel missing = mm.getMissingModel();
-        String rodKey = stack.getItem() instanceof RodItem r ? r.rodType().jsonKey() : "bamboo";
+        String rodKey = stack.getItem() instanceof RodItem r ? r.rodType().modelKey() : "bamboo";   // §fly
         // §rod-physics: advanced here because the view moves per FRAME, not per tick, and this is the
         // one place that runs every frame a rod is on screen. Calling it twice in a frame is a no-op.
         RodPhysics.update();

@@ -88,7 +88,7 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
                 // the line must leave the REAL tip of this rod: the same matrix that drew the blank
                 // transforms the same model-space tip the threaded line ends at
                 Float tipX = rod.getItem() instanceof com.riverfishing.item.RodItem r
-                        ? RodItemRenderer.blankTipX(r.rodType().jsonKey()) : null;
+                        ? RodItemRenderer.blankTipX(r.rodType().modelKey()) : null;
                 if (tipX != null) {
                     org.joml.Vector3f tip = rodM.transformPosition(new org.joml.Vector3f(
                             tipX / 16f - 0.5f, 10.5f / 16f - 0.5f, 8.5f / 16f - 0.5f));

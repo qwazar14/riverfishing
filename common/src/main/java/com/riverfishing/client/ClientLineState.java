@@ -65,6 +65,8 @@ public final class ClientLineState {
         public net.minecraft.world.item.ItemStack stack;   // the drawn item, rebuilt when the species changes
         public String stackSpecies = "";
         public boolean wasInAir;         // for the splash on the way out and the way back
+        /** §fly: client game time the rise began, -1 when none is on — the body climbs over its first eight ticks. */
+        public long riseStart = -1;
 
         /**
          * §hooked-fish: one frame of the body. {@code fwd} points from the angler to the water end,
@@ -78,6 +80,7 @@ public final class ClientLineState {
 
         public void tickFish(float dt, double fwdX, double fwdZ, WaterTest water, net.minecraft.world.phys.Vec3 base) {
             if (!fighting || species.isEmpty()) {
+                if (biting && !species.isEmpty()) heading = (float) Math.atan2(fwdZ, fwdX);   // §fly: a rising fish faces away from the angler, under the fly
                 fx *= Math.max(0f, 1f - dt * 4f); fy *= Math.max(0f, 1f - dt * 4f); fz *= Math.max(0f, 1f - dt * 4f);
                 jumpT = -1f;
                 return;
@@ -218,7 +221,10 @@ public final class ClientLineState {
         line.fighting = p.fighting;
         line.running = p.running;
         line.course = p.course;
-        line.species = p.species;        // §hooked-fish
+        // §fly: the 40-tick refresh names no fish; during a rise it must not wipe the one the rise sent
+        if (!p.species.isEmpty() || !p.biting || p.fighting) line.species = p.species;   // §hooked-fish
+        long t = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
+        if (p.biting && !p.fighting) { if (line.riseStart < 0) line.riseStart = t; } else line.riseStart = -1;
         line.weightG = p.weightG;
         line.lengthCm = p.lengthCm;
         line.jumping = p.jumping;

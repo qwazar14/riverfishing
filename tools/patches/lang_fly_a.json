@@ -1,0 +1,17 @@
+{
+  "en_us": {
+    "item.riverfishing.fly_rod": "Fly Rod",
+    "item.riverfishing.rig_fly": "Fly Rig",
+    "tooltip.riverfishing.rod_class.fly": "Fly rod — the line carries the fly; tap sneak on the beats, release on a beat"
+  },
+  "ru_ru": {
+    "item.riverfishing.fly_rod": "Нахлыстовое удилище",
+    "item.riverfishing.rig_fly": "Нахлыстовая оснастка",
+    "tooltip.riverfishing.rod_class.fly": "Нахлыстовая — шнур несёт мушку: жми «присесть» в такт, отпускай на такте"
+  },
+  "uk_ua": {
+    "item.riverfishing.fly_rod": "Нахлистове вудилище",
+    "item.riverfishing.rig_fly": "Нахлистова оснастка",
+    "tooltip.riverfishing.rod_class.fly": "Нахлистова — шнур несе мушку: тисни «присісти» в такт, відпускай на такті"
+  }
+}

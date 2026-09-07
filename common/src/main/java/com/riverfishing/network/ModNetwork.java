@@ -43,6 +43,9 @@ public final class ModNetwork {
         // what a standing player presses, so the fight has to be told.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, FightInputPacket.TYPE, FightInputPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §fly: a sneak tap on a stop of the fly cast's rhythm.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, FlyBeatPacket.TYPE, FlyBeatPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
         // §cull: the electrofisher's list is answered here — re-validated from scratch, creative only.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, CullPacket.TYPE, CullPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
@@ -58,6 +61,7 @@ public final class ModNetwork {
 
         if (dev.architectury.platform.Platform.getEnvironment() == dev.architectury.utils.Env.SERVER) {
             NetworkManager.registerS2CPayloadType(FloatTimingPacket.TYPE, FloatTimingPacket.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(FlyCastPacket.TYPE, FlyCastPacket.STREAM_CODEC);   // §fly
             NetworkManager.registerS2CPayloadType(JournalOpenPacket.TYPE, JournalOpenPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(LineSyncPacket.TYPE, LineSyncPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(ShoalPacket.TYPE, ShoalPacket.STREAM_CODEC);
@@ -72,6 +76,9 @@ public final class ModNetwork {
     /** CLIENT-ONLY: the server → client receivers. Called from the client bootstrap (ClientInit). */
     public static void registerClientReceivers() {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, FloatTimingPacket.TYPE, FloatTimingPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(payload::handleClient));
+        // §fly: the rhythm gauge, on/off and after every beat.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, FlyCastPacket.TYPE, FlyCastPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, JournalOpenPacket.TYPE, JournalOpenPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));

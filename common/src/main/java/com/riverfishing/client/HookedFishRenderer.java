@@ -35,10 +35,19 @@ public final class HookedFishRenderer {
 
     public static void draw(Minecraft mc, PoseStack pose, MultiBufferSource buffers,
                             ClientLineState.Line state, Vec3 at, float pt) {
-        if (!state.fighting || state.species.isEmpty() || mc.level == null) return;
+        if (!(state.fighting || state.biting) || state.species.isEmpty() || mc.level == null) return;   // §fly: drawn on the rise too
         ItemStack stack = stackFor(state);
         if (stack == null) return;
         float time = mc.level.getGameTime() + pt;
+        // §fly: the rise — the body comes up under the fly, nose up, over the first eight ticks of the take
+        boolean rising = state.biting && !state.fighting;
+        double riseY = 0.0;
+        float risePitch = 0f;
+        if (rising) {
+            float rt = state.riseStart < 0 ? 1f : Mth.clamp((time - state.riseStart) / 8f, 0f, 1f);
+            riseY = Mth.lerp(rt, -0.4f, -0.05f);
+            risePitch = -35f;
+        }
 
         // the splash: once when the body leaves the water, once when it comes back
         double surfaceY = state.target.getY() + 0.95;
@@ -52,7 +61,7 @@ public final class HookedFishRenderer {
         }
 
         pose.pushPose();
-        pose.translate(at.x, at.y, at.z);
+        pose.translate(at.x, at.y + riseY, at.z);   // §fly
         // Sprite head is on local −X (ShoalRenderer's derivation): a Y turn of 180 − heading sends it
         // along the heading. The tail beat swings the whole body, the nose swings with it.
         float beat = Mth.sin(state.tail) * (state.running ? 7f : 4f);
@@ -60,7 +69,7 @@ public final class HookedFishRenderer {
         if (com.riverfishing.fish.FishPose.isFlat(state.species)) {
             pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
         }
-        pose.mulPose(Axis.ZP.rotationDegrees(state.pitch + Mth.sin(time * 0.05f) * 2f));
+        pose.mulPose(Axis.ZP.rotationDegrees((rising ? risePitch : state.pitch) + Mth.sin(time * 0.05f) * 2f));   // §fly
         // the item's FIXED display turns the model 180° about Y; one more here puts the head back on −X
         pose.mulPose(Axis.YP.rotationDegrees(180f + Mth.sin(state.tail * 1.0f) * 6f));
         FishItemRenderer.gridScale = ShoalRenderer.itemSize(state.lengthCm);
