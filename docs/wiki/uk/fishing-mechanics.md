@@ -109,6 +109,7 @@ W = base × M^sizeExp × E × feedBonus × localStock × pressureFactor × (1 + 
 
 - **В оснастці немає наживки, яку риба хоче** → W = 0.
 - **Оцінка гачка нижча за 0.34** → W = 0. Не той розмірний ряд гачка — і риба не візьме, крапка.
+- **У гачка є рот.** Найдрібніший гачок на оснастці задає найдрібнішу рибу, яка його візьме: 40 г на №8, удвічі менше кожні два номери вниз (№16: 2,5 г) і вдвічі більше кожні два вгору (№2: 320 г). Вид, чий найбільший екземпляр менший за це, не бере зовсім, а для решти розіграш ваги знизу обмежений цим порогом (не вище 60 % діапазону) — те саме правило, що вже діє для маси приманки.
 
 ### Час до поклівки
 
@@ -307,7 +308,8 @@ if weightKg × 1.4 > max(0.4, lineStrainKg) → the line parts
 ### Натяг і прогрес
 
 ```
-requiredKg      = max(0.5, fightStrength × (1 + weightKg) × 2)
+sizeStrength    = clamp(√(weightG / weightMean), 0.35, 1)        — сила в профілі належить середньому екземпляру
+requiredKg      = max(0.5, fightStrength × sizeStrength × (1 + weightKg) × 2)
 effectiveStrain = lineStrainKg + 0.5 × fightDrag
 breakTension    = clamp(effectiveStrain / requiredKg, 0.2, 1) / breakSensitivity
                         × overloadPenalty × steadyHandMultiplier      (clamped 0.1 … 1.0)

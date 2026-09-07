@@ -109,6 +109,7 @@ W = base × M^sizeExp × E × feedBonus × localStock × pressureFactor × (1 + 
 
 - **В оснастке нет наживки, которую рыба хочет** → W = 0.
 - **Счёт крючка ниже 0.34** → W = 0. Не тот размерный ряд крючка — и рыба не возьмёт, точка.
+- **У крючка есть рот.** Самый мелкий крючок на оснастке задаёт самую мелкую рыбу, которая его возьмёт: 40 г на №8, вдвое меньше каждые два номера вниз (№16: 2,5 г) и вдвое больше каждые два вверх (№2: 320 г). Вид, чей самый крупный экземпляр меньше этого, не берёт вовсе, а для остальных розыгрыш веса снизу ограничен этим порогом (не выше 60 % диапазона) — то же правило, что уже действует для массы приманки.
 
 ### Время до поклёвки
 
@@ -307,7 +308,8 @@ if weightKg × 1.4 > max(0.4, lineStrainKg) → the line parts
 ### Натяжение и прогресс
 
 ```
-requiredKg      = max(0.5, fightStrength × (1 + weightKg) × 2)
+sizeStrength    = clamp(√(weightG / weightMean), 0.35, 1)        — сила в профиле принадлежит среднему экземпляру
+requiredKg      = max(0.5, fightStrength × sizeStrength × (1 + weightKg) × 2)
 effectiveStrain = lineStrainKg + 0.5 × fightDrag
 breakTension    = clamp(effectiveStrain / requiredKg, 0.2, 1) / breakSensitivity
                         × overloadPenalty × steadyHandMultiplier      (clamped 0.1 … 1.0)

@@ -73,9 +73,7 @@
     "depth_min": 2,
     "width_min": 12
   },
-  "provinces": [
-    "palearctic"
-  ],
+  "provinces": [],
   "biomes": {
     "ocean_biome": 1.0,
     "warm": 1.2,

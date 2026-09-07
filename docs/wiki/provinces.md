@@ -24,13 +24,13 @@ Seventy of the 107 species name their provinces. The other 37 are ungated: 31 se
 
 | Province | Species |
 |---|---|
-| Palearctic | **102** |
-| Nearctic | **119** |
-| Neotropic | **46** |
-| Indomalaya | **70** |
-| Afrotropical | **68** |
+| Palearctic | **83** |
+| Nearctic | **94** |
+| Neotropic | **28** |
+| Indomalaya | **47** |
+| Afrotropical | **46** |
 
-4 species are on **all five** provinces — the ones the oceans carry everywhere: **Mako shark**, **Mullet**, **Ocean sunfish**, **Swordfish**. Everything else is missing from at least one part of the world.
+40 species are on **all five** provinces — the ones the oceans carry everywhere: **Anglerfish**, **Barracuda**, **Black marlin**, **Blacktail snapper**, **Blobfish**, **Blue marlin**, **Bluefin tuna**, **Bluefish**, **Bull shark**, **Cod**, **Conger eel**, **Flounder**, **Frilled shark**, **Garfish**, **Goliath grouper**, **Halibut**, **Herring**, **Jack crevalle**, **Laced moray**, **Mackerel**, **Mahi-mahi**, **Mako shark**, **Map puffer**, **Mullet**, **Ocean sunfish**, **Ocellaris clownfish**, **Palette surgeonfish**, **Pollock**, **Ray**, **Sailfish**, **Saithe**, **Sea bass**, **Starry puffer**, **Swordfish**, **Tiger shark**, **Wahoo**, **Whale shark**, **Turkey moray**, **White-spotted puffer**, **Yellowfin tuna**. Everything else is missing from at least one part of the world.
 
 The exact roster of each province is on each species' journal page and in the [fish finder](tools.md#fish-finder), which names the province you are standing in.
 

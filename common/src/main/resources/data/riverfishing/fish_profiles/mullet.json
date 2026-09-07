@@ -85,11 +85,5 @@
   "base": 0.85,
   "min_angler_level": 8,
   "diet": "peaceful",
-  "provinces": [
-    "palearctic",
-    "nearctic",
-    "neotropic",
-    "indomalaya",
-    "afrotropical"
-  ]
+  "provinces": []
 }

@@ -26,6 +26,7 @@ ROUGHLY = {"en": "Sub-Saharan Africa", "ru": "Африка южнее Сахар
 ORDER = ["palearctic", "nearctic", "neotropic", "indomalaya", "afrotropical"]
 
 
+def few(n): return n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14)   # 2 вида / 5 видов
 def rd(p): return io.open(p, encoding="utf-8").read()
 def wr(p, s): io.open(p, "w", encoding="utf-8", newline="\n").write(s)
 
@@ -61,7 +62,7 @@ def main():
         pr = p.get("provinces", [])
         for k in pr:
             if k in counts: counts[k] += 1
-        if len(set(pr)) >= 5: allfive.append(sp)
+        if not pr or len(set(pr)) >= 5: allfive.append(sp)   # §sea-roamers: no provinces = everywhere
     for loc, sub, img, code in G.LOC:
         path = os.path.join(WIKI, sub, "provinces.md") if sub else os.path.join(WIKI, "provinces.md")
         text = rd(path)
@@ -79,9 +80,10 @@ def main():
         # the cosmopolitan paragraph
         fish = ", ".join("**%s**" % (langs[code].get("fish.riverfishing." + s) or s) for s in sorted(allfive))
         para = {"en": "%d species are on **all five** provinces — the ones the oceans carry everywhere: %s. Everything else is missing from at least one part of the world." % (len(allfive), fish),
-                "ru": "%d вида стоят во **всех пяти** провинциях — те, кого разносят океаны: %s. Всё остальное отсутствует хотя бы в одной части света." % (len(allfive), fish),
-                "uk": "%d види стоять на **всіх п'яти** провінціях — ті, кого розносять океани: %s. Усе інше відсутнє принаймні в одній частині світу." % (len(allfive), fish)}[loc]
-        text = re.sub(r"^(Eight species are on \*\*all four\*\*|Восемь видов стоят во \*\*всех четырёх\*\*|Вісім видів стоять на \*\*всіх чотирьох\*\*)[^\n]*$", para, text, flags=re.M)
+                "ru": "%d %s во **всех пяти** провинциях — те, кого разносят океаны: %s. Всё остальное отсутствует хотя бы в одной части света." % (len(allfive), "вида стоят" if few(len(allfive)) else "видов стоят", fish),
+                "uk": "%d %s на **всіх п'яти** провінціях — ті, кого розносять океани: %s. Усе інше відсутнє принаймні в одній частині світу." % (len(allfive), "види стоять" if few(len(allfive)) else "видів стоять", fish)}[loc]
+        text = re.sub(r"^(Eight species are on \*\*all four\*\*|Восемь видов стоят во \*\*всех четырёх\*\*|Вісім видів стоять на \*\*всіх чотирьох\*\*"
+                      r"|\d+ species are on \*\*all five\*\*|\d+ вид(а|ов) стоят во \*\*всех пяти\*\*|\d+ вид(и|ів) стоять на \*\*всіх п'яти\*\*)[^\n]*$", para, text, flags=re.M)
         text = text.replace("one of the four provinces", "one of the five provinces").replace("одна из четырёх провинций", "одна из пяти провинций").replace("одну з чотирьох провінцій", "одну з п'яти провінцій")
         text = text.replace("порізано на чотири фауністичні", "порізано на п'ять фауністичних").replace("cut into four faunal", "cut into five faunal").replace("разрезан на четыре фаунистические", "разрезан на пять фаунистических")
         wr(path, text); print("  provinces.md", loc, counts)

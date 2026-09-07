@@ -75,9 +75,7 @@
     "depth_min": 6,
     "width_min": 16
   },
-  "provinces": [
-    "indomalaya"
-  ],
+  "provinces": [],
   "biomes": {
     "temperate": 0.6,
     "warm": 1.1,

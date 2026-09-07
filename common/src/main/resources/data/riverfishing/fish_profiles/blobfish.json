@@ -82,7 +82,5 @@
   "base": 0.16,
   "min_angler_level": 33,
   "diet": "predator",
-  "provinces": [
-    "indomalaya"
-  ]
+  "provinces": []
 }

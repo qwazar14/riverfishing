@@ -81,7 +81,5 @@
   "base": 0.9,
   "min_angler_level": 17,
   "diet": "omnivore",
-  "provinces": [
-    "palearctic"
-  ]
+  "provinces": []
 }

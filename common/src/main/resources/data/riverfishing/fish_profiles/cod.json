@@ -86,8 +86,5 @@
   "base": 0.6,
   "min_angler_level": 25,
   "diet": "predator",
-  "provinces": [
-    "palearctic",
-    "nearctic"
-  ]
+  "provinces": []
 }
