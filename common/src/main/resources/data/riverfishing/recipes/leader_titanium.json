@@ -1,8 +1,0 @@
-{
-  "type": "minecraft:crafting_shapeless",
-  "ingredients": [
-    { "item": "minecraft:string" },
-    { "item": "minecraft:iron_ingot" }
-  ],
-  "result": { "item": "riverfishing:leader_titanium", "count": 1 }
-}

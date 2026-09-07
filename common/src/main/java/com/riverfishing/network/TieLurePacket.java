@@ -123,6 +123,7 @@ public class TieLurePacket implements ModNetwork.RfPacket {
         // the bead nuggets and the hook nugget come out of the same pile — ask for both at once
         int[] cost = TiedDesign.cost(design);
         if (count(menu, HOOK) < 1 + cost[TiedDesign.BEAD_IRON] || !affordable(menu, design)) return;
+        com.riverfishing.quest.AnglerAdvancements.grant(sp, "tied");   // §progression
         for (int px = 1; px <= TiedDesign.LAST; px++) {
             if (cost[px] == 0) continue;
             take(menu, ingredient(px), cost[px]);

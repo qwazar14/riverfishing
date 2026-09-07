@@ -56,7 +56,7 @@ public final class RiverFishingConfig {
     public static double leaderBiteoffChance() { return byPreset(0.3, 0.75, 0.95, leaderBiteoff); }
     public static double lineWearRate() { return byPreset(0.3, 1.0, 1.7, lineWear); }
     public static double hookWearRate() { return byPreset(0.3, 1.0, 1.7, hookWear); }
-    public static double snagChance() { return byPreset(0.3, 1.0, 1.6, snag); }
+    public static double snagChance() { return byPreset(0.3, 1.0, 1.3, snag); }   // §hardcore-snag: 1.6 was a snag every sixth cast
     public static double foulHookChance() { return byPreset(0.4, 1.0, 1.6, foul); }
     /** §spook: how sharply the fish react to the angler. Zero switches the mechanic off entirely. */
     public static double spookRate() { return byPreset(0.35, 1.0, 1.6, spook); }

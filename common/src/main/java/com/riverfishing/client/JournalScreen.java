@@ -1704,6 +1704,7 @@ public class JournalScreen extends Screen {
     private static String skillBonus(com.riverfishing.fishing.AnglerSkills.Perk p, int rank) {
         return switch (p) {
             case FRUGAL, QUICK_BITE, NATURALIST, STRONG_LINE -> "+" + (rank * 5) + "%";
+            case SNAG_SENSE -> "-" + (rank * 8) + "%";
             case ANGLERS_LUCK, FINESSE -> "+" + (rank * 1) + "%";
         };
     }
@@ -2553,7 +2554,7 @@ public class JournalScreen extends Screen {
 
     /** §species-table: the line and the hook — the two asks a species still makes of your tackle. */
     private static String tackle(com.riverfishing.fish.FishCard c) {
-        String line = Component.translatable("item.riverfishing.line_" + c.lineType()).getString();
+        String line = Component.translatable("linetype.riverfishing." + c.lineType())   // §line-name.getString();
         String s = c.lineDiameter() > 0 ? String.format(java.util.Locale.ROOT, "%s %.2f", line, c.lineDiameter()) : line;
         return c.hookIdeal() > 0 ? s + " · №" + c.hookIdeal() : s;
     }

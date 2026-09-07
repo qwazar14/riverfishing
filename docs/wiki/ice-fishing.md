@@ -105,7 +105,7 @@ The strongest winter species by season factor:
 
 Only **Smelt** and **Whitefish** actually list the winter rod and the winter rig as their ideal tackle. Everything else you pull through the ice is being caught on gear it doesn't strictly want — which costs you on the rod and rig components of the [match score](fishing-mechanics.md#match-coefficient-m--your-tackle), but is entirely playable.
 
-Seven species have `winter: 0.0` and will never bite through the ice: Crucian Carp, Rudd, Bleak, Chub, Tench, Catfish and Eel. Carp, Mirror Carp, Wild Carp, Grass Carp and Silver carp are effectively shut down at 0.02–0.05.
+Nine species have `winter: 0.0` and will never bite through the ice: Crucian Carp, Rudd, Bleak, Chub, Tench, Catfish, Eel, Bitterling and Sunbleak. Carp, Mirror Carp, Wild Carp, Grass Carp and Silver carp are effectively shut down at 0.02–0.05.
 
 ## Progression
 
@@ -114,15 +114,15 @@ The mod tracks fish landed through the ice as its own counter, feeding quest **s
 | Quest | Goal | Reward |
 |---|---|---|
 | Catch your first fish through the ice | 1 ice catch | 2 × Ice Jig |
-| Catch a burbot | any burbot | 4 × Oil Cake Groundbait |
-| Catch a ruffe | any ruffe | 12 × Maggot |
+| Catch a burbot | any burbot | 4 × Chicken Liver |
+| Catch 5 fish through the ice | 5 ice catches | 12 × Maggot |
 | Catch 10 fish through the ice | 10 ice catches | **Winter Rod** |
 | Catch 30 fish through the ice | 30 ice catches | 24 emeralds |
 | Fully complete stage 6 | all five above | 50 emeralds |
 
 There is also the code-driven advancement **From Under the Ice** — pull a burbot through a hole with the winter rod.
 
-Stage 6 unlocks once 70 % of stage 5's tasks are done, and completing 70 % of stage 6 opens [stage 7, the north and the taiga](progression.md#the-quest-chain).
+Stage 6 unlocks once 70 % of stage 5's tasks are done, and completing 70 % of stage 6 opens [stage 7, cold water and the fly](progression.md#the-quest-chain).
 
 ## See also
 
