@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": {
+      "item": "minecraft:bucket"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.thousand.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.thousand.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}
