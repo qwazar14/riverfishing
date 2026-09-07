@@ -16,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 /**
  * §fly: the rhythm gauge — the cast bar's brass frame with a green stop at BOTH ends, the needle
  * sweeping between them, a pip above the bar for every false cast in the air, and the metres the line
- * will land at on the plaque. The sneak key's down-edge is the beat; the server judges it.
+ * will land at on the plaque. The attack button's down-edge is the beat; the server judges it.
  *
  * <p>§fly-juice: a hit has to be FELT. Every good beat punches the whole gauge up in size and it
  * settles back over half a second, the frame shakes for the first few frames, the stops glow from
@@ -31,7 +31,7 @@ public final class FlyCastClient {
     private static int beats;
     private static int maxBeats;
     private static boolean openLoop;
-    private static boolean shiftWas;
+    private static boolean attackWas;
     /** Wall-clock of the last good beat / the last collapse, for the punch and the shake. */
     private static long hitNanos = -1L, missNanos = -1L;
 
@@ -80,10 +80,10 @@ public final class FlyCastClient {
         return use.getItem() instanceof RodItem ri && ri.rodType() == RodType.FLY ? use : ItemStack.EMPTY;
     }
 
-    /** Client tick: the sneak key's down-edge while the gauge is up is a beat. */
+    /** Client tick: the attack button's down-edge while the gauge is up is a beat. */
     public static void tick(Minecraft mc) {
         if (!active) {
-            shiftWas = false;
+            attackWas = false;
             return;
         }
         if (heldFlyRod(mc).isEmpty()) {
@@ -92,9 +92,12 @@ public final class FlyCastClient {
             active = false;
             return;
         }
-        boolean down = mc.options.keyShift.isDown();
-        if (down && !shiftWas) ModNetwork.toServer(new FlyBeatPacket());
-        shiftWas = down;
+        // §fly-key: the beat is the ATTACK button — sneak crouched the camera on every stop. Vanilla queues
+        // attack clicks while an item is in use and fires them all on release, so they are eaten here.
+        boolean down = mc.options.keyAttack.isDown();
+        if (down && !attackWas) ModNetwork.toServer(new FlyBeatPacket());
+        attackWas = down;
+        while (mc.options.keyAttack.consumeClick()) { /* drained */ }
     }
 
     /** Seconds since a wall-clock stamp, or a large number when there is none. */
@@ -189,6 +192,9 @@ public final class FlyCastClient {
             g.pose().scale(cs, cs, 1f);
             g.drawCenteredString(mc.font, comboText, 0, -4, openLoop ? 0xFFE05A4A : lerpRgb(0xF0E6CD, 0xFFE070, combo) | 0xFF000000);
             g.pose().popPose();
+        }
+        if (beats == 0 && hitNanos < 0) {   // §fly-key: the one line that teaches the cast
+            g.drawCenteredString(mc.font, Component.translatable("gui.riverfishing.fly_hint"), screenW / 2, y + FH + 8, 0xFFB8AE9A);
         }
         g.drawCenteredString(mc.font, Component.translatable("gui.riverfishing.fly_beats", beats),
                 screenW / 2, py - 24, openLoop ? 0xFFE05A4A : 0xFFF0E6CD);
