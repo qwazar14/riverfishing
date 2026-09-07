@@ -1,3 +1,18 @@
+# §fly-2 — the 0.10.0 rebuild (what shipped)
+
+Phase 1 shipped the §3 mini-game below and it was **crooked, dull and opaque**: a needle at 0.45 s per stop that wanted a tap on every end, a release rule ("the lit end") nobody could infer, a twelve-second drift with nothing to look at but a drag number, and a strike clock with no label. The rebuild keeps the bones (the rod, the rig, the hatch, the species clock) and replaces the loop with three legible ideas:
+
+1. **The fish show themselves** (`fishing/FlyRises.java`). While a fly rod is in the hand, feeding fish rise in front of the angler — a ring, a splash, a sip — five to sixteen blocks out, three at a time, each holding its lie for ten seconds. A fly landing or drifting within 2.5 blocks is *on the fish*: `session.species` becomes that fish and the take comes in 15–45 ticks. The species is drawn from the bite engine's own weights at that spot × `flyAppetite(diet)` (insectivore 1.4, peaceful 1.0, omnivore 0.9, predator 0.35). Blind casts still fish the slow way.
+2. **The cast is a hold and one release** (`fishing/FlyCast.java`). Hold use: the rod false-casts on its own, a stop every 16 ticks, +2 m per stop from 6 up to the rod's reach. Release on the forward stop (the green right end, ±0.18) = tight; within 0.42 of it = open (85 %); further = piled (60 %, a slap, spook). A left-click on either stop = a haul, +2 m, once per stop; a click anywhere else does nothing. There is no way to fail by clicking.
+3. **The drift reads itself** (`FlyCastPacket` mode 2 → `FlyCastClient.renderDrift`). One line under the crosshair: *dead drift* / *dragging — LMB to mend* / *line's straight — hold RMB* / *on the fish — wait*. LMB = mend (FlyBeatPacket routed by `FishingManager.flyBeat`). Tap RMB = strip (a streamer or shrimp is fished by it: −20 ticks to the take per strip, a swirl behind the fly one strip in three; a dry fly only twitches −6). **Hold RMB ≥ 6 ticks = pick up and go straight into the false casts** (`FishingManager.tick` → `endSession` + `FlyCast.begin`; the release delivers). `RodItem.use` turns a calm fly line's click into an item hold (`FishingManager.flyCalm` / `ClientLineState.selfCalm`); `releaseUsing` → `flyTap` strips on a short hold.
+4. **The take says SET.** Same species clock, wider: green opens at `5 + (1 − aggr) × 6`, lasts `12 + (1 − aggr) × 6`, window +8; the strike bar's label reads *SET! Click in the green* on a fly rod.
+
+Gone: wind knots, the "lit end" rule, sneak+RMB mend, the hatch's decorative rise rings (every ring is a fish now). Kept for later: backcast obstruction, the roll cast, the nymph indicator, a drawn following fish.
+
+Everything server-side is particles and the existing line sync, so spectators see the rises and the rise-to-take the same as the angler.
+
+---
+
 # §fly — fly fishing (0.10 proposal)
 
 A separate way to fish, with its own loop. Spinning is a rhythm game, float and bottom are a waiting

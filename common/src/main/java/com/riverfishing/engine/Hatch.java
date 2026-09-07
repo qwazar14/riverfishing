@@ -117,7 +117,7 @@ public enum Hatch {
             level.sendParticles(ParticleTypes.WHITE_ASH, x, target.getY() + 1.1 + r.nextDouble() * 0.6, z,
                     1, 0.0, 0.02, 0.0, 0.0);
         }
-        if (r.nextInt(4) != 0) return;
+        if (true) return;   // §fly-2: the rise rings are FlyRises' — real fish, not decoration
         BlockPos p = target.offset(r.nextInt(13) - 6, 0, r.nextInt(13) - 6);
         if (!level.getFluidState(p).is(FluidTags.WATER) || !level.getBlockState(p.above()).isAir()) return;
         double y = p.getY() + 0.92;
