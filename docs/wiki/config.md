@@ -19,7 +19,7 @@ Missing keys simply keep their defaults, so a three-line file with nothing but `
 
 `preset` sets all nine of the frustrating mechanics at once, and it is the only line most packs ever need to touch. Four values: `arcade`, `realism`, `hardcore`, `custom`.
 
-**`realism` is the default**, and it is what every number elsewhere in this wiki assumes. `arcade` cuts the harsh multipliers to roughly a third. `hardcore` raises them by 60–70 %. `custom` ignores the table below and reads the nine individual values instead.
+**`realism` is the default**, and it is what every number elsewhere in this wiki assumes. `arcade` cuts the harsh multipliers to roughly a third. `hardcore` raises them by 60–70 % — except snags, which it raises by only 30 %. `custom` ignores the table below and reads the nine individual values instead.
 
 | Knob | Key | arcade | realism | hardcore |
 |---|---|---|---|---|
@@ -29,7 +29,7 @@ Missing keys simply keep their defaults, so a three-line file with nothing but `
 | Leader bite-off chance | `leader_biteoff` | 0.30 | 0.75 | 0.95 |
 | Line wear rate | `line_wear` | ×0.3 | ×1.0 | ×1.7 |
 | Hook wear rate | `hook_wear` | ×0.3 | ×1.0 | ×1.7 |
-| Snag chance | `snag` | ×0.3 | ×1.0 | ×1.6 |
+| Snag chance | `snag` | ×0.3 | ×1.0 | ×1.3 |
 | Foul-hook chance | `foul` | ×0.4 | ×1.0 | ×1.6 |
 | Spook rate | `spook` | ×0.35 | ×1.0 | ×1.6 |
 

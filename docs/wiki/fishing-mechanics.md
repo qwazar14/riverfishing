@@ -133,9 +133,9 @@ and floored per flow:
 | Flow | Floor |
 |---|---|
 | Float | at least **140 ticks** (7 s) |
-| Bottom | at least **660 ticks** (33 s), or 1.5× the sampled delay, **plus a random 0–900 ticks** so several rods cast in a row don't all fire at once |
+| Bottom | at least **660 ticks** (33 s), or 1.5× the sampled delay, **plus a random 0–1200 ticks** (up to a minute) so several rods cast in a row don't all fire at once |
 | Active | at least 40 ticks — but the clock only runs while you are actually retrieving |
-| Ice | clamped to **200–2400 ticks** (10 s – 2 min) |
+| Ice | clamped to **200–3200 ticks** (10 s – 160 s) |
 
 Then a [feeding frenzy](water-and-conditions.md#feeding-frenzy) divides it by 3, and a fresh fed spot takes off up to 40 %.
 
@@ -145,7 +145,7 @@ If the result still exceeds 2400 ticks (2 minutes) you are warned: *"The fish ar
 
 A waiting Float or Bottom line **re-reads the world every 300 ticks** (15 seconds). Dusk falling, rain arriving, a frenzy starting, groundbait thrown after the cast — all of it rescales the *remaining* wait and re-picks which species will bite. A cast is not a frozen snapshot. (A koi decided at the cast stays a koi, so a long wait cannot compound its rarity into a certainty.)
 
-If the water goes completely dead (night or season gating everything out) the line simply sits until a later re-evaluation revives it.
+If the water goes completely dead (night or season gating everything out) the line simply sits until a later re-evaluation revives it — and when it does, every waiting line re-clocks with its **own random phase (0–15 s)**, so a pod of rods that died together does not ring together at dawn.
 
 ---
 
@@ -316,7 +316,7 @@ breakTension    = clamp(effectiveStrain / requiredKg, 0.2, 1) / breakSensitivity
                         × overloadPenalty × steadyHandMultiplier      (clamped 0.1 … 1.0)
 ```
 
-That single number is your margin. Thin or worn line, a heavy fish, a small reel and an overloaded blank all shrink it. Past 20 kg the mass a fight is fought against is compressed rather than counted: a 400 kg marlin is fought as 104 kg. Straight, the law would have asked 802 kg of line for it while the strongest braid in the game carries 108 — that fish was not hard, it was impossible.
+That single number is your margin. Thin or worn line, a heavy fish, a small reel and an overloaded blank all shrink it. The same `sizeStrength` scales the pattern's extra runs too — `runs = round((profileRuns + patternBonus) × size)` — so relentless's +3 or greyhounding's +2 is what a mean specimen gets, and a runt of the species gets fewer. Past 20 kg the mass a fight is fought against is compressed rather than counted: a 400 kg marlin is fought as 104 kg. Straight, the law would have asked 802 kg of line for it while the strongest braid in the game carries 108 — that fish was not hard, it was impossible.
 
 Per crank:
 
@@ -629,7 +629,7 @@ The engine always reads and dulls your **sharpest** hook — you fish with your 
 
 ## Difficulty
 
-Nine of the harsher mechanics — phantom bites, break sensitivity, spot depletion, leader bite-off, line and hook wear, snags, foul-hooking and how sharply fish spook — move together on a single **preset**: `arcade`, `realism`, `hardcore` or `custom`. **realism** is the default and the one every number on this page assumes; `arcade` cuts the harsh multipliers to roughly a third, `hardcore` raises them by 60–70 %.
+Nine of the harsher mechanics — phantom bites, break sensitivity, spot depletion, leader bite-off, line and hook wear, snags, foul-hooking and how sharply fish spook — move together on a single **preset**: `arcade`, `realism`, `hardcore` or `custom`. **realism** is the default and the one every number on this page assumes; `arcade` cuts the harsh multipliers to roughly a third, `hardcore` raises them by 60–70 % (snags only by 30 %).
 
 The preset lives in a config file, and a pack can override each of the nine individually as well as the trophy bar, frenzy speed, bait consumption and the bycatch rates. Every key, default and range is in **[Configuration](config.md#the-preset)**.
 

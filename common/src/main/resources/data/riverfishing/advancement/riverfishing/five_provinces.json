@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/far_shore",
+  "display": {
+    "icon": {
+      "id": "minecraft:compass"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.five_provinces.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.five_provinces.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

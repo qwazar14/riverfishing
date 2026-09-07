@@ -102,7 +102,7 @@ def fight(kg, pattern, runs_field, stamina_field, leader, reel, shake_dives, rng
     timeout = min(6000.0, max(900.0, 700 + kg * 80 + pick(TIMEOUT_BONUS, pattern, 0)))   # §fight-clock
 
     # §runs-by-size: the table's runs are the full-grown fish's; a small specimen makes fewer
-    runs = max(1, round(runs_field * min(1.0, max(0.4, 0.4 + 0.6 * kg / max(0.001, max_kg))))) + RUNS_BONUS.get(pattern, 0) + (1 if kg > 2.0 else 0)
+    runs = max(1, round((runs_field + RUNS_BONUS.get(pattern, 0)) * min(1.0, max(0.4, 0.4 + 0.6 * kg / max(0.001, max_kg))))) + (1 if kg > 2.0 else 0)   # §runs-by-size-2
     predator = leader                      # a bottom rod: ACTIVE tackle would only add to this
     shake_chance = 0.0
     if predator:

@@ -84,7 +84,7 @@ So being two levels short is ×0.36, five levels short is ×0.08, and the floor 
 
 ## Skills
 
-Every angler level grants **one skill point**. Six perks, each with **5 ranks**, so a full tree costs 30 points — level 30.
+Every angler level grants **one skill point**. Seven perks, each with **5 ranks**, so a full tree costs 35 points — level 35.
 
 Spend them on the **Skills** tab of the journal. Points cannot be refunded (only `/rffish reset` clears them, along with everything else).
 
@@ -94,100 +94,108 @@ Spend them on the **Skills** tab of the journal. Points cannot be refunded (only
 | **Keen Sense** | Sense | −5 % time to bite | −25 % |
 | **Naturalist** | Knowledge | +5 % overall bite chance | +25 % |
 | **Steady Hand** | Hand | +5 % line tension before it snaps | +25 % |
+| **Bottom Sense** | Hand | −8 % snag chance — a dead snag (rig lost) takes the multiplier twice — and −5 % on the over-strain line-break roll | −40 % snags, dead snags ×0.36, −25 % breaks |
 | **Angler's Luck** | Fortune | +1 % to the size of the fish you meet — and so to trophies | +5 % |
 | **Finesse** | Finesse | +1 % wider strike zone | +5 % |
 
-Naturalist's bonus is applied uniformly to every species' bite weight; Steady Hand multiplies your break tolerance; Finesse widens the green band of every [timing bar](fishing-mechanics.md#the-timing-bar).
+Naturalist's bonus is applied uniformly to every species' bite weight; Steady Hand multiplies your break tolerance; Bottom Sense scales the [snag](fishing-mechanics.md#snags) roll and the per-tick snap roll while you are over the limit; Finesse widens the green band of every [timing bar](fishing-mechanics.md#the-timing-bar).
 
 ## The quest chain
 
-Eight stages: **51 tasks** plus one completion prize per stage, 59 entries in all. Quests are **derived live** from your journal, so you never have to "accept" one.
+Eight stages: **49 tasks** plus one completion prize per stage, 57 entries in all. Quests are **derived live** from your journal, so you never have to "accept" one.
 
 - Completing a goal announces *"Quest complete: … — the reward is waiting in the journal!"* once.
 - You then **claim** the reward by clicking the quest on the journal's **Quests** tab.
 - Each stage's final entry (*"Fully complete stage N"*) is a bonus prize for finishing every task in it.
 - A stage becomes **visible and claimable** once **70 %** of the previous stage's tasks are done. Locked stages read *"Locked - finish stage N"*.
 
+From 0.10.0 the first five stages never ask for a fish by name — a chain written around roach and pike meant nothing on an African or Amazonian water. They ask for **diets, families and weights**, which every province has. A *peaceful feeder*, *omnivore*, *predator* or *insect feeder* is the species' diet, printed on its journal page; a *family* is the journal group (carp family, catfish, cichlids, …). Both are counted from the update on — earlier catches are not back-counted.
+
 ### Stage 1 — Beginner
 
-| Goal | Reward |
-|---|---|
-| Catch your first fish | 8 × Worm |
-| Catch a roach | 8 × Maggot |
-| Discover 3 species | 4 × Hook No.12 |
-| Catch a crucian carp | 4 × Groundbait |
-| Catch 10 fish | Bait Trap |
-| Fully complete stage 1 | 12 emeralds |
+| Goal | Reward | XP |
+|---|---|---|
+| Catch your first fish | 8 × Worm | 15 |
+| Catch a peaceful feeder | 8 × Maggot | 15 |
+| Discover 3 species | 4 × Hook No.12 | 30 |
+| Catch 3 peaceful feeders | 4 × Base Groundbait | 20 |
+| Catch 10 fish | Bait Trap | 25 |
+| Fully complete stage 1 | 12 emeralds | 40 |
 
 ### Stage 2 — Float & feeder
 
-| Goal | Reward |
-|---|---|
-| Catch a bream | 3 × Hook No.8 |
-| Catch a rudd | 6 × Groundbait Soil |
-| Catch a tench | 6 × Boilie |
-| Catch a bream 2+ kg | 6 emeralds |
-| Discover 8 species | **Spinning Rod** |
-| Fully complete stage 2 | Reel 3000 |
-
-The groundbait rewards teach the pantry: the base, then the ballast that makes a mix leaner, then something coarse enough to call a decent fish.
+| Goal | Reward | XP |
+|---|---|---|
+| Catch an omnivore | 3 × Hook No.8 | 25 |
+| Catch 10 peaceful feeders | 6 × Boilie | 35 |
+| Land a fish of 1 kg or more | 6 emeralds | 40 |
+| Catch fish of 3 different families | 6 emeralds | 30 |
+| Discover 8 species | **Spinning Rod** | 60 |
+| Fully complete stage 2 | Reel 3000 | 60 |
 
 ### Stage 3 — Predators
 
-| Goal | Reward |
-|---|---|
-| Catch a perch | 2 × Spinner |
-| Catch a pike | 2 × Steel Leader |
-| Catch a pike 5+ kg | 10 emeralds |
-| Catch a zander | Wobbler |
-| Catch an asp | 6 emeralds |
-| Fully complete stage 3 | Titanium Leader |
+| Goal | Reward | XP |
+|---|---|---|
+| Catch a predator | 2 × Spinner | 25 |
+| Catch 5 predators | 2 × Steel Leader | 40 |
+| Land a predator of 3 kg or more | 10 emeralds | 70 |
+| Catch 15 predators | Wobbler | 45 |
+| Catch fish of 5 different families | 6 emeralds | 45 |
+| Fully complete stage 3 | Titanium Leader | 80 |
 
 ### Stage 4 — Heavy tackle
 
-| Goal | Reward |
-|---|---|
-| Catch a carp | 8 × Boilie |
-| Catch a carp 8+ kg | 10 emeralds |
-| Catch a catfish | Titanium Leader |
-| Catch a catfish 20+ kg | 20 emeralds |
-| Catch a trout | 6 emeralds |
-| Catch 100 fish | Reel 5000 |
-| Fully complete stage 4 | 32 emeralds |
+| Goal | Reward | XP |
+|---|---|---|
+| Land a fish of 5 kg or more | 8 × Boilie | 50 |
+| Land a fish of 10 kg or more | Titanium Leader | 80 |
+| Land a fish of 20 kg or more | 20 emeralds | 120 |
+| Catch fish of 6 different families | 6 emeralds | 50 |
+| Catch 100 fish | Reel 5000 | 90 |
+| Fully complete stage 4 | 32 emeralds | 120 |
 
 ### Stage 5 — Master
 
-| Goal | Reward |
-|---|---|
-| Discover 15 species | Reel 7000 |
-| Catch a sterlet | 16 emeralds |
-| Catch a grayling | 10 emeralds |
-| Catch a koi carp | 12 emeralds |
-| Land a trophy specimen | 8 emeralds |
-| Land 5 trophies | 24 emeralds |
-| Discover 20 species | 20 emeralds |
-| Reach Master rank (lvl 20) | 30 emeralds |
-| Fully complete stage 5 | **Carp Rod** |
+| Goal | Reward | XP |
+|---|---|---|
+| Discover 15 species | Reel 7000 | 100 |
+| Discover 30 species | 16 emeralds | 100 |
+| Land a fish of 40 kg or more | 10 emeralds | 70 |
+| Catch a koi carp | 12 emeralds | 80 |
+| Land a trophy specimen | 8 emeralds | 60 |
+| Land 5 trophies | 24 emeralds | 140 |
+| Discover 20 species | 20 emeralds | 150 |
+| Reach Master rank (lvl 20) | 30 emeralds | — |
+| Fully complete stage 5 | **Carp Rod** | 150 |
 
 ### Stage 6 — Under the ice
 
-See [Ice fishing](ice-fishing.md#progression). Completion reward: 50 emeralds.
+| Goal | Reward | XP |
+|---|---|---|
+| Catch your first fish through the ice | 2 × Ice Jig | 40 |
+| Catch a burbot | 4 × Chicken Liver | 60 |
+| Catch 5 fish through the ice | 12 × Maggot | 30 |
+| Catch 10 fish through the ice | **Winter Rod** | 80 |
+| Catch 30 fish through the ice | 24 emeralds | 160 |
+| Fully complete stage 6 | 50 emeralds | 200 |
 
-### Stage 7 — The North and the taiga
+See [Ice fishing](ice-fishing.md#progression).
 
-Each reward hands you the exact lure the *next* quest's fish wants — the stage teaches itself.
+### Stage 7 — Cold water and the fly
 
-| Goal | Reward |
-|---|---|
-| Catch a rotan — everyone started with one | Spinner |
-| Catch a nase in the current | 12 × Maggot |
-| Catch a vimba on the spring run | 8 × Pearl Barley |
-| Catch a whitefish in a cold lake | 12 × Bloodworm |
-| Catch an Arctic char in northern water | Castmaster |
-| Catch a lenok on a taiga riffle | Wobbler |
-| Catch a running Atlantic salmon | 2 × Spoon Lure |
-| Beat a taimen of 15 kg or more | 30 emeralds |
-| Fully complete stage 7 | **Surf rod** |
+The [fly rod](fly-fishing.md) and the salmonids, wherever the water is cold enough for them. A *salmonid* is any fish of the salmon and trout family; an *insect feeder* is a species whose diet says so.
+
+| Goal | Reward | XP |
+|---|---|---|
+| Land a fish on the fly rod | 10 emeralds | 40 |
+| Catch a salmonid | 2 × Spoon Lure | 50 |
+| Land 10 fish on the fly | 24 emeralds | 90 |
+| Catch 3 salmonids | Castmaster | 60 |
+| Catch 5 insect feeders | 12 × Bloodworm | 50 |
+| Land a salmonid of 5 kg or more | 30 emeralds | 160 |
+| Land 30 fish on the fly | 30 emeralds | 120 |
+| Fully complete stage 7 | **Surf rod** | 180 |
 
 ### Stage 8 — The sea and big game
 
@@ -195,7 +203,7 @@ See [Sea fishing](sea-fishing.md#progression-into-the-sea). Completion reward: 6
 
 ## Advancements
 
-Twenty-two advancements. Some are driven by simply having the fish in your inventory; others are **code-driven** and depend on *how* you caught it.
+Thirty-four advancements. Some are driven by simply having the fish in your inventory; others are **code-driven** and depend on *how* you caught it.
 
 | Advancement | How |
 |---|---|
@@ -203,7 +211,9 @@ Twenty-two advancements. Some are driven by simply having the fish in your inven
 | **Ten in the Net** | 10 different species |
 | **A Quarter Hundred** | 25 different species |
 | **Fifty Species** | 50 different species |
-| **The Full Bestiary** *(challenge)* | Every species — koi don't count |
+| **A Hundred Names** | 100 different species |
+| **Two Hundred Names** | 200 different species |
+| **The Full Bestiary** *(challenge)* | Every species — koi don't count. Hangs under *Two Hundred Names* |
 | **A Trophy Specimen** *(goal)* | **Land** a trophy specimen yourself |
 | **Toothy** | Have a pike |
 | **Master of the Hole** *(goal)* | Have a catfish |
@@ -221,6 +231,16 @@ Twenty-two advancements. Some are driven by simply having the fish in your inven
 | **Catch of the Decade** | Fish up an old boot |
 | **Heartless Cook** | Fillet a koi carp |
 | **It Was DEFINITELY Huge** *(hidden)* | Suffer the 0.3 % [catastrophic tackle failure](fishing-mechanics.md#catastrophic-failure) |
+| **On the Fly** | Land a fish on the [fly rod](fly-fishing.md) |
+| **Tight Loop** *(hidden challenge)* | Land a fish on a cast that unrolled without a splash |
+| **Tied by Hand** | Tie a lure at the [tackle bench](tackle-station.md) |
+| **A Far Shore** | Catch a fish in a second [faunal province](provinces.md) |
+| **The Whole Planet** | A fish in every one of the five provinces |
+| **Heavyweight** | Land a fish of 50 kg or more |
+| **Neither One Nor the Other** | Catch a hybrid |
+| **Grandmaster** | Angler level 50 |
+| **In Time** | Hook a fish through the ice on a full [jig combo](ice-fishing.md) — all 8 beats |
+| **Market Day** | Sell a [keepnet](keepnet.md) to the fisherman |
 
 The species-count advancements are **counted in code** against the live species roster, so they can never drift out of step with a content update. Koi are excluded from that count.
 

@@ -8,45 +8,27 @@ Items marked **trade only** or **quest only** have no recipe at all — see [Vil
 
 ## Rods
 
-All shaped. Every reeled blank needs string for its guide wraps.
+From 0.10.0 only the four simplest blanks are crafted; every other rod is **bought assembled from the [fisherman](villager.md)** (the journal's "how to get" line says so). All shaped; a reeled blank needs string for its guide wraps.
 
 | Rod | Pattern | Key |
 |---|---|---|
 | Stick Rod | `··S / ·S· / S··` | S = Stick |
-| Bamboo Rod | `··b / ·b· / b··` | b = Bamboo |
-| Winter Rod | `··N / ·S· / S··` | N = Iron Nugget, S = Stick |
 | Pole Rod | `··b / ·b· / is·` | b = Bamboo, i = Iron Ingot, s = String |
 | Ultralight Rod | `··b / sb· / i··` | b = Bamboo, s = String, i = Iron Ingot |
-| Spinning Rod | `··b / si· / i··` | b = Bamboo, s = String, i = Iron Ingot |
-| Feeder Rod | `··g / si· / ii·` | g = Gold Ingot, s = String, i = Iron Ingot |
-| Bottom Rod | `·gg / si· / ii·` | g = Gold Ingot, s = String, i = Iron Ingot |
-| Carp Rod | `··d / si· / ig·` | d = Diamond, g = Gold Ingot, s = String, i = Iron Ingot |
-| Sea spinning rod | `··p / si· / id·` | p = Prismarine Shard, d = Diamond, s = String, i = Iron Ingot |
-| Surf rod | `·pp / si· / id·` | p = Prismarine Shard, d = Diamond, s = String, i = Iron Ingot |
-| Boat rod | `··c / si· / id·` | c = Prismarine Crystals, d = Diamond, s = String, i = Iron Ingot |
-| Trolling rod | `··n / si· / id·` | n = Nautilus Shell, d = Diamond, s = String, i = Iron Ingot |
+| Fly Rod | `··b / sb· / bn·` | b = Bamboo, s = String, n = Iron Nugget |
 
-The saltwater four differ only in the **tip**. Anvil repair materials are listed in [Rods](rods.md).
+**Trade only:** Bamboo, Winter, Spinning, Feeder, Bottom, Carp, Sea spinning, Surf, Boat and Trolling rods. Anvil repair materials are listed in [Rods](rods.md).
 
 ---
 
 ## Reels
 
-All shapeless.
+Two are crafted, shapeless; the other nine (2000, 3000, 5000, 6000, 7000, 8000, 10000, 12000, 14000) are **trade only** — the [fisherman](villager.md) sells them, and two arrive as [quest](progression.md#the-quest-chain) rewards.
 
 | Reel | Ingredients |
 |---|---|
 | Reel 1000 | 2 × Iron Ingot + Redstone |
-| Reel 2000 | 2 × Iron Ingot + Copper Ingot + Redstone |
-| Reel 3000 | 3 × Iron Ingot + Copper Ingot + Redstone |
 | Reel 4000 | 3 × Iron Ingot + Copper Ingot + 2 × Redstone |
-| Reel 5000 | 4 × Iron Ingot + Copper Ingot + 2 × Redstone |
-| Reel 6000 | 4 × Iron Ingot + 2 × Copper Ingot + 2 × Redstone |
-| Reel 7000 | 5 × Iron Ingot + 2 × Copper Ingot + 2 × Redstone |
-| Reel 8000 | Iron Block + 2 × Copper Ingot + 2 × Redstone + Prismarine Shard |
-| Reel 10000 | Iron Block + 3 × Copper Ingot + 2 × Redstone + 2 × Prismarine Shard |
-| Reel 12000 | Iron Block + Copper Block + 2 × Redstone + Prismarine Crystals + Diamond |
-| Reel 14000 | Iron Block + Copper Block + Redstone Block + Nautilus Shell + 2 × Diamond |
 
 There is no Reel 9000 item.
 
@@ -59,17 +41,20 @@ All shaped around a **ring of 8 String** (`SSS / S?S / SSS`).
 | Result | Centre of the ring |
 |---|---|
 | Mono Line 0.10 **×2** | *(empty)* |
-| Braided Line 0.16 **×2** | Phantom Membrane |
 | Fluorocarbon 0.14 **×2** | Amethyst Shard |
 | The next diameter up **×1** | The previous line of the same material |
 
-Upgrade chains, one craft per step:
+Braided Line 0.16 has no recipe any more — the [fisherman](villager.md) sells it. Upgrade chains, one craft per step; a diameter in **bold** is not crafted, you buy it and the chain carries on from there:
 
 | Material | Chain |
 |---|---|
-| Mono | 0.10 → 0.14 → 0.18 → 0.25 → 0.30 → 0.40 → 0.50 → 0.60 → 0.70 → 0.80 |
-| Braid | 0.16 → 0.20 → 0.25 → 0.30 → 0.40 → 0.50 → 0.60 |
-| Fluorocarbon | 0.14 → 0.16 → 0.20 → 0.25 → 0.30 → 0.40 |
+| Mono | 0.10 → 0.14 → 0.18 → 0.25 → 0.30 → 0.40 · **0.50, 0.60, 0.70, 0.80** trade only |
+| Braid | **0.16** → 0.20 → 0.25 · **0.30, 0.40, 0.50, 0.60** trade only |
+| Fluorocarbon | 0.14 → 0.16 · **0.20** → 0.25 → 0.30 · **0.40** trade only |
+
+### Line repair
+
+Any line in the **centre** of the grid with **four String** on its four sides (`·S· / SLS / ·S·`) gives the same line back **fresh** — the [wear](reels-and-lines.md) is gone. Every diameter of every material, bought or crafted.
 
 ---
 
@@ -95,24 +80,9 @@ All nine hook sizes make up the `riverfishing:hooks` tag used by the lure recipe
 
 ## Rigs
 
-> **These are the basic recipes.** A hand-tied rig comes out at its rig type's fallback mass — you get
-> no say in it. For a rig at a **weight you choose**, tie it at the **[Tackle Station](tackle-station.md)**
-> instead. Strongly recommended: the weight is what has to fit your blank's
-> [test window](rods.md#loading-the-blank-the-test-window), and bench rigs arrive with their hooks
-> already slotted.
+**No rig has a crafting recipe.** The six swappable bottom rigs — Ledger, Feeder, Flat Feeder, 3-Hook Feeder, Carp and Catfish — are tied at the **[Tackle Station](tackle-station.md)** to a weight you choose, which is what has to fit your blank's [test window](rods.md#loading-the-blank-the-test-window); they arrive with their hooks already slotted. (Until 0.10.0 a hand-crafted rig came out at a fallback mass you had no say in, so the grid recipes taught nothing the bench does not teach better.)
 
-Only the six swappable bottom rigs are craftable. The Primitive, Light Float, Float, Winter and Predator rigs are built into their rod blanks and cannot be made or held.
-
-| Rig | Type | Ingredients |
-|---|---|---|
-| Ledger Rig | shapeless | String + 2 × Iron Nugget |
-| Feeder Rig | shaped `n·n / nsn` | n = Iron Nugget, s = String |
-| Flat Feeder Rig | shaped `nnn / nsn` | n = Iron Nugget, s = String |
-| 3-Hook Feeder Rig | shapeless | 3 × String + 2 × Iron Nugget |
-| Carp Rig | shapeless | 2 × String + Slime Ball + Iron Nugget |
-| Catfish Rig | shapeless | 2 × String + Iron Ingot + Iron Nugget |
-
-All six can also be tied at the [Tackle Station](tackle-station.md) to a chosen weight, and come with their hooks pre-slotted.
+The Primitive, Light Float, Float, Winter and Predator rigs are built into their rod blanks and cannot be made or held.
 
 ---
 
@@ -123,32 +93,15 @@ All shapeless.
 | Item | Ingredients |
 |---|---|
 | Steel Leader | String + Iron Nugget |
-| Fluorocarbon Leader | String + Prismarine Shard |
-| Titanium Leader | String + Iron Ingot |
+| Fluorocarbon Leader | **trade only** — the [fisherman](villager.md) |
+| Titanium Leader | **trade only** — the fisherman, or a [quest](progression.md#the-quest-chain) reward |
 | Float | Bamboo + Feather |
 
 ---
 
 ## Lures
 
-> **These are the basic recipes, and they cost you the lure's mass.** A hand-crafted lure carries **no
-> weight stamp**, which the game reads as **0 g** — it adds nothing to your cast and does not drive the
-> [lure-size filter](tackle-station.md#2-the-lure-size-filter-lures-only), so it never picks its fish.
-> Tie lures at the **[Tackle Station](tackle-station.md)** instead — pick the grams, get a real size.
-> The two heaviest classes (sea sizes) exist only there.
-
-The `h` ingredient is the `riverfishing:hooks` tag (No.16–No.4).
-
-| Lure | Type | Ingredients |
-|---|---|---|
-| Spinner | shaped `n / i / h` | n = Iron Nugget, i = Iron Ingot, h = hook |
-| Spoon Lure | shaped `g / h` | g = Gold Ingot, h = hook |
-| Castmaster | shapeless | 2 × Iron Ingot + hook |
-| Crankbait | shapeless | Iron Ingot + Iron Nugget + hook |
-| Soft Jig | shapeless | Iron Ingot + String + hook |
-| Popper | shapeless | Iron Nugget + Bamboo + hook |
-| Wobbler | — | **[Tackle Station](tackle-station.md)** or the fisherman (expert tier) |
-| Soft Plastic | — | **[Tackle Station](tackle-station.md)** or the fisherman (journeyman tier) |
+**No lure has a grid recipe** — spinner, spoon, the wobbler family, jig, castmaster, spinnerbait, bladebait, swimbait, wacky worm, popper, crankbait and the ice jig alike. You **tie them at the [Tackle Station](tackle-station.md)** — pick the grams, get a real size, and a hook of your choosing — or buy them from the [fisherman](villager.md). (A grid-crafted lure carried no weight stamp, which the game read as 0 g: nothing added to the cast and nothing for the [lure-size filter](tackle-station.md#2-the-lure-size-filter-lures-only) to read. There was no reason to keep it.) The two heaviest classes (sea sizes) exist only at the bench. The one lure recipe left is the dye:
 
 ### Dyeing a lure
 
@@ -163,7 +116,6 @@ A **special recipe**: any one artificial lure plus one or more **dyes** in the g
 | Dough | shapeless | Wheat + Water Bucket |
 | Bread Crumb **×4** | shapeless | 1 × Bread |
 | Boilie **×4** | shapeless | 2 × Wheat + Egg + Sugar |
-| Ice Jig | shapeless | Gold Nugget + any hook No.16–No.4 + 2 × String |
 | Live Bait | **special** | One caught fish weighing **150 g or less**, alone in the grid — the bait keeps the fish's weight |
 
 Worm, Maggot, Bloodworm and Chicken Liver come from digging and mob drops; Corn, Pea and Pearl Barley come from the [bait crops](blocks.md#bait-crops). See [Tools](tools.md#where-bait-comes-from).
@@ -229,8 +181,13 @@ A short list of everything in the mod you cannot craft:
 | Item | Where it comes from |
 |---|---|
 | Hook #2, Hook #1 | Master fisherman |
-| Wobbler, Soft Plastic | Tackle Station, or the fisherman |
+| Every lure (spinner, spoon, wobblers, jig, castmaster, spinnerbait, bladebait, swimbait, wacky worm, popper, crankbait, ice jig, soft plastic) | Tackle Station, or the fisherman |
 | Skirted Octopus Jig, Giant Spoon | Tackle Station, or the fisherman's saltwater kit |
+| All six bottom rigs | Tackle Station |
+| Bamboo, Winter, Spinning, Feeder, Bottom, Carp, Sea spinning, Surf, Boat and Trolling rods | The fisherman (Spinning, Carp and Surf are also quest rewards) |
+| Reels 2000–14000 except the 4000 | The fisherman (3000, 5000, 7000 and 14000 are also quest rewards) |
+| Braided Line 0.16; mono 0.50–0.80, braid 0.30–0.60, fluorocarbon 0.20 and 0.40 | The fisherman |
+| Fluorocarbon Leader, Titanium Leader | The fisherman (Titanium is also a quest reward) |
 | Mini Aquarium | Creative / commands only |
 | Ichthyologist's Tablet | Creative / commands only |
 | Electrofisher | Creative / commands only |

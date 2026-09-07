@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/species_50",
+  "display": {
+    "icon": {
+      "id": "riverfishing:nile_tilapia"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.species_100.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.species_100.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

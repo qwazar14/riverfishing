@@ -4,7 +4,7 @@ New in **0.9.0**. Minecraft has no geography, only weather: the same swamp, taig
 
 Every world is now cut into five faunal **provinces**, and a species is absent from every province it does not belong to — however right the water looks.
 
-## Four provinces, drawn by the seed
+## Five provinces, drawn by the seed
 
 | Province | Roughly |
 |---|---|

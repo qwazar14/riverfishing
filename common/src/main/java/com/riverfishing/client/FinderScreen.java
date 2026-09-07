@@ -45,7 +45,7 @@ public class FinderScreen extends Screen {
      * nearest-neighbour blit keeps one texel in sixteen and twenty-eight of them on one face were
      * mush. Bigger and fewer is the whole fix — the rest are in the list, where they belong.
      */
-    private static final int ICON = 24, MAX_FISH = 10;
+    private static final int ICON = 24, MAX_FISH = 16;   // §finder-reach
 
     // The instrument face. Deep water blue-green, the way every sounder ever made has looked.
     private static final int FACE = 0xFF0B1E22, GRID = 0x2240E0B0, SURFACE = 0xFF7FE9D0;

@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": {
+      "id": "riverfishing:bream_roach_hybrid"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.hybrid.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.hybrid.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

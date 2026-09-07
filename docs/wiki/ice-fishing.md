@@ -115,14 +115,14 @@ The mod tracks fish landed through the ice as its own counter, feeding quest **s
 |---|---|---|
 | Catch your first fish through the ice | 1 ice catch | 2 × Ice Jig |
 | Catch a burbot | any burbot | 4 × Chicken Liver |
-| Catch a ruffe | any ruffe | 12 × Maggot |
+| Catch 5 fish through the ice | 5 ice catches | 12 × Maggot |
 | Catch 10 fish through the ice | 10 ice catches | **Winter Rod** |
 | Catch 30 fish through the ice | 30 ice catches | 24 emeralds |
 | Fully complete stage 6 | all five above | 50 emeralds |
 
 There is also the code-driven advancement **From Under the Ice** — pull a burbot through a hole with the winter rod.
 
-Stage 6 unlocks once 70 % of stage 5's tasks are done, and completing 70 % of stage 6 opens [stage 7, the north and the taiga](progression.md#the-quest-chain).
+Stage 6 unlocks once 70 % of stage 5's tasks are done, and completing 70 % of stage 6 opens [stage 7, cold water and the fly](progression.md#the-quest-chain).
 
 ## See also
 
