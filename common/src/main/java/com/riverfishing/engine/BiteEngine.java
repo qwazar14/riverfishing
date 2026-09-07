@@ -72,7 +72,21 @@ public final class BiteEngine {
         for (int size : c.hookSizes) {
             best = Math.max(best, gradient(size, p.hookIdeal, p.hookTolerance));
         }
+        // §hook-mouth: a species whose biggest specimen cannot get the smallest hook on the rig into its
+        // mouth does not take it, whatever the size gradient says
+        if (p.weightMax < mouthG(c.hookSizes)) return 0.0;
         return best;
+    }
+
+    /**
+     * §hook-mouth: the smallest fish that can take a hook of this size, in grams — 40 g at #8, halving
+     * every two sizes down (#16: 2.5 g) and doubling every two up (#2: 320 g). The smallest hook on the
+     * rig sets it; nothing is asked of an empty rig.
+     */
+    public static double mouthG(java.util.Collection<Integer> hookSizes) {
+        if (hookSizes.isEmpty()) return 0.0;
+        int smallest = java.util.Collections.max(hookSizes);   // bigger number, smaller hook
+        return 40.0 * Math.pow(2.0, (8 - smallest) / 2.0);
     }
 
     /**

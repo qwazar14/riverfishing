@@ -86,9 +86,5 @@
     "chance": 0.008
   },
   "diet": "predator",
-  "provinces": [
-    "nearctic",
-    "neotropic",
-    "afrotropical"
-  ]
+  "provinces": []
 }

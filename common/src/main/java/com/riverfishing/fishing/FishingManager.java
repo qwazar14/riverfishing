@@ -1751,6 +1751,15 @@ public final class FishingManager {
     private static final double GIANT_KNEE_KG = 20.0, GIANT_TAPER = 0.55;
 
     /** §giant-taper: mass as the tackle feels it. Identity below the knee, compressed above it. */
+    /**
+     * §strength-by-size: the profile's strength is the species' — a mean specimen's. A 72 g barbel is not
+     * the 2 kg fish the table describes: strength scales with sqrt(weight / mean), floored at 0.35 and
+     * capped at 1 (a heavier fish already pulls harder through fightMassKg).
+     */
+    public static double sizeStrength(FishProfile p, double weightKg) {
+        return Mth.clamp(Math.sqrt(weightKg * 1000.0 / Math.max(1.0, p.weightMean)), 0.35, 1.0);
+    }
+
     public static double fightMassKg(double kg) {
         return kg <= GIANT_KNEE_KG ? kg
                 : GIANT_KNEE_KG * Math.pow(kg / GIANT_KNEE_KG, GIANT_TAPER);
@@ -1865,7 +1874,7 @@ public final class FishingManager {
         double weightKg = session.weightG / 1000.0;
         double drag = session.dragKg;                                  // 0 for a reel-less float rod
         double requiredKg = Math.max(0.5,
-                profile.fightStrength * (1.0 + fightMassKg(weightKg)) * 2.0);
+                profile.fightStrength * sizeStrength(profile, weightKg) * (1.0 + fightMassKg(weightKg)) * 2.0);
         double effectiveStrain = session.lineStrainKg + 0.5 * drag;    // lineStrain already wear-reduced (§3.8)
         // §tackle-margin (0.7.0): how far the tackle OUT-GUNS this fish, uncapped. Reported as a bug and
         // it was one: baseTolerance below is clamped at 1, so every line from "just enough" upward gave
@@ -3284,6 +3293,16 @@ public final class FishingManager {
         if (lureW > 0 && p.weightMax > p.weightMin) {
             double minW = Mth.clamp(lureW * 8.0, p.weightMin,
                     p.weightMin + (p.weightMax - p.weightMin) * 0.6);
+            double floor = (minW - p.weightMin) / (p.weightMax - p.weightMin);
+            biased = floor + (1.0 - floor) * biased;
+        }
+
+        // §hook-mouth: the same physics for the HOOK — a fish that took a #8 is one whose mouth fits a #8.
+        // The smallest hook on the rig floors the roll (capped at 60 % of the range so the roll stays a
+        // roll); this is what ends the 3 g clarias on a #10.
+        double mouthW = session.ctx != null ? BiteEngine.mouthG(session.ctx.hookSizes) : 0;
+        if (mouthW > 0 && p.weightMax > p.weightMin) {
+            double minW = Mth.clamp(mouthW, p.weightMin, p.weightMin + (p.weightMax - p.weightMin) * 0.6);
             double floor = (minW - p.weightMin) / (p.weightMax - p.weightMin);
             biased = floor + (1.0 - floor) * biased;
         }

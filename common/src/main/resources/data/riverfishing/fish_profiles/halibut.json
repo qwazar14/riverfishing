@@ -88,8 +88,5 @@
     "chance": 0.004
   },
   "diet": "predator",
-  "provinces": [
-    "palearctic",
-    "nearctic"
-  ]
+  "provinces": []
 }
