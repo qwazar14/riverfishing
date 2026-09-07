@@ -4296,6 +4296,21 @@ public final class FishingManager {
 
     /** Water-column depth at the cast point (blocks of water straight down, capped) — habitat gate. */
     /** Package-visible: §spook reads the same depth the bite engine does rather than measuring its own. */
+    /** §shoal-deep: the deepest column within {@code r} blocks — the water's depth, not the bank's. */
+    static int deepestAround(ServerLevel level, BlockPos pos, int r) {
+        int best = measureDepth(level, pos);
+        BlockPos.MutableBlockPos scan = pos.mutable();
+        for (int dx = -r; dx <= r; dx++) {
+            for (int dz = -r; dz <= r; dz++) {
+                if (dx == 0 && dz == 0) continue;
+                scan.set(pos.getX() + dx, pos.getY(), pos.getZ() + dz);
+                if (!level.getFluidState(scan).is(net.minecraft.tags.FluidTags.WATER)) continue;
+                best = Math.max(best, measureDepth(level, scan));
+            }
+        }
+        return best;
+    }
+
     static int measureDepth(ServerLevel level, BlockPos surface) {
         int depth = 0;
         BlockPos.MutableBlockPos p = surface.mutable();
