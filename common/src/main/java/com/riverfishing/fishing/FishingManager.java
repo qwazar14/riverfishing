@@ -1893,6 +1893,11 @@ public final class FishingManager {
                         * AnglerSkills.lineToleranceMult(sp), 0.1, 1.0);
         session.requiredKg = requiredKg; // §tackle-stress: for the break-load message
         session.outclassed = session.tackleMargin < 0.85;   // §outclassed
+        if (session.outclassed) {   // §outclassed-hint: the ratio and the rule, at the hook-up
+            actionbar(sp, Component.translatable("message.riverfishing.outclassed",
+                    String.format(java.util.Locale.ROOT, "%.1f", session.requiredKg / Math.max(0.5, session.requiredKg * session.tackleMargin)))
+                    .withStyle(ChatFormatting.GOLD));
+        }
         // §rod-load: how hard THIS fish loads THIS blank. Tension above is the line's break-risk, and
         // §tackle-margin deliberately starves it on over-gunned gear — which left a trolling blank
         // arrow-straight over a 2 kg bass. The rod must read the fight even with the line nowhere
@@ -2456,7 +2461,7 @@ public final class FishingManager {
             // §outclassed: the open drag is the only way to win — the fish plays itself out against
             // it, and what it loses is what you gain, faster with the rod held across the run.
             if (session.outclassed && session.runTicksLeft > 0) {
-                session.landProgress = Math.min(1.0, session.landProgress + session.fatigueRunTick * 0.55 * courseGain);
+                session.landProgress = Math.min(1.0, session.landProgress + session.fatigueRunTick * 0.9 * courseGain);   // §outclassed-hint: 0.9, was 0.55
             } else {
                 session.landProgress = Math.max(0.0, session.landProgress
                         - (session.runTicksLeft > 0 ? 0.004 : 0.0025));
@@ -2479,6 +2484,12 @@ public final class FishingManager {
                 // §fight-course: the run gets a direction, scripted by the species' own fight pattern.
                 session.course = FightCourse.forPattern(session.fightPattern, session.runIndex++, random);
                 session.barState = -1;   // force the bar to re-title with the new course
+                if (session.outclassed && !session.outclassedHinted) {   // §outclassed-hint: again, as the first run starts
+                    session.outclassedHinted = true;
+                    actionbar(sp, Component.translatable("message.riverfishing.outclassed",
+                            String.format(java.util.Locale.ROOT, "%.1f", session.requiredKg / Math.max(0.5, session.requiredKg * session.tackleMargin)))
+                            .withStyle(ChatFormatting.GOLD));
+                }
                 level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.7f, 1.2f);
                 level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
                         session.target.getZ() + 0.5, 10, 0.2, 0.1, 0.2, 0.2);

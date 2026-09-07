@@ -2588,7 +2588,7 @@ public class JournalScreen extends Screen {
 
     /** §species-table: the line and the hook — the two asks a species still makes of your tackle. */
     private static String tackle(com.riverfishing.fish.FishCard c) {
-        String line = Component.translatable("linetype.riverfishing." + c.lineType())   // §line-name.getString();
+        String line = Component.translatable("linetype.riverfishing." + c.lineType()).getString();   // §line-name
         String s = c.lineDiameter() > 0 ? String.format(java.util.Locale.ROOT, "%s %.2f", line, c.lineDiameter()) : line;
         return c.hookIdeal() > 0 ? s + " · №" + c.hookIdeal() : s;
     }
