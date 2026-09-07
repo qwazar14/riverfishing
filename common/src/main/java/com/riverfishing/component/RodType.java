@@ -23,7 +23,10 @@ public enum RodType {
     SEA_SPIN  ("sea_spin",  19,   true,     5000,   9000,   20,     120,    true),
     BOAT      ("boat",      16,   true,     8000,   12000,  100,    400,    false),
     // §trolling (0.5.0): the towing rod — fished from a MOVING boat, not by casting.
-    TROLLING  ("trolling",  12,   true,     10000,  14000,  150,    600,    false);
+    TROLLING  ("trolling",  12,   true,     10000,  14000,  150,    600,    false),
+    // §fly: the line is the weight — no cast range, distance comes from the rhythm cast. The
+    // small reels (1000–2000) stand in for a fly reel in phase 1.
+    FLY       ("fly",        9,   true,     1000,   2000,   0,      0,      false);
 
     private final String jsonKey;
     private final double baseDistance;
@@ -47,6 +50,11 @@ public enum RodType {
     }
 
     public String jsonKey() { return jsonKey; }
+    /**
+     * §fly: the rod whose sprites and 3D blank this rod is drawn with. ponytail: the fly rod borrows
+     * the ultralight blank until phase 3 draws its own — then this returns jsonKey for it too.
+     */
+    public String modelKey() { return this == FLY ? "ultralight" : jsonKey; }
     public double baseDistance() { return baseDistance; }
     public boolean takesReel() { return takesReel; }
     public int minReel() { return minReel; }
@@ -73,7 +81,7 @@ public enum RodType {
         return switch (this) {
             case SPINNING, ULTRALIGHT, SEA_SPIN, TROLLING -> RodClass.ACTIVE;
             case FEEDER, BOTTOM, CARP, SURF, BOAT -> RodClass.BOTTOM;
-            case STICK, BAMBOO, POLE, WINTER -> RodClass.FLOAT;
+            case STICK, BAMBOO, POLE, WINTER, FLY -> RodClass.FLOAT;   // §fly: wait, then strike
         };
     }
 
@@ -94,6 +102,7 @@ public enum RodType {
             case BAMBOO -> RigType.FLOAT_LIGHT;          // float + one hook + bait
             case POLE -> RigType.FLOAT;                  // float + two hooks (Ð´ÑÐ¿Ð»ÐµÑ)
             case WINTER -> RigType.WINTER;               // a single mormyshka
+            case FLY -> RigType.FLY;                     // §fly: tippet + a tied fly
             case ULTRALIGHT, SPINNING, SEA_SPIN, TROLLING -> RigType.PREDATOR; // leader + lure
             case FEEDER, BOTTOM, CARP, SURF, BOAT -> null; // still use swappable bottom rigs
         };

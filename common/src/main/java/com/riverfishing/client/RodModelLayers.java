@@ -47,7 +47,7 @@ public final class RodModelLayers {
      */
     public static String rodKey(net.minecraft.world.item.ItemStack stack) {
         return stack.getItem() instanceof com.riverfishing.item.RodItem r
-                ? r.rodType().jsonKey() : null;
+                ? r.rodType().modelKey() : null;   // §fly
     }
 
     public static Identifier blank(String rodKey) {

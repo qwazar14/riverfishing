@@ -94,12 +94,14 @@ public class RodItem extends Item {
             }
             return InteractionResult.FAIL;
         }
+        // §fly: on a fly rod the hold is the RHYTHM, not a charge — the needle starts here.
+        if (!level.isClientSide() && rodType == RodType.FLY && player instanceof ServerPlayer sp) FishingManager.flyCastBegin(sp);
         player.startUsingItem(hand);
         return InteractionResult.CONSUME;
     }
 
     /**
-     * §26.1 §rod-layers: rods from trades or pre-icon worlds carry components in custom_data but no
+     * Anvil repair: rods from trades or pre-icon worlds carry components in custom_data but no
      * custom_model_data layer strings yet — heal them once so the composited icon shows immediately.
      */
     @Override
@@ -188,7 +190,10 @@ public class RodItem extends Item {
         // owner not to crank it. Keys are tooltip.riverfishing.rod_class.<active|float|bottom>.
         // The winter rod is FLOAT but is JIGGED through an ice hole, so "never reel" would be a lie for
         // it — it gets the dedicated winter_hole line below instead.
-        if (rodType != com.riverfishing.component.RodType.WINTER) {
+        if (rodType == com.riverfishing.component.RodType.FLY) {
+            // §fly: FLOAT flow underneath, but "never reel" is not what a fly rod wants to hear
+            tooltip.accept(Component.translatable("tooltip.riverfishing.rod_class.fly").withStyle(ChatFormatting.GOLD));
+        } else if (rodType != com.riverfishing.component.RodType.WINTER) {
             tooltip.accept(Component.translatable("tooltip.riverfishing.rod_class."
                             + rodType.rodClass().name().toLowerCase(java.util.Locale.ROOT))
                     .withStyle(ChatFormatting.GOLD));

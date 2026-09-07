@@ -130,6 +130,13 @@ public class FishingSession {
     public boolean lineSnagged;     // §line-snag: the string lies across a block between the tip and the fish
     public int snagMiss;            // §line-calm: clear checks since the last hit — three in a row lets go
     public boolean outclassed;      // §outclassed: the line is weaker than the pull — play it out, never reel it
+    // §fly: the drift — the line bows across the current (drag 0..100), the drift's last tick,
+    // whether it has come tight straight below the angler, and how many mends this drift has had.
+    public int flyDrag;
+    public long flyDriftEnd;
+    public boolean flyStraight;
+    public int flyMends;
+    public boolean flyDragWarned;   // §fly: the one 'mend!' per drift has been said
     // Â§tackle-stress (0.4.0): crossing the limit no longer snaps instantly â a per-tick break chance
     // grows with the overshoot and with how long the line has been held over it.
     public double requiredKg;     // the fish's pull in kg (drives the break-load message)

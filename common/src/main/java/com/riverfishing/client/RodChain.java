@@ -357,7 +357,7 @@ public final class RodChain {
                                     int light, int overlay) {
         if (!ENABLED) return false;
         if (!(stack.getItem() instanceof com.riverfishing.item.RodItem rod)) return false;
-        String rodKey = rod.rodType().jsonKey();
+        String rodKey = rod.rodType().modelKey();   // §fly: the fly rod borrows the ultralight blank
         if (!piece(stack, RodModelLayers.segmentItemModel(rodKey, 0), pose, collector, light, overlay)) {
             // §pod-3d: the pod fell back to the flat sprite in testing and nothing said why. piece()
             // refuses for four different reasons; say which, ONCE per rod, so the log answers it

@@ -1,0 +1,29 @@
+{
+  "en_us": {
+    "message.riverfishing.fly_straight": "Line's straight below you — pick up and cast again",
+    "message.riverfishing.fly_pickup": "Picked up the line",
+    "message.riverfishing.fly_tight": "Tight loop",
+    "message.riverfishing.fly_splash": "Splash — open loop",
+    "message.riverfishing.fly_knot": "Wind knot",
+    "gui.riverfishing.fly_beats": "%s false casts",
+    "message.riverfishing.fly_drag": "Drag — mend the line"
+  },
+  "ru_ru": {
+    "message.riverfishing.fly_straight": "Шнур вытянулся прямо под вами — поднимите и перезабросьте",
+    "message.riverfishing.fly_pickup": "Шнур поднят",
+    "message.riverfishing.fly_tight": "Узкая петля",
+    "message.riverfishing.fly_splash": "Шлепок — петля раскрылась",
+    "message.riverfishing.fly_knot": "Ветровой узел",
+    "gui.riverfishing.fly_beats": "холостых взмахов: %s",
+    "message.riverfishing.fly_drag": "Волочение — переложи шнур"
+  },
+  "uk_ua": {
+    "message.riverfishing.fly_straight": "Шнур витягнувся прямо під вами — підніміть і закиньте знову",
+    "message.riverfishing.fly_pickup": "Шнур піднято",
+    "message.riverfishing.fly_tight": "Вузька петля",
+    "message.riverfishing.fly_splash": "Ляпас — петля розкрилася",
+    "message.riverfishing.fly_knot": "Вітровий вузол",
+    "gui.riverfishing.fly_beats": "холостих змахів: %s",
+    "message.riverfishing.fly_drag": "Волочіння — переклади шнур"
+  }
+}

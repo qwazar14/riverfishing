@@ -46,6 +46,8 @@ public final class BiteEngine {
         }
         // §tying: a tied lure fishes as its template says for this fish's family.
         if (c.tied != null) best *= c.tied.affinity(p.group);
+        // §fly: match the hatch — the right kind at the right size is the fly they are taking today
+        if (c.tied != null && c.rod == com.riverfishing.component.RodType.FLY) best *= Hatch.factor(c.hatch, c.tied);
         return best;
     }
 

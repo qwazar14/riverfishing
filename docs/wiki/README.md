@@ -46,6 +46,7 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 | [Water and conditions](water-and-conditions.md) | Water bodies, depth and width, biome groups, time, weather, seasons, barometric pressure, frenzies, depletion, communities |
 | [Fish in the water](shoal.md) | The shoals you can see before you cast: how many are shown, how clearly, and how they react to you |
 | [Ice fishing](ice-fishing.md) | Drilling, jigging, what bites under the ice |
+| [Fly fishing](fly-fishing.md) | The fly rod, the rhythm cast, the drift and the mend, the rise and the delayed set, the hatch table, which fish take a fly |
 | [Sea fishing](sea-fishing.md) | The saltwater tier, ocean zones, trolling, big-game fights |
 | [Stocking](stocking.md) | Releasing fish, the residency model, settling, stock levels |
 
