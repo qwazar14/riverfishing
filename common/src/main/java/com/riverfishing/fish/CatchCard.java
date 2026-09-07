@@ -47,7 +47,8 @@ public final class CatchCard {
 
     /** timid, wary, greedy, bold — hunters lean bold, the rest lean timid. */
     public static byte rollNature(FishProfile p, Random rng) {
-        boolean hunter = p != null && (p.group.equals("predator") || p.group.equals("big_game") || p.group.equals("sea"));
+        boolean hunter = p != null && ("predator".equals(p.diet)   // §species-table
+                || p.group.equals("predator") || p.group.equals("big_game") || p.group.equals("sea"));
         int[] w = hunter ? new int[]{15, 20, 30, 35} : new int[]{35, 30, 20, 15};
         int roll = rng.nextInt(100);
         for (int i = 0, acc = 0; i < w.length; i++) { acc += w[i]; if (roll < acc) return (byte) i; }

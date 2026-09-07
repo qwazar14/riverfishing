@@ -1,7 +1,10 @@
 {
   "display": "Синеперый тунец",
   "latin": "Thunnus thynnus",
-  "spawn": { "season": "summer", "sub": "early" },
+  "spawn": {
+    "season": "summer",
+    "sub": "early"
+  },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.0,
@@ -17,8 +20,8 @@
     "mean": 60000
   },
   "length_cm": {
-    "min": 100,
-    "max": 300
+    "min": 100.0,
+    "max": 300.0
   },
   "fight": {
     "strength": 1.0,
@@ -28,20 +31,11 @@
     "aggression": 0.9
   },
   "ideal": {
-    "rod": [
-      "trolling",
-      "boat"
-    ],
-    "reel_size": 14000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.4,
       "tolerance_mm": 0.06
     },
-    "rig": [
-      "predator"
-    ],
     "groundbait": {
       "fraction": 1.0,
       "nutrition": 0.85
@@ -56,8 +50,7 @@
       "swimbait": 1.0
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 1
+      "ideal": 1
     },
     "requires_leader": false
   },
@@ -79,10 +72,6 @@
     "thunder": 0.7
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 25,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 10,
     "width_min": 24
@@ -95,5 +84,10 @@
     "ocean_biome": 0.5
   },
   "base": 0.24,
-  "min_angler_level": 8
+  "min_angler_level": 33,
+  "diet": "predator",
+  "provinces": [
+    "palearctic",
+    "nearctic"
+  ]
 }

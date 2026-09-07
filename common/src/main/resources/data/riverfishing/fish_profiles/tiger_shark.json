@@ -1,7 +1,10 @@
 {
   "display": "Тигровая акула",
   "latin": "Galeocerdo cuvier",
-  "spawn": { "season": "summer" },
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.1,
@@ -17,8 +20,8 @@
     "mean": 140000
   },
   "length_cm": {
-    "min": 200,
-    "max": 500
+    "min": 200.0,
+    "max": 500.0
   },
   "fight": {
     "strength": 0.85,
@@ -28,22 +31,11 @@
     "aggression": 0.9
   },
   "ideal": {
-    "rod": [
-      "boat",
-      "surf",
-      "trolling"
-    ],
-    "reel_size": 14000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.45,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "catfish",
-      "grusha"
-    ],
     "groundbait": {
       "fraction": 1.0,
       "nutrition": 0.95
@@ -57,8 +49,7 @@
       "swimbait": 0.9
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 1
+      "ideal": 1
     },
     "requires_leader": true
   },
@@ -80,10 +71,6 @@
     "thunder": 0.9
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 20,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 8,
     "width_min": 24
@@ -95,5 +82,12 @@
     "beach": 0.9
   },
   "base": 0.2,
-  "min_angler_level": 9
+  "min_angler_level": 38,
+  "diet": "predator",
+  "provinces": [
+    "nearctic",
+    "neotropic",
+    "indomalaya",
+    "afrotropical"
+  ]
 }

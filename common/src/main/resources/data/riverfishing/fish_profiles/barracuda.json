@@ -1,7 +1,10 @@
 {
   "display": "Барракуда",
   "latin": "Sphyraena barracuda",
-  "spawn": { "season": "spring", "sub": "late" },
+  "spawn": {
+    "season": "spring",
+    "sub": "late"
+  },
   "group": "sea",
   "water_bodies": {
     "sea": 1.1,
@@ -17,8 +20,8 @@
     "mean": 6000
   },
   "length_cm": {
-    "min": 60,
-    "max": 180
+    "min": 60.0,
+    "max": 180.0
   },
   "fight": {
     "strength": 0.85,
@@ -28,21 +31,15 @@
     "aggression": 0.95
   },
   "ideal": {
-    "rod": [
-      "sea_spin",
-      "trolling"
-    ],
-    "reel_size": 9000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.3,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "predator"
-    ],
-    "groundbait": { "fraction": 0.79, "nutrition": 0.75 },
+    "groundbait": {
+      "fraction": 0.79,
+      "nutrition": 0.75
+    },
     "bait": {
       "wobbler": 1.0,
       "silicone": 0.9,
@@ -54,8 +51,7 @@
       "swimbait": 1.05
     },
     "hook": {
-      "ideal": 2,
-      "tolerance": 2
+      "ideal": 2
     },
     "requires_leader": true
   },
@@ -77,10 +73,6 @@
     "thunder": 0.8
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 15,
-    "max": 40
-  },
   "habitat": {
     "depth_min": 3,
     "width_min": 14
@@ -92,5 +84,12 @@
     "beach": 1.1
   },
   "base": 0.55,
-  "min_angler_level": 6
+  "min_angler_level": 25,
+  "diet": "predator",
+  "provinces": [
+    "nearctic",
+    "neotropic",
+    "indomalaya",
+    "afrotropical"
+  ]
 }

@@ -1,7 +1,10 @@
 {
   "display": "Судак",
   "latin": "Sander lucioperca",
-  "spawn": { "season": "spring", "sub": "late" },
+  "spawn": {
+    "season": "spring",
+    "sub": "late"
+  },
   "group": "predator",
   "water_bodies": {
     "river": 1.1,
@@ -17,8 +20,8 @@
     "mean": 1500
   },
   "length_cm": {
-    "min": 35,
-    "max": 90
+    "min": 35.0,
+    "max": 90.0
   },
   "fight": {
     "strength": 0.7,
@@ -28,20 +31,15 @@
     "aggression": 0.75
   },
   "ideal": {
-    "rod": [
-      "spinning"
-    ],
-    "reel_size": 3000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.12,
       "tolerance_mm": 0.04
     },
-    "rig": [
-      "predator"
-    ],
-    "groundbait": { "fraction": 0.62, "nutrition": 0.50 },
+    "groundbait": {
+      "fraction": 0.62,
+      "nutrition": 0.5
+    },
     "bait": {
       "livebait": 0.95,
       "silicone": 1.0,
@@ -53,8 +51,7 @@
       "swimbait": 0.8
     },
     "hook": {
-      "ideal": 4,
-      "tolerance": 2
+      "ideal": 4
     },
     "requires_leader": true
   },
@@ -76,20 +73,21 @@
     "thunder": 0.9
   },
   "depth_pref": "bottom",
-  "distance_pref": {
-    "min": 10,
-    "max": 35
-  },
   "habitat": {
     "depth_min": 4,
     "width_min": 14
   },
-  "provinces": ["palearctic"],
-  "breeds_with": {"volga_zander": 0.35},
+  "provinces": [
+    "palearctic"
+  ],
+  "breeds_with": {
+    "volga_zander": 0.35
+  },
   "biomes": {
     "temperate": 1.0,
     "cold": 0.8
   },
   "base": 0.9,
-  "min_angler_level": 4
+  "min_angler_level": 17,
+  "diet": "predator"
 }

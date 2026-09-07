@@ -86,9 +86,7 @@ public final class FishCard {
         c.put("time", floats(p.time, TIMES));
         c.put("bio", keyed(p.biomes));
         c.put("bait", keyed(p.baitScores));
-        c.put("rod", strings(p.idealRods));
-        c.put("rig", strings(p.idealRigs));
-        c.putInt("reel", p.reelSize);
+        c.putInt("hook", p.hookIdeal);   // §species-table: rod, rig and reel left the species' asks
         c.putString("line", p.lineType);
         c.putFloat("dia", (float) p.lineDiameter);
         return c;
@@ -143,6 +141,7 @@ public final class FishCard {
     public int fightRuns() { return tag.getIntOr("fr", 0); }
     public String fightPattern() { return tag.contains("fp") ? tag.getStringOr("fp", "") : "steady"; }
     public int reelSize() { return tag.getIntOr("reel", 0); }
+    public String diet() { return tag.getStringOr("diet", ""); }   // §species-table
     public String lineType() { return tag.contains("line") ? tag.getStringOr("line", "") : "mono"; }
     public float lineDiameter() { return tag.getFloatOr("dia", 0f); }
 
@@ -150,6 +149,7 @@ public final class FishCard {
     public float[] seasons() { return readFloats("season", SEASONS.length); }
     public float[] times() { return readFloats("time", TIMES.length); }
 
+    public int hookIdeal() { return tag.getIntOr("hook", 0); }   // §species-table
     public List<String> rods() { return readStrings("rod"); }
     public List<String> rigs() { return readStrings("rig"); }
 

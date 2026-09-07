@@ -1571,6 +1571,9 @@ public class JournalScreen extends Screen {
         y = paramTable(g, x, y, w, List.of(
                 new Param("journal.riverfishing.stat_strength", c.fightStrength(), 0xFF9A4A3C),
                 new Param("journal.riverfishing.stat_stamina", c.fightStamina(), 0xFF3C6E9A))) + 2;
+        if (!c.diet().isEmpty()) {   // §species-table
+            y = railLine(g, "journal.riverfishing.diet", Component.translatable("diet.riverfishing." + c.diet()).getString(), x, y, w);
+        }
         y = railLine(g, "journal.riverfishing.stat_runs", Integer.toString(c.fightRuns()), x, y, w);
         y = railLine(g, "journal.riverfishing.stat_pattern",
                 Component.translatable("fightpattern.riverfishing." + c.fightPattern()).getString(), x, y, w);
@@ -2582,17 +2585,11 @@ public class JournalScreen extends Screen {
                 .reduce((a, b) -> a + ", " + b).orElse("—");
     }
 
+    /** §species-table: the line and the hook — the two asks a species still makes of your tackle. */
     private static String tackle(com.riverfishing.fish.FishCard c) {
-        StringBuilder sb = new StringBuilder();
-        for (String rod : c.rods()) {
-            if (sb.length() > 0) sb.append(", ");
-            sb.append(Component.translatable("item.riverfishing." + rod + "_rod").getString());
-        }
-        for (String rig : c.rigs()) {
-            if (sb.length() > 0) sb.append(", ");
-            sb.append(Component.translatable("item.riverfishing.rig_" + rig).getString());
-        }
-        return sb.toString();
+        String line = Component.translatable("item.riverfishing.line_" + c.lineType()).getString();
+        String s = c.lineDiameter() > 0 ? String.format(java.util.Locale.ROOT, "%s %.2f", line, c.lineDiameter()) : line;
+        return c.hookIdeal() > 0 ? s + " · №" + c.hookIdeal() : s;
     }
 
     // ---- input ----

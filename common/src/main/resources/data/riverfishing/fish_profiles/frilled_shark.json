@@ -1,8 +1,11 @@
 {
   "display": "Плащеносная акула",
   "latin": "Chlamydoselachus anguineus",
-  "spawn": { "season": "summer" },
-  "group": "big_game",
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
+  "group": "sea",
   "water_bodies": {
     "river": 0.0,
     "lake": 0.0,
@@ -17,8 +20,8 @@
     "mean": 16000
   },
   "length_cm": {
-    "min": 90,
-    "max": 200
+    "min": 90.0,
+    "max": 200.0
   },
   "fight": {
     "strength": 0.7,
@@ -28,20 +31,11 @@
     "aggression": 0.55
   },
   "ideal": {
-    "rod": [
-      "boat"
-    ],
-    "reel_size": 10000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.4,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "catfish",
-      "predator"
-    ],
     "groundbait": {
       "fraction": 0.9,
       "nutrition": 0.7
@@ -52,8 +46,7 @@
       "livebait": 0.85
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 2
+      "ideal": 1
     },
     "requires_leader": true
   },
@@ -75,10 +68,6 @@
     "thunder": 1.0
   },
   "depth_pref": "bottom",
-  "distance_pref": {
-    "min": 25,
-    "max": 60
-  },
   "habitat": {
     "depth_min": 14,
     "width_min": 28
@@ -89,5 +78,11 @@
     "ocean_biome": 0.7
   },
   "base": 0.06,
-  "min_angler_level": 11
+  "min_angler_level": 46,
+  "diet": "predator",
+  "provinces": [
+    "palearctic",
+    "nearctic",
+    "indomalaya"
+  ]
 }

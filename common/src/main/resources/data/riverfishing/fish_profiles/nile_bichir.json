@@ -1,0 +1,93 @@
+{
+  "display": "Nile bichir",
+  "latin": "Polypterus bichir",
+  "group": "exotic",
+  "diet": "predator",
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
+  "water_bodies": {
+    "river": 0.8,
+    "lake": 0.8,
+    "pond": 1.1,
+    "swamp": 1.4,
+    "sea": 0.0,
+    "puddle": 0.2
+  },
+  "weight_g": {
+    "min": 22,
+    "max": 2700,
+    "mean": 164
+  },
+  "length_cm": {
+    "min": 14.8,
+    "max": 74.0
+  },
+  "fight": {
+    "strength": 0.56,
+    "stamina": 0.7,
+    "runs": 2,
+    "pattern": "steady",
+    "aggression": 0.6
+  },
+  "ideal": {
+    "line": {
+      "type": "mono",
+      "diameter_mm": 0.22,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.15,
+      "nutrition": 0.39
+    },
+    "bait": {
+      "livebait": 1.0,
+      "fish_strip": 0.9,
+      "jig": 0.85,
+      "chicken_liver": 0.6,
+      "worm": 0.55
+    },
+    "hook": {
+      "ideal": 7
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 1.1,
+    "autumn": 1.0,
+    "winter": 0.3
+  },
+  "time": {
+    "dawn": 1.0,
+    "day": 0.4,
+    "dusk": 1.2,
+    "night": 1.5
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.0,
+    "thunder": 1.0
+  },
+  "depth_pref": "bottom",
+  "habitat": {
+    "depth_min": 2,
+    "depth_max": 9,
+    "width_min": 5
+  },
+  "provinces": [
+    "afrotropical"
+  ],
+  "biomes": {
+    "temperate": 0.6,
+    "warm": 1.2,
+    "swamp": 1.5,
+    "jungle": 1.1
+  },
+  "biomes_require": [
+    "swamp"
+  ],
+  "base": 0.91,
+  "min_angler_level": 9
+}

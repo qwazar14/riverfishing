@@ -1,7 +1,10 @@
 {
   "display": "Махи-махи",
   "latin": "Coryphaena hippurus",
-  "spawn": { "season": "summer" },
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.1,
@@ -13,12 +16,12 @@
   },
   "weight_g": {
     "min": 2000,
-    "max": 20000,
+    "max": 40000,
     "mean": 5000
   },
   "length_cm": {
-    "min": 50,
-    "max": 160
+    "min": 50.0,
+    "max": 210.0
   },
   "fight": {
     "strength": 0.85,
@@ -28,34 +31,29 @@
     "aggression": 0.9
   },
   "ideal": {
-    "rod": [
-      "trolling",
-      "sea_spin"
-    ],
-    "reel_size": 10000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.3,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "predator"
-    ],
-    "groundbait": { "fraction": 0.77, "nutrition": 0.75 },
+    "groundbait": {
+      "fraction": 0.77,
+      "nutrition": 0.75
+    },
     "bait": {
       "wobbler": 1.0,
       "popper": 0.9,
       "silicone": 0.8,
       "fish_strip": 0.6,
-      "octopus_jig": 1.0, "livebait": 1.05,
+      "octopus_jig": 1.0,
+      "livebait": 1.05,
       "giant_spoon": 1.0,
       "swimbait": 1.0
     },
     "hook": {
-      "ideal": 2,
-      "tolerance": 2
-    }
+      "ideal": 2
+    },
+    "requires_leader": false
   },
   "season": {
     "spring": 1.0,
@@ -75,10 +73,6 @@
     "thunder": 0.7
   },
   "depth_pref": "surface",
-  "distance_pref": {
-    "min": 25,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 5,
     "width_min": 16
@@ -89,5 +83,12 @@
     "temperate": 0.7
   },
   "base": 0.5,
-  "min_angler_level": 7
+  "min_angler_level": 29,
+  "diet": "predator",
+  "provinces": [
+    "nearctic",
+    "neotropic",
+    "indomalaya",
+    "afrotropical"
+  ]
 }

@@ -160,7 +160,7 @@ public final class AquariumBreeding {
         for (int i = 0; !p.gynogenesis && i < 8 && Genome.lethal(genome); i++) {
             genome = Genome.cross(gm, gf, RNG);
         }
-        be.roe = RoeItem.of(FishItem.getSpecies(mother), genome, clutch(be, pair, p), now / DAY);
+        be.roe = RoeItem.of(hybridOr(FishItem.getSpecies(mother), FishItem.getSpecies(pair[1])), genome, clutch(be, pair, p), now / DAY);   // §species-table
         // §pattern: the clutch's index is the parents' mean, plus a mutation of about twelve. That is
         // the collector's line — a pair bred toward a family throws inside it nearly every time, and
         // the last few points toward a gem are always work.
@@ -382,6 +382,15 @@ public final class AquariumBreeding {
     /** Both at least an adult (Card.Size 2): babies and juveniles keep growing, they do not spawn. */
     private static boolean mature(ItemStack[] pair) {
         return CatchCard.of(pair[0]).getByteOr("Size", (byte) 0) >= 2 && CatchCard.of(pair[1]).getByteOr("Size", (byte) 0) >= 2;
+    }
+
+    /** §species-table: the species a cross of these two is filed as — the hybrid the table names, else the mother. */
+    private static Identifier hybridOr(Identifier mother, Identifier father) {
+        if (mother == null || father == null || mother.equals(father)) return mother;
+        for (FishProfile h : FishProfileManager.get().all()) {
+            if (h.hybridOf.size() == 2 && h.hybridOf.contains(mother.getPath()) && h.hybridOf.contains(father.getPath())) return h.id;
+        }
+        return mother;
     }
 
     private static FishProfile profile(Identifier species) {

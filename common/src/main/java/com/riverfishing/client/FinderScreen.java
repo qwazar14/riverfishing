@@ -86,7 +86,7 @@ public class FinderScreen extends Screen {
      * order. Four darks the water sits on top of, so a sounded lake still reads as a lake, and a gold
      * line where two meet, because a region map is mostly its borders.
      */
-    private static final int[] PROV = {0xFF101C2C, 0xFF101F14, 0xFF241609, 0xFF1E132A};
+    private static final int[] PROV = {0xFF101C2C, 0xFF101F14, 0xFF241609, 0xFF1E132A, 0xFF2A1A0A};   // §species-table: the fifth, Afrotropical
     private static final int PROV_EDGE = 0xAAE8B430;
     /** Cells between province samples. A Voronoi is smooth and a border is three thousand blocks long. */
     private static final int PROV_STRIDE = 2;

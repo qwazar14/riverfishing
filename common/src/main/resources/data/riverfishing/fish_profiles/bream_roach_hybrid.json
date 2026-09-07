@@ -1,0 +1,97 @@
+{
+  "display": "Bream × roach hybrid",
+  "latin": "Abramis brama × Rutilus rutilus",
+  "group": "cyprinid",
+  "diet": "peaceful",
+  "spawn": {
+    "season": "spring",
+    "sub": "late"
+  },
+  "water_bodies": {
+    "river": 0.7,
+    "lake": 1.1,
+    "pond": 1.3,
+    "swamp": 1.0,
+    "sea": 0.0,
+    "puddle": 0.3
+  },
+  "weight_g": {
+    "min": 24,
+    "max": 3000,
+    "mean": 182
+  },
+  "length_cm": {
+    "min": 11.0,
+    "max": 55.0
+  },
+  "fight": {
+    "strength": 0.48,
+    "stamina": 0.65,
+    "runs": 2,
+    "pattern": "steady",
+    "aggression": 0.25
+  },
+  "ideal": {
+    "line": {
+      "type": "mono",
+      "diameter_mm": 0.22,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.98,
+      "nutrition": 0.88
+    },
+    "bait": {
+      "dough": 1.0,
+      "corn": 0.9,
+      "bread": 0.9,
+      "worm": 0.85,
+      "pearl_barley": 0.8,
+      "maggot": 0.7
+    },
+    "hook": {
+      "ideal": 10
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.1,
+    "summer": 1.0,
+    "autumn": 1.2,
+    "winter": 0.6
+  },
+  "time": {
+    "dawn": 1.1,
+    "day": 1.0,
+    "dusk": 1.1,
+    "night": 0.8
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.2,
+    "thunder": 1.1
+  },
+  "depth_pref": "bottom",
+  "habitat": {
+    "depth_min": 3,
+    "width_min": 6
+  },
+  "provinces": [
+    "palearctic"
+  ],
+  "biomes": {
+    "cold": 0.9,
+    "temperate": 1.2,
+    "warm": 0.9,
+    "swamp": 0.8,
+    "cherry": 1.1,
+    "mountain": 0.8,
+    "taiga": 1.0
+  },
+  "base": 1.18,
+  "hybrid_of": [
+    "bream",
+    "roach"
+  ],
+  "min_angler_level": 11
+}
