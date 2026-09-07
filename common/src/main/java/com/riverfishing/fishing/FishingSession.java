@@ -4,7 +4,6 @@ import com.riverfishing.component.RigType;
 import com.riverfishing.component.RodClass;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.world.InteractionHand;
 
 /** One active line in the water for a player. Lives only on the server. */
@@ -119,7 +118,6 @@ public class FishingSession {
 
     // ---- fight state ----
     public boolean fighting;
-    public ServerBossEvent bossBar;
     public double tension;        // 0..1; over breakTension the line is in overstress (Â§tackle-stress)
     public double landProgress;   // 0..1; reaching 1 lands the fish
     public double breakTension;   // how much tension the tackle tolerates for THIS fish

@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/trophy",
+  "display": {
+    "icon": {
+      "id": "minecraft:gold_nugget"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.trophy_10.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.trophy_10.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/seven_families",
+  "display": {
+    "icon": {
+      "id": "minecraft:writable_book"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.all_families.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.all_families.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

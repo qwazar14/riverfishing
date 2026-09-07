@@ -124,11 +124,19 @@ public final class JournalCommand {
             FishProfile p = FishProfileManager.get().byId(id);
             int w = p != null ? (int) Math.round(p.weightMax) : 100000;
             JournalData.record(sp, id, w);
+            if (p != null) JournalData.recordTraits(sp, p.group, p.diet, w);   // §progression: the counters the quests read
         }
         net.minecraft.nbt.CompoundTag root = JournalData.get(sp);
         root.putInt(JournalData.TOTAL, Math.max(root.getIntOr(JournalData.TOTAL, 0), 120));
         root.putInt(JournalData.TROPHIES, Math.max(root.getIntOr(JournalData.TROPHIES, 0), 10));
         root.putInt(JournalData.ICE, Math.max(root.getIntOr(JournalData.ICE, 0), 40));
+        root.putInt(JournalData.FLY, Math.max(root.getIntOr(JournalData.FLY, 0), 60));
+        net.minecraft.nbt.CompoundTag provs = new net.minecraft.nbt.CompoundTag();
+        for (String pr : com.riverfishing.water.Provinces.ALL) provs.putBoolean(pr, true);
+        root.put("provinces", provs);
+        net.minecraft.nbt.CompoundTag seasons = new net.minecraft.nbt.CompoundTag();
+        for (String s : new String[]{"spring", "summer", "autumn", "winter"}) seasons.putBoolean(s, true);
+        root.put("seasons", seasons);
         root.putLong(JournalData.XP, Math.max(root.getLongOr(JournalData.XP, 0L), JournalData.xpForLevel(25)));
         PlayerData.root(sp).put(JournalData.TAG, root);
         PlayerData.markDirty(sp);
