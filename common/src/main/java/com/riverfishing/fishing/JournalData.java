@@ -85,6 +85,28 @@ public final class JournalData {
         return get(player).getCompound("provinces").getAllKeys().size();
     }
 
+    /** §progression-2: the season a fish was taken in. */
+    public static void recordSeason(Player player, String season) {
+        CompoundTag root = get(player);
+        CompoundTag seen = root.getCompound("seasons");
+        seen.putBoolean(season, true);
+        root.put("seasons", seen);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+    }
+
+    public static int seasonsSeen(Player player) {
+        return get(player).getCompound("seasons").getAllKeys().size();
+    }
+
+    /** §progression-2: journal keys with the prefix and a count above zero — the families or the diets fished. */
+    public static int countPrefix(Player player, String prefix) {
+        CompoundTag root = get(player);
+        int n = 0;
+        for (String k : root.getAllKeys()) if (k.startsWith(prefix) && root.getInt(k) > 0) n++;
+        return n;
+    }
+
     /** Records a fish landed through the ice (§winter-quests): a counter for winter-fishing goals. */
     public static void addIceCatch(Player player) {
         CompoundTag root = get(player);

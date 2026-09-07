@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": {
+      "id": "riverfishing:mackerel"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.sea_first.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.sea_first.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

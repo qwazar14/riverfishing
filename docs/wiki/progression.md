@@ -203,7 +203,7 @@ See [Sea fishing](sea-fishing.md#progression-into-the-sea). Completion reward: 6
 
 ## Advancements
 
-Thirty-four advancements. Some are driven by simply having the fish in your inventory; others are **code-driven** and depend on *how* you caught it.
+Forty-eight advancements. Some are driven by simply having the fish in your inventory; others are **code-driven** and depend on *how* you caught it.
 
 | Advancement | How |
 |---|---|
@@ -241,6 +241,20 @@ Thirty-four advancements. Some are driven by simply having the fish in your inve
 | **Grandmaster** | Angler level 50 |
 | **In Time** | Hook a fish through the ice on a full [jig combo](ice-fishing.md) — all 8 beats |
 | **Market Day** | Sell a [keepnet](keepnet.md) to the fisherman |
+| **Night Owl** | Land a fish at night |
+| **Storm Rider** | Land a fish in a thunderstorm |
+| **Four Seasons** | Land a fish in every season |
+| **A Table for Everyone** | Catch a peaceful feeder, an omnivore, a predator and an insect feeder |
+| **Seven Families** | Catch fish of seven different families |
+| **Every Family** | Catch fish of all thirteen families |
+| **The Table Was Laid** | Land a fish from a swim you fed |
+| **Ten Trophies** | Land ten trophy specimens |
+| **A Wall of Trophies** | Land fifty trophy specimens |
+| **A Thousand Fish** | Land a thousand fish |
+| **Dry Fly Hand** | Land fifty fish on the fly |
+| **Go Home** | Release a fish back into the water |
+| **Salt** | Land a fish from the sea |
+| **The Deep** | Land a fish over the deep ocean |
 
 The species-count advancements are **counted in code** against the live species roster, so they can never drift out of step with a content update. Koi are excluded from that count.
 
