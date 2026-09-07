@@ -1,7 +1,10 @@
 {
   "display": "Снук",
   "latin": "Centropomus undecimalis",
-  "spawn": { "season": "spring", "sub": "late" },
+  "spawn": {
+    "season": "spring",
+    "sub": "late"
+  },
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,
@@ -17,8 +20,8 @@
     "mean": 3500
   },
   "length_cm": {
-    "min": 35,
-    "max": 140
+    "min": 35.0,
+    "max": 140.0
   },
   "fight": {
     "strength": 0.9,
@@ -28,22 +31,15 @@
     "aggression": 0.85
   },
   "ideal": {
-    "rod": [
-      "sea_spin",
-      "surf",
-      "spinning"
-    ],
-    "reel_size": 6000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.3,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "predator"
-    ],
-    "groundbait": { "fraction": 0.73, "nutrition": 0.75 },
+    "groundbait": {
+      "fraction": 0.73,
+      "nutrition": 0.75
+    },
     "bait": {
       "livebait": 1.25,
       "silicone": 1.1,
@@ -55,9 +51,9 @@
       "swimbait": 1.15
     },
     "hook": {
-      "ideal": 2,
-      "tolerance": 2
-    }
+      "ideal": 2
+    },
+    "requires_leader": false
   },
   "season": {
     "spring": 1.1,
@@ -77,15 +73,14 @@
     "thunder": 1.0
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 5,
-    "max": 35
-  },
   "habitat": {
     "depth_min": 2,
     "width_min": 8
   },
-  "provinces": ["neotropic", "nearctic"],
+  "provinces": [
+    "neotropic",
+    "nearctic"
+  ],
   "biomes": {
     "warm": 1.4,
     "beach": 1.2,
@@ -93,5 +88,6 @@
     "ocean_biome": 0.9
   },
   "base": 0.55,
-  "min_angler_level": 7
+  "min_angler_level": 29,
+  "diet": "predator"
 }

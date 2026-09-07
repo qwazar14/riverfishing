@@ -1,30 +1,89 @@
 {
   "display": "Стерлядь",
   "latin": "Acipenser ruthenus",
-  "spawn": { "season": "spring", "sub": "late" },
-  "group": "sturgeon",
-  "water_bodies": { "river": 1.2, "lake": 0.0, "pond": 0.0, "swamp": 0.0, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 1000, "max": 16000, "mean": 3000 },
-  "length_cm": { "min": 40, "max": 125 },
-  "fight": { "strength": 0.8, "stamina": 0.9, "runs": 4, "pattern": "burst" },
-  "ideal": {
-    "rod": ["bottom", "carp"],
-    "reel_size": 6000, "reel_tolerance": 1000,
-    "line": { "type": "braid", "diameter_mm": 0.14, "tolerance_mm": 0.04 },
-    "rig": ["ground", "catfish"],
-    "groundbait": { "fraction": 0.71, "nutrition": 0.56 },
-    "bait": { "worm": 1.0, "bloodworm": 0.7, "maggot": 0.5 },
-    "hook": { "ideal": 6, "tolerance": 2 }
+  "spawn": {
+    "season": "spring",
+    "sub": "late"
   },
-  "season": { "spring": 1.1, "summer": 1.0, "autumn": 0.9, "winter": 0.3 },
-  "time":   { "dawn": 0.8, "day": 0.4, "dusk": 1.1, "night": 1.4 },
-  "weather":{ "clear": 0.9, "rain": 1.1, "thunder": 1.0 },
+  "group": "sturgeon",
+  "water_bodies": {
+    "river": 1.2,
+    "lake": 0.0,
+    "pond": 0.0,
+    "swamp": 0.0,
+    "sea": 0.0,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 1000,
+    "max": 16000,
+    "mean": 3000
+  },
+  "length_cm": {
+    "min": 40.0,
+    "max": 125.0
+  },
+  "fight": {
+    "strength": 0.8,
+    "stamina": 0.9,
+    "runs": 4,
+    "pattern": "burst",
+    "aggression": 0.3
+  },
+  "ideal": {
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.14,
+      "tolerance_mm": 0.04
+    },
+    "groundbait": {
+      "fraction": 0.71,
+      "nutrition": 0.56
+    },
+    "bait": {
+      "worm": 1.0,
+      "bloodworm": 0.7,
+      "maggot": 0.5
+    },
+    "hook": {
+      "ideal": 6
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.1,
+    "summer": 1.0,
+    "autumn": 0.9,
+    "winter": 0.3
+  },
+  "time": {
+    "dawn": 0.8,
+    "day": 0.4,
+    "dusk": 1.1,
+    "night": 1.4
+  },
+  "weather": {
+    "clear": 0.9,
+    "rain": 1.1,
+    "thunder": 1.0
+  },
   "depth_pref": "bottom",
-  "distance_pref": { "min": 12, "max": 40 },
-  "habitat": { "depth_min": 5, "width_min": 18 },
-  "provinces": ["palearctic"],
-  "breeds_with": {"beluga": 0.8, "sturgeon": 0.8},
-  "biomes": { "temperate": 1.0 },
+  "habitat": {
+    "depth_min": 5,
+    "width_min": 18
+  },
+  "provinces": [
+    "palearctic"
+  ],
+  "breeds_with": {
+    "beluga": 0.8,
+    "kaluga_sturgeon": 0.5,
+    "sturgeon": 0.8
+  },
+  "biomes": {
+    "temperate": 1.0
+  },
   "base": 0.35,
-  "min_angler_level": 8
+  "min_angler_level": 33,
+  "diet": "omnivore"
 }

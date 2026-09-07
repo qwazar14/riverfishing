@@ -1,0 +1,92 @@
+{
+  "display": "Frontosa cichlid",
+  "latin": "Cyphotilapia frontosa",
+  "group": "cichlid",
+  "diet": "predator",
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
+  "water_bodies": {
+    "river": 0.8,
+    "lake": 1.3,
+    "pond": 1.0,
+    "swamp": 0.6,
+    "sea": 0.0,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 32,
+    "max": 1200,
+    "mean": 148
+  },
+  "length_cm": {
+    "min": 9.9,
+    "max": 33.0
+  },
+  "fight": {
+    "strength": 0.53,
+    "stamina": 0.58,
+    "runs": 2,
+    "pattern": "burst",
+    "aggression": 0.75
+  },
+  "ideal": {
+    "line": {
+      "type": "fluoro",
+      "diameter_mm": 0.2,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.12,
+      "nutrition": 0.32
+    },
+    "bait": {
+      "livebait": 1.0,
+      "fish_strip": 0.9,
+      "jig": 0.85,
+      "worm": 0.55,
+      "bloodworm": 0.35
+    },
+    "hook": {
+      "ideal": 11
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 1.1,
+    "autumn": 1.0,
+    "winter": 0.3
+  },
+  "time": {
+    "dawn": 1.1,
+    "day": 1.2,
+    "dusk": 1.0,
+    "night": 0.4
+  },
+  "weather": {
+    "clear": 1.1,
+    "rain": 0.9,
+    "thunder": 0.8
+  },
+  "depth_pref": "mid",
+  "habitat": {
+    "depth_min": 3,
+    "width_min": 6
+  },
+  "provinces": [
+    "afrotropical"
+  ],
+  "biomes": {
+    "temperate": 0.6,
+    "warm": 1.3,
+    "deep": 0.9,
+    "jungle": 1.0
+  },
+  "biomes_require": [
+    "warm"
+  ],
+  "base": 1.03,
+  "min_angler_level": 12
+}

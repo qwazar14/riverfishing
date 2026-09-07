@@ -22,11 +22,18 @@ public final class FishGroup {
     public static final String KOI = "koi";
     public static final String SEA = "sea";
     public static final String BIG_GAME = "big_game";
+    // §species-table: the six families the author's table filed its species under
+    public static final String PANFISH = "panfish";
+    public static final String CATFISH = "catfish";
+    public static final String CICHLID = "cichlid";
+    public static final String CHARACIN = "characin";
+    public static final String EXOTIC = "exotic";
+    public static final String RAY = "ray";
     /** Anything a datapack added without saying what it is — listed, never silently mis-filed. */
     public static final String OTHER = "other";
 
     public static final List<String> ORDER =
-            List.of(CYPRINID, PREDATOR, SALMONID, STURGEON, KOI, SEA, BIG_GAME, OTHER);
+            List.of(CYPRINID, PANFISH, PREDATOR, CATFISH, SALMONID, CICHLID, CHARACIN, STURGEON, RAY, KOI, SEA, BIG_GAME, EXOTIC, OTHER);
 
     /** The profile's group, or {@link #OTHER} if it named one this build does not know. */
     public static String of(FishProfile p) {

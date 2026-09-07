@@ -1,7 +1,10 @@
 {
   "display": "Парусник",
   "latin": "Istiophorus platypterus",
-  "spawn": { "season": "summer" },
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.0,
@@ -17,8 +20,8 @@
     "mean": 35000
   },
   "length_cm": {
-    "min": 150,
-    "max": 320
+    "min": 150.0,
+    "max": 320.0
   },
   "fight": {
     "strength": 0.9,
@@ -28,32 +31,27 @@
     "aggression": 1.0
   },
   "ideal": {
-    "rod": [
-      "trolling",
-      "sea_spin"
-    ],
-    "reel_size": 12000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.3,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "predator"
-    ],
-    "groundbait": { "fraction": 1.00, "nutrition": 0.50 },
+    "groundbait": {
+      "fraction": 1.0,
+      "nutrition": 0.5
+    },
     "bait": {
       "wobbler": 1.0,
       "popper": 0.8,
       "silicone": 0.7,
-      "octopus_jig": 1.0, "livebait": 1.1,
+      "octopus_jig": 1.0,
+      "livebait": 1.1,
       "giant_spoon": 0.95
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 2
-    }
+      "ideal": 1
+    },
+    "requires_leader": false
   },
   "season": {
     "spring": 1.0,
@@ -73,10 +71,6 @@
     "thunder": 0.6
   },
   "depth_pref": "surface",
-  "distance_pref": {
-    "min": 28,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 8,
     "width_min": 20
@@ -87,5 +81,12 @@
     "temperate": 0.5
   },
   "base": 0.35,
-  "min_angler_level": 7
+  "min_angler_level": 29,
+  "diet": "predator",
+  "provinces": [
+    "nearctic",
+    "neotropic",
+    "indomalaya",
+    "afrotropical"
+  ]
 }

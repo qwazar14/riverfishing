@@ -1,7 +1,10 @@
 {
   "display": "Щука",
   "latin": "Esox lucius",
-  "spawn": { "season": "spring", "sub": "early" },
+  "spawn": {
+    "season": "spring",
+    "sub": "early"
+  },
   "group": "predator",
   "water_bodies": {
     "river": 1.0,
@@ -17,8 +20,8 @@
     "mean": 2000
   },
   "length_cm": {
-    "min": 35,
-    "max": 120
+    "min": 35.0,
+    "max": 120.0
   },
   "fight": {
     "strength": 0.85,
@@ -28,20 +31,15 @@
     "aggression": 0.9
   },
   "ideal": {
-    "rod": [
-      "spinning"
-    ],
-    "reel_size": 3000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.14,
       "tolerance_mm": 0.04
     },
-    "rig": [
-      "predator"
-    ],
-    "groundbait": { "fraction": 0.66, "nutrition": 0.50 },
+    "groundbait": {
+      "fraction": 0.66,
+      "nutrition": 0.5
+    },
     "bait": {
       "livebait": 0.9,
       "wobbler": 1.0,
@@ -55,8 +53,7 @@
       "swimbait": 1.0
     },
     "hook": {
-      "ideal": 4,
-      "tolerance": 2
+      "ideal": 4
     },
     "requires_leader": true
   },
@@ -78,22 +75,25 @@
     "thunder": 1.0
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 6,
-    "max": 30
-  },
   "habitat": {
     "depth_min": 2,
     "depth_max": 10,
     "width_min": 8
   },
-  "provinces": ["palearctic", "nearctic"],
+  "provinces": [
+    "palearctic",
+    "nearctic"
+  ],
   "biomes": {
     "cold": 1.1,
     "temperate": 1.0,
     "swamp": 1.1
   },
-  "legendary": { "weight_g": 14000, "chance": 0.006 },
+  "legendary": {
+    "weight_g": 14000,
+    "chance": 0.006
+  },
   "base": 0.9,
-  "min_angler_level": 4
+  "min_angler_level": 17,
+  "diet": "predator"
 }

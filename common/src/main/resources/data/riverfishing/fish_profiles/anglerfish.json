@@ -1,7 +1,10 @@
 {
   "display": "Морской чёрт",
   "latin": "Lophius piscatorius",
-  "spawn": { "season": "spring", "sub": "early" },
+  "spawn": {
+    "season": "spring",
+    "sub": "early"
+  },
   "group": "sea",
   "water_bodies": {
     "sea": 1.0,
@@ -17,8 +20,8 @@
     "mean": 7000
   },
   "length_cm": {
-    "min": 40,
-    "max": 150
+    "min": 40.0,
+    "max": 150.0
   },
   "fight": {
     "strength": 0.5,
@@ -28,21 +31,11 @@
     "aggression": 0.2
   },
   "ideal": {
-    "rod": [
-      "boat",
-      "bottom"
-    ],
-    "reel_size": 10000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.3,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "catfish",
-      "grusha"
-    ],
     "groundbait": {
       "fraction": 0.72,
       "nutrition": 0.8
@@ -52,8 +45,7 @@
       "fish_strip": 1.0
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 2
+      "ideal": 1
     },
     "requires_leader": true
   },
@@ -75,10 +67,6 @@
     "thunder": 0.9
   },
   "depth_pref": "bottom",
-  "distance_pref": {
-    "min": 20,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 12,
     "width_min": 24
@@ -90,5 +78,9 @@
     "ocean_biome": 0.5
   },
   "base": 0.22,
-  "min_angler_level": 8
+  "min_angler_level": 33,
+  "diet": "predator",
+  "provinces": [
+    "palearctic"
+  ]
 }

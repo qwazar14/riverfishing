@@ -1,7 +1,10 @@
 {
   "display": "Голиафовый групер",
   "latin": "Epinephelus itajara",
-  "spawn": { "season": "summer" },
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
   "group": "big_game",
   "water_bodies": {
     "river": 0.0,
@@ -17,8 +20,8 @@
     "mean": 55000
   },
   "length_cm": {
-    "min": 100,
-    "max": 250
+    "min": 100.0,
+    "max": 250.0
   },
   "fight": {
     "strength": 1.0,
@@ -28,21 +31,11 @@
     "aggression": 0.9
   },
   "ideal": {
-    "rod": [
-      "boat",
-      "surf"
-    ],
-    "reel_size": 12000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.55,
       "tolerance_mm": 0.1
     },
-    "rig": [
-      "catfish",
-      "predator"
-    ],
     "groundbait": {
       "fraction": 0.97,
       "nutrition": 0.78
@@ -55,8 +48,7 @@
       "swimbait": 0.8
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 1
+      "ideal": 1
     },
     "requires_leader": true
   },
@@ -78,10 +70,6 @@
     "thunder": 1.0
   },
   "depth_pref": "bottom",
-  "distance_pref": {
-    "min": 10,
-    "max": 35
-  },
   "habitat": {
     "depth_min": 5,
     "width_min": 20
@@ -92,5 +80,11 @@
     "beach": 0.9
   },
   "base": 0.2,
-  "min_angler_level": 10
+  "min_angler_level": 42,
+  "diet": "predator",
+  "provinces": [
+    "nearctic",
+    "neotropic",
+    "afrotropical"
+  ]
 }

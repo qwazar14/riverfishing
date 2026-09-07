@@ -1,7 +1,10 @@
 {
   "display": "Каранкс",
   "latin": "Caranx hippos",
-  "spawn": { "season": "spring", "sub": "late" },
+  "spawn": {
+    "season": "spring",
+    "sub": "late"
+  },
   "group": "sea",
   "water_bodies": {
     "sea": 1.2,
@@ -17,8 +20,8 @@
     "mean": 4500
   },
   "length_cm": {
-    "min": 35,
-    "max": 120
+    "min": 35.0,
+    "max": 120.0
   },
   "fight": {
     "strength": 0.95,
@@ -28,22 +31,15 @@
     "aggression": 0.95
   },
   "ideal": {
-    "rod": [
-      "sea_spin",
-      "boat",
-      "surf"
-    ],
-    "reel_size": 8000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.35,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "predator"
-    ],
-    "groundbait": { "fraction": 0.76, "nutrition": 0.50 },
+    "groundbait": {
+      "fraction": 0.76,
+      "nutrition": 0.5
+    },
     "bait": {
       "popper": 1.25,
       "spoon": 1.1,
@@ -56,9 +52,9 @@
       "swimbait": 1.1
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 2
-    }
+      "ideal": 1
+    },
+    "requires_leader": false
   },
   "season": {
     "spring": 1.1,
@@ -78,10 +74,6 @@
     "thunder": 1.0
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 10,
-    "max": 50
-  },
   "habitat": {
     "depth_min": 2,
     "width_min": 12
@@ -92,5 +84,11 @@
     "ocean_biome": 1.1
   },
   "base": 0.55,
-  "min_angler_level": 7
+  "min_angler_level": 29,
+  "diet": "predator",
+  "provinces": [
+    "nearctic",
+    "neotropic",
+    "afrotropical"
+  ]
 }

@@ -1,7 +1,10 @@
 {
   "display": "Акула-мако",
   "latin": "Isurus oxyrinchus",
-  "spawn": { "season": "summer" },
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
   "group": "big_game",
   "water_bodies": {
     "sea": 1.0,
@@ -17,8 +20,8 @@
     "mean": 60000
   },
   "length_cm": {
-    "min": 150,
-    "max": 380
+    "min": 150.0,
+    "max": 380.0
   },
   "fight": {
     "strength": 1.0,
@@ -28,22 +31,15 @@
     "aggression": 1.0
   },
   "ideal": {
-    "rod": [
-      "trolling",
-      "boat"
-    ],
-    "reel_size": 14000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.4,
       "tolerance_mm": 0.06
     },
-    "rig": [
-      "predator",
-      "catfish"
-    ],
-    "groundbait": { "fraction": 1.00, "nutrition": 0.75 },
+    "groundbait": {
+      "fraction": 1.0,
+      "nutrition": 0.75
+    },
     "bait": {
       "livebait": 1.0,
       "fish_strip": 0.9,
@@ -53,8 +49,7 @@
       "swimbait": 0.95
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 1
+      "ideal": 1
     },
     "requires_leader": true
   },
@@ -76,10 +71,6 @@
     "thunder": 1.0
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 30,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 8,
     "width_min": 22
@@ -90,9 +81,17 @@
     "temperate": 1.0
   },
   "base": 0.3,
-  "min_angler_level": 7,
+  "min_angler_level": 29,
   "legendary": {
     "weight_g": 390000,
     "chance": 0.004
-  }
+  },
+  "diet": "predator",
+  "provinces": [
+    "palearctic",
+    "nearctic",
+    "neotropic",
+    "indomalaya",
+    "afrotropical"
+  ]
 }

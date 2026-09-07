@@ -1,7 +1,10 @@
 {
   "display": "Тупорылая акула",
   "latin": "Carcharhinus leucas",
-  "spawn": { "season": "summer" },
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
   "group": "big_game",
   "water_bodies": {
     "river": 0.6,
@@ -17,8 +20,8 @@
     "mean": 65000
   },
   "length_cm": {
-    "min": 150,
-    "max": 350
+    "min": 150.0,
+    "max": 350.0
   },
   "fight": {
     "strength": 1.0,
@@ -28,22 +31,11 @@
     "aggression": 1.0
   },
   "ideal": {
-    "rod": [
-      "boat",
-      "surf",
-      "trolling"
-    ],
-    "reel_size": 12000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.5,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "predator",
-      "catfish"
-    ],
     "groundbait": {
       "fraction": 1.0,
       "nutrition": 0.76
@@ -56,8 +48,7 @@
       "swimbait": 0.9
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 1
+      "ideal": 1
     },
     "requires_leader": true
   },
@@ -79,10 +70,6 @@
     "thunder": 1.0
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 15,
-    "max": 40
-  },
   "habitat": {
     "depth_min": 4,
     "width_min": 18
@@ -93,5 +80,12 @@
     "beach": 1.0
   },
   "base": 0.24,
-  "min_angler_level": 9
+  "min_angler_level": 38,
+  "diet": "predator",
+  "provinces": [
+    "nearctic",
+    "neotropic",
+    "indomalaya",
+    "afrotropical"
+  ]
 }
