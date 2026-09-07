@@ -48,7 +48,13 @@ public final class BiteEngine {
         // §fly-bait: on a fly rod the fly is the bait. The tied lure's bait id is the winter jig's, which
         // most species never scored — so the baseline is the fly itself, and the template says the rest.
         if (c.tied != null && c.rod == com.riverfishing.component.RodType.FLY) best = Math.max(best, 0.8);
-        if (c.tied != null) best *= c.tied.affinity(p.group);
+        if (c.tied != null) {
+            // §fly-bait-id: a profile may rate a fly TYPE by name (fly_dry_fly, fly_nymph, ...) the way it rates
+            // any bait; a species that says nothing takes the family's generic affinity for the template.
+            Double own = p.baitScores.get("fly_" + c.tied.template().key);
+            if (own != null) best = own;
+            else best *= c.tied.affinity(p.group);
+        }
         // §fly: match the hatch — the right kind at the right size is the fly they are taking today
         if (c.tied != null && c.rod == com.riverfishing.component.RodType.FLY) best *= Hatch.factor(c.hatch, c.tied);
         return best;
