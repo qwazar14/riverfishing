@@ -62,6 +62,11 @@ public final class ModNetwork {
             FightInputPacket p = FightInputPacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));
         });
+        // §fly: a sneak tap on a stop of the fly cast's rhythm.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, FlyBeatPacket.TYPE, (buf, ctx) -> {
+            FlyBeatPacket p = FlyBeatPacket.decode(buf);
+            ctx.queue(() -> p.handleServer(ctx));
+        });
         // §tackle-box: the name field types straight onto the box the player has open.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, TackleBoxRenamePacket.TYPE, (buf, ctx) -> {
             TackleBoxRenamePacket p = TackleBoxRenamePacket.decode(buf);
@@ -78,6 +83,11 @@ public final class ModNetwork {
     public static void registerClientReceivers() {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, FloatTimingPacket.TYPE, (buf, ctx) -> {
             FloatTimingPacket p = FloatTimingPacket.decode(buf);
+            ctx.queue(p::handleClient);
+        });
+        // §fly: the rhythm gauge, on/off and after every beat.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, FlyCastPacket.TYPE, (buf, ctx) -> {
+            FlyCastPacket p = FlyCastPacket.decode(buf);
             ctx.queue(p::handleClient);
         });
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, JournalOpenPacket.TYPE, (buf, ctx) -> {

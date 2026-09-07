@@ -192,6 +192,8 @@ public final class FishingManager {
                 } else {
                     hookUp(sp, level, session, now);           // подсечка
                 }
+            } else if (session.ctx != null && session.ctx.rod == RodType.FLY) {
+                flyUse(sp, level, session, now);               // §fly: mend, or sneak to pick up
             } else if (session.iceFishing && session.rodClass != RodClass.ACTIVE) {
                 iceJig(sp, level, session, now);               // §ice-jig: work the mormyshka (attract), don't reel in
             } else if (session.rodClass == RodClass.ACTIVE) {
@@ -421,8 +423,97 @@ public final class FishingManager {
     /** Entry point for the power-bar cast (§cast-minigame): called when the player releases the charge. */
     public static boolean chargedCast(ServerPlayer sp, InteractionHand hand, float power) {
         ServerLevel level = sp.serverLevel();
-        if (SESSIONS.containsKey(sp.getUUID())) return false;
-        return startCast(sp, level, hand, level.getGameTime(), Mth.clamp(power, 0.05f, 1.0f));
+        // §fly: on a fly rod the rhythm decides the power, not the charge — and the delivery's
+        // quality (tight / splash / wind knot) lands with the line.
+        ItemStack held = sp.getItemInHand(hand);
+        boolean fly = held.getItem() instanceof RodItem ri && ri.rodType() == RodType.FLY;
+        if (fly) power = FlyCast.release(sp, held, level.getGameTime());
+        if (SESSIONS.containsKey(sp.getUUID())) {
+            if (fly) FlyCast.cancel(sp);
+            return false;
+        }
+        boolean cast = startCast(sp, level, hand, level.getGameTime(), Mth.clamp(power, 0.05f, 1.0f));
+        if (fly) {
+            if (cast) flyLanded(sp, SESSIONS.get(sp.getUUID()), FlyCast.takeQuality(sp));
+            else FlyCast.cancel(sp);
+        }
+        return cast;
+    }
+
+    /** §fly: the hold on a fly rod began — start the needle. */
+    public static void flyCastBegin(ServerPlayer sp) {
+        FlyCast.begin(sp, sp.serverLevel().getGameTime());
+    }
+
+    /**
+     * §fly: what the delivery did to the water. A tight loop lands soft; an open loop dumps the
+     * line on the fish (the spot is wary for a few seconds); a tailing loop knots the tippet as well.
+     */
+    private static void flyLanded(ServerPlayer sp, FishingSession session, int quality) {
+        if (session == null) return;
+        if (quality == 0) {
+            actionbar(sp, Component.translatable("message.riverfishing.fly_tight").withStyle(ChatFormatting.GREEN));
+            return;
+        }
+        SpookTracker.onCastLanded(sp.serverLevel(), session.target, 0.15);
+        if (quality == 2) {
+            addLineWear(session.rodStackRef, 6);
+            actionbar(sp, Component.translatable("message.riverfishing.fly_knot").withStyle(ChatFormatting.RED));
+        } else {
+            actionbar(sp, Component.translatable("message.riverfishing.fly_splash").withStyle(ChatFormatting.YELLOW));
+        }
+    }
+
+    /**
+     * §fly: the drift. The fly rides the flow a block every half second; the line bows across the
+     * current and DRAGS the fly (past 60 the fish refuse it — mend to reset); after twelve seconds the
+     * line is straight below the angler and catches nothing until it is picked up and cast again.
+     */
+    private static void flyDrift(ServerLevel level, ServerPlayer sp, FishingSession session, long now) {
+        if (session.flyDriftEnd == 0) session.flyDriftEnd = now + 240;
+        if (!session.flyStraight && now >= session.flyDriftEnd) {
+            session.flyStraight = true;
+            actionbar(sp, Component.translatable("message.riverfishing.fly_straight").withStyle(ChatFormatting.GRAY));
+        }
+        if (!session.flyStraight && now % 10 == 0) {
+            BlockPos t = session.target;
+            net.minecraft.world.phys.Vec3 flow = level.getFluidState(t).getFlow(level, t);
+            double fl = Math.sqrt(flow.x * flow.x + flow.z * flow.z);
+            if (fl >= 0.05) {
+                // Still water leaves the line lying slack; only a current bows it.
+                session.flyDrag = Math.min(100, session.flyDrag + 3);
+                if (session.flyDrag > 60 && !session.flyDragWarned) {
+                    session.flyDragWarned = true;
+                    actionbar(sp, Component.translatable("message.riverfishing.fly_drag").withStyle(ChatFormatting.YELLOW));
+                }
+                BlockPos next = findWaterColumn(level, t.getX() + 0.5 + Math.round(flow.x / fl),
+                        t.getY() + 1.0, t.getZ() + 0.5 + Math.round(flow.z / fl));
+                if (next != null && !next.equals(t)) {
+                    session.target = next;
+                    ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, next, 0f,
+                            session.lineColor, session.floatKind, false));
+                }
+            }
+        }
+        // A dragging fly and a straight line are the dead lure's rule: the take keeps getting pushed out.
+        if ((session.flyDrag > 60 || session.flyStraight) && now >= session.biteAtTick - 5) {
+            session.biteAtTick = now + 25;
+        }
+    }
+
+    /** §fly: a click on a drifting fly line — sneak picks up, otherwise it is a mend. */
+    private static void flyUse(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
+        if (sp.isShiftKeyDown()) {
+            endSession(sp, session);
+            actionbar(sp, Component.translatable("message.riverfishing.fly_pickup"));
+            return;
+        }
+        session.flyDrag = 0;
+        session.flyMends++;
+        session.flyDragWarned = false;
+        level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_THROW, SoundSource.PLAYERS, 0.35f, 1.6f);
+        // A third flip of the line in one drift is a line slapped on the water: the fish under it notice.
+        if (session.flyMends >= 3) SpookTracker.onCastLanded(level, session.target, 0.15);
     }
 
     private static boolean startCast(ServerPlayer sp, ServerLevel level, InteractionHand hand, long now, double power) {
@@ -1406,6 +1497,7 @@ public final class FishingManager {
 
         // FLOAT / BOTTOM: wait for the bite, then a window to strike.
         if (!session.bitten) {
+            if (session.ctx != null && session.ctx.rod == RodType.FLY) flyDrift(level, sp, session, now);   // §fly
             // §live-conditions (0.5.0): every 15 s the waiting line re-reads the world — dusk, a weather
             // change, a starting frenzy or freshly thrown groundbait rescale the REMAINING wait, and the
             // biter is re-picked from the new weights. The cast snapshot no longer decides everything,

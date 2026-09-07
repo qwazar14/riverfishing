@@ -95,6 +95,8 @@ public class RodItem extends Item {
             }
             return InteractionResultHolder.fail(rod);
         }
+        // §fly: on a fly rod the hold is the RHYTHM, not a charge — the needle starts here.
+        if (!level.isClientSide && rodType == RodType.FLY && player instanceof ServerPlayer sp) FishingManager.flyCastBegin(sp);
         player.startUsingItem(hand);
         return InteractionResultHolder.consume(rod);
     }
@@ -191,7 +193,10 @@ public class RodItem extends Item {
         // owner not to crank it. Keys are tooltip.riverfishing.rod_class.<active|float|bottom>.
         // The winter rod is FLOAT but is JIGGED through an ice hole, so "never reel" would be a lie for
         // it — it gets the dedicated winter_hole line below instead.
-        if (rodType != com.riverfishing.component.RodType.WINTER) {
+        if (rodType == com.riverfishing.component.RodType.FLY) {
+            // §fly: FLOAT flow underneath, but "never reel" is not what a fly rod wants to hear
+            tooltip.add(Component.translatable("tooltip.riverfishing.rod_class.fly").withStyle(ChatFormatting.GOLD));
+        } else if (rodType != com.riverfishing.component.RodType.WINTER) {
             tooltip.add(Component.translatable("tooltip.riverfishing.rod_class."
                             + rodType.rodClass().name().toLowerCase(java.util.Locale.ROOT))
                     .withStyle(ChatFormatting.GOLD));

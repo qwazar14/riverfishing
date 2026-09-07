@@ -122,6 +122,8 @@ public final class ClientHud {
                     mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight(),
                     partialTick);
         }
+        // §fly: the rhythm gauge sits where the charge bar would — that one yields (below).
+        FlyCastClient.render(graphics, mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight(), partialTick);
         renderCastPower(graphics, mc);
         renderPumpReel(graphics, mc);
         renderFinderStrip(graphics, mc);
@@ -183,6 +185,7 @@ public final class ClientHud {
         // §spin-charge (2.3): lure rods now charge-and-cast too, so they show the bar — but only while
         // charging. Once a line is out, holding is a RETRIEVE, not a charge, so hide it (next line).
         if (ClientLineState.active()) return;
+        if (FlyCastClient.isActive()) return;   // §fly: the fly rod's hold is a rhythm, not a charge
 
         int used = player.getUseItem().getUseDuration() - player.getUseItemRemainingTicks();
         float power = com.riverfishing.item.RodItem.castPower(used);
