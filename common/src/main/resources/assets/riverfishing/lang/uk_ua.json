@@ -488,6 +488,7 @@
   "message.riverfishing.line_break": "Обрив! Риба й оснастка пішли — там було близько %s",
   "message.riverfishing.line_break_load": "Обрив під ~%s кг! Риба й оснастка втрачені",
   "message.riverfishing.tackle_limit": "Снасть на межі — послаб натяг!",
+  "message.riverfishing.outclassed": "Перевага риби ×%s: не крутіть у ривку — фрикціон відкритий, вудилище впоперек, хай вимотується",
   "message.riverfishing.fish_jumps": "Свічка! Послаб — не мотай!",
   "message.riverfishing.jump_thrown": "Викинула гачок на свічці...",
   "message.riverfishing.trolling_start": "Тролінг: волосінь пішла за човном",

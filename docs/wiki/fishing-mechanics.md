@@ -372,6 +372,10 @@ runs = max(1, profile.runs)
      + 2 if foul-hooked
 ```
 
+### When the fish out-pulls the line
+
+If `effectiveStrain / requiredKg` comes in under **0.85** the fish is *outclassed* tackle: the hook-up says so on the action bar (*"Out-pulled ×5.4: don't crank in a run — open the drag, rod across, let it tire"*), and says it once more as the first run starts. The rules of such a fight are different. A crank gains only 35 % of its usual line, a crank made **during a run** puts the tension straight over the break point, and the break point itself sits as low as 20 % of the bar. What wins is the **open drag** (sneak) while the fish runs, with the rod held across the run: the fish plays itself out against the drag, and every run tick adds `fatigueRunTick × 0.9 × courseGain` to the land bar (0.55 before 0.10.0). The timeout stretches by `1 / margin`, up to sixfold, so a 150 kg sturgeon on carp tackle is a quarter of an hour of patience, not a minute of cranking.
+
 ### Fatigue
 
 The fight wears the fish down — fast while it runs, slowly between:

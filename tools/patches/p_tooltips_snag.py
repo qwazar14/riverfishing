@@ -33,8 +33,8 @@ def run(tree):
     j = lambda *a: os.path.join(tree, *a)
     # the journal's tackle row
     sub(j("common/src/main/java/com/riverfishing/client/JournalScreen.java"),
-        'Component.translatable("item.riverfishing.line_" + c.lineType())',
-        'Component.translatable("linetype.riverfishing." + c.lineType())   // §line-name', "journal tackle")
+        'Component.translatable("item.riverfishing.line_" + c.lineType()).getString()',
+        'Component.translatable("linetype.riverfishing." + c.lineType()).getString()   // §line-name', "journal tackle")
     # the catch card's group row (two dialects of the NBT getter)
     fc = j("common/src/main/java/com/riverfishing/client/FishCardClientTooltip.java")
     for getter in ('c.getString("Group")', 'c.getStringOr("Group", "")'):

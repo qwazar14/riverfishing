@@ -131,6 +131,7 @@ public class FishingSession {
     public double tackleMargin = 1.0;
     public boolean lineSnagged;     // §line-snag: the string lies across a block between the tip and the fish
     public int snagMiss;            // §line-calm: clear checks since the last hit — three in a row lets go
+    public boolean outclassedHinted;   // §outclassed-hint: said once more at the first run
     public boolean outclassed;      // §outclassed: the line is weaker than the pull — play it out, never reel it
     // §fly: the drift — the line bows across the current (drag 0..100), the drift's last tick,
     // whether it has come tight straight below the angler, and how many mends this drift has had.

@@ -488,6 +488,7 @@
   "message.riverfishing.line_break": "Обрыв! Рыба и оснастка ушли — там было около %s",
   "message.riverfishing.line_break_load": "Обрыв под нагрузкой ~%s кг! Рыба и оснастка потеряны",
   "message.riverfishing.tackle_limit": "Снасть на пределе — ослабь натяжение!",
+  "message.riverfishing.outclassed": "Перевес рыбы ×%s: не крутите в рывке — фрикцион открыт, удилище поперёк, пусть выматывается",
   "message.riverfishing.fish_jumps": "Свеча! Ослабь — не мотай!",
   "message.riverfishing.jump_thrown": "Выбросила крючок на свече...",
   "message.riverfishing.trolling_start": "Троллинг: леска пошла за лодкой",
