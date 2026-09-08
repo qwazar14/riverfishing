@@ -239,7 +239,7 @@ Forty-eight advancements. Some are driven by simply having the fish in your inve
 | **Heavyweight** | Land a fish of 50 kg or more |
 | **Neither One Nor the Other** | Catch a hybrid |
 | **Grandmaster** | Angler level 50 |
-| **In Time** | Hook a fish through the ice on a full [jig combo](ice-fishing.md) — all 8 beats |
+| **In Time** | Hook a fish through the ice on a full [jig combo](ice-fishing.md) — all 8 accents |
 | **Market Day** | Sell a [keepnet](keepnet.md) to the fisherman |
 | **Night Owl** | Land a fish at night |
 | **Storm Rider** | Land a fish in a thunderstorm |
