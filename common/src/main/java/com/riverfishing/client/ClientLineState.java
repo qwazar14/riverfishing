@@ -67,7 +67,7 @@ public final class ClientLineState {
         public net.minecraft.world.item.ItemStack stack;   // the drawn item, rebuilt when the species changes
         public String stackSpecies = "";
         public boolean wasInAir;         // for the splash on the way out and the way back
-        /** §fly: client game time the rise began, -1 when none is on — the body climbs over its first eight ticks. */
+        /** §hooked-fish: client game time the take began, -1 when none is on — the body climbs over its first eight ticks. */
         public long riseStart = -1;
         public double depth;             // §hooked-dim: blocks under the surface this frame
 
@@ -83,7 +83,7 @@ public final class ClientLineState {
 
         public void tickFish(float dt, double fwdX, double fwdZ, WaterTest water, net.minecraft.world.phys.Vec3 base) {
             if (!fighting || species.isEmpty()) {
-                if (biting && !species.isEmpty()) heading = (float) Math.atan2(fwdZ, fwdX);   // §fly: a rising fish faces away from the angler, under the fly
+                if (biting && !species.isEmpty()) heading = (float) Math.atan2(fwdZ, fwdX);   // §hooked-fish: a fish on the take faces away from the angler
                 fx *= Math.max(0f, 1f - dt * 4f); fy *= Math.max(0f, 1f - dt * 4f); fz *= Math.max(0f, 1f - dt * 4f);
                 jumpT = -1f;
                 return;
@@ -159,7 +159,7 @@ public final class ClientLineState {
         /** Eases the rendered progress toward the server value; call once per frame. */
         public void tickSmoothing(float frameSeconds) {
             smoothProgress = Mth.lerp(Math.min(1f, frameSeconds * 6f), smoothProgress, progress);
-            // §line-glide: the water end walks between the server's block centres (the fly's drift, a strip)
+            // §line-glide: the water end walks between the server's block centres (a drifting float, a retrieve)
             // instead of jumping; a fresh cast, or anything six blocks off, snaps
             net.minecraft.world.phys.Vec3 tc = new net.minecraft.world.phys.Vec3(target.getX() + 0.5, target.getY(), target.getZ() + 0.5);
             shownEnd = shownEnd == null || shownEnd.distanceToSqr(tc) > 36.0 ? tc : shownEnd.lerp(tc, Math.min(1f, frameSeconds * 4f));
@@ -228,7 +228,7 @@ public final class ClientLineState {
         line.fighting = p.fighting;
         line.running = p.running;
         line.course = p.course;
-        // §fly: the 40-tick refresh names no fish; during a rise it must not wipe the one the rise sent
+        // §hooked-fish: the 40-tick refresh names no fish; during a take it must not wipe the one the take sent
         if (!p.species.isEmpty() || !p.biting || p.fighting) line.species = p.species;   // §hooked-fish
         long t = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
         if (p.biting && !p.fighting) { if (line.riseStart < 0) line.riseStart = t; } else line.riseStart = -1;
@@ -322,7 +322,7 @@ public final class ClientLineState {
         return LINES;
     }
 
-    /** §fly-2: our own line is out and nothing is happening on it — a click on the fly rod is a hold. */
+    /** §jig-2: our own line is out and nothing is happening on it — a click over an ice hole is a hold. */
     public static boolean selfCalm() {
         var mc = Minecraft.getInstance();
         if (mc.player == null) return false;

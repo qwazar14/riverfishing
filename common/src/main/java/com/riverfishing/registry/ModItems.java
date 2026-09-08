@@ -227,7 +227,6 @@ public final class ModItems {
         if ("winter".equals(key)) return 96;       // short, reel-less, and ice fish are small
         if ("pole".equals(key)) return 128;
         if ("ultralight".equals(key)) return 144;
-        if ("fly".equals(key)) return 144;          // §fly: as light a blank as the ultralight it borrows
         if ("spinning".equals(key)) return 192;
         if ("feeder".equals(key)) return 224;
         if ("bottom".equals(key)) return 256;

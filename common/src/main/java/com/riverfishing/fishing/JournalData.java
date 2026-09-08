@@ -41,16 +41,6 @@ public final class JournalData {
         PlayerData.markDirty(player);
     }
 
-    public static final String FLY = "fly";   // §progression: fish landed on the fly rod
-
-    /** §progression: a fish landed on the fly rod — the counter the stage-7 quests read. */
-    public static void addFlyCatch(Player player) {
-        CompoundTag root = get(player);
-        root.putInt(FLY, root.getIntOr(FLY, 0) + 1);
-        PlayerData.root(player).put(TAG, root);
-        PlayerData.markDirty(player);
-    }
-
     /**
      * §progression: the family, the diet and the weight of a catch, counted in the journal itself —
      * {@code grp.<group>}, {@code diet.<diet>}, {@code gbest.<group>}, {@code dbest.<diet>}, {@code best_any}

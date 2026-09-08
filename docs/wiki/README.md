@@ -50,7 +50,6 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 | [Faunal provinces](provinces.md) | Four provinces cut by the seed, who lives where, what happens outside a species' range, the two ways round it, `biomes_require`, biome groups, modded biomes |
 | [Fish in the water](shoal.md) | The shoals you can see before you cast: how many are shown, how clearly, and how they react to you |
 | [Ice fishing](ice-fishing.md) | Drilling, jigging, what bites under the ice |
-| [Fly fishing](fly-fishing.md) | The fly rod, the rhythm cast, the drift and the mend, the rise and the delayed set, the hatch table, which fish take a fly |
 | [Sea fishing](sea-fishing.md) | The saltwater tier, ocean zones, trolling, big-game fights |
 | [Stocking](stocking.md) | Releasing fish, the residency model, settling, stock levels |
 | [Breeding](breeding.md) | The tank: slots, feeding, water, the clutch, roe and incubation, fry, the five modules, which species cross, the pond that grows itself |

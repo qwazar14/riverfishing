@@ -68,7 +68,6 @@ public class FishingSession {
 
     // ---- Ice fishing (Â§ice-jig): jig the mormyshka in a steady rhythm to draw fish through the hole ----
     public boolean iceFishing;
-    public boolean flyTight;   // §progression: this cast unrolled without a splash
     public int jigBest;        // §progression: the best jig combo of this session
     public int jigStroke = -1; // §jig-2: the last stroke the held rod made on its own
     public long lastJigTick;
@@ -134,14 +133,6 @@ public class FishingSession {
     public int snagMiss;            // §line-calm: clear checks since the last hit — three in a row lets go
     public boolean outclassedHinted;   // §outclassed-hint: said once more at the first run
     public boolean outclassed;      // §outclassed: the line is weaker than the pull — play it out, never reel it
-    /** §fly-3: the fly cast's own state — null on every other rod. */
-    public FlySession fly;
-    /** §fly-3: 0 weak, 1 normal, 2 solid — what the strike earned; a weak hook can be thrown. */
-    public int hookStrength = 1;
-    /** §fly-3: the tick the fish on a fly may next come out of the water. */
-    public long flyJumpAt;
-    /** §fly-3: this fish was hooked on a fly — it jumps far more than a fish on any other rod. */
-    public boolean flyFight;
     // Â§tackle-stress (0.4.0): crossing the limit no longer snaps instantly â a per-tick break chance
     // grows with the overshoot and with how long the line has been held over it.
     public double requiredKg;     // the fish's pull in kg (drives the break-load message)
@@ -207,7 +198,6 @@ public class FishingSession {
 
     // §big-game greyhounding (0.5.0): reeling inside this window throws the hook — give slack.
     public long jumpWindowEnd;
-    public long showFishUntil;   // §fly-set: the fish drawn breaching at the set, on its own timer
 
     // Pole pull-out QTE (Â§pull-qte): one timing after the strike; the heavier the fish, the narrower
     // the zone and the faster the sweep (reuses floatPeriod/floatZoneHalf for the marker).

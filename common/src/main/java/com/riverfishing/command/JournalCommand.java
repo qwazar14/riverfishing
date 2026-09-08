@@ -130,7 +130,6 @@ public final class JournalCommand {
         root.putInt(JournalData.TOTAL, Math.max(root.getIntOr(JournalData.TOTAL, 0), 120));
         root.putInt(JournalData.TROPHIES, Math.max(root.getIntOr(JournalData.TROPHIES, 0), 10));
         root.putInt(JournalData.ICE, Math.max(root.getIntOr(JournalData.ICE, 0), 40));
-        root.putInt(JournalData.FLY, Math.max(root.getIntOr(JournalData.FLY, 0), 60));
         net.minecraft.nbt.CompoundTag provs = new net.minecraft.nbt.CompoundTag();
         for (String pr : com.riverfishing.water.Provinces.ALL) provs.putBoolean(pr, true);
         root.put("provinces", provs);
