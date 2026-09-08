@@ -143,6 +143,7 @@ public class FishingSession {
     public boolean flyDragWarned;
     public boolean flyOnRise;      // §fly-2: the fly is over a fish that has decided
     public boolean flyPickedUp;    // §fly-2: the hold took the line up — the release is a cast, not a strip
+    public double flyReel;         // §fly-reel: how far the strips have brought the fly in, 0..1 of the cast
     public int flyDriftState = -1; // §fly-2: the last status sent to the HUD   // §fly: the one 'mend!' per drift has been said
     // Â§tackle-stress (0.4.0): crossing the limit no longer snaps instantly â a per-tick break chance
     // grows with the overshoot and with how long the line has been held over it.

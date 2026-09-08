@@ -473,7 +473,7 @@ public final class FishingManager {
     /** §fly-2: the fly over a feeding fish — that fish, and the take inside a couple of seconds. */
     private static void flyCheckRise(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
         if (session.flyOnRise || session.bitten) return;
-        FlyRises.Rise rise = FlyRises.take(sp, session.target);
+        FlyRises.Rise rise = FlyRises.take(sp, BlockPos.containing(flyAt(sp, session)));   // §fly-reel
         if (rise == null) return;
         session.species = rise.species;
         session.flyOnRise = true;
@@ -483,8 +483,16 @@ public final class FishingManager {
         FlyCast.drift(sp, 0, flyMetres(sp, session), true);
     }
 
+    /** §fly-reel: where the fly actually is — the water spot, pulled toward the angler by what has been stripped. */
+    private static net.minecraft.world.phys.Vec3 flyAt(ServerPlayer sp, FishingSession session) {
+        double x = Mth.lerp(session.flyReel, session.target.getX() + 0.5, sp.getX());
+        double z = Mth.lerp(session.flyReel, session.target.getZ() + 0.5, sp.getZ());
+        return new net.minecraft.world.phys.Vec3(x, session.target.getY(), z);
+    }
+
     private static int flyMetres(ServerPlayer sp, FishingSession session) {
-        double dx = sp.getX() - (session.target.getX() + 0.5), dz = sp.getZ() - (session.target.getZ() + 0.5);
+        net.minecraft.world.phys.Vec3 at = flyAt(sp, session);
+        double dx = sp.getX() - at.x, dz = sp.getZ() - at.z;
         return (int) Math.round(Math.sqrt(dx * dx + dz * dz));
     }
 
@@ -545,31 +553,29 @@ public final class FishingManager {
      * behind it now and then); a dry fly or a nymph only twitches. At your feet the cast is over.
      */
     private static void flyStrip(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
+        // §fly-reel: the spot stays; the strip is a fraction of the way in, exactly as the spinning retrieve
         double dx = sp.getX() - (session.target.getX() + 0.5), dz = sp.getZ() - (session.target.getZ() + 0.5);
-        double dist = Math.sqrt(dx * dx + dz * dz);
-        BlockPos next = dist > 2.5
-                ? findWaterColumn(level, session.target.getX() + 0.5 + dx / dist, session.target.getY() + 1.0, session.target.getZ() + 0.5 + dz / dist)
-                : null;
-        if (next == null) {
+        double dist = Math.max(1.0, Math.sqrt(dx * dx + dz * dz));
+        session.flyReel = Math.min(1.0, session.flyReel + 1.0 / dist);
+        if (session.flyReel >= 0.85) {
             endSession(sp, session);
             actionbar(sp, Component.translatable("message.riverfishing.fly_pickup"));
             return;
         }
-        session.target = next;
         session.flyDrag = Math.max(0, session.flyDrag - 30);   // a strip straightens the line a little
         session.flyDragWarned = false;
+        net.minecraft.world.phys.Vec3 at = flyAt(sp, session);
         boolean stripFly = session.ctx != null && session.ctx.tied != null
                 && (session.ctx.tied.template() == com.riverfishing.tackle.TiedDesign.Template.STREAMER
                 || session.ctx.tied.template() == com.riverfishing.tackle.TiedDesign.Template.SHRIMP);
         if (!session.flyOnRise && session.biteAtTick > now) {
             session.biteAtTick = Math.max(now + 8, session.biteAtTick - (stripFly ? 20 : 6));
             if (stripFly && level.getRandom().nextInt(3) == 0) {   // the follow: a swirl behind the fly
-                level.sendParticles(ParticleTypes.BUBBLE_POP, next.getX() + 0.5 - dx / dist * 0.8, next.getY() + 0.95,
-                        next.getZ() + 0.5 - dz / dist * 0.8, 4, 0.2, 0.0, 0.2, 0.0);
+                level.sendParticles(ParticleTypes.BUBBLE_POP, at.x - dx / dist * 0.8, at.y + 0.95, at.z - dz / dist * 0.8, 4, 0.2, 0.0, 0.2, 0.0);
             }
         }
-        level.playSound(null, next, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.25f, 1.4f);
-        ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, next, 0f, session.lineColor, session.floatKind, false));
+        level.playSound(null, BlockPos.containing(at), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.25f, 1.4f);
+        ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target, (float) session.flyReel, session.lineColor, session.floatKind, false));
         flyCheckRise(sp, level, session, now);
         FlyCast.drift(sp, session.flyDriftState, flyMetres(sp, session), session.flyOnRise);
     }
@@ -1616,6 +1622,8 @@ public final class FishingManager {
                 visProgress = (float) Mth.clamp(session.landProgress, 0.0, 1.0);
             } else if (session.rodClass == RodClass.ACTIVE && session.retrieveMax > 0) {
                 visProgress = Mth.clamp((float) session.retrieveTicks / session.retrieveMax, 0f, 1f);
+            } else if (session.ctx != null && session.ctx.rod == RodType.FLY) {
+                visProgress = (float) session.flyReel;   // §fly-reel
             } else {
                 visProgress = 0f;
             }
@@ -2094,6 +2102,7 @@ public final class FishingManager {
         // A fish hooked near the bank is landed sooner (realistic); one that hit far out fights fully.
         session.landProgress = (session.rodClass == RodClass.ACTIVE && session.retrieveMax > 0)
                 ? Mth.clamp((double) session.retrieveTicks / session.retrieveMax, 0.0, 0.85)
+                : session.ctx != null && session.ctx.rod == RodType.FLY ? Mth.clamp(session.flyReel, 0.0, 0.85)   // §fly-reel: the fight starts where the fly was
                 : 0.0;
         session.runsLeft = fightRunCount(profile, weightKg);
         session.anglerStamina = 1.0;
@@ -2108,7 +2117,8 @@ public final class FishingManager {
         // slap, and the whole bank sees it (the breach is drawn by the line sync for the next 16 ticks)
         if (session.ctx != null && session.ctx.rod == RodType.FLY) {
             session.showFishUntil = now + 16;
-            double sx = session.target.getX() + 0.5, sy = session.target.getY() + 1.1, sz = session.target.getZ() + 0.5;
+            net.minecraft.world.phys.Vec3 fa = flyAt(sp, session);   // §fly-reel: the spray where the fly is, not where it landed
+            double sx = fa.x, sy = fa.y + 1.1, sz = fa.z;
             level.sendParticles(ParticleTypes.SPLASH, sx, sy, sz, 70 + session.lengthCm, 0.7, 0.5, 0.7, 0.45);
             level.sendParticles(ParticleTypes.BUBBLE_POP, sx, sy - 0.1, sz, 20, 0.5, 0.2, 0.5, 0.1);
             level.playSound(null, session.target, SoundEvents.DOLPHIN_JUMP, SoundSource.PLAYERS, 1.0f, 0.9f);
