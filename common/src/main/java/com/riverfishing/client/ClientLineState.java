@@ -22,6 +22,7 @@ public final class ClientLineState {
         public BlockPos target = BlockPos.ZERO;
         public float progress;         // authoritative (server) reel-in progress 0..1
         public float smoothProgress;   // eased for rendering
+        public net.minecraft.world.phys.Vec3 shownEnd;   // §line-glide: the drawn water end, eased between block centres
         public int color = 0xFFE8E4D0;
         public byte floatKind;         // §float-kind: 0 none / 1 plain peg / 2 proper float
         public boolean biting;         // bite in progress: bobber plunges / line twitches
@@ -158,6 +159,10 @@ public final class ClientLineState {
         /** Eases the rendered progress toward the server value; call once per frame. */
         public void tickSmoothing(float frameSeconds) {
             smoothProgress = Mth.lerp(Math.min(1f, frameSeconds * 6f), smoothProgress, progress);
+            // §line-glide: the water end walks between the server's block centres (the fly's drift, a strip)
+            // instead of jumping; a fresh cast, or anything six blocks off, snaps
+            net.minecraft.world.phys.Vec3 tc = new net.minecraft.world.phys.Vec3(target.getX() + 0.5, target.getY(), target.getZ() + 0.5);
+            shownEnd = shownEnd == null || shownEnd.distanceToSqr(tc) > 36.0 ? tc : shownEnd.lerp(tc, Math.min(1f, frameSeconds * 4f));
             smoothTension = Mth.lerp(Math.min(1f, frameSeconds * 8f), smoothTension, tension);
             smoothRodLoad = Mth.lerp(Math.min(1f, frameSeconds * 8f), smoothRodLoad, rodLoad);
             // §fight-course: the tip is DRAGGED the way the fish is going — that is the read, and it is

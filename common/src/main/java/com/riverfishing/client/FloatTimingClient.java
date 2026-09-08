@@ -80,7 +80,7 @@ public final class FloatTimingClient {
         g.fill(mx - 2, y - 2, mx + 3, y + FH + 2, 0xC0231A10);
         g.fill(mx - 1, y - 1, mx + 2, y + FH + 1, 0xFFFFE8A8);
 
-        Component label = Component.translatable(FlyCastClient.flyHeld() ? "hud.riverfishing.fly_set" : "hud.riverfishing.strike_timing");   // §fly-2
+        Component label = Component.translatable("hud.riverfishing.strike_timing");
         int ly = y - 12;
         g.text(mc.font, label, screenW / 2 - mc.font.width(label) / 2, ly, 0xFFF0E6CD, true);
     }

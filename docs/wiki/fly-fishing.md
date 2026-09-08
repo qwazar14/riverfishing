@@ -1,6 +1,6 @@
 # Fly fishing
 
-A fly weighs nothing. The line carries it, the cast is short, and the fish takes it where you can see it. That is the whole game: **find a rising fish, put the fly over it, and set the hook when it comes up.**
+A fly weighs nothing. The line carries it, the cast is short, and the fish takes it where you can see it. That is the whole game: **find a rising fish, put the fly over it, and hold on when it comes up.**
 
 ## What you need
 
@@ -50,15 +50,9 @@ Three mends in one drift slap the water. On still water there is no drag at all.
 - **Tap right-click = strip.** A metre of line comes in and the fly moves toward you. A **streamer** or a **shrimp** is fished this way — every strip brings the take closer, and now and then a swirl shows behind the fly: a fish following. A dry fly or a nymph only twitches. At your feet the cast is over.
 - **Hold right-click = pick up.** After a third of a second the line comes off the water and the rod is already false-casting; release in the green and the next cast is away. One motion, the way it is done.
 
-## The take and the set
+## The take
 
-A fish takes a fly by coming up under it and turning down. Lift too soon and you pull the fly out of its mouth; too late and it has spat it. So the strike bar on a fly rod is **a clock**: the needle runs once from left to right, and the green is the fish's own moment.
-
-- The rise is drawn: the fish comes up under the fly with a boil and a slurp. **The set is the show**: hook up and the fish comes out of the water in a burst of spray, with a slap the whole bank hears.
-- The bar says **SET! Click in the green.** Click before the green: *"Too fast — pulled it out of its mouth."* After it: *"Too slow — it spat the fly."* Inside: hooked, into the fight. The orange either side still hooks one time in four.
-- A miss puts the fish down: the spot is quiet for twenty seconds or so.
-
-The green opens after `5 + (1 − aggression) × 6` ticks and stays for `12 + (1 − aggression) × 6` — a grayling turns fast, a chub slowly — and the FINESSE skill widens it as it does on the float.
+A fish takes a fly by coming up under it and turning down — and a fly hook sets itself: the fish turns on it. There is no strike bar and nothing to click. The take is the show: the fish comes out of the water in a burst of spray with a slap the whole bank hears, and you are straight into the fight. Keep the tip high and let the drag give line when it runs.
 
 ## The hatch
 
