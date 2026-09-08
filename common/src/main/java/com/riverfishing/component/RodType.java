@@ -26,7 +26,7 @@ public enum RodType {
     TROLLING  ("trolling",  12,   true,     10000,  14000,  150,    600,    false),
     // §fly: the line is the weight — no cast range, distance comes from the rhythm cast. The
     // small reels (1000–2000) stand in for a fly reel in phase 1.
-    FLY       ("fly",        9,   true,     1000,   2000,   0,      0,      false);
+    FLY       ("fly",        9,   true,     1000,   6000,   0,      0,      false);   // §fly-reels: up to 6000 — the salmon and the sea fish want a real drag
 
     private final String jsonKey;
     private final double baseDistance;

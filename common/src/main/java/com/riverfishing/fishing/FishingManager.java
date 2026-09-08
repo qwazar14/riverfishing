@@ -46,11 +46,13 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.BossEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -112,6 +114,9 @@ public final class FishingManager {
         FlyRises.forget(uuid);   // §fly-2
         FishingSession session = SESSIONS.remove(uuid);
         if (session != null) {
+            if (session.bossBar != null) {
+                session.bossBar.removeAllPlayers();
+            }
             // §rod-bend §rod-layers: logging out mid-cast would otherwise SAVE the fishing look into
             // the inventory — a bent rod, or a rod still wearing its line-is-out overlay with no line
             // in the water. Both flags live in the same custom_model_data, so both are stowed here.
@@ -125,6 +130,10 @@ public final class FishingManager {
         FishingSession s = SESSIONS.get(sp.getUUID());
         if (s == null || s.fighting || s.rodClass != RodClass.BOTTOM) {
             return null;
+        }
+        if (s.bossBar != null) {
+            s.bossBar.removeAllPlayers();
+            s.bossBar = null;
         }
         SESSIONS.remove(sp.getUUID());
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), false, null, 0f, 0, (byte) 0)); // line now lives on the pod
@@ -2142,7 +2151,12 @@ public final class FishingManager {
         }
 
         // §fight-mystery: NO species name during the fight — you learn what it was when you land it.
-        // §fight-bar: no vanilla boss bar either — the client draws its own off the line sync (FightBarHud).
+        // §26.x: ServerBossEvent needs an explicit id; §bossbar-2 keeps the "whose fight it is" title.
+        session.bossBar = new ServerBossEvent(java.util.UUID.randomUUID(),
+                Component.translatable("message.riverfishing.bar_fight", sp.getDisplayName()),
+                BossEvent.BossBarColor.GREEN, BossEvent.BossBarOverlay.PROGRESS);
+        session.bossBar.setProgress(0.0f);
+        session.bossBar.addPlayer(sp);
 
         // Hooking a fish wears the line a little and dulls the hook (§3.8).
         addLineWear(rod, (int) Math.round(2 * lineWearScaled()));
@@ -2194,6 +2208,12 @@ public final class FishingManager {
         session.fightStartTick = now;
         session.fightTimeout = 600;
         session.fightPattern = "steady";
+        // §26.x: ServerBossEvent needs an explicit id; §bossbar-2 keeps the "whose fight it is" title.
+        session.bossBar = new ServerBossEvent(java.util.UUID.randomUUID(),
+                Component.translatable("message.riverfishing.bar_fight", sp.getDisplayName()),
+                BossEvent.BossBarColor.GREEN, BossEvent.BossBarOverlay.PROGRESS);
+        session.bossBar.setProgress(0.0f);
+        session.bossBar.addPlayer(sp);
         level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.8f, 0.7f);
     }
 
@@ -2705,6 +2725,34 @@ public final class FishingManager {
             // Calm but critically loaded: the blank creaks a warning (~0.86 s, so spaced well out).
             level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.ROD_CREAK.get(),
                     SoundSource.PLAYERS, 0.8f, 1.0f);
+        }
+        session.bossBar.setProgress((float) Mth.clamp(session.landProgress, 0.0, 1.0));
+        // §bossbar-2: the bar tells WHOSE fight it is and what the fish is doing — no more guessing
+        // between two friends' bars. Name re-sends only when the state flips.
+        int barState = session.runTicksLeft > 0 ? 1 : session.fatigue > 0.7 ? 2 : 0;
+        if (barState != session.barState) {
+            session.barState = barState;
+            // §rod-load: the bar no longer SPELLS the course out ("goes LEFT — pull RIGHT") — the rod
+            // itself is the instrument now: the blank bends toward the fish (§bend-plane) and loads
+            // with the pull, so the text would only repeat what the tackle already shows. (The note
+            // that used to live here said to flip this the day the 26.x rod could be read — that day
+            // came with the §rod3d-26x chain gaining the bend plane and the springs.)
+            session.bossBar.setName(Component.translatable(barState == 2
+                    ? "message.riverfishing.bar_tired"
+                    : "message.riverfishing.bar_fight", sp.getDisplayName()));
+        }
+        session.bossBar.setColor(session.tension >= session.breakTension ? BossEvent.BossBarColor.RED
+                : inRun ? BossEvent.BossBarColor.RED
+                : session.tension > session.breakTension * 0.66 ? BossEvent.BossBarColor.YELLOW
+                : BossEvent.BossBarColor.GREEN);
+
+        // §co-op (0.5.0): spectators — anyone within 12 blocks sees the fight on the boss bar too.
+        if (now % 20 == 0 && session.bossBar != null) {
+            for (ServerPlayer other : level.players()) {
+                if (other != sp && other.distanceToSqr(sp) <= 144.0) {
+                    session.bossBar.addPlayer(other);
+                }
+            }
         }
         // §co-op (0.5.0): the landing net — a crouching friend with an EMPTY main hand right beside the
         // angler scoops the tired fish out (fish at 85%+, not during a run). Small XP thank-you.

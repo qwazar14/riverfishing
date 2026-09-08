@@ -126,8 +126,46 @@ public final class ClientHud {
         // §fly: the rhythm gauge sits where the charge bar would — that one yields (below).
         FlyCastClient.render(graphics, mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight(), partialTick);
         renderCastPower(graphics, mc);
-        FightBarHud.render(graphics, mc);   // §fight-bar: the frame, the water, the fish and the cue
+        renderPumpReel(graphics, mc);
         renderFinderStrip(graphics, mc);
+    }
+
+    /**
+     * §pump-reel (0.6.0): the fight coach — a compact cue under the crosshair replacing pure
+     * intuition. Fish RUNNING → ease off (open the drag / stop cranking); calm → crank. Near the
+     * break point the cue turns into a drag alarm.
+     */
+    private static void renderPumpReel(GuiGraphicsExtractor g, Minecraft mc) {
+        // §26.2: Options.hideGui moved onto the Hud itself (mc.gui.hud.isHidden()).
+        //? if <26.2 {
+        if (mc.player == null || mc.options.hideGui) return;
+        //?} else {
+        /*if (mc.player == null || mc.gui.hud.isHidden()) return;
+        *///?}
+        ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
+        if (l == null || !l.fighting) return;
+        String key;
+        int color;
+        if (l.smoothTension > 0.85f) {
+            key = "hud.riverfishing.drag_now"; color = 0xFFFF5040;
+        } else if (l.running) {
+            key = "hud.riverfishing.ease"; color = 0xFFFFC850;
+        } else {
+            key = "hud.riverfishing.reel"; color = 0xFF7CE07C;
+        }
+        var font = mc.font;
+        String text = net.minecraft.client.resources.language.I18n.get(key);
+        // Round 6: the coach lives right under the boss bar — the fight info reads in ONE glance.
+        int cx = mc.getWindow().getGuiScaledWidth() / 2, y = 30;
+        int w = font.width(text);
+        g.fill(cx - w / 2 - 4, y - 3, cx + w / 2 + 4, y + 11, 0x66000000);
+        // §26.1: drawString/drawCenteredString are gone — it's text(), and centring is on us.
+        g.text(font, text, cx - w / 2, y, color, false);
+
+        // §rod-load: the key cue is GONE — no more [ arrow ] under the crosshair naming the binding to
+        // hold. The rod is the instrument: the blank bends toward the fish and loads with the pull, so a
+        // glyph spelling the answer only repeated what the tackle already shows, and reading a keycap is
+        // not fishing. The bindings still work (§fight-keys, the quiet override) — nothing advertises them.
     }
 
     /** Cast power bar (§cast-minigame): shown while charging a cast (holding RMB with no line out). */

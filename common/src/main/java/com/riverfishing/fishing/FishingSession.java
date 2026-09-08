@@ -1,5 +1,6 @@
 package com.riverfishing.fishing;
 
+import net.minecraft.server.level.ServerBossEvent;
 import com.riverfishing.component.RigType;
 import com.riverfishing.component.RodClass;
 import net.minecraft.core.BlockPos;
@@ -96,6 +97,7 @@ public class FishingSession {
     public double fatigueRunTick;
     /** §bossbar-2: last shown state (0 calm / 1 run / 2 tired) so the name only re-sends on change. */
     public int barState = -1;
+    public ServerBossEvent bossBar;
     public double calmTensionPulse;
     public double landPulse;
     public double relaxTick;
