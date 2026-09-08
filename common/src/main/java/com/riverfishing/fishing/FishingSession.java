@@ -209,6 +209,7 @@ public class FishingSession {
 
     // §big-game greyhounding (0.5.0): reeling inside this window throws the hook — give slack.
     public long jumpWindowEnd;
+    public long showFishUntil;   // §fly-set: the fish drawn breaching at the set, on its own timer
 
     // Pole pull-out QTE (Â§pull-qte): one timing after the strike; the heavier the fish, the narrower
     // the zone and the faster the sweep (reuses floatPeriod/floatZoneHalf for the marker).
