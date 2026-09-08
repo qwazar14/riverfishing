@@ -199,7 +199,7 @@ public final class FishingManager {
             } else if (session.ctx != null && session.ctx.rod == RodType.FLY) {
                 flyStrip(sp, level, session, now);             // §fly-2: a click that reached here is a strip
             } else if (session.iceFishing && session.rodClass != RodClass.ACTIVE) {
-                iceJig(sp, level, session, now);               // §ice-jig: work the mormyshka (attract), don't reel in
+                // §jig-2: the jig is a hold now — a bare click over the hole does nothing
             } else if (session.rodClass == RodClass.ACTIVE) {
                 clickRetrieve(sp, level, session, now); // §click-retrieve: the click IS the lure action
                 return true;
@@ -574,13 +574,14 @@ public final class FishingManager {
     /** §fly-2: a fly line on the water with nothing biting — the state in which a click is a hold. */
     public static boolean flyCalm(ServerPlayer sp) {
         FishingSession s = SESSIONS.get(sp.getUUID());
-        return s != null && s.ctx != null && s.ctx.rod == RodType.FLY && !s.bitten && !s.fighting;
+        return s != null && !s.bitten && !s.fighting && ((s.ctx != null && s.ctx.rod == RodType.FLY) || s.iceFishing);   // §jig-2: the winter rod holds too
     }
 
     /** §fly-2: use let go after a short hold on a calm fly line — the strip. True when it was ours. */
     public static boolean flyTap(ServerPlayer sp) {
         if (!flyCalm(sp)) return false;
         FishingSession s = SESSIONS.get(sp.getUUID());
+        if (s.iceFishing) { iceJigStop(sp, s); return true; }   // §jig-2: letting go is the pause
         if (s.flyPickedUp) return true;   // the hold already picked the line up; nothing to strip
         ServerLevel level = sp.serverLevel();
         flyStrip(sp, level, s, level.getGameTime());
@@ -593,7 +594,12 @@ public final class FishingManager {
         long now = level.getGameTime();
         if (FlyCast.isCasting(sp)) { FlyCast.beat(sp, now); return; }
         if (!flyCalm(sp)) return;
-        flyMend(sp, level, SESSIONS.get(sp.getUUID()), now);
+        FishingSession s = SESSIONS.get(sp.getUUID());
+        if (s.iceFishing) {   // §jig-2: the accent
+            if (FlyCast.isJigging(sp) && FlyCast.beat(sp, now)) iceStroke(sp, level, s, now, true);
+            return;
+        }
+        flyMend(sp, level, s, now);
     }
 
     private static boolean isFlyRod(ItemStack stack) {
@@ -966,7 +972,6 @@ public final class FishingManager {
         session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
         SESSIONS.put(sp.getUUID(), session);
         pressure.addCast(chunkKey, now);
-        FlyCast.beginJig(sp, now);   // §ice-rhythm: the needle starts with the line down the hole
         // §ice-fishing: no float on the line under the ice — the line just drops into the hole (bobber=false).
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, waterPos, 0f, session.lineColor, (byte) 0));
         level.playSound(null, waterPos, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.5f, 1.4f);
@@ -980,24 +985,43 @@ public final class FishingManager {
      * twitch) then triggers the normal strike/pull QTE — the "phase 2" nod strike.
      */
     /**
-     * §ice-rhythm: a jig click is a stop on the needle — the lift or the drop. On the beat the combo
-     * grows and the bite is pulled in, harder the longer it runs; off the beat the mormyshka jerks,
-     * the combo is gone and the fish back off a little. The gauge is the feedback; no text.
+     * §jig-2: the jig is a hold. Every stop the rod makes on its own pulls the bite a little closer; an
+     * accent (a left-click on a stop) pulls harder and grows the combo; the pause (letting go) pulls once
+     * more — the take often comes on the pause. Nothing here pushes the bite away.
      */
-    private static void iceJig(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
-        int combo = FlyCast.jigBeat(sp, now);
-        session.jigBest = Math.max(session.jigBest, combo);   // §progression
-        boolean good = combo > 0;
+    private static void iceStroke(ServerPlayer sp, ServerLevel level, FishingSession session, long now, boolean accent) {
+        int combo = FlyCast.jigCombo(sp);
+        if (accent) session.jigBest = Math.max(session.jigBest, combo);   // §progression
         session.lastJigTick = now;
         if (session.biteAtTick > now) {
-            session.biteAtTick = good
-                    ? Math.max(now + 10, session.biteAtTick - (20 + 6L * combo))
-                    : session.biteAtTick + 15;
+            session.biteAtTick = Math.max(now + 10, session.biteAtTick - (accent ? 20 + 6L * combo : 8 + 2L * combo));
         }
         level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS,
-                good ? 0.35f : 0.25f, good ? 1.3f + 0.06f * combo : 0.9f);
+                accent ? 0.4f : 0.22f, accent ? 1.3f + 0.06f * combo : 1.0f);
         level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
-                session.target.getZ() + 0.5, good ? 2 + combo / 2 : 1, 0.1, 0.02, 0.1, 0.02);
+                session.target.getZ() + 0.5, accent ? 3 + combo / 2 : 1, 0.1, 0.02, 0.1, 0.02);
+    }
+
+    /** §jig-2: the server tick while the winter rod is held over the hole — the strokes the rod makes on its own. */
+    private static void iceJigTick(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
+        if (!FlyCast.isJigging(sp)) {
+            FlyCast.beginJig(sp, now);
+            session.jigStroke = 0;
+            return;
+        }
+        int st = FlyCast.jigStroke(sp, now);
+        if (st != session.jigStroke) {
+            session.jigStroke = st;
+            iceStroke(sp, level, session, now, false);
+        }
+    }
+
+    /** §jig-2: the hold let go — the pause. The gauge comes down and the bite comes a step closer. */
+    private static void iceJigStop(ServerPlayer sp, FishingSession session) {
+        FlyCast.cancel(sp);
+        session.jigStroke = -1;
+        long now = sp.serverLevel().getGameTime();
+        if (session.biteAtTick > now) session.biteAtTick = Math.max(now + 10, session.biteAtTick - 10);
     }
 
     /**
@@ -1543,6 +1567,13 @@ public final class FishingManager {
         long now = level.getGameTime();
         // §fly-2: holding use on a calm fly line picks it up and goes straight into the false casts; the
         // release then delivers the next cast — one motion, the way it is done
+        // §jig-2: the winter rod held over the hole jigs on its own
+        if (session.iceFishing && !session.bitten && !session.fighting && sp.isUsingItem()
+                && sp.getUseItem().getItem() instanceof RodItem wr && wr.rodType() == RodType.WINTER) {
+            iceJigTick(sp, level, session, now);
+        } else if (FlyCast.isJigging(sp)) {
+            iceJigStop(sp, session);   // the hold ended without a release we saw (a slot switch)
+        }
         if (session.ctx != null && session.ctx.rod == RodType.FLY && !session.bitten && !session.fighting && !session.flyPickedUp
                 && sp.isUsingItem() && isFlyRod(sp.getUseItem()) && sp.getTicksUsingItem() >= 6) {
             session.flyPickedUp = true;

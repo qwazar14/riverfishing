@@ -63,7 +63,7 @@ public class RodItem extends Item {
         // session state from its own line renderer so both sides agree on hold behaviour.
         // §fly-2: with a fly line on the water and nothing biting, the click is a HOLD — a tap strips, a hold
         // picks the line up and false-casts; both resolve in releaseUsing and the server tick
-        if (rodType == RodType.FLY && lineOut) {
+        if ((rodType == RodType.FLY || rodType == RodType.WINTER) && lineOut) {   // §jig-2
             boolean calm = !level.isClientSide
                     ? player instanceof ServerPlayer fsp && FishingManager.flyCalm(fsp)
                     : dev.architectury.utils.EnvExecutor.getEnvSpecific(

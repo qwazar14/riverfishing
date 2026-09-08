@@ -384,4 +384,5 @@ def run(tree):
     print("  patched", name)
 
 
-for t in (sys.argv[1:] or TREES): run(t)
+if __name__ == "__main__":
+    for t in (sys.argv[1:] or TREES): run(t)
