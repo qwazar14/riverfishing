@@ -25,8 +25,7 @@ import java.util.UUID;
  * <p>There is nothing to click. The left button belongs to the drift (the mend) and to the take (the
  * strike), and no amount of tapping during the cast changes the distance — the release is the whole skill.
  *
- * <p>The class also runs the winter rod's jig on the same needle (mode 1) and carries the drift and strike
- * status to the HUD (mode 2), because all three ride one packet.
+ * <p>The class also runs the winter rod's jig on the same needle (mode 1) on the same needle.
  */
 public final class FlyCast {
     /** One full swing: back, stop, forward, stop. The forward stop is halfway through. */
@@ -133,17 +132,6 @@ public final class FlyCast {
         State s = STATES.remove(sp.getUUID());
         QUALITY.remove(sp.getUUID());
         send(sp, s == null ? new State() : s, false);
-    }
-
-    // ---- the drift's and the strike's status on the same packet (mode 2) ----
-
-    /** The status line under the crosshair. {@code state} is one of {@link FlyDrift}'s HUD codes. */
-    public static void status(ServerPlayer sp, int state, int metres, boolean onRise) {
-        ModNetwork.toPlayer(sp, new FlyCastPacket(true, 0L, 0, 0f, state, metres, onRise, (byte) 0, (byte) 2));
-    }
-
-    public static void statusOff(ServerPlayer sp) {
-        ModNetwork.toPlayer(sp, new FlyCastPacket(false, 0L, 0, 0f, 0, 0, false, (byte) 0, (byte) 2));
     }
 
     // ---- §ice-rhythm: the winter rod's jig on the same needle — the stops are the LIFT and the DROP ----
