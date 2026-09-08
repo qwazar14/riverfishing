@@ -41,14 +41,21 @@ Casting into open water fishes perfectly well too, just at the ordinary pace. Th
 
 ## The cast
 
-Hold right click with no line out. The rod **false-casts on its own**: back, stop, forward, stop, one full swing every 1.5 seconds, with a swish at each end. The gauge at the bottom is the rod, and the needle is where the rod is.
+Hold right click with no line out and the rod **casts on its own**: back, stop, forward, stop, one full
+swing every 1.5 seconds, with a swish at each end. Nothing appears on your screen — look at the rod and at
+the line.
 
-- **Every completed swing carries three more metres** into the air. Six to start, up to the rod's eighteen. The plaque shows the metres.
-- **Let go as the rod comes forward** — the needle at the right end, in the green. The loop turns over cleanly, lands quietly, and you keep the whole distance.
-- Let go near it, in the amber, and the loop opens: four fifths of the distance, an ordinary landing.
-- Let go with the rod still behind you and the line piles up: half the distance, a slap, and the fish nearby heard it.
+- **The rod loads back** as the swing goes behind you and comes up as it comes forward. That is where it
+  is; you do not need a needle to tell you.
+- **The loop of line flies with it**, sweeping from behind you to out in front once a swing, and **every
+  completed swing puts three more metres into the air**. How much line you are carrying is something you
+  look at, not a number you read.
+- **Let go as the loop comes forward.** Timed cleanly, it turns over, lands quietly and keeps the whole
+  distance. A little early and the loop opens: four fifths, an ordinary landing. With the rod still behind
+  you, the line piles up short and loud, and the fish nearby heard it.
 
-**There is nothing to click.** No timing taps, no hauls, no combo. Where the fly lands is your crosshair and how long you held; how well it lands is that one release.
+Six metres to start, up to the rod's eighteen. Where the fly lands is where your crosshair meets the water
+at that distance, so hold until the loop is as long as the cast you want.
 
 ## The drift
 

@@ -67,6 +67,25 @@ public final class FlyCastClient {
         return active;
     }
 
+    /** §fly-5: the rod is swinging a cast right now — the hand pose and the airborne loop read this. */
+    public static boolean isCasting() {
+        return active && mode == 0;
+    }
+
+    /** 0 at the forward stop, 1 at the back stop: how far behind the angler the rod is loaded. */
+    public static float loadFraction(float partialTick) {
+        Minecraft mc = Minecraft.getInstance();
+        if (!isCasting() || mc.level == null) return 0f;
+        return 1f - marker((mc.level.getGameTime() - startTick) + partialTick);
+    }
+
+    /** Metres of line in the air this instant — the length the loop is drawn at. */
+    public static double airMetres() {
+        Minecraft mc = Minecraft.getInstance();
+        if (!isCasting() || mc.level == null) return 0;
+        return FlyCast.lineOut(mc.level.getGameTime() - startTick, maxBeats);
+    }
+
     /** A fly rod is in the hand. */
     public static boolean flyHeld() {
         return !heldFlyRod(Minecraft.getInstance()).isEmpty();
@@ -153,6 +172,7 @@ public final class FlyCastClient {
         if (!active) return;
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.options.hideGui) return;
+        if (mode == 0) return;   // §fly-5: the cast is drawn in the world, not here
         ItemStack rod = heldRhythmRod(mc);
         if (rod.isEmpty()) return;
         float t = (mc.level.getGameTime() - startTick) + partialTick;
