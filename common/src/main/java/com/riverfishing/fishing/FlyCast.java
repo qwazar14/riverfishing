@@ -13,62 +13,70 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * §fly-2 (0.10.0): the cast, the way a real one is taught. Hold use and the rod false-casts on its own —
- * back, stop, forward, stop — and every stop carries two more metres of line into the air, up to what the
- * rod can hold. The needle on the gauge is the rod: it sweeps from the backcast stop (left) to the forward
- * stop (right) and back, once every {@link #PERIOD} ticks. <b>Release on the forward stop</b> (the green
- * at the right end) and the loop unrolls tight and lands soft. Release a little early and the loop opens —
- * the line falls short. Release with the rod behind you and the whole thing piles up on the water.
+ * §fly-3 (0.10.0): the cast, and nothing but the right mouse button.
  *
- * <p>The only skill input besides the timing of the release is the <b>haul</b>: a left-click as the needle
- * touches either stop pulls line with the other hand — two metres more in the air, at once. A haul
- * anywhere else does nothing at all; there is no way to break the cast by trying.
+ * <p>Hold use and the rod false-casts on its own: back, stop, forward, stop, one full cycle every
+ * {@link #SWING_PERIOD} ticks, with a swish at each end. Every completed cycle carries
+ * {@link #METERS_PER_CYCLE} more metres into the air, from {@link #BASE_METERS} up to what the rod holds.
+ * <b>Let go as the rod comes forward</b> and the loop unrolls: within {@link #RELEASE_WINDOW} ticks of the
+ * forward stop it turns over cleanly and lands quietly at the full distance; near it the loop opens and
+ * lands at four fifths; with the rod still behind you the line piles up short and loud.
  *
- * <p>The same class runs the winter rod's jig (mode 1) and carries the drift's status to the HUD (mode 2),
- * all on the one packet.
+ * <p>There is nothing to click. The left button belongs to the drift (the mend) and to the take (the
+ * strike), and no amount of tapping during the cast changes the distance — the release is the whole skill.
+ *
+ * <p>The class also runs the winter rod's jig on the same needle (mode 1) and carries the drift and strike
+ * status to the HUD (mode 2), because all three ride one packet.
  */
 public final class FlyCast {
-    /** Ticks for one full sweep: backcast stop → forward stop → back. A stop every half of it. */
-    public static final int PERIOD = 32;
-    /** How close to a stop, in needle units 0..1, the release (or a haul) has to be. */
-    public static final float ZONE_HALF = 0.18f;
-    /** Releasing this far from the forward stop still flies, open — beyond it the line piles. */
-    public static final float OPEN_HALF = 0.42f;
-    /** Metres of line already out of the tip when the hold begins. */
-    public static final double PICKUP = 6.0;
-    /** Metres each stop adds while the rod false-casts, and each haul on top. */
-    public static final double STROKE_GAIN = 2.0, HAUL_GAIN = 2.0;
+    /** One full swing: back, stop, forward, stop. The forward stop is halfway through. */
+    public static final int SWING_PERIOD = 30;
+    /** Ticks either side of the forward stop that turn the loop over cleanly. */
+    public static final int RELEASE_WINDOW = 3;
+    /** Ticks either side of it that still fly, open and a little short. */
+    public static final int NORMAL_WINDOW = 9;
+    /** Metres of line out of the tip on the first swing, and what each completed cycle adds. */
+    public static final double BASE_METERS = 6.0, METERS_PER_CYCLE = 3.0;
+
+    /** What the release did to the loop. */
+    public static final int PERFECT = 0, NORMAL = 1, BAD = 2;
+    private static final double[] QUALITY_KEEP = {1.0, 0.8, 0.5};
 
     private static final class State {
         long start;
-        int beats;          // cast: hauls landed; jig: strokes in rhythm
+        int beats;          // cast: completed swing cycles; jig: accents landed
         int maxBeats;       // cast: the rod's reach in metres; jig: JIG_MAX
-        boolean openLoop;   // unused since §jig-2 — kept on the wire for the packet's shape
-        int lastEnd = -1;   // the stroke index of the last haul / accent
+        int lastEnd = -1;   // jig: the stroke index of the last accent
         int mode;           // 0 the fly cast, 1 the jig
     }
 
     private static final Map<UUID, State> STATES = new HashMap<>();
-    /** The delivery's quality, kept until FishingManager reads it once after the cast lands. */
+    /** The delivery's quality, kept until the cast lands and reads it once. */
     private static final Map<UUID, Integer> QUALITY = new HashMap<>();
 
     private FlyCast() {}
 
-    /** Triangle wave 0..1: 0 at the backcast stop, 1 at the forward stop. Matches the client's. */
+    /** Triangle wave 0..1: 0 at the back stop, 1 at the forward stop. The client draws the same. */
     public static float marker(long elapsed, int period) {
         if (period <= 0) return 0.5f;
         float phase = (Math.floorMod(elapsed, period)) / (float) period;
         return phase < 0.5f ? phase * 2f : 2f - phase * 2f;
     }
 
-    /** Which stop the needle is on or heading away from: the stroke index, one per half sweep. */
-    private static int stroke(long elapsed) {
-        return (int) Math.floorDiv(elapsed, PERIOD / 2L);
+    /** Completed swing cycles after this long on the hold. */
+    public static int cycles(long elapsed) {
+        return (int) Math.max(0, Math.floorDiv(elapsed, (long) SWING_PERIOD));
     }
 
-    /** Metres of line in the air after this many stops and hauls, capped at the rod's reach. */
-    public static double lineOut(long elapsed, int hauls, int maxMetres) {
-        return Math.min(maxMetres, PICKUP + STROKE_GAIN * Math.max(0, stroke(elapsed)) + HAUL_GAIN * hauls);
+    /** Metres in the air after this long on the hold, capped at the rod's reach. */
+    public static double lineOut(long elapsed, int maxMetres) {
+        return Math.min(maxMetres, BASE_METERS + METERS_PER_CYCLE * cycles(elapsed));
+    }
+
+    /** Ticks from the forward stop right now — 0 is the moment the loop wants to go. */
+    public static int fromForwardStop(long elapsed) {
+        int half = SWING_PERIOD / 2;
+        return Math.abs((int) Math.floorMod(elapsed, (long) SWING_PERIOD) - half);
     }
 
     private static ItemStack flyRod(ServerPlayer sp) {
@@ -86,54 +94,26 @@ public final class FlyCast {
     public static void begin(ServerPlayer sp, long now) {
         State s = new State();
         s.start = now;
-        s.maxBeats = (int) Math.max(PICKUP, Math.floor(FishingManager.castRangeMax(flyRod(sp))));
+        s.maxBeats = (int) Math.max(BASE_METERS, Math.floor(FishingManager.castRangeMax(flyRod(sp))));
         STATES.put(sp.getUUID(), s);
         QUALITY.remove(sp.getUUID());
         send(sp, s, true);
     }
 
     /**
-     * A left-click while the rod works: on the cast a haul if the needle is on a stop that has not been
-     * hauled yet — two metres more, at once; on the jig an accent on a stop — the combo grows and the bite
-     * comes closer. Anywhere else it is nothing, and costs nothing. Returns whether it landed.
-     */
-    public static boolean beat(ServerPlayer sp, long now) {
-        State s = STATES.get(sp.getUUID());
-        if (s == null) return false;
-        int period = s.mode == 1 ? JIG_PERIOD : PERIOD;
-        float zone = s.mode == 1 ? JIG_ZONE_HALF : ZONE_HALF;
-        long el = now - s.start;
-        float m = marker(el, period);
-        float off = Math.min(m, 1f - m);
-        int st = (int) Math.floorDiv(el, period / 2L);
-        boolean room = s.mode == 1 ? s.beats < s.maxBeats : lineOut(el, s.beats, s.maxBeats) < s.maxBeats;
-        if (off <= zone && st != s.lastEnd && room) {
-            s.beats++;
-            s.lastEnd = st;
-            send(sp, s, true);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * The delivery. Returns the power for {@code chargedCast} — the inverse of {@code castDistance}, so
-     * the line lands at the metres the gauge showed — and remembers the loop's quality: 0 tight (on the
-     * forward stop), 1 open (near it: 85 % of the line), 2 piled (the rod was behind you: 60 %, a slap).
+     * The delivery. Returns the power for {@code chargedCast} — the inverse of {@code castDistance}, so the
+     * line lands at the metres the HUD showed — and remembers what the release did to the loop.
      */
     public static float release(ServerPlayer sp, ItemStack rod, long now) {
         State s = STATES.remove(sp.getUUID());
         double max = FishingManager.castRangeMax(rod);
-        int quality = 0;
-        double distance = PICKUP;
+        int quality = NORMAL;
+        double distance = BASE_METERS;
         if (s != null && s.mode == 0) {
             long el = now - s.start;
-            float m = marker(el, PERIOD);
-            float fromForward = 1f - m;
-            quality = fromForward <= ZONE_HALF ? 0 : fromForward <= OPEN_HALF ? 1 : 2;
-            distance = Math.min(lineOut(el, s.beats, s.maxBeats), max);
-            if (quality == 1) distance *= 0.85;
-            if (quality == 2) distance *= 0.6;
+            int off = fromForwardStop(el);
+            quality = off <= RELEASE_WINDOW ? PERFECT : off <= NORMAL_WINDOW ? NORMAL : BAD;
+            distance = Math.min(lineOut(el, s.maxBeats), max) * QUALITY_KEEP[quality];
             send(sp, s, false);
         } else if (s != null) {
             STATES.put(sp.getUUID(), s);   // the jig is not ours to end
@@ -142,31 +122,31 @@ public final class FlyCast {
         return (float) Mth.clamp((distance - 2.0) / Math.max(1e-3, max - 2.0), 0.0, 1.0);
     }
 
-    /** 0 tight, 1 open, 2 piled — read once after startCast succeeded, then cleared. */
+    /** {@link #PERFECT} / {@link #NORMAL} / {@link #BAD} — read once after the cast landed. */
     public static int takeQuality(ServerPlayer sp) {
         Integer q = QUALITY.remove(sp.getUUID());
-        return q == null ? 0 : q;
+        return q == null ? NORMAL : q;
     }
 
-    /** The hold ended without a cast: forget the rhythm and take the gauge off the screen. */
+    /** The hold ended without a cast: forget the swing and take the gauge off the screen. */
     public static void cancel(ServerPlayer sp) {
         State s = STATES.remove(sp.getUUID());
         QUALITY.remove(sp.getUUID());
         send(sp, s == null ? new State() : s, false);
     }
 
-    // ---- §fly-2: the drift's status on the HUD, on the same packet (mode 2) ----
+    // ---- the drift's and the strike's status on the same packet (mode 2) ----
 
-    /** 0 dead drift, 1 dragging, 2 the line straight below; {@code onRise} = the fly is over a feeding fish. */
-    public static void drift(ServerPlayer sp, int state, int metres, boolean onRise) {
+    /** The status line under the crosshair. {@code state} is one of {@link FlyDrift}'s HUD codes. */
+    public static void status(ServerPlayer sp, int state, int metres, boolean onRise) {
         ModNetwork.toPlayer(sp, new FlyCastPacket(true, 0L, 0, 0f, state, metres, onRise, (byte) 0, (byte) 2));
     }
 
-    public static void driftOff(ServerPlayer sp) {
+    public static void statusOff(ServerPlayer sp) {
         ModNetwork.toPlayer(sp, new FlyCastPacket(false, 0L, 0, 0f, 0, 0, false, (byte) 0, (byte) 2));
     }
 
-    // ---- §jig-2: the winter rod's jig on the same needle, by the same rule — hold, and accent on a stop ----
+    // ---- §ice-rhythm: the winter rod's jig on the same needle — the stops are the LIFT and the DROP ----
     public static final int JIG_PERIOD = 16, JIG_MAX = 8;
     public static final float JIG_ZONE_HALF = 0.22f;
 
@@ -197,8 +177,26 @@ public final class FlyCast {
         return s == null || s.mode != 1 ? 0 : s.beats;
     }
 
+    /** A left-click on a jig stop: an accent. Anywhere else it is nothing, and costs nothing. */
+    public static boolean jigAccent(ServerPlayer sp, long now) {
+        State s = STATES.get(sp.getUUID());
+        if (s == null || s.mode != 1) return false;
+        long el = now - s.start;
+        float m = marker(el, JIG_PERIOD);
+        float off = Math.min(m, 1f - m);
+        int st = (int) Math.floorDiv(el, JIG_PERIOD / 2L);
+        if (off <= JIG_ZONE_HALF && st != s.lastEnd && s.beats < s.maxBeats) {
+            s.beats++;
+            s.lastEnd = st;
+            send(sp, s, true);
+            return true;
+        }
+        return false;
+    }
+
     private static void send(ServerPlayer sp, State s, boolean active) {
-        ModNetwork.toPlayer(sp, new FlyCastPacket(active, s.start, s.mode == 1 ? JIG_PERIOD : PERIOD,
-                s.mode == 1 ? JIG_ZONE_HALF : ZONE_HALF, s.beats, s.maxBeats, s.openLoop, (byte) s.lastEnd, (byte) s.mode));
+        ModNetwork.toPlayer(sp, new FlyCastPacket(active, s.start, s.mode == 1 ? JIG_PERIOD : SWING_PERIOD,
+                s.mode == 1 ? JIG_ZONE_HALF : RELEASE_WINDOW / (float) (SWING_PERIOD / 2),
+                s.beats, s.maxBeats, false, (byte) s.lastEnd, (byte) s.mode));
     }
 }
