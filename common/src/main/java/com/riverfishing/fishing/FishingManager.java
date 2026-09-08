@@ -471,15 +471,12 @@ public final class FishingManager {
             session.flyTight = true;   // §progression
             level.playSound(null, t, SoundEvents.FISHING_BOBBER_THROW, SoundSource.PLAYERS, 0.4f, 1.9f);
             level.sendParticles(ParticleTypes.FISHING, cx, cy, cz, 4, 0.15, 0.0, 0.15, 0.01);
-            actionbar(sp, Component.translatable("message.riverfishing.fly_tight").withStyle(ChatFormatting.GREEN));
         } else if (quality == FlyCast.NORMAL) {
             level.playSound(null, t, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.4f, 1.4f);
-            actionbar(sp, Component.translatable("message.riverfishing.fly_open").withStyle(ChatFormatting.YELLOW));
         } else {
             SpookTracker.onCastLanded(level, t, 0.18);
             level.playSound(null, t, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.9f, 1.1f);
             level.sendParticles(ParticleTypes.SPLASH, cx, cy, cz, 18, 0.4, 0.1, 0.4, 0.2);
-            actionbar(sp, Component.translatable("message.riverfishing.fly_pile").withStyle(ChatFormatting.RED));
         }
         FlyDrift.start(sp, level, session, now);
     }
@@ -500,7 +497,7 @@ public final class FishingManager {
             return;
         }
         if (FlyStrike.tryStrike(sp, FlyStrike.Input.LIFT)) return;
-        if (s != null && s.fly != null && !s.fighting) FlyDrift.mend(sp, level, s, now);
+        if (s != null && s.fly != null && !s.fighting) FlyDrift.flick(sp, level, s, now);
     }
 
     /** §jig-2: a winter line down the hole with nothing biting — the state in which a click is a hold. */
@@ -3220,7 +3217,6 @@ public final class FishingManager {
             clearFloatTiming(sp); // hide the strike-timing HUD (float or lure §strike-qte)
         }
         if (session.iceFishing) FlyCast.cancel(sp);   // §ice-rhythm: the needle goes with the line
-        if (session.fly != null) FlyCast.statusOff(sp);   // §fly-3: the status line goes with the line
         if (session.bossBar != null) {   // §bossbar-end: the bar goes with the fight
             session.bossBar.removeAllPlayers();
             session.bossBar = null;

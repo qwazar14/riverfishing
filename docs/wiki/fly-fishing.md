@@ -52,37 +52,39 @@ Hold right click with no line out. The rod **false-casts on its own**: back, sto
 
 ## The drift
 
-The fly is on the water and the best thing you can do is nothing. A line under the crosshair says what it is doing:
+The fly is on the water and the best thing you can do is nothing. Nothing is written on your screen: the
+river tells you.
 
-| It says | What it means | What to do |
-|---|---|---|
-| **Natural drift** | The fly rides the current like a real insect | Nothing. Watch it |
-| **The line is pulling** | The current has bowed the line and the fly is skating, leaving a wake; the careful fish stop looking at it | **Left click**: the mend |
-| **Line's straight below** | The line has come tight downstream and this drift is finished | **Right click twice** to pick up |
-| **On the fish** | The fly is over a rising fish | Do not touch anything |
-| **Something's coming up…** | A fish is on its way to your fly | Wait. Lifting now pulls it away |
+- **A fly that is drifting** sits on the current and goes with it.
+- **A fly that is dragging** starts cutting a wake across the surface, and you hear it working. The line
+  has bowed across the current, and the careful fish stop looking at it.
+- **When the line comes tight** below you, the drift is finished.
 
-There is no drag number anywhere, on purpose: you can see the fly skate, and see the wake it leaves.
+**Left click — the flick.** The rod lifts the line and drops it two blocks upstream in an arc of spray you
+can watch, and the fly rides cleanly again. The first two are quiet; every one after that is a rod waved
+over the fish's head, and they feel it.
 
-- **Left click — mend.** The line flips upstream and the drag is gone. The first two are quiet; every one after is a rod waved over the fish's head, and they hear it.
-- **Right click — strip.** Two blocks of line come back. A **streamer** is fished entirely this way: strips half a second to a second and a quarter apart look like a fleeing baitfish and bring the take on, and a swirl behind the fly means one is following. A nymph gets a twitch out of it; a dry fly is only nudged, and a dry fly dragged about is a dry fly they have seen move.
-- **Right click twice, quickly — pick up.** The line comes off the water and the cast is over. Stripping the fly all the way home does the same.
+**Right click — the strip.** Two blocks of line come back. A **streamer** is fished entirely this way:
+strips half a second to a second and a quarter apart look like a fleeing baitfish and bring the take on,
+and a swirl behind the fly means one is following. A nymph gets a twitch out of it; a dry fly is only
+nudged, and a dry fly dragged about is one they have seen move. When the fly reaches your feet there is no
+line left on the water and the cast is over.
+
+To abandon a cast, switch hotbar slot — the same as every other rod.
 
 ## The take
 
-A fish takes a fly by coming up under it and turning down with it. So the take is two moments, and both are on the screen.
+A fish takes a fly by coming up under it and turning down with it. Both moments are on the water, and
+neither is announced.
 
-1. **Something's coming up.** About a second before it eats you see it: a bulge under the fly, bubbles, a push of water. Lift now and you pull the fly out of a mouth that has not closed — seven times in ten the fish is simply gone.
-2. **It takes.** The fly goes under in a boil and the line says **STRIKE!** with the button. You have **about a second and three quarters** to answer.
+1. **It comes up.** About a second before it eats: bubbles, a bulge, a push of water under your fly.
+   Strike now and you pull the fly out of a mouth that has not closed — seven times in ten it is gone.
+2. **It takes.** The fly disappears in a boil, the way a float plunges. You have about a second and three
+   quarters.
 
-| What you do | What you get |
-|---|---|
-| The right button, straight away | **Solid hook** — it is not coming off |
-| The right button, late in the window | Normal hook |
-| The wrong button | **Weak hook** — it holds, but the fish can throw it on a jump |
-| Nothing at all | It works the fly out and spits it |
-
-Nothing here is all-or-nothing: the wrong button is a worse hook, not a lost fish.
+Either button hooks it. A dry fly and a nymph want the **left** (you lift the rod); a streamer wants the
+**right** (you pull the line). Using the other hand still hooks the fish, just badly — and a bad hook is
+one a jump can throw. Answer quickly and cleanly and it is not coming off.
 
 ## The fight
 
@@ -137,7 +139,7 @@ Everything a beginner needs is in this page's first six lines. What a good angle
 
 - **the release** — a clean turnover lands quietly and keeps the full distance, so a fly can be put on a fish eighteen metres away without frightening it;
 - **the placement** — two blocks is not much, and a rise you hit is a fish that is already interested;
-- **the drift** — mending before the fly starts to skate rather than after;
+- **the drift** — flicking the line upstream before the fly starts to skate, not after;
 - **the rhythm** — a streamer stripped at the right pace is a different lure from one dragged in;
 - **the strike** — the right button, straight away, every time;
 - **the jumps** — knowing to stop winding before the fish is in the air.

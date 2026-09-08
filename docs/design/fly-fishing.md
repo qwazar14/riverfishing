@@ -1,3 +1,27 @@
+# §fly-4 — the rod stops talking (2026-09-08, after the first play)
+
+Three things came back from the first session with §fly-3, and all three were fair.
+
+1. **Two quick right clicks picked the line up.** A streamer is fished with fast strips, so the gesture
+   fought the mechanic it was attached to. Gone: the only ways a cast ends are stripping the fly to your
+   feet and switching hotbar slot, which is how every other rod is abandoned.
+2. **Too much text.** A status line, a strike prompt, landing messages, hook messages — on a mod whose own
+   rule (§silent-bite, §catch-the-moment) is that a float going under is the entire cue and no text is
+   printed for it. Every fly string is deleted. What tells the player now: the fly sitting still versus
+   cutting a wake (with a sound), bubbles and a bulge for a fish coming up, a boil for the take, the ring
+   on the water going away when a cast lands on a rise.
+3. **The left click did nothing visible** — it reset a drag counter that was itself invisible. It is a
+   FLICK now: `FlyDrift.flick` moves the fly's spot two blocks upstream, draws the arc of spray, resets the
+   drag and clears the straight-line flag. You watch the fly move.
+
+With the prompt gone the strike takes either button (`FlyStrike.tryStrike` no longer cares which arrives,
+only which the fly wanted): the fly's own hand gives `hookStrength` 2 or 1, the other gives 0, and a 0 is
+what a jump can throw. `FlyCastPacket` mode 2 and `FlyDrift.push` are gone with the status line;
+`FlyCastClient` keeps only the cast gauge and listens for the left button whenever a fly rod is held and a
+line is out.
+
+---
+
 # §fly-3 — the 0.10.0 rebuild, to the written spec
 
 Fly fishing has been rebuilt twice. The first pass (§fly, 2026-09-07) was a rhythm game: taps on both ends
