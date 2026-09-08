@@ -863,7 +863,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         if (mc.player.isUsingItem() && mc.player.getUseItem().getItem() instanceof RodItem
                 && !ClientLineState.active()) {
             int used = mc.player.getUseItem().getUseDuration() - mc.player.getUseItemRemainingTicks();
-            chargePower = RodItem.castPower(used);
+            // §fly-5: a fly rod's pose follows its own swing, not a power bar
+            chargePower = FlyCastClient.isCasting()
+                    ? FlyCastClient.loadFraction(mc.getFrameTime())
+                    : RodItem.castPower(used);
         }
         // §crank-swing: the whip belongs to the CAST. This read the swing unconditionally, so
         // every crank during a fight added a casting whip on top of the arm swing.

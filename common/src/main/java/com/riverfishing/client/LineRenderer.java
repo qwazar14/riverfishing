@@ -31,7 +31,9 @@ public final class LineRenderer {
 
     public static void render(PoseStack pose, Vec3 cam, float pt) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null || mc.player == null || ClientLineState.lines().isEmpty()) return;
+        if (mc.level == null || mc.player == null) return;
+        boolean casting = FlyCastClient.isCasting();   // §fly-5: a cast in the air draws even with no line out
+        if (!casting && ClientLineState.lines().isEmpty()) return;
 
         float frameSeconds = mc.getDeltaFrameTime() / 20f;
         long now = mc.level.getGameTime();
@@ -68,10 +70,58 @@ public final class LineRenderer {
             drew = true;
         }
 
+        if (casting) {
+            drawCastLine(mc, buffers, m, nrm, pt);
+            drew = true;
+        }
         if (drew) {
             buffers.endBatch();   // flushes lines() AND every per-material strand type
         }
         pose.popPose();
+    }
+
+    /**
+     * §fly-5: the line in the air. While the rod false-casts there is no line on the water and nothing on
+     * the screen — the loop is the gauge. It sweeps from behind the angler to out in front once a cycle
+     * and grows three metres with every swing, so how much line is in the air is something you look at.
+     * Let it go as the loop comes forward and that is the cast.
+     */
+    private static void drawCastLine(Minecraft mc, MultiBufferSource buffers, Matrix4f m, Matrix3f nrm, float pt) {
+        Player player = mc.player;
+        double metres = FlyCastClient.airMetres();
+        if (metres <= 0) return;
+        Vec3 tip = rodTipAnchor(mc, player, pt);
+        float load = FlyCastClient.loadFraction(pt);        // 1 at the back stop, 0 at the forward stop
+        Vec3 look = player.getViewVector(pt);
+        double hl = Math.sqrt(look.x * look.x + look.z * look.z);
+        Vec3 fwd = hl < 1e-3 ? new Vec3(0, 0, 1) : new Vec3(look.x / hl, 0, look.z / hl);
+        Vec3 dir = fwd.scale(1.0 - 2.0 * load);             // out in front at one stop, behind at the other
+        double len = metres * 0.9;
+        Vec3 far = tip.add(dir.scale(len)).add(0, 0.6 + len * 0.10, 0);
+        Vec3 ctrl = tip.add(dir.scale(len * 0.45)).add(0, 1.4 + len * 0.28, 0);
+
+        float[] style = null;
+        var held = player.getMainHandItem().getItem() instanceof com.riverfishing.item.RodItem
+                ? player.getMainHandItem() : player.getOffhandItem();
+        if (held.getItem() instanceof com.riverfishing.item.RodItem
+                && com.riverfishing.item.RodData.get(held, com.riverfishing.component.ComponentSlot.LINE)
+                        .getItem() instanceof com.riverfishing.item.LineItem li) {
+            style = RodRenderTypes.strandStyle(li.lineType(), li.diameterMm());
+        }
+        VertexConsumer sv = buffers.getBuffer(
+                style == null ? RenderType.lines() : RodRenderTypes.lineStrand(style[4]));
+        int alpha = style == null ? 255 : (int) style[3];
+        int cr = 0xE8, cg = 0xE4, cb = 0xD0;
+
+        Vec3 prev = tip;
+        for (int k = 1; k <= 20; k++) {
+            double f = k / 20.0, g = 1.0 - f;
+            Vec3 p = new Vec3(g * g * tip.x + 2 * g * f * ctrl.x + f * f * far.x,
+                    g * g * tip.y + 2 * g * f * ctrl.y + f * f * far.y,
+                    g * g * tip.z + 2 * g * f * ctrl.z + f * f * far.z);
+            line(sv, m, nrm, prev, p, cr, cg, cb, alpha);
+            prev = p;
+        }
     }
 
     private static void renderLine(Minecraft mc, MultiBufferSource buffers,
