@@ -182,19 +182,16 @@ From 0.10.0 the first five stages never ask for a fish by name — a chain writt
 
 See [Ice fishing](ice-fishing.md#progression).
 
-### Stage 7 — Cold water and the fly
+### Stage 7 — Cold water
 
-The [fly rod](fly-fishing.md) and the salmonids, wherever the water is cold enough for them. A *salmonid* is any fish of the salmon and trout family; an *insect feeder* is a species whose diet says so.
+The salmonids, wherever the water is cold enough for them. A *salmonid* is any fish of the salmon and trout family; an *insect feeder* is a species whose diet says so.
 
 | Goal | Reward | XP |
 |---|---|---|
-| Land a fish on the fly rod | 10 emeralds | 40 |
 | Catch a salmonid | 2 × Spoon Lure | 50 |
-| Land 10 fish on the fly | 24 emeralds | 90 |
 | Catch 3 salmonids | Castmaster | 60 |
 | Catch 5 insect feeders | 12 × Bloodworm | 50 |
 | Land a salmonid of 5 kg or more | 30 emeralds | 160 |
-| Land 30 fish on the fly | 30 emeralds | 120 |
 | Fully complete stage 7 | **Surf rod** | 180 |
 
 ### Stage 8 — The sea and big game
@@ -231,8 +228,6 @@ Forty-eight advancements. Some are driven by simply having the fish in your inve
 | **Catch of the Decade** | Fish up an old boot |
 | **Heartless Cook** | Fillet a koi carp |
 | **It Was DEFINITELY Huge** *(hidden)* | Suffer the 0.3 % [catastrophic tackle failure](fishing-mechanics.md#catastrophic-failure) |
-| **On the Fly** | Land a fish on the [fly rod](fly-fishing.md) |
-| **Tight Loop** *(hidden challenge)* | Land a fish on a cast that unrolled without a splash |
 | **Tied by Hand** | Tie a lure at the [tackle bench](tackle-station.md) |
 | **A Far Shore** | Catch a fish in a second [faunal province](provinces.md) |
 | **The Whole Planet** | A fish in every one of the five provinces |
@@ -251,7 +246,6 @@ Forty-eight advancements. Some are driven by simply having the fish in your inve
 | **Ten Trophies** | Land ten trophy specimens |
 | **A Wall of Trophies** | Land fifty trophy specimens |
 | **A Thousand Fish** | Land a thousand fish |
-| **Dry Fly Hand** | Land fifty fish on the fly |
 | **Go Home** | Release a fish back into the water |
 | **Salt** | Land a fish from the sea |
 | **The Deep** | Land a fish over the deep ocean |

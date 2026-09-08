@@ -48,18 +48,13 @@ public final class BiteEngine {
         }
         // §tying: a tied lure fishes as its template says for this fish's family — an ant is food to
         // a roach and a curiosity to a pike; a streamer the other way round.
-        // §fly-bait: on a fly rod the fly is the bait. The tied lure's bait id is the winter jig's, which
-        // most species never scored — so the baseline is the fly itself, and the template says the rest.
-        if (c.tied != null && c.rod == com.riverfishing.component.RodType.FLY) best = Math.max(best, 0.8);
         if (c.tied != null) {
-            // §fly-bait-id: a profile may rate a fly TYPE by name (fly_dry_fly, fly_nymph, ...) the way it rates
-            // any bait; a species that says nothing takes the family's generic affinity for the template.
+            // §tying: a profile may rate a tied TEMPLATE by name (fly_nymph, fly_streamer, fly_pellet, ...) the
+            // way it rates any bait; a species that says nothing takes the family's generic affinity for it.
             Double own = p.baitScores.get("fly_" + c.tied.template().key);
             if (own != null) best = own;
             else best *= c.tied.affinity(p.diet, p.group);   // §species-table: by what it eats
         }
-        // §fly: match the hatch — the right kind at the right size is the fly they are taking today
-        if (c.tied != null && c.rod == com.riverfishing.component.RodType.FLY) best *= Hatch.factor(c.hatch, c.tied);
         return best;
     }
 
@@ -68,8 +63,7 @@ public final class BiteEngine {
         if (c.hookSizes.isEmpty()) {
             // A predator lure's treble and a winter mormyshka carry their own hook — no separate hook slot.
             return (c.rig == com.riverfishing.component.RigType.PREDATOR
-                    || c.rig == com.riverfishing.component.RigType.WINTER
-                    || c.rig == com.riverfishing.component.RigType.FLY) ? 0.85 : 0.0;   // §fly: the fly carries its own hook
+                    || c.rig == com.riverfishing.component.RigType.WINTER) ? 0.85 : 0.0;
         }
         double best = 0.0;
         for (int size : c.hookSizes) {

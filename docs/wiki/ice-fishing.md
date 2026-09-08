@@ -53,7 +53,7 @@ The wait is clamped to **200–2400 ticks** (10 seconds to 2 minutes) — a pati
 
 ### Jigging
 
-While you are waiting, **hold right-click and the rod jigs on its own** — the same rule as the [fly cast](fly-fishing.md#the-cast). A needle sweeps a bar at the bottom of the screen between two stops, **▲ the lift** on the left and **▼ the drop** on the right, a stop every 0.4 s, and every stop the rod makes pulls the bite a little closer.
+While you are waiting, **hold right-click and the rod jigs on its own**. A needle sweeps a bar at the bottom of the screen between two stops, **▲ the lift** on the left and **▼ the drop** on the right, a stop every 0.4 s, and every stop the rod makes pulls the bite a little closer.
 
 | You | The gauge | The fish |
 |---|---|---|
@@ -123,7 +123,7 @@ The mod tracks fish landed through the ice as its own counter, feeding quest **s
 
 There is also the code-driven advancement **From Under the Ice** — pull a burbot through a hole with the winter rod.
 
-Stage 6 unlocks once 70 % of stage 5's tasks are done, and completing 70 % of stage 6 opens [stage 7, cold water and the fly](progression.md#the-quest-chain).
+Stage 6 unlocks once 70 % of stage 5's tasks are done, and completing 70 % of stage 6 opens [stage 7, cold water](progression.md#the-quest-chain).
 
 ## See also
 
