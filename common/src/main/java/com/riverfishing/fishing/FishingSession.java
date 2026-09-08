@@ -134,17 +134,14 @@ public class FishingSession {
     public int snagMiss;            // §line-calm: clear checks since the last hit — three in a row lets go
     public boolean outclassedHinted;   // §outclassed-hint: said once more at the first run
     public boolean outclassed;      // §outclassed: the line is weaker than the pull — play it out, never reel it
-    // §fly: the drift — the line bows across the current (drag 0..100), the drift's last tick,
-    // whether it has come tight straight below the angler, and how many mends this drift has had.
-    public int flyDrag;
-    public long flyDriftEnd;
-    public boolean flyStraight;
-    public int flyMends;
-    public boolean flyDragWarned;
-    public boolean flyOnRise;      // §fly-2: the fly is over a fish that has decided
-    public boolean flyPickedUp;    // §fly-2: the hold took the line up — the release is a cast, not a strip
-    public double flyReel;         // §fly-reel: how far the strips have brought the fly in, 0..1 of the cast
-    public int flyDriftState = -1; // §fly-2: the last status sent to the HUD   // §fly: the one 'mend!' per drift has been said
+    /** §fly-3: the fly cast's own state — null on every other rod. */
+    public FlySession fly;
+    /** §fly-3: 0 weak, 1 normal, 2 solid — what the strike earned; a weak hook can be thrown. */
+    public int hookStrength = 1;
+    /** §fly-3: the tick the fish on a fly may next come out of the water. */
+    public long flyJumpAt;
+    /** §fly-3: this fish was hooked on a fly — it jumps far more than a fish on any other rod. */
+    public boolean flyFight;
     // Â§tackle-stress (0.4.0): crossing the limit no longer snaps instantly â a per-tick break chance
     // grows with the overshoot and with how long the line has been held over it.
     public double requiredKg;     // the fish's pull in kg (drives the break-load message)

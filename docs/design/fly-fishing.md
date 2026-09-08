@@ -1,3 +1,107 @@
+# §fly-3 — the 0.10.0 rebuild, to the written spec
+
+Fly fishing has been rebuilt twice. The first pass (§fly, 2026-09-07) was a rhythm game: taps on both ends
+of a fast needle, a release rule nobody could infer, a drag number. The second (§fly-2, 2026-09-08) made it
+legible but kept the taps for distance and hooked the fish for you. This one is built to the design
+specification the author wrote, and the principle it opens with:
+
+> **Easy to Learn — Hard to Master.**
+> A player who has never held a fly rod should get the loop in seconds:
+> *see a fish → cast near it → let the fly drift → see the bite → set the hook.*
+
+Nothing on the screen is a percentage, a tick count or a coefficient.
+
+## The shape
+
+```
+IDLE → CASTING → DRIFTING → STRIKING → FIGHTING → IDLE
+```
+
+One class per state, and `FishingManager` keeps only the glue:
+
+| Class | Owns |
+|---|---|
+| `fishing/FlySession.java` | the state a cast is in, where the fly is, the rise it is fishing to, the fly's kind |
+| `fishing/FlyCast.java` | the swing cycle, distance, release quality (and, on the same needle, the winter jig) |
+| `fishing/FlyDrift.java` | the current, drag, mend, strip, the pick-up, the streamer's rhythm, the rise check |
+| `fishing/FlyStrike.java` | the approach, the take, the window, the input, weak/normal/solid hooks |
+| `fishing/FlyRises.java` | the feeding fish: where they show, which species, sip or slash |
+
+The three kinds a player has to tell apart are `FlySession.Kind`: **DRY** (dry fly, ant), **NYMPH**
+(nymph, shrimp, everything else), **STREAMER**. Only the last one strikes on the right button.
+
+## CAST — the right button, and only it
+
+`SWING_PERIOD 30` (a full back-and-forward), `BASE_METERS 6`, `METERS_PER_CYCLE 3`, capped at the rod's
+reach. The release is judged against the forward stop: `RELEASE_WINDOW 3` ticks → **perfect** (100 % of the
+metres, a quiet landing), `NORMAL_WINDOW 9` → **normal** (80 %), anything else → **bad** (50 %, a slap, a
+spook of 0.18). The metres go back through `castDistance`'s inverse so the fly lands exactly where the HUD
+said.
+
+The left button does nothing during a cast; `FlyCastClient` does not even send the packet in that mode.
+
+## RISES — the target
+
+`MIN_REACH 6`, `MAX_REACH 18`, `MAX_RISES 3`, life 300–500 ticks, a new one every 50–140. One in three is a
+**slash** (a wide ring, spray, a loud smack) rather than a **sip** (a small ring, a quiet kiss), and the
+species is drawn from the bite engine's own weights at that spot × `flyAppetite(diet, slash)` — insect
+eaters sip, predators slash.
+
+`RISE_HIT_RADIUS 2.0`. A fly that lands or drifts inside it takes the rise off the water, becomes that
+fish, and the take is 10–25 ticks away (a dry fly a little sooner). Everything else fishes at the engine's
+ordinary pace — **no rise is ever required**.
+
+## DRIFT — leave it alone
+
+`DRAG_RATE 2` per ten ticks of current, `DRAG_CRITICAL 70`, 100 = the line is straight and the drift is
+over. Over the critical the fly skates: particles off the fly, a wake, and the careful kinds have their
+take pushed back (a streamer does not — a fleeing baitfish is a fleeing baitfish). **The number is never
+shown**; the status line says *natural drift* / *the line is pulling* / *line's straight below*.
+
+- **LMB — mend.** Drag to zero, drops thrown upstream, `QUIET_MENDS 2` free; every one after that spooks by
+  `0.08 × (mends − 2)`. Not a hard limit, a growing consequence.
+- **RMB — strip.** `STRIP_BLOCKS 1.75`, applied to the same 0..1 reel fraction the spinning retrieve uses,
+  so the client draws the fly gliding home rather than hopping between blocks. A streamer stripped
+  `RHYTHM_MIN 10`–`RHYTHM_MAX 25` ticks apart pulls the take in 22 ticks and shows a follow one time in
+  three; a nymph 6; a dry 3 and a small spook, because a dragged dry fly has been seen to move.
+- **RMB twice inside `DOUBLE_TAP 10` ticks — pick up.** No press-duration rule anywhere: one press is
+  always one clear strip.
+
+## STRIKE — two acts, four outcomes
+
+`APPROACH_MIN 10` + a stable 0–10 lead before the take: bubbles and a bulge under the fly, the HUD says
+*something's coming up*. Then the take: a boil, a splash, `STRIKE_WINDOW 35` ticks and the button on the
+screen.
+
+| | Result |
+|---|---|
+| Right button, within `CLEAN_STRIKE 20` | solid hook (`hookStrength 2`) |
+| Right button, later | normal (1) |
+| Wrong button | weak (0) |
+| During the approach | 30 % a weak hook, 70 % the fly pulled away and the fish put down |
+| Nothing | it spits the fly |
+
+Never binary: a mistake is a worse hook, not a lost fish.
+
+## FIGHT — the mod's own, plus jumps
+
+No fly-only combat. `session.flyFight` schedules a jump every 80–150 ticks: `jumpWindowEnd` is the
+existing greyhounding window, so winding into one rips the hook out through code that already existed. A
+weak hook is thrown on a jump 18 % of the time. The fight starts from the fly's real position, capped at
+0.85 exactly as the spinning retrieve does.
+
+## Gone from the old implementation
+
+LMB hauls during the cast; distance from hitting ±0.18 stop zones; the `<6 ticks strip / >6 ticks pickup`
+hold rule; the automatic `hookUp` with no player input; the numeric drag; the rise as a requirement.
+
+## Kept
+
+`RodType.FLY`, `RigType.FLY`, leader + fly, `Hatch`, `TiedDesign` affinities, `FlyRises`, the line sync,
+the jumping-fish render, `hookUp` and the whole fight.
+
+---
+
 # §fly-2 — the 0.10.0 rebuild (what shipped)
 
 Phase 1 shipped the §3 mini-game below and it was **crooked, dull and opaque**: a needle at 0.45 s per stop that wanted a tap on every end, a release rule ("the lit end") nobody could infer, a twelve-second drift with nothing to look at but a drag number, and a strike clock with no label. The rebuild keeps the bones (the rod, the rig, the hatch, the species clock) and replaces the loop with three legible ideas:

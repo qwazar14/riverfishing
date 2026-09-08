@@ -194,6 +194,9 @@ public final class FishingManager {
                     return true;
                 }
                 reelPulse(sp, level, session);                 // вываживание
+            } else if (session.fly != null) {
+                // §fly-3: on a fly rod the right button is the strip, and the strip-set when a fish has taken
+                if (!FlyStrike.tryStrike(sp, FlyStrike.Input.STRIP)) FlyDrift.strip(sp, level, session, now);
             } else if (session.bitten && now <= session.biteWindowEnd) {
                 // Float rods AND lure rods (§strike-qte, 2.4) run the timing marker — hit the zone to set
                 // the hook, miss and the fish is gone. Bottom rods keep the plain click подсечка.
@@ -203,8 +206,6 @@ public final class FishingManager {
                 } else {
                     hookUp(sp, level, session, now);           // подсечка
                 }
-            } else if (session.ctx != null && session.ctx.rod == RodType.FLY) {
-                flyStrip(sp, level, session, now);             // §fly-2: a click that reached here is a strip
             } else if (session.iceFishing && session.rodClass != RodClass.ACTIVE) {
                 // §jig-2: the jig is a hold now — a bare click over the hole does nothing
             } else if (session.rodClass == RodClass.ACTIVE) {
@@ -454,165 +455,85 @@ public final class FishingManager {
     }
 
     /**
-     * §fly-2: what the delivery did to the water, and whether it came down on a rising fish. A tight loop
-     * lands soft; an open one is short; a piled one slaps the water and the spot is wary for a moment.
+     * §fly-3: what the delivery did to the water. A clean turnover puts the fly down without a sound; an
+     * open loop lands it short; a pile slaps the surface and every fish within a few blocks heard it.
+     * Then the drift begins, and from here the fly's own classes have it.
      */
     private static void flyLanded(ServerPlayer sp, FishingSession session, int quality) {
         if (session == null) return;
         ServerLevel level = sp.level();
         long now = level.getGameTime();
-        if (quality == 0) {
+        session.fly = new FlySession(session.target,
+                FlySession.Kind.of(session.ctx == null ? null : session.ctx.tied));
+        BlockPos t = session.target;
+        double cx = t.getX() + 0.5, cy = t.getY() + 1.0, cz = t.getZ() + 0.5;
+        if (quality == FlyCast.PERFECT) {
             session.flyTight = true;   // §progression
+            level.playSound(null, t, SoundEvents.FISHING_BOBBER_THROW, SoundSource.PLAYERS, 0.4f, 1.9f);
+            level.sendParticles(ParticleTypes.FISHING, cx, cy, cz, 4, 0.15, 0.0, 0.15, 0.01);
             actionbar(sp, Component.translatable("message.riverfishing.fly_tight").withStyle(ChatFormatting.GREEN));
-        } else if (quality == 1) {
+        } else if (quality == FlyCast.NORMAL) {
+            level.playSound(null, t, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.4f, 1.4f);
             actionbar(sp, Component.translatable("message.riverfishing.fly_open").withStyle(ChatFormatting.YELLOW));
         } else {
-            SpookTracker.onCastLanded(level, session.target, 0.15);
+            SpookTracker.onCastLanded(level, t, 0.18);
+            level.playSound(null, t, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.9f, 1.1f);
+            level.sendParticles(ParticleTypes.SPLASH, cx, cy, cz, 18, 0.4, 0.1, 0.4, 0.2);
             actionbar(sp, Component.translatable("message.riverfishing.fly_pile").withStyle(ChatFormatting.RED));
         }
-        flyCheckRise(sp, level, session, now);
-        FlyCast.drift(sp, 0, flyMetres(sp, session), session.flyOnRise);
-    }
-
-    /** §fly-2: the fly over a feeding fish — that fish, and the take inside a couple of seconds. */
-    private static void flyCheckRise(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
-        if (session.flyOnRise || session.bitten) return;
-        FlyRises.Rise rise = FlyRises.take(sp, BlockPos.containing(flyAt(sp, session)));   // §fly-reel
-        if (rise == null) return;
-        session.species = rise.species;
-        session.flyOnRise = true;
-        session.biteAtTick = now + 15 + level.getRandom().nextInt(30);
-        actionbar(sp, Component.translatable("message.riverfishing.fly_on_fish").withStyle(ChatFormatting.GREEN));
-        level.playSound(null, session.target, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.5f, 1.6f);
-        FlyCast.drift(sp, 0, flyMetres(sp, session), true);
-    }
-
-    /** §fly-reel: where the fly actually is — the water spot, pulled toward the angler by what has been stripped. */
-    private static net.minecraft.world.phys.Vec3 flyAt(ServerPlayer sp, FishingSession session) {
-        double x = Mth.lerp(session.flyReel, session.target.getX() + 0.5, sp.getX());
-        double z = Mth.lerp(session.flyReel, session.target.getZ() + 0.5, sp.getZ());
-        return new net.minecraft.world.phys.Vec3(x, session.target.getY(), z);
-    }
-
-    private static int flyMetres(ServerPlayer sp, FishingSession session) {
-        net.minecraft.world.phys.Vec3 at = flyAt(sp, session);
-        double dx = sp.getX() - at.x, dz = sp.getZ() - at.z;
-        return (int) Math.round(Math.sqrt(dx * dx + dz * dz));
+        FlyDrift.start(sp, level, session, now);
     }
 
     /**
-     * §fly: the drift. The fly rides the flow a block every half second; the line bows across the
-     * current and DRAGS the fly (past 60 the fish refuse it — mend to reset); after twelve seconds the
-     * line is straight below the angler and catches nothing until it is picked up and cast again.
+     * §fly-3: the left click. On a fly rod it is the mend while the line drifts and the LIFT when a fish
+     * has taken; over an ice hole it is the jig's accent. During the cast it is nothing at all — the
+     * distance is the release's business and no amount of clicking changes it.
      */
-    private static void flyDrift(ServerLevel level, ServerPlayer sp, FishingSession session, long now) {
-        if (session.flyDriftEnd == 0) session.flyDriftEnd = now + 240;
-        if (!session.flyStraight && now >= session.flyDriftEnd) {
-            session.flyStraight = true;
-            actionbar(sp, Component.translatable("message.riverfishing.fly_straight").withStyle(ChatFormatting.GRAY));
-        }
-        if (!session.flyStraight && now % 10 == 0) {
-            BlockPos t = session.target;
-            net.minecraft.world.phys.Vec3 flow = level.getFluidState(t).getFlow(level, t);
-            double fl = Math.sqrt(flow.x * flow.x + flow.z * flow.z);
-            if (fl >= 0.05) {
-                // Still water leaves the line lying slack; only a current bows it.
-                session.flyDrag = Math.min(100, session.flyDrag + 3);
-                if (session.flyDrag > 60 && !session.flyDragWarned) {
-                    session.flyDragWarned = true;
-                    actionbar(sp, Component.translatable("message.riverfishing.fly_drag").withStyle(ChatFormatting.YELLOW));
-                }
-                BlockPos next = findWaterColumn(level, t.getX() + 0.5 + Math.round(flow.x / fl),
-                        t.getY() + 1.0, t.getZ() + 0.5 + Math.round(flow.z / fl));
-                if (next != null && !next.equals(t)) {
-                    session.target = next;
-                    ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, next, 0f,
-                            session.lineColor, session.floatKind, false));
-                }
-            }
-        }
-        // A dragging fly and a straight line are the dead lure's rule: the take keeps getting pushed out.
-        if ((session.flyDrag > 60 || session.flyStraight) && now >= session.biteAtTick - 5) {
-            session.biteAtTick = now + 25;
-        }
-    }
-
-    /**
-     * §fly-2: a left-click with the line on the water is the MEND — the line flipped upstream, the drag
-     * gone; a third mend in one drift slaps the water.
-     */
-    private static void flyMend(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
-        session.flyDrag = 0;
-        session.flyMends++;
-        session.flyDragWarned = false;
-        level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_THROW, SoundSource.PLAYERS, 0.35f, 1.6f);
-        if (session.flyMends >= 3) SpookTracker.onCastLanded(level, session.target, 0.15);
-        session.flyDriftState = session.flyStraight ? 2 : 0;
-        FlyCast.drift(sp, session.flyDriftState, flyMetres(sp, session), session.flyOnRise);
-    }
-
-    /**
-     * §fly-2: a TAP of use strips a metre of line in — the fly comes toward you — and works the fly: a
-     * streamer or a shrimp is fished by the strip (each one brings the take closer, and a fish shows
-     * behind it now and then); a dry fly or a nymph only twitches. At your feet the cast is over.
-     */
-    private static void flyStrip(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
-        // §fly-reel: the spot stays; the strip is a fraction of the way in, exactly as the spinning retrieve
-        double dx = sp.getX() - (session.target.getX() + 0.5), dz = sp.getZ() - (session.target.getZ() + 0.5);
-        double dist = Math.max(1.0, Math.sqrt(dx * dx + dz * dz));
-        session.flyReel = Math.min(1.0, session.flyReel + 1.0 / dist);
-        if (session.flyReel >= 0.85) {
-            endSession(sp, session);
-            actionbar(sp, Component.translatable("message.riverfishing.fly_pickup"));
-            return;
-        }
-        session.flyDrag = Math.max(0, session.flyDrag - 30);   // a strip straightens the line a little
-        session.flyDragWarned = false;
-        net.minecraft.world.phys.Vec3 at = flyAt(sp, session);
-        boolean stripFly = session.ctx != null && session.ctx.tied != null
-                && (session.ctx.tied.template() == com.riverfishing.tackle.TiedDesign.Template.STREAMER
-                || session.ctx.tied.template() == com.riverfishing.tackle.TiedDesign.Template.SHRIMP);
-        if (!session.flyOnRise && session.biteAtTick > now) {
-            session.biteAtTick = Math.max(now + 8, session.biteAtTick - (stripFly ? 20 : 6));
-            if (stripFly && level.getRandom().nextInt(3) == 0) {   // the follow: a swirl behind the fly
-                level.sendParticles(ParticleTypes.BUBBLE_POP, at.x - dx / dist * 0.8, at.y + 0.95, at.z - dz / dist * 0.8, 4, 0.2, 0.0, 0.2, 0.0);
-            }
-        }
-        level.playSound(null, BlockPos.containing(at), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.25f, 1.4f);
-        ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target, (float) session.flyReel, session.lineColor, session.floatKind, false));
-        flyCheckRise(sp, level, session, now);
-        FlyCast.drift(sp, session.flyDriftState, flyMetres(sp, session), session.flyOnRise);
-    }
-
-    /** §fly-2: a fly line on the water with nothing biting — the state in which a click is a hold. */
-    public static boolean flyCalm(ServerPlayer sp) {
-        FishingSession s = SESSIONS.get(sp.getUUID());
-        return s != null && !s.bitten && !s.fighting && ((s.ctx != null && s.ctx.rod == RodType.FLY) || s.iceFishing);   // §jig-2: the winter rod holds too
-    }
-
-    /** §fly-2: use let go after a short hold on a calm fly line — the strip. True when it was ours. */
-    public static boolean flyTap(ServerPlayer sp) {
-        if (!flyCalm(sp)) return false;
-        FishingSession s = SESSIONS.get(sp.getUUID());
-        if (s.iceFishing) { iceJigStop(sp, s); return true; }   // §jig-2: letting go is the pause
-        if (s.flyPickedUp) return true;   // the hold already picked the line up; nothing to strip
-        ServerLevel level = sp.level();
-        flyStrip(sp, level, s, level.getGameTime());
-        return true;
-    }
-
-    /** §fly-2: the left-click — a haul while the rod false-casts, a mend while the line drifts. */
     public static void flyBeat(ServerPlayer sp) {
         ServerLevel level = sp.level();
         long now = level.getGameTime();
-        if (FlyCast.isCasting(sp)) { FlyCast.beat(sp, now); return; }
-        if (!flyCalm(sp)) return;
         FishingSession s = SESSIONS.get(sp.getUUID());
-        if (s.iceFishing) {   // §jig-2: the accent
-            if (FlyCast.isJigging(sp) && FlyCast.beat(sp, now)) iceStroke(sp, level, s, now, true);
+        if (FlyCast.isJigging(sp)) {   // §jig-2: the accent
+            if (s != null && s.iceFishing && !s.bitten && !s.fighting && FlyCast.jigAccent(sp, now)) {
+                iceStroke(sp, level, s, now, true);
+            }
             return;
         }
-        flyMend(sp, level, s, now);
+        if (FlyStrike.tryStrike(sp, FlyStrike.Input.LIFT)) return;
+        if (s != null && s.fly != null && !s.fighting) FlyDrift.mend(sp, level, s, now);
+    }
+
+    /** §jig-2: a winter line down the hole with nothing biting — the state in which a click is a hold. */
+    public static boolean winterCalm(ServerPlayer sp) {
+        FishingSession s = SESSIONS.get(sp.getUUID());
+        return s != null && s.iceFishing && !s.bitten && !s.fighting;
+    }
+
+    /** §jig-2: the hold over the hole let go — the pause. True when the press was ours. */
+    public static boolean winterTap(ServerPlayer sp) {
+        if (!winterCalm(sp)) return false;
+        iceJigStop(sp, SESSIONS.get(sp.getUUID()));
+        return true;
+    }
+
+    /** §fly-3: the player's live session — the fly classes drive their own state through it. */
+    static FishingSession session(ServerPlayer sp) {
+        return SESSIONS.get(sp.getUUID());
+    }
+
+    /** §fly-3: has this spot been frightened? Asked by the fly's own tick before a fish shows itself. */
+    static boolean spookedNow(ServerLevel level, FishingSession session, long now) {
+        return spooked(level, session, now);
+    }
+
+    /** §fly-3: a take that came to nothing still costs the fly, the way every missed strike does. */
+    static void eatBaitPublic(ServerPlayer sp, FishingSession session) {
+        eatBait(sp, session);
+    }
+
+    /** §fly-3: into the fight, once the strike has decided how well the hook is set. */
+    static void flyHookUp(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
+        hookUp(sp, level, session, now);
     }
 
     private static boolean isFlyRod(ItemStack stack) {
@@ -1580,8 +1501,6 @@ public final class FishingManager {
         if (session == null) return;
         ServerLevel level = sp.level();
         long now = level.getGameTime();
-        // §fly-2: holding use on a calm fly line picks it up and goes straight into the false casts; the
-        // release then delivers the next cast — one motion, the way it is done
         // §jig-2: the winter rod held over the hole jigs on its own
         if (session.iceFishing && !session.bitten && !session.fighting && sp.isUsingItem()
                 && sp.getUseItem().getItem() instanceof RodItem wr && wr.rodType() == RodType.WINTER) {
@@ -1589,14 +1508,6 @@ public final class FishingManager {
         } else if (FlyCast.isJigging(sp)) {
             iceJigStop(sp, session);   // the hold ended without a release we saw (a slot switch)
         }
-        if (session.ctx != null && session.ctx.rod == RodType.FLY && !session.bitten && !session.fighting && !session.flyPickedUp
-                && sp.isUsingItem() && isFlyRod(sp.getUseItem()) && sp.getTicksUsingItem() >= 6) {
-            session.flyPickedUp = true;
-            endSession(sp, session);
-            FlyCast.begin(sp, now);
-            return;
-        }
-
         // The line is tied to THE rod it was cast with: switching hotbar slots (a different stack in
         // hand) drops the cast (§session-guard), same as walking away.
         ItemStack inHand = sp.getItemInHand(session.hand);
@@ -1628,8 +1539,8 @@ public final class FishingManager {
                 visProgress = (float) Mth.clamp(session.landProgress, 0.0, 1.0);
             } else if (session.rodClass == RodClass.ACTIVE && session.retrieveMax > 0) {
                 visProgress = Mth.clamp((float) session.retrieveTicks / session.retrieveMax, 0f, 1f);
-            } else if (session.ctx != null && session.ctx.rod == RodType.FLY) {
-                visProgress = (float) session.flyReel;   // §fly-reel
+            } else if (session.fly != null) {
+                visProgress = (float) session.fly.reel;   // §fly-3
             } else {
                 visProgress = 0f;
             }
@@ -1641,6 +1552,17 @@ public final class FishingManager {
 
         if (session.fighting) {
             tickFight(sp, level, session, now);
+            return;
+        }
+
+        // §fly-3: a fly line is its own loop — the drift carries it, the rise is watched for, the fish is
+        // seen coming and the take opens its own window. None of the float flow below applies.
+        if (session.fly != null) {
+            if (session.ctx != null && session.biteAtTick > now && now % 300 == 0) reEvaluate(level, session, now);
+            if (now % 20 == 0 && session.ctx != null && session.ctx.hatch != null) {
+                session.ctx.hatch.particles(level, session.fly.spot);
+            }
+            FlyDrift.tick(level, sp, session, now);
             return;
         }
 
@@ -1664,7 +1586,6 @@ public final class FishingManager {
 
         // FLOAT / BOTTOM: wait for the bite, then a window to strike.
         if (!session.bitten) {
-            if (session.ctx != null && session.ctx.rod == RodType.FLY) flyDrift(level, sp, session, now);   // §fly
             // §live-conditions (0.5.0): every 15 s the waiting line re-reads the world — dusk, a weather
             // change, a starting frenzy or freshly thrown groundbait rescale the REMAINING wait, and the
             // biter is re-picked from the new weights. The cast snapshot no longer decides everything,
@@ -1685,11 +1606,7 @@ public final class FishingManager {
                         session.lineColor, session.floatKind, true));
                 // Only ONE QTE per catch (§pull-qte): reel-less rods save their timing for the
                 // pull-out, so their strike is a plain click; reeled float rods keep the strike QTE.
-                if (session.ctx != null && session.ctx.rod == RodType.FLY) {   // §fly-3: the take hooks itself — straight into the show
-                    FlyCast.driftOff(sp);
-                    hookUp(sp, level, session, now);
-                    return;
-                } else if (session.rodClass == RodClass.FLOAT && session.reelSize > 0) {
+                if (session.rodClass == RodClass.FLOAT && session.reelSize > 0) {
                     startFloatTiming(sp, session, now);
                 }
             } else if (now % 20 == 0) {
@@ -2108,7 +2025,7 @@ public final class FishingManager {
         // A fish hooked near the bank is landed sooner (realistic); one that hit far out fights fully.
         session.landProgress = (session.rodClass == RodClass.ACTIVE && session.retrieveMax > 0)
                 ? Mth.clamp((double) session.retrieveTicks / session.retrieveMax, 0.0, 0.85)
-                : session.ctx != null && session.ctx.rod == RodType.FLY ? Mth.clamp(session.flyReel, 0.0, 0.85)   // §fly-reel: the fight starts where the fly was
+                : session.fly != null ? Mth.clamp(session.fly.reel, 0.0, 0.85)   // §fly-3: the fight starts where the fly was
                 : 0.0;
         session.runsLeft = fightRunCount(profile, weightKg);
         session.anglerStamina = 1.0;
@@ -2121,9 +2038,11 @@ public final class FishingManager {
         session.nextRunAt = now + 30 + random.nextInt(40);
         // §fly-set: on a fly rod the set is the show — the fish comes out of the water with a boil and a
         // slap, and the whole bank sees it (the breach is drawn by the line sync for the next 16 ticks)
-        if (session.ctx != null && session.ctx.rod == RodType.FLY) {
+        if (session.fly != null) {
+            session.flyFight = true;   // §fly-3: a fish on a fly jumps
+            session.flyJumpAt = now + 60 + random.nextInt(60);
             session.showFishUntil = now + 16;
-            net.minecraft.world.phys.Vec3 fa = flyAt(sp, session);   // §fly-reel: the spray where the fly is, not where it landed
+            net.minecraft.world.phys.Vec3 fa = session.fly.flyAt(sp);   // §fly-3: the spray where the fly is
             double sx = fa.x, sy = fa.y + 1.1, sz = fa.z;
             level.sendParticles(ParticleTypes.SPLASH, sx, sy, sz, 70 + session.lengthCm, 0.7, 0.5, 0.7, 0.45);
             level.sendParticles(ParticleTypes.BUBBLE_POP, sx, sy - 0.1, sz, 20, 0.5, 0.2, 0.5, 0.1);
@@ -2697,6 +2616,26 @@ public final class FishingManager {
             if (session.runTicksLeft % 25 == 0) {
                 level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.DRAG_LONG.get(),
                         SoundSource.PLAYERS, 0.7f, 0.8f);
+            }
+        }
+        // §fly-3: a fish on a fly jumps, and often — it is the picture the whole method is for. Winding
+        // into one rips the hook out (reelPulse knows the window), and a hook the strike set badly can
+        // simply be thrown here.
+        if (session.flyFight && session.runTicksLeft == 0 && session.landProgress > 0.05
+                && now >= session.jumpWindowEnd && now >= session.flyJumpAt) {
+            session.flyJumpAt = now + 80 + random.nextInt(71);
+            session.jumpWindowEnd = now + 15;
+            session.tension += session.runTensionPulse * 0.8;
+            level.playSound(null, session.target, SoundEvents.DOLPHIN_JUMP, SoundSource.PLAYERS, 0.9f, 1.05f);
+            level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.2,
+                    session.target.getZ() + 0.5, 30, 0.45, 0.4, 0.45, 0.35);
+            actionbar(sp, Component.translatable("message.riverfishing.fish_jumps").withStyle(ChatFormatting.RED));
+            if (session.hookStrength == 0 && random.nextFloat() < 0.18f) {
+                level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.7f, 0.6f);
+                endSession(sp, session);
+                actionbar(sp, Component.translatable("message.riverfishing.fly_threw_hook").withStyle(ChatFormatting.RED));
+                GuideNudge.failure(sp, session.rodClass, GuideNudge.MISSED);
+                return;
             }
         }
         if ("greyhounding".equals(session.fightPattern) && session.runTicksLeft == 0
@@ -3275,13 +3214,13 @@ public final class FishingManager {
         endSession(sp, session);
     }
 
-    private static void endSession(ServerPlayer sp, FishingSession session) {
+    static void endSession(ServerPlayer sp, FishingSession session) {   // §fly-3
         brace(sp, false);   // §fight-brace: every fight exits through here, so this is the only lift needed
         if (session.floatPeriod > 0) {
             clearFloatTiming(sp); // hide the strike-timing HUD (float or lure §strike-qte)
         }
         if (session.iceFishing) FlyCast.cancel(sp);   // §ice-rhythm: the needle goes with the line
-        if (session.ctx != null && session.ctx.rod == RodType.FLY) FlyCast.driftOff(sp);   // §fly-2: the status line goes with it
+        if (session.fly != null) FlyCast.statusOff(sp);   // §fly-3: the status line goes with the line
         if (session.bossBar != null) {   // §bossbar-end: the bar goes with the fight
             session.bossBar.removeAllPlayers();
             session.bossBar = null;
@@ -4636,7 +4575,7 @@ public final class FishingManager {
                 20, 0.3, 0.2, 0.3, 0.25);
     }
 
-    private static void actionbar(ServerPlayer sp, Component message) {
+    static void actionbar(ServerPlayer sp, Component message) {   // §fly-3: the fly classes talk too
         sp.sendOverlayMessage(message);
     }
 }
