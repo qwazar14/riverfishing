@@ -54,7 +54,7 @@ Three mends in one drift slap the water. On still water there is no drag at all.
 
 A fish takes a fly by coming up under it and turning down. Lift too soon and you pull the fly out of its mouth; too late and it has spat it. So the strike bar on a fly rod is **a clock**: the needle runs once from left to right, and the green is the fish's own moment.
 
-- The rise is drawn: the fish comes up under the fly with a boil and a slurp.
+- The rise is drawn: the fish comes up under the fly with a boil and a slurp. **The set is the show**: hook up and the fish comes out of the water in a burst of spray, with a slap the whole bank hears.
 - The bar says **SET! Click in the green.** Click before the green: *"Too fast — pulled it out of its mouth."* After it: *"Too slow — it spat the fly."* Inside: hooked, into the fight. The orange either side still hooks one time in four.
 - A miss puts the fish down: the spot is quiet for twenty seconds or so.
 

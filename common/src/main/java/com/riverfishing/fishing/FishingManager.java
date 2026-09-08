@@ -2108,6 +2108,16 @@ public final class FishingManager {
         session.runTicksTotal = 0;
         session.fightStartTick = now;
         session.nextRunAt = now + 30 + random.nextInt(40);
+        // §fly-set: on a fly rod the set is the show — the fish comes out of the water with a boil and a
+        // slap, and the whole bank sees it (the breach is drawn by the line sync for the next 16 ticks)
+        if (session.ctx != null && session.ctx.rod == RodType.FLY) {
+            session.showFishUntil = now + 16;
+            double sx = session.target.getX() + 0.5, sy = session.target.getY() + 1.1, sz = session.target.getZ() + 0.5;
+            level.sendParticles(ParticleTypes.SPLASH, sx, sy, sz, 70 + session.lengthCm, 0.7, 0.5, 0.7, 0.45);
+            level.sendParticles(ParticleTypes.BUBBLE_POP, sx, sy - 0.1, sz, 20, 0.5, 0.2, 0.5, 0.1);
+            level.playSound(null, session.target, SoundEvents.DOLPHIN_JUMP, SoundSource.PLAYERS, 1.0f, 0.9f);
+            level.playSound(null, session.target, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 1.0f, 0.8f);
+        }
 
         // §predator-fight (2.1): a lure-caught fish (spinning/ultralight) or any toothy predator fights
         // fast and mean — harder head-shaking pulls, a tighter margin before the snap, and it comes in
@@ -2808,7 +2818,7 @@ public final class FishingManager {
         // 5-tick cadence loses up to a third of it at each edge — and the packet on the closing tick IS
         // the all-clear. Everywhere else the cadence is fine and the traffic stays where it was.
         // §hooked-fish: and on the hook's first two ticks, so the body is on the line straight away.
-        if (now % 5 == 0 || now <= session.jumpWindowEnd || now - session.fightStartTick < 2) {
+        if (now % 5 == 0 || now <= session.jumpWindowEnd || now <= session.showFishUntil || now - session.fightStartTick < 2) {   // §fly-set
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     (float) Mth.clamp(session.landProgress, 0.0, 1.0), session.lineColor,
                     session.floatKind, false, fightStress(session), rodLoad(session),
@@ -2819,7 +2829,7 @@ public final class FishingManager {
                     (byte) session.course.ordinal(), // §fight-course: which way the tip gets dragged
                     // §hooked-fish: what is on the line, and what it is doing this tick
                     session.species == null ? "" : session.species.getPath(), session.weightG, session.lengthCm,
-                    now < session.jumpWindowEnd, session.runTicksLeft > 0 && !session.course.isRun(),
+                    now < session.jumpWindowEnd || now < session.showFishUntil, session.runTicksLeft > 0 && !session.course.isRun(),   // §fly-set
                     (float) session.fatigue, session.lineSnagged));
             // §rod-bend (26.x): the bucket goes onto the ROD, not just into the packet — the item
             // definition range_dispatches the blank sprite on it, so the load is visible to every
