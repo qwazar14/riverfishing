@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "riverfishing:item/rod_m/blank_fly_bend2"
-  }
-}

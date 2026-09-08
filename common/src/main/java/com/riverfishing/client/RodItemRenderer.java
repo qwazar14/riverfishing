@@ -92,8 +92,6 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
                     java.util.Map.entry("boat", new float[]{10.94f, 5.39f, -0.16f, -5.66f, -11.16f}),
                     java.util.Map.entry("bottom", new float[]{12.99f, 5.59f, -1.81f, -9.21f}),
                     java.util.Map.entry("trolling", new float[]{10.31f, 2.21f, -2.54f}),
-                    // §fly-3d: three sections on a cork handle, the lightest chain in the fleet
-                    java.util.Map.entry("fly", new float[]{19.0f, 11.0f, 2.975f}),
                     // §sea-spin-3d: EIGHT sections, the deepest chain in the fleet
                     java.util.Map.entry("sea_spin",
                             new float[]{9.15f, 3.15f, -3.15f, -7.95f, -10.95f, -12.95f, -14.58f}),
@@ -114,7 +112,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             java.util.Map.entry("winter", 21.9f), java.util.Map.entry("sea_spin", -16f),
             java.util.Map.entry("bottom", -16f), java.util.Map.entry("carp", -16f),
             java.util.Map.entry("surf", -16f), java.util.Map.entry("boat", -15.7f),
-            java.util.Map.entry("trolling", -5.7f), java.util.Map.entry("fly", -5.225f));
+            java.util.Map.entry("trolling", -5.7f));
 
     /**
      * §rod-tip-3d: where the drawn tip landed ON SCREEN, in normalised device coords, captured while
@@ -248,8 +246,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             "ultralight", new float[]{0.8f, 0.4f},   // its seat rides 0.4u higher than the 9.45 docking line
             "sea_spin", new float[]{1.25f, 0f}, "bottom", new float[]{3f, 0.52f},
             "carp", new float[]{4.25f, 0.4f}, "surf", new float[]{4f, 0.6f},   // surf seat rides 0.6u high
-            "boat", new float[]{2.75f, 0.8f}, "trolling", new float[]{4.15f, 0f},
-            "fly", new float[]{4.65f, 0f});   // §fly-3d: the trolling handle's seat, half a unit further up the shifted blank
+            "boat", new float[]{2.75f, 0.8f}, "trolling", new float[]{4.15f, 0f});
 
     // ===== §line-thru-guides: the line runs from the spool through every ring to the tip =====
     /**
@@ -633,7 +630,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
                                        int light, int overlay) {
         if (!BLANK_3D) return false;
         if (!(stack.getItem() instanceof RodItem rod)) return false;
-        String rodKey = rod.rodType().modelKey();   // §fly: the fly rod borrows the ultralight blank
+        String rodKey = rod.rodType().modelKey();
         Minecraft mc = Minecraft.getInstance();
         ModelManager mm = mc.getModelManager();
         BakedModel missing = mm.getMissingModel();
@@ -754,7 +751,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         ModelManager mm = mc.getModelManager();
         ItemRenderer ir = mc.getItemRenderer();
         BakedModel missing = mm.getMissingModel();
-        String rodKey = stack.getItem() instanceof RodItem r ? r.rodType().modelKey() : "bamboo";   // §fly
+        String rodKey = stack.getItem() instanceof RodItem r ? r.rodType().modelKey() : "bamboo";
         // §rod-physics: advanced here because the view moves per FRAME, not per tick, and this is the
         // one place that runs every frame a rod is on screen. Calling it twice in a frame is a no-op.
         RodPhysics.update();
@@ -863,10 +860,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         if (mc.player.isUsingItem() && mc.player.getUseItem().getItem() instanceof RodItem
                 && !ClientLineState.active()) {
             int used = mc.player.getUseItem().getUseDuration() - mc.player.getUseItemRemainingTicks();
-            // §fly-5: a fly rod's pose follows its own swing, not a power bar
-            chargePower = FlyCastClient.isCasting()
-                    ? FlyCastClient.loadFraction(mc.getFrameTime())
-                    : RodItem.castPower(used);
+            chargePower = RodItem.castPower(used);
         }
         // §crank-swing: the whip belongs to the CAST. This read the swing unconditionally, so
         // every crank during a fight added a casting whip on top of the arm swing.

@@ -72,7 +72,6 @@ public final class Quests {
 
     private static Goal diet(String diet, int n) { return counter("diet." + diet, n); }
     private static Goal group(String group, int n) { return counter("grp." + group, n); }
-    private static Goal fly(int n) { return counter(JournalData.FLY, n); }
     private static Goal bestAny(int grams) { return j -> j.getInt("best_any") >= grams; }
     private static Goal bestDiet(String diet, int grams) { return j -> j.getInt("dbest." + diet) >= grams; }
     private static Goal bestGroup(String group, int grams) { return j -> j.getInt("gbest." + group) >= grams; }
@@ -263,14 +262,11 @@ public final class Quests {
             new Quest("q_ice_ten", 6, ice(10), item("winter_rod", 1), 80),
             new Quest("q_ice_thirty", 6, ice(30), emeralds(24), 160),
             new Quest("q_stage6_done", 6, stageComplete(6), emeralds(50), 200),
-            // Stage 7 — cold water and the fly (§fly): the salmonids, and the rod that was made for them
-            new Quest("q_fly_first", 7, fly(1), emeralds(10), 40),
+            // Stage 7 — cold water: the salmonids, wherever the water is cold enough for them
             new Quest("q_salmonid", 7, group("salmonid", 1), item("spoon", 2), 50),
-            new Quest("q_fly_ten", 7, fly(10), emeralds(24), 90),
             new Quest("q_salmonids3", 7, group("salmonid", 3), item("castmaster", 1), 60),
             new Quest("q_insectivores5", 7, diet("insectivore", 5), item("bloodworm", 12), 50),
             new Quest("q_salmonid_big", 7, bestGroup("salmonid", 5000), emeralds(30), 160),
-            new Quest("q_fly_thirty", 7, fly(30), emeralds(30), 120),
             new Quest("q_stage7_done", 7, stageComplete(7), item("surf_rod", 1), 180),
             // Stage 8 — the sea and big game (§ocean): coast → shelf → the pelagic monsters.
             new Quest("q_seabass", 8, species("seabass", 1), item("castmaster", 1), 50),

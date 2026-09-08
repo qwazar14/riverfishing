@@ -26,7 +26,6 @@ public final class RigLayout {
             case GRUSHA -> new SlotRole[]{HOOK, HOOK, HOOK, BAIT, BAIT, BAIT, GROUNDBAIT};
             case PREDATOR -> new SlotRole[]{LEADER, LURE};
             case CATFISH -> new SlotRole[]{LEADER, HOOK, BAIT};
-            case FLY -> new SlotRole[]{LEADER, LURE};      // §fly: tippet + fly
         };
     }
 }

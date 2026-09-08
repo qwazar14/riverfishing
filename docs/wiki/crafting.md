@@ -15,7 +15,6 @@ From 0.10.0 only the four simplest blanks are crafted; every other rod is **boug
 | Stick Rod | `··S / ·S· / S··` | S = Stick |
 | Pole Rod | `··b / ·b· / is·` | b = Bamboo, i = Iron Ingot, s = String |
 | Ultralight Rod | `··b / sb· / i··` | b = Bamboo, s = String, i = Iron Ingot |
-| Fly Rod | `··b / sb· / bn·` | b = Bamboo, s = String, n = Iron Nugget |
 
 **Trade only:** Bamboo, Winter, Spinning, Feeder, Bottom, Carp, Sea spinning, Surf, Boat and Trolling rods. Anvil repair materials are listed in [Rods](rods.md).
 

@@ -139,8 +139,6 @@ public class RigMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            // §fly: the fly rig's lure slot takes ONLY a tied fly — a spoon on a tippet casts nothing
-            if (type == RigType.FLY && role == SlotRole.LURE) return stack.getItem() instanceof com.riverfishing.item.TiedLureItem;
             return role.accepts(stack);
         }
 

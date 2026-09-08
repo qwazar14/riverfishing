@@ -62,9 +62,9 @@ public final class ModNetwork {
             FightInputPacket p = FightInputPacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));
         });
-        // §fly: a sneak tap on a stop of the fly cast's rhythm.
-        NetworkManager.registerReceiver(NetworkManager.Side.C2S, FlyBeatPacket.TYPE, (buf, ctx) -> {
-            FlyBeatPacket p = FlyBeatPacket.decode(buf);
+        // §ice-rhythm: a click on a stop of the jig.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, JigBeatPacket.TYPE, (buf, ctx) -> {
+            JigBeatPacket p = JigBeatPacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));
         });
         // §tackle-box: the name field types straight onto the box the player has open.
@@ -85,9 +85,9 @@ public final class ModNetwork {
             FloatTimingPacket p = FloatTimingPacket.decode(buf);
             ctx.queue(p::handleClient);
         });
-        // §fly: the rhythm gauge, on/off and after every beat.
-        NetworkManager.registerReceiver(NetworkManager.Side.S2C, FlyCastPacket.TYPE, (buf, ctx) -> {
-            FlyCastPacket p = FlyCastPacket.decode(buf);
+        // §ice-rhythm: the jig gauge, on/off and after every accent.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, JigGaugePacket.TYPE, (buf, ctx) -> {
+            JigGaugePacket p = JigGaugePacket.decode(buf);
             ctx.queue(p::handleClient);
         });
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, JournalOpenPacket.TYPE, (buf, ctx) -> {
