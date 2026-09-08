@@ -3,6 +3,7 @@ package com.riverfishing.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.riverfishing.client.ClientLineState;
+import com.riverfishing.client.FlyCastClient;
 import com.riverfishing.client.RodHandTransform;
 import com.riverfishing.item.RodItem;
 import net.minecraft.client.Minecraft;
@@ -41,7 +42,10 @@ public class ItemInHandRendererMixin {
         // Wind-up only while actively charging a cast (holding, no line out yet) — not during a retrieve.
         if (mc.player.isUsingItem() && mc.player.getUseItem() == stack && !ClientLineState.active()) {
             int used = stack.getUseDuration(mc.player) - mc.player.getUseItemRemainingTicks();
-            chargePower = RodItem.castPower(used);
+            // §fly-5: a fly rod's pose follows its own swing, not a power bar
+            chargePower = FlyCastClient.isCasting()
+                    ? FlyCastClient.loadFraction(mc.getDeltaTracker().getGameTimeDeltaPartialTick(false))
+                    : RodItem.castPower(used);
         }
         float swing = mc.player.getAttackAnim(mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
         float pitch = RodHandTransform.castPitch(chargePower, swing);

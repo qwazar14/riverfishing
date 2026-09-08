@@ -1,3 +1,25 @@
+# §fly-5 — the gauge leaves the screen (2026-09-08)
+
+The needle at the bottom of the screen survived four rewrites and was the last thing that made this a QTE
+bar rather than fishing. It is gone, and the timing it carried moved into the world:
+
+* **the rod** — `RodHandTransform.castPitch` already loaded the blank back for the charge cast, so the fly
+  rod's swing drives it instead of a power bar (`FlyCastClient.loadFraction`: 1 at the back stop, 0 at the
+  forward one). You watch the rod go back and come forward.
+* **the line** — `LineRenderer.drawCastLine` draws the airborne loop from the rod tip: a quadratic from the
+  tip through a high control point out to a far end that sweeps from behind the angler to in front, its
+  length the metres in the air. The loop is the distance readout, so the metres plaque went too.
+* **the swish** at each stop was already there and now carries more weight.
+
+`LineRenderer.render` no longer returns early when nothing is on the water — a cast in the air draws on its
+own. The winter jig keeps its gauge: the complaint was about the fly rod.
+
+**Not ported to 26.x yet.** That tree draws the line twice (26.1 immediate mode, 26.2 `SubmitNodeCollector`)
+behind Stonecutter comments, so the airborne loop needs writing twice there. Until then 26.x keeps the HUD
+gauge, which is why `p_fly5.py` strips one line from its copy of `FlyCastClient`.
+
+---
+
 # §fly-4 — the rod stops talking (2026-09-08, after the first play)
 
 Three things came back from the first session with §fly-3, and all three were fair.
