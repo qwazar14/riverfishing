@@ -83,6 +83,14 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         rule();
         if (!c.getStringOr("Group", "").isEmpty()) row("group", Component.translatable(com.riverfishing.fish.FishGroup.nameKey(c.getStringOr("Group", ""))), GREEN);   // §card-group
         if (!c.getStringOr("Life", "").isEmpty()) row("lifestyle", key("life." + c.getStringOr("Life", "")), BLUE);
+        if (!c.getStringOr("Hybrid", "").isEmpty()) {   // §hybrid-rare: the cross, by its parents' names
+            StringBuilder parents = new StringBuilder();
+            for (String id : c.getStringOr("Hybrid", "").split(",")) {
+                if (parents.length() > 0) parents.append(" × ");
+                parents.append(Component.translatable("fish.riverfishing." + id).getString());
+            }
+            row("hybrid", Component.literal(parents.toString()), GOLD);
+        }
         String eco = c.getStringOr("Eco", "");
         if (!eco.isEmpty()) row("ecosystem", key("eco." + eco), eco.equals("native") ? GREEN : eco.equals("settled") ? YELLOW : ORANGE);
         rule();
