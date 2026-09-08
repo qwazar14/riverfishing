@@ -43,8 +43,8 @@ public final class FlyCast {
         long start;
         int beats;          // cast: hauls landed; jig: strokes in rhythm
         int maxBeats;       // cast: the rod's reach in metres; jig: JIG_MAX
-        boolean openLoop;   // jig only: the rhythm collapsed
-        int lastEnd = -1;   // jig: the end the last good stroke landed on; cast: the stroke index of the last haul
+        boolean openLoop;   // unused since §jig-2 — kept on the wire for the packet's shape
+        int lastEnd = -1;   // the stroke index of the last haul / accent
         int mode;           // 0 the fly cast, 1 the jig
     }
 
@@ -93,21 +93,27 @@ public final class FlyCast {
     }
 
     /**
-     * A left-click while the rod false-casts: a haul if the needle is on a stop that has not been hauled
-     * yet — two metres more, at once. Anywhere else it is nothing, and costs nothing.
+     * A left-click while the rod works: on the cast a haul if the needle is on a stop that has not been
+     * hauled yet — two metres more, at once; on the jig an accent on a stop — the combo grows and the bite
+     * comes closer. Anywhere else it is nothing, and costs nothing. Returns whether it landed.
      */
-    public static void beat(ServerPlayer sp, long now) {
+    public static boolean beat(ServerPlayer sp, long now) {
         State s = STATES.get(sp.getUUID());
-        if (s == null || s.mode != 0) return;
+        if (s == null) return false;
+        int period = s.mode == 1 ? JIG_PERIOD : PERIOD;
+        float zone = s.mode == 1 ? JIG_ZONE_HALF : ZONE_HALF;
         long el = now - s.start;
-        float m = marker(el, PERIOD);
+        float m = marker(el, period);
         float off = Math.min(m, 1f - m);
-        int st = stroke(el);
-        if (off <= ZONE_HALF && st != s.lastEnd && lineOut(el, s.beats, s.maxBeats) < s.maxBeats) {
+        int st = (int) Math.floorDiv(el, period / 2L);
+        boolean room = s.mode == 1 ? s.beats < s.maxBeats : lineOut(el, s.beats, s.maxBeats) < s.maxBeats;
+        if (off <= zone && st != s.lastEnd && room) {
             s.beats++;
             s.lastEnd = st;
             send(sp, s, true);
+            return true;
         }
+        return false;
     }
 
     /**
@@ -160,10 +166,11 @@ public final class FlyCast {
         ModNetwork.toPlayer(sp, new FlyCastPacket(false, 0L, 0, 0f, 0, 0, false, (byte) 0, (byte) 2));
     }
 
-    // ---- §ice-rhythm: the winter rod's jig on the same needle — the stops are the LIFT and the DROP ----
+    // ---- §jig-2: the winter rod's jig on the same needle, by the same rule — hold, and accent on a stop ----
     public static final int JIG_PERIOD = 16, JIG_MAX = 8;
+    public static final float JIG_ZONE_HALF = 0.22f;
 
-    /** The line is down the hole: the needle starts, and every click is judged against it. */
+    /** The hold began over the hole: the rod starts jigging and the client is told to draw it. */
     public static void beginJig(ServerPlayer sp, long now) {
         State s = new State();
         s.start = now;
@@ -173,22 +180,25 @@ public final class FlyCast {
         send(sp, s, true);
     }
 
-    /** A jig click: the combo after it when it landed on a stop, 0 when the jig jerked (the combo is gone). */
-    public static int jigBeat(ServerPlayer sp, long now) {
+    public static boolean isJigging(ServerPlayer sp) {
         State s = STATES.get(sp.getUUID());
-        if (s == null || s.mode != 1) return 0;
-        float m = marker(now - s.start, JIG_PERIOD);
-        int end = m < 0.5f ? 0 : 1;
-        float off = Math.min(m, 1f - m);
-        boolean good = off <= 0.16f && end != s.lastEnd;
-        if (good) { s.beats = Math.min(s.maxBeats, s.beats + 1); s.openLoop = false; s.lastEnd = end; }
-        else { s.beats = 0; s.openLoop = true; s.lastEnd = -1; }
-        send(sp, s, true);
-        return good ? s.beats : 0;
+        return s != null && s.mode == 1;
+    }
+
+    /** The stroke the jig is on — a new number every stop; -1 when it is not jigging. */
+    public static int jigStroke(ServerPlayer sp, long now) {
+        State s = STATES.get(sp.getUUID());
+        return s == null || s.mode != 1 ? -1 : (int) Math.floorDiv(now - s.start, JIG_PERIOD / 2L);
+    }
+
+    /** The accents landed so far — the combo. */
+    public static int jigCombo(ServerPlayer sp) {
+        State s = STATES.get(sp.getUUID());
+        return s == null || s.mode != 1 ? 0 : s.beats;
     }
 
     private static void send(ServerPlayer sp, State s, boolean active) {
         ModNetwork.toPlayer(sp, new FlyCastPacket(active, s.start, s.mode == 1 ? JIG_PERIOD : PERIOD,
-                s.mode == 1 ? 0.16f : ZONE_HALF, s.beats, s.maxBeats, s.openLoop, (byte) s.lastEnd, (byte) s.mode));
+                s.mode == 1 ? JIG_ZONE_HALF : ZONE_HALF, s.beats, s.maxBeats, s.openLoop, (byte) s.lastEnd, (byte) s.mode));
     }
 }

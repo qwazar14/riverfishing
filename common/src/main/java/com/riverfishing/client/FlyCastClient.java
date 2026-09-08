@@ -101,14 +101,25 @@ public final class FlyCastClient {
         return off.getItem() instanceof RodItem ri2 && ri2.rodType() == RodType.FLY ? off : ItemStack.EMPTY;
     }
 
+    /** §jig-2: the rod whose rhythm this is — the fly rod on the cast, the winter rod on the jig. */
+    private static ItemStack heldRhythmRod(Minecraft mc) {
+        if (mode == 1) {
+            if (mc.player == null) return ItemStack.EMPTY;
+            ItemStack main = mc.player.getMainHandItem();
+            if (main.getItem() instanceof RodItem ri && ri.rodType() == RodType.WINTER) return main;
+            ItemStack off = mc.player.getOffhandItem();
+            return off.getItem() instanceof RodItem ri2 && ri2.rodType() == RodType.WINTER ? off : ItemStack.EMPTY;
+        }
+        return heldFlyRod(mc);
+    }
+
     /** Client tick: the attack button's down-edge is a haul while casting and a mend while drifting. */
     public static void tick(Minecraft mc) {
         if (!active) {
             attackWas = false;
             return;
         }
-        if (mode == 1) return;   // §ice-rhythm: the jig's beats are the clicks the server already sees
-        if (heldFlyRod(mc).isEmpty() || (mode == 0 && !mc.player.isUsingItem())) {
+        if (heldRhythmRod(mc).isEmpty() || (mode != 2 && !mc.player.isUsingItem())) {
             active = false;   // the hold ended without a release (a slot switch): the gauge comes down here
             return;
         }
@@ -119,11 +130,13 @@ public final class FlyCastClient {
         }
         attackWas = down;
         while (mc.options.keyAttack.consumeClick()) { /* drained: no arm swing, no block hit */ }
-        // the whoosh: the rod reaching a stop, on the client's own clock
-        if (mode == 0 && mc.level != null) {
+        // the whoosh: the rod reaching a stop, on the client's own clock (the jig ticks instead of whooshing)
+        if (mode != 2 && mc.level != null) {
             int st = (int) Math.floorDiv(mc.level.getGameTime() - startTick, (long) Math.max(1, period / 2));
             if (st != lastStroke) {
-                if (lastStroke >= 0) mc.player.playSound(SoundEvents.FISHING_BOBBER_THROW, 0.45f, st % 2 == 0 ? 1.1f : 1.35f);
+                if (lastStroke >= 0) {
+                    if (mode == 0) mc.player.playSound(SoundEvents.FISHING_BOBBER_THROW, 0.45f, st % 2 == 0 ? 1.1f : 1.35f);
+                }
                 lastStroke = st;
             }
         }
@@ -150,8 +163,8 @@ public final class FlyCastClient {
         /*if (mc.level == null || mc.gui.hud.isHidden()) return;
         *///?}
         if (mode == 2) { renderDrift(g, mc, screenW, screenH); return; }
-        ItemStack rod = mode == 1 ? ItemStack.EMPTY : heldFlyRod(mc);
-        if (mode != 1 && rod.isEmpty()) return;
+        ItemStack rod = heldRhythmRod(mc);
+        if (rod.isEmpty()) return;
         float t = (mc.level.getGameTime() - startTick) + partialTick;
 
         float dh = since(hitNanos), dm = since(missNanos);
@@ -184,11 +197,9 @@ public final class FlyCastClient {
 
         int zw = (int) (zoneHalf * TW);
         int stopA = (int) (200 + 55 * punch);
-        if (mode == 1) {
-            int nextEnd = lastEnd < 0 ? -1 : 1 - lastEnd;
-            int aL = nextEnd == 1 ? 60 : stopA, aR = nextEnd == 0 ? 60 : stopA;
-            g.fill(tx, ty, tx + zw, ty + TH, (aL << 24) | stopRgb);
-            g.fill(tx + TW - zw, ty, tx + TW, ty + TH, (aR << 24) | stopRgb);
+        if (mode == 1) {   // §jig-2: both stops take an accent — the lift and the drop
+            g.fill(tx, ty, tx + zw, ty + TH, (stopA << 24) | stopRgb);
+            g.fill(tx + TW - zw, ty, tx + TW, ty + TH, (stopA << 24) | stopRgb);
             g.centeredText(mc.font, Component.literal("▲"), tx + zw / 2, ty, 0xFF1C1814);
             g.centeredText(mc.font, Component.literal("▼"), tx + TW - zw / 2, ty, 0xFF1C1814);
         } else {

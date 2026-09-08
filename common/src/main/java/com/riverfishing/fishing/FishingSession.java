@@ -70,6 +70,7 @@ public class FishingSession {
     public boolean iceFishing;
     public boolean flyTight;   // §progression: this cast unrolled without a splash
     public int jigBest;        // §progression: the best jig combo of this session
+    public int jigStroke = -1; // §jig-2: the last stroke the held rod made on its own
     public long lastJigTick;
 
     // ---- bite window ----

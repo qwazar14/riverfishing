@@ -53,14 +53,15 @@ The wait is clamped to **200–2400 ticks** (10 seconds to 2 minutes) — a pati
 
 ### Jigging
 
-While you are waiting, **every right-click works the jig** — and the jig is a rhythm. A needle sweeps a bar at the bottom of the screen between two stops: **▲ the lift** on the left and **▼ the drop** on the right. Click when the needle is on a stop, alternating: lift, drop, lift, drop.
+While you are waiting, **hold right-click and the rod jigs on its own** — the same rule as the [fly cast](fly-fishing.md#the-cast). A needle sweeps a bar at the bottom of the screen between two stops, **▲ the lift** on the left and **▼ the drop** on the right, a stop every 0.4 s, and every stop the rod makes pulls the bite a little closer.
 
-| Click | The gauge | The fish |
+| You | The gauge | The fish |
 |---|---|---|
-| On a stop, the other one than last time | The gauge punches, a pip lights, the note climbs, the combo counts | The bite is pulled **20 ticks + 6 per combo** closer (up to 8 in the combo) |
-| Off the stops, or the same stop twice | The gauge collapses red, the combo goes to zero | The mormyshka jerked — the bite is pushed **15 ticks** out |
+| Hold | The needle sweeps, a soft click on every stop | Each stroke pulls the bite **8 ticks + 2 per accent** closer |
+| **Left-click as the needle touches a stop** — an accent | The gauge punches, a pip lights, the note climbs, the combo counts (up to 8) | The bite is pulled **20 ticks + 6 per accent** closer |
+| Let go — the pause | The gauge comes down | The bite comes **10 ticks** closer once; the take often comes on the pause |
 
-The lit stop is the next one. The bite can never be dragged closer than 10 ticks away. Each stroke plays a soft click and throws splash particles at the hole, more of them the longer the combo runs. When the nod finally twitches, the needle gives way to the strike bar.
+A left-click anywhere else does nothing — there is no way to jerk the mormyshka by clicking. The bite can never be dragged closer than 10 ticks away. Splash particles at the hole grow with the combo. When the nod finally twitches, the needle gives way to the strike bar.
 
 ### The take
 
