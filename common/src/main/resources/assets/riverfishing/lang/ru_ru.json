@@ -1201,7 +1201,6 @@
   "hud.riverfishing.ease": "⇩ отпусти!",
   "hud.riverfishing.reel": "⇪ мотай",
   "hud.riverfishing.drag_now": "⚠ фрикцион!",
-  "hud.riverfishing.tired": "выдыхается",
   "message.riverfishing.too_far": "Слишком далеко отошёл — снасть осталась без тебя",
   "message.riverfishing.slack": "СЛАБИНА! Не иди на рыбу — крючок выпадет",
   "message.riverfishing.slack_lost": "Сход! Леска обвисла, и рыба на %s выплюнула крючок",
