@@ -18,6 +18,8 @@ public final class BiteEngine {
     public static final double T_MIN_TICKS = 160.0;
     private static final double GRADIENT_K = 0.25;        // §1.1
     private static final double BAIT_HARD_FILTER = 0.15;  // §1.5
+    /** §hybrid-rare: a hybrid's share of its own weight in wild water. */
+    private static final double HYBRID_WILD = 0.04;
     private static final double HOOK_GATE = 0.34;         // below this, the hook is the wrong size band (#6)
     private static final double SWARM_KNEE = 1.5;         // §swarm-cap: W_total below this is untouched
     private static final double SWARM_DAMP = 0.3;         // …above it, only 30% of the excess counts toward speed
@@ -200,6 +202,10 @@ public final class BiteEngine {
 
     public static double environmentScore(FishProfile p, BiteContext c) {
         double natural = naturalScore(p, c);
+        // §hybrid-rare: a hybrid is a fish of the breeding tank, not of the river — wild water holds it one
+        // time in twenty-five; stocked and settled it fishes like anything else (the presence rule below)
+        double presence0 = c.stockedPresence != null ? c.stockedPresence.applyAsDouble(p.id) : 0.0;
+        if (!p.hybridOf.isEmpty() && presence0 <= 0) natural *= HYBRID_WILD;
         // §stocked-survival (0.5.1): a STOCKED species lives on even in water that fails its natural
         // gates — at a quarter of full activity, scaled by how much of it is actually there. This is
         // what makes "нестандартное" зарыбление real: the settled shark in the river is catchable,

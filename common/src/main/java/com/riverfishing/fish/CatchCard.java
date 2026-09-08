@@ -239,6 +239,7 @@ public final class CatchCard {
         c.putString("Group", p == null ? "" : p.group);
         c.putString("Latin", p == null ? "" : p.latin);   // §cards-2
         c.putString("Life", p == null ? "" : p.depthPref);
+        c.putString("Hybrid", p == null ? "" : String.join(",", p.hybridOf));   // §hybrid-rare: whose cross it is
 
         // The hidden two. Seeded off the fish itself so a duplicated stack is the same fish.
         c.putByte("Sex", (byte) rng.nextInt(2));
