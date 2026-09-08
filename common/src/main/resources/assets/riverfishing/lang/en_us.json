@@ -1201,7 +1201,6 @@
   "hud.riverfishing.ease": "⇩ ease off!",
   "hud.riverfishing.reel": "⇪ reel",
   "hud.riverfishing.drag_now": "⚠ open the drag!",
-  "hud.riverfishing.tired": "tiring",
   "message.riverfishing.too_far": "You backed off too far — the fight is out of reach",
   "message.riverfishing.slack": "SLACK! Stop walking at it — the hook will fall out",
   "message.riverfishing.slack_lost": "Off! The line went dead and a %s fish spat the hook",

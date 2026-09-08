@@ -255,7 +255,7 @@ You get `period × 2 + 10` ticks to click.
 
 ## The fight
 
-The fight's own bar appears at the top of the screen: a carved frame with the water in its window, the fish riding the edge of what you have won back, your name on the plate above and the cue (*reel / ease off / open the drag*) on the stone sign below. **It does not name the fish** — you learn what it was when you land it. The water is your landing progress; a red rising through it is your tension; *tiring* on the plate means the fish is nearly spent. Every angler fighting within 128 blocks gets a bar of their own, yours on top, theirs stacked under it.
+A boss bar appears. **It does not name the fish** — you learn what it was when you land it. Its fill is your landing progress; its colour is your tension.
 
 | Bar colour | Meaning |
 |---|---|
@@ -437,7 +437,7 @@ Run out the clock and the fish is simply gone.
 
 ### Fishing together
 
-- Anyone within **128 blocks** sees your fight bar under their own and watches the fight.
+- Anyone within **12 blocks** is added to your boss bar and watches the fight.
 - A friend can **net your fish**: empty main hand, crouching, within about 3.5 blocks, with the fish at 85 %+ and not running. It counts for you and earns the helper **+5 angler XP**. *"%s netted your fish!"*
 
 ### Session guards

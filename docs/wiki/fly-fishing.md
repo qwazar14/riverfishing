@@ -7,7 +7,7 @@ A fly weighs nothing. The line carries it, the cast is short, and the fish takes
 | Item | How to get |
 |---|---|
 | **Fly Rod** | 3 × Bamboo on the diagonal + 1 × String + 1 × Iron Nugget |
-| A **reel** | Any of the small reels, 1000–2000 — on a fly rod it is a drag, not a winch |
+| A **reel** | Any reel from 1000 to 6000 — on a fly rod it is a drag, not a winch; the salmon and the sea fish want the bigger ones |
 | A **line** | Any. The rig's own leader is the tippet |
 | **Fly Rig** | Built into the Fly Rod — a leader slot and a fly slot |
 | A **fly** | Any lure you tied on the [Tackle Station's Tie page](tackle-station.md). The fly slot takes nothing else |
