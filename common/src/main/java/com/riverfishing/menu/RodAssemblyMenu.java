@@ -367,23 +367,23 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
             if (!rt.takesReel()) {
                 return Component.translatable("validation.riverfishing.reel_none");
             }
-            if (!rt.acceptsReelSize(reel.size())) {
+            if (!rt.acceptsReel(reel)) {
                 return Component.translatable("validation.riverfishing.reel_size");
             }
             // §tackle-compat: a small reel can't spool the thick line already fitted.
-            double lineDia = installedLineDiameter();
-            if (lineDia > 0 && !com.riverfishing.component.TackleCompat.reelAcceptsLine(reel.size(), lineDia)) {
+            com.riverfishing.item.LineItem fitted = installedLine();
+            if (fitted != null && !reel.acceptsLine(fitted)) {
                 return Component.translatable("validation.riverfishing.reel_line");
             }
         }
         // §tackle-compat: line goes ON a reel — need a reel first (reeled rods), and it must fit the spool.
         if (type == ComponentSlot.LINE && carried.getItem() instanceof com.riverfishing.item.LineItem line
                 && rodStack().getItem() instanceof RodItem rodItem && rodItem.rodType().takesReel()) {
-            int reelSize = installedReelSize();
-            if (reelSize <= 0) {
+            ReelItem fitted = installedReel();
+            if (fitted == null) {
                 return Component.translatable("validation.riverfishing.line_no_reel");
             }
-            if (!com.riverfishing.component.TackleCompat.reelAcceptsLine(reelSize, line.diameterMm())) {
+            if (!fitted.acceptsLine(line)) {
                 return Component.translatable("validation.riverfishing.line_reel");
             }
         }
@@ -401,6 +401,16 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
     }
 
     /** The diameter (mm) of the line currently in the line slot (0 = none). */
+    /** §fly-reel: the fitted reel as an item, or null. */
+    private ReelItem installedReel() {
+        return RodData.get(rodStack(), ComponentSlot.REEL).getItem() instanceof ReelItem r ? r : null;
+    }
+
+    /** §fly-reel: the fitted line as an item, or null. */
+    private com.riverfishing.item.LineItem installedLine() {
+        return RodData.get(rodStack(), ComponentSlot.LINE).getItem() instanceof com.riverfishing.item.LineItem l ? l : null;
+    }
+
     private double installedLineDiameter() {
         for (int i = 0; i < slotTypes.length; i++) {
             if (slotTypes[i] == ComponentSlot.LINE && components.getItem(i).getItem() instanceof com.riverfishing.item.LineItem l) {
@@ -431,19 +441,19 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
             }
             if (slotType == ComponentSlot.REEL && stack.getItem() instanceof ReelItem reel
                     && rodStack().getItem() instanceof RodItem rodItem) {
-                if (!rodItem.rodType().acceptsReelSize(reel.size())) return false;
+                if (!rodItem.rodType().acceptsReel(reel)) return false;
                 // §tackle-compat: reject a reel too small for the already-fitted line.
-                double lineDia = installedLineDiameter();
-                return lineDia <= 0 || com.riverfishing.component.TackleCompat.reelAcceptsLine(reel.size(), lineDia);
+                com.riverfishing.item.LineItem fitted = installedLine();
+                return fitted == null || reel.acceptsLine(fitted);
             }
             // §tackle-compat: line goes ON a reel — a reeled rod needs its reel fitted first, and the line
             // must fit that reel's spool. (Reel-less rods spool line straight on the tip — always allowed.)
             if (slotType == ComponentSlot.LINE && stack.getItem() instanceof com.riverfishing.item.LineItem line
                     && rodStack().getItem() instanceof RodItem rodItem) {
                 if (!rodItem.rodType().takesReel()) return true;
-                int reelSize = installedReelSize();
-                if (reelSize <= 0) return false; // no reel yet — nothing to spool onto
-                return com.riverfishing.component.TackleCompat.reelAcceptsLine(reelSize, line.diameterMm());
+                ReelItem fitted = installedReel();
+                if (fitted == null) return false; // no reel yet — nothing to spool onto
+                return fitted.acceptsLine(line);
             }
             return true;
         }

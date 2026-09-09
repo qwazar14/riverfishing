@@ -240,6 +240,8 @@ public final class ModItems {
             final int s = size;
             reg("reel_" + size, () -> new ReelItem(s, props()));
         }
+        // §fly-reel: one single-action fly reel — sized like a 6000 for the 3D model and the drag curve.
+        reg("reel_fly", () -> new ReelItem(6000, true, props()));
 
         // ----- Lines (ÃÂ§line-update): mono = all-rounder, braid = thin & strong, fluoro = clear/finesse.
         // Thick fluoro (0.40/0.50) dropped Ã¢ÂÂ impractical in reality; thin mono/fluoro + heavy braid added. -----

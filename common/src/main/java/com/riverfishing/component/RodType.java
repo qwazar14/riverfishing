@@ -73,6 +73,12 @@ public enum RodType {
         return takesReel && size >= minReel && size <= maxReel;
     }
 
+    /** §fly-reel: a fly rod seats a fly reel and nothing else; no other rod seats one. */
+    public boolean acceptsReel(com.riverfishing.item.ReelItem reel) {
+        if (this == FLY) return reel.fly();
+        return !reel.fly() && acceptsReelSize(reel.size());
+    }
+
     /** Which fishing flow this rod uses (Module 1). */
     public RodClass rodClass() {
         return switch (this) {

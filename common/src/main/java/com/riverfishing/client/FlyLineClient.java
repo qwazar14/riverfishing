@@ -6,7 +6,6 @@ import com.riverfishing.fishing.Rope;
 import com.riverfishing.item.RodItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
@@ -76,6 +75,24 @@ public final class FlyLineClient {
                 && li.lineType() == com.riverfishing.component.LineType.FLY;
     }
 
+    /** The rope this frame, world space, index 0 = the tip; null when no rope is out. */
+    public static Vec3[] renderPoints(float pt) {
+        if (rope == null || tipNow == null) return null;
+        Vec3[] pts = new Vec3[rope.n];
+        pts[0] = tipNow;
+        for (int i = 1; i < rope.n; i++) {
+            pts[i] = new Vec3(Mth.lerp(pt, rope.px[i], rope.x[i]),
+                    Mth.lerp(pt, rope.py[i], rope.y[i]),
+                    Mth.lerp(pt, rope.pz[i], rope.z[i]));
+        }
+        return pts;
+    }
+
+    /** First point of the leader — the last metres that do not float and draw near-invisible. */
+    public static int leaderFrom() {
+        return rope == null ? 0 : Math.max(1, rope.n - 1 - (int) Math.ceil(rope.leaderLen / rope.segLen()));
+    }
+
     /** Sag of the reel-to-guide loop for the hand pass, model units (16 = one block); 0 = no loop. */
     public static float handLoopUnits(String rodKey) {
         if (!active() || !"fly".equals(rodKey)) return 0f;
@@ -125,23 +142,26 @@ public final class FlyLineClient {
         tipPrev = tipNow;
         tipNow = tip;
         if (rope == null) return;
+        // §one-rope: in first person the hand pass draws the whole line off the tip it just drew;
+        // this pass only draws it for third person (and while the hand pass is not yet running).
+        if (mc.options.getCameraType().isFirstPerson() && RodItemRenderer.handLineFresh()) return;
 
         pose.pushPose();
         pose.translate(-cam.x, -cam.y, -cam.z);
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-        VertexConsumer vc = buffers.getBuffer(RenderType.lines());
+        float[] style = RodRenderTypes.strandStyle(com.riverfishing.component.LineType.FLY, 1.0);
+        VertexConsumer vc = buffers.getBuffer(RodRenderTypes.lineStrand(style[4]));
         var m = pose.last().pose();
         var nrm = pose.last().normal();
-        int leaderFrom = Math.max(1, rope.n - 1 - (int) Math.ceil(rope.leaderLen / rope.segLen()));
+        int leaderFrom = leaderFrom();
+        Vec3[] pts = renderPoints(pt);
         Vec3 prev = tip;
         for (int i = 1; i < rope.n; i++) {
-            Vec3 p = new Vec3(Mth.lerp(pt, rope.px[i], rope.x[i]),
-                    Mth.lerp(pt, rope.py[i], rope.y[i]),
-                    Mth.lerp(pt, rope.pz[i], rope.z[i]));
-            // Fly line pale and heavy, leader near-invisible, the fly itself a dark dot.
+            Vec3 p = pts[i];
+            // Fly line in its strand colour, leader near-invisible, the fly itself a dark dot.
             boolean leader = i >= leaderFrom;
-            LineRenderer.line(vc, m, nrm, prev, p, leader ? 90 : 235, leader ? 90 : 225, leader ? 90 : 170,
-                    leader ? 120 : 255);
+            LineRenderer.line(vc, m, nrm, prev, p, leader ? 90 : (int) style[0], leader ? 90 : (int) style[1],
+                    leader ? 90 : (int) style[2], leader ? 120 : (int) style[3]);
             prev = p;
         }
         Vec3 fly = prev;

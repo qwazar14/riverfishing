@@ -396,6 +396,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
                     new org.joml.Quaternionf(cam0.rotation()));
             return;
         }
+        if (FlyLineClient.active()) {   // §one-rope: the fly line continues off the tip in THIS pass
+            drawHandRope(stack, mc, buffers);
+            return;
+        }
         ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
         if (own == null) return;
 
@@ -464,6 +468,60 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             prev = p;
         }
         handLineNanos = System.nanoTime();   // §tip-fresh
+    }
+
+    /**
+     * §one-rope: the fly line is ONE line — spool, hand loop, every ring, tip, and then the rope out
+     * to the fly — so the rope's points are drawn here, in the pass that just drew the thread, from
+     * the very tip vertex the thread ended on. Same hand-space reading and the same ramped
+     * projection correction as the water line, so there is no seam and no lag at the tip.
+     */
+    private static void drawHandRope(ItemStack stack, Minecraft mc, MultiBufferSource buffers) {
+        float pt = mc.getTimer().getGameTimeDeltaPartialTick(false);
+        net.minecraft.world.phys.Vec3[] pts = FlyLineClient.renderPoints(pt);
+        if (pts == null) return;
+        var cam = mc.gameRenderer.getMainCamera();
+        net.minecraft.world.phys.Vec3 cp = cam.getPosition();
+        org.joml.Quaternionf q = new org.joml.Quaternionf(cam.rotation());
+        double worldFov = mc.options.fov().get() * mc.player.getFieldOfViewModifier();
+        float warp = (float) (Math.tan(Math.toRadians(70.0) / 2.0)
+                / Math.tan(Math.toRadians(worldFov) / 2.0));
+        float[] style = lineStyle(stack);
+        if (style == null) style = RodRenderTypes.strandStyle(com.riverfishing.component.LineType.FLY, 1.0);
+        var vc = buffers.getBuffer(RodRenderTypes.lineStrand(style[4]));
+
+        org.joml.Vector3f tipV = new org.joml.Vector3f(TIP_VIEW[0], TIP_VIEW[1], TIP_VIEW[2]);
+        sampleHandSpace(tipV, q);
+        int space = effectiveHandSpace();
+        net.minecraft.world.phys.Vec3 tipW = tipWorld(tipV, cp, q, space);
+        org.joml.Vector3f tipWarped = toNode(tipW, cp, q, warp, space);
+        float dtx = tipV.x() - tipWarped.x(), dty = tipV.y() - tipWarped.y(), dtz = tipV.z() - tipWarped.z();
+
+        org.joml.Matrix4f id = new org.joml.Matrix4f();
+        int leaderFrom = FlyLineClient.leaderFrom();
+        org.joml.Vector3f prev = tipV;
+        int n = pts.length;
+        for (int k = 1; k < n; k++) {
+            float f = 1f - k / (float) (n - 1);   // full tip correction at the tip, none at the fly
+            org.joml.Vector3f p = toNode(pts[k], cp, q, warp, space)
+                    .add(dtx * f, dty * f, dtz * f);
+            boolean leader = k >= leaderFrom;
+            int cr = leader ? 90 : (int) style[0], cg = leader ? 90 : (int) style[1], cb = leader ? 90 : (int) style[2];
+            int alpha = leader ? 120 : (int) style[3];
+            float sx = p.x() - prev.x(), sy = p.y() - prev.y(), sz = p.z() - prev.z();
+            float len = (float) Math.sqrt(sx * sx + sy * sy + sz * sz);
+            if (len > 1.0e-5f) {
+                sx /= len; sy /= len; sz /= len;
+                vc.addVertex(id, prev.x(), prev.y(), prev.z()).setColor(cr, cg, cb, alpha).setNormal(sx, sy, sz);
+                vc.addVertex(id, p.x(), p.y(), p.z()).setColor(cr, cg, cb, alpha).setNormal(sx, sy, sz);
+            }
+            prev = p;
+        }
+        // the fly: a dark speck on the end
+        org.joml.Vector3f fl = prev;
+        vc.addVertex(id, fl.x(), fl.y() + 0.03f, fl.z()).setColor(30, 30, 30, 255).setNormal(0, 1, 0);
+        vc.addVertex(id, fl.x(), fl.y() - 0.03f, fl.z()).setColor(30, 30, 30, 255).setNormal(0, 1, 0);
+        handLineNanos = System.nanoTime();   // §tip-fresh: the world pass skips its copy
     }
 
     /**
@@ -819,7 +877,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             // The reel — only if one is fitted (reel-less poles have none). Always part of the rod.
             ItemStack reel = RodData.get(stack, ComponentSlot.REEL);
             if (reel.getItem() instanceof ReelItem ri) {
-                layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.reel(ri.size()), RodModelLayers.reelGeneric()),
+                layer = draw(ir, resolve(mm, missing, mir, ri.fly() ? RodModelLayers.reelFly() : RodModelLayers.reel(ri.size()), RodModelLayers.reelGeneric()),
                         stack, ctx, pose, buffers, light, overlay, layer);
             }
 

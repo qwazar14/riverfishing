@@ -68,6 +68,11 @@ public final class RodModelLayers {
         return loc("reel_" + size);
     }
 
+    /** §fly-reel: the on-blank sprite of the fly reel (its 3D body is the 6000's). */
+    public static ResourceLocation reelFly() {
+        return loc("reel_fly");
+    }
+
     /**
      * §reel-3d: the solid reel drawn on a 3D blank — authored in the FEEDER's coordinate space
      * (foot docked into its seat), shifted per rod by {@link RodItemRenderer}. All eleven sizes are
@@ -119,6 +124,7 @@ public final class RodModelLayers {
             for (int s = 0; s < BLANK_SEGMENTS; s++) normal.add(segment(k, s)); // §rod-bend-3d chain
         }
         normal.add(reelGeneric());
+        normal.add(reelFly());   // §fly-reel
         for (int s : REEL_SIZES) { // §reel-3d + §reel-crank
             normal.add(reel(s)); normal.add(reel3d(s)); normal.add(reel3dHandle(s)); normal.add(reel3dKnob(s));
         }
