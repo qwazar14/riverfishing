@@ -6,7 +6,8 @@
   "mixins": [
     "ItemEntityMixin",
     "VillagerTradePoolMixin",
-    "VillagerRepriceMixin"
+    "VillagerRepriceMixin",
+    "FlowFluidMixin"
   ],
   "injectors": {
     "defaultRequire": 1

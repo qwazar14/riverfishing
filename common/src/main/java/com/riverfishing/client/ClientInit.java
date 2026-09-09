@@ -50,7 +50,9 @@ public final class ClientInit {
         // "hands off" go unsent whenever the line was not being drawn.
         ClientTickEvent.CLIENT_POST.register(mc -> ClientLineState.pollFightInput());
         ClientTickEvent.CLIENT_POST.register(JigClient::tick);
-        ClientTickEvent.CLIENT_POST.register(FlyLineClient::tick);   // §rope prototype   // §ice-rhythm: the accents on the jig's stops
+        ClientTickEvent.CLIENT_POST.register(FlyLineClient::tick);   // §rope prototype
+        // §flow: chunk meshing asks for the current with a render region that has no biomes.
+        ClientTickEvent.CLIENT_POST.register(mc -> com.riverfishing.fishing.Flow.clientLevel = mc.level);   // §ice-rhythm: the accents on the jig's stops
 
         // Never carry a fishing line into another world (Forge ClientPlayerNetworkEvent.LoggingOut).
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> ClientLineState.clear());
