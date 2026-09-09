@@ -83,7 +83,7 @@ public final class RodDebugCommand {
                 .then(ClientCommandRegistrationEvent.literal("rope")
                         .then(ClientCommandRegistrationEvent.literal("on").executes(c -> {
                             FlyLineClient.ENABLED = true;
-                            say(c, "§arope ON §7— mouse is the arm, hold RIGHT to let line run, LEFT strips");
+                            say(c, "§arope ON §7— mouse is the arm, hold LEFT to let line run, RIGHT strips");
                             return 1;
                         }))
                         .then(ClientCommandRegistrationEvent.literal("off").executes(c -> {

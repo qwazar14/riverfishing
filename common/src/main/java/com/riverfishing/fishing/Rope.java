@@ -32,6 +32,7 @@ public final class Rope {
     static final int SUBSTEPS = 4;
     /** Constraint passes: a Gauss-Seidel chain needs about n/2 sweeps to carry a pull end to end. */
     private int passes() { return Math.max(8, n); }
+    static final double MAX_SPEED = 40.0;
     static final double MAX_PAY_PER_STEP = 0.08; // shooting line: metres per substep (~6 m/s)
 
     public final double[] x, y, z, px, py, pz;
@@ -104,8 +105,15 @@ public final class Rope {
                 else ay += GRAVITY - flySink * WATER_DRAG;
             } else {
                 double sp = Math.sqrt(vx * vx + vy * vy + vz * vz);
-                double k = AIR_DRAG * sp;
+                // Drag can never reverse a velocity inside one substep: a fast head turn threw the
+                // tip metres in a tick, k*h went past 1, the chain blew up to NaN and the line vanished.
+                double k = Math.min(AIR_DRAG * sp, 0.9 / h);
                 ax -= vx * k; ay -= vy * k; az -= vz * k;
+            }
+            double sp2 = vx * vx + vy * vy + vz * vz;
+            if (sp2 > MAX_SPEED * MAX_SPEED) {   // nothing on a line moves faster than a cast
+                double f = MAX_SPEED / Math.sqrt(sp2);
+                vx *= f; vy *= f; vz *= f;
             }
             px[i] = x[i]; py[i] = y[i]; pz[i] = z[i];
             x[i] += vx * h + ax * h * h;
@@ -178,6 +186,8 @@ public final class Rope {
         r.flySink = 0.5;
         for (int t = 0; t < 400; t++) r.step(0.05, 8, 62, 0, false, still);
         assert r.y[r.n - 1] < 59.0 && r.y[r.n - 1] >= 55 - 0.5 : "sink " + r.y[r.n - 1];
+        for (int t = 0; t < 40; t++) r.step(0.05, (t & 1) * 6, 62 + (t & 1) * 4, (t & 2) * 3, t % 3 == 0, still);
+        for (int i = 0; i < r.n; i++) assert !Double.isNaN(r.x[i] + r.y[i] + r.z[i]) : "nan after whip";
         Rope big = new Rope(256, 0, 70, 0);
         for (int t = 0; t < 100; t++) big.step(0.05, 0, 70, 0, false, still);
         assert Math.abs(big.y[big.n - 1] - 67) < 0.3 : "hang256 " + big.y[big.n - 1];

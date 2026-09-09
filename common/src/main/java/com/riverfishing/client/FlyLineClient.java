@@ -14,8 +14,8 @@ import net.minecraft.world.phys.Vec3;
 /**
  * §rope prototype: a {@link Rope} hung off the held rod's real tip, the world as its medium. Client
  * only, no fish, no server — the point is to find out whether the mouse is a casting arm. Toggled
- * with {@code /rfrod rope on|off}. Inputs, none of them timed: mouse = arm, RIGHT held = open line
- * hand (line runs out only as fast as the rope pulls it), LEFT click = one strip.
+ * with {@code /rfrod rope on|off}. Inputs, none of them timed: mouse = arm, LEFT held = open line
+ * hand (line runs out only as fast as the rope pulls it), RIGHT click = one strip.
  */
 public final class FlyLineClient {
     private FlyLineClient() {}
@@ -28,7 +28,7 @@ public final class FlyLineClient {
     private static final double STRIP_M = 0.6;
     private static Rope rope;
     private static Vec3 tipPrev, tipNow;
-    private static boolean attackWas;
+    private static boolean stripWas;
 
     private static final Rope.Medium WORLD = new Rope.Medium() {
         @Override public double surfaceY(double x, double y, double z) {
@@ -46,8 +46,9 @@ public final class FlyLineClient {
             BlockPos pos = BlockPos.containing(x, y, z);
             return !level.getBlockState(pos).getCollisionShape(level, pos).isEmpty();
         }
-        // ponytail: still water everywhere — the river flow field replaces this one method.
-        @Override public void flow(double x, double y, double z, double[] out) { out[0] = out[1] = out[2] = 0; }
+        @Override public void flow(double x, double y, double z, double[] out) {
+            com.riverfishing.fishing.Flow.at(Minecraft.getInstance().level, x, y, z, out);
+        }
     };
 
     public static boolean active() { return ENABLED && rope != null; }
@@ -64,22 +65,26 @@ public final class FlyLineClient {
     public static void tick(Minecraft mc) {
         if (!ENABLED || mc.level == null || !holdsRod(mc) || mc.screen != null) {
             rope = null;
-            attackWas = false;
+            stripWas = false;
             load = 0f;
             return;
         }
         if (tipNow == null) return;   // no frame drawn yet
         if (rope == null || rope.n != SEGMENTS) rope = new Rope(SEGMENTS, tipNow.x, tipNow.y, tipNow.z);
 
-        boolean handOpen = mc.options.keyUse.isDown();
-        boolean attack = mc.options.keyAttack.isDown();
-        if (attack && !attackWas) rope.strip(STRIP_M);
-        attackWas = attack;
-        // Drained: neither button reaches vanilla (no block hit, no rod cast) while the rope is out.
+        // LEFT held = open line hand, RIGHT click = one strip. RopeInputMixin keeps both buttons
+        // from vanilla (its swing jerked the tip, and so the whole line, on every click).
+        boolean handOpen = mc.options.keyAttack.isDown();
+        boolean strip = mc.options.keyUse.isDown();
+        if (strip && !stripWas) rope.strip(STRIP_M);
+        stripWas = strip;
         while (mc.options.keyAttack.consumeClick()) { }
         while (mc.options.keyUse.consumeClick()) { }
 
         rope.step(0.05, tipNow.x, tipNow.y, tipNow.z, handOpen, WORLD);
+        if (Double.isNaN(rope.x[rope.n - 1] + rope.y[rope.n - 1] + rope.z[rope.n - 1])) {
+            rope = new Rope(SEGMENTS, tipNow.x, tipNow.y, tipNow.z);   // blew up: start again, not vanish
+        }
         load += ((float) rope.load01() - load) * 0.5f;
     }
 
