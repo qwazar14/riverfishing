@@ -500,8 +500,16 @@ public final class FishingManager {
         if (session == null) {
             int rested = onWater && !level.getFluidState(at).isEmpty() ? FLY_RESTED.merge(sp.getUUID(), 1, Integer::sum) : 0;
             if (rested == 0) FLY_RESTED.remove(sp.getUUID());
-            // Three updates on the water (about half a second) — a fly that only touched is not fishing.
-            if (rested == 3) startCast(sp, level, hand, now, 0.5, at);
+            // Three updates on the water (about half a second) — a fly that only touched is not
+            // fishing; and then again every eight seconds the fly keeps sitting there, because the
+            // first roll can come up empty and a drift is not over until the line is lifted.
+            if (rested == 3 || (rested > 3 && rested % 40 == 3)) {
+                if (!startCast(sp, level, hand, now, 0.5, at)) {
+                    String missing = RodData.missingKey(sp.getItemInHand(hand));
+                    com.riverfishing.RiverFishing.LOGGER.info("fly: no session at {} for {} - rod {}",
+                            at, sp.getName().getString(), missing == null ? "assembled, no bite rolled" : missing);
+                }
+            }
             return;
         }
         if (!session.fly) return;

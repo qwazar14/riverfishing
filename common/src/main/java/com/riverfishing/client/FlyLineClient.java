@@ -35,6 +35,10 @@ public final class FlyLineClient {
     private static boolean bitingWas, sentActive;
     private static int syncTick;
     private static final float STRIKE_LOAD_JUMP = 0.35f;
+    private static boolean flyWet;
+
+    /** True while the fly sits in water (or a fish has it): the tackle is in use, hands off the rod. */
+    public static boolean flyOnWater() { return active() && flyWet; }
     private static int stripHeld;
     private static Rope rope;
     private static Vec3 tipPrev, tipNow;
@@ -133,6 +137,7 @@ public final class FlyLineClient {
             load = 0f;
             slack = 0;
             feedHeld = 0;
+            flyWet = false;
             bitingWas = false;
             loadPrev = 0f;
             if (sentActive && mc.player != null) {   // the rod went away: the server lets the drift go
@@ -202,6 +207,7 @@ public final class FlyLineClient {
         boolean strikeNow = (loadNow - loadPrev > STRIKE_LOAD_JUMP) || (strip && !stripWas && biting);
         loadPrev = loadNow;
         boolean onWater = !Double.isNaN(WORLD.surfaceY(rope.x[last], rope.y[last], rope.z[last]));
+        flyWet = onWater || fighting || biting;
         boolean stripNow = strip && !stripWas;
         if (++syncTick >= 4 || strikeNow || stripNow) {
             syncTick = 0;

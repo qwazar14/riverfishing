@@ -64,6 +64,7 @@ public final class Flow {
             if (biomes != cachedFor || now - cacheBorn > CACHE_LIFE_NS) {
                 CACHE.clear();
                 RAW.clear();
+                HINTS.clear();
                 cachedFor = biomes;
                 cacheBorn = now;
             }
@@ -135,13 +136,17 @@ public final class Flow {
 
         double dx = DIRS[axis][0], dz = DIRS[axis][1];
         if ((axis & 1) == 1) { dx *= SQRT_H; dz *= SQRT_H; }
-        int sign = downstream(biomes, surf, DIRS[axis][0], DIRS[axis][1]);
-        dx *= sign; dz *= sign;
+        // The SIGN is never "plus along this block's axis": that flipped the river wherever the axis
+        // went from straight to diagonal. Downstream is a world direction — the hint — and every
+        // block's axis is turned to agree with it.
+        double[] hint = hint(biomes, surf);
+        if (dx * hint[0] + dz * hint[1] < 0) { dx = -dx; dz = -dz; }
 
-        // Eddy: a block standing in the water upstream of here throws a slow reverse shadow.
+        // Eddy: a ROCK standing in the stream (water on three sides at least) throws a slow reverse
+        // shadow behind it. A bank block does not — that made every block near a bank run backwards.
         for (int s = 1; s <= SHADOW; s++) {
             BlockPos up = surf.offset((int) Math.round(-dx * s), 0, (int) Math.round(-dz * s));
-            if (!level.getBlockState(up).getCollisionShape(level, up).isEmpty()) {
+            if (isRock(level, up)) {
                 speed *= EDDY;
                 break;
             }
@@ -161,17 +166,45 @@ public final class Flow {
         return n;
     }
 
-    /** +1 if the ocean lies along +axis, -1 along -axis; a seed-stable coin if neither is in reach. */
-    private static int downstream(LevelReader level, BlockPos pos, int sx, int sz) {
-        for (int r = OCEAN_STEP; r <= OCEAN_REACH; r += OCEAN_STEP) {
-            var plus = level.getBiome(pos.offset(sx * r, 0, sz * r));
-            var minus = level.getBiome(pos.offset(-sx * r, 0, -sz * r));
-            boolean po = plus.is(BiomeTags.IS_OCEAN) || plus.is(BiomeTags.IS_DEEP_OCEAN);
-            boolean mo = minus.is(BiomeTags.IS_OCEAN) || minus.is(BiomeTags.IS_DEEP_OCEAN);
-            if (po != mo) return po ? 1 : -1;
+    private static boolean isRock(BlockGetter level, BlockPos p) {
+        if (level.getBlockState(p).getCollisionShape(level, p).isEmpty()) return false;
+        int wet = 0;
+        for (int[] d : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+            if (!level.getFluidState(p.offset(d[0], 0, d[1])).isEmpty()) wet++;
         }
-        // The same river cell always picks the same way, so a river never runs at itself.
-        long cell = ((long) (pos.getX() >> 8) * 73856093L) ^ ((long) (pos.getZ() >> 8) * 19349663L);
-        return (cell & 1) == 0 ? 1 : -1;
+        return wet >= 3;
+    }
+
+    /** Downstream hints per 16-block cell — the direction of the nearest ocean, or the world's fall. */
+    private static final Map<Long, double[]> HINTS = new LinkedHashMap<>(1024, 0.75f, true) {
+        @Override protected boolean removeEldestEntry(Map.Entry<Long, double[]> e) { return size() > 1024; }
+    };
+    /** With no ocean in reach every river in the world falls the same way: consistent, if not always right. */
+    private static final double[] WORLD_FALL = {SQRT_H, SQRT_H};
+
+    /**
+     * The world direction downstream, shared by the whole 16×16 cell around the block: toward the
+     * nearest ocean along the compass and diagonals from the cell's centre, else the world's fall.
+     * One answer per cell keeps neighbours from finding different oceans and running at each other.
+     */
+    private static double[] hint(LevelReader level, BlockPos pos) {
+        long key = ((long) (pos.getX() >> 4) << 32) ^ ((pos.getZ() >> 4) & 0xffffffffL);
+        double[] h = HINTS.get(key);
+        if (h != null) return h;
+        BlockPos c = new BlockPos((pos.getX() & ~15) + 8, pos.getY(), (pos.getZ() & ~15) + 8);
+        h = WORLD_FALL;
+        search:
+        for (int r = OCEAN_STEP; r <= OCEAN_REACH; r += OCEAN_STEP) {
+            for (int[] d : DIRS) {
+                var b = level.getBiome(c.offset(d[0] * r, 0, d[1] * r));
+                if (b.is(BiomeTags.IS_OCEAN) || b.is(BiomeTags.IS_DEEP_OCEAN)) {
+                    double len = Math.hypot(d[0], d[1]);
+                    h = new double[] {d[0] / len, d[1] / len};
+                    break search;
+                }
+            }
+        }
+        HINTS.put(key, h);
+        return h;
     }
 }

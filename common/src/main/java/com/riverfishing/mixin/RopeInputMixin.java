@@ -29,8 +29,10 @@ public abstract class RopeInputMixin {
 
     @Inject(method = "startUseItem()V", at = @At("HEAD"), cancellable = true, require = 0)
     private void riverfishing$ropeUse(CallbackInfo ci) {
-        // Shift + use is the rod's own interface (assembly, rig) — that still has to open.
+        // Shift + use is the rod's own interface (assembly, rig) — that still has to open, but never
+        // while the fly is in the water: swapping tackle under a live drift is a bug farm.
         Minecraft mc = (Minecraft) (Object) this;
-        if (FlyLineClient.active() && !(mc.player != null && mc.player.isShiftKeyDown())) ci.cancel();
+        boolean shift = mc.player != null && mc.player.isShiftKeyDown();
+        if (FlyLineClient.active() && !(shift && !FlyLineClient.flyOnWater())) ci.cancel();
     }
 }
