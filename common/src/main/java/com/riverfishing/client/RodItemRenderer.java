@@ -498,7 +498,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // that point, not a re-derived one, or the first segment kinks toward wherever they differ.
         org.joml.Vector3f rootWarped = toNode(pts[0], cp, q, warp, space);
         float dtx = tipV.x() - rootWarped.x(), dty = tipV.y() - rootWarped.y(), dtz = tipV.z() - rootWarped.z();
-        FlyLineClient.handTip(tipW);   // and next tick the physics hangs off THIS tip
+        FlyLineClient.handTip(tipW, cp);   // and next tick the physics hangs off THIS tip, at rod reach
 
         org.joml.Matrix4f id = new org.joml.Matrix4f();
         int leaderFrom = FlyLineClient.leaderFrom();

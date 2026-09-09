@@ -27,6 +27,10 @@ public final class FlyLineClient {
     private static final double STRIP_M = 0.6;
     private static Rope rope;
     private static Vec3 tipPrev, tipNow;
+    /** The tip the physics hung from on the last tick — the picture must start from THIS one. */
+    private static Vec3 tipUsed;
+    /** A fly rod is 2.7 m of reach: the eye-to-tip line, at the rod's real length, is where the physics tip goes. */
+    private static final double ROD_REACH = 2.7;
     private static boolean stripWas, feedWas;
 
     private static final Rope.Medium WORLD = new Rope.Medium() {
@@ -76,13 +80,19 @@ public final class FlyLineClient {
     }
 
     /** §one-rope: the hand pass tells the rope where the drawn tip really is, so physics and picture agree. */
-    static void handTip(Vec3 world) { tipNow = world; }
+    static void handTip(Vec3 world, Vec3 eye) {
+        // The hand pass tip sits well under a block from the eye (a near-plane construct), so a swing
+        // moved it a third as far as a real tip and the line never loaded. Same direction, real reach.
+        Vec3 d = world.subtract(eye);
+        double len = d.length();
+        tipNow = len < 1e-4 ? world : eye.add(d.scale(ROD_REACH / len));
+    }
 
     /** The rope this frame, world space, index 0 = the tip; null when no rope is out. */
     public static Vec3[] renderPoints(float pt) {
         if (rope == null || tipNow == null) return null;
         Vec3[] pts = new Vec3[rope.n];
-        pts[0] = tipNow;
+        pts[0] = tipUsed != null ? tipUsed : tipNow;
         for (int i = 1; i < rope.n; i++) {
             pts[i] = new Vec3(Mth.lerp(pt, rope.px[i], rope.x[i]),
                     Mth.lerp(pt, rope.py[i], rope.y[i]),
@@ -137,6 +147,7 @@ public final class FlyLineClient {
 
         // The shoot spends the hand loop first; past that the line comes off the reel, slowly.
         rope.payPerStep = slack > 0 ? Rope.MAX_PAY_PER_STEP : REEL_PAY;
+        tipUsed = tipNow;
         rope.step(0.05, tipNow.x, tipNow.y, tipNow.z, handOpen, WORLD);
         slack = Math.max(0, slack - rope.paidOut);
         if (Double.isNaN(rope.x[rope.n - 1] + rope.y[rope.n - 1] + rope.z[rope.n - 1])) {
@@ -150,8 +161,12 @@ public final class FlyLineClient {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null || !holdsRod(mc)) return;
         Vec3 tip = LineRenderer.rodTipAnchor(mc, mc.player, pt);
-        tipPrev = tipNow;
-        tipNow = tip;
+        // §one-rope: in first person the hand pass owns the tip (handTip); two anchors fighting over
+        // tipNow put a step under the tip — the rope hung from one and was drawn from the other.
+        if (!(mc.options.getCameraType().isFirstPerson() && RodItemRenderer.handLineFresh())) {
+            tipPrev = tipNow;
+            tipNow = tip;
+        }
         if (rope == null) return;
         // §one-rope: in first person the hand pass draws the whole line off the tip it just drew;
         // this pass only draws it for third person (and while the hand pass is not yet running).
