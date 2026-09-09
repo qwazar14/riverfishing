@@ -63,6 +63,7 @@ public final class Flow {
             long now = System.nanoTime();
             if (biomes != cachedFor || now - cacheBorn > CACHE_LIFE_NS) {
                 CACHE.clear();
+                RAW.clear();
                 cachedFor = biomes;
                 cacheBorn = now;
             }
@@ -76,8 +77,40 @@ public final class Flow {
     }
 
     private static final float[] STILL = new float[3];
+    private static final Map<Long, float[]> RAW = new LinkedHashMap<>(CACHE_SIZE, 0.75f, true) {
+        @Override protected boolean removeEldestEntry(Map.Entry<Long, float[]> e) { return size() > CACHE_SIZE; }
+    };
+    static final int SMOOTH = 2;   // the current at a block is the mean of the 5×5 around it
 
+    /**
+     * The shape is read per block, but a block's own reading can disagree with its neighbour's (the
+     * axis picked from eight directions, the ocean found first one way or the other), and a line
+     * drifting across a dozen blocks then went somewhere the texture under it did not point. The
+     * answer is the mean of the surrounding readings: neighbours that agree add up, neighbours that
+     * argue cancel into slack water, and the texture, the rope, the boats and the foam all read it.
+     */
     private static float[] compute(BlockGetter level, LevelReader biomes, BlockPos pos) {
+        double sx = 0, sz = 0;
+        int n = 0;
+        for (int dx = -SMOOTH; dx <= SMOOTH; dx++) {
+            for (int dz = -SMOOTH; dz <= SMOOTH; dz++) {
+                BlockPos p = pos.offset(dx, 0, dz);
+                if (level.getFluidState(p).isEmpty()) continue;
+                float[] r = RAW.get(p.asLong());
+                if (r == null) {
+                    r = raw(level, biomes, p);
+                    RAW.put(p.asLong(), r);
+                }
+                sx += r[0]; sz += r[2]; n++;
+            }
+        }
+        if (n == 0) return STILL;
+        float vx = (float) (sx / n), vz = (float) (sz / n);
+        if (vx * vx + vz * vz < 0.05 * 0.05) return STILL;
+        return new float[] {vx, 0f, vz};
+    }
+
+    private static float[] raw(BlockGetter level, LevelReader biomes, BlockPos pos) {
         if (!biomes.getBiome(pos).is(BiomeTags.IS_RIVER)) return STILL;
         // The surface row is where the shape is read; a deep point takes the surface's direction.
         BlockPos surf = pos;

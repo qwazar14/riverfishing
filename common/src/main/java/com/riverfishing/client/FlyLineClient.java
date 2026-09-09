@@ -28,6 +28,13 @@ public final class FlyLineClient {
     /** Holding RIGHT past a click reels line in at a walk, 3 m/s, straight onto the reel — no hand loop. */
     private static final double REEL_IN_PER_TICK = 0.15;
     private static final int REEL_HOLD_TICKS = 6;
+    /** Holding LEFT past the click lets line out at the same walk, 3 m/s, on top of the open hand. */
+    private static int feedHeld;
+    /** §fly-take: the take is felt and seen at the fly; the strike is a sharp load on the rod. */
+    private static float loadPrev;
+    private static boolean bitingWas, sentActive;
+    private static int syncTick;
+    private static final float STRIKE_LOAD_JUMP = 0.35f;
     private static int stripHeld;
     private static Rope rope;
     private static Vec3 tipPrev, tipNow;
@@ -125,6 +132,13 @@ public final class FlyLineClient {
             stripHeld = 0;
             load = 0f;
             slack = 0;
+            feedHeld = 0;
+            bitingWas = false;
+            loadPrev = 0f;
+            if (sentActive && mc.player != null) {   // the rod went away: the server lets the drift go
+                sentActive = false;
+                com.riverfishing.network.ModNetwork.toServer(new com.riverfishing.network.FlyPacket(true, 0, 0, 0, 0));
+            }
             return;
         }
         if (tipNow == null) return;   // no frame drawn yet
@@ -139,6 +153,8 @@ public final class FlyLineClient {
             rope.feed(STRIP_M);
             slack = Math.max(0, slack - STRIP_M);
         }
+        feedHeld = handOpen ? feedHeld + 1 : 0;
+        if (feedHeld > REEL_HOLD_TICKS) rope.feed(REEL_IN_PER_TICK);   // line runs out as fast as it winds in
         feedWas = handOpen;
         boolean strip = mc.options.keyUse.isDown() && !mc.player.isShiftKeyDown();   // shift+use opens the rod
         if (strip && !stripWas) {
@@ -148,14 +164,57 @@ public final class FlyLineClient {
         }
         stripHeld = strip ? stripHeld + 1 : 0;
         if (stripHeld > REEL_HOLD_TICKS) rope.strip(REEL_IN_PER_TICK);   // wound onto the reel
-        stripWas = strip;
         while (mc.options.keyAttack.consumeClick()) { }
         while (mc.options.keyUse.consumeClick()) { }
 
         // The shoot spends the hand loop first; past that the line comes off the reel, slowly.
         rope.payPerStep = slack > 0 ? Rope.MAX_PAY_PER_STEP : REEL_PAY;
+        // §fly-take: the server's line state for this angler — the bite and the fight live there.
+        ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
+        boolean biting = own != null && own.biting;
+        boolean fighting = own != null && own.fighting;
+        int last = rope.n - 1;
+        if (biting && !bitingWas) {
+            // The take: the fly is pulled under with a boil — no words, the line tells you.
+            rope.py[last] = rope.y[last] + 0.35;   // a downward jerk next step
+            double fx = rope.x[last], fy = rope.y[last], fz = rope.z[last];
+            for (int i = 0; i < 12; i++) {
+                mc.level.addParticle(net.minecraft.core.particles.ParticleTypes.SPLASH, fx, fy + 0.05, fz,
+                        (mc.level.random.nextDouble() - 0.5) * 0.4, 0.15, (mc.level.random.nextDouble() - 0.5) * 0.4);
+            }
+            mc.level.playLocalSound(fx, fy, fz, net.minecraft.sounds.SoundEvents.FISHING_BOBBER_SPLASH,
+                    net.minecraft.sounds.SoundSource.AMBIENT, 0.6f, 0.9f, false);
+        }
+        bitingWas = biting;
+
         tipUsed = tipNow;
         rope.step(0.05, tipNow.x, tipNow.y, tipNow.z, handOpen, WORLD);
+        if (fighting && own != null) {
+            // The fish has the fly: the end of the rope IS the fish, wherever the fight puts it.
+            Vec3 end = LineRenderer.lineEnd(mc, mc.player, own, 1f);
+            rope.x[last] = rope.px[last] = end.x;
+            rope.y[last] = rope.py[last] = end.y;
+            rope.z[last] = rope.pz[last] = end.z;
+        }
+
+        // The strike is a sharp load on the blank — a lift — or a strip while the fish has it.
+        float loadNow = (float) rope.load01();
+        boolean strikeNow = (loadNow - loadPrev > STRIKE_LOAD_JUMP) || (strip && !stripWas && biting);
+        loadPrev = loadNow;
+        boolean onWater = !Double.isNaN(WORLD.surfaceY(rope.x[last], rope.y[last], rope.z[last]));
+        boolean stripNow = strip && !stripWas;
+        if (++syncTick >= 4 || strikeNow || stripNow) {
+            syncTick = 0;
+            int flags = com.riverfishing.network.FlyPacket.ACTIVE
+                    | (onWater ? com.riverfishing.network.FlyPacket.ON_WATER : 0)
+                    | (strikeNow ? com.riverfishing.network.FlyPacket.STRIKE : 0)
+                    | (stripNow ? com.riverfishing.network.FlyPacket.STRIP : 0);
+            com.riverfishing.network.ModNetwork.toServer(new com.riverfishing.network.FlyPacket(
+                    mc.player.getMainHandItem().getItem() instanceof RodItem,
+                    rope.x[last], rope.y[last], rope.z[last], flags));
+            sentActive = true;
+        }
+        stripWas = strip;
         slack = Math.max(0, slack - rope.paidOut);
         if (Double.isNaN(rope.x[rope.n - 1] + rope.y[rope.n - 1] + rope.z[rope.n - 1])) {
             rope = new Rope(SEGMENTS, tipNow.x, tipNow.y, tipNow.z);   // blew up: start again, not vanish
