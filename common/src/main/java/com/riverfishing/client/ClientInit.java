@@ -49,7 +49,8 @@ public final class ClientInit {
         // a unit of game time — polling there made the input rate the framerate, and let the final
         // "hands off" go unsent whenever the line was not being drawn.
         ClientTickEvent.CLIENT_POST.register(mc -> ClientLineState.pollFightInput());
-        ClientTickEvent.CLIENT_POST.register(JigClient::tick);   // §ice-rhythm: the accents on the jig's stops
+        ClientTickEvent.CLIENT_POST.register(JigClient::tick);
+        ClientTickEvent.CLIENT_POST.register(FlyLineClient::tick);   // §rope prototype   // §ice-rhythm: the accents on the jig's stops
 
         // Never carry a fishing line into another world (Forge ClientPlayerNetworkEvent.LoggingOut).
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> ClientLineState.clear());

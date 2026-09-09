@@ -79,6 +79,18 @@ public final class RodDebugCommand {
                                 })))
                 // §rod-physics: the rod lags the hand when you swing the view. Two damped springs;
                 // `whip` decides how much of the lag is blank flex rather than the whole rod turning.
+                // §rope: the fly-line prototype — a physical line off the held rod's tip.
+                .then(ClientCommandRegistrationEvent.literal("rope")
+                        .then(ClientCommandRegistrationEvent.literal("on").executes(c -> {
+                            FlyLineClient.ENABLED = true;
+                            say(c, "§arope ON §7— mouse is the arm, hold RIGHT to let line run, LEFT strips");
+                            return 1;
+                        }))
+                        .then(ClientCommandRegistrationEvent.literal("off").executes(c -> {
+                            FlyLineClient.ENABLED = false;
+                            say(c, "§erope OFF");
+                            return 1;
+                        })))
                 .then(ClientCommandRegistrationEvent.literal("phys")
                         .executes(c -> { say(c, RodPhysics.describe()); return 1; })
                         .then(ClientCommandRegistrationEvent.literal("on").executes(c -> {
