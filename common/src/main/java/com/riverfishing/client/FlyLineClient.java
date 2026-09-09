@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 public final class FlyLineClient {
     private FlyLineClient() {}
 
-    public static boolean ENABLED = false;
+    public static boolean ENABLED = true;
     /** Points in the chain; /rfrod rope segments <n> rebuilds the rope. */
     public static int SEGMENTS = Rope.DEFAULT_N;
     /** The rod's load off the rope, smoothed per tick — what the blank bends to (§rod-load). */
@@ -69,8 +69,8 @@ public final class FlyLineClient {
         var main = mc.player.getMainHandItem();
         var stack = main.getItem() instanceof RodItem ? main : mc.player.getOffhandItem();
         if (!(stack.getItem() instanceof RodItem rod)) return false;
-        if (ENABLED) return true;
-        return rod.rodType() == com.riverfishing.component.RodType.FLY
+        // Only ever a fly rod; /rfrod rope off is the way to fish it without the rope.
+        return ENABLED && rod.rodType() == com.riverfishing.component.RodType.FLY
                 && com.riverfishing.item.RodData.get(stack, com.riverfishing.component.ComponentSlot.LINE)
                         .getItem() instanceof com.riverfishing.item.LineItem li
                 && li.lineType() == com.riverfishing.component.LineType.FLY;
@@ -97,7 +97,7 @@ public final class FlyLineClient {
         // LEFT held = open line hand, RIGHT click = one strip. RopeInputMixin keeps both buttons
         // from vanilla (its swing jerked the tip, and so the whole line, on every click).
         boolean handOpen = mc.options.keyAttack.isDown();
-        boolean strip = mc.options.keyUse.isDown();
+        boolean strip = mc.options.keyUse.isDown() && !mc.player.isShiftKeyDown();   // shift+use opens the rod
         if (strip && !stripWas) {
             double before = rope.length();
             rope.strip(STRIP_M);

@@ -29,6 +29,8 @@ public abstract class RopeInputMixin {
 
     @Inject(method = "startUseItem()V", at = @At("HEAD"), cancellable = true, require = 0)
     private void riverfishing$ropeUse(CallbackInfo ci) {
-        if (FlyLineClient.active()) ci.cancel();
+        // Shift + use is the rod's own interface (assembly, rig) — that still has to open.
+        Minecraft mc = (Minecraft) (Object) this;
+        if (FlyLineClient.active() && !(mc.player != null && mc.player.isShiftKeyDown())) ci.cancel();
     }
 }
