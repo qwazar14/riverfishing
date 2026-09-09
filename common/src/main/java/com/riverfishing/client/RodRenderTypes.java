@@ -38,6 +38,7 @@ public final class RodRenderTypes extends RenderType {
             case BRAID -> new float[]{58, 82, 52, 255, w};
             case FLUORO -> new float[]{210, 226, 235, 110, w};
             case MONO -> new float[]{232, 228, 208, 255, w};
+            case FLY -> new float[]{235, 225, 170, 255, w};   // §fly-line: pale olive PVC, thick and matte
         };
     }
 

@@ -8,7 +8,10 @@ public enum LineType {
     //      jsonKey    strength  visibility (§line-visibility: how much the fish sees it)
     MONO  ("mono",  1.00, 1.00),   // clear-ish nylon — the baseline
     FLUORO("fluoro",1.10, 0.45),   // refractive index near water — nearly invisible, a touch stronger
-    BRAID ("braid", 3.00, 1.45);   // woven Dyneema — very strong for its diameter, but opaque/visible
+    BRAID ("braid", 3.00, 1.45),   // woven Dyneema — very strong for its diameter, but opaque/visible
+    // §fly-line: a 1 mm floating PVC line over a braided core — its weight IS the cast; strength is the
+    // core (about 10 kg at 1.00 mm), and it is as visible as a line gets, which is what the tippet is for
+    FLY   ("fly",   0.10, 3.00);
 
     // §strain-recompute (2026-07-07): kg ≈ K·d²·factor, K tuned to realistic mono (0.25mm ≈ 6 kg,
     // 0.40mm ≈ 16 kg); braid's 3× factor makes thin braid the strong choice for big fish.

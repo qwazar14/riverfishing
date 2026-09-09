@@ -56,17 +56,39 @@ public final class FlyLineClient {
     /** 0..1 blank load from the rope's pull on the tip; 0 when the rope is not out. */
     public static float load() { return active() ? load : 0f; }
 
+    /** Running line stripped into the hand, metres — the loop between reel and stripping guide. */
+    private static double slack;
+    private static final double REEL_PAY = 0.02;   // off the reel, against its click: a quarter of the shoot
+
+    /**
+     * The rope is out on a fly rod carrying a fly line, or on any rod with /rfrod rope on. A fly
+     * rod is fished this way and no other: RopeInputMixin keeps vanilla's use off it.
+     */
     private static boolean holdsRod(Minecraft mc) {
-        return mc.player != null && (mc.player.getMainHandItem().getItem() instanceof RodItem
-                || mc.player.getOffhandItem().getItem() instanceof RodItem);
+        if (mc.player == null) return false;
+        var main = mc.player.getMainHandItem();
+        var stack = main.getItem() instanceof RodItem ? main : mc.player.getOffhandItem();
+        if (!(stack.getItem() instanceof RodItem rod)) return false;
+        if (ENABLED) return true;
+        return rod.rodType() == com.riverfishing.component.RodType.FLY
+                && com.riverfishing.item.RodData.get(stack, com.riverfishing.component.ComponentSlot.LINE)
+                        .getItem() instanceof com.riverfishing.item.LineItem li
+                && li.lineType() == com.riverfishing.component.LineType.FLY;
+    }
+
+    /** Sag of the reel-to-guide loop for the hand pass, model units (16 = one block); 0 = no loop. */
+    public static float handLoopUnits(String rodKey) {
+        if (!active() || !"fly".equals(rodKey)) return 0f;
+        return (float) Math.min(14.0, slack * 8.0);
     }
 
     /** Client tick: one physics step from the tip the renderer drew last frame. */
     public static void tick(Minecraft mc) {
-        if (!ENABLED || mc.level == null || !holdsRod(mc) || mc.screen != null) {
+        if (mc.level == null || !holdsRod(mc) || mc.screen != null) {
             rope = null;
             stripWas = false;
             load = 0f;
+            slack = 0;
             return;
         }
         if (tipNow == null) return;   // no frame drawn yet
@@ -76,12 +98,19 @@ public final class FlyLineClient {
         // from vanilla (its swing jerked the tip, and so the whole line, on every click).
         boolean handOpen = mc.options.keyAttack.isDown();
         boolean strip = mc.options.keyUse.isDown();
-        if (strip && !stripWas) rope.strip(STRIP_M);
+        if (strip && !stripWas) {
+            double before = rope.length();
+            rope.strip(STRIP_M);
+            slack += before - rope.length();   // what came in is in the hand now
+        }
         stripWas = strip;
         while (mc.options.keyAttack.consumeClick()) { }
         while (mc.options.keyUse.consumeClick()) { }
 
+        // The shoot spends the hand loop first; past that the line comes off the reel, slowly.
+        rope.payPerStep = slack > 0 ? Rope.MAX_PAY_PER_STEP : REEL_PAY;
         rope.step(0.05, tipNow.x, tipNow.y, tipNow.z, handOpen, WORLD);
+        slack = Math.max(0, slack - rope.paidOut);
         if (Double.isNaN(rope.x[rope.n - 1] + rope.y[rope.n - 1] + rope.z[rope.n - 1])) {
             rope = new Rope(SEGMENTS, tipNow.x, tipNow.y, tipNow.z);   // blew up: start again, not vanish
         }
@@ -91,7 +120,7 @@ public final class FlyLineClient {
     /** World pass: called by {@link LineRenderer#render} every frame, before its own early-outs. */
     static void render(PoseStack pose, Vec3 cam, float pt) {
         Minecraft mc = Minecraft.getInstance();
-        if (!ENABLED || mc.player == null || mc.level == null || !holdsRod(mc)) return;
+        if (mc.player == null || mc.level == null || !holdsRod(mc)) return;
         Vec3 tip = LineRenderer.rodTipAnchor(mc, mc.player, pt);
         tipPrev = tipNow;
         tipNow = tip;

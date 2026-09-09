@@ -210,6 +210,7 @@ public final class ModItems {
         if ("winter".equals(key)) return 96;       // short, reel-less, and ice fish are small
         if ("pole".equals(key)) return 128;
         if ("ultralight".equals(key)) return 144;
+        if ("fly".equals(key)) return 144;          // §fly: as light a blank as the ultralight
         if ("spinning".equals(key)) return 192;
         if ("feeder".equals(key)) return 224;
         if ("bottom".equals(key)) return 256;
@@ -247,6 +248,7 @@ public final class ModItems {
         // duel the 40 kg monster catfish with a 7000 reel's drag on top).
         registerLines(LineType.BRAID, new double[]{0.16, 0.20, 0.25, 0.30, 0.40, 0.50, 0.60});
         registerLines(LineType.FLUORO, new double[]{0.14, 0.16, 0.20, 0.25, 0.30, 0.40});
+        registerLines(LineType.FLY, new double[]{1.00});   // §fly-line: one weight for now
 
         // ----- Rigs -----
         for (RigType type : RigType.values()) {

@@ -33,7 +33,11 @@ public final class Rope {
     /** Constraint passes: a Gauss-Seidel chain needs about n/2 sweeps to carry a pull end to end. */
     private int passes() { return Math.max(8, n); }
     static final double MAX_SPEED = 40.0;
-    static final double MAX_PAY_PER_STEP = 0.08; // shooting line: metres per substep (~6 m/s)
+    public static final double MAX_PAY_PER_STEP = 0.08; // shooting line: metres per substep (~6 m/s)
+    /** How fast line may run out this step; the client lowers it once the hand loop is spent. */
+    public double payPerStep = MAX_PAY_PER_STEP;
+    /** Metres paid out by the last step. */
+    public double paidOut;
 
     public final double[] x, y, z, px, py, pz;
     private double length = 3.0;
@@ -73,6 +77,7 @@ public final class Rope {
      */
     public void step(double dt, double tx, double ty, double tz, boolean handOpen, Medium m) {
         double h = dt / SUBSTEPS;
+        paidOut = 0;
         for (int s = 0; s < SUBSTEPS; s++) {
             integrate(h, m);
             x[0] = tx; y[0] = ty; z[0] = tz;
@@ -126,7 +131,11 @@ public final class Rope {
     private void payOut(double tx, double ty, double tz) {
         double dx = x[1] - tx, dy = y[1] - ty, dz = z[1] - tz;
         double stretch = Math.sqrt(dx * dx + dy * dy + dz * dz) - segLen();
-        if (stretch > 0) length = Math.min(MAX_LENGTH, length + Math.min(stretch, MAX_PAY_PER_STEP));
+        if (stretch > 0) {
+            double add = Math.min(MAX_LENGTH - length, Math.min(stretch, payPerStep));
+            length += add;
+            paidOut += add;
+        }
     }
 
     /** One sweep; alternating direction each pass moves a pull down the chain in far fewer sweeps. */
