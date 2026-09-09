@@ -25,6 +25,10 @@ public final class FlyLineClient {
     /** The rod's load off the rope, smoothed per tick — what the blank bends to (§rod-load). */
     private static float load;
     private static final double STRIP_M = 0.6;
+    /** Holding RIGHT past a click reels line in at a walk, 3 m/s, straight onto the reel — no hand loop. */
+    private static final double REEL_IN_PER_TICK = 0.15;
+    private static final int REEL_HOLD_TICKS = 6;
+    private static int stripHeld;
     private static Rope rope;
     private static Vec3 tipPrev, tipNow;
     /** The tip the physics hung from on the last tick — the picture must start from THIS one. */
@@ -118,6 +122,7 @@ public final class FlyLineClient {
             rope = null;
             stripWas = false;
             feedWas = false;
+            stripHeld = 0;
             load = 0f;
             slack = 0;
             return;
@@ -141,6 +146,8 @@ public final class FlyLineClient {
             rope.strip(STRIP_M);
             slack += before - rope.length();   // what came in is in the hand now
         }
+        stripHeld = strip ? stripHeld + 1 : 0;
+        if (stripHeld > REEL_HOLD_TICKS) rope.strip(REEL_IN_PER_TICK);   // wound onto the reel
         stripWas = strip;
         while (mc.options.keyAttack.consumeClick()) { }
         while (mc.options.keyUse.consumeClick()) { }

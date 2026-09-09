@@ -83,12 +83,19 @@ public final class Rope {
     public void step(double dt, double tx, double ty, double tz, boolean handOpen, Medium m) {
         double h = dt / SUBSTEPS;
         paidOut = 0;
+        // The tip travels its tick's move ACROSS the substeps. Jumping it whole in the first one gave
+        // the first point four times the speed for a quarter of the time, the speed cap ate it, and
+        // the swing's momentum never reached the line — it fell as soon as it was thrown.
+        double fx = x[0], fy = y[0], fz = z[0];
+        double tvx = (tx - fx) / dt, tvy = (ty - fy) / dt, tvz = (tz - fz) / dt;
         for (int s = 0; s < SUBSTEPS; s++) {
+            double f = (s + 1) / (double) SUBSTEPS;
+            double cx = fx + (tx - fx) * f, cy = fy + (ty - fy) * f, cz = fz + (tz - fz) * f;
             integrate(h, m);
-            x[0] = tx; y[0] = ty; z[0] = tz;
-            if (handOpen) payOut(tx, ty, tz);
+            x[0] = cx; y[0] = cy; z[0] = cz;
+            if (handOpen) payOut(cx, cy, cz, tvx, tvy, tvz, h);
             for (int p = 0, np = passes(); p < np; p++) constrain((p & 1) == 1);
-            x[0] = tx; y[0] = ty; z[0] = tz;
+            x[0] = cx; y[0] = cy; z[0] = cz;
             collide(m);
         }
         double dx = x[1] - tx, dy = y[1] - ty, dz = z[1] - tz;
@@ -133,10 +140,18 @@ public final class Rope {
         }
     }
 
-    /** Hand open: whatever pull the first segment carries beyond its length becomes new line. */
-    private void payOut(double tx, double ty, double tz) {
+    /**
+     * Hand open: line runs out only when the LINE is pulling away from the tip — its own momentum
+     * carrying it — never when the tip is dragging the line. Paying out on any stretch turned the
+     * swing itself into new line and the loop had nothing left to fly with.
+     */
+    private void payOut(double tx, double ty, double tz, double tvx, double tvy, double tvz, double h) {
         double dx = x[1] - tx, dy = y[1] - ty, dz = z[1] - tz;
-        double stretch = Math.sqrt(dx * dx + dy * dy + dz * dz) - segLen();
+        double d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (d < 1e-9) return;
+        double vx = (x[1] - px[1]) / h - tvx, vy = (y[1] - py[1]) / h - tvy, vz = (z[1] - pz[1]) / h - tvz;
+        if ((vx * dx + vy * dy + vz * dz) / d <= 0) return;   // the tip is doing the pulling
+        double stretch = d - segLen();
         if (stretch > 0) {
             double add = Math.min(MAX_LENGTH - length, Math.min(stretch, payPerStep));
             length += add;
@@ -207,6 +222,7 @@ public final class Rope {
         assert Math.abs(r.length() - (l - 1.0)) < 1e-9;
         // 5. A sinking fly goes down and stops on the bottom.
         r.flySink = 0.5;
+        r.feed(4.0);   // enough line that the fly is free to go down
         for (int t = 0; t < 400; t++) r.step(0.05, 8, 62, 0, false, still);
         assert r.y[r.n - 1] < 59.0 && r.y[r.n - 1] >= 55 - 0.5 : "sink " + r.y[r.n - 1];
         for (int t = 0; t < 40; t++) r.step(0.05, (t & 1) * 6, 62 + (t & 1) * 4, (t & 2) * 3, t % 3 == 0, still);
