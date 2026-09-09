@@ -20,7 +20,7 @@ public final class Rope {
         void flow(double x, double y, double z, double[] out);
     }
 
-    public static final int DEFAULT_N = 32;
+    public static final int DEFAULT_N = 96;
     /** Points in the chain — fixed for the rope's life; /rfrod rope segments rebuilds it. */
     public final int n;
     /** Leader + tippet: the last metres do not float, whatever the total length. */
