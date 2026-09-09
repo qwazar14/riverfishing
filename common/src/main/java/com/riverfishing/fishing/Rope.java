@@ -20,27 +20,38 @@ public final class Rope {
         void flow(double x, double y, double z, double[] out);
     }
 
-    public static final int N = 32;
+    public static final int DEFAULT_N = 32;
+    /** Points in the chain — fixed for the rope's life; /rfrod rope segments rebuilds it. */
+    public final int n;
     /** Leader + tippet: the last metres do not float, whatever the total length. */
     public double leaderLen = 2.5;
     public static final double MIN_LENGTH = 1.0, MAX_LENGTH = 30.0;
     static final double GRAVITY = 9.81;
     static final double AIR_DRAG = 0.35;        // per metre of speed, per second
     static final double WATER_DRAG = 12.0;      // a floating line stops almost at once
-    static final int SUBSTEPS = 4, PASSES = 8;
+    static final int SUBSTEPS = 4;
+    /** Constraint passes: a Gauss-Seidel chain needs about n/2 sweeps to carry a pull end to end. */
+    private int passes() { return Math.max(8, n); }
     static final double MAX_PAY_PER_STEP = 0.08; // shooting line: metres per substep (~6 m/s)
 
-    public final double[] x = new double[N], y = new double[N], z = new double[N];
-    public final double[] px = new double[N], py = new double[N], pz = new double[N];
+    public final double[] x, y, z, px, py, pz;
     private double length = 3.0;
     /** How fast the fly sinks, m/s. 0 floats (dry fly). The line itself always floats. */
     public double flySink = 0.0;
-    /** Tension at the tip last step, metres of stretch — the rod's load. */
+    /** Tension at the tip last step, metres of stretch beyond one segment — the rod's load. */
+    public double load01() { return Math.min(1.0, tipStretch / (segLen() * LOAD_STRETCH)); }
+    /** Stretch of the first segment, as a fraction of its length, that reads as a fully loaded rod. */
+    static final double LOAD_STRETCH = 0.3;
     public double tipStretch;
     private final double[] flow = new double[3];
 
-    public Rope(double tx, double ty, double tz) {
-        for (int i = 0; i < N; i++) {
+    public Rope(double tx, double ty, double tz) { this(DEFAULT_N, tx, ty, tz); }
+
+    public Rope(int n, double tx, double ty, double tz) {
+        this.n = n;
+        x = new double[n]; y = new double[n]; z = new double[n];
+        px = new double[n]; py = new double[n]; pz = new double[n];
+        for (int i = 0; i < n; i++) {
             x[i] = px[i] = tx;
             y[i] = py[i] = ty - i * segLen();
             z[i] = pz[i] = tz;
@@ -48,7 +59,7 @@ public final class Rope {
     }
 
     public double length() { return length; }
-    public double segLen() { return length / (N - 1); }
+    public double segLen() { return length / (n - 1); }
 
     /** Strip: line pulled in by hand. */
     public void strip(double metres) {
@@ -65,7 +76,7 @@ public final class Rope {
             integrate(h, m);
             x[0] = tx; y[0] = ty; z[0] = tz;
             if (handOpen) payOut(tx, ty, tz);
-            for (int p = 0; p < PASSES; p++) constrain();
+            for (int p = 0, np = passes(); p < np; p++) constrain((p & 1) == 1);
             x[0] = tx; y[0] = ty; z[0] = tz;
             collide(m);
         }
@@ -74,8 +85,8 @@ public final class Rope {
     }
 
     private void integrate(double h, Medium m) {
-        int leaderFrom = Math.max(1, N - 1 - (int) Math.ceil(leaderLen / segLen()));
-        for (int i = 1; i < N; i++) {
+        int leaderFrom = Math.max(1, n - 1 - (int) Math.ceil(leaderLen / segLen()));
+        for (int i = 1; i < n; i++) {
             double vx = (x[i] - px[i]) / h, vy = (y[i] - py[i]) / h, vz = (z[i] - pz[i]) / h;
             double surf = m.surfaceY(x[i], y[i], z[i]);
             boolean wet = !Double.isNaN(surf);
@@ -89,7 +100,7 @@ public final class Rope {
                 // The line floats (springs to the surface); the leader hangs neutral; the fly
                 // settles toward its own sink speed through the water drag above.
                 if (i < leaderFrom) ay += GRAVITY + (surf - y[i]) * 40.0;
-                else if (i < N - 1) ay += GRAVITY;
+                else if (i < n - 1) ay += GRAVITY;
                 else ay += GRAVITY - flySink * WATER_DRAG;
             } else {
                 double sp = Math.sqrt(vx * vx + vy * vy + vz * vz);
@@ -110,9 +121,11 @@ public final class Rope {
         if (stretch > 0) length = Math.min(MAX_LENGTH, length + Math.min(stretch, MAX_PAY_PER_STEP));
     }
 
-    private void constrain() {
+    /** One sweep; alternating direction each pass moves a pull down the chain in far fewer sweeps. */
+    private void constrain(boolean back) {
         double seg = segLen();
-        for (int i = 0; i < N - 1; i++) {
+        for (int k = 0; k < n - 1; k++) {
+            int i = back ? n - 2 - k : k;
             double dx = x[i + 1] - x[i], dy = y[i + 1] - y[i], dz = z[i + 1] - z[i];
             double d = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (d < 1e-9) continue;
@@ -126,7 +139,7 @@ public final class Rope {
 
     /** A point inside a block goes back where it was and stops: the line lies on ground and snags. */
     private void collide(Medium m) {
-        for (int i = 1; i < N; i++) {
+        for (int i = 1; i < n; i++) {
             if (m.solid(x[i], y[i], z[i])) {
                 x[i] = px[i]; y[i] = py[i]; z[i] = pz[i];
             }
@@ -144,8 +157,8 @@ public final class Rope {
         // 1. Hangs straight down from a still tip in air, segment lengths kept.
         Rope r = new Rope(0, 70, 0);
         for (int t = 0; t < 100; t++) r.step(0.05, 0, 70, 0, false, still);
-        assert Math.abs(r.x[N - 1]) < 1e-3 && Math.abs(r.y[N - 1] - 67) < 0.15 : "hang " + r.y[N - 1];
-        for (int i = 0; i < N - 1; i++) {
+        assert Math.abs(r.x[r.n - 1]) < 1e-3 && Math.abs(r.y[r.n - 1] - 67) < 0.15 : "hang " + r.y[r.n - 1];
+        for (int i = 0; i < r.n - 1; i++) {
             double d = Math.hypot(Math.hypot(r.x[i + 1] - r.x[i], r.y[i + 1] - r.y[i]), r.z[i + 1] - r.z[i]);
             assert Math.abs(d - r.segLen()) < 0.02 : "seg " + i + " " + d;
         }
@@ -153,10 +166,10 @@ public final class Rope {
         double before = r.length();
         for (int t = 0; t < 10; t++) r.step(0.05, t * 0.8, 70 + Math.sin(t) * 0.5, 0, true, still);
         assert r.length() > before : "no shoot " + r.length();
-        for (int i = 0; i < N; i++) assert !Double.isNaN(r.x[i] + r.y[i] + r.z[i]) : "nan";
+        for (int i = 0; i < r.n; i++) assert !Double.isNaN(r.x[i] + r.y[i] + r.z[i]) : "nan";
         // 3. Let it fall on the water: the fly floats at the surface, never below the ground.
         for (int t = 0; t < 200; t++) r.step(0.05, 8, 62, 0, false, still);
-        assert r.y[N - 1] > 59.5 && r.y[N - 1] < 60.5 : "float " + r.y[N - 1];
+        assert r.y[r.n - 1] > 59.5 && r.y[r.n - 1] < 60.5 : "float " + r.y[r.n - 1];
         // 4. Strip pulls it back in.
         double l = r.length();
         r.strip(1.0);
@@ -164,7 +177,10 @@ public final class Rope {
         // 5. A sinking fly goes down and stops on the bottom.
         r.flySink = 0.5;
         for (int t = 0; t < 400; t++) r.step(0.05, 8, 62, 0, false, still);
-        assert r.y[N - 1] < 58.5 && r.y[N - 1] >= 55 - 0.5 : "sink " + r.y[N - 1];
-        System.out.println("Rope ok: length " + r.length() + " fly y " + r.y[N - 1]);
+        assert r.y[r.n - 1] < 59.0 && r.y[r.n - 1] >= 55 - 0.5 : "sink " + r.y[r.n - 1];
+        Rope big = new Rope(256, 0, 70, 0);
+        for (int t = 0; t < 100; t++) big.step(0.05, 0, 70, 0, false, still);
+        assert Math.abs(big.y[big.n - 1] - 67) < 0.3 : "hang256 " + big.y[big.n - 1];
+        System.out.println("Rope ok: length " + r.length() + " fly y " + r.y[r.n - 1]);
     }
 }

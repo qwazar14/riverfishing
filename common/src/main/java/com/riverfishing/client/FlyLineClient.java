@@ -21,6 +21,10 @@ public final class FlyLineClient {
     private FlyLineClient() {}
 
     public static boolean ENABLED = false;
+    /** Points in the chain; /rfrod rope segments <n> rebuilds the rope. */
+    public static int SEGMENTS = Rope.DEFAULT_N;
+    /** The rod's load off the rope, smoothed per tick — what the blank bends to (§rod-load). */
+    private static float load;
     private static final double STRIP_M = 0.6;
     private static Rope rope;
     private static Vec3 tipPrev, tipNow;
@@ -48,6 +52,9 @@ public final class FlyLineClient {
 
     public static boolean active() { return ENABLED && rope != null; }
 
+    /** 0..1 blank load from the rope's pull on the tip; 0 when the rope is not out. */
+    public static float load() { return active() ? load : 0f; }
+
     private static boolean holdsRod(Minecraft mc) {
         return mc.player != null && (mc.player.getMainHandItem().getItem() instanceof RodItem
                 || mc.player.getOffhandItem().getItem() instanceof RodItem);
@@ -58,10 +65,11 @@ public final class FlyLineClient {
         if (!ENABLED || mc.level == null || !holdsRod(mc) || mc.screen != null) {
             rope = null;
             attackWas = false;
+            load = 0f;
             return;
         }
         if (tipNow == null) return;   // no frame drawn yet
-        if (rope == null) rope = new Rope(tipNow.x, tipNow.y, tipNow.z);
+        if (rope == null || rope.n != SEGMENTS) rope = new Rope(SEGMENTS, tipNow.x, tipNow.y, tipNow.z);
 
         boolean handOpen = mc.options.keyUse.isDown();
         boolean attack = mc.options.keyAttack.isDown();
@@ -72,6 +80,7 @@ public final class FlyLineClient {
         while (mc.options.keyUse.consumeClick()) { }
 
         rope.step(0.05, tipNow.x, tipNow.y, tipNow.z, handOpen, WORLD);
+        load += ((float) rope.load01() - load) * 0.5f;
     }
 
     /** World pass: called by {@link LineRenderer#render} every frame, before its own early-outs. */
@@ -89,9 +98,9 @@ public final class FlyLineClient {
         VertexConsumer vc = buffers.getBuffer(RenderType.lines());
         var m = pose.last().pose();
         var nrm = pose.last().normal();
-        int leaderFrom = Math.max(1, Rope.N - 1 - (int) Math.ceil(rope.leaderLen / rope.segLen()));
+        int leaderFrom = Math.max(1, rope.n - 1 - (int) Math.ceil(rope.leaderLen / rope.segLen()));
         Vec3 prev = tip;
-        for (int i = 1; i < Rope.N; i++) {
+        for (int i = 1; i < rope.n; i++) {
             Vec3 p = new Vec3(Mth.lerp(pt, rope.px[i], rope.x[i]),
                     Mth.lerp(pt, rope.py[i], rope.y[i]),
                     Mth.lerp(pt, rope.pz[i], rope.z[i]));

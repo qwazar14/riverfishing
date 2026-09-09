@@ -90,7 +90,14 @@ public final class RodDebugCommand {
                             FlyLineClient.ENABLED = false;
                             say(c, "§erope OFF");
                             return 1;
-                        })))
+                        }))
+                        .then(ClientCommandRegistrationEvent.literal("segments")
+                                .then(ClientCommandRegistrationEvent.argument("n", com.mojang.brigadier.arguments.IntegerArgumentType.integer(8, 512))
+                                        .executes(c -> {
+                                            FlyLineClient.SEGMENTS = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "n");
+                                            say(c, "§brope segments: " + FlyLineClient.SEGMENTS);
+                                            return 1;
+                                        }))))
                 .then(ClientCommandRegistrationEvent.literal("phys")
                         .executes(c -> { say(c, RodPhysics.describe()); return 1; })
                         .then(ClientCommandRegistrationEvent.literal("on").executes(c -> {

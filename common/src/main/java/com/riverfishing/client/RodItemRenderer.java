@@ -660,6 +660,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         if (FORCE_BEND >= 0) return Math.min(FORCE_BEND, BEND_BUCKETS) / (float) BEND_BUCKETS;
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return 0f;
+        if (FlyLineClient.active()) return FlyLineClient.load();   // §rope: the line's pull IS the load
         ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
         return l == null ? 0f : net.minecraft.util.Mth.clamp(l.smoothRodLoad, 0f, 1f);
     }
@@ -724,8 +725,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return 0;
         ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
-        if (l == null) return 0;
-        float t = l.smoothTension;
+        float t = FlyLineClient.active() ? FlyLineClient.load() : l == null ? 0f : l.smoothTension;
         return t <= 0.06f ? 0
                 : net.minecraft.util.Mth.clamp((int) Math.ceil((t - 0.06f) / 0.94f * BEND_BUCKETS), 1, BEND_BUCKETS);
     }
@@ -850,7 +850,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         }
         // §crank-swing: the whip belongs to the CAST. This read the swing unconditionally, so every
         // crank during a fight added a casting whip on top of the arm swing — two shakes per click.
-        float swing = com.riverfishing.client.ClientLineState.active()
+        // §jig-swing: …with one exception. The winter jig IS a stroke of the rod — a couple of clicks a
+        // second, each meant to be seen — so while the jig gauge is up the whip is exactly the animation
+        // the jerk needs, and the arm swing alone was too small a thing to fish by.
+        float swing = com.riverfishing.client.ClientLineState.active() && !JigClient.isActive()
                 ? 0f : mc.player.getAttackAnim(mc.getTimer().getGameTimeDeltaPartialTick(false));
         float pitch = RodHandTransform.castPitch(chargePower, swing);
         if (pitch != 0f) {
