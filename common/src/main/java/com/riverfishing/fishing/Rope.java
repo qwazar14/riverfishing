@@ -27,13 +27,13 @@ public final class Rope {
     public double leaderLen = 2.5;
     public static final double MIN_LENGTH = 1.0, MAX_LENGTH = 30.0;
     static final double GRAVITY = 9.81;
-    static final double AIR_DRAG = 0.35;        // per metre of speed, per second
+    static final double AIR_DRAG = 0.06;        // per metre of speed, per second — a line carries 20 m/s for a second or two
     static final double WATER_DRAG = 12.0;      // a floating line stops almost at once
     static final int SUBSTEPS = 4;
     /** Constraint passes: a Gauss-Seidel chain needs about n/2 sweeps to carry a pull end to end. */
     private int passes() { return Math.max(8, n); }
     static final double MAX_SPEED = 40.0;
-    public static final double MAX_PAY_PER_STEP = 0.08; // shooting line: metres per substep (~6 m/s)
+    public static final double MAX_PAY_PER_STEP = 0.3;  // shooting line: metres per substep (~24 m/s)
     /** How fast line may run out this step; the client lowers it once the hand loop is spent. */
     public double payPerStep = MAX_PAY_PER_STEP;
     /** Metres paid out by the last step. */
@@ -71,6 +71,11 @@ public final class Rope {
         length = Math.max(MIN_LENGTH, length - metres);
     }
 
+    /** Feed: line pushed out through the tip by hand — the same metres a strip takes in. */
+    public void feed(double metres) {
+        length = Math.min(MAX_LENGTH, length + metres);
+    }
+
     /**
      * One game tick. {@code handOpen}: the line hand lets line run through the guides — the rope
      * pays out only as fast as its own momentum pulls it, never by how long the button is held.
@@ -105,9 +110,10 @@ public final class Rope {
                 az += (flow[2] - vz) * WATER_DRAG;
                 // The line floats (springs to the surface); the leader hangs neutral; the fly
                 // settles toward its own sink speed through the water drag above.
-                if (i < leaderFrom) ay += GRAVITY + (surf - y[i]) * 40.0;
-                else if (i < n - 1) ay += GRAVITY;
-                else ay += GRAVITY - flySink * WATER_DRAG;
+                boolean fly = i == n - 1;
+                if (i < leaderFrom || (fly && flySink <= 0)) ay += GRAVITY + (surf - y[i]) * 40.0; // floats
+                else if (!fly) ay += GRAVITY;                                                      // neutral leader
+                else ay += GRAVITY - flySink * WATER_DRAG;                                        // sinks
             } else {
                 double sp = Math.sqrt(vx * vx + vy * vy + vz * vz);
                 // Drag can never reverse a velocity inside one substep: a fast head turn threw the
@@ -154,11 +160,19 @@ public final class Rope {
         }
     }
 
-    /** A point inside a block goes back where it was and stops: the line lies on ground and snags. */
+    /**
+     * A point inside a block is lifted onto the block's top and its fall is stopped; it keeps its
+     * place along the ground so the line lies there and can be DRAGGED (a frozen point tangled the
+     * whole line the moment it touched down). Bank and foliage snags come later, as their own rule.
+     */
     private void collide(Medium m) {
         for (int i = 1; i < n; i++) {
             if (m.solid(x[i], y[i], z[i])) {
-                x[i] = px[i]; y[i] = py[i]; z[i] = pz[i];
+                double top = Math.floor(y[i]) + 1.02;
+                y[i] = top;
+                py[i] = top;                         // no vertical velocity left
+                px[i] += (x[i] - px[i]) * 0.5;       // ground friction on the slide
+                pz[i] += (z[i] - pz[i]) * 0.5;
             }
         }
     }

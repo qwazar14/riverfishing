@@ -27,7 +27,7 @@ public final class FlyLineClient {
     private static final double STRIP_M = 0.6;
     private static Rope rope;
     private static Vec3 tipPrev, tipNow;
-    private static boolean stripWas;
+    private static boolean stripWas, feedWas;
 
     private static final Rope.Medium WORLD = new Rope.Medium() {
         @Override public double surfaceY(double x, double y, double z) {
@@ -57,7 +57,7 @@ public final class FlyLineClient {
 
     /** Running line stripped into the hand, metres — the loop between reel and stripping guide. */
     private static double slack;
-    private static final double REEL_PAY = 0.02;   // off the reel, against its click: a quarter of the shoot
+    private static final double REEL_PAY = 0.08;   // off the reel, against its click: a quarter of the shoot
 
     /**
      * The rope is out on a fly rod carrying a fly line, or on any rod with /rfrod rope on. A fly
@@ -74,6 +74,9 @@ public final class FlyLineClient {
                         .getItem() instanceof com.riverfishing.item.LineItem li
                 && li.lineType() == com.riverfishing.component.LineType.FLY;
     }
+
+    /** §one-rope: the hand pass tells the rope where the drawn tip really is, so physics and picture agree. */
+    static void handTip(Vec3 world) { tipNow = world; }
 
     /** The rope this frame, world space, index 0 = the tip; null when no rope is out. */
     public static Vec3[] renderPoints(float pt) {
@@ -104,6 +107,7 @@ public final class FlyLineClient {
         if (mc.level == null || !holdsRod(mc) || mc.screen != null) {
             rope = null;
             stripWas = false;
+            feedWas = false;
             load = 0f;
             slack = 0;
             return;
@@ -114,6 +118,13 @@ public final class FlyLineClient {
         // LEFT held = open line hand, RIGHT click = one strip. RopeInputMixin keeps both buttons
         // from vanilla (its swing jerked the tip, and so the whole line, on every click).
         boolean handOpen = mc.options.keyAttack.isDown();
+        // A LEFT press feeds out exactly what a RIGHT press takes in; holding it keeps the hand open
+        // so a loaded line can shoot on top of that.
+        if (handOpen && !feedWas) {
+            rope.feed(STRIP_M);
+            slack = Math.max(0, slack - STRIP_M);
+        }
+        feedWas = handOpen;
         boolean strip = mc.options.keyUse.isDown() && !mc.player.isShiftKeyDown();   // shift+use opens the rod
         if (strip && !stripWas) {
             double before = rope.length();

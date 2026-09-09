@@ -494,8 +494,11 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         sampleHandSpace(tipV, q);
         int space = effectiveHandSpace();
         net.minecraft.world.phys.Vec3 tipW = tipWorld(tipV, cp, q, space);
-        org.joml.Vector3f tipWarped = toNode(tipW, cp, q, warp, space);
-        float dtx = tipV.x() - tipWarped.x(), dty = tipV.y() - tipWarped.y(), dtz = tipV.z() - tipWarped.z();
+        // The rope hangs off the tip the PHYSICS used (pts[0]); the correction is measured against
+        // that point, not a re-derived one, or the first segment kinks toward wherever they differ.
+        org.joml.Vector3f rootWarped = toNode(pts[0], cp, q, warp, space);
+        float dtx = tipV.x() - rootWarped.x(), dty = tipV.y() - rootWarped.y(), dtz = tipV.z() - rootWarped.z();
+        FlyLineClient.handTip(tipW);   // and next tick the physics hangs off THIS tip
 
         org.joml.Matrix4f id = new org.joml.Matrix4f();
         int leaderFrom = FlyLineClient.leaderFrom();
