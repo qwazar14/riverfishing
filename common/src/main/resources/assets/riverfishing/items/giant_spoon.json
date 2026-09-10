@@ -1,12 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "riverfishing:item/giant_spoon",
-    "tints": [
-      {
-        "type": "minecraft:dye",
-        "default": -1
-      }
-    ]
+    "model": "riverfishing:item/giant_spoon"
   }
 }

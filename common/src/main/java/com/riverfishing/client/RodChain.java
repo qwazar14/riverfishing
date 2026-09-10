@@ -43,6 +43,12 @@ public final class RodChain {
      * lines must bend the same rod the same way, or a screenshot from one proves nothing about the other.
      */
     private static final java.util.Map<String, float[]> JOINTS = java.util.Map.ofEntries(
+            java.util.Map.entry("fly", new float[]{19.0f, 11.0f, 2.975f}),   // §fly-3d
+            java.util.Map.entry("fly_3", new float[]{19.0f, 11.0f, 2.975f}),   // §fly-3d
+            java.util.Map.entry("fly_7", new float[]{19.0f, 11.0f, 2.975f}),   // §fly-3d
+            java.util.Map.entry("fly_9", new float[]{19.0f, 11.0f, 2.975f}),   // §fly-3d
+            java.util.Map.entry("fly_11", new float[]{19.0f, 11.0f, 2.975f}),   // §fly-3d
+
             java.util.Map.entry("feeder", new float[]{14f, 3f, -5f, -10f}),
             java.util.Map.entry("pole", new float[]{15.2f, 7.4f, -0.4f, -8.2f}),
             java.util.Map.entry("spinning", new float[]{14f, 3f, -5f, -10f}),
@@ -62,6 +68,12 @@ public final class RodChain {
      * hand-tuned anchor cannot serve them. Identical to 1.21.1's table.
      */
     private static final java.util.Map<String, Float> BLANK_TIP_X = java.util.Map.ofEntries(
+            java.util.Map.entry("fly", -5.225f),
+            java.util.Map.entry("fly_3", -5.225f),
+            java.util.Map.entry("fly_7", -5.225f),
+            java.util.Map.entry("fly_9", -5.225f),
+            java.util.Map.entry("fly_11", -5.225f),
+
             java.util.Map.entry("feeder", -16f), java.util.Map.entry("pole", -16f),
             java.util.Map.entry("bamboo", -12.1f), java.util.Map.entry("stick", 2.5f),
             java.util.Map.entry("spinning", -16f), java.util.Map.entry("ultralight", -8.5f),
@@ -77,12 +89,21 @@ public final class RodChain {
      * here takes no reel (RodType.takesReel is false). Identical to 1.21.1's table; the audit's
      * §seat-sync check cross-verifies it against every model's own seat geometry.
      */
-    private static final java.util.Map<String, float[]> REEL_SEAT_DX = java.util.Map.of(
-            "feeder", new float[]{0f, 0f}, "spinning", new float[]{0f, 0f},
-            "ultralight", new float[]{0.8f, 0.4f},
-            "sea_spin", new float[]{1.25f, 0f}, "bottom", new float[]{3f, 0.52f},
-            "carp", new float[]{4.25f, 0.4f}, "surf", new float[]{4f, 0.6f},
-            "boat", new float[]{2.75f, 0.8f}, "trolling", new float[]{4.15f, 0f});
+    private static final java.util.Map<String, float[]> REEL_SEAT_DX = java.util.Map.ofEntries(
+            java.util.Map.entry("feeder", new float[]{0f, 0f}),
+            java.util.Map.entry("spinning", new float[]{0f, 0f}),
+            java.util.Map.entry("ultralight", new float[]{0.8f, 0.4f}),
+            java.util.Map.entry("sea_spin", new float[]{1.25f, 0f}),
+            java.util.Map.entry("bottom", new float[]{3f, 0.52f}),
+            java.util.Map.entry("carp", new float[]{4.25f, 0.4f}),
+            java.util.Map.entry("surf", new float[]{4f, 0.6f}),
+            java.util.Map.entry("boat", new float[]{2.75f, 0.8f}),
+            java.util.Map.entry("trolling", new float[]{4.15f, 0f}),
+            java.util.Map.entry("fly", new float[]{4.65f, 0f}),
+            java.util.Map.entry("fly_3", new float[]{4.65f, 0f}),
+            java.util.Map.entry("fly_7", new float[]{4.65f, 0f}),
+            java.util.Map.entry("fly_9", new float[]{4.65f, 0f}),
+            java.util.Map.entry("fly_11", new float[]{4.65f, 0f}));
 
     /** Both joints and blank sit on this axis in model units; the chain hinges about Z through it. */
     private static final float AXIS_Y = 10.5f, AXIS_Z = 8.5f;
@@ -526,9 +547,19 @@ public final class RodChain {
         float[][] path = linePath(rodKey);
         if (path == null) return null;
         float s = (float) Math.cbrt(ri.size() / 4000.0);
-        float[][] pts = new float[path.length + 1][];
-        pts[0] = new float[]{19.3f - 3.75f * s + off[0], 9.55f - 1.5f * s + off[1]};  // the spool's front lip
-        System.arraycopy(path, 0, pts, 1, path.length);
+        float[] lip = new float[]{19.3f - 3.75f * s + off[0], 9.55f - 1.5f * s + off[1]};  // the spool's front lip
+        // §fly-hand-loop: on a fly rod the running line hangs in a loop between the reel and the
+        // stripping guide — what the line hand has stripped in and has to give on the shoot.
+        float sag = FlyLineClient.handLoopUnits(rodKey);
+        int loop = sag > 0.05f ? 5 : 0;
+        float[][] pts = new float[path.length + 1 + loop][];
+        pts[0] = lip;
+        for (int i = 1; i <= loop; i++) {
+            float f = i / (float) (loop + 1);
+            pts[i] = new float[]{lip[0] + (path[0][0] - lip[0]) * f,
+                    lip[1] + (path[0][1] - lip[1]) * f - sag * 4f * f * (1 - f)};
+        }
+        System.arraycopy(path, 0, pts, 1 + loop, path.length);
         return pts;
     }
 
@@ -564,12 +595,23 @@ public final class RodChain {
             case BRAID -> new float[]{58, 82, 52, 255, w};
             case FLUORO -> new float[]{210, 226, 235, 110, w};
             case MONO -> new float[]{232, 228, 208, 255, w};
+            case FLY -> new float[]{235, 225, 170, 255, w};   // §fly-line: pale olive PVC, thick and matte
         };
+    }
+
+    /** §fly-lines: a fly line wears its geometry's colour; every other line its material's. */
+    static float[] strandStyle(LineItem li) {
+        float[] st = strandStyle(li.lineType(), li.diameterMm());
+        if (li instanceof com.riverfishing.item.FlyLineItem fl) {
+            int c = fl.geometry().rgb;
+            st[0] = (c >> 16) & 255; st[1] = (c >> 8) & 255; st[2] = c & 255;
+        }
+        return st;
     }
 
     static float[] lineStyle(ItemStack stack) {
         if (!(RodData.get(stack, ComponentSlot.LINE).getItem() instanceof LineItem li)) return null;
-        return strandStyle(li.lineType(), li.diameterMm());
+        return strandStyle(li);
     }
 
     /** Submits the captured thread. Points are already in render space, so the pose is identity. */
@@ -698,6 +740,10 @@ public final class RodChain {
             sampleHandSpace(new org.joml.Vector3f(TIP_VIEW[0], TIP_VIEW[1], TIP_VIEW[2]), cameraRot(mc));
             return;
         }
+        if (FlyLineClient.active()) {   // §one-rope: the fly line continues off the tip in THIS pass
+            submitHandRope(stack, mc, collector);
+            return;
+        }
         ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
         if (own == null) return;
 
@@ -762,6 +808,62 @@ public final class RodChain {
             }
         });
         handLineNanos = System.nanoTime();   // §tip-fresh
+    }
+
+    /**
+     * §one-rope: the fly line is ONE line — spool, hand loop, every ring, tip, and then the rope out
+     * to the fly — so the rope's points are submitted here, in the pass that just drew the thread,
+     * from the very tip vertex the thread ended on, with the same hand-space reading and the same
+     * ramped projection correction as the water line.
+     */
+    private static void submitHandRope(ItemStack stack, Minecraft mc, SubmitNodeCollector collector) {
+        float pt = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+        net.minecraft.world.phys.Vec3[] pts = FlyLineClient.renderPoints(pt);
+        if (pts == null) return;
+        net.minecraft.world.phys.Vec3 cp = cameraPos(mc);
+        org.joml.Quaternionf q = cameraRot(mc);
+        double worldFov = worldFov(mc);
+        float warp = HAND_FOV <= 0f ? 1f
+                : (float) (Math.tan(Math.toRadians(HAND_FOV) / 2.0) / Math.tan(Math.toRadians(worldFov) / 2.0));
+        float[] style = lineStyle(stack);
+        if (style == null) style = strandStyle(com.riverfishing.component.LineType.FLY, 1.0);
+        float width = style[4];
+        org.joml.Vector3f tipV = new org.joml.Vector3f(TIP_VIEW[0], TIP_VIEW[1], TIP_VIEW[2]);
+        sampleHandSpace(tipV, q);
+        int space = effectiveHandSpace();
+        net.minecraft.world.phys.Vec3 tipW = tipWorld(tipV, cp, q, space);
+        org.joml.Vector3f rootWarped = toNode(pts[0], cp, q, warp, space);
+        float dtx = tipV.x() - rootWarped.x(), dty = tipV.y() - rootWarped.y(), dtz = tipV.z() - rootWarped.z();
+        FlyLineClient.handTip(tipW, cp);   // next tick the physics hangs off THIS tip, at rod reach
+        int n = pts.length, leaderFrom = FlyLineClient.leaderFrom();
+        org.joml.Vector3f[] node = new org.joml.Vector3f[n];
+        int[][] col = new int[n][];
+        node[0] = tipV;
+        for (int k = 1; k < n; k++) {
+            float f = 1f - k / (float) (n - 1);
+            node[k] = toNode(pts[k], cp, q, warp, space).add(dtx * f, dty * f, dtz * f);
+            boolean leader = k >= leaderFrom;
+            int[] tc = FlyLineClient.tint(leader ? 90 : (int) style[0], leader ? 90 : (int) style[1], leader ? 90 : (int) style[2],
+                    FlyLineClient.depthOf(pts[k]));
+            col[k] = new int[] {tc[0], tc[1], tc[2], leader ? 120 : (int) style[3]};
+        }
+        collector.submitCustomGeometry(new PoseStack(),
+                net.minecraft.client.renderer.rendertype.RenderTypes.lines(), (posePose, vc) -> {
+            org.joml.Matrix4f id = new org.joml.Matrix4f();
+            for (int k = 1; k < n; k++) {
+                float sx = node[k].x() - node[k - 1].x(), sy = node[k].y() - node[k - 1].y(), sz = node[k].z() - node[k - 1].z();
+                float len = (float) Math.sqrt(sx * sx + sy * sy + sz * sz);
+                if (len <= 1.0e-5f) continue;
+                sx /= len; sy /= len; sz /= len;
+                int[] c = col[k];
+                vc.addVertex(id, node[k - 1].x(), node[k - 1].y(), node[k - 1].z()).setColor(c[0], c[1], c[2], c[3]).setNormal(sx, sy, sz).setLineWidth(width);
+                vc.addVertex(id, node[k].x(), node[k].y(), node[k].z()).setColor(c[0], c[1], c[2], c[3]).setNormal(sx, sy, sz).setLineWidth(width);
+            }
+            org.joml.Vector3f fl = node[n - 1];
+            vc.addVertex(id, fl.x(), fl.y() + 0.03f, fl.z()).setColor(30, 30, 30, 255).setNormal(0, 1, 0).setLineWidth(width);
+            vc.addVertex(id, fl.x(), fl.y() - 0.03f, fl.z()).setColor(30, 30, 30, 255).setNormal(0, 1, 0).setLineWidth(width);
+        });
+        handLineNanos = System.nanoTime();   // §tip-fresh: the world pass skips its copy
     }
 
     /**

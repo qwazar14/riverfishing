@@ -115,7 +115,12 @@ public final class CatchCard {
         c.putString("Rod", s.rodClass.name().toLowerCase(java.util.Locale.ROOT));
         c.putString("RodItem", rod.getItem() instanceof com.riverfishing.item.RodItem
                 ? net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(rod.getItem()).getPath() : "");
-        c.putString("Bait", baits.isEmpty() ? "" : baits.get(0));
+        // §fly-card: a tied fly is not "an ice jig" — the card names the pattern it was tied as
+        // ("tied:nymph"), and the tooltip reads that prefix. Any rig, any rod: the drawing is the bait.
+        ItemStack rigStack = com.riverfishing.item.RodData.get(rod, com.riverfishing.component.ComponentSlot.RIG);
+        com.riverfishing.tackle.TiedDesign.Analysis tied = rigStack.getItem() instanceof com.riverfishing.item.RigItem
+                ? com.riverfishing.rig.RigData.tiedLure(rigStack) : null;
+        c.putString("Bait", tied != null ? "tied:" + tied.template().key : baits.isEmpty() ? "" : baits.get(0));
         var ctx = s.ctx;
         c.putString("Water", ctx == null ? "" : ctx.water.key());
         c.putLong("At", s.target.asLong());   // §home-water: where it came out, for the release

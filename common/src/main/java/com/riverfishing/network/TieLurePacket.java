@@ -138,10 +138,14 @@ public class TieLurePacket implements ModNetwork.RfPacket {
         byte[] d = design.clone();
         int size = menu.hookSize();
         String maker = sp.getGameProfile().name();
+        // §chaos: a drawing that is no pattern at all gets a hidden number, rolled once and for good.
+        boolean thing = TiedDesign.analyse(d).template() == TiedDesign.Template.NONE;
+        double chaos = TiedDesign.CHAOS_MIN + sp.getRandom().nextDouble() * (TiedDesign.CHAOS_MAX - TiedDesign.CHAOS_MIN);
         StackNbt.mutate(lure, tag -> {
             tag.putByteArray(TiedDesign.TAG_DESIGN, d);
             tag.putInt(TiedDesign.TAG_HOOK, size);
             tag.putString(TiedDesign.TAG_MAKER, maker);
+            if (thing) tag.putDouble(TiedDesign.TAG_CHAOS, chaos);
         });
         if (!sp.getInventory().add(lure)) sp.drop(lure, false);
         sp.level().playSound(null, sp.blockPosition(), net.minecraft.sounds.SoundEvents.BUNDLE_INSERT,

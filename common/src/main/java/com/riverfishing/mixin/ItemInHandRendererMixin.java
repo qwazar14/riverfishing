@@ -59,7 +59,7 @@ public class ItemInHandRendererMixin {
             // Popping before cancel is safe: retained submission snapshots the matrices per node.
             pose.pushPose();
             RodHandTransform.apply(pose, ctx, true, rodKey);
-            float load = ClientLineState.ownRodLoad();
+            float load = (com.riverfishing.client.FlyLineClient.active() ? com.riverfishing.client.FlyLineClient.load() : ClientLineState.ownRodLoad());
             boolean drew = com.riverfishing.client.RodChain.submit(
                     stack, rodKey, load, ctx, pose, collector, light, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY);
             pose.popPose();

@@ -1,16 +1,6 @@
 {
   "model": {
-    "type": "minecraft:condition",
-    "property": "minecraft:has_component",
-    "component": "minecraft:custom_data",
-    "on_true": {
-      "type": "minecraft:special",
-      "base": "riverfishing:item/fry",
-      "model": { "type": "riverfishing:fry" }
-    },
-    "on_false": {
-      "type": "minecraft:model",
-      "model": "riverfishing:item/fry_icon"
-    }
+    "type": "minecraft:model",
+    "model": "riverfishing:item/fry"
   }
 }

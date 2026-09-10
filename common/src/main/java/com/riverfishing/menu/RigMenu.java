@@ -132,6 +132,23 @@ public class RigMenu extends AbstractContainerMenu {
     private class RoleSlot extends Slot {
         private final SlotRole role;
 
+        /**
+         * §fly-bait: the fly rig carries a tied fly — or a natural: a worm, a maggot, or a live
+         * baitfish under 150 g (the cap live bait already has). A spoon on a tippet casts nothing.
+         */
+        static boolean flyTakes(ItemStack stack) {
+            if (stack.getItem() instanceof com.riverfishing.item.TiedLureItem) return true;
+            if (!(stack.getItem() instanceof com.riverfishing.item.BaitItem b)) return false;
+            return switch (b.baitId()) {
+                case "worm", "maggot" -> true;
+                case "livebait" -> {
+                    int g = com.riverfishing.item.StackNbt.get(stack).getIntOr(com.riverfishing.item.FishItem.TAG_BAIT_WEIGHT, 0);
+                    yield g > 0 && g <= 150;
+                }
+                default -> false;
+            };
+        }
+
         RoleSlot(Container container, int index, int x, int y, SlotRole role) {
             super(container, index, x, y);
             this.role = role;
@@ -139,6 +156,8 @@ public class RigMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(ItemStack stack) {
+            // §fly: the fly rig's lure slot takes ONLY a tied fly — a spoon on a tippet casts nothing
+            if (type == RigType.FLY && role == SlotRole.LURE) return flyTakes(stack);
             return role.accepts(stack);
         }
 

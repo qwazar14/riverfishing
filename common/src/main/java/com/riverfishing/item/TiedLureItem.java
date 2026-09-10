@@ -31,6 +31,9 @@ public class TiedLureItem extends BaitItem {
         TiedDesign.Analysis a = TiedDesign.analyse(stack);
         tooltip.accept(Component.translatable("tooltip.riverfishing.tied_size", a.sizeMm(),
                 String.format(java.util.Locale.ROOT, "%.1f", a.weightG())).withStyle(ChatFormatting.GRAY));
+        // §technique: how this fly is fished — the one line the water will not tell you
+        tooltip.accept(Component.translatable("tooltip.riverfishing.technique_"
+                + TiedDesign.technique(a.template()).name().toLowerCase(java.util.Locale.ROOT)).withStyle(ChatFormatting.GOLD));
         int hook = TiedDesign.hookSize(stack);
         if (hook > 0) tooltip.accept(Component.translatable("tooltip.riverfishing.tied_hook", hook).withStyle(ChatFormatting.GRAY));
         tooltip.accept(Component.translatable("tooltip.riverfishing.lure_color_" + a.lureColor().name().toLowerCase(java.util.Locale.ROOT))

@@ -39,6 +39,9 @@ public final class ModNetwork {
         // §ice-rhythm: a click on a stop of the jig.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, JigBeatPacket.TYPE, JigBeatPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §fly-take: where the fly is and what the line hand did.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, FlyPacket.TYPE, FlyPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
         // §cull: the electrofisher's list is answered here — re-validated from scratch, creative only.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, CullPacket.TYPE, CullPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));

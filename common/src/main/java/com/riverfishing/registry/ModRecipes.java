@@ -44,5 +44,12 @@ public final class ModRecipes {
             GROUNDBAIT_MIX = REGISTER.register("crafting_groundbait_mix",
                     () -> unit(new com.riverfishing.groundbait.GroundbaitMixRecipe()));
 
+    // §cooking: a caught fish in a furnace or a smoker comes out the same fish, cooked. 26.x: the furnace
+    // asks the recipe to assemble its input, so the recipe is a fixed instance with a unit serializer.
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.CookFishRecipe.Smelting>> COOK_FISH_SMELTING =
+            REGISTER.register("cook_fish_smelting", () -> unit(new com.riverfishing.item.CookFishRecipe.Smelting()));
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.CookFishRecipe.Smoking>> COOK_FISH_SMOKING =
+            REGISTER.register("cook_fish_smoking", () -> unit(new com.riverfishing.item.CookFishRecipe.Smoking()));
+
     private ModRecipes() {}
 }

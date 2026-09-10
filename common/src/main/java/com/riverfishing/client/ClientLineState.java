@@ -129,10 +129,13 @@ public final class ClientLineState {
             // a head-shake, or straining on a snag: a sideways shudder at a fish's rate — a few beats a
             // second, wider on a big fish — a DISPLAY offset, never folded into the eased position
             // (folded in, a held fish crept sideways every frame)
-            double j = (shaking || snagged) ? Math.sin(tail * 2.4) * (0.10 + lengthCm / 700.0) : 0.0;
+            // §candle: a fish in the air shakes its head to throw the hook — the same shudder
+            double j = (shaking || snagged || jumpT >= 0f) ? Math.sin(tail * 2.4) * (0.10 + lengthCm / 700.0) : 0.0;
             jx = sideX * j; jz = sideZ * j;
             double jumpY = jumpT >= 0f ? Math.sin(Math.PI * jumpT) * (1.0 + lengthCm / 120.0) : 0.0;
-            if (jumpT >= 0f) { fy = Math.max(fy, -0.05) ; tPitch = jumpT < 0.5f ? -40f : 25f; }
+            // §candle: it leaves the water standing on its tail, hangs near-vertical at the top
+            // and only tips over on the way down — hence the squared term rather than a flat flip.
+            if (jumpT >= 0f) { fy = Math.max(fy, -0.05) ; tPitch = -78f + 140f * jumpT * jumpT; }
             // heading: the way it moved this frame when it moved, else away from the angler
             double vx = fx - ox, vz = fz - oz;
             float want = (vx * vx + vz * vz) > 1e-6 ? (float) Math.atan2(vz, vx) : (float) Math.atan2(fwdZ, fwdX);

@@ -27,11 +27,12 @@ import java.util.function.Predicate;
  * the wells row at 149 — that row is the hook picker and the store.
  */
 public final class TyingCanvas {
-    public static final int CANVAS_X = 14, CANVAS_Y = 30, CELL = 5, SIDE = TiedDesign.SIZE * CELL;
+    // §tie-32: 32 cells of 3 px — 96 px, which is what fits between the tabs and the wells row
+    public static final int CANVAS_X = 14, CANVAS_Y = 26, CELL = 3, SIDE = TiedDesign.SIZE * CELL;
     public static final int PAL_X = 118, PAL_Y = 30, PAL_CELL = 18;
     public static final int MAT_Y = PAL_Y + 4 * PAL_CELL + 2;             // the six materials, one row
-    public static final int PAT_Y = CANVAS_Y + SIDE + 4, PAT_W = 10;      // the eight stencils, one row
-    public static final int READ_Y = PAT_Y + PAT_W + 4;                   // two lines
+    public static final int PAT_Y = CANVAS_Y + SIDE + 2, PAT_W = 10;      // the eight stencils, one row
+    public static final int READ_Y = PAT_Y + PAT_W + 2;                   // one line, both readings
     public static final int BTN_Y = MAT_Y + PAL_CELL + 2, BTN_W = 60, BTN_H = 11, BTN_GAP = 4;
     private static final int[] MATERIALS = {TiedDesign.HACKLE, TiedDesign.FUR, TiedDesign.BEAD_IRON, TiedDesign.BEAD_GOLD, TiedDesign.TINSEL, TiedDesign.EYE};
     private static final TiedDesign.Template[] STENCILS = {
@@ -148,9 +149,13 @@ public final class TyingCanvas {
             int x0 = cx + i * PAT_W, y0 = top + PAT_Y;
             g.fill(x0, y0, x0 + PAT_W - 1, y0 + PAT_W - 1, stencil == i ? 0xFFC8A050 : 0xFF2a241c);
             boolean[][] m = STENCILS[i].mask();
-            for (int y = 0; y < TiedDesign.SIZE; y += 2)
-                for (int x = 0; x < TiedDesign.SIZE; x += 2)
-                    if (m[y][x] || m[y + 1][x] || m[y][x + 1]) g.fill(x0 + 1 + x / 2, y0 + 1 + y / 2, x0 + 2 + x / 2, y0 + 2 + y / 2, 0xFFE8DCC0);
+            int st = TiedDesign.SIZE / 8;   // an 8×8 thumbnail whatever the canvas
+            for (int y = 0; y < TiedDesign.SIZE; y += st)
+                for (int x = 0; x < TiedDesign.SIZE; x += st) {
+                    boolean any = false;
+                    for (int dy = 0; dy < st && !any; dy++) for (int dx = 0; dx < st && !any; dx++) any = m[y + dy][x + dx];
+                    if (any) g.fill(x0 + 1 + x / st, y0 + 1 + y / st, x0 + 2 + x / st, y0 + 2 + y / st, 0xFFE8DCC0);
+                }
         }
         // the palette: sixteen threads, then the six materials; greyed red when the bench cannot pay
         int[] cost = TiedDesign.cost(design);
@@ -169,7 +174,7 @@ public final class TyingCanvas {
         String size = Component.translatable("tooltip.riverfishing.tied_size", a.sizeMm(),
                 String.format(java.util.Locale.ROOT, "%.1f", a.weightG())).getString();
         g.text(font, what, cx, top + READ_Y, 0xFFE8DCC0, false);
-        g.text(font, size, cx, top + READ_Y + 10, 0xFF9a8d78, false);
+        g.text(font, size, cx + SIDE - font.width(size), top + READ_Y, 0xFF9a8d78, false);   // one line: the wells sit right under
     }
 
     private static void paletteCell(GuiGraphicsExtractor g, int x0, int y0, int px, int[] cost, TackleStationMenu menu) {

@@ -62,7 +62,9 @@ public final class LineRenderer {
     // 26.1: immediate mode — pull the shared buffer source and flush the lines batch ourselves.
     public static void render(PoseStack pose, Vec3 cam, float pt) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null || mc.player == null || ClientLineState.lines().isEmpty()) return;
+        if (mc.level == null || mc.player == null) return;
+        FlyLineClient.render(pose, cam, pt);   // §rope: its own batch, its own tip read
+        if (ClientLineState.lines().isEmpty()) return;
         pose.pushPose();
         pose.translate(-cam.x, -cam.y, -cam.z);
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
@@ -81,7 +83,9 @@ public final class LineRenderer {
     public static void submit(PoseStack pose, Vec3 cam, float pt,
                               net.minecraft.client.renderer.SubmitNodeCollector collector) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null || mc.player == null || ClientLineState.lines().isEmpty()) return;
+        if (mc.level == null || mc.player == null) return;
+        FlyLineClient.submit(pose, cam, pt, collector);   // §rope
+        if (ClientLineState.lines().isEmpty()) return;
         pose.pushPose();
         pose.translate(-cam.x, -cam.y, -cam.z);
         collector.submitCustomGeometry(pose, net.minecraft.client.renderer.rendertype.RenderTypes.lines(),
@@ -329,7 +333,7 @@ public final class LineRenderer {
      * else the sprite near-plane constant; in third person the local player's tip captured in view
      * space, rotated back to world; for everyone else the vanilla body-model guess.
      */
-    private static Vec3 rodTipAnchor(Minecraft mc, Player player, float pt) {
+    static Vec3 rodTipAnchor(Minecraft mc, Player player, float pt) {
         int arm = player.getMainArm() == net.minecraft.world.entity.HumanoidArm.RIGHT ? 1 : -1;
         if (!(player.getMainHandItem().getItem() instanceof com.riverfishing.item.RodItem)) {
             arm = -arm; // the rod is in the off hand
@@ -408,8 +412,8 @@ public final class LineRenderer {
         line(vc, m, nrm, a, b, r, g, bl, 255, 2.0f);
     }
 
-    private static void line(VertexConsumer vc, Matrix4f m, Matrix3f nrm, Vec3 a, Vec3 b,
-                             int r, int g, int bl, int alpha, float width) {
+    static void line(VertexConsumer vc, Matrix4f m, Matrix3f nrm, Vec3 a, Vec3 b,
+                     int r, int g, int bl, int alpha, float width) {
         float dx = (float) (b.x - a.x), dy = (float) (b.y - a.y), dz = (float) (b.z - a.z);
         float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (len <= 1e-4f) return;

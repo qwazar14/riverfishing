@@ -237,4 +237,9 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
             cy += ROW;
         }
     }
+    /** §fly-card: "tied:<pattern>" is a fly tied at the bench; anything else is an item id. */
+    private static Component baitName(String bait) {
+        return bait.startsWith("tied:") ? Component.translatable("tied.riverfishing." + bait.substring(5))
+                : Component.translatable("item.riverfishing." + bait);
+    }
 }
