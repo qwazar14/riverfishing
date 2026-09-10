@@ -48,6 +48,11 @@ public final class ModNetwork {
             ctx.queue(() -> p.handleServer(ctx));
         });
         // §tying: the canvas comes up; the server re-reads the hook, the materials and the drawing.
+        // §fly-take: where the fly is and what the line hand did.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, FlyPacket.TYPE, (buf, ctx) -> {
+            FlyPacket p = FlyPacket.decode(buf);
+            ctx.queue(() -> p.handleServer(ctx));
+        });
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, TieLurePacket.TYPE, (buf, ctx) -> {
             TieLurePacket p = TieLurePacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));

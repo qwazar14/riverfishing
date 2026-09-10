@@ -16,7 +16,8 @@ public enum RigType {
     GRUSHA    ("grusha",      55,   3,   false),
     CARP      ("carp",        65,   1,   false),
     PREDATOR  ("predator",    14,   1,   true),
-    CATFISH   ("catfish",     95,   1,   true);
+    CATFISH   ("catfish",     95,   1,   true),
+    FLY       ("fly",          2,   1,   true);   // §fly: a fly weighs nothing; the leader is the tippet
 
     private final String jsonKey;
     private final double massGrams;

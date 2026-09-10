@@ -79,6 +79,25 @@ public final class RodDebugCommand {
                                 })))
                 // §rod-physics: the rod lags the hand when you swing the view. Two damped springs;
                 // `whip` decides how much of the lag is blank flex rather than the whole rod turning.
+                // §rope: the fly-line prototype — a physical line off the held rod's tip.
+                .then(ClientCommandRegistrationEvent.literal("rope")
+                        .then(ClientCommandRegistrationEvent.literal("on").executes(c -> {
+                            FlyLineClient.ENABLED = true;
+                            say(c, "§arope ON §7— fly rod only: mouse is the arm, hold LEFT to let line run, RIGHT strips");
+                            return 1;
+                        }))
+                        .then(ClientCommandRegistrationEvent.literal("off").executes(c -> {
+                            FlyLineClient.ENABLED = false;
+                            say(c, "§erope OFF");
+                            return 1;
+                        }))
+                        .then(ClientCommandRegistrationEvent.literal("segments")
+                                .then(ClientCommandRegistrationEvent.argument("n", com.mojang.brigadier.arguments.IntegerArgumentType.integer(8, 512))
+                                        .executes(c -> {
+                                            FlyLineClient.SEGMENTS = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "n");
+                                            say(c, "§brope segments: " + FlyLineClient.SEGMENTS);
+                                            return 1;
+                                        }))))
                 .then(ClientCommandRegistrationEvent.literal("phys")
                         .executes(c -> { say(c, RodPhysics.describe()); return 1; })
                         .then(ClientCommandRegistrationEvent.literal("on").executes(c -> {

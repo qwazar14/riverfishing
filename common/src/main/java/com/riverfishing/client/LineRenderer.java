@@ -32,6 +32,7 @@ public final class LineRenderer {
     public static void render(PoseStack pose, Vec3 cam, float pt) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;
+        FlyLineClient.render(pose, cam, pt);   // §rope: its own batch, its own tip read
         if (ClientLineState.lines().isEmpty()) return;
 
         float frameSeconds = mc.getDeltaFrameTime() / 20f;
@@ -96,7 +97,7 @@ public final class LineRenderer {
         if (held.getItem() instanceof com.riverfishing.item.RodItem
                 && com.riverfishing.item.RodData.get(held, com.riverfishing.component.ComponentSlot.LINE)
                         .getItem() instanceof com.riverfishing.item.LineItem li) {
-            style = RodRenderTypes.strandStyle(li.lineType(), li.diameterMm());
+            style = RodRenderTypes.strandStyle(li);
         }
         VertexConsumer sv = buffers.getBuffer(
                 style == null ? RenderType.lines() : RodRenderTypes.lineStrand(style[4]));
@@ -288,7 +289,7 @@ public final class LineRenderer {
      * by FOV and swinging with the arm); in third person / for other players it hangs off the rod
      * hand of the body model — so every line starts at a rod, not in the air.
      */
-    private static Vec3 rodTipAnchor(Minecraft mc, Player player, float pt) {
+    static Vec3 rodTipAnchor(Minecraft mc, Player player, float pt) {
         int arm = player.getMainArm() == net.minecraft.world.entity.HumanoidArm.RIGHT ? 1 : -1;
         if (!(player.getMainHandItem().getItem() instanceof com.riverfishing.item.RodItem)) {
             arm = -arm; // the rod is in the off hand
@@ -369,8 +370,8 @@ public final class LineRenderer {
         line(vc, m, nrm, a, b, r, g, bl, 255);
     }
 
-    private static void line(VertexConsumer vc, Matrix4f m, Matrix3f nrm, Vec3 a, Vec3 b,
-                             int r, int g, int bl, int alpha) {
+    static void line(VertexConsumer vc, Matrix4f m, Matrix3f nrm, Vec3 a, Vec3 b,
+                     int r, int g, int bl, int alpha) {
         float dx = (float) (b.x - a.x), dy = (float) (b.y - a.y), dz = (float) (b.z - a.z);
         float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (len <= 1e-4f) return;

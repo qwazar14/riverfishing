@@ -75,7 +75,8 @@ public class FishItem extends Item {
         ItemStack off = player.getItemInHand(net.minecraft.world.InteractionHand.OFF_HAND);
         int w = getWeightG(fish);
         if (player.isCrouching() && hand == net.minecraft.world.InteractionHand.MAIN_HAND
-                && off.getItem() instanceof HookItem && w > 0 && w <= LivebaitRecipe.MAX_WEIGHT_G) {
+                && off.getItem() instanceof HookItem && w > 0 && w <= LivebaitRecipe.MAX_WEIGHT_G
+                && !CookedFish.isCooked(fish)) {   // §cooking: a cooked fish is dinner, not bait
             if (!level.isClientSide) {
                 var livebait = net.minecraft.core.registries.BuiltInRegistries.ITEM
                         .get(com.riverfishing.RiverFishing.id("livebait"));
@@ -91,7 +92,44 @@ public class FishItem extends Item {
             }
             return net.minecraft.world.InteractionResultHolder.sidedSuccess(fish, level.isClientSide);
         }
-        return super.use(level, player, hand);
+        if (CookedFish.isCooked(fish)) {   // §cooking: dinner
+            if (player.canEat(false)) {
+                player.startUsingItem(hand);
+                return net.minecraft.world.InteractionResultHolder.consume(fish);
+            }
+            return net.minecraft.world.InteractionResultHolder.fail(fish);
+        }
+        return net.minecraft.world.InteractionResultHolder.pass(fish);   // a raw fish is not eaten
+    }
+
+    // ---- §cooking (1.20.1): food lives on the stack, and the item eats it itself ----
+    private static final int EAT_TICKS = 32;
+    private static final net.minecraft.world.food.FoodProperties DUMMY_FOOD = new net.minecraft.world.food.FoodProperties.Builder().build();
+
+    /** Edible at the item level so vanilla starts the use; whether THIS stack is food is decided in use(). */
+    @Override public boolean isEdible() { return true; }
+    @Override public net.minecraft.world.food.FoodProperties getFoodProperties() { return DUMMY_FOOD; }
+    @Override public net.minecraft.world.item.UseAnim getUseAnimation(ItemStack stack) {
+        return CookedFish.isCooked(stack) ? net.minecraft.world.item.UseAnim.EAT : net.minecraft.world.item.UseAnim.NONE;
+    }
+    @Override public int getUseDuration(ItemStack stack) { return CookedFish.isCooked(stack) ? EAT_TICKS : 0; }
+
+    @Override
+    public ItemStack finishUsingItem(ItemStack stack, Level level, net.minecraft.world.entity.LivingEntity entity) {
+        if (!CookedFish.isCooked(stack) || !(entity instanceof net.minecraft.world.entity.player.Player player)) return stack;
+        net.minecraft.world.food.FoodProperties fp = CookedFish.food(stack);
+        if (!level.isClientSide) {
+            player.getFoodData().eat(fp.getNutrition(), fp.getSaturationModifier());
+            for (var e : fp.getEffects()) {
+                if (level.random.nextFloat() < e.getSecond()) player.addEffect(new net.minecraft.world.effect.MobEffectInstance(e.getFirst()));
+            }
+            player.awardStat(net.minecraft.stats.Stats.ITEM_USED.get(this));
+        }
+        level.playSound(null, player.getX(), player.getY(), player.getZ(), net.minecraft.sounds.SoundEvents.PLAYER_BURP,
+                net.minecraft.sounds.SoundSource.PLAYERS, 0.5f, level.random.nextFloat() * 0.1f + 0.9f);
+        level.gameEvent(player, net.minecraft.world.level.gameevent.GameEvent.EAT, player.position());
+        if (!player.getAbilities().instabuild) stack.shrink(1);
+        return stack;
     }
 
     public ResourceLocation species() {
@@ -106,6 +144,7 @@ public class FishItem extends Item {
     public static boolean koiReleaseTick(ItemStack stack, net.minecraft.world.entity.item.ItemEntity entity) {
         net.minecraft.world.level.Level level = entity.level();
         if (level.isClientSide) return false;
+        if (CookedFish.isCooked(stack)) return false;   // §cooking: nothing to release
         // §release is a CHOICE, and vanilla already records whether one was made: Player#drop only
         // calls setThrower when traceItem is true, which is the Q key. An INVOLUNTARY drop records
         // none — giveFish's inventory-full fallback, Inventory#dropAll on death, a keepnet spill —
@@ -318,6 +357,9 @@ public class FishItem extends Item {
         int w = getWeightG(stack);
         if (w <= 0) {
             return name; // e.g. the creative-tab entry, with no individual data yet
+        }
+        if (CookedFish.isCooked(stack)) {   // §cooking
+            name = Component.translatable("item.riverfishing.cooked_fish", name);
         }
         if (isTrophy(stack)) {
             return Component.literal("★ ").append(name)

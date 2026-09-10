@@ -202,7 +202,9 @@ public class RodItem extends Item {
         // owner not to crank it. Keys are tooltip.riverfishing.rod_class.<active|float|bottom>.
         // The winter rod is FLOAT but is JIGGED through an ice hole, so "never reel" would be a lie for
         // it — it gets the dedicated winter_hole line below instead.
-        if (rodType != com.riverfishing.component.RodType.WINTER) {
+        if (rodType.isFly()) {
+            tooltip.add(Component.translatable("tooltip.riverfishing.rod_class.fly").withStyle(ChatFormatting.GOLD));
+        } else if (rodType != com.riverfishing.component.RodType.WINTER) {
             tooltip.add(Component.translatable("tooltip.riverfishing.rod_class."
                             + rodType.rodClass().name().toLowerCase(java.util.Locale.ROOT))
                     .withStyle(ChatFormatting.GOLD));

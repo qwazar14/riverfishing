@@ -61,7 +61,7 @@ for a, ga in masks.items():
             fails.append("%s reads as %s at %.2f — too close for a sloppy drawing to tell them apart" % (a, b, v))
 
 eng = io.open(os.path.join(J, "engine/BiteEngine.java"), encoding="utf-8").read()
-if "c.tied.affinity(p.group)" not in eng:
+if "c.tied.affinity(" not in eng:
     fails.append("BiteEngine.baitScore does not multiply by the tied lure's affinity")
 fm = io.open(os.path.join(J, "fishing/FishingManager.java"), encoding="utf-8").read()
 if "ctx.tied = RigData.tiedLure(rigStack);" not in fm:

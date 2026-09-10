@@ -38,7 +38,18 @@ public final class RodRenderTypes extends RenderType {
             case BRAID -> new float[]{58, 82, 52, 255, w};
             case FLUORO -> new float[]{210, 226, 235, 110, w};
             case MONO -> new float[]{232, 228, 208, 255, w};
+            case FLY -> new float[]{235, 225, 170, 255, w};   // §fly-line: pale olive PVC, thick and matte
         };
+    }
+
+    /** §fly-lines: a fly line wears its geometry's colour; every other line its material's. */
+    public static float[] strandStyle(com.riverfishing.item.LineItem li) {
+        float[] s = strandStyle(li.lineType(), li.diameterMm());
+        if (li instanceof com.riverfishing.item.FlyLineItem fl) {
+            int c = fl.geometry().rgb;
+            s[0] = (c >> 16) & 255; s[1] = (c >> 8) & 255; s[2] = c & 255;
+        }
+        return s;
     }
 
     public static RenderType lineStrand(float width) {

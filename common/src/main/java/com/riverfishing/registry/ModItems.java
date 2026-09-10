@@ -210,6 +210,11 @@ public final class ModItems {
         if ("winter".equals(key)) return 96;       // short, reel-less, and ice fish are small
         if ("pole".equals(key)) return 128;
         if ("ultralight".equals(key)) return 144;
+        if ("fly_3".equals(key)) return 128;        // §fly-classes
+        if ("fly".equals(key)) return 144;          // §fly: as light a blank as the ultralight
+        if ("fly_7".equals(key)) return 176;
+        if ("fly_9".equals(key)) return 208;
+        if ("fly_11".equals(key)) return 240;
         if ("spinning".equals(key)) return 192;
         if ("feeder".equals(key)) return 224;
         if ("bottom".equals(key)) return 256;
@@ -239,6 +244,12 @@ public final class ModItems {
             final int s = size;
             reg("reel_" + size, () -> new ReelItem(s, props()));
         }
+        // §fly-reel: one single-action fly reel — sized like a 6000 for the 3D model and the drag curve.
+        reg("reel_fly_3", () -> new ReelItem(3000, 3, props()));
+        reg("reel_fly", () -> new ReelItem(6000, 5, props()));
+        reg("reel_fly_7", () -> new ReelItem(7000, 7, props()));
+        reg("reel_fly_9", () -> new ReelItem(8000, 9, props()));
+        reg("reel_fly_11", () -> new ReelItem(10000, 11, props()));
 
         // ----- Lines (ÃÂ§line-update): mono = all-rounder, braid = thin & strong, fluoro = clear/finesse.
         // Thick fluoro (0.40/0.50) dropped Ã¢ÂÂ impractical in reality; thin mono/fluoro + heavy braid added. -----
@@ -247,6 +258,16 @@ public final class ModItems {
         // duel the 40 kg monster catfish with a 7000 reel's drag on top).
         registerLines(LineType.BRAID, new double[]{0.16, 0.20, 0.25, 0.30, 0.40, 0.50, 0.60});
         registerLines(LineType.FLUORO, new double[]{0.14, 0.16, 0.20, 0.25, 0.30, 0.40});
+        // §fly-lines: the one line that shipped before the nine — kept so a rod that carries it still
+        // loads; it is a WF-F.
+        reg("line_fly_100", () -> new com.riverfishing.item.FlyLineItem(com.riverfishing.item.FlyLineItem.Geometry.WF,
+                com.riverfishing.item.FlyLineItem.Buoyancy.F, props()));
+        // §fly-lines: three geometries by three buoyancies; the weight is the rod's class, not the line's.
+        for (com.riverfishing.item.FlyLineItem.Geometry g : com.riverfishing.item.FlyLineItem.Geometry.values()) {
+            for (com.riverfishing.item.FlyLineItem.Buoyancy b : com.riverfishing.item.FlyLineItem.Buoyancy.values()) {
+                reg("line_fly_" + g.key + "_" + b.key, () -> new com.riverfishing.item.FlyLineItem(g, b, props()));
+            }
+        }
 
         // ----- Rigs -----
         for (RigType type : RigType.values()) {

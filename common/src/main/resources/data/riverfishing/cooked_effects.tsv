@@ -1,0 +1,264 @@
+id	effects	why
+aba_aba	night_vision:0:90;glowing:0:20	аба-аба
+adonis_pleco	resistance:0:60;slowness:0:20	плеко в панцире
+african_arowana	luck:0:120	арована — рыба-дракон, богатство
+african_knifefish	night_vision:0:60;glowing:0:20	африканская ножетелка
+african_pike_characin	strength:0:45;hunger:0:30	африканская щука-характин
+african_sharptooth_catfish	resistance:0:90;water_breathing:0:60	клариас дышит воздухом
+alligator_gar	resistance:1:150;slowness:0:60;poison:0:5	аллигаторова щука: икра ядовита
+anglerfish	darkness:0:10;night_vision:0:90;glowing:0:30	удильщик
+angolan_clarias	resistance:0:60;water_breathing:0:45	клариас ангольский
+ansorges_dwarf_characin	speed:0:15	карликовый характин
+arapaima	health_boost:2:300;resistance:0:120	арапайма
+asian_arowana	luck:1:180;bad_omen:0:300	азиатская арована: удача II, но нефиг есть краснокнижную
+asp	strength:0:60;hunger:0:30	жерех — карп-хищник
+barracuda	speed:1:60;poison:0:10	барракуда: сигуатера
+barramundi	saturation:0:90;regeneration:0:20	баррамунди, ресторанная рыба
+beluga	health_boost:4:480;absorption:2:480;bad_omen:0:600	белуга: +10 сердец на 8 мин, дурное знамение (по ТЗ)
+bester_sturgeon	health_boost:3:720;absorption:1:720	гибрид beluga × sterlet: бафы обоих, слабее и дольше, без дебафов
+black_crappie	haste:0:60;saturation:0:30	чёрный крапи
+black_drum	saturation:0:75;slowness:0:15	чёрный горбыль
+black_mahseer	luck:0:120;saturation:0:30	махсир — священная рыба, на удачу
+black_marlin	speed:1:120;dolphins_grace:0:120	чёрный марлин
+black_white_crappie_hybrid	haste:0:90;saturation:0:45	гибрид black_crappie × white_crappie: бафы обоих, слабее и дольше, без дебафов
+blacktail_snapper	saturation:0:45;luck:0:30	снэппер
+bleak	speed:0:10	уклейка, крошечная
+blotched_upsidedown_catfish	levitation:0:3;saturation:0:15	плавает кверху брюхом — на миг взлетаешь
+blue_bream	saturation:0:25	синец
+blue_catfish	resistance:0:120;slowness:0:30	голубой
+blue_marlin	speed:1:120;dolphins_grace:0:120	синий марлин
+blue_mozambique_tilapia_hybrid	saturation:0:90;regeneration:0:15	гибрид blue_tilapia × mozambique_tilapia: бафы обоих, слабее и дольше, без дебафов
+blue_tilapia	saturation:0:60;regeneration:0:10	голубая
+bluefin_tuna	speed:1:150;dolphins_grace:0:150	синий тунец
+bluefish	strength:0:60;hunger:0:30	луфарь
+bluegill	haste:0:60	блюгилл
+bluegill_green_sunfish_hybrid	haste:0:90	гибрид bluegill × green_sunfish: бафы обоих, слабее и дольше, без дебафов
+bluegill_pumpkinseed_hybrid	haste:0:90	гибрид bluegill × pumpkinseed: бафы обоих, слабее и дольше, без дебафов
+bluegill_redbreast_hybrid	haste:0:90	гибрид bluegill × redbreast_sunfish: бафы обоих, слабее и дольше, без дебафов
+bluegill_redear_hybrid	haste:0:112	гибрид bluegill × redear_sunfish: бафы обоих, слабее и дольше, без дебафов
+bowfin	resistance:0:60;nausea:0:10	ильная рыба: мясо мягкое и «ватное»
+bream	saturation:0:40	лещ, сытный
+bream_roach_hybrid	saturation:0:60;regeneration:0:6	гибрид bream × roach: бафы обоих, слабее и дольше, без дебафов
+brook_bull_trout_hybrid	jump_boost:0:135;regeneration:0:22;strength:0:67	гибрид brook_trout × bull_trout: бафы обоих, слабее и дольше, без дебафов
+brook_trout	jump_boost:0:60;regeneration:0:15	ручьевая
+bull_shark	strength:1:120;hunger:1:30	бычья акула
+bull_trout	jump_boost:0:90;strength:0:45	бычья форель — крупный хищник
+bullseye_snakehead	regeneration:1:60;water_breathing:0:60	змееголов
+burbot	night_vision:0:120;riverfishing:fish_oil:0:60	налим: зимняя ночная рыба, печень
+cameroon_suckermouth_catfish	saturation:0:15	присоска
+carp	saturation:0:45	прудовая классика: долгая сытость
+carp_koi_asagi	bad_omen:0:600	кои не едят
+carp_koi_bekko	bad_omen:0:600	кои не едят
+carp_koi_kohaku	bad_omen:0:600	кои не едят
+carp_koi_showa_sanke	bad_omen:0:600	кои не едят
+carp_koi_tancho_sanke	bad_omen:0:900	танчо — символ Японии, знамение вдвое дольше
+catfish	resistance:0:120;slowness:0:30	сом
+catla	saturation:0:60	катла, крупная
+chain_pickerel	strength:0:45;hunger:0:20	цепная щучка
+channel_blue_catfish_hybrid	resistance:0:180	гибрид channel_catfish × blue_catfish: бафы обоих, слабее и дольше, без дебафов
+channel_catfish	resistance:0:90;slowness:0:30	канальный
+char	jump_boost:0:60;resistance:0:60	голец — арктический, стойкий
+chinese_mahseer	luck:0:90;saturation:0:30	махсир китайский
+chinook_coho_hybrid	dolphins_grace:0:180;regeneration:0:60	гибрид chinook_salmon × coho_salmon: бафы обоих, слабее и дольше, без дебафов
+chinook_pink_hybrid	dolphins_grace:0:180;regeneration:0:60	гибрид chinook_salmon × pink_salmon: бафы обоих, слабее и дольше, без дебафов
+chinook_salmon	dolphins_grace:0:120;regeneration:1:40	чавыча — король лососей
+chub	saturation:0:30;jump_boost:0:30	голавль, поверхностный хищник
+chum_salmon	dolphins_grace:0:60;regeneration:0:20	кета
+climbing_perch	water_breathing:0:60;jump_boost:0:60	анабас ходит по суше
+cod	riverfishing:fish_oil:0:120;saturation:0:20	треска — печень и жир
+coho_salmon	dolphins_grace:0:90;regeneration:0:30	кижуч
+common_barbel	saturation:0:30;poison:0:5	усач: икра ядовита
+common_carp_gibel_hybrid	saturation:0:67	гибрид carp × crucian_carp: бафы обоих, слабее и дольше, без дебафов
+common_dace	speed:0:20	елец, быстрый
+conger	water_breathing:0:120;strength:0:30	конгер
+congo_knifefish	night_vision:0:60;glowing:0:20	конголезская
+cornish_jack	night_vision:0:60;resistance:0:45	мормиропс, электролокация
+crimean_barbel	saturation:0:25;poison:0:5	усач крымский
+crucian_carp	saturation:0:30	карась
+cutbow	jump_boost:0:135;regeneration:0:22	гибрид cutthroat_trout × rainbow_trout: бафы обоих, слабее и дольше, без дебафов
+cutthroat_trout	jump_boost:0:75;regeneration:0:15	головорез
+desert_pupfish	fire_resistance:0:60;unluck:0:60	пустынный пупфиш: живёт в горячих ключах, охраняем
+devils_hole_pupfish	fire_resistance:0:90;bad_omen:0:1200	пупфиш Дьявольской дыры: ~200 особей в мире
+dolly_bull_trout_hybrid	jump_boost:0:135;regeneration:0:22;strength:0:67	гибрид dolly_varden × bull_trout: бафы обоих, слабее и дольше, без дебафов
+dolly_varden	jump_boost:0:75;regeneration:0:15	мальма
+double_nose_elephantfish	night_vision:0:90	двуносый слоник
+eastern_happy	glowing:0:30;saturation:0:30	восточный хаппи
+eel	water_breathing:0:120;slow_falling:0:60	угорь
+electric_catfish	speed:0:60;haste:0:60	электросом — как электроугорь, но слабее
+electric_eel	speed:1:90;haste:1:90	электроугорь: скорость и спешка (по ТЗ)
+elephantnose_fish	night_vision:0:120	слоник, самый большой мозг на массу
+elongate_lamprologus	saturation:0:5	лампрологус — на один зуб
+fierce_bathybates	night_vision:0:60;strength:0:30	батибатес, глубоководный охотник
+flathead_catfish	resistance:1:90;slowness:0:30	плоскоголовый
+flier	haste:0:30	флаер
+florida_gar	resistance:0:75;slowness:0:45	флоридский
+flounder	invisibility:0:30;saturation:0:30	камбала — мастер маскировки
+frilled_shark	darkness:0:15;night_vision:0:120	плащеносная: из бездны
+frontosa_cichlid	glowing:0:60;saturation:0:30	фронтоза, глубоководная
+garfish	speed:0:45;glowing:0:10	сарган: зелёные кости
+giant_cichlid	strength:0:60;glowing:0:30	гигантская цихлида Танганьики
+giant_featherback	night_vision:0:90;saturation:0:60	читала — рыбные шарики в Таиланде
+giant_freshwater_stingray	resistance:1:120;poison:0:8;bad_omen:0:300	гигантский хвостокол, исчезающий
+giant_gourami	saturation:0:90;water_breathing:0:30	гурами дышит воздухом
+giant_mottled_eel	water_breathing:0:180;slow_falling:0:90	мраморный угорь
+giant_snakehead	regeneration:1:90;strength:0:60	гигантский змееголов
+golden_crucian	luck:0:120	золотой карась — на удачу
+golden_dorado	strength:0:90;luck:0:60	золотой дорадо
+goliath_grouper	health_boost:2:300;slowness:0:60;bad_omen:0:300	голиаф-групер, охраняемый
+goliath_tigerfish	strength:2:90;hunger:1:45	голиаф — сила III
+gorchak	nausea:0:10	горчак горький — оттого и имя
+grass_carp	saturation:0:60;regeneration:0:10	травоядный, чистое мясо
+grayling	speed:0:90;jump_boost:0:30	хариус: быстрая холодная вода
+green_sunfish	haste:0:45	зелёный солнечник
+gudgeon	saturation:0:10	пескарь
+halibut	health_boost:0:180;saturation:0:90	палтус
+helicopter_catfish	resistance:0:60;speed:0:30	«вертолёт» — быстрый ночной сом
+herring	riverfishing:fish_oil:0:60;saturation:0:20	сельдь
+himalayan_mahseer	luck:0:150;saturation:0:30	золотой махсир Гималаев
+ide	saturation:0:30;speed:0:30	язь, бойкий
+iridescent_shark	saturation:0:60;slowness:0:15	пангасиус
+jack_crevalle	speed:0:60;strength:0:30	каранкс
+kaluga_sterlet_hybrid	health_boost:2:720;absorption:1:720	гибрид kaluga_sturgeon × sterlet: бафы обоих, слабее и дольше, без дебафов
+kaluga_sturgeon	health_boost:3:480;absorption:2:480;bad_omen:0:600	калуга — амурская белуга
+koi_carp	bad_omen:0:600	кои не едят
+koi_carp_crown	bad_omen:0:600	кои не едят
+koi_carp_hi	bad_omen:0:600	кои не едят
+koi_carp_sumi	bad_omen:0:600	кои не едят
+kuria_labeo	saturation:0:40	лабео курия
+kuria_labeo_catla_hybrid	saturation:0:90	гибрид kuria_labeo × catla: бафы обоих, слабее и дольше, без дебафов
+kutum	saturation:0:60;luck:0:60	кутум — каспийский деликатес
+laced_moray	water_breathing:0:90;poison:0:8	мурена: сигуатера
+lake_sturgeon	health_boost:1:180;absorption:1:180	озёрный осётр
+lake_trout	regeneration:0:30;resistance:0:60	озёрная, глубокая и жирная
+largemouth_bass	strength:0:90;hunger:0:30	большеротый
+largemouth_smallmouth_hybrid	strength:0:135	гибрид largemouth_bass × smallmouth_bass: бафы обоих, слабее и дольше, без дебафов
+largemouth_yellowfish	saturation:0:45;speed:0:30	желтопёр, африканский речной боец
+lenok	jump_boost:0:60;regeneration:0:15	ленок
+linear_carp	saturation:0:45	линейный — как карп
+loach	saturation:0:15;water_breathing:0:15	вьюн дышит кишечником
+longnose_alligator_gar_hybrid	resistance:0:225	гибрид longnose_gar × alligator_gar: бафы обоих, слабее и дольше, без дебафов
+longnose_gar	resistance:0:90;slowness:0:45	длиннорылый
+longsnout_distichodus	saturation:0:30	дистиходус
+lyretail_pleco	resistance:0:45;slowness:0:15	плеко лирохвостый
+mackerel	riverfishing:fish_oil:0:90;speed:0:30	скумбрия
+mahi	speed:0:90;luck:0:60	махи-махи
+mako	speed:1:120;strength:0:60;hunger:1:30	мако
+malayan_mahseer	luck:0:120;saturation:0:30	келах, самая дорогая рыба Малайзии
+marbled_lungfish	water_breathing:0:180;fire_resistance:0:60	протоптер: спит в сухом иле
+mayan_cichlid	glowing:0:45;saturation:0:30	майянская
+mekong_giant_catfish	resistance:1:180;slowness:0:60;bad_omen:0:300	меконгский гигант — исчезающий
+mirror_carp	saturation:0:45	зеркальный — как карп
+mozambique_tilapia	saturation:0:60;regeneration:0:10	мозамбикская
+mullet	saturation:0:45	кефаль
+muskellunge	strength:1:120;hunger:0:20	маски, вершина щук
+naked_carp	saturation:0:30	голый карп: мяса меньше
+nase	nausea:0:15;saturation:0:30	подуст: брюшина горчит, если не вычистить
+nelma	regeneration:1:45;saturation:0:60	нельма, северный деликатес
+nile_bichir	water_breathing:0:120;regeneration:0:10	многопёр
+nile_blue_tilapia_hybrid	saturation:0:90;regeneration:0:15	гибрид nile_tilapia × blue_tilapia: бафы обоих, слабее и дольше, без дебафов
+nile_mozambique_tilapia_hybrid	saturation:0:90;regeneration:0:15	гибрид nile_tilapia × mozambique_tilapia: бафы обоих, слабее и дольше, без дебафов
+nile_perch	strength:1:120;saturation:0:60	нильский окунь, двухметровый
+nile_tilapia	saturation:0:60;regeneration:0:10	тилапия
+northern_pike	strength:0:120;hunger:0:20	щука северная
+ocean_sunfish	slow_falling:0:90;nausea:0:15	луна-рыба: паразиты
+ocellate_river_stingray	resistance:0:60;poison:0:5	глазчатый хвостокол
+oscar	strength:0:60	оскар — характер
+paddlefish	health_boost:1:180;night_vision:0:60	веслонос — электрорецепторы на «весле»
+payara	strength:1:60;hunger:0:30	паяра, вампир
+peacock_bass	strength:1:90;hunger:0:30	павлиний — самый злой
+perch	night_vision:0:60	окунь
+pike	strength:0:90;hunger:0:20	щука
+pink_salmon	dolphins_grace:0:45;regeneration:0:15	горбуша
+piraiba	resistance:1:150;slowness:0:60	пираиба, амазонский гигант
+polka_dot_squeaker	saturation:0:15;glowing:0:10	синодонтис в горошек
+pollock	riverfishing:fish_oil:0:60;saturation:0:20	минтай
+pumpkinseed	haste:0:60	тыквенник
+rainbow_trout	jump_boost:0:90;regeneration:0:15	радужная
+ray	resistance:0:60;poison:0:5	скат
+red_drum	saturation:0:60;resistance:0:30	красный горбыль
+red_finned_mahseer	luck:0:90;saturation:0:30	махсир краснопёрый
+red_piranha	strength:0:45;hunger:0:30	пиранья
+redbreast_sunfish	haste:0:45	красногрудый
+redear_green_sunfish_hybrid	haste:0:112	гибрид redear_sunfish × green_sunfish: бафы обоих, слабее и дольше, без дебафов
+redear_sunfish	haste:0:75	красноухий, ест улиток
+redtail_catfish	resistance:0:120;slowness:0:30	краснохвостый
+reedfish	water_breathing:0:90;slow_falling:0:30	каламоихт, змея с лёгкими
+reticulate_knifefish	night_vision:0:60;glowing:0:20	сетчатая
+ripon_barbel	saturation:0:40;poison:0:5	усач Рипон, крупный африканец
+roach	regeneration:0:4	плотва: регенерация I на 4 с (по ТЗ)
+roach_rudd_hybrid	regeneration:0:9	гибрид roach × rudd: бафы обоих, слабее и дольше, без дебафов
+rock_bass	haste:0:45	каменный окунь
+rohu	saturation:0:60	роху — индийский столовый карп
+rohu_catla_hybrid	saturation:0:90	гибрид rohu × catla: бафы обоих, слабее и дольше, без дебафов
+rohu_kuria_labeo_hybrid	saturation:0:90	гибрид rohu × kuria_labeo: бафы обоих, слабее и дольше, без дебафов
+rotan	saturation:0:20;resistance:0:15	ротан — живучий
+round_goby	saturation:0:15	бычок-кругляк
+royal_featherback	night_vision:0:90;saturation:0:45	читала королевская
+rudd	regeneration:0:6	краснопёрка — чуть жирнее плотвы
+ruffe	night_vision:0:20;saturation:0:10	ёрш — ухи основа
+sabrefish	saturation:0:30	чехонь, вяленая классика
+saddled_bichir	water_breathing:0:90;regeneration:0:10	многопёр седлатый
+sailfish	speed:2:60;dolphins_grace:0:60	парусник — самая быстрая рыба
+saithe	riverfishing:fish_oil:0:75;saturation:0:20	сайда
+salmon	dolphins_grace:0:120;regeneration:0:40	сёмга
+salt_creek_pupfish	fire_resistance:0:45;unluck:0:60	пупфиш солёного ручья
+sauger	night_vision:0:90	сауджер
+saugeye	night_vision:0:225	гибрид sauger × walleye: бафы обоих, слабее и дольше, без дебафов
+sculpin	night_vision:0:20	подкаменщик, донный
+seabass	saturation:0:60;dolphins_grace:0:60	сибас
+semutundu	resistance:0:90;slowness:0:30	семутунду
+senegal_bichir	water_breathing:0:60;regeneration:0:10	многопёр сенегальский
+short_tailed_river_stingray	resistance:0:90;poison:0:5	короткохвостый хвостокол
+shovelnose_sturgeon	health_boost:0:120;absorption:0:120	лопатонос
+silver_carp	saturation:0:45;jump_boost:1:30	толстолобик прыгает из воды
+silver_catfish	resistance:0:60;slowness:0:30	серебряный сом
+six_banded_distichodus	saturation:0:30;glowing:0:10	дистиходус шестиполосый
+smallmouth_bass	strength:0:75;hunger:0:30	малоротый
+smallmouth_spotted_bass_hybrid	strength:0:112	гибрид smallmouth_bass × spotted_bass: бафы обоих, слабее и дольше, без дебафов
+smelt	speed:0:20;saturation:0:10	корюшка
+snook	speed:0:60;saturation:0:30	снук
+sockeye_salmon	dolphins_grace:0:90;regeneration:0:30;glowing:0:15	нерка — красная рыба во всех смыслах
+splake	jump_boost:0:90;regeneration:0:45;resistance:0:90	гибрид brook_trout × lake_trout: бафы обоих, слабее и дольше, без дебафов
+spotted_bass	strength:0:60;hunger:0:30	пятнистый
+spotted_gar	resistance:0:75;slowness:0:45	пятнистый
+spotted_seatrout	saturation:0:45;night_vision:0:30	пятнистая морская форель
+sterlet	health_boost:0:120;absorption:0:120	стерлядь, царская уха
+striped_bass	strength:0:120;speed:0:60	полосатый — морской боец
+sturgeon	health_boost:1:240;absorption:1:240	осётр
+swordfish	strength:1:120;speed:0:60	меч-рыба
+taimen	strength:1:120;dolphins_grace:0:120;hunger:0:30	таймень — речной тигр
+tambaqui	saturation:0:90;regeneration:0:15	тамбаки, ест орехи — жирный
+tapah_catfish	resistance:0:120;slowness:0:30	тапах
+tarpon	jump_boost:1:90;strength:0:60	тарпон, «серебряный король»
+tench	regeneration:0:20	линь: слизь считалась лечебной («рыба-доктор»)
+terek_barbel	saturation:0:25;poison:0:5	усач терский
+tiger_muskie	strength:0:180	гибрид muskellunge × northern_pike: бафы обоих, слабее и дольше, без дебафов
+tiger_shark	strength:1:120;hunger:1:30	тигровая
+tigerfish	strength:1:90;hunger:0:30	тигровая рыба
+trahira	strength:0:60;hunger:0:30	траира
+trout	jump_boost:0:90;regeneration:0:15	форель
+trout_cichlid	glowing:0:45;saturation:0:30	форелевая цихлида
+tubenose_goby	saturation:0:10	бычок-цуцик
+verkhovka	speed:0:8	верховка, ещё меньше
+vimba	saturation:0:30	рыбец, вяленый деликатес
+vistula_barbel	saturation:0:25;poison:0:5	усач вислинский
+volga_zander	night_vision:0:90	берш
+vundu_catfish	resistance:1:120;slowness:0:30	вунду
+wahoo	speed:1:90	ваху — спринтер
+walleye	night_vision:0:150	walleye, «стеклоглаз»
+warmouth	haste:0:45	уормаус
+west_african_lungfish	water_breathing:0:150;fire_resistance:0:45	протоптер западный
+whale_shark	health_boost:3:600;slowness:0:120;bad_omen:0:900	китовая акула — не надо
+white_bass	speed:0:60	белый лаврак, стайный бегун
+white_bream	saturation:0:20	густера, мелкая
+white_crappie	haste:0:60;saturation:0:30	белый крапи
+white_eye_bream	saturation:0:25	белоглазка
+white_sturgeon	health_boost:2:300;absorption:2:300	белый осётр
+whitefish	saturation:0:60;regeneration:0:15	сиг
+whitemargin_moray	water_breathing:0:90;poison:0:8	мурена белокрайняя
+wild_carp	saturation:0:60	дикий сазан — самый сытный из карпов
+wiper	speed:0:90;strength:0:180	гибрид white_bass × striped_bass: бафы обоих, слабее и дольше, без дебафов
+yellow_bass	speed:0:45	жёлтый лаврак
+yellow_perch	night_vision:0:60	жёлтый окунь
+yellowfin_tuna	speed:0:120;dolphins_grace:0:120	желтопёрый
+zander	night_vision:0:150	судак — глаз светится в темноте

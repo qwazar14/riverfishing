@@ -52,7 +52,9 @@ public final class BiteEngine {
             // way it rates any bait; a species that says nothing takes the family's generic affinity for it.
             Double own = p.baitScores.get("fly_" + c.tied.template().key);
             if (own != null) best = own;
-            else best *= c.tied.affinity(p.diet, p.group);   // §species-table: by what it eats
+            // §species-table: by what it eats. A rig with nothing else on it (a fly on a tippet) starts
+            // from 1, not 0 — scaling nothing by the affinity left the tied fly scoring zero everywhere.
+            else best = (best > 0 ? best : 1.0) * c.tied.affinity(p.diet, p.group);
         }
         return best;
     }
@@ -61,8 +63,11 @@ public final class BiteEngine {
     private static double hookScore(FishProfile p, BiteContext c) {
         if (c.hookSizes.isEmpty()) {
             // A predator lure's treble and a winter mormyshka carry their own hook — no separate hook slot.
+            // §fly-take: a tied fly on a tippet carries its hook the same way — without this line every
+            // species was "no_hook" on the fly rig and no fish ever took.
             return (c.rig == com.riverfishing.component.RigType.PREDATOR
-                    || c.rig == com.riverfishing.component.RigType.WINTER) ? 0.85 : 0.0;
+                    || c.rig == com.riverfishing.component.RigType.WINTER
+                    || c.rig == com.riverfishing.component.RigType.FLY) ? 0.85 : 0.0;
         }
         double best = 0.0;
         for (int size : c.hookSizes) {

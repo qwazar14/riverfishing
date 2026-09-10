@@ -1,0 +1,81 @@
+{
+	"texture_size": [32, 32],
+	"textures": {
+		"1": "riverfishing:item/rod/blank_fly_3d",
+		"particle": "riverfishing:item/rod/blank_fly_3d"
+	},
+	"elements": [
+		{
+			"name": "blank_1",
+			"from": [10.825, 9.897, 7.897],
+			"to": [19.2, 11.103, 9.103],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [19.125, 10.5, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [0, 0, 12, 3],
+					"texture": "#1"
+				},
+				"east": {
+					"uv": [0, 12, 2.5, 14.5],
+					"texture": "#1"
+				},
+				"south": {
+					"uv": [0, 0, 12, 3],
+					"texture": "#1"
+				},
+				"west": {
+					"uv": [0, 12, 2.5, 14.5],
+					"texture": "#1"
+				},
+				"up": {
+					"uv": [0, 0, 12, 3],
+					"texture": "#1"
+				},
+				"down": {
+					"uv": [0, 0, 12, 3],
+					"texture": "#1"
+				}
+			}
+		},
+		{
+			"name": "guide_1",
+			"from": [10.875, 8.318, 7.87],
+			"to": [11.075, 9.978, 9.13],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [11.075, 11.15, 8.5]
+			},
+			"faces": {
+				"north": {
+					"uv": [6, 12, 6.5, 15.5],
+					"texture": "#1"
+				},
+				"east": {
+					"uv": [10, 4, 12.5, 7.5],
+					"texture": "#1"
+				},
+				"south": {
+					"uv": [8, 12, 8.5, 15.5],
+					"texture": "#1"
+				},
+				"west": {
+					"uv": [10, 4, 12.5, 7.5],
+					"texture": "#1"
+				},
+				"up": {
+					"uv": [10.5, 14.5, 10, 12],
+					"texture": "#1"
+				},
+				"down": {
+					"uv": [12.5, 12, 12, 14.5],
+					"texture": "#1"
+				}
+			}
+		}
+	]
+}

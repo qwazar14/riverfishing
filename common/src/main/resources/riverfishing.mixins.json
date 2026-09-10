@@ -6,7 +6,9 @@
   "mixins": [
     "ItemEntityMixin",
     "VillagerTradePoolMixin",
-    "VillagerRepriceMixin"
+    "VillagerRepriceMixin",
+    "FlowFluidMixin",
+    "FurnaceCookFishMixin"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -14,6 +16,7 @@
   "client": [
     "MerchantOrderPanelMixin",
     "FightEdgeGuardMixin",
-    "TooltipFrameMixin"
+    "TooltipFrameMixin",
+    "RopeInputMixin"
   ]
 }

@@ -62,6 +62,8 @@ import net.minecraft.world.phys.HitResult;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.UUID;
 
 /**
@@ -84,6 +86,12 @@ public final class FishingManager {
     private static final Map<UUID, Integer> ACTIVE_CAST_COUNT = new HashMap<>();
     private static final double CAST_REACH = 32.0;
     private static final double MAX_SESSION_DISTANCE = 40.0;
+    /**
+     * §jig-4: the winter wait, cast to take. Four seconds at best — what a clean combo buys — and forty
+     * at worst, for a line that is simply hanging there. Every writer of an ice bite clock stays inside
+     * these two, measured from {@link FishingSession#castTick}.
+     */
+    private static final long ICE_WAIT_MIN = 80, ICE_WAIT_MAX = 800;
     private static final double ROD_BREAK_RATIO = 2.5; // rig mass > rodMax * this -> the blank snaps (#5)
     private static final double FOUL_CHANCE = 0.01;     // §9: 1% per spinning retrieve to foul-hook (× config)
     /**
@@ -425,13 +433,33 @@ public final class FishingManager {
         return startCast(sp, level, hand, level.getGameTime(), Mth.clamp(power, 0.05f, 1.0f));
     }
 
-    /** §jig-2: the left click while the winter rod jigs — the accent, if it landed on a stop. */
+    /**
+     * §jig-2: the left click while the winter rod jigs — the accent, if it landed on a stop.
+     *
+     * <p>§jig-3: and the miss, if it did not. An off-beat click throws the whole combo away and pushes
+     * the fish off the mormyshka — the rhythm is the game now, so playing it badly has to cost. Either
+     * way the arm swings: the jerk is a stroke of the rod, and it should look like one.
+     */
     public static void jigBeat(ServerPlayer sp) {
         ServerLevel level = sp.serverLevel();
         long now = level.getGameTime();
         FishingSession s = SESSIONS.get(sp.getUUID());
-        if (s != null && s.iceFishing && !s.bitten && !s.fighting && JigRhythm.jigAccent(sp, now)) {
+        if (s == null || !s.iceFishing || s.bitten || s.fighting) return;
+        int beat = JigRhythm.jigAccent(sp, now);
+        if (beat == JigRhythm.IGNORED) return;
+        sp.swing(s.hand, true);   // §jig-swing: broadcast to self as well — the angler sees their own jerk
+        if (beat == JigRhythm.ACCENT) {
             iceStroke(sp, level, s, now, true);
+        } else {
+            // §jig-3: the fish spooks off the bait. Two seconds of wait back on the clock, no further
+            // than that — the lost combo is the real punishment, this is only the flinch.
+            // §jig-4: two seconds back on the clock — but never past the forty the cast promised, and
+            // never on a take that is already due (the old line took the max WITH now, so an off-beat
+            // click could cancel a fish that had already decided to eat).
+            if (s.biteAtTick > now) s.biteAtTick = Math.min(s.biteAtTick + 40, s.castTick + ICE_WAIT_MAX);
+            level.playSound(null, s.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.5f, 0.5f);
+            level.sendParticles(ParticleTypes.BUBBLE, s.target.getX() + 0.5, s.target.getY() + 1.0,
+                    s.target.getZ() + 0.5, 8, 0.25, 0.05, 0.25, 0.05);
         }
     }
 
@@ -449,6 +477,149 @@ public final class FishingManager {
     }
 
     private static boolean startCast(ServerPlayer sp, ServerLevel level, InteractionHand hand, long now, double power) {
+        return startCast(sp, level, hand, now, power, null);
+    }
+
+    /**
+     * §fly-take: the fly's session. The client simulates the line and tells the server where the fly
+     * sits; a session starts when it has rested on water a moment, its target follows the fly, and
+     * lifting the fly off the water ends it — every drift is a cast. Nothing is printed: the take is
+     * the line, the strike is the rod, the fight is the fight.
+     */
+    private static final Map<UUID, Integer> FLY_RESTED = new HashMap<>();
+    /** §fly-cast: the client saw the fly FLY to where it landed — only such a landing can start a session. */
+    private static final Set<UUID> FLY_CAST = new HashSet<>();
+    private static final Map<UUID, Integer> FLY_DRY = new HashMap<>();
+
+    /**
+     * §lie-memory: a lie is a 4×4 patch of water and it remembers being fished. Every landing on it
+     * takes a little off its interest; a fish caught out of it, or a fright, takes half; and it rests
+     * back — past one, to a rested lie's bonus — over a few minutes left alone. The bite clock of a
+     * fly session is divided by it: the first drift over a rested seam is the best drift, and the
+     * twentieth over the same yard is a long wait. Nothing is printed; the water simply goes quiet.
+     */
+    private static final class Lie { double interest = 1.0; long last; }
+    private static final Map<Long, Lie> LIES = new java.util.LinkedHashMap<>(512, 0.75f, true) {
+        @Override protected boolean removeEldestEntry(Map.Entry<Long, Lie> e) { return size() > 4096; }
+    };
+    private static final double LIE_MAX = 1.3, LIE_MIN = 0.4, LIE_REST_PER_SEC = 0.0025;   // 0.4 -> 1.3 in six minutes
+
+    private static long lieKey(BlockPos p) { return ((long) (p.getX() >> 2) << 32) ^ ((p.getZ() >> 2) & 0xffffffffL); }
+
+    private static Lie lie(BlockPos p, long now) {
+        Lie l = LIES.computeIfAbsent(lieKey(p), k -> { Lie n = new Lie(); n.last = now; n.interest = LIE_MAX; return n; });
+        l.interest = Math.min(LIE_MAX, l.interest + (now - l.last) / 20.0 * LIE_REST_PER_SEC);
+        l.last = now;
+        return l;
+    }
+
+    /** The lie's interest, 0.4 (hammered) to 1.3 (rested). */
+    static double lieInterest(BlockPos p, long now) { return lie(p, now).interest; }
+
+    /** A landing on the lie: they have seen it now. */
+    static void lieFished(BlockPos p, long now) { Lie l = lie(p, now); l.interest = Math.max(LIE_MIN, l.interest * 0.85); }
+
+    /** A fish taken out, or a fright: the lie goes quiet. */
+    static void lieDisturbed(BlockPos p, long now) { Lie l = lie(p, now); l.interest = Math.max(LIE_MIN, l.interest * 0.5); }
+
+    public static void flyUpdate(ServerPlayer sp, InteractionHand hand, double x, double y, double z, int flags, float presentation,
+                                 float landSpeed) {
+        ServerLevel level = sp.serverLevel();
+        long now = level.getGameTime();
+        // §fly-splash: the fly hitting the water is the one disturbance that reaches the fish out there.
+        // A fly laid down under 1.5 m/s is a fallen insect and disturbs nothing; a fly slapped down at
+        // 8 puts the spot off the way a lure's slap does. Same tracker, same decay, same quiet.
+        if (landSpeed > 1.5f) {
+            BlockPos landed = BlockPos.containing(x, y, z);
+            if (!level.getFluidState(landed).isEmpty()) {
+                SpookTracker.onCastLanded(level, landed, Mth.clamp((landSpeed - 1.5) / 6.5, 0.0, 1.0) * 0.30);
+            }
+        }
+        boolean active = (flags & com.riverfishing.network.FlyPacket.ACTIVE) != 0;
+        boolean onWater = (flags & com.riverfishing.network.FlyPacket.ON_WATER) != 0;
+        boolean strike = (flags & com.riverfishing.network.FlyPacket.STRIKE) != 0;
+        boolean strip = (flags & com.riverfishing.network.FlyPacket.STRIP) != 0;
+        if ((flags & com.riverfishing.network.FlyPacket.CAST) != 0) {
+            FLY_CAST.add(sp.getUUID());
+            BlockPos landed = BlockPos.containing(x, y, z);
+            if (!level.getFluidState(landed).isEmpty()) {
+                lieFished(landed, now);   // §lie-memory: every landing is a drift they have seen
+                // §lining: the line came down over the lie before the fly did — the one thing a fish
+                // will not forgive; the lie is frightened the way a slapped lure frightens it.
+                if ((flags & com.riverfishing.network.FlyPacket.LINED) != 0) {
+                    SpookTracker.onCastLanded(level, landed, 0.25);
+                    lieDisturbed(landed, now);
+                }
+            }
+        }
+        FishingSession session = SESSIONS.get(sp.getUUID());
+        if (!active) {
+            FLY_RESTED.remove(sp.getUUID());
+            FLY_CAST.remove(sp.getUUID());
+            FLY_DRY.remove(sp.getUUID());
+            if (session != null && session.fly && !session.fighting) endSession(sp, session);
+            return;
+        }
+        BlockPos at = BlockPos.containing(x, y, z);
+        if (session == null) {
+            // §fly-cast: a fly that was dropped, dangled or skipped into the water is not fishing —
+            // it has to have been CAST there, and the client says so once per landing that flew.
+            if (!FLY_CAST.contains(sp.getUUID())) {
+                FLY_RESTED.remove(sp.getUUID());
+                return;
+            }
+            int rested = onWater && !level.getFluidState(at).isEmpty() ? FLY_RESTED.merge(sp.getUUID(), 1, Integer::sum) : 0;
+            if (rested == 0) FLY_RESTED.remove(sp.getUUID());
+            // Three updates on the water (about half a second) — a fly that only touched is not
+            // fishing; and then again every eight seconds the fly keeps sitting there, because the
+            // first roll can come up empty and a drift is not over until the line is lifted.
+            if (rested == 3 || (rested > 3 && rested % 40 == 3)) {
+                if (startCast(sp, level, hand, now, 0.5, at)) {
+                    FLY_CAST.remove(sp.getUUID());   // this cast is spent; the next session wants the next cast
+                    FLY_DRY.remove(sp.getUUID());
+                } else {
+                    String missing = RodData.missingKey(sp.getItemInHand(hand));
+                    com.riverfishing.RiverFishing.LOGGER.info("fly: no session at {} for {} - rod {}",
+                            at, sp.getName().getString(), missing == null ? "assembled, no bite rolled" : missing);
+                }
+            }
+            return;
+        }
+        if (!session.fly) return;
+        if (session.fighting) {
+            if (strip) reelPulse(sp, level, session);   // a strip is a turn of the reel
+            return;
+        }
+        if (!session.bitten) {
+            if (!onWater) {
+                // Off the water. A strip can skip the fly clear for a moment — that is the same drift;
+                // a real lift (a second and a half dry) is the end of it, and the next landing has to
+                // be cast.
+                int dry = FLY_DRY.merge(sp.getUUID(), 1, Integer::sum);
+                if (dry >= 8) {
+                    FLY_RESTED.remove(sp.getUUID());
+                    FLY_DRY.remove(sp.getUUID());
+                    FLY_CAST.remove(sp.getUUID());
+                    endSession(sp, session);
+                }
+                return;
+            }
+            FLY_DRY.remove(sp.getUUID());
+            if (!level.getFluidState(at).isEmpty()) session.target = at;
+            // §technique: every update is four ticks of drift; a fly fished the way it is fished gains
+            // four more on the bite clock (it runs double), one fished wrong loses them (it stands
+            // still), and in between the clock just ticks. Never a word — the take comes or does not.
+            if (session.biteAtTick > now) {
+                session.biteAtTick -= Math.round((Mth.clamp(presentation, 0f, 1f) - 0.5f) * 8f);
+            }
+            return;
+        }
+        if (strike && now <= session.biteWindowEnd) hookUp(sp, level, session, now);
+    }
+
+    private static boolean startCast(ServerPlayer sp, ServerLevel level, InteractionHand hand, long now, double power,
+                                     BlockPos flyAt) {
+        boolean quiet = flyAt != null;   // §fly-take: the fly rod says nothing
         ItemStack rod = sp.getItemInHand(hand);
         if (!RodData.isAssembled(rod)) {
             actionbar(sp, Component.translatable(RodData.missingKey(rod)).withStyle(ChatFormatting.RED));
@@ -482,16 +653,21 @@ public final class FishingManager {
             underloaded = true;
             actionbar(sp, Component.translatable("message.riverfishing.rod_underloaded").withStyle(ChatFormatting.YELLOW));
         }
-        double throwDist = castDistance(rod, power);
-        net.minecraft.world.phys.Vec3 look = sp.getLookAngle();
-        double hl = Math.sqrt(look.x * look.x + look.z * look.z);
-        if (hl < 1e-3) {
-            actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
-            return false;
+        BlockPos waterPos;
+        if (flyAt != null) {
+            waterPos = level.getFluidState(flyAt).isEmpty() ? null : flyAt;
+        } else {
+            double throwDist = castDistance(rod, power);
+            net.minecraft.world.phys.Vec3 look = sp.getLookAngle();
+            double hl = Math.sqrt(look.x * look.x + look.z * look.z);
+            if (hl < 1e-3) {
+                actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
+                return false;
+            }
+            double px = sp.getX() + (look.x / hl) * throwDist;
+            double pz = sp.getZ() + (look.z / hl) * throwDist;
+            waterPos = findWaterColumn(level, px, sp.getEyeY() + 2.0, pz);
         }
-        double px = sp.getX() + (look.x / hl) * throwDist;
-        double pz = sp.getZ() + (look.z / hl) * throwDist;
-        BlockPos waterPos = findWaterColumn(level, px, sp.getEyeY() + 2.0, pz);
         if (waterPos == null) {
             actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
             return false;
@@ -558,8 +734,10 @@ public final class FishingManager {
         RandomSource random = level.getRandom();
         BiteEngine.Outcome outcome = BiteEngine.evaluate(FishProfileManager.get().all(), ctx, random);
         if (!outcome.willBite()) {
-            noBitesHint(sp, ctx);
-            GuideNudge.failure(sp, ctx.rod.rodClass(), GuideNudge.NO_BITES);
+            if (!quiet) {
+                noBitesHint(sp, ctx);
+                GuideNudge.failure(sp, ctx.rod.rodClass(), GuideNudge.NO_BITES);
+            }
             return false;
         }
 
@@ -608,11 +786,11 @@ public final class FishingManager {
         double spotWait = spot == null ? 1.0 : 1.0 / SoundingData.SPOT_BONUS;
         long delay = (long) (outcome.ticksToBite / Math.max(0.1, depletion)
                 * AnglerSkills.biteSpeedMult(sp) * underloadWait * spotWait);
-        if (spot != null) {
+        if (spot != null && !quiet) {
             actionbar(sp, Component.translatable("message.riverfishing.on_spot",
                     Component.translatable("spot.riverfishing." + spot)).withStyle(ChatFormatting.AQUA));
         }
-        if (depletion < 0.4) {
+        if (depletion < 0.4 && !quiet) {
             actionbar(sp, Component.translatable("message.riverfishing.depleted").withStyle(ChatFormatting.GRAY));
         }
 
@@ -638,13 +816,15 @@ public final class FishingManager {
         }
         // §honest-tail: a barely-matching setup no longer silently capped at two minutes — the wait is
         // real now, and the player is TOLD the water is dour so they change something instead of camping.
-        if (delay > 2400) {
+        if (delay > 2400 && !quiet) {
             actionbar(sp, Component.translatable("message.riverfishing.sluggish").withStyle(ChatFormatting.GRAY));
         }
 
         // ACTIVE rods only "bite" while being retrieved, so their clock starts on the first retrieve tick.
+        if (quiet) delay = (long) (delay / lieInterest(waterPos, now));   // §lie-memory: a rested lie bites first
         long biteAt = (rodClass == RodClass.ACTIVE) ? -1 : now + delay;
         FishingSession session = new FishingSession(hand, waterPos, rodClass, delay, biteAt, species);
+        session.fly = quiet;         // §fly-take
         session.variety = variety;   // §scale-genes
         // Worn line keeps less of its strain; a dull hook is read from the rig (§3.8).
         int lineWear = WearData.get(RodData.get(rod, ComponentSlot.LINE));
@@ -688,8 +868,8 @@ public final class FishingManager {
         session.rodStackRef = rod;
         session.rodSlot = session.hand == InteractionHand.MAIN_HAND
                 ? sp.getInventory().selected : -1;
-        session.floatKind = floatKind(session.rodClass, session.iceFishing,
-                RodData.get(rod, ComponentSlot.RIG));
+        session.floatKind = quiet ? 0 : floatKind(session.rodClass, session.iceFishing,
+                RodData.get(rod, ComponentSlot.RIG));   // §fly-take: the fly IS the float
         // §live-conditions: keep the snapshot + current speed so the waiting line can re-read the world.
         session.ctx = ctx;
         session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
@@ -706,10 +886,12 @@ public final class FishingManager {
         int whole = (int) castWear;
         if (level.getRandom().nextDouble() < castWear - whole) whole++;
         addLineWear(rod, whole);
-        playCast(level, waterPos, rodClass);
-        // §cast-anim: the casting swing — moves the arm + rod for every observer, and drives the local
-        // player's first-person rod whip (RodItemRenderer reads the swing progress).
-        sp.swing(hand, true);
+        if (!quiet) {   // §fly-take: the fly landed by itself — no splash sound, no arm jerk, no line
+            playCast(level, waterPos, rodClass);
+            // §cast-anim: the casting swing — moves the arm + rod for every observer, and drives the local
+            // player's first-person rod whip (RodItemRenderer reads the swing progress).
+            sp.swing(hand, true);
+        }
         // §spin-harder (2): actively working a lure burns hunger — 1 whole food point every 4 casts.
         if (rodClass == RodClass.ACTIVE) {
             int n = ACTIVE_CAST_COUNT.merge(sp.getUUID(), 1, Integer::sum);
@@ -718,7 +900,9 @@ public final class FishingManager {
                 food.setFoodLevel(Math.max(0, food.getFoodLevel() - 1));
             }
         }
-        if (frenzy) {
+        if (quiet) {
+            // nothing said
+        } else if (frenzy) {
             actionbar(sp, Component.translatable("message.riverfishing.cast_frenzy").withStyle(ChatFormatting.AQUA));
         } else {
             actionbar(sp, Component.translatable(rodClass == RodClass.ACTIVE
@@ -774,11 +958,14 @@ public final class FishingManager {
         long chunkKey = new ChunkPos(waterPos).toLong();
         double depletion = pressure.attractiveness(chunkKey, now, spawnRegen(level));
         // A patient winter wait — jigging the mormyshka in a steady rhythm is what pulls the bite in.
-        long delay = (long) Mth.clamp(outcome.ticksToBite / Math.max(0.1, depletion) * AnglerSkills.biteSpeedMult(sp), 200, 3200);   // §bite-spread: 160 s, was 120
+        // §jig-4: 4–40 s, was 10–160 s. Under the ice the wait is not a wait — it is the rhythm game,
+        // and a game that can last two and a half minutes before anything happens is not one.
+        long delay = (long) Mth.clamp(outcome.ticksToBite / Math.max(0.1, depletion) * AnglerSkills.biteSpeedMult(sp), ICE_WAIT_MIN, ICE_WAIT_MAX);
 
         FishingSession session = new FishingSession(hand, waterPos, RodClass.FLOAT, delay, now + delay, species);
         session.variety = variety;   // §scale-genes
         session.iceFishing = true;
+        session.castTick = now;   // §jig-4: what the bite clock's floor and ceiling are measured from
         int lineWear = WearData.get(RodData.get(rod, ComponentSlot.LINE));
         session.lineStrainKg = ctx.lineType.breakingStrainKg(ctx.lineDiameterMm) * WearData.lineStrainMultiplier(lineWear);
         session.reelSize = 0;
@@ -820,9 +1007,19 @@ public final class FishingManager {
     private static void iceStroke(ServerPlayer sp, ServerLevel level, FishingSession session, long now, boolean accent) {
         int combo = JigRhythm.jigCombo(sp);
         if (accent) session.jigBest = Math.max(session.jigBest, combo);   // §progression
-        session.lastJigTick = now;
         if (session.biteAtTick > now) {
-            session.biteAtTick = Math.max(now + 10, session.biteAtTick - (accent ? 20 + 6L * combo : 8 + 2L * combo));
+            // §jig-3: the combo runs as long as the player can hold it, so the PULL it buys is capped —
+            // an accent is worth at most four seconds off the wait, however deep the run goes.
+            //
+            // §jig-4: and the floor is measured from the CAST, not from now. Floored at `now + 10` it was a
+            // treadmill: a stroke lands every 8 ticks and ran earlier in the same tick than the bite test,
+            // so each stroke re-pinned the deadline 10 ticks ahead and the remaining wait just oscillated
+            // between 10 and 3 without ever reaching zero. The take could only land after the strokes
+            // stopped — which is to say when the player let go — and, pinned, every accent pushed it
+            // BACK by up to 7 ticks. From the cast the floor cannot move, so the pull is only ever a pull.
+            long deep = Math.min(combo, 10);
+            session.biteAtTick = Math.max(session.castTick + ICE_WAIT_MIN,
+                    session.biteAtTick - (accent ? 20 + 6L * deep : 8 + 2L * deep));
         }
         level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS,
                 accent ? 0.4f : 0.22f, accent ? 1.3f + 0.06f * combo : 1.0f);
@@ -849,7 +1046,9 @@ public final class FishingManager {
         JigRhythm.cancel(sp);
         session.jigStroke = -1;
         long now = sp.serverLevel().getGameTime();
-        if (session.biteAtTick > now) session.biteAtTick = Math.max(now + 10, session.biteAtTick - 10);
+        if (session.biteAtTick > now) {
+            session.biteAtTick = Math.max(session.castTick + ICE_WAIT_MIN, session.biteAtTick - 10);   // §jig-4
+        }
     }
 
     /**
@@ -1057,7 +1256,10 @@ public final class FishingManager {
             return;
         }
 
-        if (now >= session.biteAtTick && !spooked(level, session, now)) {
+        if (now >= session.biteAtTick && BiteStagger.tooSoon(BiteStagger.key(sp.getUUID()), now)) {
+            session.biteAtTick = now + BiteStagger.push(level.getRandom());   // §bite-stagger
+        } else if (now >= session.biteAtTick && !spooked(level, session, now)) {
+            BiteStagger.mark(BiteStagger.key(sp.getUUID()), now);
             session.bitten = true;
             // §strike-qte (2.4): the take fires a hook-set runner — stop it in the zone (release the retrieve,
             // or click) to set the hook. Deliberately EASY (imitating a подсечка, not a reaction test): slow
@@ -1466,8 +1668,16 @@ public final class FishingManager {
             // so sitting out a long bottom wait responds to the world exactly like a fresh cast would.
             if (session.ctx != null && session.biteAtTick > now && now % 300 == 0) {
                 reEvaluate(level, session, now);
+                // §jig-4: the re-read can park a dead-water line at now + 999_999 or add a fresh sample;
+                // under the ice the forty seconds are a promise, so it is clamped back into them.
+                if (session.iceFishing) {
+                    session.biteAtTick = Math.min(session.biteAtTick, session.castTick + ICE_WAIT_MAX);
+                }
             }
-            if (now >= session.biteAtTick && !spooked(level, session, now)) {
+            if (now >= session.biteAtTick && BiteStagger.tooSoon(BiteStagger.key(sp.getUUID()), now)) {
+                session.biteAtTick = now + BiteStagger.push(level.getRandom());   // §bite-stagger
+            } else if (now >= session.biteAtTick && !spooked(level, session, now)) {
+                BiteStagger.mark(BiteStagger.key(sp.getUUID()), now);
                 session.bitten = true;
                 if (session.iceFishing) JigRhythm.cancel(sp);   // §ice-rhythm: the strike bar takes the needle's place
                 session.biteWindowEnd = now + Math.round(biteWindow(session.rodClass)
@@ -1478,10 +1688,17 @@ public final class FishingManager {
                 // that's the whole cue; spotting it is the game.
                 ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target, 0f,
                         session.lineColor, session.floatKind, true));
+                // §jig-3: under the ice there is no подсечка to make. The rhythm WAS the game — asking for
+                // a second piece of timing at the end of it only meant losing, at the last moment, the
+                // fish the run had earned. The mormyshka sets its own hook and the fight begins.
+                if (session.iceFishing) {
+                    hookUp(sp, level, session, now);
+                    return;
+                }
                 // Only ONE QTE per catch (§pull-qte): reel-less rods save their timing for the
                 // pull-out, so their strike is a plain click; reeled float rods keep the strike QTE.
-                if (session.rodClass == RodClass.FLOAT && session.reelSize > 0) {
-                    startFloatTiming(sp, session, now);
+                if (session.rodClass == RodClass.FLOAT && session.reelSize > 0 && !session.fly) {
+                    startFloatTiming(sp, session, now);   // §fly-take: the fly rod has no bar — the line tells
                 }
             } else if (now % 20 == 0) {
                 level.sendParticles(ParticleTypes.FISHING,
@@ -1503,9 +1720,12 @@ public final class FishingManager {
             }
         } else if (now > session.biteWindowEnd) {
             eatBait(sp, session);   // §consumables: it had the bait — you just did not set the hook
+            boolean fly = session.fly;
             endSession(sp, session);
-            actionbar(sp, Component.translatable("message.riverfishing.missed").withStyle(ChatFormatting.GRAY));
-            GuideNudge.failure(sp, session.rodClass, GuideNudge.MISSED);
+            if (!fly) {   // §fly-take: it spat the fly; the line going slack is the whole message
+                actionbar(sp, Component.translatable("message.riverfishing.missed").withStyle(ChatFormatting.GRAY));
+                GuideNudge.failure(sp, session.rodClass, GuideNudge.MISSED);
+            }
         }
     }
 
@@ -1680,7 +1900,11 @@ public final class FishingManager {
     }
 
     private static void hookUp(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
-        sp.stopUsingItem(); // stop any retrieve animation
+        // §jig-4: NOT under the ice. The winter take now lands while the jig hold is still down, and
+        // ending the use server-side while the button is physically held makes vanilla re-enter
+        // Item#use every four ticks — five reel pulses a second into a fight nobody asked to crank.
+        // Left "in use", the hold is inert (the jig branch needs !fighting) until the player lets go.
+        if (!session.iceFishing) sp.stopUsingItem(); // stop any retrieve animation
         clearFloatTiming(sp); // hide the timing HUD if it was up
         FishProfile profile = FishProfileManager.get().byId(session.species);
         if (profile == null) {
@@ -1947,7 +2171,7 @@ public final class FishingManager {
         // Reel-less pole (§pull-qte): after the strike comes THE one and only timing — the pull-out.
         // The heavier the hooked fish, the faster the sweep and the narrower the zone; the ROD TIER
         // softens the curve: a stick can never realistically land a trophy, a true pole can.
-        if (session.rodClass == RodClass.FLOAT && session.reelSize == 0) {
+        if (pullOutRod(session)) {
             double wKg = session.weightG / 1000.0;
             if (wKg * 1.4 > Math.max(0.4, session.lineStrainKg)) {
                 breakLine(sp, level, session, false);
@@ -1995,6 +2219,21 @@ public final class FishingManager {
     }
 
     /**
+     * §pull-qte: whose fight IS the pull-out timing — a float rod with no reel, played by lifting the
+     * fish out on one swing of the marker.
+     *
+     * <p>§jig-3: never the winter rod. It is reel-less too, so it was quietly inheriting the pole's
+     * timing bar, and the whole point of the jig rework is that the rhythm is the game: the fish took
+     * because the mormyshka was worked well, and being asked to stop, let go of the hold and hit a
+     * second window to keep it threw that away at the last moment. Under the ice the take goes straight
+     * into the ordinary fight, which a reel-less line already knows how to run (it is the hand-line
+     * case in {@code hookUp}: sensitive, no drag relief, line given back slowly).
+     */
+    private static boolean pullOutRod(FishingSession session) {
+        return session.rodClass == RodClass.FLOAT && session.reelSize == 0 && !session.iceFishing;
+    }
+
+    /**
      * §bycatch-intrigue: the boot/treasure doesn't surface instantly — it hangs on the line as a
      * short HEAVY pull (~1–2 s of reeling, one dead-weight tug at the start), indistinguishable from
      * a big lazy fish until it breaks the surface. The line can't snap on it.
@@ -2006,7 +2245,7 @@ public final class FishingManager {
 
         // §bycatch-intrigue on a pole: a reel-less float rod has no tension fight — it uses the
         // float pull-out timing, exactly like a hooked fish, so junk feels the same until it surfaces.
-        if (session.rodClass == RodClass.FLOAT && session.reelSize == 0) {
+        if (pullOutRod(session)) {
             session.fighting = true;
             session.pullMode = true;
             session.floatPeriod = 24;            // dead weight, easy-ish sweep
@@ -2478,12 +2717,20 @@ public final class FishingManager {
                         SoundSource.PLAYERS, 0.7f, 0.8f);
             }
         }
-        if ("greyhounding".equals(session.fightPattern) && session.runTicksLeft == 0
+        // §candle: the tail-walk. It belonged to the billfish alone, and it belongs to everything
+        // now — any hooked fish can come straight up out of the water, rarely; a predator does it
+        // several times as often, which is what a pike or an asp actually does on the hook. Same
+        // window and same rule as the greyhounder's breach: slack off, or the crank throws the hook.
+        // A flatfish or a ray cannot stand on a tail it does not have.
+        double candleOdds = "greyhounding".equals(session.fightPattern) ? 0.008
+                : session.predator ? 0.003 : 0.0008;
+        if (session.species != null && com.riverfishing.fish.FishPose.isFlat(session.species.getPath())) candleOdds = 0;
+        if (session.runTicksLeft == 0
                 && now >= session.jumpWindowEnd && session.landProgress > 0.05
                 // §jump-pace: a breach every ~4 s of a long fight was not drama, it was a
                 // metronome the player could only lose to. Rarer, and rarer still as the
                 // fish tires - so a fight that is being won visibly calms down.
-                && random.nextDouble() < 0.008 * (1.0 - 0.75 * session.fatigue)) {
+                && random.nextDouble() < candleOdds * (1.0 - 0.75 * session.fatigue)) {
             // The jump: a full-body breach — SLACK OFF for the window or the hook rips out (reelPulse).
             session.jumpWindowEnd = now + 15;
             level.playSound(null, session.target, SoundEvents.DOLPHIN_JUMP, SoundSource.PLAYERS, 1.0f, 0.8f);
@@ -2702,6 +2949,7 @@ public final class FishingManager {
     }
 
     private static void landFish(ServerPlayer sp, ServerLevel level, FishingSession session) {
+        if (session.fly) lieDisturbed(session.target, level.getGameTime());   // §lie-memory: one out, the rest go quiet
         // The "fish" was a boot or a find all along (§bycatch-intrigue) — reveal it now.
         if (session.bycatch != 0) {
             landBycatch(sp, level, session, session.bycatch == 2);

@@ -12,6 +12,8 @@ public class FishingSession {
     public final InteractionHand hand;
     /** §trolling: mutable — a trolled lure TRAILS the boat (the target follows ~14 blocks astern). */
     public BlockPos target;
+    /** §fly-take: a fly-rod session — the target follows the fly, no float timing, no words. */
+    public boolean fly;
     /** §live-conditions: re-picked from the fresh weights while the line waits (a koi stays sticky). */
     public ResourceLocation species;
     /**
@@ -70,7 +72,13 @@ public class FishingSession {
     public boolean iceFishing;
     public int jigBest;        // §progression: the best jig combo of this session
     public int jigStroke = -1; // §jig-2: the last stroke the held rod made on its own
-    public long lastJigTick;
+    /**
+     * §jig-4: game-time the ice line went down. The winter bite clock's floor and ceiling are measured
+     * from HERE and never from {@code now} — a floor measured from now walks forward with every jig
+     * stroke, which is exactly how the take became unreachable while the rod was being worked.
+     * (It replaces {@code lastJigTick}, which was written every stroke and read nowhere.)
+     */
+    public long castTick;
 
     // ---- bite window ----
     public boolean bitten;
