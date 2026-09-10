@@ -70,7 +70,7 @@ public final class Flow {
             }
             float[] v = CACHE.get(pos.asLong());
             if (v == null) {
-                v = compute(getter, biomes, pos);
+                v = compute(biomes, biomes, pos);   // never the render region: it spans one chunk + 1 and the shape is read 24 blocks out
                 CACHE.put(pos.asLong(), v);
             }
             return v;
