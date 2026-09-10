@@ -314,6 +314,30 @@ public final class FlyLineClient {
             case ANY -> 0.6;
         };
         presentation += (float) ((score - presentation) * 0.05);
+
+        // §drag-wake: a dry fly dragged across the current cuts a V — the one thing a fish sees from
+        // a bad drift, and the one thing the angler sees too. Two trails fan out behind the fly along
+        // where it is being pulled from, wider the faster it skates; a dead drift draws nothing.
+        if (onWater && depth < 0.15 && drag > 0.3
+                && com.riverfishing.tackle.TiedDesign.technique(template) == com.riverfishing.tackle.TiedDesign.Technique.SURFACE
+                && (tickNo & 1) == 0) {
+            double rvx = vx - flowAt[0], rvz = vz - flowAt[2];
+            double rl = Math.hypot(rvx, rvz);
+            double bx = -rvx / rl, bz = -rvz / rl;             // back along the pull
+            double px = -bz, pz = bx;                           // across it
+            double spread = Math.min(0.5, 0.12 + drag * 0.15);
+            double back = 0.25 + Math.min(0.6, drag * 0.3);
+            double sy = surf + 0.02;
+            for (int side = -1; side <= 1; side += 2) {
+                mc.level.addParticle(net.minecraft.core.particles.ParticleTypes.FISHING,
+                        fx + bx * back + px * spread * side, sy, fz + bz * back + pz * spread * side,
+                        flowAt[0] * 0.05, 0.0, flowAt[2] * 0.05);
+            }
+            if (drag > 0.8) {   // skating hard: a little spray at the fly itself
+                mc.level.addParticle(net.minecraft.core.particles.ParticleTypes.SPLASH, fx, sy, fz,
+                        (mc.level.random.nextDouble() - 0.5) * 0.1, 0.05, (mc.level.random.nextDouble() - 0.5) * 0.1);
+            }
+        }
         if (++syncTick >= 4 || strikeNow || stripNow || castNow || landSpeed > 1.5f) {
             syncTick = 0;
             int flags = com.riverfishing.network.FlyPacket.ACTIVE
