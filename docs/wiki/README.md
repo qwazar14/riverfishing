@@ -51,6 +51,7 @@ Nothing bites by luck. A data-driven bite engine weighs your whole setup against
 | [Fish in the water](shoal.md) | The shoals you can see before you cast: how many are shown, how clearly, and how they react to you |
 | [Ice fishing](ice-fishing.md) | Drilling, jigging, what bites under the ice |
 | [Sea fishing](sea-fishing.md) | The saltwater tier, ocean zones, trolling, big-game fights |
+| [Fly fishing](fly-fishing.md) | The rope of a line, the cast that is not scripted, the current, the lies that remember |
 | [Stocking](stocking.md) | Releasing fish, the residency model, settling, stock levels |
 | [Breeding](breeding.md) | The tank: slots, feeding, water, the clutch, roe and incubation, fry, the five modules, which species cross, the pond that grows itself |
 | [Genetics](genetics.md) | The four loci on every fish, the carp's scale genes and the lethal allele, the koi's colour loci and seventeen varieties, the pattern index and its gems, inheritance |

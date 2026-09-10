@@ -138,9 +138,10 @@ def species_data(profiles, roster, names_by_lang):
             "lvl": p.get("min_angler_level", 0),
             "season": p["season"], "time": p["time"], "weather": p["weather"],
             "bait": i["bait"],
-            "rod": i["rod"], "rig": i["rig"],
-            "reel": [i["reel_size"], i["reel_tolerance"]],
-            "line": [i["line"]["type"], i["line"]["diameter_mm"]],
+            # §species-table (0.10): rod/rig/reel/line were retired from the catch — the table may not say
+            "rod": i.get("rod", []), "rig": i.get("rig", []),
+            "reel": [i.get("reel_size", 0), i.get("reel_tolerance", 0)],
+            "line": [i.get("line", {}).get("type", "mono"), i.get("line", {}).get("diameter_mm", 0)],
             "hook": [i["hook"]["ideal"], i["hook"]["tolerance"]],
             "lead": bool(i.get("requires_leader")),
             "gb": [i["groundbait"]["fraction"], i["groundbait"]["nutrition"]] if isinstance(i.get("groundbait"), dict) else None,
