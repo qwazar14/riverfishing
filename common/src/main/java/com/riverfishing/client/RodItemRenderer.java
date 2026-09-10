@@ -413,7 +413,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             return;
         }
         if (FlyLineClient.active()) {   // §one-rope: the fly line continues off the tip in THIS pass
-            drawHandRope(stack, mc, buffers);
+            drawHandRope(stack, mc, pose, buffers);
             return;
         }
         ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
@@ -504,13 +504,15 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      * the very tip vertex the thread ended on. Same hand-space reading and the same ramped
      * projection correction as the water line, so there is no seam and no lag at the tip.
      */
-    private static void drawHandRope(ItemStack stack, Minecraft mc, MultiBufferSource buffers) {
+    private static void drawHandRope(ItemStack stack, Minecraft mc, PoseStack pose, MultiBufferSource buffers) {
         float pt = mc.getFrameTime();
         net.minecraft.world.phys.Vec3[] pts = FlyLineClient.renderPoints(pt);
         if (pts == null) return;
         var cam = mc.gameRenderer.getMainCamera();
         net.minecraft.world.phys.Vec3 cp = cam.getPosition();
-        org.joml.Quaternionf q = new org.joml.Quaternionf(cam.rotation());
+        // §1.20.1 §view-yaw: same half turn drawHandLine needs here — without it the physics tip
+        // is handed a mirrored world point and the rope answers the head upside down.
+        org.joml.Quaternionf q = new org.joml.Quaternionf(cam.rotation()).rotateY((float) Math.PI);
         double worldFov = mc.options.fov().get() * mc.player.getFieldOfViewModifier();
         float warp = (float) (Math.tan(Math.toRadians(70.0) / 2.0)
                 / Math.tan(Math.toRadians(worldFov) / 2.0));
@@ -528,7 +530,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         float dtx = tipV.x() - rootWarped.x(), dty = tipV.y() - rootWarped.y(), dtz = tipV.z() - rootWarped.z();
         FlyLineClient.handTip(tipW, cp);   // and next tick the physics hangs off THIS tip, at rod reach
 
-        org.joml.Matrix4f id = new org.joml.Matrix4f();
+        // §hand-line on 1.20.1: submit through the pass's own matrix (see drawHandLine).
+        org.joml.Matrix4f m = new org.joml.Matrix4f(pose.last().pose());
+        if (Math.abs(m.determinant()) < 1.0e-9f) return;
+        org.joml.Matrix4f toLocal = new org.joml.Matrix4f(m).invert();
         org.joml.Matrix3f nid = new org.joml.Matrix3f();
         int leaderFrom = FlyLineClient.leaderFrom();
         org.joml.Vector3f prev = tipV;
@@ -546,15 +551,18 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             float len = (float) Math.sqrt(sx * sx + sy * sy + sz * sz);
             if (len > 1.0e-5f) {
                 sx /= len; sy /= len; sz /= len;
-                vc.vertex(id, prev.x(), prev.y(), prev.z()).color(cr, cg, cb, alpha).normal(nid, sx, sy, sz).endVertex();
-                vc.vertex(id, p.x(), p.y(), p.z()).color(cr, cg, cb, alpha).normal(nid, sx, sy, sz).endVertex();
+                org.joml.Vector3f l0 = toLocal.transformPosition(new org.joml.Vector3f(prev));
+                org.joml.Vector3f l1 = toLocal.transformPosition(new org.joml.Vector3f(p));
+                vc.vertex(m, l0.x(), l0.y(), l0.z()).color(cr, cg, cb, alpha).normal(nid, sx, sy, sz).endVertex();
+                vc.vertex(m, l1.x(), l1.y(), l1.z()).color(cr, cg, cb, alpha).normal(nid, sx, sy, sz).endVertex();
             }
             prev = p;
         }
         // the fly: a dark speck on the end
-        org.joml.Vector3f fl = prev;
-        vc.vertex(id, fl.x(), fl.y() + 0.03f, fl.z()).color(30, 30, 30, 255).normal(nid, 0, 1, 0).endVertex();
-        vc.vertex(id, fl.x(), fl.y() - 0.03f, fl.z()).color(30, 30, 30, 255).normal(nid, 0, 1, 0).endVertex();
+        org.joml.Vector3f f0 = toLocal.transformPosition(new org.joml.Vector3f(prev.x(), prev.y() + 0.03f, prev.z()));
+        org.joml.Vector3f f1 = toLocal.transformPosition(new org.joml.Vector3f(prev.x(), prev.y() - 0.03f, prev.z()));
+        vc.vertex(m, f0.x(), f0.y(), f0.z()).color(30, 30, 30, 255).normal(nid, 0, 1, 0).endVertex();
+        vc.vertex(m, f1.x(), f1.y(), f1.z()).color(30, 30, 30, 255).normal(nid, 0, 1, 0).endVertex();
         handLineNanos = System.nanoTime();   // §tip-fresh: the world pass skips its copy
     }
 
