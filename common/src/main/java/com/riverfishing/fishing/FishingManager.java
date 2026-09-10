@@ -2946,6 +2946,7 @@ public final class FishingManager {
     }
 
     private static void landFish(ServerPlayer sp, ServerLevel level, FishingSession session) {
+        if (session.fly) lieDisturbed(session.target, level.getGameTime());   // §lie-memory: one out, the rest go quiet
         // The "fish" was a boot or a find all along (§bycatch-intrigue) — reveal it now.
         if (session.bycatch != 0) {
             landBycatch(sp, level, session, session.bycatch == 2);

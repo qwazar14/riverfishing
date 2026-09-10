@@ -257,6 +257,7 @@ public final class FlyLineClient {
         loadPrev = loadNow;
         boolean onWater = !Double.isNaN(WORLD.surfaceY(rope.x[last], rope.y[last], rope.z[last]));
         boolean castNow = false;
+        boolean linedNow = false;
         landSpeed = 0f;
         if (onWater && airTicks > 0) {
             // Touchdown: its speed over the last tick is the splash — a fallen insect or a slap.
@@ -278,6 +279,18 @@ public final class FlyLineClient {
             airReach = Math.max(airReach, Math.hypot(rope.x[last] - mc.player.getX(), rope.z[last] - mc.player.getZ()));
         } else {
             castNow = airTicks >= CAST_AIR_TICKS && airReach >= CAST_REACH;   // it flew out there
+            if (castNow) {
+                // §lining: the fly line (not the leader) lying within a block and a half of the fly
+                // means the line came down over the fish — a cast that landed on the lie, not past it.
+                int lf = leaderFrom();
+                for (int i = 1; i < lf; i++) {
+                    double ddx = rope.x[i] - rope.x[last], ddz = rope.z[i] - rope.z[last];
+                    if (ddx * ddx + ddz * ddz < 1.5 * 1.5 && !Double.isNaN(WORLD.surfaceY(rope.x[i], rope.y[i], rope.z[i]))) {
+                        linedNow = true;
+                        break;
+                    }
+                }
+            }
             airTicks = 0;
             airReach = 0;
         }
@@ -307,7 +320,8 @@ public final class FlyLineClient {
                     | (onWater ? com.riverfishing.network.FlyPacket.ON_WATER : 0)
                     | (strikeNow ? com.riverfishing.network.FlyPacket.STRIKE : 0)
                     | (stripNow ? com.riverfishing.network.FlyPacket.STRIP : 0)
-                    | (castNow ? com.riverfishing.network.FlyPacket.CAST : 0);
+                    | (castNow ? com.riverfishing.network.FlyPacket.CAST : 0)
+                    | (linedNow ? com.riverfishing.network.FlyPacket.LINED : 0);
             com.riverfishing.network.ModNetwork.toServer(new com.riverfishing.network.FlyPacket(
                     mc.player.getMainHandItem().getItem() instanceof RodItem,
                     rope.x[last], rope.y[last], rope.z[last], flags, presentation, landSpeed));
