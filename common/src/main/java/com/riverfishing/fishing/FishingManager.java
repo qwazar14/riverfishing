@@ -62,6 +62,8 @@ import net.minecraft.world.phys.HitResult;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.UUID;
 
 /**
@@ -482,6 +484,9 @@ public final class FishingManager {
      * the line, the strike is the rod, the fight is the fight.
      */
     private static final Map<UUID, Integer> FLY_RESTED = new HashMap<>();
+    /** §fly-cast: the client saw the fly FLY to where it landed — only such a landing can start a session. */
+    private static final Set<UUID> FLY_CAST = new HashSet<>();
+    private static final Map<UUID, Integer> FLY_DRY = new HashMap<>();
 
     public static void flyUpdate(ServerPlayer sp, InteractionHand hand, double x, double y, double z, int flags) {
         ServerLevel level = sp.serverLevel();
@@ -490,21 +495,33 @@ public final class FishingManager {
         boolean onWater = (flags & com.riverfishing.network.FlyPacket.ON_WATER) != 0;
         boolean strike = (flags & com.riverfishing.network.FlyPacket.STRIKE) != 0;
         boolean strip = (flags & com.riverfishing.network.FlyPacket.STRIP) != 0;
+        if ((flags & com.riverfishing.network.FlyPacket.CAST) != 0) FLY_CAST.add(sp.getUUID());
         FishingSession session = SESSIONS.get(sp.getUUID());
         if (!active) {
             FLY_RESTED.remove(sp.getUUID());
+            FLY_CAST.remove(sp.getUUID());
+            FLY_DRY.remove(sp.getUUID());
             if (session != null && session.fly && !session.fighting) endSession(sp, session);
             return;
         }
         BlockPos at = BlockPos.containing(x, y, z);
         if (session == null) {
+            // §fly-cast: a fly that was dropped, dangled or skipped into the water is not fishing —
+            // it has to have been CAST there, and the client says so once per landing that flew.
+            if (!FLY_CAST.contains(sp.getUUID())) {
+                FLY_RESTED.remove(sp.getUUID());
+                return;
+            }
             int rested = onWater && !level.getFluidState(at).isEmpty() ? FLY_RESTED.merge(sp.getUUID(), 1, Integer::sum) : 0;
             if (rested == 0) FLY_RESTED.remove(sp.getUUID());
             // Three updates on the water (about half a second) — a fly that only touched is not
             // fishing; and then again every eight seconds the fly keeps sitting there, because the
             // first roll can come up empty and a drift is not over until the line is lifted.
             if (rested == 3 || (rested > 3 && rested % 40 == 3)) {
-                if (!startCast(sp, level, hand, now, 0.5, at)) {
+                if (startCast(sp, level, hand, now, 0.5, at)) {
+                    FLY_CAST.remove(sp.getUUID());   // this cast is spent; the next session wants the next cast
+                    FLY_DRY.remove(sp.getUUID());
+                } else {
                     String missing = RodData.missingKey(sp.getItemInHand(hand));
                     com.riverfishing.RiverFishing.LOGGER.info("fly: no session at {} for {} - rod {}",
                             at, sp.getName().getString(), missing == null ? "assembled, no bite rolled" : missing);
@@ -518,11 +535,20 @@ public final class FishingManager {
             return;
         }
         if (!session.bitten) {
-            if (!onWater) {   // picked up: this drift is over, the next landing is the next cast
-                FLY_RESTED.remove(sp.getUUID());
-                endSession(sp, session);
+            if (!onWater) {
+                // Off the water. A strip can skip the fly clear for a moment — that is the same drift;
+                // a real lift (a second and a half dry) is the end of it, and the next landing has to
+                // be cast.
+                int dry = FLY_DRY.merge(sp.getUUID(), 1, Integer::sum);
+                if (dry >= 8) {
+                    FLY_RESTED.remove(sp.getUUID());
+                    FLY_DRY.remove(sp.getUUID());
+                    FLY_CAST.remove(sp.getUUID());
+                    endSession(sp, session);
+                }
                 return;
             }
+            FLY_DRY.remove(sp.getUUID());
             if (!level.getFluidState(at).isEmpty()) session.target = at;
             return;
         }
@@ -779,8 +805,8 @@ public final class FishingManager {
         session.rodStackRef = rod;
         session.rodSlot = session.hand == InteractionHand.MAIN_HAND
                 ? sp.getInventory().selected : -1;
-        session.floatKind = floatKind(session.rodClass, session.iceFishing,
-                RodData.get(rod, ComponentSlot.RIG));
+        session.floatKind = quiet ? 0 : floatKind(session.rodClass, session.iceFishing,
+                RodData.get(rod, ComponentSlot.RIG));   // §fly-take: the fly IS the float
         // §live-conditions: keep the snapshot + current speed so the waiting line can re-read the world.
         session.ctx = ctx;
         session.biteSpeed = currentBiteSpeed(level, ctx, outcome.totalWeight);
@@ -797,10 +823,12 @@ public final class FishingManager {
         int whole = (int) castWear;
         if (level.getRandom().nextDouble() < castWear - whole) whole++;
         addLineWear(rod, whole);
-        playCast(level, waterPos, rodClass);
-        // §cast-anim: the casting swing — moves the arm + rod for every observer, and drives the local
-        // player's first-person rod whip (RodItemRenderer reads the swing progress).
-        sp.swing(hand, true);
+        if (!quiet) {   // §fly-take: the fly landed by itself — no splash sound, no arm jerk, no line
+            playCast(level, waterPos, rodClass);
+            // §cast-anim: the casting swing — moves the arm + rod for every observer, and drives the local
+            // player's first-person rod whip (RodItemRenderer reads the swing progress).
+            sp.swing(hand, true);
+        }
         // §spin-harder (2): actively working a lure burns hunger — 1 whole food point every 4 casts.
         if (rodClass == RodClass.ACTIVE) {
             int n = ACTIVE_CAST_COUNT.merge(sp.getUUID(), 1, Integer::sum);
@@ -809,7 +837,9 @@ public final class FishingManager {
                 food.setFoodLevel(Math.max(0, food.getFoodLevel() - 1));
             }
         }
-        if (frenzy && !quiet) {
+        if (quiet) {
+            // nothing said
+        } else if (frenzy) {
             actionbar(sp, Component.translatable("message.riverfishing.cast_frenzy").withStyle(ChatFormatting.AQUA));
         } else {
             actionbar(sp, Component.translatable(rodClass == RodClass.ACTIVE

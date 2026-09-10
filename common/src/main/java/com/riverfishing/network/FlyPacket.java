@@ -21,7 +21,7 @@ public class FlyPacket implements ModNetwork.RfPacket {
     public static final StreamCodec<RegistryFriendlyByteBuf, FlyPacket> STREAM_CODEC =
             StreamCodec.of((buf, pkt) -> pkt.write(buf), FlyPacket::decode);
 
-    public static final int ON_WATER = 1, STRIKE = 2, STRIP = 4, ACTIVE = 8;
+    public static final int ON_WATER = 1, STRIKE = 2, STRIP = 4, ACTIVE = 8, CAST = 16;
 
     public final boolean mainHand;
     public final float x, y, z;

@@ -36,6 +36,12 @@ public final class FlyLineClient {
     private static int syncTick;
     private static final float STRIKE_LOAD_JUMP = 0.35f;
     private static boolean flyWet;
+    /** §fly-cast: ticks the fly has been in the air, and how far out it got; a landing after a real
+     *  flight is a cast, a fly dangled or dropped in is not. */
+    private static int airTicks;
+    private static double airReach;
+    private static final int CAST_AIR_TICKS = 6;
+    private static final double CAST_REACH = 4.0;
 
     /** True while the fly sits in water (or a fish has it): the tackle is in use, hands off the rod. */
     public static boolean flyOnWater() { return active() && flyWet; }
@@ -138,6 +144,8 @@ public final class FlyLineClient {
             slack = 0;
             feedHeld = 0;
             flyWet = false;
+            airTicks = 0;
+            airReach = 0;
             bitingWas = false;
             loadPrev = 0f;
             if (sentActive && mc.player != null) {   // the rod went away: the server lets the drift go
@@ -207,14 +215,24 @@ public final class FlyLineClient {
         boolean strikeNow = (loadNow - loadPrev > STRIKE_LOAD_JUMP) || (strip && !stripWas && biting);
         loadPrev = loadNow;
         boolean onWater = !Double.isNaN(WORLD.surfaceY(rope.x[last], rope.y[last], rope.z[last]));
+        boolean castNow = false;
+        if (!onWater) {
+            airTicks++;
+            airReach = Math.max(airReach, Math.hypot(rope.x[last] - mc.player.getX(), rope.z[last] - mc.player.getZ()));
+        } else {
+            castNow = airTicks >= CAST_AIR_TICKS && airReach >= CAST_REACH;   // it flew out there
+            airTicks = 0;
+            airReach = 0;
+        }
         flyWet = onWater || fighting || biting;
         boolean stripNow = strip && !stripWas;
-        if (++syncTick >= 4 || strikeNow || stripNow) {
+        if (++syncTick >= 4 || strikeNow || stripNow || castNow) {
             syncTick = 0;
             int flags = com.riverfishing.network.FlyPacket.ACTIVE
                     | (onWater ? com.riverfishing.network.FlyPacket.ON_WATER : 0)
                     | (strikeNow ? com.riverfishing.network.FlyPacket.STRIKE : 0)
-                    | (stripNow ? com.riverfishing.network.FlyPacket.STRIP : 0);
+                    | (stripNow ? com.riverfishing.network.FlyPacket.STRIP : 0)
+                    | (castNow ? com.riverfishing.network.FlyPacket.CAST : 0);
             com.riverfishing.network.ModNetwork.toServer(new com.riverfishing.network.FlyPacket(
                     mc.player.getMainHandItem().getItem() instanceof RodItem,
                     rope.x[last], rope.y[last], rope.z[last], flags));
