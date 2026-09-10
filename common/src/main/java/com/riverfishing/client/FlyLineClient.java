@@ -94,7 +94,7 @@ public final class FlyLineClient {
         var stack = main.getItem() instanceof RodItem ? main : mc.player.getOffhandItem();
         if (!(stack.getItem() instanceof RodItem rod)) return false;
         // Only ever a fly rod; /rfrod rope off is the way to fish it without the rope.
-        return ENABLED && rod.rodType() == com.riverfishing.component.RodType.FLY
+        return ENABLED && rod.rodType().isFly()
                 && com.riverfishing.item.RodData.get(stack, com.riverfishing.component.ComponentSlot.LINE)
                         .getItem() instanceof com.riverfishing.item.LineItem li
                 && li.lineType() == com.riverfishing.component.LineType.FLY;

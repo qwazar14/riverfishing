@@ -94,6 +94,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
                     java.util.Map.entry("trolling", new float[]{10.31f, 2.21f, -2.54f}),
                     // §fly-3d: three sections on a cork handle, the lightest chain in the fleet
                     java.util.Map.entry("fly", new float[]{19.0f, 11.0f, 2.975f}),
+                    java.util.Map.entry("fly_3", new float[]{19.0f, 11.0f, 2.975f}),
+                    java.util.Map.entry("fly_7", new float[]{19.0f, 11.0f, 2.975f}),
+                    java.util.Map.entry("fly_9", new float[]{19.0f, 11.0f, 2.975f}),
+                    java.util.Map.entry("fly_11", new float[]{19.0f, 11.0f, 2.975f}),
                     // §sea-spin-3d: EIGHT sections, the deepest chain in the fleet
                     java.util.Map.entry("sea_spin",
                             new float[]{9.15f, 3.15f, -3.15f, -7.95f, -10.95f, -12.95f, -14.58f}),
@@ -114,7 +118,9 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             java.util.Map.entry("winter", 21.9f), java.util.Map.entry("sea_spin", -16f),
             java.util.Map.entry("bottom", -16f), java.util.Map.entry("carp", -16f),
             java.util.Map.entry("surf", -16f), java.util.Map.entry("boat", -15.7f),
-            java.util.Map.entry("trolling", -5.7f), java.util.Map.entry("fly", -5.225f));
+            java.util.Map.entry("trolling", -5.7f), java.util.Map.entry("fly", -5.225f),
+            java.util.Map.entry("fly_3", -5.225f), java.util.Map.entry("fly_7", -5.225f),
+            java.util.Map.entry("fly_9", -5.225f), java.util.Map.entry("fly_11", -5.225f));
 
     /**
      * §rod-tip-3d: where the drawn tip landed ON SCREEN, in normalised device coords, captured while
@@ -243,13 +249,21 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      * another rod is one translate along the blank. Values are seat centres from tools/gen_spin_rod.js
      * minus 19.5. A rod absent here takes no reel (RodType.takesReel is false).
      */
-    private static final java.util.Map<String, float[]> REEL_SEAT_DX = java.util.Map.of(
-            "feeder", new float[]{0f, 0f}, "spinning", new float[]{0f, 0f},
-            "ultralight", new float[]{0.8f, 0.4f},   // its seat rides 0.4u higher than the 9.45 docking line
-            "sea_spin", new float[]{1.25f, 0f}, "bottom", new float[]{3f, 0.52f},
-            "carp", new float[]{4.25f, 0.4f}, "surf", new float[]{4f, 0.6f},   // surf seat rides 0.6u high
-            "boat", new float[]{2.75f, 0.8f}, "trolling", new float[]{4.15f, 0f},
-            "fly", new float[]{4.65f, 0f});   // §fly-3d: the trolling handle's seat, half a unit further up the shifted blank
+    private static final java.util.Map<String, float[]> REEL_SEAT_DX = java.util.Map.ofEntries(
+            java.util.Map.entry("feeder", new float[]{0f, 0f}),
+            java.util.Map.entry("spinning", new float[]{0f, 0f}),
+            java.util.Map.entry("ultralight", new float[]{0.8f, 0.4f}),
+            java.util.Map.entry("sea_spin", new float[]{1.25f, 0f}),
+            java.util.Map.entry("bottom", new float[]{3f, 0.52f}),
+            java.util.Map.entry("carp", new float[]{4.25f, 0.4f}),
+            java.util.Map.entry("surf", new float[]{4f, 0.6f}),
+            java.util.Map.entry("boat", new float[]{2.75f, 0.8f}),
+            java.util.Map.entry("trolling", new float[]{4.15f, 0f}),
+            java.util.Map.entry("fly", new float[]{4.65f, 0f}),
+            java.util.Map.entry("fly_3", new float[]{4.65f, 0f}),
+            java.util.Map.entry("fly_7", new float[]{4.65f, 0f}),
+            java.util.Map.entry("fly_9", new float[]{4.65f, 0f}),
+            java.util.Map.entry("fly_11", new float[]{4.65f, 0f}));
 
     // ===== §line-thru-guides: the line runs from the spool through every ring to the tip =====
     /**
@@ -344,7 +358,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      */
     static float[] lineStyle(ItemStack stack) {
         if (!(RodData.get(stack, ComponentSlot.LINE).getItem() instanceof LineItem li)) return null;
-        return RodRenderTypes.strandStyle(li.lineType(), li.diameterMm());
+        return RodRenderTypes.strandStyle(li);
     }
 
     /** Draws the captured thread. Points are already in render space, so the matrix is identity. */
@@ -880,7 +894,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             // The reel — only if one is fitted (reel-less poles have none). Always part of the rod.
             ItemStack reel = RodData.get(stack, ComponentSlot.REEL);
             if (reel.getItem() instanceof ReelItem ri) {
-                layer = draw(ir, resolve(mm, missing, mir, ri.fly() ? RodModelLayers.reelFly() : RodModelLayers.reel(ri.size()), RodModelLayers.reelGeneric()),
+                layer = draw(ir, resolve(mm, missing, mir, ri.fly() ? RodModelLayers.reelFly(ri.flyWeight()) : RodModelLayers.reel(ri.size()), RodModelLayers.reelGeneric()),
                         stack, ctx, pose, buffers, light, overlay, layer);
             }
 

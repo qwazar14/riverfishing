@@ -26,7 +26,23 @@ public enum RodType {
     TROLLING  ("trolling",  12,   true,     10000,  14000,  150,    600,    false),
     // §fly: the line is the weight — no cast range; distance is what the rope carries. The small
     // reels stand in for a fly reel.
-    FLY       ("fly",        9,   true,     1000,   6000,   0,      0,      false);
+    // §fly-classes: the line weight is the class. castWeightMax stands in for the rod's power in the
+    // fight (1.5·√g): a #3 stops 2 kg, a #11 nearer 10. castWeightMin stays 0 — nothing is underloaded.
+    FLY_3     ("fly_3",      7,   true,     1000,   6000,   0,      2,      false),
+    FLY       ("fly",        9,   true,     1000,   6000,   0,      5,      false),
+    FLY_7     ("fly_7",     10,   true,     1000,   6000,   0,     10,      false),
+    FLY_9     ("fly_9",     11,   true,     1000,   6000,   0,     20,      false),
+    FLY_11    ("fly_11",    12,   true,     1000,   6000,   0,     40,      false);
+
+    /** §fly-classes: the AFTMA line weight a fly rod is built for; 0 for every other rod. */
+    public int flyWeight() {
+        return switch (this) {
+            case FLY_3 -> 3; case FLY -> 5; case FLY_7 -> 7; case FLY_9 -> 9; case FLY_11 -> 11;
+            default -> 0;
+        };
+    }
+
+    public boolean isFly() { return flyWeight() > 0; }
 
     private final String jsonKey;
     private final double baseDistance;
@@ -75,7 +91,7 @@ public enum RodType {
 
     /** §fly-reel: a fly rod seats a fly reel and nothing else; no other rod seats one. */
     public boolean acceptsReel(com.riverfishing.item.ReelItem reel) {
-        if (this == FLY) return reel.fly();
+        if (isFly()) return reel.flyWeight() == flyWeight();   // §fly-classes: the reel is built for the line
         return !reel.fly() && acceptsReelSize(reel.size());
     }
 
@@ -84,7 +100,7 @@ public enum RodType {
         return switch (this) {
             case SPINNING, ULTRALIGHT, SEA_SPIN, TROLLING -> RodClass.ACTIVE;
             case FEEDER, BOTTOM, CARP, SURF, BOAT -> RodClass.BOTTOM;
-            case STICK, BAMBOO, POLE, WINTER, FLY -> RodClass.FLOAT;   // §fly: wait, then strike
+            case STICK, BAMBOO, POLE, WINTER, FLY, FLY_3, FLY_7, FLY_9, FLY_11 -> RodClass.FLOAT;   // §fly: wait, then strike
         };
     }
 
@@ -105,7 +121,7 @@ public enum RodType {
             case BAMBOO -> RigType.FLOAT_LIGHT;          // float + one hook + bait
             case POLE -> RigType.FLOAT;                  // float + two hooks (Ð´ÑÐ¿Ð»ÐµÑ)
             case WINTER -> RigType.WINTER;               // a single mormyshka
-            case FLY -> RigType.FLY;                     // §fly: tippet + a tied fly
+            case FLY, FLY_3, FLY_7, FLY_9, FLY_11 -> RigType.FLY;   // §fly: tippet + a tied fly
             case ULTRALIGHT, SPINNING, SEA_SPIN, TROLLING -> RigType.PREDATOR; // leader + lure
             case FEEDER, BOTTOM, CARP, SURF, BOAT -> null; // still use swappable bottom rigs
         };

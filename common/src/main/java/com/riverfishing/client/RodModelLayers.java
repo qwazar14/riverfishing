@@ -28,7 +28,7 @@ public final class RodModelLayers {
 
     public static final String[] ROD_KEYS =
             {"stick", "bamboo", "pole", "winter", "ultralight", "spinning", "feeder", "bottom", "carp",
-             "surf", "sea_spin", "boat", "trolling", "fly"};
+             "surf", "sea_spin", "boat", "trolling", "fly", "fly_3", "fly_7", "fly_9", "fly_11"};
     public static final int[] REEL_SIZES = {1000, 2000, 3000, 4000, 5000, 6000, 7000,
             8000, 10000, 12000, 14000};
 
@@ -71,6 +71,10 @@ public final class RodModelLayers {
     /** §fly-reel: the on-blank sprite of the fly reel (its 3D body is the 6000's). */
     public static ResourceLocation reelFly() {
         return loc("reel_fly");
+    }
+
+    public static ResourceLocation reelFly(int weight) {
+        return weight == 5 ? reelFly() : loc("reel_fly_" + weight);
     }
 
     /**
@@ -125,6 +129,7 @@ public final class RodModelLayers {
         }
         normal.add(reelGeneric());
         normal.add(reelFly());   // §fly-reel
+        for (int w : new int[]{3, 7, 9, 11}) normal.add(loc("reel_fly_" + w));   // §fly-classes
         for (int s : REEL_SIZES) { // §reel-3d + §reel-crank
             normal.add(reel(s)); normal.add(reel3d(s)); normal.add(reel3dHandle(s)); normal.add(reel3dKnob(s));
         }

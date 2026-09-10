@@ -13,5 +13,9 @@
 	"sea_spin":   { "stiffness": 130, "damping": 10,  "whip": 1.5 },
 	"boat":       { "stiffness": 190, "damping": 12,  "whip": 0.9 },
 	"trolling":   { "stiffness": 230, "damping": 13,  "whip": 0.7 },
-	"fly":        { "stiffness": 72,  "damping": 6.5, "whip": 3.2 }
+	"fly":        { "stiffness": 72,  "damping": 6.5, "whip": 3.2 },
+	"fly_3":      { "stiffness": 52,  "damping": 5.5, "whip": 3.8 },
+	"fly_7":      { "stiffness": 92,  "damping": 7.5, "whip": 2.8 },
+	"fly_9":      { "stiffness": 118, "damping": 8.5, "whip": 2.3 },
+	"fly_11":     { "stiffness": 150, "damping": 10,  "whip": 1.8 }
 }

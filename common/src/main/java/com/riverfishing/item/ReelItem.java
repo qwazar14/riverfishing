@@ -16,18 +16,22 @@ public class ReelItem extends Item implements RodComponentItem {
 
     /** §fly-reel: a single-action fly reel — no inertia, no spool for mono; it holds a fly line and nothing else. */
     private final boolean fly;
+    /** §fly-classes: the line weight this fly reel is built for; 0 on a spinning reel. */
+    private final int flyWeight;
 
     public ReelItem(int size, Properties properties) {
-        this(size, false, properties);
+        this(size, 0, properties);
     }
 
-    public ReelItem(int size, boolean fly, Properties properties) {
+    public ReelItem(int size, int flyWeight, Properties properties) {
         super(properties);
         this.size = size;
-        this.fly = fly;
+        this.flyWeight = flyWeight;
+        this.fly = flyWeight > 0;
     }
 
     public boolean fly() { return fly; }
+    public int flyWeight() { return flyWeight; }
 
     /**
      * §fly-reel: a fly reel takes a fly line and only that; every other reel takes anything but a

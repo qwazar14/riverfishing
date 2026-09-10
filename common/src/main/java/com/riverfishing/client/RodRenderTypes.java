@@ -42,6 +42,16 @@ public final class RodRenderTypes extends RenderType {
         };
     }
 
+    /** §fly-lines: a fly line wears its geometry's colour; every other line its material's. */
+    public static float[] strandStyle(com.riverfishing.item.LineItem li) {
+        float[] s = strandStyle(li.lineType(), li.diameterMm());
+        if (li instanceof com.riverfishing.item.FlyLineItem fl) {
+            int c = fl.geometry().rgb;
+            s[0] = (c >> 16) & 255; s[1] = (c >> 8) & 255; s[2] = c & 255;
+        }
+        return s;
+    }
+
     public static RenderType lineStrand(float width) {
         int key = Math.round(width * 10f);
         return STRANDS.computeIfAbsent(key, k -> create("riverfishing_line_strand_" + k,

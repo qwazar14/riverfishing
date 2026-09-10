@@ -97,7 +97,7 @@ public final class LineRenderer {
         if (held.getItem() instanceof com.riverfishing.item.RodItem
                 && com.riverfishing.item.RodData.get(held, com.riverfishing.component.ComponentSlot.LINE)
                         .getItem() instanceof com.riverfishing.item.LineItem li) {
-            style = RodRenderTypes.strandStyle(li.lineType(), li.diameterMm());
+            style = RodRenderTypes.strandStyle(li);
         }
         VertexConsumer sv = buffers.getBuffer(
                 style == null ? RenderType.lines() : RodRenderTypes.lineStrand(style[4]));

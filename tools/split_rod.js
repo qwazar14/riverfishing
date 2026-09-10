@@ -157,6 +157,47 @@ const RODS = {
       { name: 's3', members: ['blank_3', 'tip_top'], joint: 2.975 },
     ],
   },
+  // §fly-classes: the same blank in four more weights, recoloured
+  fly_3: {
+    src: '3D/rods/fly_3/blank_fly_3.json',
+    texRef: 'riverfishing:item/rod/blank_fly_3_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip'] },
+      { name: 's1', members: ['blank_1'], joint: 19.0 },
+      { name: 's2', members: ['blank_2'], joint: 11.0 },
+      { name: 's3', members: ['blank_3', 'tip_top'], joint: 2.975 },
+    ],
+  },
+  fly_7: {
+    src: '3D/rods/fly_7/blank_fly_7.json',
+    texRef: 'riverfishing:item/rod/blank_fly_7_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip'] },
+      { name: 's1', members: ['blank_1'], joint: 19.0 },
+      { name: 's2', members: ['blank_2'], joint: 11.0 },
+      { name: 's3', members: ['blank_3', 'tip_top'], joint: 2.975 },
+    ],
+  },
+  fly_9: {
+    src: '3D/rods/fly_9/blank_fly_9.json',
+    texRef: 'riverfishing:item/rod/blank_fly_9_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip'] },
+      { name: 's1', members: ['blank_1'], joint: 19.0 },
+      { name: 's2', members: ['blank_2'], joint: 11.0 },
+      { name: 's3', members: ['blank_3', 'tip_top'], joint: 2.975 },
+    ],
+  },
+  fly_11: {
+    src: '3D/rods/fly_11/blank_fly_11.json',
+    texRef: 'riverfishing:item/rod/blank_fly_11_3d',
+    segments: [
+      { name: 's0', members: ['butt_cap', 'rear_grip', 'reel_seat', 'fore_grip'] },
+      { name: 's1', members: ['blank_1'], joint: 19.0 },
+      { name: 's2', members: ['blank_2'], joint: 11.0 },
+      { name: 's3', members: ['blank_3', 'tip_top'], joint: 2.975 },
+    ],
+  },
   bamboo: {
     src: '3D/rods/bamboo/blank_bamboo.json',
     texRef: 'riverfishing:item/rod/blank_bamboo_3d',

@@ -9,8 +9,8 @@
 const fs = require('fs');
 
 const RODS = ['stick', 'bamboo', 'pole', 'winter', 'ultralight', 'spinning', 'feeder',
-              'bottom', 'carp', 'surf', 'sea_spin', 'boat', 'trolling', 'fly'];
-const SEGMENTED = { feeder: 5, pole: 5, bamboo: 6, spinning: 5, ultralight: 5, surf: 5, carp: 5, boat: 6, bottom: 5, trolling: 4, sea_spin: 8, fly: 4 };          // kind -> piece count
+              'bottom', 'carp', 'surf', 'sea_spin', 'boat', 'trolling', 'fly', 'fly_3', 'fly_7', 'fly_9', 'fly_11'];
+const SEGMENTED = { feeder: 5, pole: 5, bamboo: 6, spinning: 5, ultralight: 5, surf: 5, carp: 5, boat: 6, bottom: 5, trolling: 4, sea_spin: 8, fly: 4, fly_3: 4, fly_7: 4, fly_9: 4, fly_11: 4 };          // kind -> piece count
 const ASSETS = 'common/src/main/resources/assets/riverfishing';
 const RENDERER = 'common/src/main/java/com/riverfishing/client/RodItemRenderer.java';
 const LAYERS = 'common/src/main/java/com/riverfishing/client/RodModelLayers.java';
@@ -265,7 +265,7 @@ console.log('\nreels');
   // the renderer's seat map must agree with gameplay: exactly the takesReel rods carry a seat
   const rodType = fs.readFileSync('common/src/main/java/com/riverfishing/component/RodType.java', 'utf8');
   const takesReel = new Set();
-  for (const [, key, flag] of rodType.matchAll(/\("([a-z_]+)",\s*[\d.]+,\s*(true|false)/g)) {
+  for (const [, key, flag] of rodType.matchAll(/\("([a-z0-9_]+)",\s*[\d.]+,\s*(true|false)/g)) {
     if (flag === 'true') takesReel.add(key);
   }
   const dxBlock = java.match(/REEL_SEAT_DX = java\.util\.Map\.of(?:Entries)?\(([\s\S]*?)\);/);
