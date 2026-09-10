@@ -142,7 +142,7 @@ def species_data(profiles, roster, names_by_lang):
             "rod": i.get("rod", []), "rig": i.get("rig", []),
             "reel": [i.get("reel_size", 0), i.get("reel_tolerance", 0)],
             "line": [i.get("line", {}).get("type", "mono"), i.get("line", {}).get("diameter_mm", 0)],
-            "hook": [i["hook"]["ideal"], i["hook"]["tolerance"]],
+            "hook": [i.get("hook", {}).get("ideal", 8), i.get("hook", {}).get("tolerance", 2)],
             "lead": bool(i.get("requires_leader")),
             "gb": [i["groundbait"]["fraction"], i["groundbait"]["nutrition"]] if isinstance(i.get("groundbait"), dict) else None,
             "leg": p.get("legendary", {}).get("weight_g"),
