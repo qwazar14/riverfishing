@@ -488,6 +488,37 @@ public final class FishingManager {
     private static final Set<UUID> FLY_CAST = new HashSet<>();
     private static final Map<UUID, Integer> FLY_DRY = new HashMap<>();
 
+    /**
+     * §lie-memory: a lie is a 4×4 patch of water and it remembers being fished. Every landing on it
+     * takes a little off its interest; a fish caught out of it, or a fright, takes half; and it rests
+     * back — past one, to a rested lie's bonus — over a few minutes left alone. The bite clock of a
+     * fly session is divided by it: the first drift over a rested seam is the best drift, and the
+     * twentieth over the same yard is a long wait. Nothing is printed; the water simply goes quiet.
+     */
+    private static final class Lie { double interest = 1.0; long last; }
+    private static final Map<Long, Lie> LIES = new java.util.LinkedHashMap<>(512, 0.75f, true) {
+        @Override protected boolean removeEldestEntry(Map.Entry<Long, Lie> e) { return size() > 4096; }
+    };
+    private static final double LIE_MAX = 1.3, LIE_MIN = 0.4, LIE_REST_PER_SEC = 0.0025;   // 0.4 -> 1.3 in six minutes
+
+    private static long lieKey(BlockPos p) { return ((long) (p.getX() >> 2) << 32) ^ ((p.getZ() >> 2) & 0xffffffffL); }
+
+    private static Lie lie(BlockPos p, long now) {
+        Lie l = LIES.computeIfAbsent(lieKey(p), k -> { Lie n = new Lie(); n.last = now; n.interest = LIE_MAX; return n; });
+        l.interest = Math.min(LIE_MAX, l.interest + (now - l.last) / 20.0 * LIE_REST_PER_SEC);
+        l.last = now;
+        return l;
+    }
+
+    /** The lie's interest, 0.4 (hammered) to 1.3 (rested). */
+    static double lieInterest(BlockPos p, long now) { return lie(p, now).interest; }
+
+    /** A landing on the lie: they have seen it now. */
+    static void lieFished(BlockPos p, long now) { Lie l = lie(p, now); l.interest = Math.max(LIE_MIN, l.interest * 0.85); }
+
+    /** A fish taken out, or a fright: the lie goes quiet. */
+    static void lieDisturbed(BlockPos p, long now) { Lie l = lie(p, now); l.interest = Math.max(LIE_MIN, l.interest * 0.5); }
+
     public static void flyUpdate(ServerPlayer sp, InteractionHand hand, double x, double y, double z, int flags, float presentation,
                                  float landSpeed) {
         ServerLevel level = sp.serverLevel();
@@ -505,7 +536,19 @@ public final class FishingManager {
         boolean onWater = (flags & com.riverfishing.network.FlyPacket.ON_WATER) != 0;
         boolean strike = (flags & com.riverfishing.network.FlyPacket.STRIKE) != 0;
         boolean strip = (flags & com.riverfishing.network.FlyPacket.STRIP) != 0;
-        if ((flags & com.riverfishing.network.FlyPacket.CAST) != 0) FLY_CAST.add(sp.getUUID());
+        if ((flags & com.riverfishing.network.FlyPacket.CAST) != 0) {
+            FLY_CAST.add(sp.getUUID());
+            BlockPos landed = BlockPos.containing(x, y, z);
+            if (!level.getFluidState(landed).isEmpty()) {
+                lieFished(landed, now);   // §lie-memory: every landing is a drift they have seen
+                // §lining: the line came down over the lie before the fly did — the one thing a fish
+                // will not forgive; the lie is frightened the way a slapped lure frightens it.
+                if ((flags & com.riverfishing.network.FlyPacket.LINED) != 0) {
+                    SpookTracker.onCastLanded(level, landed, 0.25);
+                    lieDisturbed(landed, now);
+                }
+            }
+        }
         FishingSession session = SESSIONS.get(sp.getUUID());
         if (!active) {
             FLY_RESTED.remove(sp.getUUID());
@@ -775,6 +818,7 @@ public final class FishingManager {
         }
 
         // ACTIVE rods only "bite" while being retrieved, so their clock starts on the first retrieve tick.
+        if (quiet) delay = (long) (delay / lieInterest(waterPos, now));   // §lie-memory: a rested lie bites first
         long biteAt = (rodClass == RodClass.ACTIVE) ? -1 : now + delay;
         FishingSession session = new FishingSession(hand, waterPos, rodClass, delay, biteAt, species);
         session.fly = quiet;         // §fly-take
@@ -1209,7 +1253,10 @@ public final class FishingManager {
             return;
         }
 
-        if (now >= session.biteAtTick && !spooked(level, session, now)) {
+        if (now >= session.biteAtTick && BiteStagger.tooSoon(BiteStagger.key(sp.getUUID()), now)) {
+            session.biteAtTick = now + BiteStagger.push(level.getRandom());   // §bite-stagger
+        } else if (now >= session.biteAtTick && !spooked(level, session, now)) {
+            BiteStagger.mark(BiteStagger.key(sp.getUUID()), now);
             session.bitten = true;
             // §strike-qte (2.4): the take fires a hook-set runner — stop it in the zone (release the retrieve,
             // or click) to set the hook. Deliberately EASY (imitating a подсечка, not a reaction test): slow
@@ -1624,7 +1671,10 @@ public final class FishingManager {
                     session.biteAtTick = Math.min(session.biteAtTick, session.castTick + ICE_WAIT_MAX);
                 }
             }
-            if (now >= session.biteAtTick && !spooked(level, session, now)) {
+            if (now >= session.biteAtTick && BiteStagger.tooSoon(BiteStagger.key(sp.getUUID()), now)) {
+                session.biteAtTick = now + BiteStagger.push(level.getRandom());   // §bite-stagger
+            } else if (now >= session.biteAtTick && !spooked(level, session, now)) {
+                BiteStagger.mark(BiteStagger.key(sp.getUUID()), now);
                 session.bitten = true;
                 if (session.iceFishing) JigRhythm.cancel(sp);   // §ice-rhythm: the strike bar takes the needle's place
                 session.biteWindowEnd = now + Math.round(biteWindow(session.rodClass)
