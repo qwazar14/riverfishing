@@ -43,6 +43,9 @@ public final class FlyLineClient {
     private static final double[] flowAt = new double[3];
     /** §fly-lines: the geometry's shoot factor, read off the rod each tick. */
     private static double shoot = 1.0;
+    /** §fly-splash: the fly's place last tick and how fast it came down when it touched. */
+    private static double flyPx, flyPy, flyPz;
+    private static float landSpeed;
     /** §fly-cast: ticks the fly has been in the air, and how far out it got; a landing after a real
      *  flight is a cast, a fly dangled or dropped in is not. */
     private static int airTicks;
@@ -242,6 +245,22 @@ public final class FlyLineClient {
         loadPrev = loadNow;
         boolean onWater = !Double.isNaN(WORLD.surfaceY(rope.x[last], rope.y[last], rope.z[last]));
         boolean castNow = false;
+        landSpeed = 0f;
+        if (onWater && airTicks > 0) {
+            // Touchdown: its speed over the last tick is the splash — a fallen insect or a slap.
+            double dx = rope.x[last] - flyPx, dy = rope.y[last] - flyPy, dz = rope.z[last] - flyPz;
+            landSpeed = (float) (Math.sqrt(dx * dx + dy * dy + dz * dz) * 20.0);
+            if (landSpeed > 1.5f) {
+                int n = (int) Math.min(24, landSpeed * 2.5);
+                for (int i = 0; i < n; i++) {
+                    mc.level.addParticle(net.minecraft.core.particles.ParticleTypes.SPLASH, rope.x[last], rope.y[last] + 0.05, rope.z[last],
+                            (mc.level.random.nextDouble() - 0.5) * 0.3 * landSpeed / 4, 0.05 + landSpeed * 0.02, (mc.level.random.nextDouble() - 0.5) * 0.3 * landSpeed / 4);
+                }
+                mc.level.playLocalSound(rope.x[last], rope.y[last], rope.z[last], net.minecraft.sounds.SoundEvents.GENERIC_SPLASH,
+                        net.minecraft.sounds.SoundSource.AMBIENT, Math.min(1f, landSpeed / 10f), 1.3f, false);
+            }
+        }
+        flyPx = rope.x[last]; flyPy = rope.y[last]; flyPz = rope.z[last];
         if (!onWater) {
             airTicks++;
             airReach = Math.max(airReach, Math.hypot(rope.x[last] - mc.player.getX(), rope.z[last] - mc.player.getZ()));
@@ -270,7 +289,7 @@ public final class FlyLineClient {
             case ANY -> 0.6;
         };
         presentation += (float) ((score - presentation) * 0.05);
-        if (++syncTick >= 4 || strikeNow || stripNow || castNow) {
+        if (++syncTick >= 4 || strikeNow || stripNow || castNow || landSpeed > 1.5f) {
             syncTick = 0;
             int flags = com.riverfishing.network.FlyPacket.ACTIVE
                     | (onWater ? com.riverfishing.network.FlyPacket.ON_WATER : 0)
@@ -279,7 +298,7 @@ public final class FlyLineClient {
                     | (castNow ? com.riverfishing.network.FlyPacket.CAST : 0);
             com.riverfishing.network.ModNetwork.toServer(new com.riverfishing.network.FlyPacket(
                     mc.player.getMainHandItem().getItem() instanceof RodItem,
-                    rope.x[last], rope.y[last], rope.z[last], flags, presentation));
+                    rope.x[last], rope.y[last], rope.z[last], flags, presentation, landSpeed));
             sentActive = true;
         }
         stripWas = strip;

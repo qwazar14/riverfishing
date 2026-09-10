@@ -488,9 +488,19 @@ public final class FishingManager {
     private static final Set<UUID> FLY_CAST = new HashSet<>();
     private static final Map<UUID, Integer> FLY_DRY = new HashMap<>();
 
-    public static void flyUpdate(ServerPlayer sp, InteractionHand hand, double x, double y, double z, int flags, float presentation) {
+    public static void flyUpdate(ServerPlayer sp, InteractionHand hand, double x, double y, double z, int flags, float presentation,
+                                 float landSpeed) {
         ServerLevel level = sp.serverLevel();
         long now = level.getGameTime();
+        // §fly-splash: the fly hitting the water is the one disturbance that reaches the fish out there.
+        // A fly laid down under 1.5 m/s is a fallen insect and disturbs nothing; a fly slapped down at
+        // 8 puts the spot off the way a lure's slap does. Same tracker, same decay, same quiet.
+        if (landSpeed > 1.5f) {
+            BlockPos landed = BlockPos.containing(x, y, z);
+            if (!level.getFluidState(landed).isEmpty()) {
+                SpookTracker.onCastLanded(level, landed, Mth.clamp((landSpeed - 1.5) / 6.5, 0.0, 1.0) * 0.30);
+            }
+        }
         boolean active = (flags & com.riverfishing.network.FlyPacket.ACTIVE) != 0;
         boolean onWater = (flags & com.riverfishing.network.FlyPacket.ON_WATER) != 0;
         boolean strike = (flags & com.riverfishing.network.FlyPacket.STRIKE) != 0;
