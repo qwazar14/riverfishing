@@ -72,6 +72,7 @@ public final class TiedDesign {
 
     /** What shows at (x, y): the drawing where there is one, the hook under it, -1 for nothing. */
     public static int pixelRgb(byte[] design, int x, int y) {
+        if (x < 0 || y < 0 || x >= SIZE || y >= SIZE) return -1;   // off the canvas: nothing (the icon's edge test asks)
         int px = design[y * SIZE + x];
         if (px != 0) return rgb(px);
         return HOOK[y][x] ? HOOK_RGB : -1;

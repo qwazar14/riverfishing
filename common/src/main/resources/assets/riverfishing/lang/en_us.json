@@ -23,6 +23,7 @@
   "item.riverfishing.line_fly_wf_s": "Fly Line WF-S",
   "item.riverfishing.line_fly_wf_i": "Fly Line WF-I",
   "item.riverfishing.line_fly_wf_f": "Fly Line WF-F",
+  "item.riverfishing.line_fly_100": "Fly Line WF-F",
   "tooltip.riverfishing.fly_line_buoyancy_s": "Sinking — goes down fast, for deep pools and strong current",
   "tooltip.riverfishing.fly_line_buoyancy_i": "Intermediate — sinks slowly, hangs mid-water",
   "tooltip.riverfishing.fly_line_buoyancy_f": "Floating — rides the surface",
