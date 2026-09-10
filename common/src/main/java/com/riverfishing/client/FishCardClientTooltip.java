@@ -103,7 +103,7 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
 
         if (Screen.hasShiftDown()) {
             rule();
-            if (!c.getString("Bait").isEmpty()) row("bait", Component.translatable("item.riverfishing." + c.getString("Bait")), YELLOW);
+            if (!c.getString("Bait").isEmpty()) row("bait", baitName(c.getString("Bait")), YELLOW);
             if (!c.getString("Water").isEmpty()) row("water", Component.translatable("water.riverfishing." + c.getString("Water")), BLUE);
             if (!c.getString("Time").isEmpty()) row("time", Component.translatable("time.riverfishing." + c.getString("Time")), WHITE);
             if (!c.getString("Season").isEmpty()) row("season", Component.translatable("season.riverfishing." + c.getString("Season")), WHITE);
@@ -149,7 +149,7 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         // Every term on its own line, labelled — the whole point of the card: nothing folded away.
         if (!t.getString("Water").isEmpty()) row("water", Component.translatable("water.riverfishing." + t.getString("Water")), BLUE);
         if (!t.getString("Rod").isEmpty()) row("rod", key("rod." + t.getString("Rod")), GREEN);
-        if (!t.getString("Bait").isEmpty()) row("bait", Component.translatable("item.riverfishing." + t.getString("Bait")), YELLOW);
+        if (!t.getString("Bait").isEmpty()) row("bait", baitName(t.getString("Bait")), YELLOW);
         if (!t.getString("Time").isEmpty()) row("time", Component.translatable("time.riverfishing." + t.getString("Time")), WHITE);
         rule();
         int have = mc.player == null ? 0
@@ -237,5 +237,10 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
             }
             cy += ROW;
         }
+    }
+    /** §fly-card: "tied:<pattern>" is a fly tied at the bench; anything else is an item id. */
+    private static Component baitName(String bait) {
+        return bait.startsWith("tied:") ? Component.translatable("tied.riverfishing." + bait.substring(5))
+                : Component.translatable("item.riverfishing." + bait);
     }
 }
