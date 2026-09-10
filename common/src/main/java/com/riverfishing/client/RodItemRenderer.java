@@ -523,7 +523,9 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             org.joml.Vector3f p = toNode(pts[k], cp, q, warp, space)
                     .add(dtx * f, dty * f, dtz * f);
             boolean leader = k >= leaderFrom;
-            int cr = leader ? 90 : (int) style[0], cg = leader ? 90 : (int) style[1], cb = leader ? 90 : (int) style[2];
+            int[] tc = FlyLineClient.tint(leader ? 90 : (int) style[0], leader ? 90 : (int) style[1], leader ? 90 : (int) style[2],
+                    FlyLineClient.depthOf(pts[k]));   // §depth-tint
+            int cr = tc[0], cg = tc[1], cb = tc[2];
             int alpha = leader ? 120 : (int) style[3];
             float sx = p.x() - prev.x(), sy = p.y() - prev.y(), sz = p.z() - prev.z();
             float len = (float) Math.sqrt(sx * sx + sy * sy + sz * sz);

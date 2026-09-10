@@ -235,6 +235,17 @@ public final class Rope {
         Rope big = new Rope(256, 0, 70, 0);
         for (int t = 0; t < 100; t++) big.step(0.05, 0, 70, 0, false, still);
         assert Math.abs(big.y[big.n - 1] - 67) < 0.3 : "hang256 " + big.y[big.n - 1];
+        // 6. A sinking line goes down as a line, not only the fly: mid-line a metre under after ten seconds.
+        // (a perfectly straight chain cannot shorten, so it is laid out the way a cast lands: with slack)
+        Rope sk = new Rope(64, 0, 61, 0);
+        sk.feed(8.0);
+        for (int i = 1; i < sk.n; i++) {
+            double f = i / (double) (sk.n - 1);
+            sk.x[i] = sk.px[i] = f * 8.0; sk.z[i] = sk.pz[i] = Math.sin(f * 12.0) * 0.6; sk.y[i] = sk.py[i] = 59.95;
+        }
+        sk.lineSink = 0.35;
+        for (int t = 0; t < 200; t++) sk.step(0.05, 0, 61, 0, false, still);
+        assert sk.y[sk.n / 2] < 59.0 : "line did not sink: " + sk.y[sk.n / 2];
         System.out.println("Rope ok: length " + r.length() + " fly y " + r.y[r.n - 1]);
     }
 }

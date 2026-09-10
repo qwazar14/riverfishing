@@ -23,7 +23,7 @@ public class FlyLineItem extends LineItem {
         Geometry(String key, double shoot, int rgb) { this.key = key; this.shoot = shoot; this.rgb = rgb; }
     }
     public enum Buoyancy {
-        F("f", 0.0), I("i", 0.03), S("s", 0.15);   // metres per second the line goes down
+        F("f", 0.0), I("i", 0.06), S("s", 0.35);   // metres per second the line goes down — a game second is short
         public final String key; public final double sink;
         Buoyancy(String key, double sink) { this.key = key; this.sink = sink; }
     }

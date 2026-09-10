@@ -132,6 +132,18 @@ public final class FlyLineClient {
         return pts;
     }
 
+    /** §depth-tint: how far under the surface a point is, 0 on or above it — so a sunk line looks sunk. */
+    public static float depthOf(Vec3 p) {
+        double surf = WORLD.surfaceY(p.x, p.y, p.z);
+        return Double.isNaN(surf) ? 0f : (float) Math.max(0.0, surf - p.y);
+    }
+
+    /** The strand colour of a point at {@code depth} metres under: darker and bluer as it goes down. */
+    public static int[] tint(int r, int g, int b, float depth) {
+        float k = Math.min(1f, depth / 2.5f);
+        return new int[] {(int) (r * (1 - 0.65f * k)), (int) (g * (1 - 0.45f * k)), (int) (b * (1 - 0.15f * k) + 40 * k)};
+    }
+
     /** First point of the leader — the last metres that do not float and draw near-invisible. */
     public static int leaderFrom() {
         return rope == null ? 0 : Math.max(1, rope.n - 1 - (int) Math.ceil(rope.leaderLen / rope.segLen()));
@@ -339,8 +351,8 @@ public final class FlyLineClient {
             Vec3 p = pts[i];
             // Fly line in its strand colour, leader near-invisible, the fly itself a dark dot.
             boolean leader = i >= leaderFrom;
-            LineRenderer.line(vc, m, nrm, prev, p, leader ? 90 : (int) style[0], leader ? 90 : (int) style[1],
-                    leader ? 90 : (int) style[2], leader ? 120 : (int) style[3]);
+            int[] c = tint(leader ? 90 : (int) style[0], leader ? 90 : (int) style[1], leader ? 90 : (int) style[2], depthOf(p));
+            LineRenderer.line(vc, m, nrm, prev, p, c[0], c[1], c[2], leader ? 120 : (int) style[3]);
             prev = p;
         }
         Vec3 fly = prev;
