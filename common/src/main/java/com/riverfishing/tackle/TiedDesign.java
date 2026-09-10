@@ -29,7 +29,9 @@ public final class TiedDesign {
     /** §tie-32: the canvas is 32×32 now. The hook and the templates are still authored at 16 and
      *  doubled — the shapes are the same shapes, four times the pixels to tie them with. */
     public static final int SIZE = 32, SRC = 16, UP = SIZE / SRC;
-    public static final String TAG_DESIGN = "Design", TAG_HOOK = "Hook", TAG_MAKER = "Maker";
+    public static final String TAG_DESIGN = "Design", TAG_HOOK = "Hook", TAG_MAKER = "Maker", TAG_CHAOS = "Chaos";
+    /** §chaos: what a drawing that matches no template fishes at when nothing was rolled for it. */
+    public static final double CHAOS_DEFAULT = 0.6, CHAOS_MIN = 0.1, CHAOS_MAX = 2.0;
 
     /** Pixel values. 1..16 are thread in DyeColor order; the rest are single materials. */
     public static final int EMPTY = 0, THREAD0 = 1, HACKLE = 17, FUR = 18, BEAD_IRON = 19, BEAD_GOLD = 20, TINSEL = 21, EYE = 22, LAST = 22;
@@ -226,10 +228,15 @@ public final class TiedDesign {
 
     /** What the engine reads off a drawing. */
     public record Analysis(Template template, double match, int fill, int boxW, int boxH,
-                           int meanRgb, LureColor lureColor, double weightG, double flash, double action, boolean eyes) {
+                           int meanRgb, LureColor lureColor, double weightG, double flash, double action, boolean eyes,
+                           double chaos) {
+        /** §chaos: the same reading with the fly's own hidden number. */
+        public Analysis withChaos(double c) {
+            return new Analysis(template, match, fill, boxW, boxH, meanRgb, lureColor, weightG, flash, action, eyes, c);
+        }
         /** The bite factor for a species of {@code group}: the template's family table, scaled by how well the drawing matched it. */
         public double affinity(String group) {
-            double base = template == Template.NONE ? 0.6 : template.family(group) * (0.6 + 0.4 * match);
+            double base = template == Template.NONE ? chaos : template.family(group) * (0.6 + 0.4 * match);
             boolean hunter = "predator".equals(group) || "big_game".equals(group) || "sea".equals(group);
             if (eyes && hunter) base *= 1.10;                       // a lure with eyes gets looked at
             base *= 1.0 + flash * (hunter ? 0.15 : "salmonid".equals(group) ? 0.10 : 0.0);
@@ -238,7 +245,8 @@ public final class TiedDesign {
 
         /** §species-table: by diet first, family second. */
         public double affinity(String diet, String group) {
-            double base = template == Template.NONE ? 0.6 : template.family(diet, group) * (0.6 + 0.4 * match);
+            // §chaos: "the thing" fishes at its hidden number — 0.1 (they flee it) to 2.0 (they cannot leave it alone)
+            double base = template == Template.NONE ? chaos : template.family(diet, group) * (0.6 + 0.4 * match);
             boolean hunter = "predator".equals(group) || "big_game".equals(group) || "sea".equals(group);
             if (eyes && hunter) base *= 1.10;                       // a lure with eyes gets looked at
             base *= 1.0 + flash * (hunter ? 0.15 : "salmonid".equals(group) ? 0.10 : 0.0);
@@ -250,7 +258,7 @@ public final class TiedDesign {
     }
 
     public static Analysis analyse(byte[] d) {
-        if (!valid(d)) return new Analysis(Template.NONE, 0, 0, 0, 0, 0x888888, LureColor.NATURAL, 0.3, 0, 0, false);
+        if (!valid(d)) return new Analysis(Template.NONE, 0, 0, 0, 0, 0x888888, LureColor.NATURAL, 0.3, 0, 0, false, CHAOS_DEFAULT);
         int fill = 0, x0 = SIZE, y0 = SIZE, x1 = -1, y1 = -1, r = 0, g = 0, b = 0, flashPx = 0, actionPx = 0, eyePx = 0;
         double weight = 0;
         for (int y = 0; y < SIZE; y++) {
@@ -306,11 +314,37 @@ public final class TiedDesign {
         if (bestIou < 0.45) best = Template.NONE;
         int mean = (r / fill) << 16 | (g / fill) << 8 | (b / fill);
         return new Analysis(best, Math.min(1.0, (bestIou - 0.45) / 0.45), fill, w, h, mean, LureColor.fromRgb(mean),
-                Math.max(0.1, weight), flashPx / (double) fill, actionPx / (double) fill, eyePx >= 2 * UP * UP);
+                Math.max(0.1, weight), flashPx / (double) fill, actionPx / (double) fill, eyePx >= 2 * UP * UP, CHAOS_DEFAULT);
     }
 
     public static Analysis analyse(ItemStack stack) {
-        return analyse(design(stack));
+        Analysis a = analyse(design(stack));
+        var tag = StackNbt.get(stack);
+        return tag.contains(TAG_CHAOS) ? a.withChaos(tag.getDouble(TAG_CHAOS)) : a;
+    }
+
+    /** §technique: how a fly is fished — what the bite clock rewards. */
+    public enum Technique { SURFACE, DRIFT, BOTTOM, STRIP, ANY }
+
+    public static Technique technique(Template t) {
+        return switch (t) {
+            case DRY_FLY, ANT -> Technique.SURFACE;        // dead-drifted on top, no tension — a fallen insect
+            case NYMPH -> Technique.DRIFT;                 // let it drift free, under the surface
+            case PELLET, DROP, DEVIL -> Technique.BOTTOM;  // heavy: worked near the bottom, euro-nymphed or under a float
+            case STREAMER, SHRIMP -> Technique.STRIP;      // stripped, jerky, mid-water
+            case NONE -> Technique.ANY;
+        };
+    }
+
+    /** How fast the fly itself goes down, m/s, by what it is. */
+    public static double sinkRate(Template t) {
+        return switch (technique(t)) {
+            case SURFACE -> 0.0;
+            case DRIFT -> 0.12;
+            case BOTTOM -> 0.5;
+            case STRIP -> 0.25;
+            case ANY -> 0.1;
+        };
     }
 
     public static int hash(byte[] d) {

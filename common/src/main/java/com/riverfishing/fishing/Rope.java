@@ -29,7 +29,7 @@ public final class Rope {
     static final double GRAVITY = 9.81;
     static final double AIR_DRAG = 0.06;        // per metre of speed, per second — a line carries 20 m/s for a second or two
     static final double WATER_DRAG = 12.0;      // a floating line stops almost at once
-    static final int SUBSTEPS = 4;
+    public static final int SUBSTEPS = 4;
     /** Constraint passes: a Gauss-Seidel chain needs about n/2 sweeps to carry a pull end to end. */
     private int passes() { return Math.max(8, n); }
     static final double MAX_SPEED = 40.0;
@@ -41,8 +41,12 @@ public final class Rope {
 
     public final double[] x, y, z, px, py, pz;
     private double length = 3.0;
-    /** How fast the fly sinks, m/s. 0 floats (dry fly). The line itself always floats. */
+    /** How fast the fly sinks, m/s. 0 floats (dry fly). */
     public double flySink = 0.0;
+    /** §fly-lines: how fast the LINE goes down, m/s — 0 floats (F), 0.03 hovers (I), 0.15 sinks (S). */
+    public double lineSink = 0.0;
+    /** Air drag per m/s: a heavier line carries further; set by the rod's class. */
+    public double airDrag = AIR_DRAG;
     /** Tension at the tip last step, metres of stretch beyond one segment — the rod's load. */
     public double load01() { return Math.min(1.0, tipStretch / (segLen() * LOAD_STRETCH)); }
     /** Stretch of the first segment, as a fraction of its length, that reads as a fully loaded rod. */
@@ -118,14 +122,15 @@ public final class Rope {
                 // The line floats (springs to the surface); the leader hangs neutral; the fly
                 // settles toward its own sink speed through the water drag above.
                 boolean fly = i == n - 1;
-                if (i < leaderFrom || (fly && flySink <= 0)) ay += GRAVITY + (surf - y[i]) * 40.0; // floats
-                else if (!fly) ay += GRAVITY;                                                      // neutral leader
-                else ay += GRAVITY - flySink * WATER_DRAG;                                        // sinks
+                if (fly) ay += flySink <= 0 ? GRAVITY + (surf - y[i]) * 40.0 : GRAVITY - flySink * WATER_DRAG;
+                else if (i >= leaderFrom) ay += GRAVITY;                                           // neutral leader
+                else if (lineSink <= 0) ay += GRAVITY + (surf - y[i]) * 40.0;                     // a floating line
+                else ay += GRAVITY - lineSink * WATER_DRAG;                                       // I or S: it goes down
             } else {
                 double sp = Math.sqrt(vx * vx + vy * vy + vz * vz);
                 // Drag can never reverse a velocity inside one substep: a fast head turn threw the
                 // tip metres in a tick, k*h went past 1, the chain blew up to NaN and the line vanished.
-                double k = Math.min(AIR_DRAG * sp, 0.9 / h);
+                double k = Math.min(airDrag * sp, 0.9 / h);
                 ax -= vx * k; ay -= vy * k; az -= vz * k;
             }
             double sp2 = vx * vx + vy * vy + vz * vz;

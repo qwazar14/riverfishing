@@ -488,7 +488,7 @@ public final class FishingManager {
     private static final Set<UUID> FLY_CAST = new HashSet<>();
     private static final Map<UUID, Integer> FLY_DRY = new HashMap<>();
 
-    public static void flyUpdate(ServerPlayer sp, InteractionHand hand, double x, double y, double z, int flags) {
+    public static void flyUpdate(ServerPlayer sp, InteractionHand hand, double x, double y, double z, int flags, float presentation) {
         ServerLevel level = sp.serverLevel();
         long now = level.getGameTime();
         boolean active = (flags & com.riverfishing.network.FlyPacket.ACTIVE) != 0;
@@ -550,6 +550,12 @@ public final class FishingManager {
             }
             FLY_DRY.remove(sp.getUUID());
             if (!level.getFluidState(at).isEmpty()) session.target = at;
+            // §technique: every update is four ticks of drift; a fly fished the way it is fished gains
+            // four more on the bite clock (it runs double), one fished wrong loses them (it stands
+            // still), and in between the clock just ticks. Never a word — the take comes or does not.
+            if (session.biteAtTick > now) {
+                session.biteAtTick -= Math.round((Mth.clamp(presentation, 0f, 1f) - 0.5f) * 8f);
+            }
             return;
         }
         if (strike && now <= session.biteWindowEnd) hookUp(sp, level, session, now);

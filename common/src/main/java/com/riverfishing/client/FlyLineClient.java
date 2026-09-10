@@ -36,6 +36,13 @@ public final class FlyLineClient {
     private static int syncTick;
     private static final float STRIKE_LOAD_JUMP = 0.35f;
     private static boolean flyWet;
+    /** §technique: how well the fly is being fished for what it is, 0..1, eased — sent to the server
+     *  where it runs or stalls the bite clock. And the fly's last strip, for the streamer. */
+    private static float presentation = 0.5f;
+    private static int lastStripTick = -999, tickNo;
+    private static final double[] flowAt = new double[3];
+    /** §fly-lines: the geometry's shoot factor, read off the rod each tick. */
+    private static double shoot = 1.0;
     /** §fly-cast: ticks the fly has been in the air, and how far out it got; a landing after a real
      *  flight is a cast, a fly dangled or dropped in is not. */
     private static int airTicks;
@@ -146,6 +153,7 @@ public final class FlyLineClient {
             flyWet = false;
             airTicks = 0;
             airReach = 0;
+            presentation = 0.5f;
             bitingWas = false;
             loadPrev = 0f;
             if (sentActive && mc.player != null) {   // the rod went away: the server lets the drift go
@@ -181,7 +189,25 @@ public final class FlyLineClient {
         while (mc.options.keyUse.consumeClick()) { }
 
         // The shoot spends the hand loop first; past that the line comes off the reel, slowly.
-        rope.payPerStep = slack > 0 ? Rope.MAX_PAY_PER_STEP : REEL_PAY;
+        rope.payPerStep = (slack > 0 ? Rope.MAX_PAY_PER_STEP : REEL_PAY) * shoot;
+        // What the rod carries decides what the rope is: the line's buoyancy and the rod's class, the
+        // fly's own sink rate — and how it wants to be fished.
+        var main = mc.player.getMainHandItem();
+        var rodStack = main.getItem() instanceof RodItem ? main : mc.player.getOffhandItem();
+        var rodType = ((RodItem) rodStack.getItem()).rodType();
+        var lineStack = com.riverfishing.item.RodData.get(rodStack, com.riverfishing.component.ComponentSlot.LINE);
+        shoot = 1.0;
+        if (lineStack.getItem() instanceof com.riverfishing.item.FlyLineItem fl) {
+            rope.lineSink = fl.buoyancy().sink;
+            shoot = fl.geometry().shoot;
+        }
+        rope.airDrag = 0.06 * 5.0 / Math.max(3, rodType.flyWeight());   // a #11 line carries, a #3 floats down
+        var rigStack = com.riverfishing.item.RodData.get(rodStack, com.riverfishing.component.ComponentSlot.RIG);
+        var tied = rigStack.getItem() instanceof com.riverfishing.item.RigItem ? com.riverfishing.rig.RigData.tiedLure(rigStack) : null;
+        var template = tied == null ? com.riverfishing.tackle.TiedDesign.Template.NONE : tied.template();
+        rope.flySink = com.riverfishing.tackle.TiedDesign.sinkRate(template);
+        tickNo++;
+
         // §fly-take: the server's line state for this angler — the bite and the fight live there.
         ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
         boolean biting = own != null && own.biting;
@@ -226,6 +252,24 @@ public final class FlyLineClient {
         }
         flyWet = onWater || fighting || biting;
         boolean stripNow = strip && !stripWas;
+        if (stripNow) lastStripTick = tickNo;
+
+        // §technique: is the fly being fished the way this fly is fished?
+        double fx = rope.x[last], fy = rope.y[last], fz = rope.z[last];
+        double vx = (fx - rope.px[last]) * 20 * Rope.SUBSTEPS, vz = (fz - rope.pz[last]) * 20 * Rope.SUBSTEPS;
+        com.riverfishing.fishing.Flow.at(mc.level, fx, fy, fz, flowAt);
+        double drag = Math.hypot(vx - flowAt[0], vz - flowAt[2]);
+        double surf = WORLD.surfaceY(fx, fy, fz);
+        double depth = Double.isNaN(surf) ? -1 : surf - fy;
+        boolean bottomNear = onWater && (WORLD.solid(fx, fy - 0.4, fz) || WORLD.solid(fx, fy - 0.8, fz));
+        double score = switch (com.riverfishing.tackle.TiedDesign.technique(template)) {
+            case SURFACE -> onWater && depth < 0.15 && drag < 0.3 ? 1.0 : 0.0;          // dead drift on top, no wake
+            case DRIFT -> onWater && depth > 0.3 && depth < 2.5 && drag < 0.3 ? 1.0 : 0.0; // free drift under the surface
+            case BOTTOM -> bottomNear ? 1.0 : 0.0;                                         // ticking the bottom
+            case STRIP -> onWater && tickNo - lastStripTick < 40 ? 1.0 : 0.0;             // alive by the hand
+            case ANY -> 0.6;
+        };
+        presentation += (float) ((score - presentation) * 0.05);
         if (++syncTick >= 4 || strikeNow || stripNow || castNow) {
             syncTick = 0;
             int flags = com.riverfishing.network.FlyPacket.ACTIVE
@@ -235,7 +279,7 @@ public final class FlyLineClient {
                     | (castNow ? com.riverfishing.network.FlyPacket.CAST : 0);
             com.riverfishing.network.ModNetwork.toServer(new com.riverfishing.network.FlyPacket(
                     mc.player.getMainHandItem().getItem() instanceof RodItem,
-                    rope.x[last], rope.y[last], rope.z[last], flags));
+                    rope.x[last], rope.y[last], rope.z[last], flags, presentation));
             sentActive = true;
         }
         stripWas = strip;
