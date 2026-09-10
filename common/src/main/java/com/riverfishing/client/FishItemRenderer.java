@@ -60,6 +60,13 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         return ICON.computeIfAbsent(speciesPath, sp -> RiverFishing.id("item/fish_icon/" + sp));
     }
 
+    private static final java.util.Map<String, ResourceLocation> COOKED_ICON = new java.util.HashMap<>();
+
+    /** §cooking: the cooked sprite of a species — models/item/fish_icon/cooked/. */
+    public static ResourceLocation cookedIconModel(String speciesPath) {
+        return COOKED_ICON.computeIfAbsent(speciesPath, sp -> RiverFishing.id("item/fish_icon/cooked/" + sp));
+    }
+
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext ctx, PoseStack pose,
                              MultiBufferSource buffers, int light, int overlay) {
@@ -71,7 +78,12 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
         // Its own model if the card says nothing, which is every fish that is not a carp.
         String draw = com.riverfishing.fish.Genome.drawnAs(sp.getPath(),
                 com.riverfishing.fish.CatchCard.of(stack).getString("Variety"));
-        BakedModel model = com.riverfishing.client.platform.ClientPlatform.bakedModel(iconModel(draw));
+        BakedModel model = null;
+        if (com.riverfishing.item.CookedFish.isCooked(stack)) {   // §cooking: the same fish, browned
+            model = com.riverfishing.client.platform.ClientPlatform.bakedModel(cookedIconModel(sp.getPath()));
+            if (model == mm.getMissingModel()) model = null;
+        }
+        if (model == null) model = com.riverfishing.client.platform.ClientPlatform.bakedModel(iconModel(draw));
         if (model == null || model == mm.getMissingModel()) return;
 
         // §keepnet: in the grid a fish is sized by the CELLS IT OCCUPIES, not by its length — the

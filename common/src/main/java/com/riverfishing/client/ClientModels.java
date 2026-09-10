@@ -22,6 +22,7 @@ public final class ClientModels {
         List<ResourceLocation> list = new ArrayList<>(RodModelLayers.candidates());
         for (String sp : ModItems.FISH_SPECIES) {
             list.add(FishItemRenderer.iconModel(sp));
+            list.add(FishItemRenderer.cookedIconModel(sp));   // §cooking: present() keeps the ones with a texture
         }
         list.add(FryItemRenderer.FALLBACK); // §breeding: the static fry icon the procedural one falls back to
         // §pattern-mask: one flat mask model per patterned draw per family. Unlisted here they would
