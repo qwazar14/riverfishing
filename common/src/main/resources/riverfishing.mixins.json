@@ -7,7 +7,8 @@
     "ItemEntityMixin",
     "VillagerTradePoolMixin",
     "VillagerRepriceMixin",
-    "FlowFluidMixin"
+    "FlowFluidMixin",
+    "FurnaceCookFishMixin"
   ],
   "injectors": {
     "defaultRequire": 1
