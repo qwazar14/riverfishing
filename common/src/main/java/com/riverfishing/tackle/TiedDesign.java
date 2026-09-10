@@ -26,7 +26,9 @@ import java.util.Arrays;
  * Balance lives in eight masks and three tables here, never in the infinity of drawings.
  */
 public final class TiedDesign {
-    public static final int SIZE = 16;
+    /** §tie-32: the canvas is 32×32 now. The hook and the templates are still authored at 16 and
+     *  doubled — the shapes are the same shapes, four times the pixels to tie them with. */
+    public static final int SIZE = 32, SRC = 16, UP = SIZE / SRC;
     public static final String TAG_DESIGN = "Design", TAG_HOOK = "Hook", TAG_MAKER = "Maker";
 
     /** Pixel values. 1..16 are thread in DyeColor order; the rest are single materials. */
@@ -42,6 +44,29 @@ public final class TiedDesign {
 
     /** The hook's steel on the canvas and in the icon. */
     public static final int HOOK_RGB = 0x9AA3AA;
+
+    /** A 16-row mask doubled up to the canvas. */
+    static boolean[][] upscale(String[] rows) {
+        boolean[][] m = new boolean[SIZE][SIZE];
+        for (int y = 0; y < SRC; y++) {
+            if (rows[y] == null) continue;
+            for (int x = 0; x < SRC; x++) {
+                if (rows[y].charAt(x) != '#') continue;
+                for (int dy = 0; dy < UP; dy++) for (int dx = 0; dx < UP; dx++) m[y * UP + dy][x * UP + dx] = true;
+            }
+        }
+        return m;
+    }
+
+    /** A 16×16 drawing (a lure tied before §tie-32) doubled up to the canvas, so it still fishes and still shows. */
+    public static byte[] upscale(byte[] old) {
+        byte[] d = new byte[SIZE * SIZE];
+        for (int y = 0; y < SRC; y++) for (int x = 0; x < SRC; x++) {
+            byte b = old[y * SRC + x];
+            for (int dy = 0; dy < UP; dy++) for (int dx = 0; dx < UP; dx++) d[(y * UP + dy) * SIZE + x * UP + dx] = b;
+        }
+        return d;
+    }
 
     /** What shows at (x, y): the drawing where there is one, the hook under it, -1 for nothing. */
     public static int pixelRgb(byte[] design, int x, int y) {
@@ -74,22 +99,24 @@ public final class TiedDesign {
 
     /** Pixels one unit of the material buys. The vise consumes ceil(px / this). */
     public static int pixelsPerUnit(int px) {
-        if (px >= THREAD0 && px < THREAD0 + 16) return 40;   // a string (and a dye) ties forty
+        // Per 16-canvas pixel, times UP² for the 32 canvas: the same string ties the same fly.
+        int k = UP * UP;
+        if (px >= THREAD0 && px < THREAD0 + 16) return 40 * k;   // a string (and a dye) ties forty
         return switch (px) {
-            case HACKLE -> 24;      // a feather
-            case FUR -> 40;         // a block of wool
-            case BEAD_IRON, BEAD_GOLD -> 3;   // a nugget
-            case TINSEL -> 16;      // a copper ingot
-            case EYE -> 4;          // an ink sac
+            case HACKLE -> 24 * k;      // a feather
+            case FUR -> 40 * k;         // a block of wool
+            case BEAD_IRON, BEAD_GOLD -> 3 * k;   // a nugget
+            case TINSEL -> 16 * k;      // a copper ingot
+            case EYE -> 4 * k;          // an ink sac
             default -> Integer.MAX_VALUE;
         };
     }
 
     /** §tying: the hook in the vise, side on — eye left, shank along row 7, bend right, point up. Drawn under the canvas; never part of a design. */
-    public static final boolean[][] HOOK = new boolean[SIZE][SIZE];
+    public static final boolean[][] HOOK;
     static {
         String[] h = {"................", "................", "................", "................", "................", "................", ".##.............", "#..###########..", ".##...........#.", "...............#", "...............#", "..........#....#", "..........#...#.", "...........#.#..", "............#...", "................"};
-        for (int y = 0; y < SIZE; y++) for (int x = 0; x < SIZE; x++) HOOK[y][x] = h[y].charAt(x) == '#';
+        HOOK = upscale(h);
     }
 
     // ---- the templates ---------------------------------------------------------------------------
@@ -125,20 +152,17 @@ public final class TiedDesign {
         DRY_FLY("dry_fly", new String[]{
                 "................", ".......#.#.#....", ".......#.#.#....", "......###.#.....", ".......###......", ".####.#####.....", ".##############.", ".####.#####.....", ".......###......", "......###.#.....", ".......#.#.#....", "................", "................", "................", "................", "................"},
                 1.00, 0.40, 1.25, 0.40),
-        NONE("none", new String[16], 0.60, 0.60, 0.60, 0.60);
+        NONE("none", new String[SRC], 0.60, 0.60, 0.60, 0.60);
 
         public final String key;
-        final boolean[][] mask = new boolean[SIZE][SIZE];
+        final boolean[][] mask;
 
         public boolean[][] mask() { return mask; }
         final double cyprinid, predator, salmonid, sea;
 
         Template(String key, String[] rows, double cyprinid, double predator, double salmonid, double sea) {
             this.key = key;
-            for (int y = 0; y < SIZE; y++) {
-                if (rows[y] == null) continue;
-                for (int x = 0; x < SIZE; x++) mask[y][x] = rows[y].charAt(x) == '#';
-            }
+            this.mask = upscale(rows);
             this.cyprinid = cyprinid; this.predator = predator; this.salmonid = salmonid; this.sea = sea;
         }
 
@@ -173,6 +197,7 @@ public final class TiedDesign {
 
     public static byte[] design(ItemStack stack) {
         byte[] d = StackNbt.get(stack).getByteArray(TAG_DESIGN);
+        if (d.length == SRC * SRC) return upscale(d);   // tied on the old canvas
         return d.length == SIZE * SIZE ? d : null;
     }
 
@@ -187,7 +212,7 @@ public final class TiedDesign {
             if (b < 0 || b > LAST) return false;
             if (b != EMPTY) fill++;
         }
-        return fill >= 4;
+        return fill >= 4 * UP * UP;
     }
 
     /** Units of each material the drawing costs, indexed by pixel value. */
@@ -220,8 +245,8 @@ public final class TiedDesign {
             return base;
         }
 
-        /** Size in mm, one per pixel — the longer side of the drawing. */
-        public int sizeMm() { return Math.max(boxW, boxH); }
+        /** Size in mm, one per 16-canvas pixel — the longer side of the drawing. */
+        public int sizeMm() { return (Math.max(boxW, boxH) + UP - 1) / UP; }
     }
 
     public static Analysis analyse(byte[] d) {
@@ -236,13 +261,13 @@ public final class TiedDesign {
                 x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
                 int c = rgb(p);
                 r += (c >> 16) & 255; g += (c >> 8) & 255; b += c & 255;
-                switch (p) {
-                    case BEAD_IRON -> { weight += 0.35; flashPx++; }
-                    case BEAD_GOLD -> { weight += 0.65; flashPx++; }
-                    case TINSEL -> { weight += 0.03; flashPx++; }
-                    case HACKLE, FUR -> { weight += 0.01; actionPx++; }
-                    case EYE -> { weight += 0.02; eyePx++; }
-                    default -> weight += 0.02;
+                switch (p) {   // grams per 16-canvas pixel, so a bead weighs what it weighed
+                    case BEAD_IRON -> { weight += 0.35 / (UP * UP); flashPx++; }
+                    case BEAD_GOLD -> { weight += 0.65 / (UP * UP); flashPx++; }
+                    case TINSEL -> { weight += 0.03 / (UP * UP); flashPx++; }
+                    case HACKLE, FUR -> { weight += 0.01 / (UP * UP); actionPx++; }
+                    case EYE -> { weight += 0.02 / (UP * UP); eyePx++; }
+                    default -> weight += 0.02 / (UP * UP);
                 }
             }
         }
@@ -281,7 +306,7 @@ public final class TiedDesign {
         if (bestIou < 0.45) best = Template.NONE;
         int mean = (r / fill) << 16 | (g / fill) << 8 | (b / fill);
         return new Analysis(best, Math.min(1.0, (bestIou - 0.45) / 0.45), fill, w, h, mean, LureColor.fromRgb(mean),
-                Math.max(0.1, weight), flashPx / (double) fill, actionPx / (double) fill, eyePx >= 2);
+                Math.max(0.1, weight), flashPx / (double) fill, actionPx / (double) fill, eyePx >= 2 * UP * UP);
     }
 
     public static Analysis analyse(ItemStack stack) {
