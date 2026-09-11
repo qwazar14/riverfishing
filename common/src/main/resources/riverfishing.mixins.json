@@ -21,6 +21,7 @@
     "ItemEntitySeatMixin",
     "MerchantOrderPanelMixin",
     "FightEdgeGuardMixin",
+    "RopeInputMixin",
     "SpecialModelRenderersAccessor"
   ]
 }
