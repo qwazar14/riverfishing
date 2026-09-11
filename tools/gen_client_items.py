@@ -13,13 +13,14 @@ DYEABLE = {"mormyshka", "spinner", "spoon", "wobbler", "silicone", "popper", "cr
 
 
 def main():
-    shutil.rmtree(ITEMS, ignore_errors=True)
-    os.makedirs(ITEMS, exist_ok=True)
+    os.makedirs(ITEMS, exist_ok=True)   # never wiped: items/rod/*, fry, tied_lure and the dyed lures are hand-made
     n = 0
     for f in sorted(os.listdir(MODELS)):
         if not f.endswith(".json"):
             continue
         name = f[:-5]
+        if os.path.exists(os.path.join(ITEMS, f)):
+            continue   # hand-made or already generated; only NEW models get a plain definition
         model = {"type": "minecraft:model", "model": "riverfishing:item/" + name}
         if name in DYEABLE:
             model["tints"] = [{"type": "minecraft:dye", "default": -1}]
