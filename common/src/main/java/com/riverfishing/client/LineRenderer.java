@@ -390,8 +390,14 @@ public final class LineRenderer {
         // drew — rotate it back to world with the camera quaternion and the line starts ON the bent
         // 3D tip instead of at the body-model shoulder guess below.
         if (player == mc.player && RodChain.tipViewFresh()) {
-            org.joml.Vector3f w = RodChain.cameraRot(mc).transform(new org.joml.Vector3f(
-                    RodChain.TIP_VIEW[0], RodChain.TIP_VIEW[1], RodChain.TIP_VIEW[2]));
+            org.joml.Vector3f w = new org.joml.Vector3f(
+                    RodChain.TIP_VIEW[0], RodChain.TIP_VIEW[1], RodChain.TIP_VIEW[2]);
+            // §26.2: the retained entity pass poses entities camera-RELATIVE but not camera-ROTATED
+            // (the view rotation lives in the frame's matrices now), so TIP_VIEW is already a world
+            // offset from the camera; rotating it again put the line a body-width off the tip.
+            //? if <26.2 {
+            RodChain.cameraRot(mc).transform(w);
+            //?}
             Vec3 cp = RodChain.cameraPos(mc);
             return new Vec3(cp.x + w.x(), cp.y + w.y(), cp.z + w.z());
         }

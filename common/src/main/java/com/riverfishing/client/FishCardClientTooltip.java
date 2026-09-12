@@ -102,7 +102,7 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
 
         if (Minecraft.getInstance().hasShiftDown()) {
             rule();
-            if (!c.getStringOr("Bait", "").isEmpty()) row("bait", Component.translatable("item.riverfishing." + c.getStringOr("Bait", "")), YELLOW);
+            if (!c.getStringOr("Bait", "").isEmpty()) row("bait", baitName(c.getStringOr("Bait", "")), YELLOW);
             if (!c.getStringOr("Water", "").isEmpty()) row("water", Component.translatable("water.riverfishing." + c.getStringOr("Water", "")), BLUE);
             if (!c.getStringOr("Time", "").isEmpty()) row("time", Component.translatable("time.riverfishing." + c.getStringOr("Time", "")), WHITE);
             if (!c.getStringOr("Season", "").isEmpty()) row("season", Component.translatable("season.riverfishing." + c.getStringOr("Season", "")), WHITE);
@@ -148,7 +148,7 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         // Every term on its own line, labelled — the whole point of the card: nothing folded away.
         if (!t.getStringOr("Water", "").isEmpty()) row("water", Component.translatable("water.riverfishing." + t.getStringOr("Water", "")), BLUE);
         if (!t.getStringOr("Rod", "").isEmpty()) row("rod", key("rod." + t.getStringOr("Rod", "")), GREEN);
-        if (!t.getStringOr("Bait", "").isEmpty()) row("bait", Component.translatable("item.riverfishing." + t.getStringOr("Bait", "")), YELLOW);
+        if (!t.getStringOr("Bait", "").isEmpty()) row("bait", baitName(t.getStringOr("Bait", "")), YELLOW);
         if (!t.getStringOr("Time", "").isEmpty()) row("time", Component.translatable("time.riverfishing." + t.getStringOr("Time", "")), WHITE);
         rule();
         int have = mc.player == null ? 0
