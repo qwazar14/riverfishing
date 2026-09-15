@@ -36,6 +36,10 @@ public final class RiverFishingConfig {
     public static boolean consumeGroundbait = true;
     // update-check (0.4.0): the on-join version digest; modpacks can switch it off.
     public static boolean updateCheck = true;
+    /** §flow-config: the river current — the moving texture, the drifting boats and foam, the rope. Off = still water everywhere. */
+    public static boolean flow = true;
+    /** §season-config: days in a season of the mod's own calendar (a year is four of them; a sub-season a third). Ignored under Serene Seasons. */
+    public static int seasonDays = 24;
     public static double bycatchJunk = 0.045;
     public static double bycatchTreasure = 0.013;
 
@@ -65,6 +69,7 @@ public final class RiverFishingConfig {
     public static double frenzySpeed() { return frenzySpeed; }
     public static boolean consumeBait() { return consumeBait; }
     public static boolean consumeGroundbait() { return consumeGroundbait; }
+    public static boolean flow() { return flow; }
     public static double bycatchJunkChance() { return bycatchJunk; }
     public static double bycatchTreasureChance() { return bycatchTreasure; }
 }

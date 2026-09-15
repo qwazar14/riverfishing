@@ -56,6 +56,7 @@ public final class Flow {
 
     /** The cached block current, or null when the block is not water or there is no world to ask. */
     public static float[] at(BlockGetter getter, BlockPos pos) {
+        if (!com.riverfishing.config.RiverFishingConfig.flow()) return null;   // §flow-config
         if (getter == null || getter.getFluidState(pos).isEmpty()) return null;
         LevelReader biomes = getter instanceof LevelReader lr ? lr : clientLevel;
         if (biomes == null) return null;

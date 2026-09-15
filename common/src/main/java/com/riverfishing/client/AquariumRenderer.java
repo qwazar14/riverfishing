@@ -64,13 +64,22 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         double tankX = 0.5 + cw.getStepX() * 0.5;
         double tankZ = 0.5 + cw.getStepZ() * 0.5;
 
-        // §aqua-view: the water and the modules first — an empty tank still has water in it.
+        // §aqua-visible (1.0.0): the water is drawn LAST. Its box is a translucent batch that writes
+        // depth, and the fish ride their own batch started after it — so the box went down first and
+        // every fish behind the front face was thrown away by the depth test: a tank full of water and
+        // nothing in it. Fish and roe first, then the water blends over them, as it does in the world.
+        if (fishes.isEmpty() && roe.isEmpty()) {
         renderWater(be, facing, tankX, tankZ, pose, buffers, light, overlay);
         renderModules(be, facing, tankX, tankZ, pose, buffers, light, overlay);
-        if (fishes.isEmpty() && roe.isEmpty()) return;
+            return;
+        }
 
         if (!roe.isEmpty()) renderRoe(be, roe, time, facing, cw, tankX, tankZ, pose, buffers, light, overlay);
-        if (fishes.isEmpty()) return;
+        if (fishes.isEmpty()) {
+        renderWater(be, facing, tankX, tankZ, pose, buffers, light, overlay);
+        renderModules(be, facing, tankX, tankZ, pose, buffers, light, overlay);
+            return;
+        }
 
         for (int i = 0; i < fishes.size(); i++) {
             ItemStack fish = fishes.get(i);
@@ -138,6 +147,8 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             pose.popPose();
         }
 
+        renderWater(be, facing, tankX, tankZ, pose, buffers, light, overlay);
+        renderModules(be, facing, tankX, tankZ, pose, buffers, light, overlay);
         renderNameplate(be, fishes, facing, cw, pose, buffers, light);
     }
 

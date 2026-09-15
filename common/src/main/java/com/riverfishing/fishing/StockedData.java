@@ -36,6 +36,49 @@ public final class StockedData extends SavedData {
         return (((long) (pos.getX() >> 7)) << 32) ^ ((pos.getZ() >> 7) & 0xFFFFFFFFL);
     }
 
+    /**
+     * §pond-ledger (1.0.0): the ledger key for a spot — a claimed pond has a book of ITS OWN, keyed by
+     * its sign, and wild water keeps the ~128-block region. Two ponds in one region shared one book:
+     * the fry stocked in one came up in the other's trap and the adults counted for both. The first
+     * time a pond's key is asked for, whatever the region's book held with a release spot inside the
+     * pond moves over (a 0.9/1.0 pond's fish are not lost to the split).
+     */
+    public static long regionAt(ServerLevel level, BlockPos pos) {
+        PondData.Claim c = PondData.claim(level, pos);
+        if (c == null) return region(pos);
+        return get(level).pondKey(level, c);
+    }
+
+    private final Set<Long> ponds = new HashSet<>();   // transient: the claim keys seen this session
+
+    public long pondKey(ServerLevel level, PondData.Claim c) {
+        long key = c.sign;
+        if (ponds.add(key)) adopt(key, c);
+        return key;
+    }
+
+    /** §pond-ledger: is this key a pond's? Its checks are the owner's business, not the water's. */
+    public boolean isPond(long region) {
+        return ponds.contains(region);
+    }
+
+    private void adopt(long key, PondData.Claim c) {
+        String prefix = key + "|";
+        for (String k : new java.util.ArrayList<>(brood.keySet())) {
+            if (k.startsWith(prefix)) continue;
+            CompoundTag t = brood.get(k);
+            long pos = t.getLong("Pos");
+            if (pos == 0L || !c.holds(PondData.column(BlockPos.of(pos)))) continue;
+            String species = k.substring(k.indexOf('|') + 1);
+            long geo = Long.parseLong(k.substring(0, k.indexOf('|')));
+            brood.remove(k);
+            brood.put(prefix + species, t);
+            Set<String> st = regions.get(geo);
+            if (st != null && st.contains(species)) regions.computeIfAbsent(key, x -> new HashSet<>()).add(species);
+            setDirty();
+        }
+    }
+
     public static StockedData get(ServerLevel level) {
         ServerLevel overworld = level.getServer().overworld();
         return overworld.getDataStorage().computeIfAbsent(
@@ -509,7 +552,17 @@ public final class StockedData extends SavedData {
     public boolean tickSettle(ServerLevel level, long region, String species, com.riverfishing.fish.FishProfile p) {
         if (isStocked(region, species)) return false;
         CompoundTag t = brood.get(key(region, species));
-        if (t == null || !ready(t) || t.getDouble("Fit") < FIT_TO_SETTLE) return false;
+        if (t == null) return false;
+        // §pond-ledger: a private pond runs no checks — what its owner put in lives there from the day
+        // it went in. No habitat fit, no pair, no spawn window: the fry grow on their clock and the
+        // pairs breed by the season like any settled water.
+        if (isPond(region) && (t.getInt("F") + t.getInt("M") + t.getInt("Fry")) > 0) {
+            markStocked(region, species);
+            for (String k : new String[]{"Since", "Due"}) t.remove(k);
+            setDirty();
+            return true;
+        }
+        if (!ready(t) || t.getDouble("Fit") < FIT_TO_SETTLE) return false;
         long today = worldDay(level);
         if (t.getLong("Due") <= 0) {
             // Priced ONCE, when the brood is complete: the next whole window, start to end. A window the
@@ -599,6 +652,11 @@ public final class StockedData extends SavedData {
     public void growAround(ServerLevel level, BlockPos pos) {
         long region = region(pos);
         for (String s : farmSpecies(region)) { matureIfDue(level, region, s); growIfDue(level, region, s); }
+        // §pond-ledger: and every pond with a sign within 160 blocks — its book is its own now.
+        for (PondData.Claim c : PondData.near(level, pos, 160)) {
+            long key = pondKey(level, c);
+            for (String s : farmSpecies(key)) { matureIfDue(level, key, s); growIfDue(level, key, s); }
+        }
     }
 
     public void growIfDue(ServerLevel level, long region, String species) {

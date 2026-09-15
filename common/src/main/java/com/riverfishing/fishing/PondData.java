@@ -116,6 +116,22 @@ public final class PondData extends SavedData {
         return d.claimAt(a) == d.claimAt(b);
     }
 
+    /** §pond-ledger: the claim under a water block, or null for wild water. */
+    @Nullable
+    public static Claim claim(ServerLevel level, BlockPos pos) {
+        return get(level).claimAt(pos);
+    }
+
+    /** §pond-ledger: the claims whose sign stands within {@code r} blocks of a spot — the per-player tick's list. */
+    public static List<Claim> near(ServerLevel level, BlockPos pos, int r) {
+        List<Claim> out = new ArrayList<>();
+        for (Claim c : get(level).bySign.values()) {
+            BlockPos s = BlockPos.of(c.sign);
+            if (Math.abs(s.getX() - pos.getX()) <= r && Math.abs(s.getZ() - pos.getZ()) <= r) out.add(c);
+        }
+        return out;
+    }
+
     /** §pond-name: the claim a sign stands for, or null when the sign has none. */
     @Nullable
     public Claim bySign(BlockPos sign) {

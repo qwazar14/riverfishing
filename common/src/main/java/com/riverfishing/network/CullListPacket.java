@@ -74,7 +74,7 @@ public class CullListPacket implements ModNetwork.RfPacket {
      */
     public static CullListPacket of(ServerLevel level, BlockPos water) {
         StockedData data = StockedData.get(level);
-        long region = StockedData.region(water);
+        long region = StockedData.regionAt(level, water);
         List<ResourceLocation> here = FishingManager.speciesHere(level, water);
 
         List<ResourceLocation> ids = new ArrayList<>(here);
