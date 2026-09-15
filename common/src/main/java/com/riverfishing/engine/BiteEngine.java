@@ -213,10 +213,14 @@ public final class BiteEngine {
         return presence > 0 ? Math.max(natural, 0.25 * presence) : natural;
     }
 
+    /** §livebait-4: the taker is at least this many times the baitfish — the top of the 10–20 % prey band. */
+    public static final double PREY_RATIO = 5.0;
+
     private static double naturalScore(FishProfile p, BiteContext c) {
-        // §livebait-3: a 29 g rotan does not take a 125 g baitfish. A species whose biggest specimen
-        // could not swallow the bait (three times its weight, generously) is not a taker at all.
-        if (c.livebaitG > 0 && p.weightMax < c.livebaitG * 3.0) return 0.0;
+        // §livebait-4 (1.0.0): a predator takes prey a tenth to a fifth of its own weight — a 12 kg pike
+        // does not look at a 1.5 kg bait, and a 10 kg bait is a bait for a 50 kg fish. A species whose
+        // biggest specimen is under five times the bait is not a taker at all (was three times).
+        if (c.livebaitG > 0 && p.weightMax < c.livebaitG * PREY_RATIO) return 0.0;
         double fWater = p.waterFactor(c.water);
         if (fWater <= 0) return 0.0; // the fish does not live in this water body
 

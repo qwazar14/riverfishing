@@ -9,10 +9,13 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 /**
- * Live bait from any small catch (Â§livebait): a single fish weighing up to 100 g placed in the
- * crafting grid becomes one live bait. Weight lives in the fish's custom data, so this is a custom recipe.
+ * Live bait from any catch (§livebait): a single fish placed alone in the crafting grid becomes one
+ * live bait that keeps the fish's weight. §livebait-4 (1.0.0): ANY weight — the 150 g cap is gone; what
+ * a heavy baitfish does is call only a predator five times its size (FishingManager's size floor and
+ * BiteEngine's gate), so a ten-kilo bait is a bait for a fifty-kilo fish and nothing smaller.
  */
 public class LivebaitRecipe extends CustomRecipe {
+    /** §fly-rig keeps its own limit (RigMenu.flyTakes): a fly rod carries a baitfish, not a bream. */
     public static final int MAX_WEIGHT_G = 150;
 
     @Override
@@ -26,7 +29,7 @@ public class LivebaitRecipe extends CustomRecipe {
         }
         if (fish.isEmpty() || !(fish.getItem() instanceof FishItem)) return false;
         int w = FishItem.getWeightG(fish);
-        return w > 0 && w <= MAX_WEIGHT_G;
+        return w > 0 && !CookedFish.isCooked(fish);   // §livebait-4: any weight; a cooked fish is dinner
     }
 
     @Override

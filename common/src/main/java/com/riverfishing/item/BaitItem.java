@@ -45,7 +45,8 @@ public class BaitItem extends Item {
         if ("livebait".equals(baitId)) {
             int bw = StackNbt.get(stack).getIntOr(FishItem.TAG_BAIT_WEIGHT, 0);
             if (bw > 0) {
-                tooltip.accept(Component.translatable("tooltip.riverfishing.livebait_weight", FishItem.weightText(bw))
+                tooltip.accept(Component.translatable("tooltip.riverfishing.livebait_weight", FishItem.weightText(bw),
+                        FishItem.weightText((int) (bw * com.riverfishing.engine.BiteEngine.PREY_RATIO)))   // §livebait-4
                         .withStyle(s -> s.withColor(0x88C8E6)));
             }
         }
@@ -54,7 +55,8 @@ public class BaitItem extends Item {
         if ("livebait".equals(baitId)) {
             int bw = StackNbt.get(stack).getIntOr(FishItem.TAG_BAIT_WEIGHT, 0);
             if (bw > 0) {
-                tooltip.accept(Component.translatable("tooltip.riverfishing.livebait_weight", FishItem.weightText(bw))
+                tooltip.accept(Component.translatable("tooltip.riverfishing.livebait_weight", FishItem.weightText(bw),
+                        FishItem.weightText((int) (bw * com.riverfishing.engine.BiteEngine.PREY_RATIO)))   // §livebait-4
                         .withStyle(s -> s.withColor(0x88C8E6)));
             }
         }

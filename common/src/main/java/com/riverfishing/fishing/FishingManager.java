@@ -3458,15 +3458,15 @@ public final class FishingManager {
         }
         double biased = Math.pow(random.nextDouble(), k);
 
-        // §livebait-2 (0.4.0): a predator that commits to a live baitfish is one that can swallow it —
-        // at least 4× the bait's weight. A weighed livebait FLOORS the size roll there (capped at
-        // 60% of the species' range so the roll stays a roll). Only for species that actually take
-        // livebait; everything else ignores it.
+        // §livebait-4 (1.0.0): a predator that commits to a live baitfish is one that can swallow it —
+        // FIVE times the bait's weight, the top of the 10–20 % prey band, and the floor is not capped
+        // any more: a ten-kilo bait calls a fifty-kilo fish or nothing (BiteEngine already refused every
+        // species whose biggest specimen is under that). The old floor was 4× capped at 60 % of the
+        // range, which let an 11 kg fish take a 10 kg bait.
         // §livebait-3: every species that bit on a baitfish is floored by it, not only the ones that
         // score it — the score is about liking, the floor is about the mouth.
         if (livebaitWeightG > 0 && p.weightMax > p.weightMin) {
-            double minW = Mth.clamp(livebaitWeightG * 4.0, p.weightMin,
-                    p.weightMin + (p.weightMax - p.weightMin) * 0.6);
+            double minW = Mth.clamp(livebaitWeightG * BiteEngine.PREY_RATIO, p.weightMin, p.weightMax);
             double floor = (minW - p.weightMin) / (p.weightMax - p.weightMin);
             biased = floor + (1.0 - floor) * biased;
         }
