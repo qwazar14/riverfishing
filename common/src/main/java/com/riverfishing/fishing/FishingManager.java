@@ -2453,8 +2453,13 @@ public final class FishingManager {
                 session.landProgress + session.landPulse
                         * (!inRun ? 1.0 : directed ? 0.2 + 0.5 * align : 0.2)
                         * (1.0 + 0.6 * session.fatigue) * armStrength
-                        * (session.outclassed ? 0.35 : 1.0)
-                        * (session.lineSnagged ? 0.0 : 1.0), 0.0, 1.0);   // §line-snag: held — nothing comes   // §outclassed: a crank cannot win this one
+                        // §outclassed-exhausted: a crank cannot win this one — until the fish is played out.
+                        // The open drag wins it while it RUNS; once fatigue is up the runs stop, and a
+                        // flat 0.35 left the angler with nothing that gained faster than the bar bled — a
+                        // 238 kg beluga lay beaten on the surface and could not be brought the last metre.
+                        // A spent fish comes to a crank like any other; the penalty is the fight it has left.
+                        * (session.outclassed ? 0.35 + 0.65 * session.fatigue : 1.0)
+                        * (session.lineSnagged ? 0.0 : 1.0), 0.0, 1.0);   // §line-snag: held — nothing comes
         // A crank is work whether it gains anything or not.
         session.anglerStamina = Math.max(0.0, session.anglerStamina - (inRun ? 0.030 * wrongWay : 0.014));
         session.tension = Math.max(0.0, session.tension);
