@@ -58,6 +58,7 @@ public final class ShoalRenderer {
     public static void render(PoseStack pose, Vec3 cam, float partialTick) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;
+        LineRenderer.renderHooked(pose, cam, partialTick);   // §hooked-visible: under the water, with the shoal
         // Shoals belong to the level they were sent for; a world change must not leave stale fish behind.
         if (ShoalState.owner() != mc.level) return;
 

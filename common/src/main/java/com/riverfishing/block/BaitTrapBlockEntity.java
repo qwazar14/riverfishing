@@ -19,13 +19,11 @@ import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Gathers live bait over time while standing in water (§livebait): fry swim into the net every few
- * minutes, up to a small stack. Right-click collects everything.
+ * minutes, up to a small stack of twelve. Right-click collects everything. Live bait only — never a
+ * real fish (§trap-livebait-only).
  */
 public class BaitTrapBlockEntity extends BlockEntity {
     private static final int MAX_STORED = 12;
-    private static final int MAX_FISH = 4;
-    /** §trap-fish: a catch event lands a real SMALL fish (≤150 g) instead of fry this often. */
-    private static final double FISH_CHANCE = 0.35;
 
     private int stored;
     private int progress;
@@ -48,7 +46,7 @@ public class BaitTrapBlockEntity extends BlockEntity {
         if (nextAt < 0) {
             nextAt = 2400 + server.getRandom().nextInt(2400); // 2–4 minutes per fry
         }
-        if (stored >= MAX_STORED && fishes.size() >= MAX_FISH) return;
+        if (stored >= MAX_STORED) return;
 
         // §trap-feed: a fed trap pulls fish in twice as fast, one charge per catch.
         progress += feedCharges > 0 ? 2 : 1;
@@ -61,18 +59,10 @@ public class BaitTrapBlockEntity extends BlockEntity {
             progress = 0;
             nextAt = -1;
             if (feedCharges > 0) feedCharges--;
-            // §trap-fish: sometimes the net holds a real small fish of THIS water's community —
-            // whatever actually lives within reach of the trap, up to 150 g.
-            ItemStack small = server.getRandom().nextDouble() < FISH_CHANCE && fishes.size() < MAX_FISH
-                    ? rollSmallFish(server) : ItemStack.EMPTY;
-            if (!small.isEmpty()) {
-                fishes.add(small);
-                // §trap-filter: a trap that works is a trap that takes fish OUT of the water. It presses
-                // the same per-species depletion a rod does, so leaving one down for a week genuinely
-                // thins the small fry around it — the filter players asked the trap to be. Depletion
-                // recovers on its own clock, so the pond is never emptied for good.
-                deplete(server, com.riverfishing.item.FishItem.getSpecies(small));
-            } else if (stored < MAX_STORED) {
+            // §trap-livebait-only (1.0.0): the net takes LIVE BAIT and nothing else — the real small fish
+            // it used to land (35 % of catches, up to 150 g) made it a rod that fished by itself.
+            // A trap left from before may still hold some; collect() hands them over and that is the end.
+            if (stored < MAX_STORED) {
                 stored++;
                 // The fry netting is the same act with a smaller catch: it eats the local small fry too,
                 // at a fraction of the pressure, or a trap that mostly makes fry would filter nothing.

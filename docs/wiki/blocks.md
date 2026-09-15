@@ -105,8 +105,7 @@ A "малявочник" — a net you stand in the water. It is a waterloggable
 It works as long as it is waterlogged **or** has water below or on any of its four sides.
 
 - Every **2 to 4 minutes** it catches something.
-- **35 %** of catches are a real **small fish** (up to 150 g) drawn from the species that actually live in the water at the trap — a proper catch with its own weight and length, capped at 4 stored.
-- The rest are fry, stored as **Live Bait**, capped at 12.
+- Every catch is fry, stored as **Live Bait**, capped at 12. Live bait only: since 1.0.0 the trap never lands a real fish (it used to take a small fish of the local species 35 % of the time, which made it a rod that fished by itself).
 - Right-click with anything to collect everything at once. Empty: *"The trap is empty for now"*.
 
 ### Feeding the trap
