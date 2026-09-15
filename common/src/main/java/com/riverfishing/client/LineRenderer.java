@@ -66,13 +66,38 @@ public final class LineRenderer {
                     (wx, wy, wz) -> !mc.level.getFluidState(BlockPos.containing(wx, wy, wz)).isEmpty(),
                     lineBase(mc, player, state, pt));
             renderLine(mc, buffers, m, nrm, player, state, pt);
-            HookedFishRenderer.draw(mc, pose, buffers, state, lineEnd(mc, player, state, pt), pt);
             drew = true;
         }
 
         if (drew) {
             buffers.endBatch();   // flushes lines() AND every per-material strand type
         }
+        pose.popPose();
+    }
+
+
+    /**
+     * §hooked-visible (1.0.0): the fish on the line is drawn in the SHOAL's pass — before the water —
+     * so a fish under the surface is seen through it, the way a squid is. It used to ride the line's
+     * pass, after the translucent terrain, and the surface's depth threw away everything but a breach:
+     * the fight was a bar and a rod until the fish jumped. The body's own frame integration still
+     * happens in the line pass; this reads the position it left, one frame behind, which no eye sees.
+     */
+    public static void renderHooked(PoseStack pose, Vec3 cam, float pt) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null || ClientLineState.lines().isEmpty()) return;
+        pose.pushPose();
+        pose.translate(-cam.x, -cam.y, -cam.z);
+        MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
+        boolean drew = false;
+        for (var entry : ClientLineState.lines().entrySet()) {
+            ClientLineState.Line state = entry.getValue();
+            if (!(state.fighting || state.biting) || state.species.isEmpty()) continue;
+            if (!(mc.level.getEntity(entry.getKey()) instanceof Player player)) continue;
+            HookedFishRenderer.draw(mc, pose, buffers, state, lineEnd(mc, player, state, pt), pt);
+            drew = true;
+        }
+        if (drew) buffers.endBatch();
         pose.popPose();
     }
 
