@@ -140,7 +140,7 @@ public class BaitTrapBlockEntity extends BlockEntity {
         BlockPos waterPos = waterAt(server);
         if (waterPos == null) return ItemStack.EMPTY;
         var stocked = com.riverfishing.fishing.StockedData.get(server);
-        long region = com.riverfishing.fishing.StockedData.region(waterPos);
+        long region = com.riverfishing.fishing.StockedData.regionAt(server, waterPos);
         String species = null;
         int most = 0;
         boolean elsewhere = false;

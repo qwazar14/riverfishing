@@ -275,11 +275,12 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
 
     @Override
     public void submit(State s, PoseStack pose, SubmitNodeCollector collector, CameraRenderState camera) {
-        submitWater(s, pose, collector);
+        // §aqua-visible (1.0.0): the water box is submitted LAST — it writes depth, and a fish behind
+        // its front face submitted after it was thrown away; fish, roe and fry first, water over them.
         submitModules(s, pose, collector);
         if (s.roeFrame >= 0) submitRoe(s, pose, collector);
         if (!s.fry.isEmpty()) submitFry(s, pose, collector);
-        if (s.fishes.isEmpty()) return;
+        if (s.fishes.isEmpty()) { submitWater(s, pose, collector); return; }
 
         for (Swim swim : s.fishes) {
             pose.pushPose();
@@ -290,6 +291,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             swim.item.submit(pose, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
             pose.popPose();
         }
+        submitWater(s, pose, collector);
 
         pose.pushPose();
         pose.translate(s.plateX, 0.62, s.plateZ);

@@ -68,6 +68,8 @@ These are read directly whatever the preset is.
 | `consume_bait` | `true` | — | Whether natural bait is eaten on the strike. Lures are never consumed either way. |
 | `consume_groundbait` | `true` | — | Whether a feeder cage empties one groundbait per cast to feed the spot. |
 | `update_check` | `true` | — | The client-side version digest printed in chat on joining a world. Off is silent. |
+| `flow` | `true` | — | The river current (1.0.0): the moving water texture, drifting boats and foam, the fly line's drift. `false` is still water everywhere. |
+| `season_days` | 24 | 3 – 3000 | Days in one season of the mod's own calendar; a year is four of them, a sub-season a third. Ignored when Serene Seasons is installed. |
 
 ---
 
@@ -108,7 +110,10 @@ This is exactly what lands on disk on first launch, header comment and all:
 
   "consume_bait": true,
   "consume_groundbait": true,
-  "update_check": true
+  "update_check": true,
+
+  "flow": true,
+  "season_days": 24
 }
 ```
 
