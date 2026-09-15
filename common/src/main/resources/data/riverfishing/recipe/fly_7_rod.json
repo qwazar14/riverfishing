@@ -7,11 +7,11 @@
   ],
   "key": {
     "b": "minecraft:bamboo",
-    "n": "minecraft:iron_nugget",
+    "n": "minecraft:iron_ingot",
     "s": "minecraft:string"
   },
   "result": {
-    "id": "riverfishing:fly_rod",
+    "id": "riverfishing:fly_7_rod",
     "count": 1
   }
 }

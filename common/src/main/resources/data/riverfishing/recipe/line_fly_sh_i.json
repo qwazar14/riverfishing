@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CSS",
+    "SSS",
+    "SSC"
+  ],
+  "key": {
+    "S": "minecraft:string",
+    "C": "minecraft:kelp"
+  },
+  "result": {
+    "id": "riverfishing:line_fly_sh_i",
+    "count": 1
+  }
+}
