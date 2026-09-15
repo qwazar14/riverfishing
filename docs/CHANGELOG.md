@@ -5,6 +5,25 @@ Full patchnotes. The short three-bullet form the in-game update checker shows li
 
 ---
 
+## 1.0.0 — the line is a rope, the river runs, the pond is yours
+
+**Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.
+
+Full patchnote: [`docs/patchnotes/1.0.0.md`](patchnotes/1.0.0.md).
+
+Fly fishing rebuilt on a physical line: a rope off the rod tip with slack, pull, buoyancy, current and
+bottom, three untimed inputs, a cast that only counts when the fly flew, five rod classes, five reels, nine
+lines, and a fly fished the way its pattern is fished. Rivers run — the water texture moves, boats and foam
+drift, a dragged dry fly cuts a wake. The species table is the author's own: 267 fish, six new families,
+hybrids, diets. Every fish cooks and stays itself. The tying canvas is 32 × 32 and a fly that matches no
+pattern rolls a hidden number. The private pond is measured by its footprint (100 × 100), named from its
+sign, read from its sign, keeps a book of its own and runs no checks on what you put in. The fight has a
+body you can see the whole way through; an out-pulled fish is played out and a played-out one comes to the
+crank; the line no longer snags on the world. Any fish is live bait, and only a predator five times heavier
+takes it. Two anglers on one bank hear their own drag. Two config knobs: the current, the season's length.
+
+---
+
 ## 0.9.0 — a pond you keep, and a world with geography
 
 **Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.

@@ -2411,14 +2411,29 @@ public final class FishingManager {
 
     // ---- fight ----
 
+
+    /**
+     * §coop-sound (1.0.0): the fight's own sounds — the drag's ratchet and scream, the blank's creak,
+     * the crank — are the ANGLER's. They used to be played into the world at one volume, so two anglers
+     * on one bank heard each other's drag exactly as loud as their own, and a neighbour's run cut the
+     * timing out of your own fight. Now the owner gets the sound at full volume, at the reel, as a packet
+     * of their own; everyone else hears it in the world at a third of the volume and a shade lower, so it
+     * is still there — someone is into a fish next to you — and never mistakable for yours.
+     */
+    private static void reelSound(ServerPlayer sp, ServerLevel level, net.minecraft.sounds.SoundEvent sound, float vol, float pitch) {
+        sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSoundPacket(
+                net.minecraft.core.Holder.direct(sound), SoundSource.PLAYERS, sp.getX(), sp.getY(), sp.getZ(),
+                vol, pitch, level.getRandom().nextLong()));
+        level.playSound(sp, sp.blockPosition(), sound, SoundSource.PLAYERS, vol * 0.3f, pitch * 0.85f);
+    }
+
     private static void reelPulse(ServerPlayer sp, ServerLevel level, FishingSession session) {
         // §drag (0.5.1): an OPEN drag free-spools — cranking gains NOTHING and adds no tension; the
         // handle just spins against the slipping spool. This is what makes the drag honest: crouched
         // you cannot snap, but you cannot gain either (closes the crouch+spam-click guaranteed-fish
         // exploit). Stand up to wind — and take the tension that comes with it.
         if (sp.isCrouching()) {
-            level.playSound(null, sp.blockPosition(), SoundEvents.ITEM_FRAME_ROTATE_ITEM,
-                    SoundSource.PLAYERS, 0.3f, 0.9f);
+            reelSound(sp, level, SoundEvents.ITEM_FRAME_ROTATE_ITEM, 0.3f, 0.9f);   // §coop-sound
             return;
         }
         boolean inRun = session.runTicksLeft > 0;
@@ -2461,7 +2476,7 @@ public final class FishingManager {
         session.anglerStamina = Math.max(0.0, session.anglerStamina - (inRun ? 0.030 * wrongWay : 0.014));
         session.tension = Math.max(0.0, session.tension);
 
-        level.playSound(null, sp.blockPosition(), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.PLAYERS, 0.25f, 1.6f);
+        reelSound(sp, level, SoundEvents.FISHING_BOBBER_RETRIEVE, 0.25f, 1.6f);   // §coop-sound
 
         // §big-game greyhounding (0.5.0): cranking against a jumping fish rips the hook straight out —
         // the answer to the breach is SLACK, not the reel.
@@ -2719,8 +2734,7 @@ public final class FishingManager {
             int span = Math.max(1, session.runTicksTotal > 0 ? session.runTicksTotal : 85);
             session.landProgress = Math.max(0.0, session.landProgress - DIVE_COST / span);
             if (session.runTicksLeft % 25 == 0) {
-                level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.DRAG_LONG.get(),
-                        SoundSource.PLAYERS, 0.7f, 0.8f);
+                reelSound(sp, level, com.riverfishing.registry.ModSounds.DRAG_LONG.get(), 0.7f, 0.8f);   // §coop-sound
             }
         }
         // §candle: the tail-walk. It belonged to the billfish alone, and it belongs to everything
@@ -2768,8 +2782,7 @@ public final class FishingManager {
             session.barState = -1;
             level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 1.0f, 0.7f);
             // §sound: the long drag scream tears off for the final dash — at the player (the reel).
-            level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.DRAG_LONG.get(),
-                    SoundSource.PLAYERS, 0.9f, 1.0f);
+            reelSound(sp, level, com.riverfishing.registry.ModSounds.DRAG_LONG.get(), 0.9f, 1.0f);   // §coop-sound
             level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
                     session.target.getZ() + 0.5, 20, 0.3, 0.15, 0.3, 0.3);
             actionbar(sp, Component.translatable("message.riverfishing.final_surge").withStyle(ChatFormatting.RED));
@@ -2804,12 +2817,10 @@ public final class FishingManager {
             // (the note rings ~0.26 s); a higher base pitch makes the clicks come FASTER, and it
             // climbs with tension so you HEAR how close to snapping. Louder than the first pass.
             float pitch = 1.05f + (float) stress * 0.7f + ((now % 4 == 0) ? 0.05f : 0f);
-            level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.DRAG_NOTE.get(),
-                    SoundSource.PLAYERS, 0.8f, pitch);
+            reelSound(sp, level, com.riverfishing.registry.ModSounds.DRAG_NOTE.get(), 0.8f, pitch);   // §coop-sound
         } else if (!inRun && stress > 0.75 && now % 18 == 0) {
             // Calm but critically loaded: the blank creaks a warning (~0.86 s, so spaced well out).
-            level.playSound(null, sp.blockPosition(), com.riverfishing.registry.ModSounds.ROD_CREAK.get(),
-                    SoundSource.PLAYERS, 0.8f, 1.0f);
+            reelSound(sp, level, com.riverfishing.registry.ModSounds.ROD_CREAK.get(), 0.8f, 1.0f);   // §coop-sound
         }
         session.bossBar.setProgress((float) Mth.clamp(session.landProgress, 0.0, 1.0));
         // §bossbar-2: the bar tells WHOSE fight it is and what the fish is doing — no more guessing
