@@ -73,7 +73,7 @@ public class PondSignBlock extends Block {
         } else if (body.size() > PondData.MAX_BLOCKS) {
             refuse = "message.riverfishing.pond_too_big";
         } else {
-            BlockPos water = BlockPos.of(body.get(0));
+            BlockPos water = PondData.columnPos(body.get(0));
             UUID owner = PondData.owner(sl, water);
             if (owner != null && !owner.equals(sp.getUUID())) {   // somebody else's sign already stands here
                 refuse = "message.riverfishing.pond_not_yours";
@@ -138,7 +138,7 @@ public class PondSignBlock extends Block {
                 ? Component.translatable("message.riverfishing.pond_info_unnamed", c.ownerName, c.size())
                 : Component.translatable("message.riverfishing.pond_info_head", c.name, c.ownerName, c.size());
         out.add(head.withStyle(ChatFormatting.GOLD));
-        List<Component> modules = com.riverfishing.fishing.WaterUpgrades.inside(sl, c::holds);
+        List<Component> modules = com.riverfishing.fishing.WaterUpgrades.inside(sl, packed -> c.holds(PondData.column(BlockPos.of(packed))));
         if (modules.isEmpty()) {
             out.add(Component.translatable("message.riverfishing.pond_info_no_modules").withStyle(ChatFormatting.GRAY));
         } else {
@@ -152,7 +152,7 @@ public class PondSignBlock extends Block {
         // the ledger is per ~128-block region; a pond may straddle two, so every region the water
         // touches is read and the same species is summed across them
         java.util.Set<Long> regions = new java.util.LinkedHashSet<>();
-        for (int i = 0; i < c.size(); i++) regions.add(com.riverfishing.fishing.StockedData.region(BlockPos.of(c.water[i])));
+        for (int i = 0; i < c.size(); i++) regions.add(com.riverfishing.fishing.StockedData.region(PondData.columnPos(c.water[i])));
         com.riverfishing.fishing.StockedData stocked = com.riverfishing.fishing.StockedData.get(sl);
         java.util.Map<String, int[]> fish = new java.util.TreeMap<>();
         for (long r : regions) {

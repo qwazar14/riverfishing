@@ -40,8 +40,12 @@ import java.util.UUID;
  */
 public final class PondData extends SavedData {
     private static final String NAME = "riverfishing_ponds";
-    /** Biggest body a sign may claim — a dug pit, a village pond, a small lake; not a river. */
-    public static final int MAX_BLOCKS = 2500;   // §pond-name: was 600 — a 50×50 one deep, a real farm pond
+    /**
+     * Biggest body a sign may claim, as SURFACE — distinct x/z columns of water, whatever the depth
+     * (§pond-columns: 100×100; the count was 600 then 2 500 blocks and a deep pond paid for its depth,
+     * which is the one thing a farm pond should be allowed to have). A lake or a river still refuses.
+     */
+    public static final int MAX_BLOCKS = 10_000;
     /** How far from the sign the water may be. */
     public static final int REACH = 3;
 
@@ -51,6 +55,7 @@ public final class PondData extends SavedData {
         public final String ownerName;
         /** §pond-name: what the owner called it on the sign; "" until they do. */
         public String name = "";
+        /** §pond-columns: packed x/z columns ({@link #column}); a column is the pond's at every depth. */
         public final long[] water;
 
         Claim(long sign, UUID owner, String ownerName, long[] water) {
@@ -127,16 +132,24 @@ public final class PondData extends SavedData {
 
     @Nullable
     private Claim claimAt(BlockPos pos) {
-        Claim c = byWater.get(pos.asLong());
-        return c != null ? c : byWater.get(pos.below().asLong());
+        return byWater.get(column(pos));
+    }
+
+    /** §pond-columns: the x/z column of a block, packed — the unit a claim is made of. */
+    public static long column(BlockPos pos) {
+        return (((long) pos.getX()) << 32) ^ (pos.getZ() & 0xFFFFFFFFL);
+    }
+
+    public static BlockPos columnPos(long column) {
+        return new BlockPos((int) (column >> 32), 0, (int) column);
     }
 
     // ---- the sign's verbs ------------------------------------------------------------------------
 
     /**
-     * The water body nearest the sign, as packed positions, or null when no water is within {@link #REACH}.
-     * Flood-filled six ways with a cap one past {@link #MAX_BLOCKS}, so "too big" costs 601 blocks and
-     * not a lake.
+     * The water body nearest the sign, as packed COLUMNS, or null when no water is within {@link #REACH}.
+     * Flood-filled six ways through the water, but only the footprint is counted — the cap is one past
+     * {@link #MAX_BLOCKS} columns, so "too big" costs a lake's surface and not its volume.
      */
     @Nullable
     public static List<Long> flood(ServerLevel level, BlockPos sign) {
@@ -150,17 +163,17 @@ public final class PondData extends SavedData {
         if (start == null) return null;
         Set<Long> seen = new HashSet<>();
         ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-        List<Long> out = new ArrayList<>();
+        Set<Long> columns = new java.util.LinkedHashSet<>();
         queue.add(start);
         seen.add(start.asLong());
-        while (!queue.isEmpty() && out.size() <= MAX_BLOCKS) {
+        while (!queue.isEmpty() && columns.size() <= MAX_BLOCKS) {
             BlockPos p = queue.poll();
-            out.add(p.asLong());
+            columns.add(column(p));
             for (BlockPos n : new BlockPos[]{p.north(), p.south(), p.east(), p.west(), p.above(), p.below()}) {
                 if (seen.add(n.asLong()) && isWater(level, n)) queue.add(n);
             }
         }
-        return out;
+        return new ArrayList<>(columns);
     }
 
     private static boolean isWater(ServerLevel level, BlockPos p) {
@@ -192,12 +205,23 @@ public final class PondData extends SavedData {
 
     // ---- persistence ---------------------------------------------------------------------------
 
+    private static long[] toColumns(long[] blocks) {
+        Set<Long> cols = new java.util.LinkedHashSet<>();
+        for (long b : blocks) cols.add(column(BlockPos.of(b)));
+        long[] out = new long[cols.size()];
+        int i = 0;
+        for (long c : cols) out[i++] = c;
+        return out;
+    }
+
     public static PondData load(CompoundTag tag, HolderLookup.Provider registries) {
         PondData d = new PondData();
         ListTag list = tag.getList("ponds", 10);
         for (int i = 0; i < list.size(); i++) {
             CompoundTag t = list.getCompound(i);
-            Claim c = new Claim(t.getLong("sign"), t.getUUID("owner"), t.getString("name"), t.getLongArray("water"));
+            // §pond-columns: a 0.9/1.0 claim stored block positions; fold them into columns on read.
+            long[] water = t.contains("cols") ? t.getLongArray("cols") : toColumns(t.getLongArray("water"));
+            Claim c = new Claim(t.getLong("sign"), t.getUUID("owner"), t.getString("name"), water);
             c.name = t.getString("pond");   // §pond-name: absent on a 0.9 claim, which reads as ""
             d.bySign.put(c.sign, c);
             for (long w : c.water) d.byWater.put(w, c);
@@ -214,7 +238,7 @@ public final class PondData extends SavedData {
             t.putUUID("owner", c.owner);
             t.putString("name", c.ownerName);
             t.putString("pond", c.name);
-            t.putLongArray("water", c.water);
+            t.putLongArray("cols", c.water);
             list.add(t);
         }
         tag.put("ponds", list);
