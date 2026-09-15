@@ -2536,6 +2536,10 @@ public final class FishingManager {
      * a crank gains nothing. A scrape once a second says so; the client draws the kink.
      */
     private static void tickSnag(ServerPlayer sp, ServerLevel level, FishingSession session, long now) {
+        // §line-snag-off (1.0.0): the chafe on a block was more nuisance than fight — every pier and
+        // ledge became a wall the crank could not work through. The flag stays down, the client draws
+        // no kink; the clip and the wear below are kept for the day it is wanted back.
+        if (true) { session.lineSnagged = false; return; }
         if (now % 4 != 0) return;
         net.minecraft.world.phys.Vec3 from = sp.getEyePosition(), to = fishEstimate(sp, session);
         net.minecraft.world.phys.BlockHitResult hit = level.clip(new net.minecraft.world.level.ClipContext(

@@ -62,6 +62,7 @@ public final class ShoalRenderer {
     public static void render(PoseStack pose, Vec3 cam, float partialTick) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
+        LineRenderer.renderHooked(pose, cam, partialTick);   // §hooked-visible: under the water, with the shoal
         TextureAtlas atlas = fishAtlas(mc);
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
         RenderType layer = LAYER;
