@@ -20,7 +20,8 @@ public final class FishPose {
      * The flatfish. Add a species here and it lies down everywhere at once — in open water, in the
      * aquarium and on the ground where you dropped it.
      */
-    private static final Set<String> FLAT = Set.of("flounder", "halibut", "ray");
+    private static final Set<String> FLAT = Set.of("flounder", "halibut", "ray",
+            "giant_freshwater_stingray", "ocellate_river_stingray", "short_tailed_river_stingray");   // §rays: the 0.10 river stingrays
 
     private FishPose() {}
 
