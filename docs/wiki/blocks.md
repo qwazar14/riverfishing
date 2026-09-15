@@ -215,7 +215,9 @@ The aerator, the snag pile and the gravel bed are waterlogged blocks placed on t
 
 ## Private pond sign
 
-New in **0.9.0**. A sign placed within **three blocks** of water claims that body — up to **600 blocks** of water: a dug pit or a village pond, never a river (a bigger body is refused). It is a board on a post, it faces whoever plants it, and its hitbox is the board.
+New in **0.9.0**. A sign placed within **three blocks** of water claims that body — up to **2 500 blocks** of water (1.0.0; it was 600): a dug pit, a village pond, a real farm pond, never a river (a bigger body is refused). It is a board on a post, it faces whoever plants it, and its hitbox is the board.
+
+**Reading and naming the sign (1.0.0).** Right-click the sign and it tells you what it stands for: the pond's name and owner, how many blocks of water, which [water upgrades](#water-upgrades) stand in it or on its bank, and the fish on its ledger by species — grown fish and fry. Anyone may read it. To name the pond, the **owner** right-clicks the sign with a **named name tag**; the tag is spent, as on a mob, and only the player who planted the sign can do it. Re-planting the sign keeps the name.
 
 - **No wild fish move in.** Nothing lives in a claimed pond but what you put in it.
 - The **depth, width, biome and [province](provinces.md) gates step back** — a carp lives in a dug pit, an arapaima in your garden.
