@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  b",
+    "sb ",
+    "bn "
+  ],
+  "key": {
+    "b": {
+      "item": "minecraft:bamboo"
+    },
+    "n": {
+      "item": "minecraft:gold_nugget"
+    },
+    "s": {
+      "item": "minecraft:string"
+    }
+  },
+  "result": {
+    "item": "riverfishing:fly_3_rod",
+    "count": 1
+  }
+}
