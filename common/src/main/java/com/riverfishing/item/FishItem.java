@@ -75,7 +75,7 @@ public class FishItem extends Item {
         ItemStack off = player.getItemInHand(net.minecraft.world.InteractionHand.OFF_HAND);
         int w = getWeightG(fish);
         if (player.isCrouching() && hand == net.minecraft.world.InteractionHand.MAIN_HAND
-                && off.getItem() instanceof HookItem && w > 0 && w <= LivebaitRecipe.MAX_WEIGHT_G
+                && off.getItem() instanceof HookItem && w > 0   // §livebait-4: any weight
                 && !CookedFish.isCooked(fish)) {   // §cooking: a cooked fish is dinner, not bait
             if (!level.isClientSide) {
                 var livebait = net.minecraft.core.registries.BuiltInRegistries.ITEM

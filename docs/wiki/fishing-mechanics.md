@@ -574,7 +574,7 @@ weight = min + (max − min) × u
 
 Solving the exponent from the profile's `mean` makes it the true **median catch** — half of all your fish of that species land under it. Profiles with no explicit mean fall back to the classic `k = 2.4` big-fish-are-rare curve.
 
-Two floors can raise the roll: a weighed [live baitfish](rigs-and-baits.md#live-bait-carries-a-weight) (≈6×) and a [tied lure's weight](tackle-station.md#2-the-lure-size-filter-lures-only) (≈8×), both capped at 60 % of the range.
+Two floors can raise the roll: a weighed [live baitfish](rigs-and-baits.md#live-bait-carries-a-weight) (5×, uncapped since 1.0.0) and a [tied lure's weight](tackle-station.md#2-the-lure-size-filter-lures-only) (≈8×, capped at 60 % of the range).
 
 ### Length
 
