@@ -55,7 +55,7 @@ public final class Ecosystem {
 
     private static Spot spot(ServerLevel level, BlockPos pos) {
         StockedData st = StockedData.get(level);
-        long region = StockedData.region(pos);
+        long region = StockedData.regionAt(level, pos);
         Set<String> up = WaterUpgrades.at(level, pos);
         return new Spot(st.isStocked(region, "grass_carp"), st.isStocked(region, "silver_carp"),
                 BIG_CARP.stream().anyMatch(s -> st.isStocked(region, s)),

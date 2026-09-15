@@ -3151,7 +3151,7 @@ public final class FishingManager {
             WaterBody cbody = WaterBodyCache.forLevel(lvl).get(lvl, where);
             String eco = nativeHere(lvl, where, cbody, species) ? "native"
                     : com.riverfishing.fishing.StockedData.get(lvl).isStocked(
-                            com.riverfishing.fishing.StockedData.region(where), path) ? "stocked" : "";
+                            com.riverfishing.fishing.StockedData.regionAt(lvl, where), path) ? "stocked" : "";
             int base = com.riverfishing.registry.ModVillagers.baseEmeralds(path);
             int value = base > 0 ? MarketData.get(lvl).price(lvl, path, base) : 0;
             // §koi-genes: a koi is priced by its VARIETY — that is what the whole hobby is. A trade
@@ -3190,7 +3190,7 @@ public final class FishingManager {
         double age = com.riverfishing.fish.FishMorph.ageFraction(p, weightG);
         String path = species.getPath();
         WaterBody body = WaterBodyCache.forLevel(level).get(level, where);
-        boolean settled = StockedData.get(level).isStocked(StockedData.region(where), path)
+        boolean settled = StockedData.get(level).isStocked(StockedData.regionAt(level, where), path)
                 && !nativeHere(level, where, body, species);
         double surplus = FishingPressureData.get(level).surplusAround(
                 where.getX() >> 4, where.getZ() >> 4, path, level.getGameTime());
@@ -3402,7 +3402,7 @@ public final class FishingManager {
      */
     private static double hShare(ServerLevel level, BlockPos pos, String species, int locus) {
         StockedData stocked = StockedData.get(level);
-        long region = StockedData.region(pos);
+        long region = StockedData.regionAt(level, pos);
         return stocked.isStocked(region, species) ? stocked.shares(region, species)[locus] : 0.0;
     }
 
@@ -3413,7 +3413,7 @@ public final class FishingManager {
      */
     private static double pondAvgWeight(ServerLevel level, BlockPos pos, String species) {
         StockedData stocked = StockedData.get(level);
-        long region = StockedData.region(pos);
+        long region = StockedData.regionAt(level, pos);
         return stocked.isStocked(region, species) ? stocked.avgWeight(region, species) : 0;
     }
 
@@ -3622,7 +3622,8 @@ public final class FishingManager {
      */
     private static java.util.function.ToDoubleFunction<ResourceLocation> communityFactor(
             ServerLevel level, BlockPos waterPos, WaterBody body) {
-        long region = StockedData.region(waterPos);
+        long region = StockedData.regionAt(level, waterPos);   // §pond-ledger: the pond's own book
+        long geo = StockedData.regionAt(level, waterPos);
         double absent = body.width() < 8 ? 0.60 : body.width() < 16 ? 0.45 : body.width() < 32 ? 0.30 : 0.20;
         long worldSeed = level.getSeed();
         StockedData stocked = StockedData.get(level);
@@ -3644,7 +3645,7 @@ public final class FishingManager {
             FishProfile pr = FishProfileManager.get().byId(id);
             if (pr == null || pr.base >= 0.95) return 1.0;
             if (stocked.isStocked(region, id.getPath())) return 1.0;
-            double r = hashUnit(worldSeed, region, id.getPath());
+            double r = hashUnit(worldSeed, geo, id.getPath());
             if (r >= absent) return r > 0.92 ? 1.8 : 1.0;
             // §residency: an UNSETTLED transplant bites in proportion to its 0..100% temporary
             // population (3×3-chunk reach — fish don't respect chunk borders), dispersing as the
@@ -3733,7 +3734,7 @@ public final class FishingManager {
         WaterBody body = WaterBodyCache.forLevel(level).get(level, pos);
         if (body.type() == WaterType.NONE) return;
         String id = p.id.getPath();
-        long region = StockedData.region(pos);
+        long region = StockedData.regionAt(level, pos);
         long chunk = new ChunkPos(pos).toLong();
         long now = level.getGameTime();
         net.minecraft.network.chat.Component name = fishName(p.id);
@@ -3756,7 +3757,8 @@ public final class FishingManager {
             WaterBody home = WaterBodyCache.forLevel(level).get(level, caughtAt);
             if (home.type() != WaterType.NONE) fit = Math.max(fit, BiteEngine.environmentScore(p, habitatContext(level, caughtAt, home)));
         }
-        if (fit <= 0) {
+        boolean pond = PondData.isClaimed(level, pos);   // §pond-ledger: no gate, no roll, no waiting
+        if (fit <= 0 && !pond) {
             // §residency-guard: water the species cannot live in at all takes nothing — no ledger, no stock.
             // §provinces: and when the ONLY thing wrong is the part of the world, say that instead —
             // "hostile water" is a lie about a river that suits the fish in every way but the continent.
@@ -3822,7 +3824,7 @@ public final class FishingManager {
         FishProfile p = FishProfileManager.get().byId(species);
         if (p == null) return;
         String id = species.getPath();
-        long region = StockedData.region(pos);
+        long region = StockedData.regionAt(level, pos);
         StockedData stocked = StockedData.get(level);
         stocked.matureIfDue(level, region, id);   // §fry-clock
         stocked.growIfDue(level, region, id);   // §k §farm: a landing is a touch of the water too
@@ -3895,7 +3897,7 @@ public final class FishingManager {
     /** §residency: native OR permanently settled — anything but a temporary transplant. */
     public static boolean residentHere(ServerLevel level, BlockPos pos, WaterBody body, ResourceLocation id) {
         return nativeHere(level, pos, body, id)
-                || StockedData.get(level).isStocked(StockedData.region(pos), id.getPath());
+                || StockedData.get(level).isStocked(StockedData.regionAt(level, pos), id.getPath());
     }
 
     /** §residency: stocked presence at a spot — 1.0 settled, 0..1 temp transplant (3×3 chunks), 0 none. */
@@ -3903,7 +3905,7 @@ public final class FishingManager {
             ServerLevel level, BlockPos waterPos) {
         StockedData stocked = StockedData.get(level);
         FishingPressureData pd = FishingPressureData.get(level);
-        long region = StockedData.region(waterPos);
+        long region = StockedData.regionAt(level, waterPos);
         int cx = waterPos.getX() >> 4, cz = waterPos.getZ() >> 4;
         return id -> {
             String s = id.getPath();
@@ -4317,7 +4319,7 @@ public final class FishingManager {
             // genome and when it next pays; and the bank's upgrades. The client has no ledger to ask.
             CompoundTag farm = new CompoundTag();
             StockedData st = StockedData.get(level);
-            long region = StockedData.region(waterPos);
+            long region = StockedData.regionAt(level, waterPos);
             for (String s : st.farmSpecies(region)) {
                 FishProfile fp = FishProfileManager.get().byId(com.riverfishing.RiverFishing.id(s));
                 if (fp == null) continue;

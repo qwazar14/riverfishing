@@ -96,7 +96,7 @@ public final class CatchCard {
         // §pattern-gate: a species outside `riverfishing:patterned` is never given one in the first place.
         if (p == null || !com.riverfishing.registry.ModItemTags.patterned(p.id)) return Pattern.NONE;
         int bred = p == null ? Pattern.NONE : com.riverfishing.fishing.StockedData.get(level)
-                .pattern(com.riverfishing.fishing.StockedData.region(where), p.id.getPath());
+                .pattern(com.riverfishing.fishing.StockedData.regionAt(level, where), p.id.getPath());
         return Pattern.has(bred) ? Pattern.inherit(bred, bred, rng)
                 : Pattern.roll(level.getSeed(), where, level.getGameTime());
     }
@@ -142,7 +142,7 @@ public final class CatchCard {
         // §stocked-genes: what this water has been stocked with, if anything — a no-op everywhere else.
         java.util.function.UnaryOperator<String> pool = p == null ? null
                 : genes -> com.riverfishing.fishing.StockedData.get(level).overlay(
-                        com.riverfishing.fishing.StockedData.region(s.target), p.id.getPath(), genes, rng);
+                        com.riverfishing.fishing.StockedData.regionAt(level, s.target), p.id.getPath(), genes, rng);
         body(c, p, weightG, morph, rng, s.nature, s.variety, pattern, pool);
         return c;
     }
@@ -180,7 +180,7 @@ public final class CatchCard {
         // §stocked-genes: what this water has been stocked with, if anything — a no-op everywhere else.
         java.util.function.UnaryOperator<String> pool = p == null ? null
                 : genes -> com.riverfishing.fishing.StockedData.get(level).overlay(
-                        com.riverfishing.fishing.StockedData.region(pos), p.id.getPath(), genes, rng);
+                        com.riverfishing.fishing.StockedData.regionAt(level, pos), p.id.getPath(), genes, rng);
         body(c, p, weightG, "", rng, (byte) -1, "", pattern, pool);
         return c;
     }

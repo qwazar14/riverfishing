@@ -87,7 +87,7 @@ public abstract class NetItem extends Item {
     private void haul(ServerPlayer sp, ServerLevel level, BlockPos pos) {
         WaterBody body = WaterBodyCache.forLevel(level).get(level, pos);
         if (body.type() == WaterType.NONE) return;
-        long region = StockedData.region(pos);
+        long region = StockedData.regionAt(level, pos);
         long chunk = new ChunkPos(pos).toLong();
         long now = level.getGameTime();
         StockedData stocked = StockedData.get(level);

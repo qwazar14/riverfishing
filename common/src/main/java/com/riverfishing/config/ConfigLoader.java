@@ -65,6 +65,9 @@ public final class ConfigLoader {
             RiverFishingConfig.consumeBait = bool(o, "consume_bait", RiverFishingConfig.consumeBait);
             RiverFishingConfig.consumeGroundbait = bool(o, "consume_groundbait", RiverFishingConfig.consumeGroundbait);
             RiverFishingConfig.updateCheck = bool(o, "update_check", RiverFishingConfig.updateCheck);
+            RiverFishingConfig.flow = bool(o, "flow", RiverFishingConfig.flow);
+            RiverFishingConfig.seasonDays = (int) num(o, "season_days", RiverFishingConfig.seasonDays, 3, 3000);
+            com.riverfishing.engine.Calendar.setSeasonDays(RiverFishingConfig.seasonDays);
 
             String p = RiverFishingConfig.preset.toLowerCase();
             if (!p.equals("arcade") && !p.equals("realism") && !p.equals("hardcore") && !p.equals("custom")) {
@@ -155,7 +158,10 @@ public final class ConfigLoader {
 
               "consume_bait": true,
               "consume_groundbait": true,
-              "update_check": true
+              "update_check": true,
+
+              "flow": true,
+              "season_days": 24
             }
             """;
 }

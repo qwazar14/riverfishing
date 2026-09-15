@@ -142,9 +142,8 @@ public class PondSignBlock extends Block {
         }
         // the ledger is per ~128-block region; a pond may straddle two, so every region the water
         // touches is read and the same species is summed across them
-        java.util.Set<Long> regions = new java.util.LinkedHashSet<>();
-        for (int i = 0; i < c.size(); i++) regions.add(com.riverfishing.fishing.StockedData.region(PondData.columnPos(c.water[i])));
         com.riverfishing.fishing.StockedData stocked = com.riverfishing.fishing.StockedData.get(sl);
+        java.util.Set<Long> regions = java.util.Set.of(stocked.pondKey(sl, c));   // §pond-ledger: the pond's own book
         java.util.Map<String, int[]> fish = new java.util.TreeMap<>();
         for (long r : regions) {
             for (String sp : stocked.farmSpecies(r)) {
