@@ -3620,7 +3620,7 @@ public final class FishingManager {
     private static java.util.function.ToDoubleFunction<ResourceLocation> communityFactor(
             ServerLevel level, BlockPos waterPos, WaterBody body) {
         long region = StockedData.regionAt(level, waterPos);   // §pond-ledger: the pond's own book
-        long geo = StockedData.regionAt(level, waterPos);
+        long geo = StockedData.region(waterPos);   // the seed's geography — never the pond key
         double absent = body.width() < 8 ? 0.60 : body.width() < 16 ? 0.45 : body.width() < 32 ? 0.30 : 0.20;
         long worldSeed = level.getSeed();
         StockedData stocked = StockedData.get(level);
