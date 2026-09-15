@@ -40,7 +40,7 @@ import java.util.UUID;
 public final class PondData extends SavedData {
     private static final String NAME = "riverfishing_ponds";
     /** Biggest body a sign may claim — a dug pit, a village pond, a small lake; not a river. */
-    public static final int MAX_BLOCKS = 600;
+    public static final int MAX_BLOCKS = 2500;   // §pond-name: was 600 — a 50×50 one deep, a real farm pond
     /** How far from the sign the water may be. */
     public static final int REACH = 3;
 
@@ -48,13 +48,26 @@ public final class PondData extends SavedData {
         public final long sign;
         public final UUID owner;
         public final String ownerName;
-        final long[] water;
+        /** §pond-name: what the owner called it on the sign; "" until they do. */
+        public String name = "";
+        public final long[] water;
 
         Claim(long sign, UUID owner, String ownerName, long[] water) {
             this.sign = sign;
             this.owner = owner;
             this.ownerName = ownerName;
             this.water = water;
+        }
+
+        public int size() {
+            return water.length;
+        }
+
+        private Set<Long> set;
+
+        public boolean holds(long packed) {
+            if (set == null) { set = new HashSet<>(); for (long w : water) set.add(w); }
+            return set.contains(packed);
         }
     }
 
@@ -93,6 +106,20 @@ public final class PondData extends SavedData {
     public static boolean sameWater(ServerLevel level, BlockPos a, BlockPos b) {
         PondData d = get(level);
         return d.claimAt(a) == d.claimAt(b);
+    }
+
+    /** §pond-name: the claim a sign stands for, or null when the sign has none. */
+    @Nullable
+    public Claim bySign(BlockPos sign) {
+        return bySign.get(sign.asLong());
+    }
+
+    /** §pond-name: the owner writes the name; nothing else about the claim moves. */
+    public void rename(BlockPos sign, String name) {
+        Claim c = bySign.get(sign.asLong());
+        if (c == null) return;
+        c.name = name;
+        setDirty();
     }
 
     @Nullable
@@ -139,10 +166,13 @@ public final class PondData extends SavedData {
 
     /** Record the claim; a sign already at this position is replaced (re-placing refreshes the flood). */
     public void put(BlockPos sign, ServerPlayer owner, List<Long> water) {
+        Claim old = bySign.get(sign.asLong());
+        String keepName = old == null ? "" : old.name;
         remove(sign);
         long[] arr = new long[water.size()];
         for (int i = 0; i < arr.length; i++) arr[i] = water.get(i);
         Claim c = new Claim(sign.asLong(), owner.getUUID(), owner.getGameProfile().getName(), arr);
+        c.name = keepName;   // re-planting refreshes the water, not the name
         bySign.put(c.sign, c);
         for (long w : arr) byWater.put(w, c);
         setDirty();
@@ -165,6 +195,7 @@ public final class PondData extends SavedData {
         for (int i = 0; i < list.size(); i++) {
             CompoundTag t = list.getCompound(i);
             Claim c = new Claim(t.getLong("sign"), t.getUUID("owner"), t.getString("name"), t.getLongArray("water"));
+            c.name = t.getString("pond");   // §pond-name: absent on a 0.9 claim, which reads as ""
             d.bySign.put(c.sign, c);
             for (long w : c.water) d.byWater.put(w, c);
         }
@@ -179,6 +210,7 @@ public final class PondData extends SavedData {
             t.putLong("sign", c.sign);
             t.putUUID("owner", c.owner);
             t.putString("name", c.ownerName);
+            t.putString("pond", c.name);
             t.putLongArray("water", c.water);
             list.add(t);
         }

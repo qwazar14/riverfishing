@@ -91,6 +91,81 @@ public class PondSignBlock extends Block {
                 .withStyle(ChatFormatting.GREEN), true);
     }
 
+    /**
+     * §pond-name: right-click with a named name tag and the pond takes that name — the owner's hand
+     * only, the tag is spent like on a mob. Any other click reads the sign: the name, whose it is, how
+     * much water, what is built on it, and who lives in it — a farmer looks at his pond, he does not
+     * open a menu on it.
+     */
+    @Override
+    public net.minecraft.world.InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+                                                     net.minecraft.world.InteractionHand hand, net.minecraft.world.phys.BlockHitResult hit) {
+        if (level.isClientSide()) return net.minecraft.world.InteractionResult.SUCCESS;
+        if (!(level instanceof ServerLevel sl) || !(player instanceof ServerPlayer sp)) return net.minecraft.world.InteractionResult.PASS;
+        PondData.Claim c = PondData.get(sl).bySign(pos);
+        if (c == null) return net.minecraft.world.InteractionResult.PASS;
+        ItemStack stack = player.getItemInHand(hand);
+        if (stack.is(net.minecraft.world.item.Items.NAME_TAG) && stack.hasCustomHoverName()) {
+            if (!c.owner.equals(sp.getUUID())) {
+                sp.displayClientMessage(Component.translatable("message.riverfishing.pond_name_not_owner", c.ownerName).withStyle(ChatFormatting.RED), true);
+                return net.minecraft.world.InteractionResult.SUCCESS;
+            }
+            String name = stack.getHoverName().getString().trim();
+            if (!name.isEmpty()) {
+                PondData.get(sl).rename(pos, name);
+                if (!sp.getAbilities().instabuild) stack.shrink(1);
+                sp.displayClientMessage(Component.translatable("message.riverfishing.pond_named", name).withStyle(ChatFormatting.GREEN), true);
+                return net.minecraft.world.InteractionResult.SUCCESS;
+            }
+        }
+        for (Component line : describe(sl, c)) sp.sendSystemMessage(line);
+        return net.minecraft.world.InteractionResult.SUCCESS;
+    }
+
+    /** What the sign says when read: the head line, the modules, the population. */
+    static List<Component> describe(ServerLevel sl, PondData.Claim c) {
+        List<Component> out = new java.util.ArrayList<>();
+        net.minecraft.network.chat.MutableComponent head = c.name.isEmpty()
+                ? Component.translatable("message.riverfishing.pond_info_unnamed", c.ownerName, c.size())
+                : Component.translatable("message.riverfishing.pond_info_head", c.name, c.ownerName, c.size());
+        out.add(head.withStyle(ChatFormatting.GOLD));
+        List<Component> modules = com.riverfishing.fishing.WaterUpgrades.inside(sl, c::holds);
+        if (modules.isEmpty()) {
+            out.add(Component.translatable("message.riverfishing.pond_info_no_modules").withStyle(ChatFormatting.GRAY));
+        } else {
+            net.minecraft.network.chat.MutableComponent list = Component.empty();
+            for (int i = 0; i < modules.size(); i++) {
+                if (i > 0) list.append(", ");
+                list.append(modules.get(i));
+            }
+            out.add(Component.translatable("message.riverfishing.pond_info_modules", list).withStyle(ChatFormatting.AQUA));
+        }
+        // the ledger is per ~128-block region; a pond may straddle two, so every region the water
+        // touches is read and the same species is summed across them
+        java.util.Set<Long> regions = new java.util.LinkedHashSet<>();
+        for (int i = 0; i < c.size(); i++) regions.add(com.riverfishing.fishing.StockedData.region(BlockPos.of(c.water[i])));
+        com.riverfishing.fishing.StockedData stocked = com.riverfishing.fishing.StockedData.get(sl);
+        java.util.Map<String, int[]> fish = new java.util.TreeMap<>();
+        for (long r : regions) {
+            for (String sp : stocked.farmSpecies(r)) {
+                int[] n = fish.computeIfAbsent(sp, k -> new int[2]);
+                n[0] += stocked.adults(r, sp);
+                n[1] += stocked.fryCount(r, sp);
+            }
+        }
+        fish.values().removeIf(n -> n[0] + n[1] == 0);
+        if (fish.isEmpty()) {
+            out.add(Component.translatable("message.riverfishing.pond_info_empty").withStyle(ChatFormatting.GRAY));
+        } else {
+            for (var e : fish.entrySet()) {
+                out.add(Component.translatable("message.riverfishing.pond_info_fish",
+                        Component.translatable("fish.riverfishing." + e.getKey()), e.getValue()[0], e.getValue()[1])
+                        .withStyle(ChatFormatting.GREEN));
+            }
+        }
+        return out;
+    }
+
     @Override
     public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         // The message belongs to the player who pulled the sign; the release itself is in onRemove so a
