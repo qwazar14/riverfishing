@@ -115,7 +115,7 @@ A **special recipe**: any one artificial lure plus one or more **dyes** in the g
 | Dough | shapeless | Wheat + Water Bucket |
 | Bread Crumb **×4** | shapeless | 1 × Bread |
 | Boilie **×4** | shapeless | 2 × Wheat + Egg + Sugar |
-| Live Bait | **special** | One caught fish weighing **150 g or less**, alone in the grid — the bait keeps the fish's weight |
+| Live Bait | **special** | Any one caught fish, **any weight** (1.0.0; it was 150 g or less), alone in the grid — the bait keeps the fish's weight, and only a predator five times that weight will take it |
 
 Worm, Maggot, Bloodworm and Chicken Liver come from digging and mob drops; Corn, Pea and Pearl Barley come from the [bait crops](blocks.md#bait-crops). See [Tools](tools.md#where-bait-comes-from).
 

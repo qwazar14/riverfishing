@@ -125,7 +125,7 @@ Twelve natural baits, plus the Ice Jig which lives in bait slots.
 | Bread Crumb | `bread` | 1 × Bread → **4** (shapeless). |
 | Boilie | `boilie` | 2 × Wheat + Egg + Sugar → **4** (shapeless). |
 | Raw Fish Fillet | `fish_strip` | Right-click a caught fish with the Filleting Knife — one per 200 g. The universal saltwater bait, a groundbait component, and food once cooked. |
-| Live Bait | `livebait` | Any caught fish of **150 g or less**, put alone in the grid. Or hold the fish, a hook in the off hand, sneak and use. Or gather them in a [Bait Trap](blocks.md#bait-trap). |
+| Live Bait | `livebait` | Any caught fish of **any weight** (1.0.0), put alone in the grid. Or hold the fish, a hook in the off hand, sneak and use. Or gather them in a [Bait Trap](blocks.md#bait-trap). |
 | Ice Jig | `mormyshka` | Gold Nugget + any hook (No.16–No.4) + 2 × String. |
 
 Natural bait is **eaten on the strike** — one piece per hooked fish. The bait the fish actually *preferred* is the one consumed, not simply the first slot. Lures and the Ice Jig are never consumed.
@@ -134,13 +134,13 @@ The **Frugal** skill gives a +5 % chance per rank (up to 25 %) that the bait sur
 
 ### Live Bait carries a weight
 
-A live baitfish keeps the weight of the fish it was made from, shown on its tooltip as *"Livebait: N — calls predators from 6 × N up"*. During the catch roll it **floors the size** of the fish you get:
+A live baitfish keeps the weight of the fish it was made from, shown on its tooltip as *"Livebait: N — calls predators from 5 × N up"*. A predator takes prey a tenth to a fifth of its own weight, so (1.0.0) the bait **sets a hard floor** on the fish you get:
 
 ```
-minimum fish weight ≈ 6 × baitfish weight
+minimum fish weight = 5 × baitfish weight
 ```
 
-capped at 60 % of the species' weight range so the roll is still a roll, and only for species that actually rate live bait at 0.5 or better. A big baitfish therefore filters out the tiddlers and calls a genuinely large predator.
+with no cap: a species whose biggest specimen is under five times the bait does not bite at all, and inside a species the roll starts at that floor. A 10 kg bait is therefore a bait for a 50 kg fish and nothing smaller — an 11 kg fish will not touch it. Every species that takes a baitfish is floored by it, not only the ones that rate it. (Before 1.0.0 the floor was six times the bait, capped at 60 % of the range.)
 
 Live Bait goes into a **Bait** slot on a bottom rig, or into the **Lure** slot of a Predator rig.
 
