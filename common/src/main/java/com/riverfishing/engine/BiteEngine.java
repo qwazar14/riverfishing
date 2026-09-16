@@ -210,6 +210,10 @@ public final class BiteEngine {
         // what makes "нестандартное" зарыбление real: the settled shark in the river is catchable,
         // just never comfortable.
         double presence = c.stockedPresence != null ? c.stockedPresence.applyAsDouble(p.id) : 0.0;
+        // §livebait-4: the mouth rule is not a habitat gate the stocking floor may lift — a stocked
+        // species whose biggest specimen is under five times the bait still cannot take it. A 505 g
+        // pollock took a 2.5 kg bait through this floor.
+        if (c.livebaitG > 0 && p.weightMax < c.livebaitG * PREY_RATIO) return 0.0;
         return presence > 0 ? Math.max(natural, 0.25 * presence) : natural;
     }
 
