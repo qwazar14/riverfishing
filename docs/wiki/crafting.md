@@ -8,26 +8,51 @@ Items marked **trade only** or **quest only** have no recipe at all — see [Vil
 
 ## Rods
 
-From 0.10.0 only the four simplest blanks are crafted; every other rod is **bought assembled from the [fisherman](villager.md)** (the journal's "how to get" line says so). All shaped; a reeled blank needs string for its guide wraps.
+All shaped. Every reeled blank needs string for its guide wraps.
 
 | Rod | Pattern | Key |
 |---|---|---|
 | Stick Rod | `··S / ·S· / S··` | S = Stick |
+| Bamboo Rod | `··b / ·b· / b··` | b = Bamboo |
+| Winter Rod | `··N / ·S· / S··` | N = Iron Nugget, S = Stick |
 | Pole Rod | `··b / ·b· / is·` | b = Bamboo, i = Iron Ingot, s = String |
 | Ultralight Rod | `··b / sb· / i··` | b = Bamboo, s = String, i = Iron Ingot |
+| Spinning Rod | `··b / si· / i··` | b = Bamboo, s = String, i = Iron Ingot |
+| Feeder Rod | `··g / si· / ii·` | g = Gold Ingot, s = String, i = Iron Ingot |
+| Bottom Rod | `·gg / si· / ii·` | g = Gold Ingot, s = String, i = Iron Ingot |
+| Carp Rod | `··d / si· / ig·` | d = Diamond, g = Gold Ingot, s = String, i = Iron Ingot |
+| Sea spinning rod | `··p / si· / id·` | p = Prismarine Shard, d = Diamond, s = String, i = Iron Ingot |
+| Surf rod | `·pp / si· / id·` | p = Prismarine Shard, d = Diamond, s = String, i = Iron Ingot |
+| Boat rod | `··c / si· / id·` | c = Prismarine Crystals, d = Diamond, s = String, i = Iron Ingot |
+| Trolling rod | `··n / si· / id·` | n = Nautilus Shell, d = Diamond, s = String, i = Iron Ingot |
+| Fly Rod #3 … #11 | `··b / sb· / bn·` | b = Bamboo, s = String, n = the seat metal: **#3** Gold Nugget, **#5** Iron Nugget, **#7** Iron Ingot, **#9** Copper Ingot, **#11** Gold Ingot |
 
-**Trade only:** Bamboo, Winter, Spinning, Feeder, Bottom, Carp, Sea spinning, Surf, Boat and Trolling rods. Anvil repair materials are listed in [Rods](rods.md).
+The saltwater four differ only in the **tip**. Anvil repair materials are listed in [Rods](rods.md).
 
 ---
 
 ## Reels
 
-Two are crafted, shapeless; the other nine (2000, 3000, 5000, 6000, 7000, 8000, 10000, 12000, 14000) are **trade only** — the [fisherman](villager.md) sells them, and two arrive as [quest](progression.md#the-quest-chain) rewards.
+All shapeless.
 
 | Reel | Ingredients |
 |---|---|
 | Reel 1000 | 2 × Iron Ingot + Redstone |
+| Reel 2000 | 2 × Iron Ingot + Copper Ingot + Redstone |
+| Reel 3000 | 3 × Iron Ingot + Copper Ingot + Redstone |
 | Reel 4000 | 3 × Iron Ingot + Copper Ingot + 2 × Redstone |
+| Reel 5000 | 4 × Iron Ingot + Copper Ingot + 2 × Redstone |
+| Reel 6000 | 4 × Iron Ingot + 2 × Copper Ingot + 2 × Redstone |
+| Reel 7000 | 5 × Iron Ingot + 2 × Copper Ingot + 2 × Redstone |
+| Reel 8000 | Iron Block + 2 × Copper Ingot + 2 × Redstone + Prismarine Shard |
+| Reel 10000 | Iron Block + 3 × Copper Ingot + 2 × Redstone + 2 × Prismarine Shard |
+| Reel 12000 | Iron Block + Copper Block + 2 × Redstone + Prismarine Crystals + Diamond |
+| Reel 14000 | Iron Block + Copper Block + Redstone Block + Nautilus Shell + 2 × Diamond |
+| Fly Reel #3 | Iron Ingot + Gold Nugget |
+| Fly Reel #5 | 2 × Iron Ingot + Gold Nugget |
+| Fly Reel #7 | 3 × Iron Ingot + Gold Nugget |
+| Fly Reel #9 | 3 × Iron Ingot + Copper Ingot + Gold Nugget |
+| Fly Reel #11 | 4 × Iron Ingot + Copper Ingot + Gold Nugget |
 
 There is no Reel 9000 item.
 
@@ -40,16 +65,21 @@ All shaped around a **ring of 8 String** (`SSS / S?S / SSS`).
 | Result | Centre of the ring |
 |---|---|
 | Mono Line 0.10 **×2** | *(empty)* |
+| Braided Line 0.16 **×2** | Phantom Membrane |
 | Fluorocarbon 0.14 **×2** | Amethyst Shard |
 | The next diameter up **×1** | The previous line of the same material |
 
-Braided Line 0.16 has no recipe any more — the [fisherman](villager.md) sells it. Upgrade chains, one craft per step; a diameter in **bold** is not crafted, you buy it and the chain carries on from there:
+Upgrade chains, one craft per step:
 
 | Material | Chain |
 |---|---|
-| Mono | 0.10 → 0.14 → 0.18 → 0.25 → 0.30 → 0.40 · **0.50, 0.60, 0.70, 0.80** trade only |
-| Braid | **0.16** → 0.20 → 0.25 · **0.30, 0.40, 0.50, 0.60** trade only |
-| Fluorocarbon | 0.14 → 0.16 · **0.20** → 0.25 → 0.30 · **0.40** trade only |
+| Mono | 0.10 → 0.14 → 0.18 → 0.25 → 0.30 → 0.40 → 0.50 → 0.60 → 0.70 → 0.80 |
+| Braid | 0.16 → 0.20 → 0.25 → 0.30 → 0.40 → 0.50 → 0.60 |
+| Fluorocarbon | 0.14 → 0.16 → 0.20 → 0.25 → 0.30 → 0.40 |
+
+### Fly lines
+
+The nine [fly lines](fly-fishing.md#lines) are a ring of 8 String around a **core** that sets the buoyancy — Honeycomb floats (F), Kelp hangs (I), an Iron Nugget sinks (S) — placed for the taper: in the centre (`SSS / SCS / SSS`) is weight-forward (WF), top and bottom (`SCS / S·S / SCS`) double taper (DT), opposite corners (`CSS / SSS / SSC`) a shooting head (SH).
 
 ### Line repair
 
@@ -92,8 +122,8 @@ All shapeless.
 | Item | Ingredients |
 |---|---|
 | Steel Leader | String + Iron Nugget |
-| Fluorocarbon Leader | **trade only** — the [fisherman](villager.md) |
-| Titanium Leader | **trade only** — the fisherman, or a [quest](progression.md#the-quest-chain) reward |
+| Fluorocarbon Leader | String + Prismarine Shard |
+| Titanium Leader | String + Iron Ingot |
 | Float | Bamboo + Feather |
 
 ---
@@ -183,10 +213,6 @@ A short list of everything in the mod you cannot craft:
 | Every lure (spinner, spoon, wobblers, jig, castmaster, spinnerbait, bladebait, swimbait, wacky worm, popper, crankbait, ice jig, soft plastic) | Tackle Station, or the fisherman |
 | Skirted Octopus Jig, Giant Spoon | Tackle Station, or the fisherman's saltwater kit |
 | All six bottom rigs | Tackle Station |
-| Bamboo, Winter, Spinning, Feeder, Bottom, Carp, Sea spinning, Surf, Boat and Trolling rods | The fisherman (Spinning, Carp and Surf are also quest rewards) |
-| Reels 2000–14000 except the 4000 | The fisherman (3000, 5000, 7000 and 14000 are also quest rewards) |
-| Braided Line 0.16; mono 0.50–0.80, braid 0.30–0.60, fluorocarbon 0.20 and 0.40 | The fisherman |
-| Fluorocarbon Leader, Titanium Leader | The fisherman (Titanium is also a quest reward) |
 | Mini Aquarium | Creative / commands only |
 | Ichthyologist's Tablet | Creative / commands only |
 | Electrofisher | Creative / commands only |

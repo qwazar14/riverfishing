@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  n",
+    "si ",
+    "id "
+  ],
+  "key": {
+    "n": {
+      "item": "minecraft:nautilus_shell"
+    },
+    "d": {
+      "item": "minecraft:diamond"
+    },
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "s": {
+      "item": "minecraft:string"
+    }
+  },
+  "result": {
+    "item": "riverfishing:trolling_rod"
+  }
+}

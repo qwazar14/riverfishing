@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  p",
+    "si ",
+    "id "
+  ],
+  "key": {
+    "p": {
+      "item": "minecraft:prismarine_shard"
+    },
+    "d": {
+      "item": "minecraft:diamond"
+    },
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "s": {
+      "item": "minecraft:string"
+    }
+  },
+  "result": {
+    "item": "riverfishing:sea_spin_rod"
+  }
+}
