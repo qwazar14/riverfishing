@@ -107,4 +107,4 @@ The first drift over a rested seam is the best drift; the twentieth over the sam
 
 ## Cooking what you catch
 
-Any fish goes into a furnace or a smoker and comes out the same fish, cooked — same weight, same length, same card, same size on the ground. Eaten, it feeds by its weight. A **prime** fish also gives every effect its species carries, good and bad; an ordinary one only feeds, and still bites back where the species does (a barbel's roe, a koi's omen). A cooked fish is dinner and nothing else — it cannot be released, kept, put in an aquarium, filleted or made into bait.
+Any fish goes into a furnace or a smoker and comes out the same fish, cooked — same weight, same length, same card, same size on the ground. Eaten, it feeds by its weight, and gives **Saturation** for two seconds per three kilos of fish (1.0.0). A **prime** fish also gives every effect its species carries, good and bad; an ordinary one only feeds, and still bites back where the species does (a barbel's roe, a koi's omen). A cooked fish is dinner and nothing else — it cannot be released, kept, put in an aquarium, filleted or made into bait.
