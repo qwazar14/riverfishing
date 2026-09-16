@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  g",
+    "si ",
+    "ii "
+  ],
+  "key": {
+    "g": "minecraft:gold_ingot",
+    "i": "minecraft:iron_ingot",
+    "s": "minecraft:string"
+  },
+  "result": {
+    "id": "riverfishing:feeder_rod"
+  }
+}
