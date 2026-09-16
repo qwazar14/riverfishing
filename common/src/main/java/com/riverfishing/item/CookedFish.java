@@ -66,6 +66,11 @@ public final class CookedFish {
                 b.effect(new MobEffectInstance(effect, ticks, amp), 1.0f);
             }
         }
+        // §fish-saturation (1.0.0): every cooked fish, prime or not, also gives SATURATION — two
+        // seconds per three kilos of the fish (a 3 kg carp: 2 s; a 30 kg catfish: 20 s). A meal that
+        // was a whole fish keeps you fed the way the nutrition number alone could not.
+        int satTicks = (int) Math.round(kg / 3.0 * 2.0 * 20.0);
+        if (satTicks > 0) b.effect(new MobEffectInstance(net.minecraft.world.effect.MobEffects.SATURATION, satTicks, 0), 1.0f);
         return b.build();
     }
 

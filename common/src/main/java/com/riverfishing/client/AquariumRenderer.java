@@ -242,7 +242,16 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
     // is doing. The box is the size the model's water element was: 0.6/16 in from the glass, 2/16 to
     // 15/16 up the upper cell, across both cells.
     private static final ResourceLocation WATER_TEX = RiverFishing.id("textures/block/aquarium_water.png");
-    private static final RenderType WATER_LAYER = RenderType.entityTranslucent(WATER_TEX);
+    /**
+     * §aqua-visible (1.0.0): the water box is drawn on a render type that writes NO depth — beaconBeam's
+     * translucent flavour: textured, blended, colour-only write mask, no cull. entityTranslucent wrote
+     * depth, and because the fish ride the item sheet (a fixed buffer, flushed at the end of the block-
+     * entity pass) while this box is a custom type (flushed at once), the box always went to the depth
+     * buffer first and every fish behind its front face was thrown away — visible only where it poked
+     * out of the tank. Submission order could not fix that; the write mask does. The beam shader takes no
+     * lightmap, so the box reads as lit water in the dark too, which a lit tank should.
+     */
+    private static final RenderType WATER_LAYER = RenderType.beaconBeam(WATER_TEX, true);
     private static final float W_HX = 1f - 0.6f / 16f, W_HZ = 0.5f - 0.6f / 16f, W_Y0 = 1f + 2f / 16f, W_Y1 = 1f + 15f / 16f;
     /** §aqua-view: the two module slots, drawn as their block items in the back corners of the gravel. */
     private static final float MOD_X = 0.72f, MOD_Z = -0.28f, MOD_Y = 1f + 2f / 16f + 0.13f, MOD_SCALE = 0.5f;
@@ -279,12 +288,9 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
     }
 
     private static void tv(Matrix4f m, VertexConsumer vc, float x, float y, float z, float u, float v, int r, int g, int b, int a, float nx, float ny, float nz, int light, int overlay) {
-        vc.vertex(m, x, y, z)
+        vc.vertex(m, x, y, z)   // §aqua-visible: POSITION_COLOR_TEX — no overlay, light or normal on this type
                 .color(r, g, b, a)
                 .uv(u, v)
-                .overlayCoords(overlay)
-                .uv2(light)
-                .normal(nx, ny, nz)
                 .endVertex();
     }
 
