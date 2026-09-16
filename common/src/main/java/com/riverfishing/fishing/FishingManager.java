@@ -3505,6 +3505,12 @@ public final class FishingManager {
         // the rest, §F). Applied before the rounding so the length keeps tracking the weight.
         weight *= (0.9 + 0.25 * hShare(level, session.target, p.id.getPath(), 0))
                 * com.riverfishing.fishing.Ecosystem.weightScale(level, session.target, p.id);
+        // §livebait-4: the hard floor holds AFTER the pond's re-centring and the size genes — a pond of
+        // 600 g pollock handed a 2.5 kg bait a 505 g fish, because the pond average overwrote the roll
+        // the bait had floored. A fish that took a baitfish is five times it, whatever the pond averages.
+        if (livebaitWeightG > 0 && !session.foulHooked) {
+            weight = Math.max(weight, Math.min(livebaitWeightG * BiteEngine.PREY_RATIO, p.weightMax));
+        }
         session.weightG = (int) Math.round(weight);
 
         // §trophy (0.7.0): a trophy is a PROPERTY OF THE FISH, not a dice roll. It used to be rolled
