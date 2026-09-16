@@ -257,8 +257,8 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
      * depth, and because the fish ride the item sheet (a fixed buffer, flushed at the end of the block-
      * entity pass) while this box is a custom type (flushed at once), the box always went to the depth
      * buffer first and every fish behind its front face was thrown away — visible only where it poked
-     * out of the tank. Submission order could not fix that; the write mask does. The beam shader takes no
-     * lightmap, so the box reads as lit water in the dark too, which a lit tank should.
+     * out of the tank. Submission order could not fix that; the write mask does. The beam type is the BLOCK vertex format,
+     * so light and normal are written as before.
      */
     private static final RenderType WATER_LAYER = RenderType.beaconBeam(WATER_TEX, true);
     private static final float W_HX = 1f - 0.6f / 16f, W_HZ = 0.5f - 0.6f / 16f, W_Y0 = 1f + 2f / 16f, W_Y1 = 1f + 15f / 16f;
@@ -297,9 +297,12 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
     }
 
     private static void tv(Matrix4f m, VertexConsumer vc, float x, float y, float z, float u, float v, int r, int g, int b, int a, float nx, float ny, float nz, int light, int overlay) {
-        vc.addVertex(m, x, y, z)   // §aqua-visible: POSITION_COLOR_TEX — no overlay, light or normal on this type
+        vc.addVertex(m, x, y, z)   // §aqua-visible: beaconBeam is the BLOCK format — it wants light and normal too
                 .setColor(r, g, b, a)
-                .setUv(u, v);
+                .setUv(u, v)
+                .setOverlay(overlay)
+                .setLight(light)
+                .setNormal(nx, ny, nz);
     }
 
     private void renderWater(AquariumBlockEntity be, Direction facing, double tankX, double tankZ,
