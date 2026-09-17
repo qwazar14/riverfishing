@@ -18,9 +18,13 @@ drift, a dragged dry fly cuts a wake. The species table is the author's own: 267
 hybrids, diets. Every fish cooks and stays itself. The tying canvas is 32 × 32 and a fly that matches no
 pattern rolls a hidden number. The private pond is measured by its footprint (100 × 100), named from its
 sign, read from its sign, keeps a book of its own — the book is the whole roster, the chunk bank is not read
-in a pond any more — and runs no checks on what you put in. The koi is a species: `koi_carp` bites on its
-own base in cherry-grove water and wherever it is stocked; the carp-turns-into-a-koi roll and the five old
-koi ids are gone. Every cooked fish gives Saturation, two seconds per three kilos. Every rod, reel, line
+in a pond any more — and runs no checks on what you put in: every fish put in goes on the book, breeding
+size or not. The pond REMEMBERS its fish — genes, sex, nature, pattern, variety, morph, name and weight —
+and what you catch or net out of it is one of those fish, grown a season at a time; a fish that throws the
+hook is still there. An emptied pond holds nothing; a second sign of your own on the same pond is refused;
+the pond's key can no longer collide with a wild region's. The koi is a species: `koi_carp` bites on its
+own base in cherry-grove water — in EVERY cherry-grove water, the community hash never leaves it out — and
+wherever it is stocked; the carp-turns-into-a-koi roll and the five old koi ids are gone. Every cooked fish gives Saturation, two seconds per three kilos. Every rod, reel, line
 and leader is craftable again. The fight has a
 body you can see the whole way through; an out-pulled fish is played out and a played-out one comes to the
 crank; the line no longer snags on the world. Any fish is live bait, and only a predator five times heavier
