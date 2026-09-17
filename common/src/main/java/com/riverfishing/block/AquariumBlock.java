@@ -82,7 +82,7 @@ public class AquariumBlock extends BaseEntityBlock {
         // Need the three extra cells free (the clicked one is already known replaceable).
         BlockPos[] extra = { base.relative(cw), base.above(), base.above().relative(cw) };
         for (BlockPos p : extra) {
-            if (p.getY() > level.getMaxBuildHeight() || !level.getBlockState(p).canBeReplaced()) {
+            if (p.getY() >= level.getMaxBuildHeight() /* exclusive: the upper cells must fit under it */ || !level.getBlockState(p).canBeReplaced()) {
                 return null; // not enough room — placement fails
             }
         }
