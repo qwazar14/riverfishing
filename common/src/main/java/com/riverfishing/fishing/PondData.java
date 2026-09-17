@@ -152,6 +152,12 @@ public final class PondData extends SavedData {
         setDirty();
     }
 
+    /** §pond-one-sign: the claim a packed column belongs to, or null. */
+    @Nullable
+    public Claim claimOfColumn(long column) {
+        return byWater.get(column);
+    }
+
     @Nullable
     private Claim claimAt(BlockPos pos) {
         return byWater.get(column(pos));
