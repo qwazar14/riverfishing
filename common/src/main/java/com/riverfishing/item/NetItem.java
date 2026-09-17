@@ -131,11 +131,25 @@ public abstract class NetItem extends Item {
             return;
         }
 
-        int poached = 0;
-        for (int i = 0; i < count; i++) {
+        int poached = 0, hauled = 0;
+        for (int i = 0; i < count && !pool.isEmpty(); i++) {
             FishProfile p = pick(pool, weights, total, rng);
             // §pond-roster: out of a pond the net lifts one of the fish that went in, grown.
             CompoundTag rec = pondOwner != null ? stocked.peekFish(region, p.id.getPath(), rng) : null;
+            // §pond-roster-net: the pool was priced once, before the loop, so a third fish was rolled
+            // after the two that were put in had come up — a carp nobody released. In a pond a species
+            // with no record left gives only what the head count says is UNRECORDED (fry that grew, the
+            // seasons' growth); with none of that either it leaves the pool, and a pond with nothing
+            // left ends the haul short.
+            if (pondOwner != null && rec == null
+                    && stocked.adults(region, p.id.getPath()) <= stocked.rememberedFish(region, p.id.getPath())) {
+                int at = pool.indexOf(p);
+                total -= weights.remove(at);
+                pool.remove(at);
+                i--;
+                continue;
+            }
+            hauled++;
             final int weightG = rec != null ? stocked.grownWeight(level, region, p.id.getPath(), p, rec) : rollWeight(p, rng);
             ItemStack fish = FishItem.create(ModItems.fishItem(p.id), p.id, weightG, lengthCm(p, weightG, rng), true);
             pressure.addCatch(chunk, p.id.getPath(), now);
@@ -188,7 +202,12 @@ public abstract class NetItem extends Item {
             // still grows (fishing/Warden).
             com.riverfishing.fishing.Warden.onPoach(sp, level, pos, poached);
         }
-        sp.displayClientMessage(Component.translatable("message.riverfishing.net_haul", count)
+        if (hauled == 0) {   // §pond-roster-net: the pond had nothing left to lift
+            sp.displayClientMessage(Component.translatable("message.riverfishing.net_empty")
+                    .withStyle(ChatFormatting.GRAY), true);
+            return;
+        }
+        sp.displayClientMessage(Component.translatable("message.riverfishing.net_haul", hauled)
                 .withStyle(ChatFormatting.GREEN), true);
         level.playSound(null, pos, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.8f, 0.9f);
     }

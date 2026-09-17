@@ -789,6 +789,12 @@ public final class StockedData extends SavedData {
         return list.getCompound(at).copy();
     }
 
+    /** How many fish the pond remembers of this species — the recorded part of the head count. */
+    public int rememberedFish(long region, String species) {
+        CompoundTag t = brood.get(key(region, species));
+        return t == null ? 0 : t.getList("Fish", Tag.TAG_COMPOUND).size();
+    }
+
     /** The fish is out of the pond: true when the record was still there. */
     public boolean takeFish(long region, String species, long uid) {
         CompoundTag t = brood.get(key(region, species));
