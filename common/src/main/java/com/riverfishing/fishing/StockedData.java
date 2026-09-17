@@ -49,10 +49,30 @@ public final class StockedData extends SavedData {
         return get(level).pondKey(level, c);
     }
 
+    /**
+     * §journal-bank (1.0.0): the key for where a player STANDS — the pond within three blocks if the
+     * spot itself is dry (a claim is water columns; the bank beside it is not one), else the region.
+     */
+    public static long regionNear(ServerLevel level, BlockPos pos) {
+        PondData.Claim c = PondData.claim(level, pos);
+        for (int dx = -3; c == null && dx <= 3; dx++) for (int dz = -3; c == null && dz <= 3; dz++) {
+            c = PondData.claim(level, pos.offset(dx, 0, dz));
+        }
+        return c == null ? region(pos) : get(level).pondKey(level, c);
+    }
+
     private final Set<Long> ponds = new HashSet<>();   // transient: the claim keys seen this session
 
     public long pondKey(ServerLevel level, PondData.Claim c) {
-        long key = c.sign;
+        // §pond-key (1.0.0): NOT the sign's packed position bare — a region key is (x>>7)<<32 ^ (z>>7)
+        // and BlockPos.asLong lays x and z out the same way, so a sign at (1, 64, 0) WAS the wild
+        // region near (8192, 8192): one book for both, and that region settled with no checks. A
+        // region key's bits 63 and 62 are always equal (a small int, sign-extended); this key clears
+        // 63 and sets 62, so the two can never meet. The dimension is folded in too: the book is one
+        // per server and a nether pond used to share its book with an overworld sign at the same
+        // coordinates. An old pond's book moves over on first read (adopt), Pos inside the claim.
+        long dim = level.dimension().location().toString().hashCode() * 0x9E3779B97F4A7C15L;
+        long key = ((c.sign ^ dim) & 0x3FFFFFFFFFFFFFFFL) | (1L << 62);
         if (ponds.add(key)) adopt(key, c);
         return key;
     }
@@ -661,8 +681,12 @@ public final class StockedData extends SavedData {
 
     /** Every farm species in the region the position is in — the per-player tick's call. */
     public void growAround(ServerLevel level, BlockPos pos) {
-        long region = region(pos);
-        for (String s : farmSpecies(region)) { matureIfDue(level, region, s); growIfDue(level, region, s); }
+        // §grow-around-9 (1.0.0): the region the player stands in AND the eight around it — a brood five
+        // blocks over a region border waited for somebody to stand on its side of the line.
+        for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++) {
+            long region = region(pos.offset(dx << 7, 0, dz << 7));
+            for (String s : farmSpecies(region)) { matureIfDue(level, region, s); growIfDue(level, region, s); }
+        }
         // §pond-ledger: and every pond with a sign within 160 blocks — its book is its own now.
         for (PondData.Claim c : PondData.near(level, pos, 160)) {
             long key = pondKey(level, c);
