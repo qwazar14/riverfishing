@@ -199,20 +199,19 @@ public final class BiteEngine {
     // ---- Environmental suitability E (§1.2) ----
 
     public static double environmentScore(FishProfile p, BiteContext c) {
+        // §livebait-4: the mouth rule is not a habitat gate the stocking floor may lift — a stocked
+        // species whose biggest specimen is under five times the bait still cannot take it. A 505 g
+        // pollock took a 2.5 kg bait through this floor. First, before anything is scored.
+        if (c.livebaitG > 0 && p.weightMax < c.livebaitG * PREY_RATIO) return 0.0;
         double natural = naturalScore(p, c);
+        double presence = c.stockedPresence != null ? c.stockedPresence.applyAsDouble(p.id) : 0.0;
         // §hybrid-rare: a hybrid is a fish of the breeding tank, not of the river — wild water holds it one
         // time in twenty-five; stocked and settled it fishes like anything else (the presence rule below)
-        double presence0 = c.stockedPresence != null ? c.stockedPresence.applyAsDouble(p.id) : 0.0;
-        if (!p.hybridOf.isEmpty() && presence0 <= 0) natural *= HYBRID_WILD;
+        if (!p.hybridOf.isEmpty() && presence <= 0) natural *= HYBRID_WILD;
         // §stocked-survival (0.5.1): a STOCKED species lives on even in water that fails its natural
         // gates — at a quarter of full activity, scaled by how much of it is actually there. This is
         // what makes "нестандартное" зарыбление real: the settled shark in the river is catchable,
         // just never comfortable.
-        double presence = c.stockedPresence != null ? c.stockedPresence.applyAsDouble(p.id) : 0.0;
-        // §livebait-4: the mouth rule is not a habitat gate the stocking floor may lift — a stocked
-        // species whose biggest specimen is under five times the bait still cannot take it. A 505 g
-        // pollock took a 2.5 kg bait through this floor.
-        if (c.livebaitG > 0 && p.weightMax < c.livebaitG * PREY_RATIO) return 0.0;
         return presence > 0 ? Math.max(natural, 0.25 * presence) : natural;
     }
 
@@ -325,13 +324,7 @@ public final class BiteEngine {
         // §weather-pressure: a uniform feeding-activity multiplier — a falling glass feeds the whole
         // water, a bluebird high slows it. Same for every species, so it scales the time-to-bite.
         // §skills NATURALIST: a flat overall bite-chance bonus (you know where the fish are).
-        // §koi-stocked: a species with base 0 is a collectible that never enters the wild pool (the koi
-        // comes out of a carp on carp tackle instead). Put it in the water yourself — a pond of bred koi
-        // — and it has to bite like the carp it is, or the pond says "nothing biting here" over forty
-        // fish. Where the species is STOCKED, a zero base reads as an ordinary carp's.
-        double base = p.base;
-        if (base <= 0 && c.stockedPresence != null && c.stockedPresence.applyAsDouble(p.id) > 0) base = 0.8;
-        double w = base * Math.pow(Math.max(0.0, m), sizeExp) * e * g * pop * c.pressureFactor
+        double w = p.base * Math.pow(Math.max(0.0, m), sizeExp) * e * g * pop * c.pressureFactor
                 * (1.0 + c.skillBiteBonus);
 
         // §bait-first (0.5.1): the bait is THE selector — bite speed scales directly with how much

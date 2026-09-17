@@ -58,7 +58,7 @@ public class JournalOpenPacket implements ModNetwork.RfPacket {
         copy.put("cards", com.riverfishing.fish.FishCard.buildAll());
         // §h §breeding: the genomes stocked in the region the player STANDS in — the client has no ledger.
         copy.put("pop", com.riverfishing.fishing.StockedData.get(sp.serverLevel())
-                .genomes(com.riverfishing.fishing.StockedData.regionAt(sp.serverLevel(), sp.blockPosition())));
+                .genomes(com.riverfishing.fishing.StockedData.regionNear(sp.serverLevel(), sp.blockPosition())));
         return copy;
     }
 
