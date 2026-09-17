@@ -325,7 +325,13 @@ public final class BiteEngine {
         // §weather-pressure: a uniform feeding-activity multiplier — a falling glass feeds the whole
         // water, a bluebird high slows it. Same for every species, so it scales the time-to-bite.
         // §skills NATURALIST: a flat overall bite-chance bonus (you know where the fish are).
-        double w = p.base * Math.pow(Math.max(0.0, m), sizeExp) * e * g * pop * c.pressureFactor
+        // §koi-stocked: a species with base 0 is a collectible that never enters the wild pool (the koi
+        // comes out of a carp on carp tackle instead). Put it in the water yourself — a pond of bred koi
+        // — and it has to bite like the carp it is, or the pond says "nothing biting here" over forty
+        // fish. Where the species is STOCKED, a zero base reads as an ordinary carp's.
+        double base = p.base;
+        if (base <= 0 && c.stockedPresence != null && c.stockedPresence.applyAsDouble(p.id) > 0) base = 0.8;
+        double w = base * Math.pow(Math.max(0.0, m), sizeExp) * e * g * pop * c.pressureFactor
                 * (1.0 + c.skillBiteBonus);
 
         // §bait-first (0.5.1): the bait is THE selector — bite speed scales directly with how much
