@@ -265,7 +265,6 @@ Prices below are the **base**; see [the market](#the-market) for how they actual
 | Frilled shark | 35 kg | 26 emeralds | 38 |
 | Golden dorado | 21 kg | 12 emeralds | 22 |
 
-**The five legacy koi ids cannot be sold at all** — `carp_koi_kohaku`, `carp_koi_tancho_sanke`, `carp_koi_showa_sanke`, `carp_koi_asagi` and `carp_koi_bekko`, the items 0.9.0 [folded into one species](genetics.md#koi-are-bred-not-found). The koi carp that replaced them **is** bought, on tier 4 for 8–14 emeralds, priced against the fish it swims beside. That leaves **102 of the 107 species** with a buy-trade somewhere in the five tiers. (Asp, White Bream and Mirror Carp were unsellable before 0.6.0 — an oversight, now on tiers 3, 2 and 4. The nine Florida species shipped catchable in 0.7.0 with no buyer anywhere: you could land a tarpon and have nowhere on earth to sell it. Fixed in the same release.)
 
 ## The market
 

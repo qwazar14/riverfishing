@@ -123,8 +123,6 @@ public final class ModItems {
             "tench", "burbot", "eel", "grayling", "trout", "sterlet",
             // ÃÂ§carp-update: the wild sazan + the mirror strain, plus the koi collectibles.
             "wild_carp", "mirror_carp", "grass_carp",
-            "carp_koi_kohaku", "carp_koi_tancho_sanke", "carp_koi_showa_sanke",
-            "carp_koi_asagi", "carp_koi_bekko",
             // ÃÂ§america-pack (0.4.0): bluegill/bass/rainbow/channel cat Ã¢ÂÂ the community-requested US four.
             "bluegill", "largemouth_bass", "rainbow_trout", "channel_catfish",
             // Â§ru-fish (0.4.0): ÃÂÃÂ¾ÃÂ»ÃÂÃÂÃÂ¾ÃÂ»ÃÂ¾ÃÂ±ÃÂ¸ÃÂº / ÃÂÃÂµÃÂÃÂ¾ÃÂ½ÃÂ / ÃÂÃÂ¸ÃÂ½ÃÂµÃÂ â the RU trio.

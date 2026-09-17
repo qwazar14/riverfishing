@@ -741,7 +741,7 @@ public final class FishingManager {
         // §scale-genes: the mirror and the leather carp were separate draws of one fish; the draw
         // still happens on their own profiles (their waters, their rarity), but what comes ashore is
         // a `carp` whose K/N genotype is the variety — the session carries it as far as the card.
-        ResourceLocation drawn = maybeKoi(outcome.pickSpecies(random), ctx, random);
+        ResourceLocation drawn = outcome.pickSpecies(random);
         String variety = com.riverfishing.fish.Genome.varietyOfSpecies(drawn.getPath());
         ResourceLocation species = com.riverfishing.fish.Genome.landed(drawn);
 
@@ -947,7 +947,7 @@ public final class FishingManager {
         // §scale-genes: the mirror and the leather carp were separate draws of one fish; the draw
         // still happens on their own profiles (their waters, their rarity), but what comes ashore is
         // a `carp` whose K/N genotype is the variety — the session carries it as far as the card.
-        ResourceLocation drawn = maybeKoi(outcome.pickSpecies(random), ctx, random);
+        ResourceLocation drawn = outcome.pickSpecies(random);
         String variety = com.riverfishing.fish.Genome.varietyOfSpecies(drawn.getPath());
         ResourceLocation species = com.riverfishing.fish.Genome.landed(drawn);
 
@@ -1071,31 +1071,9 @@ public final class FishingManager {
         return (t >= s1 && t < s1 + 2000) || (t >= s2 && t < s2 + 2000);
     }
 
-    // §koi: the ornamental koi is a hidden collectible — never in the normal bite pool (its
-    // profile base is 0). Instead, a CARP-rig catch of a carp-family fish has a small chance to turn
-    // out to be a koi. A cherry-grove pond is proper koi water, so there it's far likelier.
-    //
-    // §koi-genes: the five ids that list used to hold were never five fish. They are one fish with
-    // three colour loci, so the draw picks a VARIETY out of Genome's wild table instead.
-    private static final double KOI_CHANCE = 0.005;       // 0.5% on carp tackle anywhere
-    private static final double KOI_CHANCE_CHERRY = 0.35; // far higher in a cherry-grove pond
-
-    private static ResourceLocation maybeKoi(ResourceLocation picked, BiteContext ctx, RandomSource random) {
-        if (ctx.rig != RigType.CARP || !isCarpFamily(picked)) return picked;
-        double chance = ctx.biomeGroups.contains("cherry") ? KOI_CHANCE_CHERRY : KOI_CHANCE;
-        // §koi-genes: the id returned here is the variety's DRAW id and is never a registered item —
-        // Genome.landed turns it into `koi_carp`, Genome.varietyOfSpecies into the word the card
-        // writes the genotype from. Weighted to the common varieties: platinum and tancho are bred.
-        return random.nextDouble() < chance
-                ? com.riverfishing.RiverFishing.id(
-                        "koi_" + com.riverfishing.fish.Genome.wildKoi(random.nextDouble()))
-                : picked;
-    }
-
-    private static boolean isCarpFamily(ResourceLocation id) {
-        String p = id.getPath();
-        return "carp".equals(p) || "mirror_carp".equals(p) || "wild_carp".equals(p);
-    }
+    // §koi-species (1.0.0): the koi is a SPECIES now — koi_carp with a base of its own, native to
+    // cherry-grove water (its profile's one biome) and stocked anywhere its owner puts it. The old
+    // rule, a carp on carp tackle turning into a koi with a chance, is gone with the five ids it drew.
 
     /** First water block scanning straight down a column — where the charged cast lands. */
     static BlockPos findWaterColumn(ServerLevel level, double x, double yStart, double z) {

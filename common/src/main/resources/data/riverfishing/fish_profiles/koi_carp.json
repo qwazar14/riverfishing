@@ -82,7 +82,7 @@
   "biomes": {
     "cherry": 1.0
   },
-  "base": 0.0,
+  "base": 0.8,
   "min_angler_level": 12,
   "diet": "peaceful",
   "provinces": [
