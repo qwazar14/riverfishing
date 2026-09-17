@@ -274,7 +274,7 @@ public final class AquariumBreeding {
         boolean roe = be.roe.getItem() instanceof RoeItem;
         v[3] = roe ? incubateDays(level, be) : 0;
         v[2] = roe && be.incubate != 0 ? (int) Math.min(v[3], (now - be.incubate) / DAY) : 0;
-        v[4] = (int) Math.max(0, Math.min(DAY, be.fedUntil - now));
+        v[4] = (int) Math.max(0, Math.min(Integer.MAX_VALUE, be.fedUntil - now));   // §aq-feed: fish meal is three days, and the window said 20:00 for two of them; the bar clamps to a day itself
         v[5] = be.water;
         // The window of the first fish that has a profile; a lone fish still says when its kind spawns.
         FishProfile p = null;
