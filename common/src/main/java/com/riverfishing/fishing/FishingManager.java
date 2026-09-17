@@ -3637,7 +3637,7 @@ public final class FishingManager {
             // dispersing", and it reaches three chunks around — so a pond beside the sea read the sea's
             // releases as its own and the net came up with tuna out of a beluga pond. A pond settles its
             // species the day they go in now, so the book is the whole answer.
-            if (claimed) return stocked.isStocked(region, id.getPath()) ? 1.0 : 0.0;
+            if (claimed) return stocked.pondHolds(region, id.getPath()) ? 1.0 : 0.0;   // §pond-empty
             FishProfile pr = FishProfileManager.get().byId(id);
             if (pr == null || pr.base >= 0.95) return 1.0;
             if (stocked.isStocked(region, id.getPath())) return 1.0;
@@ -3685,8 +3685,12 @@ public final class FishingManager {
         if (thrower != null && mature && !poached && !PondData.isClaimed(level, pos)) {
             Warden.credit(thrower, weightG * Math.max(1, count));
         }
+        // §pond-any-fish (1.0.0): a pond runs no checks — a fish under breeding size goes on the book
+        // like any other, or it is nowhere: the pond reads only its book now, and the chunk bank that
+        // used to keep an immature release biting is not read there any more.
+        boolean pond = PondData.isClaimed(level, pos);
         release(level, pos, p, units, thrower, (stocked, region) -> {
-            if (!mature) return;
+            if (!mature && !pond) return;
             long day = StockedData.worldDay(level);
             stocked.setPattern(region, species.getPath(), pattern);   // §pattern
             for (int i = 0; i < Math.max(1, count); i++) {

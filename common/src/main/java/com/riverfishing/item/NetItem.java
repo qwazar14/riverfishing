@@ -108,7 +108,7 @@ public abstract class NetItem extends Item {
             // §pond-book: in a claimed pond the book is the whole roster — the chunk bank reaches three
             // chunks around and read the sea's releases into a beluga pond; a pond settles its species
             // the day they go in, so nothing waits in the bank any more.
-            if (pondOwner != null ? !stocked.isStocked(region, id) : !FishingManager.residentHere(level, pos, body, p.id)) continue;
+            if (pondOwner != null ? !stocked.pondHolds(region, id) : !FishingManager.residentHere(level, pos, body, p.id)) continue;   // §pond-empty
             // The community hash can call a shark native to a brook; the habitat score is what keeps
             // the bite engine honest about that, so the net asks it too.
             if (BiteEngine.environmentScore(p, FishingManager.habitatContext(level, pos, body)) <= 0) continue;

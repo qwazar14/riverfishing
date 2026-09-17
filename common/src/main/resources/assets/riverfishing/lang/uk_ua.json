@@ -1513,6 +1513,7 @@
   "message.riverfishing.pond_too_big": "Ця вода завелика, щоб бути чиєюсь",
   "message.riverfishing.pond_released": "Став знову дика вода",
   "message.riverfishing.pond_not_yours": "Це став гравця %s",
+  "message.riverfishing.pond_own_sign": "На цьому ставу вже стоїть ваша табличка (%s) — зніміть її або переставте",
   "message.riverfishing.pond_named": "Тепер став називається %s",
   "message.riverfishing.pond_name_not_owner": "Назвати цей став може лише %s",
   "message.riverfishing.pond_info_head": "%1$s — став гравця %2$s, %3$s блоків води",

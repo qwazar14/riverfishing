@@ -56,6 +56,17 @@ public final class StockedData extends SavedData {
         return key;
     }
 
+    /**
+     * §pond-empty (1.0.0): does a pond's book still HOLD the species — settled, and with a head left.
+     * Fish the last adult out and the species is gone from the pond until it grows back or is put in
+     * again; the bite's community factor and the net read this, the way stockedPresence already did,
+     * so an emptied pond does not go on biting off the species' natural score. Guarded on AvgW like
+     * stockedPresence: a ledger from before the head count has no Adults to read.
+     */
+    public boolean pondHolds(long region, String species) {
+        return isStocked(region, species) && !(avgWeight(region, species) > 0 && adults(region, species) <= 0);
+    }
+
     /** §pond-ledger: is this key a pond's? Its checks are the owner's business, not the water's. */
     public boolean isPond(long region) {
         return ponds.contains(region);
