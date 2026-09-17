@@ -1501,6 +1501,7 @@
   "message.riverfishing.pond_too_big": "This water is too big to be anyone's",
   "message.riverfishing.pond_released": "The pond is wild water again",
   "message.riverfishing.pond_not_yours": "This is %s's pond",
+  "message.riverfishing.pond_own_sign": "Your own sign already stands on this pond (%s) — pull it out or re-plant it",
   "message.riverfishing.pond_named": "The pond is called %s now",
   "message.riverfishing.pond_name_not_owner": "Only %s names this pond",
   "message.riverfishing.pond_info_head": "%1$s — %2$s's pond, %3$s blocks of water",

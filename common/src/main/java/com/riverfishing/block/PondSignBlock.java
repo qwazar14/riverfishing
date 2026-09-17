@@ -73,11 +73,21 @@ public class PondSignBlock extends Block {
         } else if (body.size() > PondData.MAX_BLOCKS) {
             refuse = "message.riverfishing.pond_too_big";
         } else {
-            BlockPos water = PondData.columnPos(body.get(0));
-            UUID owner = PondData.owner(sl, water);
-            if (owner != null && !owner.equals(sp.getUUID())) {   // somebody else's sign already stands here
-                refuse = "message.riverfishing.pond_not_yours";
-                arg = PondData.ownerName(sl, water);
+            // §pond-one-sign (1.0.0): ANY column already under another sign refuses — somebody else's,
+            // or your own. A second sign of yours used to take the water over silently: the first sign
+            // stood with no pond under it, and pulling the second out left the water wild.
+            PondData d = PondData.get(sl);
+            for (long col : body) {
+                PondData.Claim c = d.claimOfColumn(col);
+                if (c == null || c.sign == pos.asLong()) continue;   // re-planting the same sign refreshes
+                if (c.owner.equals(sp.getUUID())) {
+                    refuse = "message.riverfishing.pond_own_sign";
+                    arg = BlockPos.of(c.sign).toShortString();
+                } else {
+                    refuse = "message.riverfishing.pond_not_yours";
+                    arg = c.ownerName;
+                }
+                break;
             }
         }
         if (refuse != null) {

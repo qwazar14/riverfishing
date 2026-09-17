@@ -1501,6 +1501,7 @@
   "message.riverfishing.pond_too_big": "Эта вода слишком велика, чтобы быть чьей-то",
   "message.riverfishing.pond_released": "Пруд снова дикая вода",
   "message.riverfishing.pond_not_yours": "Это пруд игрока %s",
+  "message.riverfishing.pond_own_sign": "На этом пруду уже стоит ваша табличка (%s) — снимите её или переставьте",
   "message.riverfishing.pond_named": "Теперь пруд называется %s",
   "message.riverfishing.pond_name_not_owner": "Назвать этот пруд может только %s",
   "message.riverfishing.pond_info_head": "%1$s — пруд игрока %2$s, %3$s блоков воды",
