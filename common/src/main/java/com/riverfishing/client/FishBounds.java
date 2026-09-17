@@ -79,11 +79,6 @@ public final class FishBounds {
         put("burbot", 0.961f, 0.266f);
         put("cameroon_suckermouth_catfish", 0.934f, 0.43f);
         put("carp", 0.938f, 0.488f);
-        put("carp_koi_asagi", 0.938f, 0.496f);
-        put("carp_koi_bekko", 0.938f, 0.48f);
-        put("carp_koi_kohaku", 0.938f, 0.5f);
-        put("carp_koi_showa_sanke", 0.938f, 0.484f);
-        put("carp_koi_tancho_sanke", 0.938f, 0.5f);
         put("catfish", 0.98f, 0.238f);
         put("catla", 0.969f, 0.621f);
         put("chain_pickerel", 0.945f, 0.266f);

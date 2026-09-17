@@ -133,10 +133,7 @@ public final class Quests {
 
     private static Goal koi() {
         return j -> {
-            for (String sp : ModItems.FISH_SPECIES) {
-                if (sp.startsWith("carp_koi_") && j.getCompound(rec(sp)).getInt("count") > 0) return true;
-            }
-            return false;
+            return j.getCompound(rec("koi_carp")).getInt("count") > 0;   // §koi-species
         };
     }
 

@@ -61,11 +61,6 @@ predator and is a cyprinid, and takes cyprinid [groundbait](groundbait.md) accor
 | 23 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/wild_carp.png" width="28" alt=""> Wild Carp | `wild_carp` | 1.5 kg – 18 kg | 4.2 kg | 40–110 cm | river 1.3, lake 0.9, pond 0.5, swamp 0.3 | 4 |
 | 24 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/mirror_carp.png" width="28" alt=""> Mirror Carp | `mirror_carp` | 1 kg – 14 kg | 3.2 kg | 33–95 cm | lake 1.2, pond 1.2, river 0.5, swamp 0.4 | 3 |
 | 25 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/grass_carp.png" width="28" alt=""> Grass Carp | `grass_carp` | 1.5 kg – 25 kg | 5 kg | 40–120 cm | lake 1.3, pond 1.2, river 0.7, swamp 0.6 | 4 |
-| 26 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_kohaku.png" width="28" alt=""> Koi Kohaku | `carp_koi_kohaku` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
-| 27 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_tancho_sanke.png" width="28" alt=""> Koi Tancho Sanke | `carp_koi_tancho_sanke` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
-| 28 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_showa_sanke.png" width="28" alt=""> Koi Showa Sanke | `carp_koi_showa_sanke` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
-| 29 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_asagi.png" width="28" alt=""> Koi Asagi | `carp_koi_asagi` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
-| 30 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/carp_koi_bekko.png" width="28" alt=""> Koi Bekko | `carp_koi_bekko` | 800 g – 8 kg | 2.5 kg | 25–90 cm | pond 1.0, lake 1.0, river 0.4 | 3 |
 | 31 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/bluegill.png" width="28" alt=""> Bluegill | `bluegill` | 40 g – 800 g | 150 g | 8–35 cm | pond 1.3, lake 1.2, river 0.6, swamp 0.4 | — |
 | 32 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/largemouth_bass.png" width="28" alt=""> Largemouth bass | `largemouth_bass` | 400 g – 8 kg | 1.5 kg | 25–75 cm | lake 1.3, pond 1.1, swamp 0.8, river 0.7 | 3 |
 | 33 | <img src="../../common/src/main/resources/assets/riverfishing/textures/item/fish/rainbow_trout.png" width="28" alt=""> Rainbow trout | `rainbow_trout` | 300 g – 6 kg | 1.1 kg | 25–85 cm | river 1.3, lake 0.9, pond 0.2 | 4 |
@@ -580,18 +575,11 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 
 ## Per-species notes
 
-### The five koi
+### The koi
 
-Koi Kohaku, Koi Tancho Sanke, Koi Showa Sanke, Koi Asagi and Koi Bekko are a **hidden collectible**, not a normal fish. Their profile `base` is **0.0**, so they can never be drawn from the ordinary bite pool.
+The koi is a species (1.0.0): `koi_carp`, one fish with three colour loci and a crown locus, its variety read off its genotype and written on its card. It lives natively in **cherry-grove water** only, bites there like any other carp, and lives wherever its owner stocks it — a private pond of bred koi fishes like a pond of carp. The five old ids (Kohaku, Tancho Sanke, Showa Sanke, Asagi, Bekko as separate species) and the old rule — a carp on carp tackle turning into a koi with a chance — are gone; an old chest of those items loses them.
 
-Instead, whenever you land a **carp, mirror carp or wild carp on a Carp Rig**, the catch has a chance to turn out to be a koi:
-
-- **0.5 %** anywhere
-- **35 %** in a cherry-blossom biome
-
-Their only listed biome group is `cherry`, so a cherry-grove pond is the only place they belong at all. All five share identical statistics (800 g – 8 kg, median 2.5 kg, 25–90 cm, burst fighter, level 3).
-
-Koi are **excluded from the species count** used by the tiered "N species" advancements and by *The Full Bestiary* — they have their own *A Living Jewel* and *Koi Collector* challenges. Filleting one is possible, announces your name in server chat with *"you seriously filleted it?"*, and grants the *Heartless Cook* advancement.
+Koi are **excluded from the species count** used by the tiered "N species" advancements and by *The Full Bestiary* — they have their own *A Living Jewel*. Filleting one is possible, announces your name in server chat with *"you seriously filleted it?"*, and grants the *Heartless Cook* advancement.
 
 ### Legendary specimens
 

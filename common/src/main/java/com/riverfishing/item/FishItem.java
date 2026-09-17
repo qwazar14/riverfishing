@@ -198,7 +198,7 @@ public class FishItem extends Item {
     /** A koi carp — a collectible ornamental fish, not really food (§koi). */
     public static boolean isKoi(ItemStack stack) {
         ResourceLocation sp = getSpecies(stack);
-        return sp != null && sp.getPath().startsWith("carp_koi_");
+        return sp != null && "koi_carp".equals(sp.getPath());   // §koi-species: one koi, its variety on the card
     }
 
     // §multiloader: the weight-scaled fish icon (§fish-scale) is a custom item renderer registered per
