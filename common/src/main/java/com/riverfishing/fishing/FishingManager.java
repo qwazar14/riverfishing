@@ -3668,10 +3668,11 @@ public final class FishingManager {
             if (stocked.isCulled(region, id.getPath())) return 0.0;
             // §pond: a claimed pond has NO wild community — not even the commons. What lives there is what
             // its owner put in: the settled species, and the temporary stock of releases still dispersing.
-            if (claimed) {
-                return stocked.isStocked(region, id.getPath()) ? 1.0
-                        : Math.min(1.0, pd.surplusAround(cx, cz, id.getPath(), level.getGameTime()));
-            }
+            // §pond-book: and ONLY its book. The chunk bank used to stand in for "transplants still
+            // dispersing", and it reaches three chunks around — so a pond beside the sea read the sea's
+            // releases as its own and the net came up with tuna out of a beluga pond. A pond settles its
+            // species the day they go in now, so the book is the whole answer.
+            if (claimed) return stocked.isStocked(region, id.getPath()) ? 1.0 : 0.0;
             FishProfile pr = FishProfileManager.get().byId(id);
             if (pr == null || pr.base >= 0.95) return 1.0;
             if (stocked.isStocked(region, id.getPath())) return 1.0;
@@ -3943,6 +3944,7 @@ public final class FishingManager {
             // without this line a species stocked and THEN culled kept biting off its temporary surplus.
             if (stocked.isCulled(region, s)) return 0.0;
             if (!stocked.isStocked(region, s)) {
+                if (stocked.isPond(region)) return 0.0;   // §pond-book: a pond holds what its book says, nothing from the chunks around
                 double bank = Math.min(1.0, pd.surplusAround(cx, cz, s, level.getGameTime()));
                 // §ledger-presence: the fish that are IN the water are the ledger's heads. The bank is a
                 // weight bank that eleven catches or half an hour empties, and it was the only thing the
