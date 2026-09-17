@@ -188,6 +188,8 @@ public class FishingSession {
     public long fightStartTick;
     public int weightG;
     public int lengthCm;
+    /** §pond-roster: the remembered pond fish this bite is, peeked at the roll and taken at the landing; null elsewhere. */
+    public net.minecraft.nbt.CompoundTag pondFish;
     public boolean trophy;         // trophy-class specimen: top-of-range size, glint, 3x XP
     public int bycatch;            // Â§bycatch-intrigue: 0 = fish, 1 = junk, 2 = treasure (short heavy fight)
     public boolean finalSurgeDone; // the guaranteed last dash at the bank has fired

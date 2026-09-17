@@ -139,7 +139,7 @@ public class FishItem extends Item {
                         com.riverfishing.fishing.FishingManager.releaseFish(sl, entity.blockPosition(),
                                 released, getWeightG(stack), stack.getCount(),
                                 com.riverfishing.fish.CatchCard.has(stack) ? com.riverfishing.fish.CatchCard.of(stack) : null,   // §c
-                                thrower);
+                                thrower, stack);   // §pond-roster
                     }
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE,
                             entity.getX(), entity.getY() + 0.1, entity.getZ(), 14, 0.25, 0.1, 0.25, 0.02);

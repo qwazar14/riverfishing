@@ -69,6 +69,8 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         // the same fish, wearing what its K/N pair gave it.
         String variety = c.getString("Variety");
         if (!variety.isEmpty()) row("variety", Component.translatable("variety.riverfishing." + variety), ORANGE);
+        // §morph-row: the SPECIAL badge said there was one and nothing on the card said which.
+        if (!morph.isEmpty()) row("morph", Component.translatable("morph.riverfishing." + morph), 0xFFE040D0);
         // §nature: the counter buys PRIME fish; anything else has no price there, and says so.
         if (FishItem.isPrime(fish) && c.getInt("Value") > 0) row("value", key("emeralds", c.getInt("Value")), GREEN);
         else row("value", Component.literal("—"), DIM);
