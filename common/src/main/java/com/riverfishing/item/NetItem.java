@@ -105,8 +105,10 @@ public abstract class NetItem extends Item {
             if (stocked.isCulled(region, id)) continue;
             // §pond: nothing is resident in a claimed pond but what was put in — so the transplants still
             // dispersing there count too, or the net would come up empty the day after stocking.
-            if (!FishingManager.residentHere(level, pos, body, p.id)
-                    && !(pondOwner != null && pressure.surplusAround(pos.getX() >> 4, pos.getZ() >> 4, id, now) > 0)) continue;
+            // §pond-book: in a claimed pond the book is the whole roster — the chunk bank reaches three
+            // chunks around and read the sea's releases into a beluga pond; a pond settles its species
+            // the day they go in, so nothing waits in the bank any more.
+            if (pondOwner != null ? !stocked.isStocked(region, id) : !FishingManager.residentHere(level, pos, body, p.id)) continue;
             // The community hash can call a shark native to a brook; the habitat score is what keeps
             // the bite engine honest about that, so the net asks it too.
             if (BiteEngine.environmentScore(p, FishingManager.habitatContext(level, pos, body)) <= 0) continue;
