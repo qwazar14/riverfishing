@@ -134,7 +134,9 @@ public abstract class NetItem extends Item {
         int poached = 0;
         for (int i = 0; i < count; i++) {
             FishProfile p = pick(pool, weights, total, rng);
-            int weightG = rollWeight(p, rng);
+            // §pond-roster: out of a pond the net lifts one of the fish that went in, grown.
+            CompoundTag rec = pondOwner != null ? stocked.peekFish(region, p.id.getPath(), rng) : null;
+            final int weightG = rec != null ? stocked.grownWeight(level, region, p.id.getPath(), p, rec) : rollWeight(p, rng);
             ItemStack fish = FishItem.create(ModItems.fishItem(p.id), p.id, weightG, lengthCm(p, weightG, rng), true);
             pressure.addCatch(chunk, p.id.getPath(), now);
             // §net-ledger: a netted fish pays the ledger exactly as a landed one does — a settled water
@@ -163,6 +165,10 @@ public abstract class NetItem extends Item {
             int value = base > 0 ? com.riverfishing.fishing.MarketData.get(level).price(level, p.id.getPath(), base) : 0;
             com.riverfishing.item.StackNbt.mutate(fish, t -> t.put(com.riverfishing.fish.CatchCard.TAG,
                     com.riverfishing.fish.CatchCard.netted(sp, level, p, weightG, pos, eco, value, poachedFish)));
+            if (rec != null) {   // §pond-roster
+                FishingManager.applyPondFish(fish, rec);
+                stocked.takeFish(region, p.id.getPath(), rec.getLongOr("Uid", 0L));
+            }
             // §variety-icon: 26.x draws a fish from what its stack carries, and the koi's four tints and
             // the carp's variety drawing are read OFF the card — so the icon has to be stamped after it.
             // The rod does this at the end of its own catch; a net hauled fish out with no stamp at all.

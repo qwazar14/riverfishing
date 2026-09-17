@@ -3160,6 +3160,14 @@ public final class FishingManager {
             // §pattern: the family goes in the journal — the collection board the index exists for.
             JournalData.recordPattern(sp, species, com.riverfishing.fish.CatchCard.pattern(card));
             com.riverfishing.item.FishItem.stampIcon(fish);   // §koi-genes: the card carries the tint
+            // §pond-roster: the fish that went in is the fish that came out — and it is out of the pond now.
+            if (session.pondFish != null) {
+                applyPondFish(fish, session.pondFish);
+                com.riverfishing.fishing.StockedData.get(lvl).takeFish(
+                        com.riverfishing.fishing.StockedData.regionAt(lvl, where), path, session.pondFish.getLongOr("Uid", 0L));
+                com.riverfishing.item.FishItem.stampIcon(fish);   // the card changed under the tint
+                session.pondFish = null;
+            }
         }
         // §fish-scale: the icon now scales purely from LENGTH (FishItem.getIconScale), no NBT needed.
         if (!sp.getInventory().add(fish)) {
@@ -3517,13 +3525,45 @@ public final class FishingManager {
         // (~length³), so length tracks the CUBE ROOT of weight, anchored to the species' own length range.
         // (The old linear weight-fraction made a common mid-weight fish far too short — e.g. a 2.3 kg pike
         // came out ~56 cm instead of the real ~67 cm.) Endpoints still map min→min, max→max exactly.
+        session.lengthCm = lengthFor(p, weight, random);
+
+        // §pond-roster (1.0.0): in a pond the specimen is one of the fish that went in, grown — not a
+        // roll. Peeked here (the fight reads its nature), taken at the landing. The mouth rule still
+        // holds: a remembered fish under five times a live bait is not the one that took it.
+        session.pondFish = null;
+        if (PondData.isClaimed(level, session.target)) {
+            StockedData st = StockedData.get(level);
+            long region = StockedData.regionAt(level, session.target);
+            CompoundTag rec = st.peekFish(region, p.id.getPath(), random);
+            if (rec != null) {
+                int w = st.grownWeight(level, region, p.id.getPath(), p, rec);
+                if (livebaitWeightG > 0 && !session.foulHooked && w < livebaitWeightG * BiteEngine.PREY_RATIO) rec = null;
+                else {
+                    session.pondFish = rec;
+                    session.weightG = w;
+                    session.lengthCm = lengthFor(p, w, random);
+                    session.trophy = w >= FishItem.trophyThresholdG(p.weightMin, p.weightMax);
+                    CompoundTag card = rec.getCompoundOrEmpty("Card");
+                    if (card.contains("Nature")) session.nature = card.getByteOr("Nature", (byte) 0);
+                    if (card.contains("Variety")) session.variety = card.getStringOr("Variety", "");
+                }
+            }
+        }
+    }
+
+    /**
+     * Length from weight by the real allometric law L ∝ W^(1/3) — a fish's mass grows with its volume
+     * (~length³), so length tracks the CUBE ROOT of weight, anchored to the species' own length range.
+     * Endpoints map min→min, max→max exactly; ±2 % natural variation.
+     */
+    private static int lengthFor(FishProfile p, double weight, RandomSource random) {
         double wc = Math.cbrt(Math.max(1.0, weight));
         double wcMin = Math.cbrt(Math.max(1.0, p.weightMin));
         double wcMax = Math.cbrt(Math.max(1.0, p.weightMax));
         double lf = (wcMax > wcMin) ? (wc - wcMin) / (wcMax - wcMin) : 0.5;
         double length = p.lengthMin + (p.lengthMax - p.lengthMin) * lf;
-        length *= 0.98 + random.nextDouble() * 0.04; // ±2% natural variation
-        session.lengthCm = (int) Math.round(Mth.clamp(length, p.lengthMin, p.lengthMax));
+        length *= 0.98 + random.nextDouble() * 0.04;
+        return (int) Math.round(Mth.clamp(length, p.lengthMin, p.lengthMax));
     }
 
     private static Component fishName(Identifier species) {
@@ -3651,6 +3691,7 @@ public final class FishingManager {
             // releases as its own and the net came up with tuna out of a beluga pond. A pond settles its
             // species the day they go in now, so the book is the whole answer.
             if (claimed) return stocked.pondHolds(region, id.getPath()) ? 1.0 : 0.0;   // §pond-empty
+            if (ALWAYS_NATIVE.contains(id.getPath())) return 1.0;   // §koi-cherry
             FishProfile pr = FishProfileManager.get().byId(id);
             if (pr == null || pr.base >= 0.95) return 1.0;
             if (stocked.isStocked(region, id.getPath())) return 1.0;
@@ -3673,7 +3714,8 @@ public final class FishingManager {
      */
     public static void releaseFish(ServerLevel level, BlockPos pos, Identifier species,
                                    int weightG, int count, @org.jetbrains.annotations.Nullable CompoundTag card,
-                                   @org.jetbrains.annotations.Nullable ServerPlayer thrower) {
+                                   @org.jetbrains.annotations.Nullable ServerPlayer thrower,
+                                   @org.jetbrains.annotations.Nullable ItemStack stack) {   // §pond-roster: the very fish, for the pond to remember
         FishProfile p = FishProfileManager.get().byId(species);
         if (p == null) return;
         // §stock-units (0.5.1): SUPERLINEAR in size — 0.5·(w/mean)^1.5. A mean fish is half a unit
@@ -3703,6 +3745,13 @@ public final class FishingManager {
         // used to keep an immature release biting is not read there any more.
         boolean pond = PondData.isClaimed(level, pos);
         release(level, pos, p, units, thrower, (stocked, region) -> {
+            // §pond-roster: the pond remembers this very fish — card, morph, name, weight, day — so it
+            // is this fish that comes out again, grown.
+            if (pond && stack != null) {
+                for (int i = 0; i < Math.max(1, count); i++) {
+                    stocked.rememberFish(region, species.getPath(), pondRecord(stack, card, weightG, StockedData.worldDay(level)), level.getRandom());
+                }
+            }
             if (!mature && !pond) return;
             long day = StockedData.worldDay(level);
             stocked.setPattern(region, species.getPath(), pattern);   // §pattern
@@ -3710,6 +3759,43 @@ public final class FishingManager {
                 stocked.addBrood(region, species.getPath(), sex, day, genes, thrower == null ? null : thrower.getUUID(), weightG);   // §lm: the pond's average weight learns from what went in   // §o: the work-off is Warden.credit now, by weight
             }
         }, card != null && card.contains("At") ? BlockPos.of(card.getLongOr("At", 0L)) : null);
+    }
+
+    /** §pond-roster: what the pond writes down about a fish going in. */
+    private static CompoundTag pondRecord(ItemStack stack, @org.jetbrains.annotations.Nullable CompoundTag card, int weightG, long day) {
+        CompoundTag r = new CompoundTag();
+        if (card != null) r.put("Card", card.copy());
+        String morph = com.riverfishing.item.StackNbt.get(stack).getStringOr(FishItem.TAG_MORPH, "");
+        if (!morph.isEmpty()) r.putString("Morph", morph);
+        String name = customName(stack);
+        if (!name.isEmpty()) r.putString("Name", name);
+        r.putInt("W", weightG);
+        r.putLong("Day", day);
+        return r;
+    }
+
+    static String customName(ItemStack s) { return s.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME) ? s.getHoverName().getString() : ""; }
+    static void setCustomName(ItemStack s, String n) { s.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal(n)); }
+
+    /**
+     * §pond-roster: the landed (or netted) fish becomes the remembered one — the card's genes, sex,
+     * nature, pattern and variety, the morph and the name are the record's; the weight was already
+     * the grown one when the stack was made. The price follows the pattern it now carries.
+     */
+    public static void applyPondFish(ItemStack fish, CompoundTag rec) {
+        CompoundTag was = rec.getCompoundOrEmpty("Card");
+        com.riverfishing.item.StackNbt.mutate(fish, t -> {
+            CompoundTag c = t.getCompoundOrEmpty(com.riverfishing.fish.CatchCard.TAG);
+            double before = com.riverfishing.fish.Pattern.value(com.riverfishing.fish.CatchCard.pattern(c));
+            for (String k : new String[]{"Genes", "Sex", "Nature", "Pattern", "Variety"}) {
+                if (was.contains(k)) c.put(k, was.get(k).copy());
+            }
+            c.putInt("Value", (int) Math.round(c.getIntOr("Value", 0) / before * com.riverfishing.fish.Pattern.value(com.riverfishing.fish.CatchCard.pattern(c))));
+            t.put(com.riverfishing.fish.CatchCard.TAG, c);
+            String morph = rec.getStringOr("Morph", "");
+            if (morph.isEmpty()) t.remove(FishItem.TAG_MORPH); else t.putString(FishItem.TAG_MORPH, morph);
+        });
+        if (rec.contains("Name")) setCustomName(fish, rec.getStringOr("Name", ""));
     }
 
     /** §c §breeding: a FryItem thrown into water — fry on the ledger, a sliver of stock each (fry disperse and die). */
@@ -3897,11 +3983,19 @@ public final class FishingManager {
         return env;
     }
 
+    /**
+     * §koi-cherry (1.0.0): species the community hash never leaves out — wherever their profile's own
+     * gates pass, they are in the water. The koi's one biome is the cherry grove, and a cherry-grove
+     * pond with no koi in it was a cherry grove with nothing in it.
+     */
+    private static final java.util.Set<String> ALWAYS_NATIVE = java.util.Set.of("koi_carp");
+
     /** §residency: does the seed's community (or the commons rule) place this species here natively? */
     public static boolean nativeHere(ServerLevel level, BlockPos pos, WaterBody body, Identifier id) {
         FishProfile pr = FishProfileManager.get().byId(id);
         if (pr == null) return false;
         if (PondData.isClaimed(level, pos)) return false;   // §pond: nobody is native to a claimed pond
+        if (ALWAYS_NATIVE.contains(id.getPath())) return true;   // §koi-cherry
         if (pr.base >= 0.95) return true;
         double absent = body.width() < 8 ? 0.60 : body.width() < 16 ? 0.45 : body.width() < 32 ? 0.30 : 0.20;
         return hashUnit(level.getSeed(), StockedData.region(pos), id.getPath()) >= absent;

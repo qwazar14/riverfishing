@@ -766,6 +766,67 @@ public final class StockedData extends SavedData {
         }
     }
 
+    // ---- §pond-roster (1.0.0): the fish that were PUT in ---------------------------------------
+    // A pond remembers each fish released into it as a record — its card (genes, sex, nature, pattern,
+    // variety), its morph, its name, its weight and the day it went in — so the fish that comes out of
+    // the pond is the fish that went in, grown. A pond only: wild water stays a head count. The record
+    // is PEEKED at the bite and TAKEN at the landing, so a fish that throws the hook is still in the pond.
+    private static final int ROSTER_FISH = 256;   // ponytail: a pond nobody empties keeps the last 256 put in
+
+    public void rememberFish(long region, String species, CompoundTag record, net.minecraft.util.RandomSource rng) {
+        CompoundTag t = entry(region, species);
+        ListTag list = t.getListOrEmpty("Fish");
+        record.putLong("Uid", rng.nextLong());
+        list.add(record);
+        while (list.size() > ROSTER_FISH) list.remove(0);
+        t.put("Fish", list);
+        setDirty();
+    }
+
+    /** A copy of one remembered fish, or null when the pond remembers none of this species. */
+    public CompoundTag peekFish(long region, String species, net.minecraft.util.RandomSource rng) {
+        CompoundTag t = brood.get(key(region, species));
+        if (t == null) return null;
+        ListTag list = t.getListOrEmpty("Fish");
+        if (list.isEmpty()) return null;
+        int at = rng.nextInt(list.size());
+        return list.getCompoundOrEmpty(at).copy();
+    }
+
+    /** The fish is out of the pond: true when the record was still there. */
+    public boolean takeFish(long region, String species, long uid) {
+        CompoundTag t = brood.get(key(region, species));
+        if (t == null) return false;
+        ListTag list = t.getListOrEmpty("Fish");
+        for (int i = 0; i < list.size(); i++) {
+            if (list.getCompoundOrEmpty(i).getLongOr("Uid", 0L) == uid) {
+                list.remove(i);
+                t.put("Fish", list);
+                setDirty();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * What a remembered fish weighs today: it grew the pond's step for every season it has been in —
+     * growIfDue's own arithmetic (6 % of the species mean a season, more on big genes and a feeding
+     * station, never past nine tenths of the record) — and a fish put in over that cap keeps its weight.
+     */
+    public int grownWeight(ServerLevel level, long region, String species, com.riverfishing.fish.FishProfile p, CompoundTag rec) {
+        int w = rec.getIntOr("W", 0);
+        if (p == null) return w;
+        int sd = com.riverfishing.engine.Calendar.SEASON_DAYS;
+        int seasons = (int) Math.min(8L, worldDay(level) / sd - rec.getLongOr("Day", 0L) / sd);
+        if (seasons <= 0) return w;
+        BlockPos pos = broodPos(region, species);
+        boolean fed = pos != null && WaterUpgrades.at(level, pos).contains("feeding_station");
+        int step = (int) Math.round(p.weightMean * 0.06 * (1.0 + 0.5 * shares(region, species)[0]) * (fed ? 1.25 : 1.0));
+        int cap = (int) Math.round(p.weightMax * 0.9);
+        return Math.min(Math.max(cap, w), w + seasons * step);
+    }
+
     private CompoundTag saveBrood() {
         CompoundTag out = new CompoundTag();
         for (Map.Entry<String, CompoundTag> e : brood.entrySet()) out.put(e.getKey(), e.getValue().copy());
