@@ -17,10 +17,14 @@ lines, and a fly fished the way its pattern is fished. Rivers run — the water 
 drift, a dragged dry fly cuts a wake. The species table is the author's own: 267 fish, six new families,
 hybrids, diets. Every fish cooks and stays itself. The tying canvas is 32 × 32 and a fly that matches no
 pattern rolls a hidden number. The private pond is measured by its footprint (100 × 100), named from its
-sign, read from its sign, keeps a book of its own and runs no checks on what you put in. The fight has a
+sign, read from its sign, keeps a book of its own — the book is the whole roster, the chunk bank is not read
+in a pond any more — and runs no checks on what you put in. The koi is a species: `koi_carp` bites on its
+own base in cherry-grove water and wherever it is stocked; the carp-turns-into-a-koi roll and the five old
+koi ids are gone. Every cooked fish gives Saturation, two seconds per three kilos. Every rod, reel, line
+and leader is craftable again. The fight has a
 body you can see the whole way through; an out-pulled fish is played out and a played-out one comes to the
 crank; the line no longer snags on the world. Any fish is live bait, and only a predator five times heavier
-takes it. Two anglers on one bank hear their own drag. Two config knobs: the current, the season's length.
+takes it, the floor holding through the pond's re-centring and the stocking floor. Two anglers on one bank hear their own drag. Two config knobs: the current, the season's length.
 
 ---
 
