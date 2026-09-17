@@ -47,11 +47,6 @@ bullseye_snakehead	regeneration:1:60;water_breathing:0:60	змееголов
 burbot	night_vision:0:120;riverfishing:fish_oil:0:60	налим: зимняя ночная рыба, печень
 cameroon_suckermouth_catfish	saturation:0:15	присоска
 carp	saturation:0:45	прудовая классика: долгая сытость
-carp_koi_asagi	bad_omen:0:600	кои не едят
-carp_koi_bekko	bad_omen:0:600	кои не едят
-carp_koi_kohaku	bad_omen:0:600	кои не едят
-carp_koi_showa_sanke	bad_omen:0:600	кои не едят
-carp_koi_tancho_sanke	bad_omen:0:900	танчо — символ Японии, знамение вдвое дольше
 catfish	resistance:0:120;slowness:0:30	сом
 catla	saturation:0:60	катла, крупная
 chain_pickerel	strength:0:45;hunger:0:20	цепная щучка
