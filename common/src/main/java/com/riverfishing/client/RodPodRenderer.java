@@ -131,7 +131,7 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
         // §live-buffer: asked for per rod below, never cached — see LineRenderer.render.
         Matrix4f m = pose.last().pose();
         Matrix3f nrm = pose.last().normal();
-        float time = be.getLevel() != null ? be.getLevel().getGameTime() + partialTick : partialTick;
+        float time = be.getLevel() != null ? be.getLevel().getGameTime() % 100000L + partialTick : partialTick;
         for (int i = 0; i < n; i++) {
             int state = be.lineStateAt(i);
             if (state == 0) continue;

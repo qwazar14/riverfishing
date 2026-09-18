@@ -92,7 +92,7 @@ public final class ShoalRenderer {
         //     nothing — §morph's whitening has never once been drawn on these two versions.
         RenderType layer = RenderType.entityTranslucent(TextureAtlas.LOCATION_BLOCKS);
         VertexConsumer vc = buffers.getBuffer(layer);
-        float time = mc.level.getGameTime() + partialTick;
+        float time = mc.level.getGameTime() % 100000L + partialTick;
         boolean drew = false;
 
         for (ShoalState.Live live : spots) {
