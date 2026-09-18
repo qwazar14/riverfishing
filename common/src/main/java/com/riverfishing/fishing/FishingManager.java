@@ -3493,8 +3493,17 @@ public final class FishingManager {
         // §livebait-4: the hard floor holds AFTER the pond's re-centring and the size genes — a pond of
         // 600 g pollock handed a 2.5 kg bait a 505 g fish, because the pond average overwrote the roll
         // the bait had floored. A fish that took a baitfish is five times it, whatever the pond averages.
+        // §livebait-spread: and it does not PIN the fish to the floor. Math.max did: the size genes' 0.9 and
+        // a pond's average put most rolls a little under it, and every one of those came out at exactly
+        // five times the bait — the same weight, fish after fish (Discord: K1rhgoff). A roll that lands
+        // under the floor is rolled again ABOVE it, on the species' own curve.
+        boolean lifted = false;
         if (livebaitWeightG > 0 && !session.foulHooked) {
-            weight = Math.max(weight, Math.min(livebaitWeightG * BiteEngine.PREY_RATIO, p.weightMax));
+            double floorW = Math.min(livebaitWeightG * BiteEngine.PREY_RATIO, p.weightMax);
+            if (weight < floorW) {
+                weight = floorW + (p.weightMax - floorW) * Math.pow(random.nextDouble(), Math.max(1.0, k));
+                lifted = true;
+            }
         }
         session.weightG = (int) Math.round(weight);
 
@@ -3506,6 +3515,7 @@ public final class FishingManager {
         // in the top of its species' size range. Every floor above (livebait, lure mass, luck) can push a
         // fish into that band, which is exactly how those things work in the water.
         session.trophy = biased >= RiverFishingConfig.trophyFraction();
+        if (lifted) session.trophy = weight >= FishItem.trophyThresholdG(p.weightMin, p.weightMax);   // §livebait-spread: the roll it was read off is gone
 
         // Length from weight by the real allometric law L ∝ W^(1/3) — a fish's mass grows with its volume
         // (~length³), so length tracks the CUBE ROOT of weight, anchored to the species' own length range.
