@@ -248,7 +248,7 @@ public final class LineRenderer {
 
     /** The line's water end with no fish on it: the target, walked toward the bank with progress. */
     static Vec3 lineBase(Minecraft mc, Player player, ClientLineState.Line state, float pt) {
-        float bobT = mc.level.getGameTime() + pt;
+        float bobT = mc.level.getGameTime() % 100000L + pt;
         double bob;
         if (state.floatKind == 0) {
             bob = 0.0;

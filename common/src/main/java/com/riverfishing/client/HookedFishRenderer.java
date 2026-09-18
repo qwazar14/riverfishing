@@ -37,13 +37,13 @@ public final class HookedFishRenderer {
         if (!(state.fighting || state.biting) || state.species.isEmpty() || mc.level == null) return null;   // §hooked-fish: drawn on the take too
         ItemStack stack = stackFor(state);
         if (stack == null) return null;
-        float time = mc.level.getGameTime() + pt;
+        float time = mc.level.getGameTime() % 100000L + pt;
         // §hooked-fish: the body comes up under the bait, nose up, over the first eight ticks of the take
         boolean rising = state.biting && !state.fighting;
         double riseY = 0.0;
         float risePitch = 0f;
         if (rising) {
-            float rt = state.riseStart < 0 ? 1f : Mth.clamp((time - state.riseStart) / 8f, 0f, 1f);
+            float rt = state.riseStart < 0 ? 1f : Mth.clamp(((mc.level.getGameTime() - state.riseStart) + pt) / 8f, 0f, 1f)   /* §float-clock: the longs first */;
             riseY = Mth.lerp(rt, -0.4f, -0.05f);
             risePitch = -35f;
         }

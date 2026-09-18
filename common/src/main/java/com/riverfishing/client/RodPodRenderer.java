@@ -75,7 +75,7 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity, Ro
         Direction facing = be.getBlockState().hasProperty(RodPodBlock.FACING)
                 ? be.getBlockState().getValue(RodPodBlock.FACING) : Direction.NORTH;
         s.yRot = -facing.toYRot();
-        s.time = be.getLevel() != null ? be.getLevel().getGameTime() + partialTick : partialTick;
+        s.time = be.getLevel() != null ? be.getLevel().getGameTime() % 100000L + partialTick : partialTick;
 
         for (int i = 0; i < n; i++) {
             ItemStack rod = rods.get(i);

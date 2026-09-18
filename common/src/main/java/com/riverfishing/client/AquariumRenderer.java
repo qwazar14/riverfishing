@@ -50,6 +50,8 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
 
     /** Fish at or above this weight are too big to loop the figure-8 — they just cruise back and forth. */
     private static final int BIG_FISH_G = 3000;
+    /** §aq-flat: how far a flat fish is laid over in a tank — 65° of the 90, so the front glass shows its back. */
+    private static final float TANK_LAY = 0.72f;
 
     // §roe-frames: gen_aquarium_roe.py's 80x16 strip — four incubation days (the fifth frame, a generic
     // shoal, is no longer drawn: hatched fry wear their species' sprite, see extractFry). Bound
@@ -122,7 +124,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         Direction facing = be.getBlockState().hasProperty(AquariumBlock.FACING)
                 ? be.getBlockState().getValue(AquariumBlock.FACING) : Direction.NORTH;
         Direction cw = facing.getClockWise();
-        float time = be.getLevel() != null ? (be.getLevel().getGameTime() + partialTick) : partialTick;
+        float time = be.getLevel() != null ? (be.getLevel().getGameTime() % 100000L + partialTick) : partialTick;
 
         // Centre of the 2-wide × 1-tall glass tank (upper row), relative to the master cell corner.
         double tankX = 0.5 + cw.getStepX() * 0.5;
@@ -176,7 +178,9 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             // §fish-pose: a flatfish does not loop through open water — it works the floor of the tank.
             if (flat) {
                 u = Mth.sin(t) * 0.55;
-                height = 1.06 + Mth.sin(time * 0.05f + i) * 0.02;
+                // §aq-flat: 1.06 was INSIDE the tank's floor (its top is ROE_FLOOR), and a fish laid dead level
+                // is a sheet seen edge-on through the front glass — above the floor, and tilted (TANK_LAY).
+                height = ROE_FLOOR + 0.03 + Math.min(2.0f, FishItem.getIconScale(fish)) * 0.9f * 0.2 + Mth.sin(time * 0.05f + i) * 0.02;
                 travel = Mth.cos(t) >= 0 ? 1f : -1f;
             }
             Swim swim = new Swim();
@@ -189,7 +193,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             swim.yRot = -facing.toYRot() + flip + Mth.sin(time * 0.15f + i) * 4f;
             // §fish-pose: the flatfish lie down in the tank too, parallel to its floor — which is also
             // where they are swimming (see the height above), because that is what they do.
-            swim.xRot = flat ? com.riverfishing.fish.FishPose.lay() : 0f;
+            swim.xRot = flat ? com.riverfishing.fish.FishPose.lay() * TANK_LAY : 0f;
             swim.scale = big ? 0.9f : 0.7f;
             itemModelResolver.updateForTopItem(swim.item, fish, ItemDisplayContext.FIXED, be.getLevel(), null, i);
 
@@ -259,7 +263,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             float t = time * (float) (Math.PI * 2 / 60) + i * 1.1f;
             double u = Mth.sin(t) * (3.0 / 16);
             double depth = ((i % 3) - 1) * 0.20;
-            double y = flat ? 1.06 + Mth.sin(time * 0.05f + i) * 0.02
+            double y = flat ? ROE_FLOOR + 0.03 + FRY_LEN * 0.2 + Mth.sin(time * 0.05f + i) * 0.02   // §aq-flat
                     : 1.5 + Mth.sin(time * 0.13f + i) * 0.02 + ((i % 5) - 2) * 0.04;   // ±0.08 spread
             float flip = Mth.cos(t) >= 0 ? 180f : 0f;
             Swim c = new Swim();
@@ -267,7 +271,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             c.y = y;
             c.z = tankZ + cw.getStepZ() * u + facing.getStepZ() * depth;
             c.yRot = -facing.toYRot() + flip + Mth.sin(time * 0.15f + i) * 4f;
-            c.xRot = flat ? com.riverfishing.fish.FishPose.lay() : 0f;
+            c.xRot = flat ? com.riverfishing.fish.FishPose.lay() * TANK_LAY : 0f;
             c.scale = FRY_SCALE;
             s.fry.add(c);
         }

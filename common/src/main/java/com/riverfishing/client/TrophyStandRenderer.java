@@ -52,7 +52,7 @@ public class TrophyStandRenderer implements BlockEntityRenderer<TrophyStandBlock
         BlockEntityRenderer.super.extractRenderState(be, s, partialTick, cameraPos, overlay);
         List<ItemStack> fishes = be.getFishes();
         s.count = Math.min(fishes.size(), s.fish.length);
-        s.time = be.getLevel() != null ? (be.getLevel().getGameTime() + partialTick) : partialTick;
+        s.time = be.getLevel() != null ? (be.getLevel().getGameTime() % 100000L + partialTick) : partialTick;
         for (int i = 0; i < s.count; i++) {
             itemModelResolver.updateForTopItem(s.fish[i], fishes.get(i),
                     ItemDisplayContext.FIXED, be.getLevel(), null, i);

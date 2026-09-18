@@ -120,7 +120,7 @@ public final class ShoalRenderer {
         ShoalState.tick(partialTick);
         List<ShoalState.Live> spots = ShoalState.live();
         if (spots.isEmpty()) return false;
-        float time = mc.level.getGameTime() + partialTick;
+        float time = mc.level.getGameTime() % 100000L + partialTick;
         boolean drew = false;
 
         for (ShoalState.Live live : spots) {
