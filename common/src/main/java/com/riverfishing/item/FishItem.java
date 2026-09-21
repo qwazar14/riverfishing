@@ -349,6 +349,16 @@ public class FishItem extends Item {
     }
 
     /** Flat-string form of {@link #weightText} for plain-text call sites; resolves the caller-side lang. */
+    /**
+     * §card-imperial: the same weight for an angler who thinks in pounds — ounces to one decimal under a
+     * pound, pounds to two above it. Plain "oz" / "lb": they are unit symbols, not words to translate.
+     */
+    public static String imperialText(int weightG) {
+        double lb = weightG / 453.59237;
+        return lb < 1.0 ? String.format(java.util.Locale.ROOT, "%.1f oz", weightG / 28.349523)
+                : String.format(java.util.Locale.ROOT, "%.2f lb", lb);
+    }
+
     public static String weightLabel(int weightG) {
         return weightText(weightG).getString();
     }
