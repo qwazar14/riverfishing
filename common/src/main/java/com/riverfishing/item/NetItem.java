@@ -141,7 +141,9 @@ public abstract class NetItem extends Item {
             // with no record left gives only what the head count says is UNRECORDED (fry that grew, the
             // seasons' growth); with none of that either it leaves the pool, and a pond with nothing
             // left ends the haul short.
-            if (pondOwner != null && rec == null
+            // §pond-old-ledger: guarded on AvgW like pondHolds — a ledger from before the head count has no
+            // Adults to read, and its zero emptied an old pond that was working.
+            if (pondOwner != null && rec == null && stocked.avgWeight(region, p.id.getPath()) > 0
                     && stocked.adults(region, p.id.getPath()) <= stocked.rememberedFish(region, p.id.getPath())) {
                 int at = pool.indexOf(p);
                 total -= weights.remove(at);

@@ -92,6 +92,17 @@ public final class ModPotions {
         builder.addMix(FISH_OIL, Items.REDSTONE, LONG_FISH_OIL);
     }
 
+    /**
+     * §oil-stand (1.0.0): is this a fish the stand renders into oil — one of the nine, raw. The furnace
+     * and the campfire used to make the oil too, and since every fish COOKS now the two recipes fought
+     * over the same fish in the same furnace; the oil is the stand's alone (mixin/PotionBrewingOilMixin).
+     */
+    public static boolean isOilyFish(net.minecraft.world.item.ItemStack stack) {
+        if (!(stack.getItem() instanceof com.riverfishing.item.FishItem) || com.riverfishing.item.CookedFish.isCooked(stack)) return false;
+        var sp = com.riverfishing.item.FishItem.getSpecies(stack);
+        return sp != null && java.util.Arrays.asList(OILY).contains(sp.getPath());
+    }
+
     /** §oil-brew-item: where one "empty bottle + fish -> oil" recipe goes, per loader. */
     public interface OilSink {
         void add(net.minecraft.world.item.Item bottle, net.minecraft.world.item.Item fish,
