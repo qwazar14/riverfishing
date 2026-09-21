@@ -219,7 +219,10 @@ public final class RigData {
         double bestScore = -Double.MAX_VALUE;
         for (int i = 0; i < roles.length && i < inv.size(); i++) {
             ItemStack s = inv.get(i);
-            if (roles[i] == SlotRole.BAIT && !s.isEmpty()
+            // §livebait-eaten: BAIT **or** LURE — a predator rig and a fly rig are {LEADER, LURE}, and the LURE
+            // slot takes a live bait, so a baitfish on a spinning rod was never eaten: one fish lasted for ever.
+            // Anything artificial in that slot is still skipped by the line below.
+            if ((roles[i] == SlotRole.BAIT || roles[i] == SlotRole.LURE) && !s.isEmpty()
                     && s.getItem() instanceof BaitItem b && !b.artificial()
                     && !"mormyshka".equals(b.baitId())) {
                 double score = preference != null ? preference.applyAsDouble(b.baitId()) : 0.0;

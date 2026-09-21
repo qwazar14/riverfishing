@@ -256,10 +256,8 @@ public final class ModItems {
         // duel the 40 kg monster catfish with a 7000 reel's drag on top).
         registerLines(LineType.BRAID, new double[]{0.16, 0.20, 0.25, 0.30, 0.40, 0.50, 0.60});
         registerLines(LineType.FLUORO, new double[]{0.14, 0.16, 0.20, 0.25, 0.30, 0.40});
-        // §fly-lines: the one line that shipped before the nine — kept so a rod that carries it still
-        // loads; it is a WF-F.
-        reg("line_fly_100", () -> new com.riverfishing.item.FlyLineItem(com.riverfishing.item.FlyLineItem.Geometry.WF,
-                com.riverfishing.item.FlyLineItem.Buoyancy.F, props()));
+        // §fly-lines: line_fly_100, the one line that shipped before the nine, is gone (1.0.0) — it was a
+        // WF-F, and line_fly_wf_f is that line. A rod still carrying the old id loses it on load.
         // §fly-lines: three geometries by three buoyancies; the weight is the rod's class, not the line's.
         for (com.riverfishing.item.FlyLineItem.Geometry g : com.riverfishing.item.FlyLineItem.Geometry.values()) {
             for (com.riverfishing.item.FlyLineItem.Buoyancy b : com.riverfishing.item.FlyLineItem.Buoyancy.values()) {
