@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": {
+      "item": "minecraft:water_bucket"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.released.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.released.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

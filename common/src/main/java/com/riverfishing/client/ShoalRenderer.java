@@ -58,6 +58,7 @@ public final class ShoalRenderer {
     public static void render(PoseStack pose, Vec3 cam, float partialTick) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;
+        LineRenderer.renderHooked(pose, cam, partialTick);   // §hooked-visible: under the water, with the shoal
         // Shoals belong to the level they were sent for; a world change must not leave stale fish behind.
         if (ShoalState.owner() != mc.level) return;
 
@@ -82,7 +83,7 @@ public final class ShoalRenderer {
         //     nothing — §morph's whitening has never once been drawn on these two versions.
         RenderType layer = RenderType.entityTranslucent(TextureAtlas.LOCATION_BLOCKS);
         VertexConsumer vc = buffers.getBuffer(layer);
-        float time = mc.level.getGameTime() + partialTick;
+        float time = mc.level.getGameTime() % 100000L + partialTick;
         boolean drew = false;
 
         for (ShoalState.Live live : spots) {

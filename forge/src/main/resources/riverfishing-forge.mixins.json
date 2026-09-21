@@ -6,7 +6,8 @@
   "client": [
     "RodItemForgeMixin",
     "FishItemForgeMixin",
-    "FryItemForgeMixin"
+    "FryItemForgeMixin",
+    "TiedLureItemForgeMixin"
   ],
   "injectors": {
     "defaultRequire": 1

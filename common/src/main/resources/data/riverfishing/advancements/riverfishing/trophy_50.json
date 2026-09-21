@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/trophy_10",
+  "display": {
+    "icon": {
+      "item": "minecraft:gold_block"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.trophy_50.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.trophy_50.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

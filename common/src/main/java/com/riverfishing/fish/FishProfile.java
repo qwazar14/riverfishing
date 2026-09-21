@@ -34,6 +34,10 @@ public final class FishProfile {
      * listed and still reachable, just not silently mis-filed.
      */
     public final String group;
+    /** §species-table: what it eats — predator / omnivore / peaceful / insectivore; the family's habit when unsaid. */
+    public final String diet;
+    /** §species-table: the two species whose cross spawns this one, or empty. */
+    public final java.util.List<String> hybridOf;
     /** §cards-2: the scientific name, or empty. */
     public final String latin;
     /**
@@ -137,6 +141,8 @@ public final class FishProfile {
     private FishProfile(Builder b) {
         this.id = b.id;
         this.group = b.group;
+        this.diet = b.diet;
+        this.hybridOf = b.hybridOf;
         this.latin = b.latin;
         this.spawnSeason = b.spawnSeason;
         this.spawnSub = b.spawnSub;
@@ -233,6 +239,11 @@ public final class FishProfile {
                 return switch (key) { case "sand", "mud" -> 1.15; case "rock" -> 0.85; default -> 1.0; };
             case "sea", "big_game":                // sand and rock both work; mud is a harbour
                 return switch (key) { case "sand", "rock" -> 1.1; case "mud" -> 0.9; default -> 1.0; };
+            // §species-table: the table's families
+            case "catfish", "ray":                // grub the soft bottom
+                return switch (key) { case "mud", "sand" -> 1.15; case "rock" -> 0.85; default -> 1.0; };
+            case "panfish", "cichlid":            // sand and gravel beds, where they nest
+                return switch (key) { case "sand", "gravel" -> 1.1; case "mud" -> 0.95; default -> 1.0; };
             default:
                 return 1.0;
         }
@@ -283,6 +294,8 @@ public final class FishProfile {
         Builder b = new Builder(id);
 
         b.group = GsonHelper.getAsString(json, "group", FishGroup.OTHER);
+        b.diet = GsonHelper.getAsString(json, "diet", defaultDiet(b.group));   // §species-table
+        b.hybridOf = new java.util.ArrayList<>(readStringSet(json, "hybrid_of"));
         b.latin = GsonHelper.getAsString(json, "latin", "");
         // §breeding-A: "spawn": {"season": "spring", "sub": "late"}, sub optional. A block that names a season
         // but no sub means the whole season; no block at all means the family's habit, sub included.
@@ -333,7 +346,8 @@ public final class FishProfile {
         b.gbNutrition = GsonHelper.getAsDouble(gb, "nutrition", defaultGbNutrition(b.baitScores));
         JsonObject hook = GsonHelper.getAsJsonObject(ideal, "hook", new JsonObject());
         b.hookIdeal = GsonHelper.getAsInt(hook, "ideal", 12);
-        b.hookTolerance = Math.max(1, GsonHelper.getAsInt(hook, "tolerance", 2));
+        // §species-table: the tolerance left the table; one band either side of the ideal is the rule for all
+        b.hookTolerance = Math.max(1, GsonHelper.getAsInt(hook, "tolerance", 3));
         b.requiresLeader = GsonHelper.getAsBoolean(ideal, "requires_leader", false);
 
         b.season = readDoubleMap(GsonHelper.getAsJsonObject(json, "season", new JsonObject()));
@@ -384,8 +398,19 @@ public final class FishProfile {
      * the inshore sea fish go on the late-spring warm-up, predators as soon as the ice is off, salmonids
      * on the autumn gravel, the big-game fish through the summer. Mirrors the table in tools/add_spawn.py.
      */
+    /** §species-table: the family's diet when the profile does not say. */
+    public static String defaultDiet(String group) {
+        return switch (group == null ? "" : group) {
+            case FishGroup.PREDATOR, FishGroup.BIG_GAME, FishGroup.SEA, FishGroup.CATFISH, FishGroup.CHARACIN, FishGroup.RAY -> "predator";
+            case FishGroup.SALMONID, FishGroup.PANFISH -> "insectivore";
+            case FishGroup.CYPRINID, FishGroup.KOI, FishGroup.STURGEON -> "peaceful";
+            default -> "omnivore";
+        };
+    }
+
     public static Season defaultSpawnSeason(String group) {
         return switch (group == null ? "" : group) {
+            case FishGroup.CATFISH, FishGroup.CICHLID, FishGroup.CHARACIN, FishGroup.EXOTIC, FishGroup.RAY -> Season.SUMMER;   // §species-table
             case FishGroup.SALMONID -> Season.AUTUMN;
             case FishGroup.BIG_GAME -> Season.SUMMER;
             default -> Season.SPRING;
@@ -421,6 +446,8 @@ public final class FishProfile {
     private static final class Builder {
         final ResourceLocation id;
         String group = FishGroup.OTHER;
+        String diet = "omnivore";   // §species-table
+        java.util.List<String> hybridOf = new java.util.ArrayList<>();
         String latin = "";
         Season spawnSeason;                 // §breeding-A
         Calendar.Sub spawnSub;

@@ -18,6 +18,8 @@ public final class BiteEngine {
     public static final double T_MIN_TICKS = 160.0;
     private static final double GRADIENT_K = 0.25;        // §1.1
     private static final double BAIT_HARD_FILTER = 0.15;  // §1.5
+    /** §hybrid-rare: a hybrid's share of its own weight in wild water. */
+    private static final double HYBRID_WILD = 0.04;
     private static final double HOOK_GATE = 0.34;         // below this, the hook is the wrong size band (#6)
     private static final double SWARM_KNEE = 1.5;         // §swarm-cap: W_total below this is untouched
     private static final double SWARM_DAMP = 0.3;         // …above it, only 30% of the excess counts toward speed
@@ -44,6 +46,16 @@ public final class BiteEngine {
         for (String bait : c.baits) {
             best = Math.max(best, p.baitScore(bait));
         }
+        // §tying: a tied lure fishes as its template says for this fish's family.
+        if (c.tied != null) {
+            // §tying: a profile may rate a tied TEMPLATE by name (fly_nymph, fly_streamer, fly_pellet, ...) the
+            // way it rates any bait; a species that says nothing takes the family's generic affinity for it.
+            Double own = p.baitScores.get("fly_" + c.tied.template().key);
+            if (own != null) best = own;
+            // §species-table: by what it eats. A rig with nothing else on it (a fly on a tippet) starts
+            // from 1, not 0 — scaling nothing by the affinity left the tied fly scoring zero everywhere.
+            else best = (best > 0 ? best : 1.0) * c.tied.affinity(p.diet, p.group);
+        }
         return best;
     }
 
@@ -51,14 +63,31 @@ public final class BiteEngine {
     private static double hookScore(FishProfile p, BiteContext c) {
         if (c.hookSizes.isEmpty()) {
             // A predator lure's treble and a winter mormyshka carry their own hook — no separate hook slot.
+            // §fly-take: a tied fly on a tippet carries its hook the same way — without this line every
+            // species was "no_hook" on the fly rig and no fish ever took.
             return (c.rig == com.riverfishing.component.RigType.PREDATOR
-                    || c.rig == com.riverfishing.component.RigType.WINTER) ? 0.85 : 0.0;
+                    || c.rig == com.riverfishing.component.RigType.WINTER
+                    || c.rig == com.riverfishing.component.RigType.FLY) ? 0.85 : 0.0;
         }
         double best = 0.0;
         for (int size : c.hookSizes) {
             best = Math.max(best, gradient(size, p.hookIdeal, p.hookTolerance));
         }
+        // §hook-mouth: a species whose biggest specimen cannot get the smallest hook on the rig into its
+        // mouth does not take it, whatever the size gradient says
+        if (p.weightMax < mouthG(c.hookSizes)) return 0.0;
         return best;
+    }
+
+    /**
+     * §hook-mouth: the smallest fish that can take a hook of this size, in grams — 40 g at #8, halving
+     * every two sizes down (#16: 2.5 g) and doubling every two up (#2: 320 g). The smallest hook on the
+     * rig sets it; nothing is asked of an empty rig.
+     */
+    public static double mouthG(java.util.Collection<Integer> hookSizes) {
+        if (hookSizes.isEmpty()) return 0.0;
+        int smallest = java.util.Collections.max(hookSizes);   // bigger number, smaller hook
+        return 40.0 * Math.pow(2.0, (8 - smallest) / 2.0);
     }
 
     /**
@@ -84,19 +113,15 @@ public final class BiteEngine {
     public static double matchScore(FishProfile p, BiteContext c) {
         double sBait = baitScore(p, c);
         double sGround = groundbaitScore(p, c);
-        double sRig = c.rig != null && p.idealRigs.contains(c.rig.jsonKey()) ? 1.0 : 0.15;
-        double sRod = p.idealRods.contains(c.rod.jsonKey()) ? 1.0 : 0.35;
+        // §species-table: the rod, the rig and the reel left the match — a species asks for bait, feed,
+        // line and hook, and how you deliver them is your business
         double sLine = lineScore(p, c);
         double sHook = hookScore(p, c);
-        double sReel = reelScore(p, c);
 
-        return 0.30 * sBait
-                + 0.15 * sGround
-                + 0.13 * sRig
-                + 0.12 * sRod
-                + 0.12 * sLine
-                + 0.10 * sHook
-                + 0.08 * sReel;
+        return 0.45 * sBait
+                + 0.20 * sGround
+                + 0.20 * sLine
+                + 0.15 * sHook;
     }
 
     /**
@@ -174,19 +199,30 @@ public final class BiteEngine {
     // ---- Environmental suitability E (§1.2) ----
 
     public static double environmentScore(FishProfile p, BiteContext c) {
+        // §livebait-4: the mouth rule is not a habitat gate the stocking floor may lift — a stocked
+        // species whose biggest specimen is under five times the bait still cannot take it. A 505 g
+        // pollock took a 2.5 kg bait through this floor. First, before anything is scored.
+        if (c.livebaitG > 0 && p.weightMax < c.livebaitG * PREY_RATIO) return 0.0;
         double natural = naturalScore(p, c);
+        double presence = c.stockedPresence != null ? c.stockedPresence.applyAsDouble(p.id) : 0.0;
+        // §hybrid-rare: a hybrid is a fish of the breeding tank, not of the river — wild water holds it one
+        // time in twenty-five; stocked and settled it fishes like anything else (the presence rule below)
+        if (!p.hybridOf.isEmpty() && presence <= 0) natural *= HYBRID_WILD;
         // §stocked-survival (0.5.1): a STOCKED species lives on even in water that fails its natural
         // gates — at a quarter of full activity, scaled by how much of it is actually there. This is
         // what makes "нестандартное" зарыбление real: the settled shark in the river is catchable,
         // just never comfortable.
-        double presence = c.stockedPresence != null ? c.stockedPresence.applyAsDouble(p.id) : 0.0;
         return presence > 0 ? Math.max(natural, 0.25 * presence) : natural;
     }
 
+    /** §livebait-4: the taker is at least this many times the baitfish — the top of the 10–20 % prey band. */
+    public static final double PREY_RATIO = 5.0;
+
     private static double naturalScore(FishProfile p, BiteContext c) {
-        // §livebait-3: a 29 g rotan does not take a 125 g baitfish. A species whose biggest specimen
-        // could not swallow the bait (three times its weight, generously) is not a taker at all.
-        if (c.livebaitG > 0 && p.weightMax < c.livebaitG * 3.0) return 0.0;
+        // §livebait-4 (1.0.0): a predator takes prey a tenth to a fifth of its own weight — a 12 kg pike
+        // does not look at a 1.5 kg bait, and a 10 kg bait is a bait for a 50 kg fish. A species whose
+        // biggest specimen is under five times the bait is not a taker at all (was three times).
+        if (c.livebaitG > 0 && p.weightMax < c.livebaitG * PREY_RATIO) return 0.0;
         double fWater = p.waterFactor(c.water);
         if (fWater <= 0) return 0.0; // the fish does not live in this water body
 
@@ -258,15 +294,9 @@ public final class BiteEngine {
         if (c.rod.longRange() && c.waterWidth < 12) {
             return 0.4;
         }
-        double d = c.castDistance;
-        if (d < p.distMin) {
-            double t = p.distMin <= 0 ? 1.0 : d / p.distMin;
-            return 0.6 + 0.4 * Math.max(0.0, Math.min(1.0, t));
-        }
-        if (d > p.distMax) {
-            return 0.85;
-        }
-        return 1.1;
+        // §species-table: the species' own distance band is gone — where the fish holds is the water's
+        // business (depth, width, bed), not a number per profile
+        return 1.0;
     }
 
     // ---- Species attractiveness W (§1.4) ----
@@ -357,9 +387,11 @@ public final class BiteEngine {
         // species' recommendation roughly halves its bite weight (×0.6 per level, floored at 3%). A novice
         // CAN still fluke a trophy on the right gear in the right place, just rarely; the seasoned angler
         // catches it steadily. Capability (tackle/bait/hook/leader) + location still gate on top of this.
+        // §species-table: the ladder runs 0-50 now and the level never forbids — short of the rung the bite
+        // thins in proportion, to a floor of 15 %, so a novice CAN fluke the fish and a veteran fishes it steadily
         if (p.minAnglerLevel > 0 && c.anglerLevel < p.minAnglerLevel) {
-            int deficit = p.minAnglerLevel - c.anglerLevel;
-            w *= Math.max(0.03, Math.pow(0.6, deficit));
+            double deficit = (p.minAnglerLevel - c.anglerLevel) / (double) p.minAnglerLevel;
+            w *= Math.max(0.15, 1.0 - 0.85 * deficit);
         }
         return Math.max(0.0, w);
     }

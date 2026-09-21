@@ -1,0 +1,98 @@
+{
+  "display": "Chinook × pink salmon hybrid",
+  "latin": "Oncorhynchus tshawytscha × Oncorhynchus gorbuscha",
+  "group": "salmonid",
+  "diet": "omnivore",
+  "spawn": {
+    "season": "autumn",
+    "sub": "late"
+  },
+  "water_bodies": {
+    "river": 1.3,
+    "lake": 0.9,
+    "pond": 0.2,
+    "swamp": 0.0,
+    "sea": 1.0,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 80,
+    "max": 10000,
+    "mean": 608
+  },
+  "length_cm": {
+    "min": 18.0,
+    "max": 90.0
+  },
+  "fight": {
+    "strength": 0.92,
+    "stamina": 0.93,
+    "runs": 5,
+    "pattern": "greyhounding",
+    "aggression": 0.75
+  },
+  "ideal": {
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.21,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.0,
+      "nutrition": 0.1
+    },
+    "bait": {
+      "spinner": 1.0,
+      "jig": 1.0,
+      "wobbler": 0.95,
+      "spoon": 0.9,
+      "fly_streamer": 0.85
+    },
+    "hook": {
+      "ideal": 6
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.1,
+    "summer": 0.7,
+    "autumn": 1.4,
+    "winter": 0.9
+  },
+  "time": {
+    "dawn": 1.3,
+    "day": 0.8,
+    "dusk": 1.3,
+    "night": 0.7
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.2,
+    "thunder": 1.1
+  },
+  "depth_pref": "mid",
+  "habitat": {
+    "depth_min": 4,
+    "width_min": 12
+  },
+  "provinces": [
+    "nearctic"
+  ],
+  "biomes": {
+    "cold": 1.2,
+    "temperate": 1.0,
+    "warm": 0.3,
+    "cherry": 0.9,
+    "mountain": 1.1,
+    "taiga": 1.2
+  },
+  "biomes_require": [
+    "cold"
+  ],
+  "base": 0.66,
+  "hybrid_of": [
+    "chinook_salmon",
+    "pink_salmon"
+  ],
+  "min_angler_level": 20
+}

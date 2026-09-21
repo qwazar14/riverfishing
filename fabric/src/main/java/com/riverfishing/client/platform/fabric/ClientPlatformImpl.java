@@ -103,6 +103,9 @@ public final class ClientPlatformImpl {
             BuiltinItemRendererRegistry.INSTANCE.register(f.get(), fish);
         }
         // §breeding: the fry bucket draws three of its species' sprite.
+        BuiltinItemRendererRegistry.INSTANCE.register(ModItems.TIED_LURE.get(),
+                (stack, ctx, pose, buffers, light, overlay) ->
+                        com.riverfishing.client.TiedLureItemRenderer.get().renderByItem(stack, ctx, pose, buffers, light, overlay));   // §tying
         BuiltinItemRendererRegistry.INSTANCE.register(ModItems.FRY.get(),
                 (stack, ctx, pose, buffers, light, overlay) ->
                         com.riverfishing.client.FryItemRenderer.get().renderByItem(stack, ctx, pose, buffers, light, overlay));

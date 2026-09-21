@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": {
+      "item": "minecraft:cooked_cod"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.all_diets.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.all_diets.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

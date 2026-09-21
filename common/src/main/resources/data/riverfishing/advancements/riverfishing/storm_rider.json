@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/night_owl",
+  "display": {
+    "icon": {
+      "item": "minecraft:lightning_rod"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.storm_rider.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.storm_rider.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

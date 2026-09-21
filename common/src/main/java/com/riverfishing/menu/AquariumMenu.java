@@ -95,7 +95,7 @@ public class AquariumMenu extends AbstractContainerMenu {
     }
 
     static boolean isCardedFish(ItemStack s) {
-        return s.getItem() instanceof FishItem && CatchCard.has(s);
+        return s.getItem() instanceof FishItem && CatchCard.has(s) && !com.riverfishing.item.CookedFish.isCooked(s);   // §cooking
     }
 
     static boolean isFood(ItemStack s) {

@@ -65,7 +65,7 @@ public class CullPacket implements ModNetwork.RfPacket {
 
         Component name = Component.translatable("item.riverfishing." + species.getPath());
         StockedData data = StockedData.get(level);
-        long region = StockedData.region(water);
+        long region = StockedData.regionAt(level, water);
         if (remove) {
             data.setCulled(region, species.getPath(), true);
         } else {

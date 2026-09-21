@@ -53,14 +53,15 @@ The wait is clamped to **200–2400 ticks** (10 seconds to 2 minutes) — a pati
 
 ### Jigging
 
-While you are waiting, **every right-click works the jig**. The rhythm matters:
+While you are waiting, **hold right-click and the rod jigs on its own**. A needle sweeps a bar at the bottom of the screen between two stops, **▲ the lift** on the left and **▼ the drop** on the right, a stop every 0.4 s, and every stop the rod makes pulls the bite a little closer.
 
-| Cadence | Message | Effect |
+| You | The gauge | The fish |
 |---|---|---|
-| A jig every **8–20 ticks** (0.4–1.0 s) — steady | *"Steady rhythm - fish are coming!"* | Pulls the bite **34 ticks closer** |
-| Frantic spamming or lazy jigging | *"Jigging the mormyshka…"* | Pulls it only **8 ticks** closer |
+| Hold | The needle sweeps, a soft click on every stop | Each stroke pulls the bite **8 ticks + 2 per accent** closer |
+| **Left-click as the needle touches a stop** — an accent | The gauge punches, a pip lights, the note climbs, the combo counts (up to 8) | The bite is pulled **20 ticks + 6 per accent** closer |
+| Let go — the pause | The gauge comes down | The bite comes **10 ticks** closer once; the take often comes on the pause |
 
-The bite can never be dragged closer than 10 ticks away. Each jig plays a soft retrieve click and throws splash particles at the hole — three for a good rhythm, one for a bad one.
+A left-click anywhere else does nothing — there is no way to jerk the mormyshka by clicking. The bite can never be dragged closer than 10 ticks away. Splash particles at the hole grow with the combo. When the nod finally twitches, the needle gives way to the strike bar.
 
 ### The take
 
@@ -105,7 +106,7 @@ The strongest winter species by season factor:
 
 Only **Smelt** and **Whitefish** actually list the winter rod and the winter rig as their ideal tackle. Everything else you pull through the ice is being caught on gear it doesn't strictly want — which costs you on the rod and rig components of the [match score](fishing-mechanics.md#match-coefficient-m--your-tackle), but is entirely playable.
 
-Seven species have `winter: 0.0` and will never bite through the ice: Crucian Carp, Rudd, Bleak, Chub, Tench, Catfish and Eel. Carp, Mirror Carp, Wild Carp, Grass Carp and Silver carp are effectively shut down at 0.02–0.05.
+Nine species have `winter: 0.0` and will never bite through the ice: Crucian Carp, Rudd, Bleak, Chub, Tench, Catfish, Eel, Bitterling and Sunbleak. Carp, Mirror Carp, Wild Carp, Grass Carp and Silver carp are effectively shut down at 0.02–0.05.
 
 ## Progression
 
@@ -114,15 +115,15 @@ The mod tracks fish landed through the ice as its own counter, feeding quest **s
 | Quest | Goal | Reward |
 |---|---|---|
 | Catch your first fish through the ice | 1 ice catch | 2 × Ice Jig |
-| Catch a burbot | any burbot | 4 × Oil Cake Groundbait |
-| Catch a ruffe | any ruffe | 12 × Maggot |
+| Catch a burbot | any burbot | 4 × Chicken Liver |
+| Catch 5 fish through the ice | 5 ice catches | 12 × Maggot |
 | Catch 10 fish through the ice | 10 ice catches | **Winter Rod** |
 | Catch 30 fish through the ice | 30 ice catches | 24 emeralds |
 | Fully complete stage 6 | all five above | 50 emeralds |
 
 There is also the code-driven advancement **From Under the Ice** — pull a burbot through a hole with the winter rod.
 
-Stage 6 unlocks once 70 % of stage 5's tasks are done, and completing 70 % of stage 6 opens [stage 7, the north and the taiga](progression.md#the-quest-chain).
+Stage 6 unlocks once 70 % of stage 5's tasks are done, and completing 70 % of stage 6 opens [stage 7, cold water](progression.md#the-quest-chain).
 
 ## See also
 

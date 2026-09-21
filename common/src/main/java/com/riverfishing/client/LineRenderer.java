@@ -31,7 +31,9 @@ public final class LineRenderer {
 
     public static void render(PoseStack pose, Vec3 cam, float pt) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null || mc.player == null || ClientLineState.lines().isEmpty()) return;
+        if (mc.level == null || mc.player == null) return;
+        FlyLineClient.render(pose, cam, pt);   // §rope: its own batch, its own tip read
+        if (ClientLineState.lines().isEmpty()) return;
 
         float frameSeconds = mc.getDeltaFrameTime() / 20f;
         long now = mc.level.getGameTime();
@@ -57,6 +59,12 @@ public final class LineRenderer {
             }
             if (!(mc.level.getEntity(entry.getKey()) instanceof Player player)) continue;
             state.tickSmoothing(frameSeconds);
+            // §hooked-fish: the body integrates before the line is drawn, so the string ends on it
+            double fdx = state.shownEnd.x - player.getX(), fdz = state.shownEnd.z - player.getZ();   // §line-glide
+            double fl = Math.sqrt(fdx * fdx + fdz * fdz);
+            state.tickFish(frameSeconds, fl > 1e-3 ? fdx / fl : 1.0, fl > 1e-3 ? fdz / fl : 0.0,
+                    (wx, wy, wz) -> !mc.level.getFluidState(BlockPos.containing(wx, wy, wz)).isEmpty(),
+                    lineBase(mc, player, state, pt));
             renderLine(mc, buffers, m, nrm, player, state, pt);
             drew = true;
         }
@@ -64,6 +72,32 @@ public final class LineRenderer {
         if (drew) {
             buffers.endBatch();   // flushes lines() AND every per-material strand type
         }
+        pose.popPose();
+    }
+
+
+    /**
+     * §hooked-visible (1.0.0): the fish on the line is drawn in the SHOAL's pass — before the water —
+     * so a fish under the surface is seen through it, the way a squid is. It used to ride the line's
+     * pass, after the translucent terrain, and the surface's depth threw away everything but a breach:
+     * the fight was a bar and a rod until the fish jumped. The body's own frame integration still
+     * happens in the line pass; this reads the position it left, one frame behind, which no eye sees.
+     */
+    public static void renderHooked(PoseStack pose, Vec3 cam, float pt) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null || ClientLineState.lines().isEmpty()) return;
+        pose.pushPose();
+        pose.translate(-cam.x, -cam.y, -cam.z);
+        MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
+        boolean drew = false;
+        for (var entry : ClientLineState.lines().entrySet()) {
+            ClientLineState.Line state = entry.getValue();
+            if (!(state.fighting || state.biting) || state.species.isEmpty()) continue;
+            if (!(mc.level.getEntity(entry.getKey()) instanceof Player player)) continue;
+            HookedFishRenderer.draw(mc, pose, buffers, state, lineEnd(mc, player, state, pt), pt);
+            drew = true;
+        }
+        if (drew) buffers.endBatch();
         pose.popPose();
     }
 
@@ -88,7 +122,7 @@ public final class LineRenderer {
         if (held.getItem() instanceof com.riverfishing.item.RodItem
                 && com.riverfishing.item.RodData.get(held, com.riverfishing.component.ComponentSlot.LINE)
                         .getItem() instanceof com.riverfishing.item.LineItem li) {
-            style = RodRenderTypes.strandStyle(li.lineType(), li.diameterMm());
+            style = RodRenderTypes.strandStyle(li);
         }
         VertexConsumer sv = buffers.getBuffer(
                 style == null ? RenderType.lines() : RodRenderTypes.lineStrand(style[4]));
@@ -104,15 +138,24 @@ public final class LineRenderer {
             // tension straightens the string, a fish running at the angler bellies it.
             double time = mc.level.getGameTime() + pt;
             double dx = tip.x - end.x, dy = tip.y - end.y, dz = tip.z - end.z;
-            Vec3 prev = end.add(0, hangOffset(state, dy, 0.0, time), 0);
+            // §line-snag: the string is caught on a block — draw it KINKED over the point it rubs,
+            // two straight legs, which is exactly what a snagged line looks like from the bank.
+            Vec3 kink = kinkFor(mc, state, tip, end);
+            if (kink != null) {
+                Vec3 a = end, b = kink; line(sv, m, nrm, a, b, cr, cg, cb, alpha);
+                a = kink; b = tip; line(sv, m, nrm, a, b, cr, cg, cb, alpha);
+            } else {
+            double chord = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            Vec3 prev = end.add(0, hangOffset(state, dy, chord, 0.0, time), 0);
             for (int k = 1; k <= 16; k++) {
                 double f = k / 16.0;
                 Vec3 p = new Vec3(end.x + dx * f,
-                        end.y + hangOffset(state, dy, f, time),
+                        end.y + hangOffset(state, dy, chord, f, time),
                         end.z + dz * f);
                 line(sv, m, nrm, prev, p, cr, cg, cb, alpha);
                 prev = p;
             }
+            }   // §line-snag
         }
 
         // The bobber (§bobber-render): only float rigs show one — a red antenna over a white body.
@@ -131,8 +174,31 @@ public final class LineRenderer {
      * waves, pulled toward the angler as reel-in progress rises. Shared by the world pass and the
      * first-person hand pass ({@link RodItemRenderer}), so the two can never disagree on the far end.
      */
+    /** §line-calm: the kink to draw this frame — the clipped point, eased, or null when the string is free. */
+    static Vec3 kinkFor(Minecraft mc, ClientLineState.Line state, Vec3 tip, Vec3 end) {
+        Vec3 raw = state.snagged ? snagPoint(mc, tip, end) : null;
+        if (raw == null) { state.kinkShown = null; return null; }
+        state.kinkShown = state.kinkShown == null ? raw : state.kinkShown.lerp(raw, 0.25);
+        return state.kinkShown;
+    }
+
+    /** §line-snag: where the string meets the block, clipped the way the server clipped it. */
+    static Vec3 snagPoint(Minecraft mc, Vec3 tip, Vec3 end) {
+        var hit = mc.level.clip(new net.minecraft.world.level.ClipContext(tip, end,
+                net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                net.minecraft.world.level.ClipContext.Fluid.NONE, mc.player));
+        return hit.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK ? hit.getLocation() : null;
+    }
+
     static Vec3 lineEnd(Minecraft mc, Player player, ClientLineState.Line state, float pt) {
-        float bobT = mc.level.getGameTime() + pt;
+        Vec3 end = lineBase(mc, player, state, pt);
+        // §hooked-fish: with a fish on, the line ends on the FISH — wherever its run has taken it
+        return state.fighting && !state.species.isEmpty() ? state.fishAt(end) : end;
+    }
+
+    /** The line's water end with no fish on it: the target, walked toward the bank with progress. */
+    static Vec3 lineBase(Minecraft mc, Player player, ClientLineState.Line state, float pt) {
+        float bobT = mc.level.getGameTime() % 100000L + pt;
         double bob;
         if (state.floatKind == 0) {
             bob = 0.0;
@@ -144,7 +210,8 @@ public final class LineRenderer {
             bob = Math.sin(bobT * 0.13) * 0.05 + Math.sin(bobT * 0.047) * 0.03;
         }
         BlockPos t = state.target;
-        Vec3 water = new Vec3(t.getX() + 0.5, t.getY() + 0.95 + bob, t.getZ() + 0.5);
+        Vec3 e = state.shownEnd != null ? state.shownEnd : new Vec3(t.getX() + 0.5, t.getY(), t.getZ() + 0.5);   // §line-glide
+        Vec3 water = new Vec3(e.x, e.y + 0.95 + bob, e.z);
         Vec3 bank = player.position().add(player.getViewVector(pt).scale(1.2)).add(0, 0.1, 0);
         return water.lerp(bank, Mth.clamp(state.smoothProgress * 0.85f, 0f, 0.9f));
     }
@@ -161,18 +228,26 @@ public final class LineRenderer {
      * Shared by the world pass and the first-person hand pass, so every observer sees one line.
      */
     static double hangOffset(ClientLineState.Line state, double dy, double f, double time) {
+        return hangOffset(state, dy, 6.0, f, time);
+    }
+
+    /** As above, with the chord's length: a short line hangs a short loop — never a block of string on two blocks of chord. */
+    static double hangOffset(ClientLineState.Line state, double dy, double chord, double f, double time) {
+        double sc = Math.min(1.0, chord / 5.0);   // §line-calm
         // §line-taut-eased: the hang reads the DISPLAYED taut/slack, which tickSmoothing chases
         // asymmetrically (snaps tight, relaxes at cable speed) over a wide tension band — so between
         // the dead string and the deep belly lives a continuous scale of partial droop, and every
         // transition is a movement, not a switch.
         float taut = state != null ? state.dispTaut : 0f;
         float slack = state != null ? state.dispSlack : 0f;
-        double sag = dy * (f * f + f) * 0.5 + 0.25 * (1.0 - f);   // the vanilla hang, lift included
         double straight = dy * f;
+        // §line-rest: the hang is BELOW the chord whichever end is higher — the vanilla parabola
+        // assumed the hook end was the low one and bulged upward when the tip sat below the fish
+        double sag = straight - Math.abs(dy) * (f - f * f) * 0.5 + 0.25 * sc * (1.0 - f);
         // even a string under full load keeps a few percent of catenary — a laser line reads fake
         double y = straight + (sag - straight) * (1.0 - taut * 0.96);
         if (slack > 0f) {
-            y -= slack * 0.6 * 4.0 * f * (1.0 - f);               // deepest mid-span, zero at both ends
+            y -= slack * 0.6 * sc * 4.0 * f * (1.0 - f);          // deepest mid-span, zero at both ends
         }
         if (taut > 0.7f) {
             // a loaded string trembles — fading in with taut, growing with real nearness to breaking
@@ -239,7 +314,7 @@ public final class LineRenderer {
      * by FOV and swinging with the arm); in third person / for other players it hangs off the rod
      * hand of the body model — so every line starts at a rod, not in the air.
      */
-    private static Vec3 rodTipAnchor(Minecraft mc, Player player, float pt) {
+    static Vec3 rodTipAnchor(Minecraft mc, Player player, float pt) {
         int arm = player.getMainArm() == net.minecraft.world.entity.HumanoidArm.RIGHT ? 1 : -1;
         if (!(player.getMainHandItem().getItem() instanceof com.riverfishing.item.RodItem)) {
             arm = -arm; // the rod is in the off hand
@@ -320,8 +395,8 @@ public final class LineRenderer {
         line(vc, m, nrm, a, b, r, g, bl, 255);
     }
 
-    private static void line(VertexConsumer vc, Matrix4f m, Matrix3f nrm, Vec3 a, Vec3 b,
-                             int r, int g, int bl, int alpha) {
+    static void line(VertexConsumer vc, Matrix4f m, Matrix3f nrm, Vec3 a, Vec3 b,
+                     int r, int g, int bl, int alpha) {
         float dx = (float) (b.x - a.x), dy = (float) (b.y - a.y), dz = (float) (b.z - a.z);
         float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (len <= 1e-4f) return;

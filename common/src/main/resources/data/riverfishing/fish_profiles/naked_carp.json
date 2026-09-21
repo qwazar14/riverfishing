@@ -1,7 +1,10 @@
 {
   "display": "Голый карп",
   "latin": "Cyprinus carpio var. nudus",
-  "spawn": { "season": "summer", "sub": "early" },
+  "spawn": {
+    "season": "summer",
+    "sub": "early"
+  },
   "group": "cyprinid",
   "water_bodies": {
     "lake": 1.2,
@@ -17,8 +20,8 @@
     "mean": 4500
   },
   "length_cm": {
-    "min": 40,
-    "max": 105
+    "min": 40.0,
+    "max": 105.0
   },
   "fight": {
     "strength": 0.85,
@@ -28,20 +31,11 @@
     "aggression": 0.8
   },
   "ideal": {
-    "rod": [
-      "carp"
-    ],
-    "reel_size": 7000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "mono",
       "diameter_mm": 0.35,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "carp",
-      "flat_feeder"
-    ],
     "groundbait": {
       "fraction": 0.75,
       "nutrition": 0.88
@@ -54,9 +48,9 @@
       "dough": 0.5
     },
     "hook": {
-      "ideal": 4,
-      "tolerance": 2
-    }
+      "ideal": 4
+    },
+    "requires_leader": false
   },
   "season": {
     "spring": 0.8,
@@ -76,19 +70,21 @@
     "thunder": 0.8
   },
   "depth_pref": "bottom",
-  "distance_pref": {
-    "min": 14,
-    "max": 45
-  },
   "habitat": {
     "depth_min": 2,
     "width_min": 12
   },
-  "provinces": ["palearctic", "nearctic", "neotropic", "indomalaya"],
+  "provinces": [
+    "palearctic",
+    "nearctic",
+    "neotropic",
+    "indomalaya"
+  ],
   "biomes": {
     "temperate": 1.0,
     "warm": 1.2
   },
   "base": 0.35,
-  "min_angler_level": 5
+  "min_angler_level": 21,
+  "diet": "peaceful"
 }

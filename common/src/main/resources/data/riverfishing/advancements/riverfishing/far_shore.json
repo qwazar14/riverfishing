@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": {
+      "item": "riverfishing:fish_finder"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.far_shore.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.far_shore.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

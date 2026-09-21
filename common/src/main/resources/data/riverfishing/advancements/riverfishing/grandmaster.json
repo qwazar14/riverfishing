@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/master",
+  "display": {
+    "icon": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.grandmaster.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.grandmaster.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

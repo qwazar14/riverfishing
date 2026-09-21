@@ -1,5 +1,5 @@
 {
-  "parent": "riverfishing:riverfishing/species_50",
+  "parent": "riverfishing:riverfishing/species_200",
   "display": {
     "icon": { "item": "riverfishing:taimen" },
     "title": { "translate": "advancement.riverfishing.all_species.title" },

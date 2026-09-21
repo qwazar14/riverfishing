@@ -6,8 +6,14 @@
     "S  "
   ],
   "key": {
-    "N": { "item": "minecraft:iron_nugget" },
-    "S": { "item": "minecraft:stick" }
+    "N": {
+      "item": "minecraft:iron_nugget"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
   },
-  "result": { "item": "riverfishing:winter_rod" }
+  "result": {
+    "item": "riverfishing:winter_rod"
+  }
 }

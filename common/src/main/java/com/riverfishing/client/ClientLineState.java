@@ -22,6 +22,7 @@ public final class ClientLineState {
         public BlockPos target = BlockPos.ZERO;
         public float progress;         // authoritative (server) reel-in progress 0..1
         public float smoothProgress;   // eased for rendering
+        public net.minecraft.world.phys.Vec3 shownEnd;   // §line-glide: the drawn water end, eased between block centres
         public int color = 0xFFE8E4D0;
         public byte floatKind;         // §float-kind: 0 none / 1 plain peg / 2 proper float
         public boolean biting;         // bite in progress: bobber plunges / line twitches
@@ -49,9 +50,120 @@ public final class ClientLineState {
         public float dispSlack;
         public long lastUpdate;        // client game time of the last packet (staleness check)
 
+        // §hooked-fish: the fish on the line. The server says WHAT it is and what it is doing (a run
+        // and its course, a breach, a head-shake, how spent it is); the client carries WHERE it is —
+        // an offset from the line's water end, integrated every frame the way the shoal carries its
+        // own fish — so the body moves at frame rate and nothing on the wire changed cadence.
+        public String species = "";
+        public int weightG, lengthCm;
+        public boolean jumping, shaking, snagged;
+        public float fatigue;
+        public double fx, fy, fz;        // offset from the line's water end, blocks
+        public float heading;            // radians, world; which way the body points
+        public float tail;               // tail phase
+        public float jumpT = -1f;        // -1 idle; 0..1 through a breach
+        public float pitch;              // degrees, nose up (-) / down (+)
+        public net.minecraft.world.item.ItemStack stack;   // the drawn item, rebuilt when the species changes
+        public String stackSpecies = "";
+        public boolean wasInAir;         // for the splash on the way out and the way back
+        /** §hooked-fish: client game time the take began, -1 when none is on — the body climbs over its first eight ticks. */
+        public long riseStart = -1;
+
+        /**
+         * §hooked-fish: one frame of the body. {@code fwd} points from the angler to the water end,
+         * horizontal and unit; {@code side} is its left-hand perpendicular — "LEFT" on a course means
+         * the angler's left, which is what the rod lean and the bar already mean by it.
+         */
+        /** A point in the world: is it water? The client's level answers; the body never leaves it. */
+        public interface WaterTest { boolean at(double x, double y, double z); }
+
+        public double swimSpeed;         // blocks/s this frame — ramps, so a run starts like a fish, not a bullet
+
+        public void tickFish(float dt, double fwdX, double fwdZ, WaterTest water, net.minecraft.world.phys.Vec3 base) {
+            if (!fighting || species.isEmpty()) {
+                if (biting && !species.isEmpty()) heading = (float) Math.atan2(fwdZ, fwdX);   // §hooked-fish: a fish on the take faces away from the angler
+                fx *= Math.max(0f, 1f - dt * 4f); fy *= Math.max(0f, 1f - dt * 4f); fz *= Math.max(0f, 1f - dt * 4f);
+                jumpT = -1f;
+                return;
+            }
+            double sideX = -fwdZ, sideZ = fwdX;
+            // where the fish is trying to be: a run pulls it out along its course, rest leaves it
+            // hanging just under the surface a little beyond the line's end
+            // how far a run can take it: a big fish farther, a tired one less — and a SHORT line less: near
+            // the bank the angler holds most of the string, and the fish can only take what is left
+            double reach = Mth.clamp(2.5 + lengthCm / 50.0, 2.0, 6.0) * (1.0 - 0.45 * fatigue)
+                    * (0.3 + 0.7 * (1.0 - Mth.clamp(smoothProgress, 0f, 1f)));
+            // at rest it does not swim home: it holds where the run left it, just under, and the reel
+            // brings it in — the line's end itself walks to the bank with progress
+            double tx = fx, ty = -0.2, tz = fz, tPitch = 0f;
+            if (running && course == 1) { tx = -sideX * reach; tz = -sideZ * reach; ty = -0.5; }
+            else if (running && course == 2) { tx = sideX * reach; tz = sideZ * reach; ty = -0.5; }
+            else if (running && course == 3) { tx = fwdX * reach * 0.5; tz = fwdZ * reach * 0.5; ty = -reach * 0.8; tPitch = 28f; }
+            else if (running && course == 4) { tx = fwdX * reach * 0.4; tz = fwdZ * reach * 0.4; ty = -0.1; tPitch = -25f; }
+            else if (running) { tx = fwdX * reach * 0.7; tz = fwdZ * reach * 0.7; ty = -0.6; }   // a course-less surge: straight away
+            // a breach: an arc over three quarters of a second, then back to the surface
+            if (jumping && jumpT < 0f) jumpT = 0f;
+            if (jumpT >= 0f) {
+                jumpT += dt / 0.75f;
+                if (jumpT >= 1f) jumpT = jumping ? 0.999f : -1f;
+            }
+            // §fish-speed: a run is a SWIM, not a lerp — the body moves toward where it is going at a
+            // fish's pace (a big fish is faster; a tired one slower) and never jumps blocks in a frame.
+            // §line-snag: held on a block — the body stays where the line stopped it, and strains.
+            double ox = fx, oz = fz;
+            double ddx = tx - fx, ddz = tz - fz, dd = Math.sqrt(ddx * ddx + ddz * ddz);
+            // §fish-accel: the pace it WANTS, and the pace it HAS — a run builds over a third of a second
+            // and dies the same way, so the body never snaps between standing and full speed
+            double pace = dd < 0.05 || snagged ? 0.0 : (running ? 2.2 + lengthCm / 60.0 : 0.6) * (1.0 - 0.4 * fatigue);
+            swimSpeed += (pace - swimSpeed) * Math.min(1.0, dt * 3.0);
+            double step = Math.min(dd, swimSpeed * dt);
+            if (dd > 1e-6 && step > 0.0) {
+                double nx = fx + ddx / dd * step, nz = fz + ddz / dd * step;
+                // §fish-water: it swims where there is water to swim in; the bank stops a run cold
+                if (water == null || water.at(base.x + nx, base.y + fy, base.z + nz)) { fx = nx; fz = nz; }
+                else swimSpeed = 0.0;
+            }
+            fy = Mth.lerp(Math.min(1f, dt * 2.2f), fy, ty);
+            // a head-shake, or straining on a snag: a sideways shudder at a fish's rate — a few beats a
+            // second, wider on a big fish — a DISPLAY offset, never folded into the eased position
+            // (folded in, a held fish crept sideways every frame)
+            // §candle: a fish in the air shakes its head to throw the hook — the same shudder
+            double j = (shaking || snagged || jumpT >= 0f) ? Math.sin(tail * 2.4) * (0.10 + lengthCm / 700.0) : 0.0;
+            jx = sideX * j; jz = sideZ * j;
+            double jumpY = jumpT >= 0f ? Math.sin(Math.PI * jumpT) * (1.0 + lengthCm / 120.0) : 0.0;
+            // §candle: it leaves the water standing on its tail, hangs near-vertical at the top
+            // and only tips over on the way down — hence the squared term rather than a flat flip.
+            if (jumpT >= 0f) { fy = Math.max(fy, -0.05) ; tPitch = -78f + 140f * jumpT * jumpT; }
+            // heading: the way it moved this frame when it moved, else away from the angler
+            double vx = fx - ox, vz = fz - oz;
+            float want = (vx * vx + vz * vz) > 1e-6 ? (float) Math.atan2(vz, vx) : (float) Math.atan2(fwdZ, fwdX);
+            float d = want - heading;
+            while (d > Math.PI) d -= (float) (2 * Math.PI);
+            while (d < -Math.PI) d += (float) (2 * Math.PI);
+            heading += d * Math.min(1f, dt * (running ? 6f : 3f));
+            pitch = Mth.lerp(Math.min(1f, dt * 6f), pitch, (float) tPitch);
+            tail += dt * (running ? 13f : 6f) * (1f - 0.5f * fatigue);
+            fyJump = (float) jumpY;
+        }
+
+        /** The breach's lift above the eased offset — kept apart so the arc is not eased away. */
+        public float fyJump;
+        public double jx, jz;            // the shudder, this frame
+        /** §line-calm: the kink as DRAWN — chases the clipped point instead of jumping to it. */
+        public net.minecraft.world.phys.Vec3 kinkShown;
+
+        /** Where the body is this frame, given the line's water end. */
+        public net.minecraft.world.phys.Vec3 fishAt(net.minecraft.world.phys.Vec3 end) {
+            return end.add(fx + jx, fy + fyJump, fz + jz);
+        }
+
         /** Eases the rendered progress toward the server value; call once per frame. */
         public void tickSmoothing(float frameSeconds) {
             smoothProgress = Mth.lerp(Math.min(1f, frameSeconds * 6f), smoothProgress, progress);
+            // §line-glide: the water end walks between the server's block centres (a drifting float, a retrieve)
+            // instead of jumping; a fresh cast, or anything six blocks off, snaps
+            net.minecraft.world.phys.Vec3 tc = new net.minecraft.world.phys.Vec3(target.getX() + 0.5, target.getY(), target.getZ() + 0.5);
+            shownEnd = shownEnd == null || shownEnd.distanceToSqr(tc) > 36.0 ? tc : shownEnd.lerp(tc, Math.min(1f, frameSeconds * 4f));
             smoothTension = Mth.lerp(Math.min(1f, frameSeconds * 8f), smoothTension, tension);
             smoothRodLoad = Mth.lerp(Math.min(1f, frameSeconds * 8f), smoothRodLoad, rodLoad);
             // §fight-course: the tip is DRAGGED the way the fish is going — that is the read, and it is
@@ -69,9 +181,14 @@ public final class ClientLineState {
             // whole straightening arc), then chase them — tightening 3x faster than relaxing.
             float tautTarget = 0f, slackTarget = 0f;
             if (fighting) {
+                // §line-rest: with the fish itself on the line, the angler HOLDS it — the string stays
+                // most of the way straight to the body between runs, and never bellies. The slack belly
+                // was the "it is coming at you" read from before the fish was drawn; the body is that
+                // read now, and a two-block loop of string on a resting fish was all the belly said.
+                boolean hooked = !species.isEmpty();
                 tautTarget = running ? 1f
-                        : smoothstep(Mth.clamp((smoothTension - 0.02f) / 0.33f, 0f, 1f));
-                slackTarget = running ? 0f : Mth.clamp((0.10f - smoothTension) / 0.10f, 0f, 1f);
+                        : Math.max(hooked ? 0.6f : 0f, smoothstep(Mth.clamp((smoothTension - 0.02f) / 0.33f, 0f, 1f)));
+                slackTarget = running || hooked ? 0f : Mth.clamp((0.10f - smoothTension) / 0.10f, 0f, 1f);
             }
             float kUp = Math.min(1f, frameSeconds * 12f);   // a jerk snaps the line tight
             float kDown = Math.min(1f, frameSeconds * 3f);  // slack develops at cable speed
@@ -112,6 +229,16 @@ public final class ClientLineState {
         line.fighting = p.fighting;
         line.running = p.running;
         line.course = p.course;
+        // §hooked-fish: the 40-tick refresh names no fish; during a take it must not wipe the one the take sent
+        if (!p.species.isEmpty() || !p.biting || p.fighting) line.species = p.species;   // §hooked-fish
+        long t = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
+        if (p.biting && !p.fighting) { if (line.riseStart < 0) line.riseStart = t; } else line.riseStart = -1;
+        line.weightG = p.weightG;
+        line.lengthCm = p.lengthCm;
+        line.jumping = p.jumping;
+        line.shaking = p.shaking;
+        line.fatigue = p.fatigue;
+        line.snagged = p.snagged;
         line.lastUpdate = Minecraft.getInstance().level != null
                 ? Minecraft.getInstance().level.getGameTime() : 0;
     }
@@ -188,6 +315,14 @@ public final class ClientLineState {
     /** All visible lines, keyed by angler entity id — the renderer iterates (and expires) these. */
     public static Map<Integer, Line> lines() {
         return LINES;
+    }
+
+    /** §jig-2: our own line is out and nothing is happening on it — a click over an ice hole is a hold. */
+    public static boolean selfCalm() {
+        var mc = Minecraft.getInstance();
+        if (mc.player == null) return false;
+        Line l = LINES.get(mc.player.getId());
+        return l != null && !l.biting && !l.fighting;
     }
 
     /** Whether OUR OWN line is out — drives rod hold behaviour and the cast-power HUD. */

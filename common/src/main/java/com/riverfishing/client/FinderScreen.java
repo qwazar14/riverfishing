@@ -45,7 +45,7 @@ public class FinderScreen extends Screen {
      * nearest-neighbour blit keeps one texel in sixteen and twenty-eight of them on one face were
      * mush. Bigger and fewer is the whole fix — the rest are in the list, where they belong.
      */
-    private static final int ICON = 24, MAX_FISH = 10;
+    private static final int ICON = 24, MAX_FISH = 16;   // §finder-reach
 
     // The instrument face. Deep water blue-green, the way every sounder ever made has looked.
     private static final int FACE = 0xFF0B1E22, GRID = 0x2240E0B0, SURFACE = 0xFF7FE9D0;
@@ -87,7 +87,7 @@ public class FinderScreen extends Screen {
      * order. Four darks the water sits on top of, so a sounded lake still reads as a lake, and a gold
      * line where two meet, because a region map is mostly its borders.
      */
-    private static final int[] PROV = {0xFF101C2C, 0xFF101F14, 0xFF241609, 0xFF1E132A};
+    private static final int[] PROV = {0xFF101C2C, 0xFF101F14, 0xFF241609, 0xFF1E132A, 0xFF2A1A0A};   // §species-table: the fifth, Afrotropical
     private static final int PROV_EDGE = 0xAAE8B430;
     /** Cells between province samples. A Voronoi is smooth and a border is three thousand blocks long. */
     private static final int PROV_STRIDE = 2;

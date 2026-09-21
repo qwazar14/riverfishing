@@ -47,6 +47,16 @@ public final class ModNetwork {
             SkillUnlockPacket p = SkillUnlockPacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));
         });
+        // §tying: the canvas comes up; the server re-reads the hook, the materials and the drawing.
+        // §fly-take: where the fly is and what the line hand did.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, FlyPacket.TYPE, (buf, ctx) -> {
+            FlyPacket p = FlyPacket.decode(buf);
+            ctx.queue(() -> p.handleServer(ctx));
+        });
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, TieLurePacket.TYPE, (buf, ctx) -> {
+            TieLurePacket p = TieLurePacket.decode(buf);
+            ctx.queue(() -> p.handleServer(ctx));
+        });
         // §keepnet: the grid asks, the server decides.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeepnetActionPacket.TYPE, (buf, ctx) -> {
             KeepnetActionPacket p = KeepnetActionPacket.decode(buf);
@@ -55,6 +65,11 @@ public final class ModNetwork {
         // §fight-course: which way the angler is pulling — 1.20.1 does not ship a standing player's input.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, FightInputPacket.TYPE, (buf, ctx) -> {
             FightInputPacket p = FightInputPacket.decode(buf);
+            ctx.queue(() -> p.handleServer(ctx));
+        });
+        // §ice-rhythm: a click on a stop of the jig.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, JigBeatPacket.TYPE, (buf, ctx) -> {
+            JigBeatPacket p = JigBeatPacket.decode(buf);
             ctx.queue(() -> p.handleServer(ctx));
         });
         // §tackle-box: the name field types straight onto the box the player has open.
@@ -73,6 +88,11 @@ public final class ModNetwork {
     public static void registerClientReceivers() {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, FloatTimingPacket.TYPE, (buf, ctx) -> {
             FloatTimingPacket p = FloatTimingPacket.decode(buf);
+            ctx.queue(p::handleClient);
+        });
+        // §ice-rhythm: the jig gauge, on/off and after every accent.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, JigGaugePacket.TYPE, (buf, ctx) -> {
+            JigGaugePacket p = JigGaugePacket.decode(buf);
             ctx.queue(p::handleClient);
         });
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, JournalOpenPacket.TYPE, (buf, ctx) -> {

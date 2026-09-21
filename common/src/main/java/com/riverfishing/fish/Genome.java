@@ -111,10 +111,8 @@ public final class Genome {
             "kujaku=1", "gin_bekko=1",
     };
 
-    /** §koi-genes: the five ids the water used to hand out, and the variety each of them WAS. */
-    private static final java.util.Map<String, String> KOI_OF_ID = java.util.Map.of(
-            "carp_koi_kohaku", "kohaku", "carp_koi_tancho_sanke", "tancho",
-            "carp_koi_showa_sanke", "showa", "carp_koi_asagi", "asagi", "carp_koi_bekko", "bekko");
+    /** §koi-species (1.0.0): the five old ids are gone from the game; nothing maps to a variety by id any more. */
+    private static final java.util.Map<String, String> KOI_OF_ID = java.util.Map.of();
 
     /** The nine variety names in table order — the aquarium window indexes them, so it is one list. */
     private static final java.util.List<String> KOI_NAMES = java.util.Arrays.stream(KOI_TABLE)

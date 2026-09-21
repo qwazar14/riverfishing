@@ -65,6 +65,9 @@ public final class ConfigLoader {
             RiverFishingConfig.consumeBait = bool(o, "consume_bait", RiverFishingConfig.consumeBait);
             RiverFishingConfig.consumeGroundbait = bool(o, "consume_groundbait", RiverFishingConfig.consumeGroundbait);
             RiverFishingConfig.updateCheck = bool(o, "update_check", RiverFishingConfig.updateCheck);
+            RiverFishingConfig.flow = bool(o, "flow", RiverFishingConfig.flow);
+            RiverFishingConfig.seasonDays = (int) num(o, "season_days", RiverFishingConfig.seasonDays, 3, 3000);
+            com.riverfishing.engine.Calendar.setSeasonDays(RiverFishingConfig.seasonDays);
 
             String p = RiverFishingConfig.preset.toLowerCase();
             if (!p.equals("arcade") && !p.equals("realism") && !p.equals("hardcore") && !p.equals("custom")) {
@@ -73,9 +76,38 @@ public final class ConfigLoader {
                 RiverFishingConfig.preset = "realism";
             }
             RiverFishing.LOGGER.info("River Fishing: config loaded, preset = {}", RiverFishingConfig.preset);
+            upgrade(file, o);
         } catch (Exception e) {
             RiverFishing.LOGGER.warn("River Fishing: {} is unreadable ({}) — running on defaults. "
                     + "Delete it to have a fresh one written.", FILE, e.toString());
+        }
+    }
+
+    /**
+     * §config-upgrade (1.0.0): a file written by an older version never gained the knobs added since —
+     * the loader read them at their defaults and said nothing, so `flow` and `season_days` were nowhere
+     * to be found in a pack that had a config already. When a key of the template is missing, the file
+     * is written again FROM the template with every value the owner had set kept as it was.
+     */
+    private static void upgrade(Path file, JsonObject o) {
+        java.util.regex.Pattern line = java.util.regex.Pattern.compile("^(\\s*\"(\\w+)\": )(.+?)(,?)$");
+        java.util.List<String> added = new java.util.ArrayList<>();
+        StringBuilder out = new StringBuilder();
+        for (String l : DEFAULTS.split("\n", -1)) {
+            java.util.regex.Matcher m = line.matcher(l);
+            if (m.matches() && !m.group(2).equals("_comment")) {
+                String k = m.group(2);
+                if (o.has(k)) l = m.group(1) + o.get(k).toString() + m.group(4);
+                else added.add(k);
+            }
+            out.append(l).append('\n');
+        }
+        if (added.isEmpty()) return;
+        try (BufferedWriter w = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
+            w.write(out.toString().stripTrailing() + "\n");
+            RiverFishing.LOGGER.info("River Fishing: {} gained the settings added since it was written: {}", FILE, added);
+        } catch (Exception e) {
+            RiverFishing.LOGGER.warn("River Fishing: could not add the new settings to {} ({})", FILE, e.toString());
         }
     }
 
@@ -155,7 +187,10 @@ public final class ConfigLoader {
 
               "consume_bait": true,
               "consume_groundbait": true,
-              "update_check": true
+              "update_check": true,
+
+              "flow": true,
+              "season_days": 24
             }
             """;
 }

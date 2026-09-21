@@ -70,12 +70,18 @@ public class IceHoleBlock extends IceBlock {
             }
             return InteractionResult.CONSUME;
         }
+        // §jig-3: with the line ALREADY DOWN the hole, this block wants nothing to do with the click —
+        // pass it to the rod, whose own use() starts the jig hold. Handling it here is what forced the
+        // player to look AWAY from their own hole before the rhythm would start: a block interaction
+        // consumes the click, so Item#use (and with it startUsingItem) never ran while they aimed at it.
+        // The line is cast; where the camera points is not the game any more.
+        boolean lineOut = !level.isClientSide
+                ? player instanceof ServerPlayer sp2 && FishingManager.hasSession(sp2)
+                : dev.architectury.utils.EnvExecutor.getEnvSpecific(
+                        () -> () -> com.riverfishing.client.ClientLineState.active(), () -> () -> false);
+        if (lineOut) return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
-            if (FishingManager.hasSession(sp)) {
-                FishingManager.handleRodUse(sp, hand); // already fishing this hole → jig / strike
-            } else {
-                FishingManager.startIceFishing(sp, pos, hand);
-            }
+            FishingManager.startIceFishing(sp, pos, hand);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
