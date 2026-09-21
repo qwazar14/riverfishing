@@ -47,7 +47,8 @@ public final class CatchCard {
 
     /** timid, wary, greedy, bold — hunters lean bold, the rest lean timid. */
     public static byte rollNature(FishProfile p, Random rng) {
-        boolean hunter = p != null && (p.group.equals("predator") || p.group.equals("big_game") || p.group.equals("sea"));
+        boolean hunter = p != null && ("predator".equals(p.diet)   // §species-table
+                || p.group.equals("predator") || p.group.equals("big_game") || p.group.equals("sea"));
         int[] w = hunter ? new int[]{15, 20, 30, 35} : new int[]{35, 30, 20, 15};
         int roll = rng.nextInt(100);
         for (int i = 0, acc = 0; i < w.length; i++) { acc += w[i]; if (roll < acc) return (byte) i; }
@@ -95,7 +96,7 @@ public final class CatchCard {
         // §pattern-gate: a species outside `riverfishing:patterned` is never given one in the first place.
         if (p == null || !com.riverfishing.registry.ModItemTags.patterned(p.id)) return Pattern.NONE;
         int bred = p == null ? Pattern.NONE : com.riverfishing.fishing.StockedData.get(level)
-                .pattern(com.riverfishing.fishing.StockedData.region(where), p.id.getPath());
+                .pattern(com.riverfishing.fishing.StockedData.regionAt(level, where), p.id.getPath());
         return Pattern.has(bred) ? Pattern.inherit(bred, bred, rng)
                 : Pattern.roll(level.getSeed(), where, level.getGameTime());
     }
@@ -114,9 +115,15 @@ public final class CatchCard {
         c.putString("Rod", s.rodClass.name().toLowerCase(java.util.Locale.ROOT));
         c.putString("RodItem", rod.getItem() instanceof com.riverfishing.item.RodItem
                 ? net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(rod.getItem()).getPath() : "");
-        c.putString("Bait", baits.isEmpty() ? "" : baits.get(0));
+        // §fly-card: a tied fly is not "an ice jig" — the card names the pattern it was tied as
+        // ("tied:nymph"), and the tooltip reads that prefix. Any rig, any rod: the drawing is the bait.
+        ItemStack rigStack = com.riverfishing.item.RodData.get(rod, com.riverfishing.component.ComponentSlot.RIG);
+        com.riverfishing.tackle.TiedDesign.Analysis tied = rigStack.getItem() instanceof com.riverfishing.item.RigItem
+                ? com.riverfishing.rig.RigData.tiedLure(rigStack) : null;
+        c.putString("Bait", tied != null ? "tied:" + tied.template().key : baits.isEmpty() ? "" : baits.get(0));
         var ctx = s.ctx;
         c.putString("Water", ctx == null ? "" : ctx.water.key());
+        c.putLong("At", s.target.asLong());   // §home-water: where it came out, for the release
         c.putString("Biome", level.getBiome(s.target).unwrapKey().map(k -> k.identifier().toString()).orElse(""));
         c.putString("Time", ctx == null ? "" : ctx.time.jsonKey());
         c.putString("Season", ctx == null || ctx.season == null ? "" : ctx.season.jsonKey());
@@ -135,7 +142,7 @@ public final class CatchCard {
         // §stocked-genes: what this water has been stocked with, if anything — a no-op everywhere else.
         java.util.function.UnaryOperator<String> pool = p == null ? null
                 : genes -> com.riverfishing.fishing.StockedData.get(level).overlay(
-                        com.riverfishing.fishing.StockedData.region(s.target), p.id.getPath(), genes, rng);
+                        com.riverfishing.fishing.StockedData.regionAt(level, s.target), p.id.getPath(), genes, rng);
         body(c, p, weightG, morph, rng, s.nature, s.variety, pattern, pool);
         return c;
     }
@@ -155,6 +162,7 @@ public final class CatchCard {
         c.putString("RodItem", "");
         c.putString("Bait", "");
         c.putString("Water", com.riverfishing.water.WaterBodyCache.forLevel(level).get(level, pos).type().key());
+        c.putLong("At", pos.asLong());   // §home-water
         c.putString("Biome", level.getBiome(pos).unwrapKey().map(k -> k.identifier().toString()).orElse(""));
         c.putString("Time", com.riverfishing.engine.TimeOfDay.fromDayTime(level.getOverworldClockTime()).jsonKey());
         c.putString("Season", com.riverfishing.engine.Calendar.season(level).jsonKey());
@@ -172,7 +180,7 @@ public final class CatchCard {
         // §stocked-genes: what this water has been stocked with, if anything — a no-op everywhere else.
         java.util.function.UnaryOperator<String> pool = p == null ? null
                 : genes -> com.riverfishing.fishing.StockedData.get(level).overlay(
-                        com.riverfishing.fishing.StockedData.region(pos), p.id.getPath(), genes, rng);
+                        com.riverfishing.fishing.StockedData.regionAt(level, pos), p.id.getPath(), genes, rng);
         body(c, p, weightG, "", rng, (byte) -1, "", pattern, pool);
         return c;
     }
@@ -192,6 +200,7 @@ public final class CatchCard {
         c.putString("RodItem", "");
         c.putString("Bait", "");
         c.putString("Water", com.riverfishing.water.WaterBodyCache.forLevel(level).get(level, pos).type().key());
+        c.putLong("At", pos.asLong());   // §home-water
         c.putString("Biome", level.getBiome(pos).unwrapKey().map(k -> k.identifier().toString()).orElse(""));
         c.putString("Time", com.riverfishing.engine.TimeOfDay.fromDayTime(level.getOverworldClockTime()).jsonKey());
         c.putString("Season", com.riverfishing.engine.Calendar.season(level).jsonKey());
@@ -235,6 +244,7 @@ public final class CatchCard {
         c.putString("Group", p == null ? "" : p.group);
         c.putString("Latin", p == null ? "" : p.latin);   // §cards-2
         c.putString("Life", p == null ? "" : p.depthPref);
+        c.putString("Hybrid", p == null ? "" : String.join(",", p.hybridOf));   // §hybrid-rare: whose cross it is
 
         // The hidden two. Seeded off the fish itself so a duplicated stack is the same fish.
         c.putByte("Sex", (byte) rng.nextInt(2));

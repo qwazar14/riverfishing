@@ -59,7 +59,7 @@ public final class RodData {
     public static void refreshIconLayers(ItemStack rod) {
         String reel = "", line = "", rig = "";
         if (get(rod, ComponentSlot.REEL).getItem() instanceof ReelItem ri) {
-            reel = "reel_" + ri.size();
+            reel = ri.fly() ? (ri.flyWeight() == 5 ? "reel_fly" : "reel_fly_" + ri.flyWeight()) : "reel_" + ri.size();   // §fly-reel
         }
         if (get(rod, ComponentSlot.LINE).getItem() instanceof LineItem li) {
             line = li.lineType().jsonKey();

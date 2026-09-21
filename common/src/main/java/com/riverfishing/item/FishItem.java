@@ -76,7 +76,8 @@ public class FishItem extends Item {
         ItemStack off = player.getItemInHand(net.minecraft.world.InteractionHand.OFF_HAND);
         int w = getWeightG(fish);
         if (player.isCrouching() && hand == net.minecraft.world.InteractionHand.MAIN_HAND
-                && off.getItem() instanceof HookItem && w > 0 && w <= LivebaitRecipe.MAX_WEIGHT_G) {
+                && off.getItem() instanceof HookItem && w > 0   // §livebait-4: any weight
+                && !CookedFish.isCooked(fish)) {   // §cooking: a cooked fish is dinner, not bait
             if (!level.isClientSide()) {
                 var livebait = net.minecraft.core.registries.BuiltInRegistries.ITEM
                         .getValue(com.riverfishing.RiverFishing.id("livebait"));
@@ -107,6 +108,7 @@ public class FishItem extends Item {
     public static boolean koiReleaseTick(ItemStack stack, net.minecraft.world.entity.item.ItemEntity entity) {
         net.minecraft.world.level.Level level = entity.level();
         if (level.isClientSide()) return false;
+        if (CookedFish.isCooked(stack)) return false;   // §cooking: nothing to release
         // §release is a CHOICE, and vanilla already records whether one was made: Player#drop only
         // calls setThrower when traceItem is true, which is the Q key. An INVOLUNTARY drop records
         // none — giveFish's inventory-full fallback, Inventory#dropAll on death, a keepnet spill —
@@ -138,7 +140,7 @@ public class FishItem extends Item {
                         com.riverfishing.fishing.FishingManager.releaseFish(sl, entity.blockPosition(),
                                 released, getWeightG(stack), stack.getCount(),
                                 com.riverfishing.fish.CatchCard.has(stack) ? com.riverfishing.fish.CatchCard.of(stack) : null,   // §c
-                                thrower);
+                                thrower, stack);   // §pond-roster
                     }
                     sl.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE,
                             entity.getX(), entity.getY() + 0.1, entity.getZ(), 14, 0.25, 0.1, 0.25, 0.02);
@@ -160,7 +162,7 @@ public class FishItem extends Item {
     /** A koi carp — a collectible ornamental fish, not really food (§koi). */
     public static boolean isKoi(ItemStack stack) {
         Identifier sp = getSpecies(stack);
-        return sp != null && sp.getPath().startsWith("carp_koi_");
+        return sp != null && "koi_carp".equals(sp.getPath());   // §koi-species: one koi, its variety on the card
     }
 
     // §multiloader: the weight-scaled fish icon (§fish-scale) is a custom item renderer registered per
@@ -247,7 +249,7 @@ public class FishItem extends Item {
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
                 new net.minecraft.world.item.component.CustomModelData(
                         java.util.List.of(getIconScale(stack)),
-                        java.util.List.of(), strings, colors));
+                        java.util.List.of(CookedFish.isCooked(stack)), strings, colors));   // §cooking: flag 0 = cooked
     }
 
     /**
@@ -347,6 +349,16 @@ public class FishItem extends Item {
     }
 
     /** Flat-string form of {@link #weightText} for plain-text call sites; resolves the caller-side lang. */
+    /**
+     * §card-imperial: the same weight for an angler who thinks in pounds — ounces to one decimal under a
+     * pound, pounds to two above it. Plain "oz" / "lb": they are unit symbols, not words to translate.
+     */
+    public static String imperialText(int weightG) {
+        double lb = weightG / 453.59237;
+        return lb < 1.0 ? String.format(java.util.Locale.ROOT, "%.1f oz", weightG / 28.349523)
+                : String.format(java.util.Locale.ROOT, "%.2f lb", lb);
+    }
+
     public static String weightLabel(int weightG) {
         return weightText(weightG).getString();
     }
@@ -406,6 +418,9 @@ public class FishItem extends Item {
         int w = getWeightG(stack);
         if (w <= 0) {
             return name; // e.g. the creative-tab entry, with no individual data yet
+        }
+        if (CookedFish.isCooked(stack)) {   // §cooking
+            name = Component.translatable("item.riverfishing.cooked_fish", name);
         }
         if (isTrophy(stack)) {
             return Component.literal("★ ").append(name)

@@ -249,7 +249,7 @@ public final class KeepnetData {
      * that decides what may go in asks here.
      */
     public static boolean isFish(ItemStack stack) {
-        return stack.getItem() instanceof FishItem;
+        return stack.getItem() instanceof FishItem && !CookedFish.isCooked(stack);   // §cooking: a keepnet keeps live fish
     }
 
     /** How full the box is, 0..1 — for the label on the screen and the tooltip. */

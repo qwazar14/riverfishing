@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SCS",
+    "S S",
+    "SCS"
+  ],
+  "key": {
+    "S": "minecraft:string",
+    "C": "minecraft:iron_nugget"
+  },
+  "result": {
+    "id": "riverfishing:line_fly_dt_s",
+    "count": 1
+  }
+}

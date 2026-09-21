@@ -1,28 +1,86 @@
 {
   "display": "Ёрш",
   "latin": "Gymnocephalus cernua",
-  "spawn": { "season": "spring", "sub": "early" },
-  "group": "predator",
-  "water_bodies": { "river": 1.0, "lake": 1.1, "pond": 0.4, "swamp": 0.2, "sea": 0.0, "puddle": 0.0 },
-  "weight_g": { "min": 20, "max": 150, "mean": 60 },
-  "length_cm": { "min": 8, "max": 20 },
-  "fight": { "strength": 0.15, "stamina": 0.25, "runs": 1 },
-  "ideal": {
-    "rod": ["pole", "feeder"],
-    "reel_size": 2000, "reel_tolerance": 1000,
-    "line": { "type": "mono", "diameter_mm": 0.14, "tolerance_mm": 0.04 },
-    "rig": ["float", "feeder"],
-    "groundbait": { "fraction": 0.22, "nutrition": 0.54 },
-    "bait": { "mormyshka": 1.0, "worm": 1.0, "bloodworm": 1.0, "maggot": 0.7 },
-    "hook": { "ideal": 14, "tolerance": 2 }
+  "spawn": {
+    "season": "spring",
+    "sub": "early"
   },
-  "season": { "spring": 1.0, "summer": 0.9, "autumn": 1.1, "winter": 1.0 },
-  "time":   { "dawn": 1.0, "day": 0.9, "dusk": 1.1, "night": 1.2 },
-  "weather":{ "clear": 0.9, "rain": 1.1, "thunder": 1.0 },
+  "group": "panfish",
+  "water_bodies": {
+    "river": 1.0,
+    "lake": 1.1,
+    "pond": 0.4,
+    "swamp": 0.2,
+    "sea": 0.0,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 20,
+    "max": 150,
+    "mean": 60
+  },
+  "length_cm": {
+    "min": 8.0,
+    "max": 20.0
+  },
+  "fight": {
+    "strength": 0.15,
+    "stamina": 0.25,
+    "runs": 1,
+    "pattern": "steady",
+    "aggression": 0.6
+  },
+  "ideal": {
+    "line": {
+      "type": "mono",
+      "diameter_mm": 0.14,
+      "tolerance_mm": 0.04
+    },
+    "groundbait": {
+      "fraction": 0.22,
+      "nutrition": 0.54
+    },
+    "bait": {
+      "mormyshka": 1.0,
+      "worm": 1.0,
+      "bloodworm": 1.0,
+      "maggot": 0.7
+    },
+    "hook": {
+      "ideal": 14
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 0.9,
+    "autumn": 1.1,
+    "winter": 1.0
+  },
+  "time": {
+    "dawn": 1.0,
+    "day": 0.9,
+    "dusk": 1.1,
+    "night": 1.2
+  },
+  "weather": {
+    "clear": 0.9,
+    "rain": 1.1,
+    "thunder": 1.0
+  },
   "depth_pref": "bottom",
-  "distance_pref": { "min": 4, "max": 20 },
-  "habitat": { "depth_min": 3, "width_min": 6 },
-  "provinces": ["palearctic"],
-  "biomes": { "cold": 1.1, "temperate": 1.0 },
-  "base": 1.0
+  "habitat": {
+    "depth_min": 3,
+    "width_min": 6
+  },
+  "provinces": [
+    "palearctic"
+  ],
+  "biomes": {
+    "cold": 1.1,
+    "temperate": 1.0
+  },
+  "base": 1.0,
+  "diet": "insectivore",
+  "min_angler_level": 0
 }

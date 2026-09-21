@@ -47,7 +47,7 @@ public class FilletKnifeItem extends Item {
         ItemStack knife = player.getItemInHand(hand);
         InteractionHand other = (hand == InteractionHand.MAIN_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack target = player.getItemInHand(other);
-        if (!(target.getItem() instanceof FishItem)) {
+        if (!(target.getItem() instanceof FishItem) || CookedFish.isCooked(target)) {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide()) {

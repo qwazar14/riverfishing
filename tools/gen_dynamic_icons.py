@@ -22,11 +22,12 @@ MODELS = os.path.join(ASSETS, "models", "item")
 ITEMS = os.path.join(ASSETS, "items")
 
 RODS = ["stick", "bamboo", "pole", "ultralight", "spinning", "feeder", "bottom", "carp", "winter",
-        "boat", "sea_spin", "surf", "trolling"]  # +sea quartet (0.5.0)
+        "boat", "sea_spin", "surf", "trolling", "fly", "fly_3", "fly_7", "fly_9", "fly_11"]  # +sea quartet (0.5.0), +fly (0.10)
 REELS = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 10000, 12000, 14000]
-LINE_TYPES = ["mono", "braid", "fluoro"]
+LINE_TYPES = ["mono", "braid", "fluoro", "fly"]
+FLY_REELS = ["reel_fly_3", "reel_fly", "reel_fly_7", "reel_fly_9", "reel_fly_11"]   # §fly-reel: sprites by name, not size
 RIG_SPRITES = ["rig_primitive", "rig_float", "rig_grusha", "rig_feeder", "rig_flat_feeder",
-               "rig_ground", "rig_predator", "rig_carp", "rig_catfish"]
+               "rig_ground", "rig_predator", "rig_carp", "rig_catfish", "rig_fly"]
 BEND_BUCKETS = 6  # §rod-bend: must match RodData.BEND_BUCKETS and tools/GenRodBend.java's AMP length
 # depth lift per overlay category so coplanar composite layers don't z-fight
 Z_OFF = {"blank": 0.0, "reel": 0.03, "line": 0.06, "rig": 0.09}
@@ -80,6 +81,7 @@ def rod_layers():
     return [("blank_%s" % r, "blank") for r in RODS] \
         + [(bend_sprite(r, b), "blank") for r in RODS for b in range(1, BEND_BUCKETS + 1)] \
         + [("reel_%d" % r, "reel") for r in REELS] \
+        + [(r, "reel") for r in FLY_REELS] \
         + [("line_%s" % t, "line") for t in LINE_TYPES] \
         + [(s, "rig") for s in RIG_SPRITES]
 
@@ -232,7 +234,7 @@ def main():
     # ---- rod item definitions ----
     def parts(folder, rod, with_tackle):
         out = [blank_node(folder, rod),
-               str_select(0, [("reel_%d" % r, folder, "reel_%d" % r) for r in REELS])]
+               str_select(0, [("reel_%d" % r, folder, "reel_%d" % r) for r in REELS] + [(r, folder, r) for r in FLY_REELS])]
         if with_tackle:
             out.append(str_select(1, [(t, folder, "line_%s" % t) for t in LINE_TYPES]))
             out.append(str_select(2, [(s, folder, s) for s in RIG_SPRITES]))
@@ -294,8 +296,19 @@ def main():
                 "parent": "riverfishing:item/" + sp,
                 "display": scaled,
             })
-            entries.append({"threshold": s,
-                            "model": fish_node("riverfishing:item/fish_scaled/%s_%d" % (sp, i), sp)})
+            raw_node = fish_node("riverfishing:item/fish_scaled/%s_%d" % (sp, i), sp)
+            # §cooking: the same fish, browned — flag 0 on the stack picks the cooked sprite at the same size.
+            # The switch sits INSIDE the bucket so the item stays a range_dispatch at the top (the pattern
+            # wiring copies the buckets from there).
+            if os.path.exists(os.path.join(MODELS, "fish_icon", "cooked", sp + ".json")):
+                write(os.path.join(MODELS, "fish_scaled", "%s_cooked_%d.json" % (sp, i)), {
+                    "parent": "riverfishing:item/fish_icon/cooked/" + sp,
+                    "display": scaled,
+                })
+                raw_node = {"type": "minecraft:condition", "property": "minecraft:custom_model_data", "index": 0,
+                            "on_true": fish_node("riverfishing:item/fish_scaled/%s_cooked_%d" % (sp, i), sp),
+                            "on_false": raw_node}
+            entries.append({"threshold": s, "model": raw_node})
         dispatch = {
             "type": "minecraft:range_dispatch",
             "property": "minecraft:custom_model_data",

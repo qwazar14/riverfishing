@@ -41,6 +41,62 @@ public final class JournalData {
         PlayerData.markDirty(player);
     }
 
+    /**
+     * §progression: the family, the diet and the weight of a catch, counted in the journal itself —
+     * {@code grp.<group>}, {@code diet.<diet>}, {@code gbest.<group>}, {@code dbest.<diet>}, {@code best_any}
+     * — so a quest can ask for "three peaceful feeders" without a profile lookup on the client.
+     */
+    public static void recordTraits(Player player, String group, String diet, int weightG) {
+        CompoundTag root = get(player);
+        if (group != null && !group.isEmpty()) {
+            root.putInt("grp." + group, root.getIntOr("grp." + group, 0) + 1);
+            root.putInt("gbest." + group, Math.max(root.getIntOr("gbest." + group, 0), weightG));
+        }
+        if (diet != null && !diet.isEmpty()) {
+            root.putInt("diet." + diet, root.getIntOr("diet." + diet, 0) + 1);
+            root.putInt("dbest." + diet, Math.max(root.getIntOr("dbest." + diet, 0), weightG));
+        }
+        root.putInt("best_any", Math.max(root.getIntOr("best_any", 0), weightG));
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+    }
+
+    /** §progression: the faunal province a fish was taken in. */
+    public static void recordProvince(Player player, String province) {
+        CompoundTag root = get(player);
+        CompoundTag provs = root.getCompoundOrEmpty("provinces");
+        provs.putBoolean(province, true);
+        root.put("provinces", provs);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+    }
+
+    public static int provincesSeen(Player player) {
+        return get(player).getCompoundOrEmpty("provinces").keySet().size();
+    }
+
+    /** §progression-2: the season a fish was taken in. */
+    public static void recordSeason(Player player, String season) {
+        CompoundTag root = get(player);
+        CompoundTag seen = root.getCompoundOrEmpty("seasons");
+        seen.putBoolean(season, true);
+        root.put("seasons", seen);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+    }
+
+    public static int seasonsSeen(Player player) {
+        return get(player).getCompoundOrEmpty("seasons").keySet().size();
+    }
+
+    /** §progression-2: journal keys with the prefix and a count above zero — the families or the diets fished. */
+    public static int countPrefix(Player player, String prefix) {
+        CompoundTag root = get(player);
+        int n = 0;
+        for (String k : root.keySet()) if (k.startsWith(prefix) && root.getIntOr(k, 0) > 0) n++;
+        return n;
+    }
+
     /** Records a fish landed through the ice (§winter-quests): a counter for winter-fishing goals. */
     public static void addIceCatch(Player player) {
         CompoundTag root = get(player);

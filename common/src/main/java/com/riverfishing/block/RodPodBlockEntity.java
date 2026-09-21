@@ -92,7 +92,12 @@ public class RodPodBlockEntity extends BlockEntity {
                 if (now >= line.biteAtTick
                         && FishingManager.fishAreSpooked(serverLevel, line.target, now)) {
                     line.biteAtTick = now + 20 + serverLevel.getRandom().nextInt(40);
+                } else if (now >= line.biteAtTick
+                        && com.riverfishing.fishing.BiteStagger.tooSoon(com.riverfishing.fishing.BiteStagger.key(worldPosition), now)) {
+                    // §bite-stagger: another rod on this pod just took — this one waits its turn
+                    line.biteAtTick = now + com.riverfishing.fishing.BiteStagger.push(serverLevel.getRandom());
                 } else if (now >= line.biteAtTick) {
+                    com.riverfishing.fishing.BiteStagger.mark(com.riverfishing.fishing.BiteStagger.key(worldPosition), now);
                     line.bitten = true;
                     line.phantom = false;
                     // §pod-self-hook: 40% of real bites hook themselves against the rod's weight —

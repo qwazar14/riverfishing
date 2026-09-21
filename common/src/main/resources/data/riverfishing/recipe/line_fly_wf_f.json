@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "SCS",
+    "SSS"
+  ],
+  "key": {
+    "S": "minecraft:string",
+    "C": "minecraft:honeycomb"
+  },
+  "result": {
+    "id": "riverfishing:line_fly_wf_f",
+    "count": 1
+  }
+}

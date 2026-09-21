@@ -65,6 +65,8 @@ public final class ClientPlatformImpl {
             net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent event) {
         event.register(com.riverfishing.client.FrySpecialRenderer.ID,
                 com.riverfishing.client.FrySpecialRenderer.Unbaked.MAP_CODEC);
+        event.register(com.riverfishing.client.TiedLureSpecialRenderer.ID,
+                com.riverfishing.client.TiedLureSpecialRenderer.Unbaked.MAP_CODEC);   // §tying
     }
 
     /**
@@ -75,6 +77,8 @@ public final class ClientPlatformImpl {
     static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.ROD_ASSEMBLY.get(), RodAssemblyScreen::new);
         event.register(ModMenus.RIG.get(), RigScreen::new);
+        // §station-screen-26: this line was missing on NeoForge 26.x only — the client made no screen, kept the
+        // inventory menu open, and the server's slot 46 crashed it (IndexOutOfBounds in setRemoteSlot).
         event.register(ModMenus.TACKLE_STATION.get(), com.riverfishing.client.TackleStationScreen::new);
         // §keepnet + §tackle-box (0.7.0): the two boxes.
         event.register(ModMenus.KEEPNET.get(), com.riverfishing.client.KeepnetScreen::new);

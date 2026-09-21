@@ -73,11 +73,21 @@ public class PondSignBlock extends Block {
         } else if (body.size() > PondData.MAX_BLOCKS) {
             refuse = "message.riverfishing.pond_too_big";
         } else {
-            BlockPos water = BlockPos.of(body.get(0));
-            UUID owner = PondData.owner(sl, water);
-            if (owner != null && !owner.equals(sp.getUUID())) {   // somebody else's sign already stands here
-                refuse = "message.riverfishing.pond_not_yours";
-                arg = PondData.ownerName(sl, water);
+            // §pond-one-sign (1.0.0): ANY column already under another sign refuses — somebody else's,
+            // or your own. A second sign of yours used to take the water over silently: the first sign
+            // stood with no pond under it, and pulling the second out left the water wild.
+            PondData d = PondData.get(sl);
+            for (long col : body) {
+                PondData.Claim c = d.claimOfColumn(col);
+                if (c == null || c.sign == pos.asLong()) continue;   // re-planting the same sign refreshes
+                if (c.owner.equals(sp.getUUID())) {
+                    refuse = "message.riverfishing.pond_own_sign";
+                    arg = BlockPos.of(c.sign).toShortString();
+                } else {
+                    refuse = "message.riverfishing.pond_not_yours";
+                    arg = c.ownerName;
+                }
+                break;
             }
         }
         if (refuse != null) {
@@ -89,6 +99,89 @@ public class PondSignBlock extends Block {
         PondData.get(sl).put(pos, sp, body);
         sp.sendOverlayMessage(Component.translatable("message.riverfishing.pond_claimed", body.size())
                 .withStyle(ChatFormatting.GREEN));
+    }
+
+    /**
+     * §pond-name: right-click with a named name tag and the pond takes that name — the owner's hand
+     * only, the tag is spent like on a mob. Any other click reads the sign: the name, whose it is, how
+     * much water, what is built on it, and who lives in it — a farmer looks at his pond, he does not
+     * open a menu on it.
+     */
+    @Override
+    protected net.minecraft.world.InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                                                  Player player, net.minecraft.world.InteractionHand hand,
+                                                                  net.minecraft.world.phys.BlockHitResult hit) {
+        if (!stack.is(net.minecraft.world.item.Items.NAME_TAG) || !stack.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME)) {
+            return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
+        }
+        if (level.isClientSide()) return net.minecraft.world.InteractionResult.SUCCESS;
+        if (!(level instanceof ServerLevel sl) || !(player instanceof ServerPlayer sp)) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
+        PondData.Claim c = PondData.get(sl).bySign(pos);
+        if (c == null) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
+        if (!c.owner.equals(sp.getUUID())) {
+            sp.sendOverlayMessage(Component.translatable("message.riverfishing.pond_name_not_owner", c.ownerName).withStyle(ChatFormatting.RED));
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
+        String name = stack.getHoverName().getString().trim();
+        if (name.isEmpty()) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
+        PondData.get(sl).rename(pos, name);
+        if (!sp.getAbilities().instabuild) stack.shrink(1);
+        sp.sendOverlayMessage(Component.translatable("message.riverfishing.pond_named", name).withStyle(ChatFormatting.GREEN));
+        return net.minecraft.world.InteractionResult.SUCCESS;
+    }
+
+    @Override
+    protected net.minecraft.world.InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                                                   net.minecraft.world.phys.BlockHitResult hit) {
+        if (level.isClientSide()) return net.minecraft.world.InteractionResult.SUCCESS;
+        if (!(level instanceof ServerLevel sl) || !(player instanceof ServerPlayer sp)) return net.minecraft.world.InteractionResult.PASS;
+        PondData.Claim c = PondData.get(sl).bySign(pos);
+        if (c == null) return net.minecraft.world.InteractionResult.PASS;
+        for (Component line : describe(sl, c)) sp.sendSystemMessage(line);
+        return net.minecraft.world.InteractionResult.SUCCESS;
+    }
+
+    /** What the sign says when read: the head line, the modules, the population. */
+    static List<Component> describe(ServerLevel sl, PondData.Claim c) {
+        List<Component> out = new java.util.ArrayList<>();
+        net.minecraft.network.chat.MutableComponent head = c.name.isEmpty()
+                ? Component.translatable("message.riverfishing.pond_info_unnamed", c.ownerName, c.size())
+                : Component.translatable("message.riverfishing.pond_info_head", c.name, c.ownerName, c.size());
+        out.add(head.withStyle(ChatFormatting.GOLD));
+        List<Component> modules = com.riverfishing.fishing.WaterUpgrades.inside(sl, packed -> c.holds(PondData.column(BlockPos.of(packed))));
+        if (modules.isEmpty()) {
+            out.add(Component.translatable("message.riverfishing.pond_info_no_modules").withStyle(ChatFormatting.GRAY));
+        } else {
+            net.minecraft.network.chat.MutableComponent list = Component.empty();
+            for (int i = 0; i < modules.size(); i++) {
+                if (i > 0) list.append(", ");
+                list.append(modules.get(i));
+            }
+            out.add(Component.translatable("message.riverfishing.pond_info_modules", list).withStyle(ChatFormatting.AQUA));
+        }
+        // the ledger is per ~128-block region; a pond may straddle two, so every region the water
+        // touches is read and the same species is summed across them
+        com.riverfishing.fishing.StockedData stocked = com.riverfishing.fishing.StockedData.get(sl);
+        java.util.Set<Long> regions = java.util.Set.of(stocked.pondKey(sl, c));   // §pond-ledger: the pond's own book
+        java.util.Map<String, int[]> fish = new java.util.TreeMap<>();
+        for (long r : regions) {
+            for (String sp : stocked.farmSpecies(r)) {
+                int[] n = fish.computeIfAbsent(sp, k -> new int[2]);
+                n[0] += stocked.adults(r, sp);
+                n[1] += stocked.fryCount(r, sp);
+            }
+        }
+        fish.values().removeIf(n -> n[0] + n[1] == 0);
+        if (fish.isEmpty()) {
+            out.add(Component.translatable("message.riverfishing.pond_info_empty").withStyle(ChatFormatting.GRAY));
+        } else {
+            for (var e : fish.entrySet()) {
+                out.add(Component.translatable("message.riverfishing.pond_info_fish",
+                        Component.translatable("fish.riverfishing." + e.getKey()), e.getValue()[0], e.getValue()[1])
+                        .withStyle(ChatFormatting.GREEN));
+            }
+        }
+        return out;
     }
 
     @Override

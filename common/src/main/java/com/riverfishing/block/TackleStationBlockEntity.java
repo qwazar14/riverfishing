@@ -1,6 +1,7 @@
 package com.riverfishing.block;
 
 import com.riverfishing.registry.ModBlockEntities;
+import com.riverfishing.menu.TackleStationMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
@@ -18,7 +19,7 @@ public class TackleStationBlockEntity extends BlockEntity {
     // §26.1: SimpleContainer lost addListener, so the "mark the chunk dirty" hook is an override of
     // setChanged instead — it fires from exactly the places the old listener did (setItem /
     // removeItem / addItem / clearContent), so the bench still persists what a player drops in.
-    private final SimpleContainer items = new SimpleContainer(4) {
+    private final SimpleContainer items = new SimpleContainer(TackleStationMenu.CONTAINER_SIZE) {
         @Override
         public void setChanged() {
             super.setChanged();

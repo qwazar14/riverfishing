@@ -1,0 +1,99 @@
+{
+  "display": "Himalayan mahseer",
+  "latin": "Tor putitora",
+  "group": "cyprinid",
+  "diet": "omnivore",
+  "spawn": {
+    "season": "summer",
+    "sub": "early"
+  },
+  "water_bodies": {
+    "river": 1.3,
+    "lake": 0.9,
+    "pond": 0.5,
+    "swamp": 0.4,
+    "sea": 0.0,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 1680,
+    "max": 210000,
+    "mean": 12765
+  },
+  "length_cm": {
+    "min": 55.0,
+    "max": 275.0
+  },
+  "fight": {
+    "strength": 1.0,
+    "stamina": 1.0,
+    "runs": 8,
+    "pattern": "relentless",
+    "aggression": 0.45
+  },
+  "ideal": {
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.39,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.65,
+      "nutrition": 0.8
+    },
+    "bait": {
+      "dough": 1.0,
+      "boilie": 0.95,
+      "fish_strip": 0.95,
+      "livebait": 0.85,
+      "spinner": 0.75,
+      "wobbler": 0.75,
+      "spoon": 0.7,
+      "castmaster": 0.65,
+      "crankbait": 0.65,
+      "swimbait": 0.65,
+      "fly_streamer": 0.65,
+      "bladebait": 0.55
+    },
+    "hook": {
+      "ideal": 2
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 1.1,
+    "autumn": 1.0,
+    "winter": 0.3
+  },
+  "time": {
+    "dawn": 1.3,
+    "day": 0.8,
+    "dusk": 1.3,
+    "night": 0.7
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.2,
+    "thunder": 1.1
+  },
+  "depth_pref": "bottom",
+  "habitat": {
+    "depth_min": 7,
+    "width_min": 18
+  },
+  "provinces": [
+    "indomalaya"
+  ],
+  "biomes": {
+    "temperate": 0.6,
+    "warm": 1.1,
+    "mountain": 1.3,
+    "jungle": 1.2
+  },
+  "biomes_require": [
+    "river_biome"
+  ],
+  "base": 0.6,
+  "min_angler_level": 36
+}

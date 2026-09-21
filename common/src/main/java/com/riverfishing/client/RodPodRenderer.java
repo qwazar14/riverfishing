@@ -75,7 +75,7 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity, Ro
         Direction facing = be.getBlockState().hasProperty(RodPodBlock.FACING)
                 ? be.getBlockState().getValue(RodPodBlock.FACING) : Direction.NORTH;
         s.yRot = -facing.toYRot();
-        s.time = be.getLevel() != null ? be.getLevel().getGameTime() + partialTick : partialTick;
+        s.time = be.getLevel() != null ? be.getLevel().getGameTime() % 100000L + partialTick : partialTick;
 
         for (int i = 0; i < n; i++) {
             ItemStack rod = rods.get(i);
@@ -158,7 +158,7 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity, Ro
                 // the line must leave the REAL tip of this rod: the same matrix that drew the blank
                 // transforms the same model-space tip the threaded line ends at
                 Float tipX = d.stack.getItem() instanceof com.riverfishing.item.RodItem r
-                        ? RodChain.blankTipX(r.rodType().jsonKey()) : null;
+                        ? RodChain.blankTipX(r.rodType().modelKey()) : null;
                 if (tipX != null && i < tips3d.length) {
                     org.joml.Vector3f tip = rodM.transformPosition(new org.joml.Vector3f(
                             tipX / 16f - 0.5f, 10.5f / 16f - 0.5f, 8.5f / 16f - 0.5f));

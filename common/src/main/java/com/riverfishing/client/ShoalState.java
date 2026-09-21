@@ -149,7 +149,7 @@ public final class ShoalState {
         long nanos = System.nanoTime();
         double dt = lastNanos == 0L ? 0.05 : Math.min(0.1, (nanos - lastNanos) / 1_000_000_000.0);
         lastNanos = nanos;
-        float time = level.getGameTime() + partialTick;
+        float time = level.getGameTime() % 100000L + partialTick;
         Vec3 eye = mc.player == null ? Vec3.ZERO : mc.player.getEyePosition(partialTick);
         // §shoal-look: where this player's own line meets the water, for the predators to go and see.
         Vec3 bait = null;

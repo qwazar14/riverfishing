@@ -40,6 +40,25 @@ public final class RodDebugCommand {
                 // indistinguishable from the command not existing, and was reported as exactly that
                 .executes(RodDebugCommand::show)
                 .then(lit("show").executes(RodDebugCommand::show))
+                // §rope: the fly line — a physical line off the held rod's tip.
+                .then(lit("rope")
+                        .then(lit("on").executes(c -> {
+                            FlyLineClient.ENABLED = true;
+                            say(c, "§arope ON §7— fly rod only: mouse is the arm, hold LEFT to let line run, RIGHT strips");
+                            return 1;
+                        }))
+                        .then(lit("off").executes(c -> {
+                            FlyLineClient.ENABLED = false;
+                            say(c, "§erope OFF");
+                            return 1;
+                        }))
+                        .then(lit("segments")
+                                .then(arg("n", com.mojang.brigadier.arguments.IntegerArgumentType.integer(8, 512))
+                                        .executes(c -> {
+                                            FlyLineClient.SEGMENTS = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "n");
+                                            say(c, "§brope segments: " + FlyLineClient.SEGMENTS);
+                                            return 1;
+                                        }))))
                 // §fight-course: how hard a running fish drags the tip over. Look at it mid-run and
                 // dial it until the direction reads without the boss bar.
                 .then(lit("coursetip")

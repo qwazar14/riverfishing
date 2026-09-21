@@ -1,8 +1,11 @@
 {
   "display": "Краснобрюхая пиранья",
   "latin": "Pygocentrus nattereri",
-  "spawn": { "season": "summer", "sub": "early" },
-  "group": "predator",
+  "spawn": {
+    "season": "summer",
+    "sub": "early"
+  },
+  "group": "characin",
   "water_bodies": {
     "river": 1.1,
     "swamp": 0.9,
@@ -17,8 +20,8 @@
     "mean": 900
   },
   "length_cm": {
-    "min": 15,
-    "max": 45
+    "min": 15.0,
+    "max": 45.0
   },
   "fight": {
     "strength": 0.65,
@@ -28,22 +31,11 @@
     "aggression": 1.0
   },
   "ideal": {
-    "rod": [
-      "ultralight",
-      "spinning",
-      "pole"
-    ],
-    "reel_size": 2000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "mono",
       "diameter_mm": 0.2,
       "tolerance_mm": 0.06
     },
-    "rig": [
-      "float",
-      "predator"
-    ],
     "groundbait": {
       "fraction": 0.55,
       "nutrition": 0.85
@@ -57,8 +49,7 @@
       "spinner": 0.5
     },
     "hook": {
-      "ideal": 8,
-      "tolerance": 2
+      "ideal": 8
     },
     "requires_leader": true
   },
@@ -80,22 +71,24 @@
     "thunder": 0.8
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 3,
-    "max": 20
-  },
   "habitat": {
     "depth_min": 1,
     "depth_max": 12,
     "width_min": 5
   },
-  "provinces": ["neotropic"],
-  "biomes_require": ["warm", "jungle"],
+  "provinces": [
+    "neotropic"
+  ],
+  "biomes_require": [
+    "warm",
+    "jungle"
+  ],
   "biomes": {
     "warm": 1.3,
     "jungle": 1.4,
     "swamp": 1.0
   },
   "base": 0.7,
-  "min_angler_level": 4
+  "min_angler_level": 17,
+  "diet": "predator"
 }

@@ -160,7 +160,7 @@ public final class AquariumBreeding {
         for (int i = 0; !p.gynogenesis && i < 8 && Genome.lethal(genome); i++) {
             genome = Genome.cross(gm, gf, RNG);
         }
-        be.roe = RoeItem.of(FishItem.getSpecies(mother), genome, clutch(be, pair, p), now / DAY);
+        be.roe = RoeItem.of(hybridOr(FishItem.getSpecies(mother), FishItem.getSpecies(pair[1])), genome, clutch(be, pair, p), now / DAY);   // §species-table
         // §pattern: the clutch's index is the parents' mean, plus a mutation of about twelve. That is
         // the collector's line — a pair bred toward a family throws inside it nearly every time, and
         // the last few points toward a gem are always work.
@@ -274,7 +274,7 @@ public final class AquariumBreeding {
         boolean roe = be.roe.getItem() instanceof RoeItem;
         v[3] = roe ? incubateDays(level, be) : 0;
         v[2] = roe && be.incubate != 0 ? (int) Math.min(v[3], (now - be.incubate) / DAY) : 0;
-        v[4] = (int) Math.max(0, Math.min(DAY, be.fedUntil - now));
+        v[4] = (int) Math.max(0, Math.min(Integer.MAX_VALUE, be.fedUntil - now));   // §aq-feed: fish meal is three days, and the window said 20:00 for two of them; the bar clamps to a day itself
         v[5] = be.water;
         // The window of the first fish that has a profile; a lone fish still says when its kind spawns.
         FishProfile p = null;
@@ -382,6 +382,15 @@ public final class AquariumBreeding {
     /** Both at least an adult (Card.Size 2): babies and juveniles keep growing, they do not spawn. */
     private static boolean mature(ItemStack[] pair) {
         return CatchCard.of(pair[0]).getByteOr("Size", (byte) 0) >= 2 && CatchCard.of(pair[1]).getByteOr("Size", (byte) 0) >= 2;
+    }
+
+    /** §species-table: the species a cross of these two is filed as — the hybrid the table names, else the mother. */
+    private static Identifier hybridOr(Identifier mother, Identifier father) {
+        if (mother == null || father == null || mother.equals(father)) return mother;
+        for (FishProfile h : FishProfileManager.get().all()) {
+            if (h.hybridOf.size() == 2 && h.hybridOf.contains(mother.getPath()) && h.hybridOf.contains(father.getPath())) return h.id;
+        }
+        return mother;
     }
 
     private static FishProfile profile(Identifier species) {

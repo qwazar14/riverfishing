@@ -109,6 +109,13 @@ before(bac, "catchFromBrood(region, id)", "clearStockAround(", "broodAfterCatch(
 if "stockedPresence(level, pos).applyAsDouble(p.id)" not in ni:
     fails.append("NetItem: an unsettled brood with a dry bank must be weighed by stockedPresence — the net and the sounder disagreed")
 
+# 9. §home-water: a fish put back where it came out of is judged by that water too, BEFORE the refusal
+before(rl, "caughtAt != null && caughtAt.closerThan(pos", "if (fit <= 0) {",
+       "release(): the home-water fit must be folded in BEFORE the hostile-water refusal (reported: caught 30 blocks out, refused at the bank)")
+cc = io.open(os.path.join(J, "fish/CatchCard.java"), encoding="utf-8").read()
+if cc.count('putLong("At"') < 3:
+    fails.append("CatchCard: every card writer (rod, net, debug) must record \"At\" — a card without it cannot be released into its home water")
+
 if fails:
     print("FAILED:")
     for x in fails:

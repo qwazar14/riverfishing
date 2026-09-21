@@ -1,8 +1,11 @@
 {
   "display": "Астронотус",
   "latin": "Astronotus ocellatus",
-  "spawn": { "season": "spring", "sub": "early" },
-  "group": "predator",
+  "spawn": {
+    "season": "spring",
+    "sub": "early"
+  },
+  "group": "cichlid",
   "water_bodies": {
     "lake": 1.2,
     "pond": 1.1,
@@ -17,8 +20,8 @@
     "mean": 450
   },
   "length_cm": {
-    "min": 15,
-    "max": 40
+    "min": 15.0,
+    "max": 40.0
   },
   "fight": {
     "strength": 0.55,
@@ -28,22 +31,15 @@
     "aggression": 0.85
   },
   "ideal": {
-    "rod": [
-      "ultralight",
-      "spinning"
-    ],
-    "reel_size": 2000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "mono",
       "diameter_mm": 0.16,
       "tolerance_mm": 0.04
     },
-    "rig": [
-      "float",
-      "predator"
-    ],
-    "groundbait": { "fraction": 0.47, "nutrition": 0.68 },
+    "groundbait": {
+      "fraction": 0.47,
+      "nutrition": 0.68
+    },
     "bait": {
       "worm": 1.2,
       "livebait": 1.1,
@@ -53,9 +49,9 @@
       "wacky_worm": 1.0
     },
     "hook": {
-      "ideal": 8,
-      "tolerance": 3
-    }
+      "ideal": 8
+    },
+    "requires_leader": false
   },
   "season": {
     "spring": 1.1,
@@ -75,20 +71,22 @@
     "thunder": 0.9
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 2,
-    "max": 18
-  },
   "habitat": {
     "depth_min": 1,
     "width_min": 4
   },
-  "provinces": ["neotropic"],
-  "biomes_require": ["warm", "jungle"],
+  "provinces": [
+    "neotropic"
+  ],
+  "biomes_require": [
+    "warm",
+    "jungle"
+  ],
   "biomes": {
     "warm": 1.4,
     "swamp": 1.1
   },
   "base": 0.9,
-  "min_angler_level": 3
+  "min_angler_level": 12,
+  "diet": "predator"
 }

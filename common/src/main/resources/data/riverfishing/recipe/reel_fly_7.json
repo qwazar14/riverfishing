@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:iron_ingot",
+    "minecraft:iron_ingot",
+    "minecraft:iron_ingot",
+    "minecraft:gold_nugget"
+  ],
+  "result": {
+    "id": "riverfishing:reel_fly_7",
+    "count": 1
+  }
+}

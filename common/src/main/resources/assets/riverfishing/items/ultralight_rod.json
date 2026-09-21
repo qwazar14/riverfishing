@@ -142,6 +142,41 @@
                     "type": "minecraft:model",
                     "model": "riverfishing:item/rod_layer/reel_14000"
                   }
+                },
+                {
+                  "when": "reel_fly_3",
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/reel_fly_3"
+                  }
+                },
+                {
+                  "when": "reel_fly",
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/reel_fly"
+                  }
+                },
+                {
+                  "when": "reel_fly_7",
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/reel_fly_7"
+                  }
+                },
+                {
+                  "when": "reel_fly_9",
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/reel_fly_9"
+                  }
+                },
+                {
+                  "when": "reel_fly_11",
+                  "model": {
+                    "type": "minecraft:model",
+                    "model": "riverfishing:item/rod_layer/reel_fly_11"
+                  }
                 }
               ],
               "fallback": {
@@ -294,6 +329,41 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_14000"
                     }
+                  },
+                  {
+                    "when": "reel_fly_3",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_3"
+                    }
+                  },
+                  {
+                    "when": "reel_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_7",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_7"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_9",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_9"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_11",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_11"
+                    }
                   }
                 ],
                 "fallback": {
@@ -439,6 +509,41 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_14000"
                     }
+                  },
+                  {
+                    "when": "reel_fly_3",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_3"
+                    }
+                  },
+                  {
+                    "when": "reel_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_7",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_7"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_9",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_9"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_11",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_11"
+                    }
                   }
                 ],
                 "fallback": {
@@ -469,6 +574,13 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/line_fluoro"
+                    }
+                  },
+                  {
+                    "when": "fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/line_fly"
                     }
                   }
                 ],
@@ -542,6 +654,13 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/rig_catfish"
+                    }
+                  },
+                  {
+                    "when": "rig_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/rig_fly"
                     }
                   }
                 ],
@@ -696,6 +815,41 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_14000"
                     }
+                  },
+                  {
+                    "when": "reel_fly_3",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_3"
+                    }
+                  },
+                  {
+                    "when": "reel_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_7",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_7"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_9",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_9"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_11",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_11"
+                    }
                   }
                 ],
                 "fallback": {
@@ -841,6 +995,41 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_14000"
                     }
+                  },
+                  {
+                    "when": "reel_fly_3",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_3"
+                    }
+                  },
+                  {
+                    "when": "reel_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_7",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_7"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_9",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_9"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_11",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_11"
+                    }
                   }
                 ],
                 "fallback": {
@@ -871,6 +1060,13 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/line_fluoro"
+                    }
+                  },
+                  {
+                    "when": "fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/line_fly"
                     }
                   }
                 ],
@@ -944,6 +1140,13 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/rig_catfish"
+                    }
+                  },
+                  {
+                    "when": "rig_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/rig_fly"
                     }
                   }
                 ],
@@ -1098,6 +1301,41 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_14000"
                     }
+                  },
+                  {
+                    "when": "reel_fly_3",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_3"
+                    }
+                  },
+                  {
+                    "when": "reel_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_7",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_7"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_9",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_9"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_11",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_11"
+                    }
                   }
                 ],
                 "fallback": {
@@ -1243,6 +1481,41 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_14000"
                     }
+                  },
+                  {
+                    "when": "reel_fly_3",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_3"
+                    }
+                  },
+                  {
+                    "when": "reel_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_7",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_7"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_9",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_9"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_11",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_11"
+                    }
                   }
                 ],
                 "fallback": {
@@ -1273,6 +1546,13 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/line_fluoro"
+                    }
+                  },
+                  {
+                    "when": "fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/line_fly"
                     }
                   }
                 ],
@@ -1346,6 +1626,13 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/rig_catfish"
+                    }
+                  },
+                  {
+                    "when": "rig_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/rig_fly"
                     }
                   }
                 ],
@@ -1500,6 +1787,41 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_14000"
                     }
+                  },
+                  {
+                    "when": "reel_fly_3",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_3"
+                    }
+                  },
+                  {
+                    "when": "reel_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_7",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_7"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_9",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_9"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_11",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_11"
+                    }
                   }
                 ],
                 "fallback": {
@@ -1645,6 +1967,41 @@
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/reel_14000"
                     }
+                  },
+                  {
+                    "when": "reel_fly_3",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_3"
+                    }
+                  },
+                  {
+                    "when": "reel_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_7",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_7"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_9",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_9"
+                    }
+                  },
+                  {
+                    "when": "reel_fly_11",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/reel_fly_11"
+                    }
                   }
                 ],
                 "fallback": {
@@ -1675,6 +2032,13 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/line_fluoro"
+                    }
+                  },
+                  {
+                    "when": "fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/line_fly"
                     }
                   }
                 ],
@@ -1748,6 +2112,13 @@
                     "model": {
                       "type": "minecraft:model",
                       "model": "riverfishing:item/rod_layer_m/rig_catfish"
+                    }
+                  },
+                  {
+                    "when": "rig_fly",
+                    "model": {
+                      "type": "minecraft:model",
+                      "model": "riverfishing:item/rod_layer_m/rig_fly"
                     }
                   }
                 ],
@@ -1897,6 +2268,41 @@
                 "type": "minecraft:model",
                 "model": "riverfishing:item/rod_layer/reel_14000"
               }
+            },
+            {
+              "when": "reel_fly_3",
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/reel_fly_3"
+              }
+            },
+            {
+              "when": "reel_fly",
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/reel_fly"
+              }
+            },
+            {
+              "when": "reel_fly_7",
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/reel_fly_7"
+              }
+            },
+            {
+              "when": "reel_fly_9",
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/reel_fly_9"
+              }
+            },
+            {
+              "when": "reel_fly_11",
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/reel_fly_11"
+              }
             }
           ],
           "fallback": {
@@ -1927,6 +2333,13 @@
               "model": {
                 "type": "minecraft:model",
                 "model": "riverfishing:item/rod_layer/line_fluoro"
+              }
+            },
+            {
+              "when": "fly",
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/line_fly"
               }
             }
           ],
@@ -2000,6 +2413,13 @@
               "model": {
                 "type": "minecraft:model",
                 "model": "riverfishing:item/rod_layer/rig_catfish"
+              }
+            },
+            {
+              "when": "rig_fly",
+              "model": {
+                "type": "minecraft:model",
+                "model": "riverfishing:item/rod_layer/rig_fly"
               }
             }
           ],

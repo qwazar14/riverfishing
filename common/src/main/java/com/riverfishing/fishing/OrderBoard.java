@@ -173,11 +173,7 @@ public final class OrderBoard {
         }
         rows.add(row("order.riverfishing.bait", keys("item.riverfishing.", baits), baitOk));
 
-        // 6. Rig, and 7. rod: the tackle the species expects.
-        boolean rigOk = rigStack.getItem() instanceof RigItem ri && p.idealRigs.contains(ri.rigType().jsonKey());
-        rows.add(row("order.riverfishing.rig", keys("item.riverfishing.rig_", p.idealRigs), rigOk));
-        boolean rodOk = rod.getItem() instanceof RodItem ri && p.idealRods.contains(ri.rodType().jsonKey());
-        rows.add(rowSuffix("order.riverfishing.rod", "item.riverfishing.", p.idealRods, "_rod", rodOk));
+        // §species-table: rig and rod left the species' asks — how you deliver the bait is your business
 
         // 8. The angler level the species asks for, when it asks for one.
         if (p.minAnglerLevel > 0) {

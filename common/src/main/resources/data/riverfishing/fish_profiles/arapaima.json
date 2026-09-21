@@ -1,8 +1,11 @@
 {
   "display": "Арапайма",
   "latin": "Arapaima gigas",
-  "spawn": { "season": "summer" },
-  "group": "big_game",
+  "spawn": {
+    "season": "summer",
+    "sub": "early"
+  },
+  "group": "exotic",
   "water_bodies": {
     "river": 1.2,
     "lake": 1.0,
@@ -17,8 +20,8 @@
     "mean": 45000
   },
   "length_cm": {
-    "min": 120,
-    "max": 300
+    "min": 120.0,
+    "max": 300.0
   },
   "fight": {
     "strength": 0.95,
@@ -28,21 +31,11 @@
     "aggression": 0.8
   },
   "ideal": {
-    "rod": [
-      "boat",
-      "sea_spin"
-    ],
-    "reel_size": 10000,
-    "reel_tolerance": 2000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.45,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "predator",
-      "catfish"
-    ],
     "groundbait": {
       "fraction": 0.95,
       "nutrition": 0.8
@@ -56,8 +49,7 @@
       "swimbait": 0.85
     },
     "hook": {
-      "ideal": 1,
-      "tolerance": 2
+      "ideal": 1
     },
     "requires_leader": true
   },
@@ -79,20 +71,22 @@
     "thunder": 0.9
   },
   "depth_pref": "surface",
-  "distance_pref": {
-    "min": 10,
-    "max": 35
-  },
   "habitat": {
     "depth_min": 3,
     "width_min": 14
   },
-  "provinces": ["neotropic"],
-  "biomes_require": ["warm", "jungle"],
+  "provinces": [
+    "neotropic"
+  ],
+  "biomes_require": [
+    "warm",
+    "jungle"
+  ],
   "biomes": {
     "warm": 1.4,
     "swamp": 1.0
   },
   "base": 0.22,
-  "min_angler_level": 10
+  "min_angler_level": 42,
+  "diet": "predator"
 }

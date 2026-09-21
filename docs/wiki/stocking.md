@@ -17,8 +17,8 @@ Releasing does two separate things, and it is important to keep them apart:
 
 Two different scales are in play:
 
-- **Residency** (does this species live here permanently?) is stored per **~128-block region** — the same regions the seed's species communities use. Settle a species and it is a resident of that whole region forever.
-- **Stock level** (how many are there right now?) is stored per **chunk**, and read across the **3×3 chunk neighbourhood** — fish don't respect chunk borders.
+- **Residency** (does this species live here permanently?) is stored per **~128-block region** — the same regions the seed's species communities use. Settle a species and it is a resident of that whole region until an operator's [electrofisher](electrofisher.md) takes it out again.
+- **Stock level** (how many are there right now?) is stored per **chunk**, and read from the **one chunk the bobber is in** — stocking one chunk does not raise a resident's level in the chunk next door. Only an unsettled transplant's temporary population is read across the **3×3 chunk neighbourhood** — fish don't respect chunk borders.
 
 ## Habitat fit
 
@@ -106,7 +106,7 @@ So the settled shark in the river is genuinely catchable, just never comfortable
 
 The surplus is **not permanent**. It decays on the same 30000-tick (25-minute) half-life as ordinary [fishing pressure](water-and-conditions.md#spot-depletion) — the fish disperse. Spring speeds the clock up 2.5×, which cuts both ways: fished-out water recovers faster, and a stocked surplus disperses faster.
 
-What *is* permanent is **residency**. Once a species has settled in a region it lives there forever, whatever happens to the stock number.
+What *is* permanent is **residency**. Once a species has settled in a region it lives there whatever happens to the stock number; only an operator's [electrofisher](electrofisher.md) can take that back.
 
 There is also a **drain**: while a spot is running above roughly **125 % stock**, each fish you keep thins the school **25 % faster** than normal. A packed pond is easy fishing, but it does not stay packed. Releasing your trophies is how you keep it going.
 

@@ -55,11 +55,12 @@ public final class Ecosystem {
 
     private static Spot spot(ServerLevel level, BlockPos pos) {
         StockedData st = StockedData.get(level);
-        long region = StockedData.region(pos);
+        long region = StockedData.regionAt(level, pos);
         Set<String> up = WaterUpgrades.at(level, pos);
-        return new Spot(st.isStocked(region, "grass_carp"), st.isStocked(region, "silver_carp"),
-                BIG_CARP.stream().anyMatch(s -> st.isStocked(region, s)),
-                BIG_PREDATORS.stream().anyMatch(s -> st.isStocked(region, s)),
+        // §pond-empty: a species fished out to the last head has stopped silting the bed
+        return new Spot(st.pondHolds(region, "grass_carp"), st.pondHolds(region, "silver_carp"),
+                BIG_CARP.stream().anyMatch(s -> st.pondHolds(region, s)),
+                BIG_PREDATORS.stream().anyMatch(s -> st.pondHolds(region, s)),
                 up.contains("aerator"), up.contains("snags"), up.contains("gravel"),
                 up.contains("warm_outflow"), up.contains("feeding_station"));
     }

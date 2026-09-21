@@ -1,7 +1,10 @@
 {
   "display": "Окунь",
   "latin": "Perca fluviatilis",
-  "spawn": { "season": "spring", "sub": "mid" },
+  "spawn": {
+    "season": "spring",
+    "sub": "mid"
+  },
   "group": "predator",
   "water_bodies": {
     "river": 1.0,
@@ -17,8 +20,8 @@
     "mean": 250
   },
   "length_cm": {
-    "min": 10,
-    "max": 45
+    "min": 10.0,
+    "max": 45.0
   },
   "fight": {
     "strength": 0.5,
@@ -28,21 +31,15 @@
     "aggression": 0.8
   },
   "ideal": {
-    "rod": [
-      "ultralight",
-      "spinning"
-    ],
-    "reel_size": 3000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.1,
       "tolerance_mm": 0.04
     },
-    "rig": [
-      "predator"
-    ],
-    "groundbait": { "fraction": 0.40, "nutrition": 0.70 },
+    "groundbait": {
+      "fraction": 0.4,
+      "nutrition": 0.7
+    },
     "bait": {
       "mormyshka": 0.9,
       "livebait": 0.9,
@@ -57,8 +54,7 @@
       "wacky_worm": 0.85
     },
     "hook": {
-      "ideal": 8,
-      "tolerance": 3
+      "ideal": 8
     },
     "requires_leader": false
   },
@@ -80,20 +76,21 @@
     "thunder": 0.9
   },
   "depth_pref": "mid",
-  "distance_pref": {
-    "min": 5,
-    "max": 25
-  },
   "habitat": {
     "depth_min": 1,
     "depth_max": 10,
     "width_min": 4
   },
-  "provinces": ["palearctic", "nearctic"],
+  "provinces": [
+    "palearctic",
+    "nearctic"
+  ],
   "biomes": {
     "cold": 1.0,
     "temperate": 1.0,
     "warm": 0.6
   },
-  "base": 1.0
+  "base": 1.0,
+  "diet": "predator",
+  "min_angler_level": 0
 }

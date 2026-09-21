@@ -58,5 +58,8 @@ public final class ClientPlatformImpl {
         com.riverfishing.mixin.SpecialModelRenderersAccessor.riverfishing$idMapper().put(
                 com.riverfishing.client.FrySpecialRenderer.ID,
                 com.riverfishing.client.FrySpecialRenderer.Unbaked.MAP_CODEC);
+        com.riverfishing.mixin.SpecialModelRenderersAccessor.riverfishing$idMapper().put(
+                com.riverfishing.client.TiedLureSpecialRenderer.ID,
+                com.riverfishing.client.TiedLureSpecialRenderer.Unbaked.MAP_CODEC);   // §tying
     }
 }

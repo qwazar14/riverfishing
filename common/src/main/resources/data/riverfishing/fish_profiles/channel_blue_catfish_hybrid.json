@@ -1,0 +1,94 @@
+{
+  "display": "Hybrid catfish (channel × blue catfish)",
+  "latin": "Ictalurus punctatus × Ictalurus furcatus",
+  "group": "catfish",
+  "diet": "omnivore",
+  "spawn": {
+    "season": "summer",
+    "sub": "early"
+  },
+  "water_bodies": {
+    "river": 1.3,
+    "lake": 0.9,
+    "pond": 0.5,
+    "swamp": 0.4,
+    "sea": 0.0,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 170,
+    "max": 21300,
+    "mean": 1295
+  },
+  "length_cm": {
+    "min": 26.0,
+    "max": 130.0
+  },
+  "fight": {
+    "strength": 1.0,
+    "stamina": 1.0,
+    "runs": 5,
+    "pattern": "sounding",
+    "aggression": 0.55
+  },
+  "ideal": {
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.25,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.75,
+      "nutrition": 0.8
+    },
+    "bait": {
+      "worm": 1.0,
+      "dough": 0.75,
+      "chicken_liver": 0.7,
+      "fish_strip": 0.7,
+      "livebait": 0.6
+    },
+    "hook": {
+      "ideal": 3
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.1,
+    "summer": 1.0,
+    "autumn": 1.2,
+    "winter": 0.6
+  },
+  "time": {
+    "dawn": 1.0,
+    "day": 0.4,
+    "dusk": 1.2,
+    "night": 1.5
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.2,
+    "thunder": 1.1
+  },
+  "depth_pref": "bottom",
+  "habitat": {
+    "depth_min": 7,
+    "width_min": 14
+  },
+  "provinces": [
+    "nearctic"
+  ],
+  "biomes": {
+    "cold": 0.6,
+    "temperate": 1.2,
+    "warm": 0.9,
+    "swamp": 1.0,
+    "cherry": 0.8
+  },
+  "base": 0.77,
+  "hybrid_of": [
+    "channel_catfish",
+    "blue_catfish"
+  ],
+  "min_angler_level": 24
+}

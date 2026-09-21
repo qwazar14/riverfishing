@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": {
+      "id": "minecraft:string"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.tied.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.tied.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

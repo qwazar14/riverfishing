@@ -1,10 +1,10 @@
 package com.riverfishing.fishing;
 
+import net.minecraft.server.level.ServerBossEvent;
 import com.riverfishing.component.RigType;
 import com.riverfishing.component.RodClass;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.world.InteractionHand;
 
 /** One active line in the water for a player. Lives only on the server. */
@@ -12,6 +12,8 @@ public class FishingSession {
     public final InteractionHand hand;
     /** §trolling: mutable — a trolled lure TRAILS the boat (the target follows ~14 blocks astern). */
     public BlockPos target;
+    /** §fly-take: a fly-rod session — the target follows the fly, no float timing, no words. */
+    public boolean fly;
     /** §live-conditions: re-picked from the fresh weights while the line waits (a koi stays sticky). */
     public Identifier species;
     /**
@@ -68,7 +70,15 @@ public class FishingSession {
 
     // ---- Ice fishing (Â§ice-jig): jig the mormyshka in a steady rhythm to draw fish through the hole ----
     public boolean iceFishing;
-    public long lastJigTick;
+    public int jigBest;        // §progression: the best jig combo of this session
+    public int jigStroke = -1; // §jig-2: the last stroke the held rod made on its own
+    /**
+     * §jig-4: game-time the ice line went down. The winter bite clock's floor and ceiling are measured
+     * from HERE and never from {@code now} — a floor measured from now walks forward with every jig
+     * stroke, which is exactly how the take became unreachable while the rod was being worked.
+     * (It replaces {@code lastJigTick}, which was written every stroke and read nowhere.)
+     */
+    public long castTick;
 
     // ---- bite window ----
     public boolean bitten;
@@ -95,6 +105,7 @@ public class FishingSession {
     public double fatigueRunTick;
     /** §bossbar-2: last shown state (0 calm / 1 run / 2 tired) so the name only re-sends on change. */
     public int barState = -1;
+    public ServerBossEvent bossBar;
     public double calmTensionPulse;
     public double landPulse;
     public double relaxTick;
@@ -117,7 +128,6 @@ public class FishingSession {
 
     // ---- fight state ----
     public boolean fighting;
-    public ServerBossEvent bossBar;
     public double tension;        // 0..1; over breakTension the line is in overstress (Â§tackle-stress)
     public double landProgress;   // 0..1; reaching 1 lands the fish
     public double breakTension;   // how much tension the tackle tolerates for THIS fish
@@ -127,6 +137,10 @@ public class FishingSession {
      * ceiling, it slows how fast everything fills it.
      */
     public double tackleMargin = 1.0;
+    public boolean lineSnagged;     // §line-snag: the string lies across a block between the tip and the fish
+    public int snagMiss;            // §line-calm: clear checks since the last hit — three in a row lets go
+    public boolean outclassedHinted;   // §outclassed-hint: said once more at the first run
+    public boolean outclassed;      // §outclassed: the line is weaker than the pull — play it out, never reel it
     // Â§tackle-stress (0.4.0): crossing the limit no longer snaps instantly â a per-tick break chance
     // grows with the overshoot and with how long the line has been held over it.
     public double requiredKg;     // the fish's pull in kg (drives the break-load message)
@@ -174,6 +188,8 @@ public class FishingSession {
     public long fightStartTick;
     public int weightG;
     public int lengthCm;
+    /** §pond-roster: the remembered pond fish this bite is, peeked at the roll and taken at the landing; null elsewhere. */
+    public net.minecraft.nbt.CompoundTag pondFish;
     public boolean trophy;         // trophy-class specimen: top-of-range size, glint, 3x XP
     public int bycatch;            // Â§bycatch-intrigue: 0 = fish, 1 = junk, 2 = treasure (short heavy fight)
     public boolean finalSurgeDone; // the guaranteed last dash at the bank has fired

@@ -36,6 +36,10 @@ public final class RiverFishingConfig {
     public static boolean consumeGroundbait = true;
     // update-check (0.4.0): the on-join version digest; modpacks can switch it off.
     public static boolean updateCheck = true;
+    /** §flow-config: the river current — the moving texture, the drifting boats and foam, the rope. Off = still water everywhere. */
+    public static boolean flow = true;
+    /** §season-config: days in a season of the mod's own calendar (a year is four of them; a sub-season a third). Ignored under Serene Seasons. */
+    public static int seasonDays = 24;
     public static double bycatchJunk = 0.045;
     public static double bycatchTreasure = 0.013;
 
@@ -56,7 +60,7 @@ public final class RiverFishingConfig {
     public static double leaderBiteoffChance() { return byPreset(0.3, 0.75, 0.95, leaderBiteoff); }
     public static double lineWearRate() { return byPreset(0.3, 1.0, 1.7, lineWear); }
     public static double hookWearRate() { return byPreset(0.3, 1.0, 1.7, hookWear); }
-    public static double snagChance() { return byPreset(0.3, 1.0, 1.6, snag); }
+    public static double snagChance() { return byPreset(0.3, 1.0, 1.3, snag); }   // §hardcore-snag: 1.6 was a snag every sixth cast
     public static double foulHookChance() { return byPreset(0.4, 1.0, 1.6, foul); }
     /** §spook: how sharply the fish react to the angler. Zero switches the mechanic off entirely. */
     public static double spookRate() { return byPreset(0.35, 1.0, 1.6, spook); }
@@ -65,6 +69,7 @@ public final class RiverFishingConfig {
     public static double frenzySpeed() { return frenzySpeed; }
     public static boolean consumeBait() { return consumeBait; }
     public static boolean consumeGroundbait() { return consumeGroundbait; }
+    public static boolean flow() { return flow; }
     public static double bycatchJunkChance() { return bycatchJunk; }
     public static double bycatchTreasureChance() { return bycatchTreasure; }
 }

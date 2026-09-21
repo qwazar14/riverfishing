@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "riverfishing:item/fish/cooked/chinook_pink_hybrid"
+  }
+}

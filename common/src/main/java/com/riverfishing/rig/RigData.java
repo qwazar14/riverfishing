@@ -123,9 +123,27 @@ public final class RigData {
     }
 
     /** §lure-color: the dyed RGB of an artificial lure loaded in a lure/bait slot, or -1 if none/undyed. */
+    /** §tying: the tied lure loaded on the rig, analysed, or null. */
+    public static com.riverfishing.tackle.TiedDesign.Analysis tiedLure(ItemStack rig) {
+        com.riverfishing.tackle.TiedDesign.Analysis[] found = { null };
+        forEachFilled(rig, (role, stack) -> {
+            if (found[0] == null && stack.getItem() instanceof com.riverfishing.item.TiedLureItem
+                    && com.riverfishing.tackle.TiedDesign.design(stack) != null) {
+                found[0] = com.riverfishing.tackle.TiedDesign.analyse(stack);
+            }
+        });
+        return found[0];
+    }
+
     public static int lureColorRgb(ItemStack rig) {
         int[] found = { -1 };
         forEachFilled(rig, (role, stack) -> {
+            // §tying: a tied lure's colour is the mean of its drawing — the same colour-vs-light read
+            if (found[0] < 0 && stack.getItem() instanceof com.riverfishing.item.TiedLureItem
+                    && com.riverfishing.tackle.TiedDesign.design(stack) != null) {
+                found[0] = com.riverfishing.tackle.TiedDesign.analyse(stack).meanRgb();
+                return;
+            }
             if (found[0] < 0 && (role == SlotRole.LURE || role == SlotRole.BAIT)
                     && stack.getItem() instanceof BaitItem b && b.artificial()) {
                 net.minecraft.world.item.component.DyedItemColor dc =
@@ -203,7 +221,10 @@ public final class RigData {
         double bestScore = -Double.MAX_VALUE;
         for (int i = 0; i < roles.length && i < inv.size(); i++) {
             ItemStack s = inv.get(i);
-            if (roles[i] == SlotRole.BAIT && !s.isEmpty()
+            // §livebait-eaten: BAIT **or** LURE — a predator rig and a fly rig are {LEADER, LURE}, and the LURE
+            // slot takes a live bait, so a baitfish on a spinning rod was never eaten: one fish lasted for ever.
+            // Anything artificial in that slot is still skipped by the line below.
+            if ((roles[i] == SlotRole.BAIT || roles[i] == SlotRole.LURE) && !s.isEmpty()
                     && s.getItem() instanceof BaitItem b && !b.artificial()
                     && !"mormyshka".equals(b.baitId())) {
                 double score = preference != null ? preference.applyAsDouble(b.baitId()) : 0.0;

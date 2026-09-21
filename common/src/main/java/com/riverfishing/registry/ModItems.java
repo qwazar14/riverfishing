@@ -53,6 +53,47 @@ public final class ModItems {
     public static final List<RegistrySupplier<Item>> RODS = new ArrayList<>();
     // ---- Caught fish: one item + texture per species (Module 8; ÃÂ§ecology adds habitat-bound species) ----
     public static final String[] FISH_SPECIES = {
+            // §species-table (0.10): the author's species table — 160 species in one wave.
+            "aba_aba", "adonis_pleco", "african_arowana", "african_knifefish",
+            "african_pike_characin", "african_sharptooth_catfish", "alligator_gar", "angolan_clarias",
+            "ansorges_dwarf_characin", "asian_arowana", "barramundi", "bester_sturgeon",
+            "black_crappie", "black_drum", "black_mahseer", "black_white_crappie_hybrid",
+            "blacktail_snapper", "blotched_upsidedown_catfish", "blue_catfish", "blue_mozambique_tilapia_hybrid",
+            "blue_tilapia", "bluegill_green_sunfish_hybrid", "bluegill_pumpkinseed_hybrid", "bluegill_redbreast_hybrid",
+            "bluegill_redear_hybrid", "bowfin", "bream_roach_hybrid", "brook_bull_trout_hybrid",
+            "brook_trout", "bull_trout", "cameroon_suckermouth_catfish", "catla",
+            "chain_pickerel", "channel_blue_catfish_hybrid", "chinese_mahseer", "chinook_coho_hybrid",
+            "chinook_pink_hybrid", "chinook_salmon", "chum_salmon", "climbing_perch",
+            "coho_salmon", "common_barbel", "common_carp_gibel_hybrid", "congo_knifefish",
+            "cornish_jack", "crimean_barbel", "cutbow", "cutthroat_trout",
+            "desert_pupfish", "devils_hole_pupfish", "dolly_bull_trout_hybrid", "dolly_varden",
+            "double_nose_elephantfish", "eastern_happy", "electric_catfish", "electric_eel",
+            "elephantnose_fish", "elongate_lamprologus", "fierce_bathybates", "flathead_catfish",
+            "flier", "florida_gar", "frontosa_cichlid", "giant_cichlid",
+            "giant_featherback", "giant_freshwater_stingray", "giant_gourami", "giant_mottled_eel",
+            "giant_snakehead", "goliath_tigerfish", "green_sunfish", "helicopter_catfish",
+            "himalayan_mahseer", "iridescent_shark", "kaluga_sterlet_hybrid", "kaluga_sturgeon",
+            "kuria_labeo", "kuria_labeo_catla_hybrid", "laced_moray", "lake_sturgeon",
+            "lake_trout", "largemouth_smallmouth_hybrid", "largemouth_yellowfish", "longnose_alligator_gar_hybrid",
+            "longnose_gar", "longsnout_distichodus", "lute_fish", "lyretail_pleco",
+            "malayan_mahseer", "map_puffer", "marbled_lungfish", "mekong_giant_catfish",
+            "mozambique_tilapia", "muskellunge", "nile_bichir", "nile_blue_tilapia_hybrid",
+            "nile_mozambique_tilapia_hybrid", "nile_perch", "nile_tilapia", "northern_pike",
+            "ocellaris_clownfish", "ocellate_river_stingray", "paddlefish", "palette_surgeonfish",
+            "payara", "polka_dot_squeaker", "pumpkinseed", "red_drum",
+            "red_finned_mahseer", "redbreast_sunfish", "redear_green_sunfish_hybrid", "redear_sunfish",
+            "redtail_catfish", "reedfish", "reticulate_knifefish", "ripon_barbel",
+            "roach_rudd_hybrid", "rock_bass", "rohu", "rohu_catla_hybrid",
+            "rohu_kuria_labeo_hybrid", "royal_featherback", "saddled_bichir", "salt_creek_pupfish",
+            "sauger", "saugeye", "semutundu", "senegal_bichir",
+            "short_tailed_river_stingray", "shovelnose_sturgeon", "silver_catfish", "six_banded_distichodus",
+            "smallmouth_bass", "smallmouth_spotted_bass_hybrid", "sockeye_salmon", "splake",
+            "spotted_bass", "spotted_gar", "spotted_seatrout", "starry_puffer",
+            "tambaqui", "tapah_catfish", "terek_barbel", "tiger_muskie",
+            "tigerfish", "trahira", "trout_cichlid", "vistula_barbel",
+            "vundu_catfish", "walleye", "warmouth", "west_african_lungfish",
+            "white_bass", "white_crappie", "white_sturgeon", "whitemargin_moray",
+            "whitespotted_puffer", "wiper", "yellow_bass", "yellow_perch",
             // §koi-genes (0.9.0): the koi. Five ids became one species whose VARIETY is three
             // colour loci — the five stay registered so no old world loses a fish.
             "koi_carp",
@@ -82,8 +123,6 @@ public final class ModItems {
             "tench", "burbot", "eel", "grayling", "trout", "sterlet",
             // ÃÂ§carp-update: the wild sazan + the mirror strain, plus the koi collectibles.
             "wild_carp", "mirror_carp", "grass_carp",
-            "carp_koi_kohaku", "carp_koi_tancho_sanke", "carp_koi_showa_sanke",
-            "carp_koi_asagi", "carp_koi_bekko",
             // ÃÂ§america-pack (0.4.0): bluegill/bass/rainbow/channel cat Ã¢ÂÂ the community-requested US four.
             "bluegill", "largemouth_bass", "rainbow_trout", "channel_catfish",
             // Â§ru-fish (0.4.0): ÃÂÃÂ¾ÃÂ»ÃÂÃÂÃÂ¾ÃÂ»ÃÂ¾ÃÂ±ÃÂ¸ÃÂº / ÃÂÃÂµÃÂÃÂ¾ÃÂ½ÃÂ / ÃÂÃÂ¸ÃÂ½ÃÂµÃÂ â the RU trio.
@@ -141,6 +180,8 @@ public final class ModItems {
     // §b/breeding (0.9.0): what a live tank produces and what a net hauls. The net classes belong to the nets
     // stream; they are registered HERE because item registration is one file's job (breeding-api.md).
     public static final RegistrySupplier<Item> ROE = reg("roe", () -> new com.riverfishing.item.RoeItem(props("roe")));
+    // §tying: a lure tied at the vise — a mormyshka to every rule, and its own drawing.
+    public static final RegistrySupplier<Item> TIED_LURE = reg("tied_lure", () -> new com.riverfishing.item.TiedLureItem(props("tied_lure")));
     public static final RegistrySupplier<Item> FRY = reg("fry", () -> new com.riverfishing.item.FryItem(props("fry")));
     public static final RegistrySupplier<Item> SEINE_NET = reg("seine_net", () -> new com.riverfishing.item.SeineNetItem(props("seine_net")));
     public static final RegistrySupplier<Item> CAST_NET = reg("cast_net", () -> new com.riverfishing.item.CastNetItem(props("cast_net")));
@@ -184,6 +225,11 @@ public final class ModItems {
         if ("winter".equals(key)) return 96;       // short, reel-less, and ice fish are small
         if ("pole".equals(key)) return 128;
         if ("ultralight".equals(key)) return 144;
+        if ("fly_3".equals(key)) return 128;        // §fly-classes
+        if ("fly".equals(key)) return 144;          // §fly: as light a blank as the ultralight
+        if ("fly_7".equals(key)) return 176;
+        if ("fly_9".equals(key)) return 208;
+        if ("fly_11".equals(key)) return 240;
         if ("spinning".equals(key)) return 192;
         if ("feeder".equals(key)) return 224;
         if ("bottom".equals(key)) return 256;
@@ -214,6 +260,12 @@ public final class ModItems {
             final int s = size;
             reg("reel_" + size, () -> new ReelItem(s, props("reel_" + size)));
         }
+        // §fly-reel: single-action fly reels, one per class — sized like a spinning reel for the 3D body and the drag curve.
+        reg("reel_fly_3", () -> new ReelItem(3000, 3, props("reel_fly_3")));
+        reg("reel_fly", () -> new ReelItem(6000, 5, props("reel_fly")));
+        reg("reel_fly_7", () -> new ReelItem(7000, 7, props("reel_fly_7")));
+        reg("reel_fly_9", () -> new ReelItem(8000, 9, props("reel_fly_9")));
+        reg("reel_fly_11", () -> new ReelItem(10000, 11, props("reel_fly_11")));
 
         // ----- Lines (ÃÂ§line-update): mono = all-rounder, braid = thin & strong, fluoro = clear/finesse.
         // Thick fluoro (0.40/0.50) dropped Ã¢ÂÂ impractical in reality; thin mono/fluoro + heavy braid added. -----
@@ -222,6 +274,14 @@ public final class ModItems {
         // duel the 40 kg monster catfish with a 7000 reel's drag on top).
         registerLines(LineType.BRAID, new double[]{0.16, 0.20, 0.25, 0.30, 0.40, 0.50, 0.60});
         registerLines(LineType.FLUORO, new double[]{0.14, 0.16, 0.20, 0.25, 0.30, 0.40});
+        // §fly-lines: line_fly_100, the one line that shipped before the nine, is gone (1.0.0) — it was a
+        // WF-F, and line_fly_wf_f is that line. A rod still carrying the old id loses it on load.
+        // §fly-lines: three geometries by three buoyancies; the weight is the rod's class, not the line's.
+        for (com.riverfishing.item.FlyLineItem.Geometry g : com.riverfishing.item.FlyLineItem.Geometry.values()) {
+            for (com.riverfishing.item.FlyLineItem.Buoyancy b : com.riverfishing.item.FlyLineItem.Buoyancy.values()) {
+                reg("line_fly_" + g.key + "_" + b.key, () -> new com.riverfishing.item.FlyLineItem(g, b, props("line_fly_" + g.key + "_" + b.key)));
+            }
+        }
 
         // ----- Rigs -----
         for (RigType type : RigType.values()) {

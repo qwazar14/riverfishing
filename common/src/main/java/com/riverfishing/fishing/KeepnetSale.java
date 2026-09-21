@@ -66,6 +66,7 @@ public final class KeepnetSale {
             return;
         }
         data.write(net);
+        com.riverfishing.quest.AnglerAdvancements.grant(sp, "keepnet_sale");   // §progression
         ItemStack pay = new ItemStack(Items.EMERALD, em);
         if (!sp.getInventory().add(pay)) sp.drop(pay, false);
         sp.sendOverlayMessage(Component.translatable("message.riverfishing.keepnet_sold", count, em).withStyle(ChatFormatting.GREEN));
