@@ -8,7 +8,8 @@
     "VillagerTradePoolMixin",
     "VillagerRepriceMixin",
     "FlowFluidMixin",
-    "VillagerTradeGivesAccessor"
+    "VillagerTradeGivesAccessor",
+    "PotionBrewingOilMixin"
   ],
   "injectors": {
     "defaultRequire": 1

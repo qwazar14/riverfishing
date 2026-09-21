@@ -72,7 +72,11 @@ public final class StockedData extends SavedData {
         // coordinates. An old pond's book moves over on first read (adopt), Pos inside the claim.
         long dim = level.dimension().identifier().toString().hashCode() * 0x9E3779B97F4A7C15L;
         long key = ((c.sign ^ dim) & 0x3FFFFFFFFFFFFFFFL) | (1L << 62);
-        if (ponds.add(key)) adopt(key, c);
+        if (ponds.add(key)) {
+            inherit(c.sign, key, c);
+            adopt(key, c);
+            legacy(key, c);
+        }
         return key;
     }
 
@@ -90,6 +94,48 @@ public final class StockedData extends SavedData {
     /** §pond-ledger: is this key a pond's? Its checks are the owner's business, not the water's. */
     public boolean isPond(long region) {
         return ponds.contains(region);
+    }
+
+    /**
+     * §pond-key-move (1.0.0): before the marker bit the pond's key WAS its sign's packed position, and
+     * that book was this pond's alone — so every species, every cull and every brood entry under it
+     * moves over whole, release spot or none. adopt() only follows release spots, and a species that
+     * settled without one (an old ledger, an operator's stocking) was left under the old key: the pond
+     * read empty and the net came up with nothing.
+     */
+    private void inherit(long old, long key, PondData.Claim c) {
+        if (old == key) return;
+        Set<String> st = regions.remove(old);
+        if (st != null) { regions.computeIfAbsent(key, k -> new HashSet<>()).addAll(st); setDirty(); }
+        Set<String> cu = culled.remove(old);
+        if (cu != null) { culled.computeIfAbsent(key, k -> new HashSet<>()).addAll(cu); setDirty(); }
+        String from = old + "|", to = key + "|";
+        for (String k : new java.util.ArrayList<>(brood.keySet())) {
+            if (!k.startsWith(from)) continue;
+            CompoundTag t = brood.remove(k);
+            brood.putIfAbsent(to + k.substring(from.length()), t);
+            setDirty();
+        }
+    }
+
+    /**
+     * §pond-key-move: and a pond whose book is STILL empty after that takes the region's species that
+     * have no release spot on record at all — a 0.5–0.8 pond, stocked before the ledger wrote one. Until
+     * the pond had a book of its own those were exactly what it fished as, so this gives it back what it
+     * had. It stops the day the pond has anything on its own book.
+     */
+    private void legacy(long key, PondData.Claim c) {
+        if (regions.containsKey(key)) return;
+        String mine = key + "|";
+        for (String k : brood.keySet()) if (k.startsWith(mine)) return;
+        long geo = region(BlockPos.of(c.sign));
+        Set<String> st = regions.get(geo);
+        if (st == null) return;
+        for (String species : st) {
+            if (broodPos(geo, species) != null) continue;   // it has a release spot, and it is not in this pond
+            regions.computeIfAbsent(key, k -> new HashSet<>()).add(species);
+            setDirty();
+        }
     }
 
     private void adopt(long key, PondData.Claim c) {
