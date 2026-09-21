@@ -8,7 +8,8 @@
     "VillagerTradePoolMixin",
     "VillagerRepriceMixin",
     "FlowFluidMixin",
-    "FurnaceCookFishMixin"
+    "FurnaceCookFishMixin",
+    "PotionBrewingOilMixin"
   ],
   "injectors": {
     "defaultRequire": 1
