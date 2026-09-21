@@ -1919,6 +1919,19 @@ public final class FishingManager {
                             : net.minecraft.world.entity.EquipmentSlot.OFFHAND));
         }
 
+        // §livebait-before-eaten (1.0.0): the baitfish is WEIGHED before it is eaten. The five-times floor
+        // read the rig further down — after eatBait had already taken the bait off it — so it read an empty
+        // slot, weighed nothing, and skipped itself by its own `> 0` guard: a 1.99 kg bait landed a 722 g
+        // channel catfish. It was always so on a float or bottom rig; §livebait-eaten brought it to the
+        // spinning rod, where the bait used to survive the strike.
+        int livebaitBeforeEaten = 0;
+        {
+            ItemStack rodNow = sessionRod(sp, session);
+            if (rodNow.getItem() instanceof RodItem) {
+                ItemStack rigNow = RodData.get(rodNow, ComponentSlot.RIG);
+                if (rigNow.getItem() instanceof RigItem) livebaitBeforeEaten = RigData.livebaitWeightG(rigNow);
+            }
+        }
         eatBait(sp, session);
 
         // §7.1: a still-tackle "bite" can be a bottom snag (зацеп — tug free or lose the rig).
@@ -1964,12 +1977,7 @@ public final class FishingManager {
 
         // §livebait-2 (0.4.0): a weighed live baitfish on the rig culls the small takers. Read the rig
         // from the session's own rod stack (pods fish with the rod OFF-hand, so not getItemInHand).
-        int livebaitW = 0;
-        ItemStack rigSource = sessionRod(sp, session);
-        if (rigSource.getItem() instanceof RodItem) {
-            ItemStack rigS = RodData.get(rigSource, ComponentSlot.RIG);
-            if (rigS.getItem() instanceof RigItem) livebaitW = RigData.livebaitWeightG(rigS);
-        }
+        int livebaitW = livebaitBeforeEaten;   // §livebait-before-eaten: not the rig — the bait is off it by now
         // §match-size: how well the whole kit suits the species shapes the specimen it dares to take.
         double match = session.ctx != null ? BiteEngine.matchScore(profile, session.ctx) : 0.85;
         session.rollLuck = AnglerSkills.sizeLuck(sp);

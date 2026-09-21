@@ -81,7 +81,9 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
                 .append(Component.literal(c.getByte("Sex") == 0 ? " ♀" : " ♂")
                         .withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(c.getByte("Sex") == 0 ? 0xFF60A0 : 0x60A0FF)));
         row("size", size, AQUA);
-        row("weight", FishItem.weightText(FishItem.getWeightG(fish)), WHITE);
+        // §card-imperial: grams and kilos, and the pounds beside them
+        row("weight", FishItem.weightText(FishItem.getWeightG(fish)).copy()
+                .append(" (" + FishItem.imperialText(FishItem.getWeightG(fish)) + ")"), WHITE);
         row("length", Component.literal(FishItem.getLengthCm(fish) + " cm"), WHITE);
         rule();
         if (!c.getString("Group").isEmpty()) row("group", Component.translatable(com.riverfishing.fish.FishGroup.nameKey(c.getString("Group"))), GREEN);   // §card-group
