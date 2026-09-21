@@ -32,7 +32,7 @@ body you can see the whole way through; an out-pulled fish is played out and a p
 crank; the line no longer snags on the world. Any fish is live bait, and only a predator five times heavier
 takes it, the floor holding through the pond's re-centring and the stocking floor — and no longer pinning
 every fish to exactly that weight. Flat fish show in the aquarium, and animations run in an old world (the
-client clock was a float of the game time). The catch card names the morph. The tackle station opens on
+client clock was a float of the game time). The catch card names the morph and gives the weight in pounds and ounces beside the kilos. The tackle station opens on
 NeoForge 26.x. Two anglers on one bank hear their own drag. Two config knobs: the current, the season's length — and
 an old config file gains them, every value already set kept.
 
