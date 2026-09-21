@@ -77,6 +77,7 @@ public final class StockedData extends SavedData {
             inherit(c.sign, key, c);
             adopt(key, c);
             legacy(key, c);
+            settlePond(key);
         }
         return key;
     }
@@ -136,6 +137,27 @@ public final class StockedData extends SavedData {
             if (broodPos(geo, species) != null) continue;   // it has a release spot, and it is not in this pond
             regions.computeIfAbsent(key, k -> new HashSet<>()).add(species);
             setDirty();
+        }
+    }
+
+    /**
+     * §pond-settle-old (1.0.0): everything on a pond's book lives in the pond. "No checks" settles a
+     * species the day it is put in — but only at a RELEASE, and a brood put in before that rule was still
+     * waiting on its spawn window (Since / Due), unsettled. Since the pond reads nothing but settled
+     * species, such a pond fished and netted as empty with sixty-eight koi on its book. Read off two real
+     * saves: 1.20.1 Forge (koi 68, carp 12, pike 120 + 90 fry, nothing settled) and 26.1.2 NeoForge.
+     */
+    private void settlePond(long key) {
+        String mine = key + "|";
+        for (String k : new java.util.ArrayList<>(brood.keySet())) {
+            if (!k.startsWith(mine)) continue;
+            CompoundTag t = brood.get(k);
+            if (t.getInt("F") + t.getInt("M") + t.getInt("Fry") + t.getInt("Adults") <= 0) continue;
+            String species = k.substring(mine.length());
+            if (isStocked(key, species)) continue;
+            markStocked(key, species);
+            t.remove("Since");
+            t.remove("Due");
         }
     }
 
