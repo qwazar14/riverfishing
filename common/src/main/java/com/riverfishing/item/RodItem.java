@@ -61,6 +61,16 @@ public class RodItem extends Item {
         }
         // With an ACTIVE session the click is a strike / reel pulse (server-side); the client guesses
         // session state from its own line renderer so both sides agree on hold behaviour.
+        if (rodType == RodType.WINTER && lineOut) {   // §jig-2: over a hole the click is a HOLD, not a strike
+            boolean calm = !level.isClientSide
+                    ? player instanceof ServerPlayer fsp && FishingManager.winterCalm(fsp)
+                    : dev.architectury.utils.EnvExecutor.getEnvSpecific(
+                            () -> () -> com.riverfishing.client.ClientLineState.selfCalm(), () -> () -> false);
+            if (calm) {
+                player.startUsingItem(hand);
+                return InteractionResultHolder.consume(rod);
+            }
+        }
         boolean sessionAction;
         if (!level.isClientSide) {
             sessionAction = FishingManager.handleRodUse(player, hand);
@@ -143,6 +153,7 @@ public class RodItem extends Item {
     public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
         if (level.isClientSide || !(entity instanceof ServerPlayer sp)) return;
         if (FishingManager.hasSession(sp)) {
+            if (FishingManager.winterTap(sp)) return;   // §jig-2: the hold over the hole let go — the pause
             // Was holding a retrieve — or, on a lure rod, letting go during the take sets the hook (2.4).
             FishingManager.onRetrieveStop(sp);
             return;
@@ -191,7 +202,9 @@ public class RodItem extends Item {
         // owner not to crank it. Keys are tooltip.riverfishing.rod_class.<active|float|bottom>.
         // The winter rod is FLOAT but is JIGGED through an ice hole, so "never reel" would be a lie for
         // it — it gets the dedicated winter_hole line below instead.
-        if (rodType != com.riverfishing.component.RodType.WINTER) {
+        if (rodType.isFly()) {
+            tooltip.add(Component.translatable("tooltip.riverfishing.rod_class.fly").withStyle(ChatFormatting.GOLD));
+        } else if (rodType != com.riverfishing.component.RodType.WINTER) {
             tooltip.add(Component.translatable("tooltip.riverfishing.rod_class."
                             + rodType.rodClass().name().toLowerCase(java.util.Locale.ROOT))
                     .withStyle(ChatFormatting.GOLD));

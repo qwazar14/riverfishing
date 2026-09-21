@@ -92,6 +92,12 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
                     java.util.Map.entry("boat", new float[]{10.94f, 5.39f, -0.16f, -5.66f, -11.16f}),
                     java.util.Map.entry("bottom", new float[]{12.99f, 5.59f, -1.81f, -9.21f}),
                     java.util.Map.entry("trolling", new float[]{10.31f, 2.21f, -2.54f}),
+                    // §fly-3d: three sections on a cork handle, the lightest chain in the fleet
+                    java.util.Map.entry("fly", new float[]{19.0f, 11.0f, 2.975f}),
+                    java.util.Map.entry("fly_3", new float[]{19.0f, 11.0f, 2.975f}),
+                    java.util.Map.entry("fly_7", new float[]{19.0f, 11.0f, 2.975f}),
+                    java.util.Map.entry("fly_9", new float[]{19.0f, 11.0f, 2.975f}),
+                    java.util.Map.entry("fly_11", new float[]{19.0f, 11.0f, 2.975f}),
                     // §sea-spin-3d: EIGHT sections, the deepest chain in the fleet
                     java.util.Map.entry("sea_spin",
                             new float[]{9.15f, 3.15f, -3.15f, -7.95f, -10.95f, -12.95f, -14.58f}),
@@ -112,7 +118,9 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             java.util.Map.entry("winter", 21.9f), java.util.Map.entry("sea_spin", -16f),
             java.util.Map.entry("bottom", -16f), java.util.Map.entry("carp", -16f),
             java.util.Map.entry("surf", -16f), java.util.Map.entry("boat", -15.7f),
-            java.util.Map.entry("trolling", -5.7f));
+            java.util.Map.entry("trolling", -5.7f), java.util.Map.entry("fly", -5.225f),
+            java.util.Map.entry("fly_3", -5.225f), java.util.Map.entry("fly_7", -5.225f),
+            java.util.Map.entry("fly_9", -5.225f), java.util.Map.entry("fly_11", -5.225f));
 
     /**
      * §rod-tip-3d: where the drawn tip landed ON SCREEN, in normalised device coords, captured while
@@ -241,12 +249,21 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      * another rod is one translate along the blank. Values are seat centres from tools/gen_spin_rod.js
      * minus 19.5. A rod absent here takes no reel (RodType.takesReel is false).
      */
-    private static final java.util.Map<String, float[]> REEL_SEAT_DX = java.util.Map.of(
-            "feeder", new float[]{0f, 0f}, "spinning", new float[]{0f, 0f},
-            "ultralight", new float[]{0.8f, 0.4f},   // its seat rides 0.4u higher than the 9.45 docking line
-            "sea_spin", new float[]{1.25f, 0f}, "bottom", new float[]{3f, 0.52f},
-            "carp", new float[]{4.25f, 0.4f}, "surf", new float[]{4f, 0.6f},   // surf seat rides 0.6u high
-            "boat", new float[]{2.75f, 0.8f}, "trolling", new float[]{4.15f, 0f});
+    private static final java.util.Map<String, float[]> REEL_SEAT_DX = java.util.Map.ofEntries(
+            java.util.Map.entry("feeder", new float[]{0f, 0f}),
+            java.util.Map.entry("spinning", new float[]{0f, 0f}),
+            java.util.Map.entry("ultralight", new float[]{0.8f, 0.4f}),
+            java.util.Map.entry("sea_spin", new float[]{1.25f, 0f}),
+            java.util.Map.entry("bottom", new float[]{3f, 0.52f}),
+            java.util.Map.entry("carp", new float[]{4.25f, 0.4f}),
+            java.util.Map.entry("surf", new float[]{4f, 0.6f}),
+            java.util.Map.entry("boat", new float[]{2.75f, 0.8f}),
+            java.util.Map.entry("trolling", new float[]{4.15f, 0f}),
+            java.util.Map.entry("fly", new float[]{4.65f, 0f}),
+            java.util.Map.entry("fly_3", new float[]{4.65f, 0f}),
+            java.util.Map.entry("fly_7", new float[]{4.65f, 0f}),
+            java.util.Map.entry("fly_9", new float[]{4.65f, 0f}),
+            java.util.Map.entry("fly_11", new float[]{4.65f, 0f}));
 
     // ===== §line-thru-guides: the line runs from the spool through every ring to the tip =====
     /**
@@ -297,9 +314,20 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         float[][] path = linePath(rodKey);
         if (path == null) return null;
         float s = (float) Math.cbrt(ri.size() / 4000.0);
-        float[][] pts = new float[path.length + 1][];
-        pts[0] = new float[]{19.3f - 3.75f * s + off[0], 9.55f - 1.5f * s + off[1]};  // the spool's front lip
-        System.arraycopy(path, 0, pts, 1, path.length);
+        float[] lip = new float[]{19.3f - 3.75f * s + off[0], 9.55f - 1.5f * s + off[1]};  // the spool's front lip
+        // §fly-hand-loop: on a fly rod the running line hangs in a loop between the reel and the
+        // stripping guide — what the line hand has stripped in and has to give on the shoot. It is
+        // drawn as a sag in model units between the lip and the first ring, deeper with more slack.
+        float sag = FlyLineClient.handLoopUnits(rodKey);
+        int loop = sag > 0.05f ? 5 : 0;
+        float[][] pts = new float[path.length + 1 + loop][];
+        pts[0] = lip;
+        for (int i = 1; i <= loop; i++) {
+            float f = i / (float) (loop + 1);
+            pts[i] = new float[]{lip[0] + (path[0][0] - lip[0]) * f,
+                    lip[1] + (path[0][1] - lip[1]) * f - sag * 4f * f * (1 - f)};
+        }
+        System.arraycopy(path, 0, pts, 1 + loop, path.length);
         return pts;
     }
 
@@ -330,7 +358,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      */
     static float[] lineStyle(ItemStack stack) {
         if (!(RodData.get(stack, ComponentSlot.LINE).getItem() instanceof LineItem li)) return null;
-        return RodRenderTypes.strandStyle(li.lineType(), li.diameterMm());
+        return RodRenderTypes.strandStyle(li);
     }
 
     /** Draws the captured thread. Points are already in render space, so the matrix is identity. */
@@ -382,6 +410,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
                     new org.joml.Quaternionf(cam0.rotation()));
             return;
         }
+        if (FlyLineClient.active()) {   // §one-rope: the fly line continues off the tip in THIS pass
+            drawHandRope(stack, mc, buffers);
+            return;
+        }
         ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
         if (own == null) return;
 
@@ -427,14 +459,18 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
 
         org.joml.Matrix4f id = new org.joml.Matrix4f();
         double time = mc.level.getGameTime() + pt;
+        // §line-snag: caught on a block, the string runs end -> kink -> tip in two straight legs
+        net.minecraft.world.phys.Vec3 kink = LineRenderer.kinkFor(mc, own, tipW, end);
         org.joml.Vector3f prev = toNode(
-                end.add(0, LineRenderer.hangOffset(own, dy, 0.0, time), 0), cp, q, warp, space);
+                end.add(0, kink != null ? 0.0 : LineRenderer.hangOffset(own, dy, Math.sqrt(dx * dx + dy * dy + dz * dz), 0.0, time), 0), cp, q, warp, space);
         for (int k = 1; k <= 16; k++) {
             double f = k / 16.0;
-            org.joml.Vector3f p = toNode(new net.minecraft.world.phys.Vec3(
-                    end.x + dx * f,
-                    end.y + LineRenderer.hangOffset(own, dy, f, time),   // §line-taut
-                    end.z + dz * f), cp, q, warp, space)
+            net.minecraft.world.phys.Vec3 w = kink != null
+                    ? (f < 0.5 ? end.lerp(kink, f * 2.0) : kink.lerp(tipW, (f - 0.5) * 2.0))
+                    : new net.minecraft.world.phys.Vec3(end.x + dx * f,
+                            end.y + LineRenderer.hangOffset(own, dy, Math.sqrt(dx * dx + dy * dy + dz * dz), f, time),   // §line-taut
+                            end.z + dz * f);
+            org.joml.Vector3f p = toNode(w, cp, q, warp, space)
                     .add((float) (dtx * f), (float) (dty * f), (float) (dtz * f));
             float sx = p.x() - prev.x(), sy = p.y() - prev.y(), sz = p.z() - prev.z();
             float len = (float) Math.sqrt(sx * sx + sy * sy + sz * sz);
@@ -446,6 +482,65 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             prev = p;
         }
         handLineNanos = System.nanoTime();   // §tip-fresh
+    }
+
+    /**
+     * §one-rope: the fly line is ONE line — spool, hand loop, every ring, tip, and then the rope out
+     * to the fly — so the rope's points are drawn here, in the pass that just drew the thread, from
+     * the very tip vertex the thread ended on. Same hand-space reading and the same ramped
+     * projection correction as the water line, so there is no seam and no lag at the tip.
+     */
+    private static void drawHandRope(ItemStack stack, Minecraft mc, MultiBufferSource buffers) {
+        float pt = mc.getTimer().getGameTimeDeltaPartialTick(false);
+        net.minecraft.world.phys.Vec3[] pts = FlyLineClient.renderPoints(pt);
+        if (pts == null) return;
+        var cam = mc.gameRenderer.getMainCamera();
+        net.minecraft.world.phys.Vec3 cp = cam.getPosition();
+        org.joml.Quaternionf q = new org.joml.Quaternionf(cam.rotation());
+        double worldFov = mc.options.fov().get() * mc.player.getFieldOfViewModifier();
+        float warp = (float) (Math.tan(Math.toRadians(70.0) / 2.0)
+                / Math.tan(Math.toRadians(worldFov) / 2.0));
+        float[] style = lineStyle(stack);
+        if (style == null) style = RodRenderTypes.strandStyle(com.riverfishing.component.LineType.FLY, 1.0);
+        var vc = buffers.getBuffer(RodRenderTypes.lineStrand(style[4]));
+
+        org.joml.Vector3f tipV = new org.joml.Vector3f(TIP_VIEW[0], TIP_VIEW[1], TIP_VIEW[2]);
+        sampleHandSpace(tipV, q);
+        int space = effectiveHandSpace();
+        net.minecraft.world.phys.Vec3 tipW = tipWorld(tipV, cp, q, space);
+        // The rope hangs off the tip the PHYSICS used (pts[0]); the correction is measured against
+        // that point, not a re-derived one, or the first segment kinks toward wherever they differ.
+        org.joml.Vector3f rootWarped = toNode(pts[0], cp, q, warp, space);
+        float dtx = tipV.x() - rootWarped.x(), dty = tipV.y() - rootWarped.y(), dtz = tipV.z() - rootWarped.z();
+        FlyLineClient.handTip(tipW, cp);   // and next tick the physics hangs off THIS tip, at rod reach
+
+        org.joml.Matrix4f id = new org.joml.Matrix4f();
+        int leaderFrom = FlyLineClient.leaderFrom();
+        org.joml.Vector3f prev = tipV;
+        int n = pts.length;
+        for (int k = 1; k < n; k++) {
+            float f = 1f - k / (float) (n - 1);   // full tip correction at the tip, none at the fly
+            org.joml.Vector3f p = toNode(pts[k], cp, q, warp, space)
+                    .add(dtx * f, dty * f, dtz * f);
+            boolean leader = k >= leaderFrom;
+            int[] tc = FlyLineClient.tint(leader ? 90 : (int) style[0], leader ? 90 : (int) style[1], leader ? 90 : (int) style[2],
+                    FlyLineClient.depthOf(pts[k]));   // §depth-tint
+            int cr = tc[0], cg = tc[1], cb = tc[2];
+            int alpha = leader ? 120 : (int) style[3];
+            float sx = p.x() - prev.x(), sy = p.y() - prev.y(), sz = p.z() - prev.z();
+            float len = (float) Math.sqrt(sx * sx + sy * sy + sz * sz);
+            if (len > 1.0e-5f) {
+                sx /= len; sy /= len; sz /= len;
+                vc.addVertex(id, prev.x(), prev.y(), prev.z()).setColor(cr, cg, cb, alpha).setNormal(sx, sy, sz);
+                vc.addVertex(id, p.x(), p.y(), p.z()).setColor(cr, cg, cb, alpha).setNormal(sx, sy, sz);
+            }
+            prev = p;
+        }
+        // the fly: a dark speck on the end
+        org.joml.Vector3f fl = prev;
+        vc.addVertex(id, fl.x(), fl.y() + 0.03f, fl.z()).setColor(30, 30, 30, 255).setNormal(0, 1, 0);
+        vc.addVertex(id, fl.x(), fl.y() - 0.03f, fl.z()).setColor(30, 30, 30, 255).setNormal(0, 1, 0);
+        handLineNanos = System.nanoTime();   // §tip-fresh: the world pass skips its copy
     }
 
     /**
@@ -612,7 +707,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
                                        int light, int overlay) {
         if (!BLANK_3D) return false;
         if (!(stack.getItem() instanceof RodItem rod)) return false;
-        String rodKey = rod.rodType().jsonKey();
+        String rodKey = rod.rodType().modelKey();
         Minecraft mc = Minecraft.getInstance();
         ModelManager mm = mc.getModelManager();
         BakedModel missing = mm.getMissingModel();
@@ -656,6 +751,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         if (FORCE_BEND >= 0) return Math.min(FORCE_BEND, BEND_BUCKETS) / (float) BEND_BUCKETS;
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return 0f;
+        if (FlyLineClient.active()) return FlyLineClient.load();   // §rope: the line's pull IS the load
         ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
         return l == null ? 0f : net.minecraft.util.Mth.clamp(l.smoothRodLoad, 0f, 1f);
     }
@@ -720,8 +816,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return 0;
         ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
-        if (l == null) return 0;
-        float t = l.smoothTension;
+        float t = FlyLineClient.active() ? FlyLineClient.load() : l == null ? 0f : l.smoothTension;
         return t <= 0.06f ? 0
                 : net.minecraft.util.Mth.clamp((int) Math.ceil((t - 0.06f) / 0.94f * BEND_BUCKETS), 1, BEND_BUCKETS);
     }
@@ -733,7 +828,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         ModelManager mm = mc.getModelManager();
         ItemRenderer ir = mc.getItemRenderer();
         BakedModel missing = mm.getMissingModel();
-        String rodKey = stack.getItem() instanceof RodItem r ? r.rodType().jsonKey() : "bamboo";
+        String rodKey = stack.getItem() instanceof RodItem r ? r.rodType().modelKey() : "bamboo";
         // §rod-physics: advanced here because the view moves per FRAME, not per tick, and this is the
         // one place that runs every frame a rod is on screen. Calling it twice in a frame is a no-op.
         RodPhysics.update();
@@ -801,7 +896,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             // The reel — only if one is fitted (reel-less poles have none). Always part of the rod.
             ItemStack reel = RodData.get(stack, ComponentSlot.REEL);
             if (reel.getItem() instanceof ReelItem ri) {
-                layer = draw(ir, resolve(mm, missing, mir, RodModelLayers.reel(ri.size()), RodModelLayers.reelGeneric()),
+                layer = draw(ir, resolve(mm, missing, mir, ri.fly() ? RodModelLayers.reelFly(ri.flyWeight()) : RodModelLayers.reel(ri.size()), RodModelLayers.reelGeneric()),
                         stack, ctx, pose, buffers, light, overlay, layer);
             }
 
@@ -846,7 +941,10 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         }
         // §crank-swing: the whip belongs to the CAST. This read the swing unconditionally, so every
         // crank during a fight added a casting whip on top of the arm swing — two shakes per click.
-        float swing = com.riverfishing.client.ClientLineState.active()
+        // §jig-swing: …with one exception. The winter jig IS a stroke of the rod — a couple of clicks a
+        // second, each meant to be seen — so while the jig gauge is up the whip is exactly the animation
+        // the jerk needs, and the arm swing alone was too small a thing to fish by.
+        float swing = com.riverfishing.client.ClientLineState.active() && !JigClient.isActive()
                 ? 0f : mc.player.getAttackAnim(mc.getTimer().getGameTimeDeltaPartialTick(false));
         float pitch = RodHandTransform.castPitch(chargePower, swing);
         if (pitch != 0f) {

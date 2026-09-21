@@ -116,7 +116,7 @@ if "cross * (" not in tank:
     die("the clutch is no longer scaled by the cross rate — every hybrid lays a full clutch again")
 if "mates(sp, FishItem.getSpecies(m))" not in tank:
     die("the tank pairs on the id again — §breeds-with is gone")
-if "pair[0]" not in tank or "RoeItem.of(FishItem.getSpecies(mother)" not in tank:
+if "pair[0]" not in tank or ("RoeItem.of(FishItem.getSpecies(mother)" not in tank and "RoeItem.of(hybridOr(FishItem.getSpecies(mother)" not in tank):
     die("the roe is no longer built from the mother, so a cross no longer has a definite species")
 
 if fails:

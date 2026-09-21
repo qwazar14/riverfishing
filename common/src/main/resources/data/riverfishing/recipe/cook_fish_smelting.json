@@ -1,0 +1,11 @@
+{
+  "type": "riverfishing:cook_fish_smelting",
+  "ingredient": {
+    "item": "riverfishing:perch"
+  },
+  "result": {
+    "id": "riverfishing:perch"
+  },
+  "experience": 0.35,
+  "cookingtime": 200
+}

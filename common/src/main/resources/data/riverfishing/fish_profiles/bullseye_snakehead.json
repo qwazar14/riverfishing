@@ -1,7 +1,10 @@
 {
   "display": "Глазчатый змееголов",
   "latin": "Channa marulius",
-  "spawn": { "season": "spring", "sub": "early" },
+  "spawn": {
+    "season": "spring",
+    "sub": "early"
+  },
   "group": "predator",
   "water_bodies": {
     "lake": 1.2,
@@ -17,8 +20,8 @@
     "mean": 1500
   },
   "length_cm": {
-    "min": 30,
-    "max": 90
+    "min": 30.0,
+    "max": 90.0
   },
   "fight": {
     "strength": 0.9,
@@ -28,20 +31,15 @@
     "aggression": 0.85
   },
   "ideal": {
-    "rod": [
-      "spinning"
-    ],
-    "reel_size": 3000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "braid",
       "diameter_mm": 0.22,
       "tolerance_mm": 0.06
     },
-    "rig": [
-      "predator"
-    ],
-    "groundbait": { "fraction": 0.62, "nutrition": 0.70 },
+    "groundbait": {
+      "fraction": 0.62,
+      "nutrition": 0.7
+    },
     "bait": {
       "livebait": 1.2,
       "silicone": 1.05,
@@ -53,9 +51,9 @@
       "swimbait": 0.95
     },
     "hook": {
-      "ideal": 2,
-      "tolerance": 3
-    }
+      "ideal": 2
+    },
+    "requires_leader": false
   },
   "season": {
     "spring": 1.1,
@@ -75,21 +73,23 @@
     "thunder": 1.0
   },
   "depth_pref": "surface",
-  "distance_pref": {
-    "min": 3,
-    "max": 20
-  },
   "habitat": {
     "depth_min": 1,
     "depth_max": 6,
     "width_min": 4
   },
-  "provinces": ["indomalaya"],
-  "biomes_require": ["warm", "swamp"],
+  "provinces": [
+    "indomalaya"
+  ],
+  "biomes_require": [
+    "warm",
+    "swamp"
+  ],
   "biomes": {
     "warm": 1.4,
     "swamp": 1.2
   },
   "base": 0.6,
-  "min_angler_level": 5
+  "min_angler_level": 21,
+  "diet": "predator"
 }

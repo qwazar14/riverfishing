@@ -14,9 +14,33 @@ import java.util.List;
 public class ReelItem extends Item implements RodComponentItem {
     private final int size; // 1000..14000 (8000+ is the saltwater tier, §sea-tackle)
 
+    /** §fly-reel: a single-action fly reel — no inertia, no spool for mono; it holds a fly line and nothing else. */
+    private final boolean fly;
+    /** §fly-classes: the line weight this fly reel is built for; 0 on a spinning reel. */
+    private final int flyWeight;
+
     public ReelItem(int size, Properties properties) {
+        this(size, 0, properties);
+    }
+
+    public ReelItem(int size, int flyWeight, Properties properties) {
         super(properties);
         this.size = size;
+        this.flyWeight = flyWeight;
+        this.fly = flyWeight > 0;
+    }
+
+    public boolean fly() { return fly; }
+    public int flyWeight() { return flyWeight; }
+
+    /**
+     * §fly-reel: a fly reel takes a fly line and only that; every other reel takes anything but a
+     * fly line, inside its spool's diameter window (§tackle-compat).
+     */
+    public boolean acceptsLine(LineItem line) {
+        boolean flyLine = line.lineType() == com.riverfishing.component.LineType.FLY;
+        if (fly || flyLine) return fly && flyLine;
+        return com.riverfishing.component.TackleCompat.reelAcceptsLine(size, line.diameterMm());
     }
 
     public int size() { return size; }
@@ -53,6 +77,7 @@ public class ReelItem extends Item implements RodComponentItem {
     public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.riverfishing.reel_size", size).withStyle(s -> s.withColor(0xA0A0A0)));
         tooltip.add(Component.translatable("tooltip.riverfishing.reel_drag", String.format("%.1f", maxDragKg())).withStyle(s -> s.withColor(0xA0A0A0)));
+        if (fly) return;   // §fly-reel: the fly line is the only line, no diameter window to print
         // §tackle-compat: the working line-diameter window this spool takes.
         tooltip.add(Component.translatable("tooltip.riverfishing.reel_line",
                 String.format("%.2f", com.riverfishing.component.TackleCompat.minLineDiameter(size)),

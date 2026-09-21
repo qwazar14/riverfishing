@@ -1,6 +1,9 @@
 package com.riverfishing.fishing;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -122,6 +125,29 @@ public final class WaterUpgrades extends SavedData {
             kinds.add(e.kind);
         }
         return kinds;
+    }
+
+    /**
+     * §pond-name: the upgrade blocks standing IN this water or on its bank (within two blocks of a
+     * claimed block), as their block names — what the pond sign lists. The bank ones (warm outflow,
+     * feeding station) never touch the water, hence the two-block reach; a station is listed whether
+     * or not it has groundbait in it, because the question is what is built, not what is running.
+     */
+    public static List<Component> inside(ServerLevel level, java.util.function.LongPredicate water) {
+        WaterUpgrades data = get(level);
+        List<Component> names = new ArrayList<>();
+        for (Map.Entry<Long, Entry> me : data.entries.entrySet()) {
+            BlockPos pos = BlockPos.of(me.getKey());
+            boolean near = false;
+            scan:
+            for (int dx = -2; dx <= 2; dx++) for (int dy = -2; dy <= 2; dy++) for (int dz = -2; dz <= 2; dz++) {
+                if (water.test(pos.offset(dx, dy, dz).asLong())) { near = true; break scan; }
+            }
+            if (!near || !level.hasChunkAt(pos)) continue;
+            if (!(level.getBlockState(pos).getBlock() instanceof com.riverfishing.block.WaterUpgradeBlock b)) continue;
+            names.add(b.getName());
+        }
+        return names;
     }
 
     // ---- persistence ---------------------------------------------------------------------------

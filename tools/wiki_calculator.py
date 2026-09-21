@@ -11,7 +11,7 @@ game uses, so the calculator cannot answer differently from the engine:
   * required pull   max(0.5, fight.strength x (1 + taper(kg)) x 2)  — FishingManager
   * §giant-taper    taper(kg) = kg up to 20, then 20 x (kg/20)^0.55   — FishingManager
   * line strain     100 x d^2 x factor (mono 1.0, fluoro 1.1, braid 3.0)  — LineType
-  * livebait floor  the size roll floors at 6x the bait's weight — FishingManager
+  * livebait floor  the size roll floors at 5x the bait's weight, uncapped — FishingManager / BiteEngine.PREY_RATIO
   * lure floor      the same at 8x                                — FishingManager
   * coarse feed     only fraction above 0.5 flattens the size curve — FishingManager
 
@@ -138,10 +138,11 @@ def species_data(profiles, roster, names_by_lang):
             "lvl": p.get("min_angler_level", 0),
             "season": p["season"], "time": p["time"], "weather": p["weather"],
             "bait": i["bait"],
-            "rod": i["rod"], "rig": i["rig"],
-            "reel": [i["reel_size"], i["reel_tolerance"]],
-            "line": [i["line"]["type"], i["line"]["diameter_mm"]],
-            "hook": [i["hook"]["ideal"], i["hook"]["tolerance"]],
+            # §species-table (0.10): rod/rig/reel/line were retired from the catch — the table may not say
+            "rod": i.get("rod", []), "rig": i.get("rig", []),
+            "reel": [i.get("reel_size", 0), i.get("reel_tolerance", 0)],
+            "line": [i.get("line", {}).get("type", "mono"), i.get("line", {}).get("diameter_mm", 0)],
+            "hook": [i.get("hook", {}).get("ideal", 8), i.get("hook", {}).get("tolerance", 2)],
             "lead": bool(i.get("requires_leader")),
             "gb": [i["groundbait"]["fraction"], i["groundbait"]["nutrition"]] if isinstance(i.get("groundbait"), dict) else None,
             "leg": p.get("legendary", {}).get("weight_g"),
@@ -221,7 +222,7 @@ JS = r"""
       '<p><span class="k">'+T.weather+':</span> '+tr(best(s.weather))+'</p>'+
       '<p><span class="k">'+T.level+':</span> '+(s.lvl?T.gate+' '+s.lvl:T.nogate)+'</p>']);
     var baitHtml=baits.slice(0,5).map(function(b){return '<p><b>'+b+'</b> <span class="k">'+s.bait[b].toFixed(2)+'</span></p>';}).join('');
-    if(s.bait.livebait!=null) baitHtml+='<p><span class="k">'+T.livebait+':</span> <b>'+wt(g/6)+'</b></p>';
+    if(s.bait.livebait!=null) baitHtml+='<p><span class="k">'+T.livebait+':</span> <b>'+wt(g/5)+'</b></p>';
     var lureish=baits.some(function(b){return ['wobbler','spinner','spoon','silicone','jig','popper','crankbait','castmaster','giant_spoon','octopus_jig'].indexOf(b)>=0;});
     if(lureish) baitHtml+='<p><span class="k">'+T.lure+':</span> <b>'+wt(g/8)+'</b></p>';
     c.push(['onwhat', baitHtml]);

@@ -1,12 +1,30 @@
 {
   "_comment": "River Fishing update feed (§update-check). Served raw from the mc-1.21.1 branch; the in-game checker compares 'latest' for the running MC version and prints up to 3 bullets per missed release. Bump 'latest' ONLY when a release is actually published.",
   "latest": {
-    "1.20.1": "0.9.0",
-    "1.21.1": "0.9.0",
-    "26.1.2": "0.9.0",
-    "26.2": "0.9.0"
+    "1.20.1": "1.0.0",
+    "1.21.1": "1.0.0",
+    "26.1.2": "1.0.0",
+    "26.2": "1.0.0"
   },
   "changelog": [
+    {
+      "version": "1.0.0",
+      "ru": [
+        "Нахлыст заново: шнур — настоящая верёвка на кончике удилища, пять классов удилищ, девять шнуров, реки текут",
+        "267 видов, кои — полноценный вид и живёт в каждой вишнёвой роще, любая рыба готовится и даёт насыщение, рыбий жир теперь варится в зельеварке, живец из любой рыбы — на хищника впятеро тяжелее",
+        "Частный пруд: 100×100, имя на табличке, своя книга и только она, без проверок, пруд помнит выпущенных рыб и отдаёт их же, подросшими; все удилища, катушки, лески и поводки снова крафтятся"
+      ],
+      "uk": [
+        "Нахлист заново: шнур — справжня мотузка на кінчику вудилища, п'ять класів вудилищ, дев'ять шнурів, річки течуть",
+        "267 видів, кої — повноцінний вид і живе в кожному вишневому гаю, будь-яка риба готується й дає насичення, риб'ячий жир тепер вариться у варильній стійці, живець з будь-якої риби — на хижака вп'ятеро важчого",
+        "Приватний став: 100×100, ім'я на табличці, своя книга і лише вона, без перевірок, став пам'ятає випущених риб і віддає їх же, підрослими; усі вудилища, котушки, волосіні й повідці знову крафтяться"
+      ],
+      "en": [
+        "Fly fishing rebuilt: the line is a real rope off the rod tip, five rod classes, nine lines, and rivers run",
+        "267 species, the koi is a species and lives in every cherry-grove water, every fish cooks and saturates, fish oil is brewed in a brewing stand now, any fish is live bait — for a predator five times heavier",
+        "Your pond: 100×100, named on its sign, its own book and only that, no checks, and it remembers the fish you put in and hands them back grown; every rod, reel, line and leader is craftable again"
+      ]
+    },
     {
       "version": "0.9.0",
       "ru": [

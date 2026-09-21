@@ -1,0 +1,90 @@
+{
+  "display": "Vundu catfish",
+  "latin": "Heterobranchus longifilis",
+  "group": "catfish",
+  "diet": "omnivore",
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
+  "water_bodies": {
+    "river": 0.8,
+    "lake": 0.8,
+    "pond": 1.1,
+    "swamp": 1.4,
+    "sea": 0.0,
+    "puddle": 0.2
+  },
+  "weight_g": {
+    "min": 440,
+    "max": 55000,
+    "mean": 3343
+  },
+  "length_cm": {
+    "min": 30.0,
+    "max": 150.0
+  },
+  "fight": {
+    "strength": 1.0,
+    "stamina": 1.0,
+    "runs": 6,
+    "pattern": "sounding",
+    "aggression": 0.6
+  },
+  "ideal": {
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.3,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.7,
+      "nutrition": 0.8
+    },
+    "bait": {
+      "worm": 1.0,
+      "dough": 0.75,
+      "chicken_liver": 0.7,
+      "fish_strip": 0.7,
+      "livebait": 0.6,
+      "jig": 0.6
+    },
+    "hook": {
+      "ideal": 3
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 1.1,
+    "autumn": 1.0,
+    "winter": 0.3
+  },
+  "time": {
+    "dawn": 1.0,
+    "day": 0.4,
+    "dusk": 1.2,
+    "night": 1.5
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.2,
+    "thunder": 1.1
+  },
+  "depth_pref": "bottom",
+  "habitat": {
+    "depth_min": 5,
+    "width_min": 12
+  },
+  "provinces": [
+    "afrotropical"
+  ],
+  "biomes": {
+    "temperate": 0.6,
+    "warm": 1.2,
+    "swamp": 1.5,
+    "jungle": 1.1
+  },
+  "base": 0.78,
+  "min_angler_level": 29
+}

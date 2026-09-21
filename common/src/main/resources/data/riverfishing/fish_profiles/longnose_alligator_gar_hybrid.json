@@ -1,0 +1,93 @@
+{
+  "display": "Longnose × alligator gar hybrid",
+  "latin": "Lepisosteus osseus × Atractosteus spatula",
+  "group": "big_game",
+  "diet": "predator",
+  "spawn": {
+    "season": "summer",
+    "sub": "early"
+  },
+  "water_bodies": {
+    "river": 0.8,
+    "lake": 0.8,
+    "pond": 1.1,
+    "swamp": 1.4,
+    "sea": 0.0,
+    "puddle": 0.2
+  },
+  "weight_g": {
+    "min": 440,
+    "max": 55000,
+    "mean": 3343
+  },
+  "length_cm": {
+    "min": 44.0,
+    "max": 220.0
+  },
+  "fight": {
+    "strength": 1.0,
+    "stamina": 0.94,
+    "runs": 6,
+    "pattern": "relentless",
+    "aggression": 0.8
+  },
+  "ideal": {
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.3,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.0,
+      "nutrition": 0.03
+    },
+    "bait": {
+      "livebait": 1.0,
+      "fish_strip": 0.9,
+      "wobbler": 0.9,
+      "jig": 0.85,
+      "fly_streamer": 0.7
+    },
+    "hook": {
+      "ideal": 2
+    },
+    "requires_leader": true
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 1.1,
+    "autumn": 1.0,
+    "winter": 0.3
+  },
+  "time": {
+    "dawn": 1.0,
+    "day": 0.4,
+    "dusk": 1.2,
+    "night": 1.5
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.0,
+    "thunder": 1.0
+  },
+  "depth_pref": "surface",
+  "habitat": {
+    "depth_min": 5,
+    "width_min": 18
+  },
+  "provinces": [
+    "nearctic"
+  ],
+  "biomes": {
+    "temperate": 0.8,
+    "warm": 0.9,
+    "swamp": 1.3,
+    "cherry": 0.6
+  },
+  "base": 0.58,
+  "hybrid_of": [
+    "longnose_gar",
+    "alligator_gar"
+  ],
+  "min_angler_level": 29
+}

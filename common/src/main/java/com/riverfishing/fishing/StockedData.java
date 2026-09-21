@@ -36,6 +36,148 @@ public final class StockedData extends SavedData {
         return (((long) (pos.getX() >> 7)) << 32) ^ ((pos.getZ() >> 7) & 0xFFFFFFFFL);
     }
 
+    /**
+     * §pond-ledger (1.0.0): the ledger key for a spot — a claimed pond has a book of ITS OWN, keyed by
+     * its sign, and wild water keeps the ~128-block region. Two ponds in one region shared one book:
+     * the fry stocked in one came up in the other's trap and the adults counted for both. The first
+     * time a pond's key is asked for, whatever the region's book held with a release spot inside the
+     * pond moves over (a 0.9/1.0 pond's fish are not lost to the split).
+     */
+    public static long regionAt(ServerLevel level, BlockPos pos) {
+        PondData.Claim c = PondData.claim(level, pos);
+        if (c == null) return region(pos);
+        return get(level).pondKey(level, c);
+    }
+
+    /**
+     * §journal-bank (1.0.0): the key for where a player STANDS — the pond within three blocks if the
+     * spot itself is dry (a claim is water columns; the bank beside it is not one), else the region.
+     */
+    public static long regionNear(ServerLevel level, BlockPos pos) {
+        PondData.Claim c = PondData.claim(level, pos);
+        for (int dx = -3; c == null && dx <= 3; dx++) for (int dz = -3; c == null && dz <= 3; dz++) {
+            c = PondData.claim(level, pos.offset(dx, 0, dz));
+        }
+        return c == null ? region(pos) : get(level).pondKey(level, c);
+    }
+
+    private final Set<Long> ponds = new HashSet<>();   // transient: the claim keys seen this session
+
+    public long pondKey(ServerLevel level, PondData.Claim c) {
+        // §pond-key (1.0.0): NOT the sign's packed position bare — a region key is (x>>7)<<32 ^ (z>>7)
+        // and BlockPos.asLong lays x and z out the same way, so a sign at (1, 64, 0) WAS the wild
+        // region near (8192, 8192): one book for both, and that region settled with no checks. A
+        // region key's bits 63 and 62 are always equal (a small int, sign-extended); this key clears
+        // 63 and sets 62, so the two can never meet. The dimension is folded in too: the book is one
+        // per server and a nether pond used to share its book with an overworld sign at the same
+        // coordinates. An old pond's book moves over on first read (adopt), Pos inside the claim.
+        long dim = level.dimension().location().toString().hashCode() * 0x9E3779B97F4A7C15L;
+        long key = ((c.sign ^ dim) & 0x3FFFFFFFFFFFFFFFL) | (1L << 62);
+        if (ponds.add(key)) {
+            inherit(c.sign, key, c);
+            adopt(key, c);
+            legacy(key, c);
+            settlePond(key);
+        }
+        return key;
+    }
+
+    /**
+     * §pond-empty (1.0.0): does a pond's book still HOLD the species — settled, and with a head left.
+     * Fish the last adult out and the species is gone from the pond until it grows back or is put in
+     * again; the bite's community factor and the net read this, the way stockedPresence already did,
+     * so an emptied pond does not go on biting off the species' natural score. Guarded on AvgW like
+     * stockedPresence: a ledger from before the head count has no Adults to read.
+     */
+    public boolean pondHolds(long region, String species) {
+        return isStocked(region, species) && !(avgWeight(region, species) > 0 && adults(region, species) <= 0);
+    }
+
+    /** §pond-ledger: is this key a pond's? Its checks are the owner's business, not the water's. */
+    public boolean isPond(long region) {
+        return ponds.contains(region);
+    }
+
+    /**
+     * §pond-key-move (1.0.0): before the marker bit the pond's key WAS its sign's packed position, and
+     * that book was this pond's alone — so every species, every cull and every brood entry under it
+     * moves over whole, release spot or none. adopt() only follows release spots, and a species that
+     * settled without one (an old ledger, an operator's stocking) was left under the old key: the pond
+     * read empty and the net came up with nothing.
+     */
+    private void inherit(long old, long key, PondData.Claim c) {
+        if (old == key) return;
+        Set<String> st = regions.remove(old);
+        if (st != null) { regions.computeIfAbsent(key, k -> new HashSet<>()).addAll(st); setDirty(); }
+        Set<String> cu = culled.remove(old);
+        if (cu != null) { culled.computeIfAbsent(key, k -> new HashSet<>()).addAll(cu); setDirty(); }
+        String from = old + "|", to = key + "|";
+        for (String k : new java.util.ArrayList<>(brood.keySet())) {
+            if (!k.startsWith(from)) continue;
+            CompoundTag t = brood.remove(k);
+            brood.putIfAbsent(to + k.substring(from.length()), t);
+            setDirty();
+        }
+    }
+
+    /**
+     * §pond-key-move: and a pond whose book is STILL empty after that takes the region's species that
+     * have no release spot on record at all — a 0.5–0.8 pond, stocked before the ledger wrote one. Until
+     * the pond had a book of its own those were exactly what it fished as, so this gives it back what it
+     * had. It stops the day the pond has anything on its own book.
+     */
+    private void legacy(long key, PondData.Claim c) {
+        if (regions.containsKey(key)) return;
+        String mine = key + "|";
+        for (String k : brood.keySet()) if (k.startsWith(mine)) return;
+        long geo = region(BlockPos.of(c.sign));
+        Set<String> st = regions.get(geo);
+        if (st == null) return;
+        for (String species : st) {
+            if (broodPos(geo, species) != null) continue;   // it has a release spot, and it is not in this pond
+            regions.computeIfAbsent(key, k -> new HashSet<>()).add(species);
+            setDirty();
+        }
+    }
+
+    /**
+     * §pond-settle-old (1.0.0): everything on a pond's book lives in the pond. "No checks" settles a
+     * species the day it is put in — but only at a RELEASE, and a brood put in before that rule was still
+     * waiting on its spawn window (Since / Due), unsettled. Since the pond reads nothing but settled
+     * species, such a pond fished and netted as empty with sixty-eight koi on its book. Read off two real
+     * saves: 1.20.1 Forge (koi 68, carp 12, pike 120 + 90 fry, nothing settled) and 26.1.2 NeoForge.
+     */
+    private void settlePond(long key) {
+        String mine = key + "|";
+        for (String k : new java.util.ArrayList<>(brood.keySet())) {
+            if (!k.startsWith(mine)) continue;
+            CompoundTag t = brood.get(k);
+            if (t.getInt("F") + t.getInt("M") + t.getInt("Fry") + t.getInt("Adults") <= 0) continue;
+            String species = k.substring(mine.length());
+            if (isStocked(key, species)) continue;
+            markStocked(key, species);
+            t.remove("Since");
+            t.remove("Due");
+        }
+    }
+
+    private void adopt(long key, PondData.Claim c) {
+        String prefix = key + "|";
+        for (String k : new java.util.ArrayList<>(brood.keySet())) {
+            if (k.startsWith(prefix)) continue;
+            CompoundTag t = brood.get(k);
+            long pos = t.getLong("Pos");
+            if (pos == 0L || !c.holds(PondData.column(BlockPos.of(pos)))) continue;
+            String species = k.substring(k.indexOf('|') + 1);
+            long geo = Long.parseLong(k.substring(0, k.indexOf('|')));
+            brood.remove(k);
+            brood.put(prefix + species, t);
+            Set<String> st = regions.get(geo);
+            if (st != null && st.contains(species)) regions.computeIfAbsent(key, x -> new HashSet<>()).add(species);
+            setDirty();
+        }
+    }
+
     public static StockedData get(ServerLevel level) {
         ServerLevel overworld = level.getServer().overworld();
         return overworld.getDataStorage().computeIfAbsent(
@@ -509,7 +651,17 @@ public final class StockedData extends SavedData {
     public boolean tickSettle(ServerLevel level, long region, String species, com.riverfishing.fish.FishProfile p) {
         if (isStocked(region, species)) return false;
         CompoundTag t = brood.get(key(region, species));
-        if (t == null || !ready(t) || t.getDouble("Fit") < FIT_TO_SETTLE) return false;
+        if (t == null) return false;
+        // §pond-ledger: a private pond runs no checks — what its owner put in lives there from the day
+        // it went in. No habitat fit, no pair, no spawn window: the fry grow on their clock and the
+        // pairs breed by the season like any settled water.
+        if (isPond(region) && (t.getInt("F") + t.getInt("M") + t.getInt("Fry")) > 0) {
+            markStocked(region, species);
+            for (String k : new String[]{"Since", "Due"}) t.remove(k);
+            setDirty();
+            return true;
+        }
+        if (!ready(t) || t.getDouble("Fit") < FIT_TO_SETTLE) return false;
         long today = worldDay(level);
         if (t.getLong("Due") <= 0) {
             // Priced ONCE, when the brood is complete: the next whole window, start to end. A window the
@@ -597,8 +749,17 @@ public final class StockedData extends SavedData {
 
     /** Every farm species in the region the position is in — the per-player tick's call. */
     public void growAround(ServerLevel level, BlockPos pos) {
-        long region = region(pos);
-        for (String s : farmSpecies(region)) { matureIfDue(level, region, s); growIfDue(level, region, s); }
+        // §grow-around-9 (1.0.0): the region the player stands in AND the eight around it — a brood five
+        // blocks over a region border waited for somebody to stand on its side of the line.
+        for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++) {
+            long region = region(pos.offset(dx << 7, 0, dz << 7));
+            for (String s : farmSpecies(region)) { matureIfDue(level, region, s); growIfDue(level, region, s); }
+        }
+        // §pond-ledger: and every pond with a sign within 160 blocks — its book is its own now.
+        for (PondData.Claim c : PondData.near(level, pos, 160)) {
+            long key = pondKey(level, c);
+            for (String s : farmSpecies(key)) { matureIfDue(level, key, s); growIfDue(level, key, s); }
+        }
     }
 
     public void growIfDue(ServerLevel level, long region, String species) {
@@ -667,6 +828,73 @@ public final class StockedData extends SavedData {
         for (net.minecraft.server.level.ServerPlayer sp : level.players()) {
             if (sp.blockPosition().closerThan(pos, 64)) sp.displayClientMessage(msg, true);
         }
+    }
+
+    // ---- §pond-roster (1.0.0): the fish that were PUT in ---------------------------------------
+    // A pond remembers each fish released into it as a record — its card (genes, sex, nature, pattern,
+    // variety), its morph, its name, its weight and the day it went in — so the fish that comes out of
+    // the pond is the fish that went in, grown. A pond only: wild water stays a head count. The record
+    // is PEEKED at the bite and TAKEN at the landing, so a fish that throws the hook is still in the pond.
+    private static final int ROSTER_FISH = 256;   // ponytail: a pond nobody empties keeps the last 256 put in
+
+    public void rememberFish(long region, String species, CompoundTag record, net.minecraft.util.RandomSource rng) {
+        CompoundTag t = entry(region, species);
+        ListTag list = t.getList("Fish", Tag.TAG_COMPOUND);
+        record.putLong("Uid", rng.nextLong());
+        list.add(record);
+        while (list.size() > ROSTER_FISH) list.remove(0);
+        t.put("Fish", list);
+        setDirty();
+    }
+
+    /** A copy of one remembered fish, or null when the pond remembers none of this species. */
+    public CompoundTag peekFish(long region, String species, net.minecraft.util.RandomSource rng) {
+        CompoundTag t = brood.get(key(region, species));
+        if (t == null) return null;
+        ListTag list = t.getList("Fish", Tag.TAG_COMPOUND);
+        if (list.isEmpty()) return null;
+        int at = rng.nextInt(list.size());
+        return list.getCompound(at).copy();
+    }
+
+    /** How many fish the pond remembers of this species — the recorded part of the head count. */
+    public int rememberedFish(long region, String species) {
+        CompoundTag t = brood.get(key(region, species));
+        return t == null ? 0 : t.getList("Fish", Tag.TAG_COMPOUND).size();
+    }
+
+    /** The fish is out of the pond: true when the record was still there. */
+    public boolean takeFish(long region, String species, long uid) {
+        CompoundTag t = brood.get(key(region, species));
+        if (t == null) return false;
+        ListTag list = t.getList("Fish", Tag.TAG_COMPOUND);
+        for (int i = 0; i < list.size(); i++) {
+            if (list.getCompound(i).getLong("Uid") == uid) {
+                list.remove(i);
+                t.put("Fish", list);
+                setDirty();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * What a remembered fish weighs today: it grew the pond's step for every season it has been in —
+     * growIfDue's own arithmetic (6 % of the species mean a season, more on big genes and a feeding
+     * station, never past nine tenths of the record) — and a fish put in over that cap keeps its weight.
+     */
+    public int grownWeight(ServerLevel level, long region, String species, com.riverfishing.fish.FishProfile p, CompoundTag rec) {
+        int w = rec.getInt("W");
+        if (p == null) return w;
+        int sd = com.riverfishing.engine.Calendar.SEASON_DAYS;
+        int seasons = (int) Math.min(8L, worldDay(level) / sd - rec.getLong("Day") / sd);
+        if (seasons <= 0) return w;
+        BlockPos pos = broodPos(region, species);
+        boolean fed = pos != null && WaterUpgrades.at(level, pos).contains("feeding_station");
+        int step = (int) Math.round(p.weightMean * 0.06 * (1.0 + 0.5 * shares(region, species)[0]) * (fed ? 1.25 : 1.0));
+        int cap = (int) Math.round(p.weightMax * 0.9);
+        return Math.min(Math.max(cap, w), w + seasons * step);
     }
 
     private CompoundTag saveBrood() {

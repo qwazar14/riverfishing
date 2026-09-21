@@ -111,7 +111,8 @@ public class AquariumBlockEntity extends BlockEntity implements net.minecraft.wo
     /** The menu's own filters, mirrored so a hopper obeys the same table as a hand. */
     @Override
     public boolean canPlaceItem(int slot, ItemStack s) {
-        if (slot < MAX_FISH) return s.getItem() instanceof com.riverfishing.item.FishItem && com.riverfishing.fish.CatchCard.has(s);
+        if (slot < MAX_FISH) return s.getItem() instanceof com.riverfishing.item.FishItem && com.riverfishing.fish.CatchCard.has(s)
+                && !com.riverfishing.item.CookedFish.isCooked(s);   // §cooking: the menu refused a cooked fish, a hopper did not
         return switch (slot) {
             case 6 -> s.getItem() instanceof com.riverfishing.item.BaitItem b && !b.artificial()
                     || s.getItem() instanceof com.riverfishing.item.FishMealItem

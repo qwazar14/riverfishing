@@ -109,6 +109,7 @@ And two more **hard gates** on top of the environment ones:
 
 - **No bait the fish wants** on the rig → W = 0.
 - **Hook score below 0.34** → W = 0. The wrong hook size band means the fish will not take, full stop.
+- **The hook has a mouth.** The smallest hook on the rig names the smallest fish that can take it: 40 g at #8, halving every two sizes down (#16: 2.5 g) and doubling every two up (#2: 320 g). A species whose biggest specimen is smaller than that does not take at all, and for every other species the weight roll is floored there (capped at 60 % of the range), the same rule a lure's mass already applies.
 
 ### Time to bite
 
@@ -132,9 +133,9 @@ and floored per flow:
 | Flow | Floor |
 |---|---|
 | Float | at least **140 ticks** (7 s) |
-| Bottom | at least **660 ticks** (33 s), or 1.5× the sampled delay, **plus a random 0–900 ticks** so several rods cast in a row don't all fire at once |
+| Bottom | at least **660 ticks** (33 s), or 1.5× the sampled delay, **plus a random 0–1200 ticks** (up to a minute) so several rods cast in a row don't all fire at once |
 | Active | at least 40 ticks — but the clock only runs while you are actually retrieving |
-| Ice | clamped to **200–2400 ticks** (10 s – 2 min) |
+| Ice | clamped to **200–3200 ticks** (10 s – 160 s) |
 
 Then a [feeding frenzy](water-and-conditions.md#feeding-frenzy) divides it by 3, and a fresh fed spot takes off up to 40 %.
 
@@ -144,7 +145,7 @@ If the result still exceeds 2400 ticks (2 minutes) you are warned: *"The fish ar
 
 A waiting Float or Bottom line **re-reads the world every 300 ticks** (15 seconds). Dusk falling, rain arriving, a frenzy starting, groundbait thrown after the cast — all of it rescales the *remaining* wait and re-picks which species will bite. A cast is not a frozen snapshot. (A koi decided at the cast stays a koi, so a long wait cannot compound its rarity into a certainty.)
 
-If the water goes completely dead (night or season gating everything out) the line simply sits until a later re-evaluation revives it.
+If the water goes completely dead (night or season gating everything out) the line simply sits until a later re-evaluation revives it — and when it does, every waiting line re-clocks with its **own random phase (0–15 s)**, so a pod of rods that died together does not ring together at dawn.
 
 ---
 
@@ -308,13 +309,14 @@ Your **feet** are tackle too, read whether or not you know it. Backing away from
 
 ```
 fightMass       = weightKg ≤ 20 ? weightKg : 20 × (weightKg/20)^0.55
-requiredKg      = max(0.5, fightStrength × (1 + fightMass) × 2)
+sizeStrength    = clamp(√(weightG / weightMean), 0.35, 1)        — the profile's strength is a mean specimen's
+requiredKg      = max(0.5, fightStrength × sizeStrength × (1 + fightMass) × 2)
 effectiveStrain = lineStrainKg + 0.5 × fightDrag
 breakTension    = clamp(effectiveStrain / requiredKg, 0.2, 1) / breakSensitivity
                         × overloadPenalty × steadyHandMultiplier      (clamped 0.1 … 1.0)
 ```
 
-That single number is your margin. Thin or worn line, a heavy fish, a small reel and an overloaded blank all shrink it. Past 20 kg the mass a fight is fought against is compressed rather than counted: a 400 kg marlin is fought as 104 kg. Straight, the law would have asked 802 kg of line for it while the strongest braid in the game carries 108 — that fish was not hard, it was impossible.
+That single number is your margin. Thin or worn line, a heavy fish, a small reel and an overloaded blank all shrink it. The same `sizeStrength` scales the pattern's extra runs too — `runs = round((profileRuns + patternBonus) × size)` — so relentless's +3 or greyhounding's +2 is what a mean specimen gets, and a runt of the species gets fewer. Past 20 kg the mass a fight is fought against is compressed rather than counted: a 400 kg marlin is fought as 104 kg. Straight, the law would have asked 802 kg of line for it while the strongest braid in the game carries 108 — that fish was not hard, it was impossible.
 
 Per crank:
 
@@ -370,6 +372,10 @@ runs = max(1, profile.runs)
      + 2 if foul-hooked
 ```
 
+### When the fish out-pulls the line
+
+If `effectiveStrain / requiredKg` comes in under **0.85** the fish is *outclassed* tackle: the hook-up says so on the action bar (*"Out-pulled ×5.4: don't crank in a run — open the drag, rod across, let it tire"*), and says it once more as the first run starts. The rules of such a fight are different. A crank gains only 35 % of its usual line while the fish is fresh — the share climbs with its fatigue to a full crank on a played-out fish (1.0.0; before that a beaten fish could not be brought the last metre, because nothing gained faster than the bar bled) — a crank made **during a run** puts the tension straight over the break point, and the break point itself sits as low as 20 % of the bar. What wins is the **open drag** (sneak) while the fish runs, with the rod held across the run: the fish plays itself out against the drag, and every run tick adds `fatigueRunTick × 0.9 × courseGain` to the land bar (0.55 before 0.10.0). The timeout stretches by `1 / margin`, up to sixfold, so a 150 kg sturgeon on carp tackle is a quarter of an hour of patience, not a minute of cranking.
+
 ### Fatigue
 
 The fight wears the fish down — fast while it runs, slowly between:
@@ -422,7 +428,7 @@ Rolled exactly **once**, at the moment the bank is reached. A failed roll is a q
 ### Timeout
 
 ```
-fightTimeout = clamp(700 + weightKg × 80 + patternBonus, 900, 3400) ticks
+fightTimeout = clamp(700 + weightKg × 80 + patternBonus, 900, 6000) ticks
 patternBonus: burst 300, greyhounding 400, relentless 500, sounding 700
              (+300 more for any predator fight)
 ```
@@ -568,7 +574,7 @@ weight = min + (max − min) × u
 
 Solving the exponent from the profile's `mean` makes it the true **median catch** — half of all your fish of that species land under it. Profiles with no explicit mean fall back to the classic `k = 2.4` big-fish-are-rare curve.
 
-Two floors can raise the roll: a weighed [live baitfish](rigs-and-baits.md#live-bait-carries-a-weight) (≈6×) and a [tied lure's weight](tackle-station.md#2-the-lure-size-filter-lures-only) (≈8×), both capped at 60 % of the range.
+Two floors can raise the roll: a weighed [live baitfish](rigs-and-baits.md#live-bait-carries-a-weight) (5×, uncapped since 1.0.0) and a [tied lure's weight](tackle-station.md#2-the-lure-size-filter-lures-only) (≈8×, capped at 60 % of the range).
 
 ### Length
 
@@ -627,7 +633,7 @@ The engine always reads and dulls your **sharpest** hook — you fish with your 
 
 ## Difficulty
 
-Nine of the harsher mechanics — phantom bites, break sensitivity, spot depletion, leader bite-off, line and hook wear, snags, foul-hooking and how sharply fish spook — move together on a single **preset**: `arcade`, `realism`, `hardcore` or `custom`. **realism** is the default and the one every number on this page assumes; `arcade` cuts the harsh multipliers to roughly a third, `hardcore` raises them by 60–70 %.
+Nine of the harsher mechanics — phantom bites, break sensitivity, spot depletion, leader bite-off, line and hook wear, snags, foul-hooking and how sharply fish spook — move together on a single **preset**: `arcade`, `realism`, `hardcore` or `custom`. **realism** is the default and the one every number on this page assumes; `arcade` cuts the harsh multipliers to roughly a third, `hardcore` raises them by 60–70 % (snags only by 30 %).
 
 The preset lives in a config file, and a pack can override each of the nine individually as well as the trophy bar, frenzy speed, bait consumption and the bycatch rates. Every key, default and range is in **[Configuration](config.md#the-preset)**.
 

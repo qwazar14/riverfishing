@@ -48,6 +48,8 @@ Pressure: 1004 hPa ↓  —  bite: frenzy
 | *Stock:* | Every species whose [stock level](stocking.md) is more than 10 % off normal. **(temp)** marks an unsettled transplant |
 | *Pressure:* | The [barometer](water-and-conditions.md#barometric-pressure): reading, trend arrow, and a colour-coded outlook (frenzy / active / fair / slow / dead) |
 
+The same sounding is also **drawn**: the finder's screen shows the water in **section** along the line you are aiming down — the real bed metre by metre, the surface over it, and each fish drawn where its depth is actually met. From 0.10.0 the section reads **36 m out from the rod (2–37 m)** instead of 23, and draws **up to 16 fish** instead of 10; the rest are in the species list beside it.
+
 The Fish Finder is sold by a journeyman [fisherman](villager.md) for 14 emeralds, and is the reward-shaped item you want before committing to a long bottom session.
 
 ---

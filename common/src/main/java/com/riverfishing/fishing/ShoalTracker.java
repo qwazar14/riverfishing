@@ -145,6 +145,10 @@ public final class ShoalTracker {
             WaterBody body = WaterBodyCache.forLevel(level).get(level, surface);
             if (body == null || body.type() == WaterType.NONE) continue;
             BiteContext env = FishingManager.environmentAt(level, surface, body);
+            // §shoal-deep: the species gate reads the WATER's depth (the deepest column within three
+            // blocks), the fish are placed by the probe's own column so none is drawn inside the bank.
+            int colDepth = env.waterDepth;
+            env.waterDepth = FishingManager.deepestAround(level, surface, 3);
             Pool pool = poolFor(env, surface, pressure, now, hour);
             if (pool.total <= 0) continue;
 
@@ -163,7 +167,7 @@ public final class ShoalTracker {
             // how many draws it made, which changed WHICH species came out — and the client put the
             // new species into the old fish's positions. Startle a shoal and it turned into a
             // different shoal. So the cell draws its own shoal, and the budget only trims the tail.
-            List<ShoalPacket.Entry> fish = pick(pool, env.waterDepth, want, minLen, rng);
+            List<ShoalPacket.Entry> fish = pick(pool, colDepth, want, minLen, rng);
             if (fish.size() > budget) fish = new ArrayList<>(fish.subList(0, budget));
             if (fish.isEmpty()) continue;
             budget -= fish.size();
@@ -182,6 +186,7 @@ public final class ShoalTracker {
      */
     private static BlockPos surfaceInCell(ServerLevel level, int cx, int cz, int py) {
         int bx = cx * CELL, bz = cz * CELL;
+        BlockPos best = null; int bestDepth = 0;
         for (int i = 0; i < 4; i++) {
             int x = bx + ((i & 1) == 0 ? CELL / 4 : CELL - CELL / 4);
             int z = bz + ((i & 2) == 0 ? CELL / 4 : CELL - CELL / 4);
@@ -190,9 +195,11 @@ public final class ShoalTracker {
             if (Math.abs(top - py) > Y_BAND) continue;
             BlockPos p = new BlockPos(x, top, z);
             if (level.getFluidState(p).isEmpty()) continue;
-            return p;
+            // §shoal-deep: the deepest of the four probes, not the first — the fish sit where the water is.
+            int depth = FishingManager.measureDepth(level, p);
+            if (depth > bestDepth) { bestDepth = depth; best = p; }
         }
-        return null;
+        return best;
     }
 
     /**

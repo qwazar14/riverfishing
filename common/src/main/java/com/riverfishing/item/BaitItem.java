@@ -50,7 +50,7 @@ public class BaitItem extends Item {
                 // minnow culls exactly nothing off a pike. Name the weight it actually calls from
                 // and let the reader do the arithmetic the game does.
                 tooltip.add(Component.translatable("tooltip.riverfishing.livebait_weight",
-                        FishItem.weightText(bw), FishItem.weightText(bw * 6))
+                        FishItem.weightText(bw), FishItem.weightText((int) (bw * com.riverfishing.engine.BiteEngine.PREY_RATIO)))
                         .withStyle(s -> s.withColor(0x88C8E6)));
             }
         }

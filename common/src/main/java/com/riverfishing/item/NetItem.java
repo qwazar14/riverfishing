@@ -87,7 +87,7 @@ public abstract class NetItem extends Item {
     private void haul(ServerPlayer sp, ServerLevel level, BlockPos pos) {
         WaterBody body = WaterBodyCache.forLevel(level).get(level, pos);
         if (body.type() == WaterType.NONE) return;
-        long region = StockedData.region(pos);
+        long region = StockedData.regionAt(level, pos);
         long chunk = new ChunkPos(pos).toLong();
         long now = level.getGameTime();
         StockedData stocked = StockedData.get(level);
@@ -105,8 +105,10 @@ public abstract class NetItem extends Item {
             if (stocked.isCulled(region, id)) continue;
             // §pond: nothing is resident in a claimed pond but what was put in — so the transplants still
             // dispersing there count too, or the net would come up empty the day after stocking.
-            if (!FishingManager.residentHere(level, pos, body, p.id)
-                    && !(pondOwner != null && pressure.surplusAround(pos.getX() >> 4, pos.getZ() >> 4, id, now) > 0)) continue;
+            // §pond-book: in a claimed pond the book is the whole roster — the chunk bank reaches three
+            // chunks around and read the sea's releases into a beluga pond; a pond settles its species
+            // the day they go in, so nothing waits in the bank any more.
+            if (pondOwner != null ? !stocked.pondHolds(region, id) : !FishingManager.residentHere(level, pos, body, p.id)) continue;   // §pond-empty
             // The community hash can call a shark native to a brook; the habitat score is what keeps
             // the bite engine honest about that, so the net asks it too.
             if (BiteEngine.environmentScore(p, FishingManager.habitatContext(level, pos, body)) <= 0) continue;
@@ -129,10 +131,28 @@ public abstract class NetItem extends Item {
             return;
         }
 
-        int poached = 0;
-        for (int i = 0; i < count; i++) {
+        int poached = 0, hauled = 0;
+        for (int i = 0; i < count && !pool.isEmpty(); i++) {
             FishProfile p = pick(pool, weights, total, rng);
-            int weightG = rollWeight(p, rng);
+            // §pond-roster: out of a pond the net lifts one of the fish that went in, grown.
+            CompoundTag rec = pondOwner != null ? stocked.peekFish(region, p.id.getPath(), rng) : null;
+            // §pond-roster-net: the pool was priced once, before the loop, so a third fish was rolled
+            // after the two that were put in had come up — a carp nobody released. In a pond a species
+            // with no record left gives only what the head count says is UNRECORDED (fry that grew, the
+            // seasons' growth); with none of that either it leaves the pool, and a pond with nothing
+            // left ends the haul short.
+            // §pond-old-ledger: guarded on AvgW like pondHolds — a ledger from before the head count has no
+            // Adults to read, and its zero emptied an old pond that was working.
+            if (pondOwner != null && rec == null && stocked.avgWeight(region, p.id.getPath()) > 0
+                    && stocked.adults(region, p.id.getPath()) <= stocked.rememberedFish(region, p.id.getPath())) {
+                int at = pool.indexOf(p);
+                total -= weights.remove(at);
+                pool.remove(at);
+                i--;
+                continue;
+            }
+            hauled++;
+            final int weightG = rec != null ? stocked.grownWeight(level, region, p.id.getPath(), p, rec) : rollWeight(p, rng);
             ItemStack fish = FishItem.create(ModItems.fishItem(p.id), p.id, weightG, lengthCm(p, weightG, rng), true);
             pressure.addCatch(chunk, p.id.getPath(), now);
             // §net-ledger: a netted fish pays the ledger exactly as a landed one does — a settled water
@@ -161,6 +181,10 @@ public abstract class NetItem extends Item {
             int value = base > 0 ? com.riverfishing.fishing.MarketData.get(level).price(level, p.id.getPath(), base) : 0;
             com.riverfishing.item.StackNbt.mutate(fish, t -> t.put(com.riverfishing.fish.CatchCard.TAG,
                     com.riverfishing.fish.CatchCard.netted(sp, level, p, weightG, pos, eco, value, poachedFish)));
+            if (rec != null) {   // §pond-roster
+                FishingManager.applyPondFish(fish, rec);
+                stocked.takeFish(region, p.id.getPath(), rec.getLong("Uid"));
+            }
             if (!sp.getInventory().add(fish)) sp.drop(fish, false);
         }
 
@@ -180,7 +204,12 @@ public abstract class NetItem extends Item {
             // still grows (fishing/Warden).
             com.riverfishing.fishing.Warden.onPoach(sp, level, pos, poached);
         }
-        sp.displayClientMessage(Component.translatable("message.riverfishing.net_haul", count)
+        if (hauled == 0) {   // §pond-roster-net: the pond had nothing left to lift
+            sp.displayClientMessage(Component.translatable("message.riverfishing.net_empty")
+                    .withStyle(ChatFormatting.GRAY), true);
+            return;
+        }
+        sp.displayClientMessage(Component.translatable("message.riverfishing.net_haul", hauled)
                 .withStyle(ChatFormatting.GREEN), true);
         level.playSound(null, pos, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.8f, 0.9f);
     }

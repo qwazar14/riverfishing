@@ -1,7 +1,10 @@
 {
   "display": "Линейный карп",
   "latin": "Cyprinus carpio var. linearis",
-  "spawn": { "season": "summer", "sub": "early" },
+  "spawn": {
+    "season": "summer",
+    "sub": "early"
+  },
   "group": "cyprinid",
   "water_bodies": {
     "lake": 1.2,
@@ -17,8 +20,8 @@
     "mean": 3200
   },
   "length_cm": {
-    "min": 33,
-    "max": 95
+    "min": 33.0,
+    "max": 95.0
   },
   "fight": {
     "strength": 0.8,
@@ -28,20 +31,11 @@
     "aggression": 0.75
   },
   "ideal": {
-    "rod": [
-      "carp"
-    ],
-    "reel_size": 6000,
-    "reel_tolerance": 1000,
     "line": {
       "type": "mono",
       "diameter_mm": 0.3,
       "tolerance_mm": 0.08
     },
-    "rig": [
-      "carp",
-      "flat_feeder"
-    ],
     "groundbait": {
       "fraction": 0.72,
       "nutrition": 0.85
@@ -53,9 +47,9 @@
       "pearl_barley": 0.5
     },
     "hook": {
-      "ideal": 6,
-      "tolerance": 2
-    }
+      "ideal": 6
+    },
+    "requires_leader": false
   },
   "season": {
     "spring": 0.8,
@@ -75,19 +69,21 @@
     "thunder": 0.8
   },
   "depth_pref": "bottom",
-  "distance_pref": {
-    "min": 12,
-    "max": 40
-  },
   "habitat": {
     "depth_min": 2,
     "width_min": 10
   },
-  "provinces": ["palearctic", "nearctic", "neotropic", "indomalaya"],
+  "provinces": [
+    "palearctic",
+    "nearctic",
+    "neotropic",
+    "indomalaya"
+  ],
   "biomes": {
     "temperate": 1.0,
     "warm": 1.2
   },
   "base": 0.45,
-  "min_angler_level": 3
+  "min_angler_level": 12,
+  "diet": "peaceful"
 }

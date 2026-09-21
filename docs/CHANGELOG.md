@@ -5,6 +5,39 @@ Full patchnotes. The short three-bullet form the in-game update checker shows li
 
 ---
 
+## 1.0.0 — the line is a rope, the river runs, the pond is yours
+
+**Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.
+
+Full patchnote: [`docs/patchnotes/1.0.0.md`](patchnotes/1.0.0.md).
+
+Fly fishing rebuilt on a physical line: a rope off the rod tip with slack, pull, buoyancy, current and
+bottom, three untimed inputs, a cast that only counts when the fly flew, five rod classes, five reels, nine
+lines, and a fly fished the way its pattern is fished. Rivers run — the water texture moves, boats and foam
+drift, a dragged dry fly cuts a wake. The species table is the author's own: 267 fish, six new families,
+hybrids, diets. Every fish cooks and stays itself. The tying canvas is 32 × 32 and a fly that matches no
+pattern rolls a hidden number. The private pond is measured by its footprint (100 × 100), named from its
+sign, read from its sign, keeps a book of its own — the book is the whole roster, the chunk bank is not read
+in a pond any more — and runs no checks on what you put in: every fish put in goes on the book, breeding
+size or not. The pond REMEMBERS its fish — genes, sex, nature, pattern, variety, morph, name and weight —
+and what you catch or net out of it is one of those fish, grown a season at a time; a fish that throws the
+hook is still there, and the net lifts those fish first and then only what was born there. An old pond
+keeps its fish across the update. An emptied pond holds nothing; a second sign of your own on the same pond is refused;
+the pond's key can no longer collide with a wild region's. The koi is a species: `koi_carp` bites on its
+own base in cherry-grove water — in EVERY cherry-grove water, the community hash never leaves it out — and
+wherever it is stocked; the carp-turns-into-a-koi roll and the five old koi ids are gone. Every cooked fish gives Saturation, two seconds per three kilos. Fish oil is brewed, not smelted: an
+oily fish over glass bottles in a brewing stand, on every loader — the furnace cooks the fish now. Every rod, reel, line
+and leader is craftable again. The fight has a
+body you can see the whole way through; an out-pulled fish is played out and a played-out one comes to the
+crank; the line no longer snags on the world. Any fish is live bait, and only a predator five times heavier
+takes it, the floor holding through the pond's re-centring and the stocking floor — and no longer pinning
+every fish to exactly that weight. Flat fish show in the aquarium, and animations run in an old world (the
+client clock was a float of the game time). The catch card names the morph and gives the weight in pounds and ounces beside the kilos. The tackle station opens on
+NeoForge 26.x. Two anglers on one bank hear their own drag. Two config knobs: the current, the season's length — and
+an old config file gains them, every value already set kept.
+
+---
+
 ## 0.9.0 — a pond you keep, and a world with geography
 
 **Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.

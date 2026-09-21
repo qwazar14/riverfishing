@@ -29,7 +29,7 @@ public class TrophyStandRenderer implements BlockEntityRenderer<TrophyStandBlock
                        MultiBufferSource buffers, int light, int overlay) {
         List<ItemStack> fishes = be.getFishes();
         if (fishes.isEmpty()) return;
-        float time = be.getLevel() != null ? (be.getLevel().getGameTime() + partialTick) : partialTick;
+        float time = be.getLevel() != null ? (be.getLevel().getGameTime() % 100000L + partialTick) : partialTick;
 
         for (int i = 0; i < fishes.size(); i++) {
             ItemStack fish = fishes.get(i);

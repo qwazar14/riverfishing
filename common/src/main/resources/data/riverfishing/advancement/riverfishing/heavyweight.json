@@ -1,0 +1,22 @@
+{
+  "parent": "riverfishing:riverfishing/root",
+  "display": {
+    "icon": {
+      "id": "riverfishing:white_sturgeon"
+    },
+    "title": {
+      "translate": "advancement.riverfishing.heavyweight.title"
+    },
+    "description": {
+      "translate": "advancement.riverfishing.heavyweight.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "code": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

@@ -36,5 +36,13 @@ public final class ModRecipes {
                     () -> new SimpleCraftingRecipeSerializer<>(
                             com.riverfishing.groundbait.GroundbaitMixRecipe::new));
 
+    // §cooking: a caught fish in a furnace or a smoker comes out the same fish, cooked.
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.CookFishRecipe.Smelting>> COOK_FISH_SMELTING =
+            REGISTER.register("cook_fish_smelting",
+                    () -> new net.minecraft.world.item.crafting.SimpleCookingSerializer<>(com.riverfishing.item.CookFishRecipe.Smelting::new, 200));
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.CookFishRecipe.Smoking>> COOK_FISH_SMOKING =
+            REGISTER.register("cook_fish_smoking",
+                    () -> new net.minecraft.world.item.crafting.SimpleCookingSerializer<>(com.riverfishing.item.CookFishRecipe.Smoking::new, 100));
+
     private ModRecipes() {}
 }

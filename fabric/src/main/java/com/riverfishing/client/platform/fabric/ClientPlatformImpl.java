@@ -101,6 +101,10 @@ public final class ClientPlatformImpl {
         for (RegistrySupplier<Item> f : ModItems.FISH_ITEMS.values()) {
             BuiltinItemRendererRegistry.INSTANCE.register(f.get(), fish);
         }
+        // §tying: a tied lure's icon is its drawing.
+        BuiltinItemRendererRegistry.INSTANCE.register(ModItems.TIED_LURE.get(),
+                (stack, ctx, pose, buffers, light, overlay) ->
+                        com.riverfishing.client.TiedLureItemRenderer.get().renderByItem(stack, ctx, pose, buffers, light, overlay));
         // §breeding: the fry bucket draws three of its species' sprite.
         BuiltinItemRendererRegistry.INSTANCE.register(ModItems.FRY.get(),
                 (stack, ctx, pose, buffers, light, overlay) ->

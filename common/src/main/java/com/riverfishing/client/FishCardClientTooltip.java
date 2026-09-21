@@ -69,6 +69,8 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         // the same fish, wearing what its K/N pair gave it.
         String variety = c.getString("Variety");
         if (!variety.isEmpty()) row("variety", Component.translatable("variety.riverfishing." + variety), ORANGE);
+        // §morph-row: the SPECIAL badge said there was one and nothing on the card said which.
+        if (!morph.isEmpty()) row("morph", Component.translatable("morph.riverfishing." + morph), 0xFFE040D0);
         // §nature: the counter buys PRIME fish; anything else has no price there, and says so.
         if (FishItem.isPrime(fish) && c.getInt("Value") > 0) row("value", key("emeralds", c.getInt("Value")), GREEN);
         else row("value", Component.literal("—"), DIM);
@@ -79,11 +81,21 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
                 .append(Component.literal(c.getByte("Sex") == 0 ? " ♀" : " ♂")
                         .withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(c.getByte("Sex") == 0 ? 0xFF60A0 : 0x60A0FF)));
         row("size", size, AQUA);
-        row("weight", FishItem.weightText(FishItem.getWeightG(fish)), WHITE);
+        // §card-imperial: grams and kilos, and the pounds beside them
+        row("weight", FishItem.weightText(FishItem.getWeightG(fish)).copy()
+                .append(" (" + FishItem.imperialText(FishItem.getWeightG(fish)) + ")"), WHITE);
         row("length", Component.literal(FishItem.getLengthCm(fish) + " cm"), WHITE);
         rule();
-        if (!c.getString("Group").isEmpty()) row("group", key("group." + c.getString("Group")), GREEN);
+        if (!c.getString("Group").isEmpty()) row("group", Component.translatable(com.riverfishing.fish.FishGroup.nameKey(c.getString("Group"))), GREEN);   // §card-group
         if (!c.getString("Life").isEmpty()) row("lifestyle", key("life." + c.getString("Life")), BLUE);
+        if (!c.getString("Hybrid").isEmpty()) {   // §hybrid-rare: the cross, by its parents' names
+            StringBuilder parents = new StringBuilder();
+            for (String id : c.getString("Hybrid").split(",")) {
+                if (parents.length() > 0) parents.append(" × ");
+                parents.append(Component.translatable("fish.riverfishing." + id).getString());
+            }
+            row("hybrid", Component.literal(parents.toString()), GOLD);
+        }
         String eco = c.getString("Eco");
         if (!eco.isEmpty()) row("ecosystem", key("eco." + eco), eco.equals("native") ? GREEN : eco.equals("settled") ? YELLOW : ORANGE);
         rule();
@@ -95,7 +107,7 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
 
         if (Screen.hasShiftDown()) {
             rule();
-            if (!c.getString("Bait").isEmpty()) row("bait", Component.translatable("item.riverfishing." + c.getString("Bait")), YELLOW);
+            if (!c.getString("Bait").isEmpty()) row("bait", baitName(c.getString("Bait")), YELLOW);
             if (!c.getString("Water").isEmpty()) row("water", Component.translatable("water.riverfishing." + c.getString("Water")), BLUE);
             if (!c.getString("Time").isEmpty()) row("time", Component.translatable("time.riverfishing." + c.getString("Time")), WHITE);
             if (!c.getString("Season").isEmpty()) row("season", Component.translatable("season.riverfishing." + c.getString("Season")), WHITE);
@@ -141,7 +153,7 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         // Every term on its own line, labelled — the whole point of the card: nothing folded away.
         if (!t.getString("Water").isEmpty()) row("water", Component.translatable("water.riverfishing." + t.getString("Water")), BLUE);
         if (!t.getString("Rod").isEmpty()) row("rod", key("rod." + t.getString("Rod")), GREEN);
-        if (!t.getString("Bait").isEmpty()) row("bait", Component.translatable("item.riverfishing." + t.getString("Bait")), YELLOW);
+        if (!t.getString("Bait").isEmpty()) row("bait", baitName(t.getString("Bait")), YELLOW);
         if (!t.getString("Time").isEmpty()) row("time", Component.translatable("time.riverfishing." + t.getString("Time")), WHITE);
         rule();
         int have = mc.player == null ? 0
@@ -229,5 +241,10 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
             }
             cy += ROW;
         }
+    }
+    /** §fly-card: "tied:<pattern>" is a fly tied at the bench; anything else is an item id. */
+    private static Component baitName(String bait) {
+        return bait.startsWith("tied:") ? Component.translatable("tied.riverfishing." + bait.substring(5))
+                : Component.translatable("item.riverfishing." + bait);
     }
 }

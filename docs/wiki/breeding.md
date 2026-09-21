@@ -145,6 +145,8 @@ The fry always take the **mother's** species and a genome from both parents, so 
 
 The **silver crucian is the exception**: her eggs need the milt and none of his genes, so her clutch is a copy of her whoever the father was.
 
+**Hybrids are the tank's fish.** Thirty species are crosses — bester, tiger trout, the sunfish and crappie hybrids, bream × roach, the tilapia hybrids and more — and a pair of the two parents in the tank gives the hybrid's roe. In wild water a hybrid is one fish in twenty-five of what its profile would otherwise be, so you will all but never take one blind; stocked and settled, it fishes like anything else. The catch card names the cross.
+
 ## The pond grows itself
 
 A species [settled](stocking.md) in a water with at least one pair on its ledger grows on its own, **once every 24-day season** — up to four seasons paid out in one visit if you have been away.

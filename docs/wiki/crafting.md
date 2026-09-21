@@ -25,6 +25,7 @@ All shaped. Every reeled blank needs string for its guide wraps.
 | Surf rod | `·pp / si· / id·` | p = Prismarine Shard, d = Diamond, s = String, i = Iron Ingot |
 | Boat rod | `··c / si· / id·` | c = Prismarine Crystals, d = Diamond, s = String, i = Iron Ingot |
 | Trolling rod | `··n / si· / id·` | n = Nautilus Shell, d = Diamond, s = String, i = Iron Ingot |
+| Fly Rod #3 … #11 | `··b / sb· / bn·` | b = Bamboo, s = String, n = the seat metal: **#3** Gold Nugget, **#5** Iron Nugget, **#7** Iron Ingot, **#9** Copper Ingot, **#11** Gold Ingot |
 
 The saltwater four differ only in the **tip**. Anvil repair materials are listed in [Rods](rods.md).
 
@@ -47,6 +48,11 @@ All shapeless.
 | Reel 10000 | Iron Block + 3 × Copper Ingot + 2 × Redstone + 2 × Prismarine Shard |
 | Reel 12000 | Iron Block + Copper Block + 2 × Redstone + Prismarine Crystals + Diamond |
 | Reel 14000 | Iron Block + Copper Block + Redstone Block + Nautilus Shell + 2 × Diamond |
+| Fly Reel #3 | Iron Ingot + Gold Nugget |
+| Fly Reel #5 | 2 × Iron Ingot + Gold Nugget |
+| Fly Reel #7 | 3 × Iron Ingot + Gold Nugget |
+| Fly Reel #9 | 3 × Iron Ingot + Copper Ingot + Gold Nugget |
+| Fly Reel #11 | 4 × Iron Ingot + Copper Ingot + Gold Nugget |
 
 There is no Reel 9000 item.
 
@@ -70,6 +76,14 @@ Upgrade chains, one craft per step:
 | Mono | 0.10 → 0.14 → 0.18 → 0.25 → 0.30 → 0.40 → 0.50 → 0.60 → 0.70 → 0.80 |
 | Braid | 0.16 → 0.20 → 0.25 → 0.30 → 0.40 → 0.50 → 0.60 |
 | Fluorocarbon | 0.14 → 0.16 → 0.20 → 0.25 → 0.30 → 0.40 |
+
+### Fly lines
+
+The nine [fly lines](fly-fishing.md#lines) are a ring of 8 String around a **core** that sets the buoyancy — Honeycomb floats (F), Kelp hangs (I), an Iron Nugget sinks (S) — placed for the taper: in the centre (`SSS / SCS / SSS`) is weight-forward (WF), top and bottom (`SCS / S·S / SCS`) double taper (DT), opposite corners (`CSS / SSS / SSC`) a shooting head (SH).
+
+### Line repair
+
+Any line in the **centre** of the grid with **four String** on its four sides (`·S· / SLS / ·S·`) gives the same line back **fresh** — the [wear](reels-and-lines.md) is gone. Every diameter of every material, bought or crafted.
 
 ---
 
@@ -95,24 +109,9 @@ All nine hook sizes make up the `riverfishing:hooks` tag used by the lure recipe
 
 ## Rigs
 
-> **These are the basic recipes.** A hand-tied rig comes out at its rig type's fallback mass — you get
-> no say in it. For a rig at a **weight you choose**, tie it at the **[Tackle Station](tackle-station.md)**
-> instead. Strongly recommended: the weight is what has to fit your blank's
-> [test window](rods.md#loading-the-blank-the-test-window), and bench rigs arrive with their hooks
-> already slotted.
+**No rig has a crafting recipe.** The six swappable bottom rigs — Ledger, Feeder, Flat Feeder, 3-Hook Feeder, Carp and Catfish — are tied at the **[Tackle Station](tackle-station.md)** to a weight you choose, which is what has to fit your blank's [test window](rods.md#loading-the-blank-the-test-window); they arrive with their hooks already slotted. (Until 0.10.0 a hand-crafted rig came out at a fallback mass you had no say in, so the grid recipes taught nothing the bench does not teach better.)
 
-Only the six swappable bottom rigs are craftable. The Primitive, Light Float, Float, Winter and Predator rigs are built into their rod blanks and cannot be made or held.
-
-| Rig | Type | Ingredients |
-|---|---|---|
-| Ledger Rig | shapeless | String + 2 × Iron Nugget |
-| Feeder Rig | shaped `n·n / nsn` | n = Iron Nugget, s = String |
-| Flat Feeder Rig | shaped `nnn / nsn` | n = Iron Nugget, s = String |
-| 3-Hook Feeder Rig | shapeless | 3 × String + 2 × Iron Nugget |
-| Carp Rig | shapeless | 2 × String + Slime Ball + Iron Nugget |
-| Catfish Rig | shapeless | 2 × String + Iron Ingot + Iron Nugget |
-
-All six can also be tied at the [Tackle Station](tackle-station.md) to a chosen weight, and come with their hooks pre-slotted.
+The Primitive, Light Float, Float, Winter and Predator rigs are built into their rod blanks and cannot be made or held.
 
 ---
 
@@ -131,24 +130,7 @@ All shapeless.
 
 ## Lures
 
-> **These are the basic recipes, and they cost you the lure's mass.** A hand-crafted lure carries **no
-> weight stamp**, which the game reads as **0 g** — it adds nothing to your cast and does not drive the
-> [lure-size filter](tackle-station.md#2-the-lure-size-filter-lures-only), so it never picks its fish.
-> Tie lures at the **[Tackle Station](tackle-station.md)** instead — pick the grams, get a real size.
-> The two heaviest classes (sea sizes) exist only there.
-
-The `h` ingredient is the `riverfishing:hooks` tag (No.16–No.4).
-
-| Lure | Type | Ingredients |
-|---|---|---|
-| Spinner | shaped `n / i / h` | n = Iron Nugget, i = Iron Ingot, h = hook |
-| Spoon Lure | shaped `g / h` | g = Gold Ingot, h = hook |
-| Castmaster | shapeless | 2 × Iron Ingot + hook |
-| Crankbait | shapeless | Iron Ingot + Iron Nugget + hook |
-| Soft Jig | shapeless | Iron Ingot + String + hook |
-| Popper | shapeless | Iron Nugget + Bamboo + hook |
-| Wobbler | — | **[Tackle Station](tackle-station.md)** or the fisherman (expert tier) |
-| Soft Plastic | — | **[Tackle Station](tackle-station.md)** or the fisherman (journeyman tier) |
+**No lure has a grid recipe** — spinner, spoon, the wobbler family, jig, castmaster, spinnerbait, bladebait, swimbait, wacky worm, popper, crankbait and the ice jig alike. You **tie them at the [Tackle Station](tackle-station.md)** — pick the grams, get a real size, and a hook of your choosing — or buy them from the [fisherman](villager.md). (A grid-crafted lure carried no weight stamp, which the game read as 0 g: nothing added to the cast and nothing for the [lure-size filter](tackle-station.md#2-the-lure-size-filter-lures-only) to read. There was no reason to keep it.) The two heaviest classes (sea sizes) exist only at the bench. The one lure recipe left is the dye:
 
 ### Dyeing a lure
 
@@ -163,8 +145,7 @@ A **special recipe**: any one artificial lure plus one or more **dyes** in the g
 | Dough | shapeless | Wheat + Water Bucket |
 | Bread Crumb **×4** | shapeless | 1 × Bread |
 | Boilie **×4** | shapeless | 2 × Wheat + Egg + Sugar |
-| Ice Jig | shapeless | Gold Nugget + any hook No.16–No.4 + 2 × String |
-| Live Bait | **special** | One caught fish weighing **150 g or less**, alone in the grid — the bait keeps the fish's weight |
+| Live Bait | **special** | Any one caught fish, **any weight** (1.0.0; it was 150 g or less), alone in the grid — the bait keeps the fish's weight, and only a predator five times that weight will take it |
 
 Worm, Maggot, Bloodworm and Chicken Liver come from digging and mob drops; Corn, Pea and Pearl Barley come from the [bait crops](blocks.md#bait-crops). See [Tools](tools.md#where-bait-comes-from).
 
@@ -229,8 +210,9 @@ A short list of everything in the mod you cannot craft:
 | Item | Where it comes from |
 |---|---|
 | Hook #2, Hook #1 | Master fisherman |
-| Wobbler, Soft Plastic | Tackle Station, or the fisherman |
+| Every lure (spinner, spoon, wobblers, jig, castmaster, spinnerbait, bladebait, swimbait, wacky worm, popper, crankbait, ice jig, soft plastic) | Tackle Station, or the fisherman |
 | Skirted Octopus Jig, Giant Spoon | Tackle Station, or the fisherman's saltwater kit |
+| All six bottom rigs | Tackle Station |
 | Mini Aquarium | Creative / commands only |
 | Ichthyologist's Tablet | Creative / commands only |
 | Electrofisher | Creative / commands only |

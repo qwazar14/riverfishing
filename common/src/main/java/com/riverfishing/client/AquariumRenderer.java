@@ -37,6 +37,8 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
 
     /** Fish at or above this weight are too big to loop the figure-8 — they just cruise back and forth. */
     private static final int BIG_FISH_G = 3000;
+    /** §aq-flat: how far a flat fish is laid over in a tank — 65° of the 90, so the front glass shows its back. */
+    private static final float TANK_LAY = 0.72f;
 
     // §roe-frames: gen_aquarium_roe.py's 80x16 strip — four incubation days (the fifth frame, a generic
     // shoal, is no longer drawn: hatched fry wear their species' sprite, see renderFry). Bound
@@ -58,19 +60,28 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         Direction facing = be.getBlockState().hasProperty(AquariumBlock.FACING)
                 ? be.getBlockState().getValue(AquariumBlock.FACING) : Direction.NORTH;
         Direction cw = facing.getClockWise();
-        float time = be.getLevel() != null ? (be.getLevel().getGameTime() + partialTick) : partialTick;
+        float time = be.getLevel() != null ? (be.getLevel().getGameTime() % 100000L + partialTick) : partialTick;
 
         // Centre of the 2-wide × 1-tall glass tank (upper row), relative to the master cell corner.
         double tankX = 0.5 + cw.getStepX() * 0.5;
         double tankZ = 0.5 + cw.getStepZ() * 0.5;
 
-        // §aqua-view: the water and the modules first — an empty tank still has water in it.
+        // §aqua-visible (1.0.0): the water is drawn LAST. Its box is a translucent batch that writes
+        // depth, and the fish ride their own batch started after it — so the box went down first and
+        // every fish behind the front face was thrown away by the depth test: a tank full of water and
+        // nothing in it. Fish and roe first, then the water blends over them, as it does in the world.
+        if (fishes.isEmpty() && roe.isEmpty()) {
         renderWater(be, facing, tankX, tankZ, pose, buffers, light, overlay);
         renderModules(be, facing, tankX, tankZ, pose, buffers, light, overlay);
-        if (fishes.isEmpty() && roe.isEmpty()) return;
+            return;
+        }
 
         if (!roe.isEmpty()) renderRoe(be, roe, time, facing, cw, tankX, tankZ, pose, buffers, light, overlay);
-        if (fishes.isEmpty()) return;
+        if (fishes.isEmpty()) {
+        renderWater(be, facing, tankX, tankZ, pose, buffers, light, overlay);
+        renderModules(be, facing, tankX, tankZ, pose, buffers, light, overlay);
+            return;
+        }
 
         for (int i = 0; i < fishes.size(); i++) {
             ItemStack fish = fishes.get(i);
@@ -113,7 +124,9 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             // §fish-pose: a flatfish does not loop through open water — it works the floor of the tank.
             if (flat) {
                 u = Mth.sin(t) * 0.55;
-                height = 1.06 + Mth.sin(time * 0.05f + i) * 0.02;
+                // §aq-flat: 1.06 was INSIDE the tank's floor (its top is ROE_FLOOR), and a fish laid dead level
+                // is a sheet seen edge-on through the front glass — above the floor, and tilted (TANK_LAY).
+                height = ROE_FLOOR + 0.03 + fishLen * 0.2 + Mth.sin(time * 0.05f + i) * 0.02;
                 travel = Mth.cos(t) >= 0 ? 1f : -1f;
             }
             double px = tankX + cw.getStepX() * u + facing.getStepX() * depth;
@@ -129,7 +142,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             pose.mulPose(Axis.YP.rotationDegrees(-facing.toYRot() + flip + Mth.sin(time * 0.15f + i) * 4f));
             // §fish-pose: the flatfish lie down in the tank too, parallel to its floor — which is also
             // where they are swimming (see the height below), because that is what they do.
-            if (flat) pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
+            if (flat) pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay() * TANK_LAY));
             // The size is applied ONCE, by the renderer override (see KeepnetScreen): it bypasses the
             // FIXED cap and the 0.45 floor, so the tank shows the fish at the water's own scale.
             FishItemRenderer.gridScale = fishLen;
@@ -138,6 +151,8 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             pose.popPose();
         }
 
+        renderWater(be, facing, tankX, tankZ, pose, buffers, light, overlay);
+        renderModules(be, facing, tankX, tankZ, pose, buffers, light, overlay);
         renderNameplate(be, fishes, facing, cw, pose, buffers, light);
     }
 
@@ -207,14 +222,14 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
             float t = time * (float) (Math.PI * 2 / 60) + i * 1.1f;
             double u = Mth.sin(t) * (3.0 / 16);
             double depth = ((i % 3) - 1) * 0.20;
-            double y = flat ? 1.06 + Mth.sin(time * 0.05f + i) * 0.02
+            double y = flat ? ROE_FLOOR + 0.03 + FRY_LEN * 0.2 + Mth.sin(time * 0.05f + i) * 0.02   // §aq-flat
                     : 1.5 + Mth.sin(time * 0.13f + i) * 0.02 + ((i % 5) - 2) * 0.04;   // ±0.08 spread
             float flip = Mth.cos(t) >= 0 ? 180f : 0f;
             pose.pushPose();
             pose.translate(tankX + cw.getStepX() * u + facing.getStepX() * depth, y,
                     tankZ + cw.getStepZ() * u + facing.getStepZ() * depth);
             pose.mulPose(Axis.YP.rotationDegrees(-facing.toYRot() + flip + Mth.sin(time * 0.15f + i) * 4f));
-            if (flat) pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
+            if (flat) pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay() * TANK_LAY));
             FishItemRenderer.gridScale = FRY_LEN;
             itemRenderer.renderStatic(fish, ItemDisplayContext.FIXED, light, overlay, pose, buffers, be.getLevel(), 0);
             FishItemRenderer.gridScale = 0f;
@@ -240,7 +255,16 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
     // is doing. The box is the size the model's water element was: 0.6/16 in from the glass, 2/16 to
     // 15/16 up the upper cell, across both cells.
     private static final ResourceLocation WATER_TEX = RiverFishing.id("textures/block/aquarium_water.png");
-    private static final RenderType WATER_LAYER = RenderType.entityTranslucent(WATER_TEX);
+    /**
+     * §aqua-visible (1.0.0): the water box is drawn on a render type that writes NO depth — beaconBeam's
+     * translucent flavour: textured, blended, colour-only write mask, no cull. entityTranslucent wrote
+     * depth, and because the fish ride the item sheet (a fixed buffer, flushed at the end of the block-
+     * entity pass) while this box is a custom type (flushed at once), the box always went to the depth
+     * buffer first and every fish behind its front face was thrown away — visible only where it poked
+     * out of the tank. Submission order could not fix that; the write mask does. The beam type is the BLOCK vertex format,
+     * so light and normal are written as before.
+     */
+    private static final RenderType WATER_LAYER = RenderType.beaconBeam(WATER_TEX, true);
     private static final float W_HX = 1f - 0.6f / 16f, W_HZ = 0.5f - 0.6f / 16f, W_Y0 = 1f + 2f / 16f, W_Y1 = 1f + 15f / 16f;
     /** §aqua-view: the two module slots, drawn as their block items in the back corners of the gravel. */
     private static final float MOD_X = 0.72f, MOD_Z = -0.28f, MOD_Y = 1f + 2f / 16f + 0.13f, MOD_SCALE = 0.5f;
@@ -277,7 +301,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
     }
 
     private static void tv(Matrix4f m, VertexConsumer vc, float x, float y, float z, float u, float v, int r, int g, int b, int a, float nx, float ny, float nz, int light, int overlay) {
-        vc.addVertex(m, x, y, z)
+        vc.addVertex(m, x, y, z)   // §aqua-visible: beaconBeam is the BLOCK format — it wants light and normal too
                 .setColor(r, g, b, a)
                 .setUv(u, v)
                 .setOverlay(overlay)

@@ -1,0 +1,11 @@
+{
+  "type": "riverfishing:cook_fish_smoking",
+  "ingredient": {
+    "item": "riverfishing:perch"
+  },
+  "result": {
+    "id": "riverfishing:perch"
+  },
+  "experience": 0.35,
+  "cookingtime": 100
+}

@@ -30,6 +30,7 @@ import argparse, glob, io, os, re, html, json, shutil, subprocess, sys, tempfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wiki_art
 import wiki_calculator
+import wiki_genetics
 
 SRC = "docs/wiki"
 def _mod_version():
@@ -64,10 +65,10 @@ GROUPS = [
     ("Start", ["getting-started"]),
     ("Gear", ["rods", "reels-and-lines", "rigs-and-baits", "groundbait", "tackle-station", "crafting",
               "tools", "blocks", "keepnet", "tackle-box"]),
-    ("Playing", ["fishing-mechanics", "water-and-conditions", "shoal", "ice-fishing", "sea-fishing",
-                 "stocking"]),
+    ("Playing", ["fishing-mechanics", "water-and-conditions", "provinces", "shoal", "ice-fishing",
+                 "sea-fishing", "fly-fishing", "stocking", "breeding", "genetics"]),
     ("Reference", ["species", "species-reference", "calculator", "progression", "villager",
-                   "order-board", "config", "electrofisher", "compatibility"]),
+                   "order-board", "contracts", "config", "electrofisher", "compatibility"]),
 ]
 
 
@@ -802,6 +803,12 @@ def main():
                                         wiki_calculator.widget(code, calc_profiles, calc_roster, calc_names, first_calc))
                     body = body.replace("<!-- CALCULATOR -->",
                                         wiki_calculator.widget(code, calc_profiles, calc_roster, calc_names, first_calc))
+                # §genetics-calculator: the second interactive page, same contract as the first.
+                if "<!-- GENETICS -->" in p.raw:
+                    first_gen = not globals().get("_GEN_EMITTED")
+                    globals()["_GEN_EMITTED"] = True
+                    for marker in ("&lt;!-- GENETICS --&gt;", "<!-- GENETICS -->"):
+                        body = body.replace(marker, wiki_genetics.widget(code, first_gen))
                 if pid == "crafting":
                     body += "\n" + craft_grids
                     p.headings.append((2, wiki_art.GRID_LABELS.get(

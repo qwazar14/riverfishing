@@ -12,7 +12,7 @@ const fallback = process.argv[3];
 
 // Segmented rods are installed by the splitter, which writes s0..s4 — this script writes the WHOLE
 // rod as s0 and would flatten the chain back into one rigid piece.
-const SEGMENTED = new Set(['feeder', 'pole', 'bamboo', 'spinning', 'ultralight', 'surf', 'carp', 'boat', 'bottom', 'trolling', 'sea_spin']);
+const SEGMENTED = new Set(['feeder', 'pole', 'bamboo', 'spinning', 'ultralight', 'surf', 'carp', 'boat', 'bottom', 'trolling', 'sea_spin', 'fly', 'fly_3', 'fly_7', 'fly_9', 'fly_11']);
 if (SEGMENTED.has(kind)) {
   console.error(`${kind} is a segmented (bone-chain) rod — run: node tools/split_rod.js ${kind}`);
   process.exit(2);

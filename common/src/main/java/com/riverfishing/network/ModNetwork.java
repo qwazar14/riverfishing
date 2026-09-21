@@ -43,18 +43,28 @@ public final class ModNetwork {
         // what a standing player presses, so the fight has to be told.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, FightInputPacket.TYPE, FightInputPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §ice-rhythm: a click on a stop of the jig.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, JigBeatPacket.TYPE, JigBeatPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §fly-take: where the fly is and what the line hand did.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, FlyPacket.TYPE, FlyPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
         // §cull: the electrofisher's list is answered here — re-validated from scratch, creative only.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, CullPacket.TYPE, CullPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
         // §tackle-box: the name field types straight onto the box the player has open.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, TackleBoxRenamePacket.TYPE,
                 TackleBoxRenamePacket.STREAM_CODEC, (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
+        // §tying: the canvas comes up; the server re-reads the hook, the materials and the drawing.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, TieLurePacket.TYPE, TieLurePacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
         // §keepnet: the grid asks, the server decides.
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeepnetActionPacket.TYPE, KeepnetActionPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(() -> payload.handleServer(ctx)));
 
         if (dev.architectury.platform.Platform.getEnvironment() == dev.architectury.utils.Env.SERVER) {
             NetworkManager.registerS2CPayloadType(FloatTimingPacket.TYPE, FloatTimingPacket.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(JigGaugePacket.TYPE, JigGaugePacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(JournalOpenPacket.TYPE, JournalOpenPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(LineSyncPacket.TYPE, LineSyncPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(ShoalPacket.TYPE, ShoalPacket.STREAM_CODEC);
@@ -69,6 +79,9 @@ public final class ModNetwork {
     /** CLIENT-ONLY: the server → client receivers. Called from the client bootstrap (ClientInit). */
     public static void registerClientReceivers() {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, FloatTimingPacket.TYPE, FloatTimingPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(payload::handleClient));
+        // §ice-rhythm: the jig gauge, on/off and after every accent.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, JigGaugePacket.TYPE, JigGaugePacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, JournalOpenPacket.TYPE, JournalOpenPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
