@@ -74,8 +74,10 @@ public class RodPodBlockEntity extends BlockEntity {
                 if (line.session != null && line.session.ctx != null
                         && line.biteAtTick > now && now % 300 == 0) {
                     line.session.biteAtTick = line.biteAtTick;
+                    long before = line.biteAtTick;
                     FishingManager.reEvaluate(serverLevel, line.session, now);
                     line.biteAtTick = line.session.biteAtTick;
+                    if (Math.abs(line.biteAtTick - before) > 20) changed = true;   // §pod-anim: the client times the nibbles off it
                     line.species = line.session.species;
                     line.variety = line.session.variety;
                 }
@@ -145,6 +147,24 @@ public class RodPodBlockEntity extends BlockEntity {
         return 1;
     }
 
+    /**
+     * §pod-anim: the line state as it should LOOK — {@link #lineStateAt} plus 4 = a self-hooked fish running
+     * (the rod goes over), 5 = a false alarm ringing (the line only shivers in the wind).
+     */
+    public int lineVisualAt(int slot) {
+        int st = lineStateAt(slot);
+        if (st == 2 && lines[slot].selfHooked) return 4;
+        if (st == 1 && lines[slot].bitten && lines[slot].phantom) return 5;
+        return st;
+    }
+
+    /** §pod-anim: ticks until this line's take, or -1 — the last seconds of it are when the fish nibbles. */
+    public long ticksToBite(int slot, long now) {
+        if (slot < 0 || slot >= lines.length || lines[slot] == null) return -1;
+        PodLine line = lines[slot];
+        return !line.active || line.bitten ? -1 : line.biteAtTick - now;
+    }
+
     public InteractionResult onUse(Player player, InteractionHand hand) {
         if (!(player instanceof ServerPlayer sp)) return InteractionResult.CONSUME;
         ServerLevel level = sp.serverLevel();
@@ -176,9 +196,10 @@ public class RodPodBlockEntity extends BlockEntity {
                 actionbar(sp, "message.riverfishing.pod_full", ChatFormatting.YELLOW);
                 return InteractionResult.CONSUME;
             }
-            FishingSession session = FishingManager.detachBottomSession(sp);
-            if (session == null) {
-                actionbar(sp, "message.riverfishing.pod_cast_first", ChatFormatting.YELLOW);
+            FishingSession session = FishingManager.detachBottomSession(sp, hand);
+            if (session == null) {   // §pod-dock: no line out, or it is another rod's line
+                actionbar(sp, FishingManager.hasSession(sp) ? "message.riverfishing.pod_other_rod"
+                        : "message.riverfishing.pod_cast_first", ChatFormatting.YELLOW);
                 return InteractionResult.CONSUME;
             }
             rods.set(slot, held.copy());
@@ -203,7 +224,7 @@ public class RodPodBlockEntity extends BlockEntity {
                     actionbar(sp, "message.riverfishing.pod_self_hooked", ChatFormatting.AQUA);
                 }
                 FishingManager.startPodFight(sp, line.target, line.species, line.variety,
-                        line.lineStrainKg, line.dragKg, line.hasLeader, line.rigType);
+                        line.lineStrainKg, line.dragKg, line.hasLeader, line.rigType, line.session);
             } else if (line != null && line.phantom) {
                 actionbar(sp, "message.riverfishing.pod_phantom", ChatFormatting.GRAY);
             } else {
@@ -465,7 +486,7 @@ public class RodPodBlockEntity extends BlockEntity {
         CompoundTag toNbt() {
             CompoundTag c = new CompoundTag();
             c.putLong("Target", target.asLong());
-            c.putString("Species", species.toString());
+            if (species != null) c.putString("Species", species.toString());   // §cast-always: a line nobody wants has none yet
             if (!variety.isEmpty()) c.putString("Variety", variety);
             c.putLong("BiteAt", biteAtTick);
             c.putBoolean("Bitten", bitten);
@@ -483,7 +504,7 @@ public class RodPodBlockEntity extends BlockEntity {
         static PodLine fromNbt(CompoundTag c) {
             PodLine line = new PodLine();
             line.target = BlockPos.of(c.getLong("Target"));
-            line.species = ResourceLocation.tryParse(c.getString("Species"));
+            line.species = c.contains("Species") ? ResourceLocation.tryParse(c.getString("Species")) : null;
             line.variety = c.getString("Variety");
             line.biteAtTick = c.getLong("BiteAt");
             line.bitten = c.getBoolean("Bitten");

@@ -61,12 +61,21 @@ public final class FloatTimingClient {
             return;
         }
 
-        // §strike-tune: the cast gauge's own geometry — frame 120x16, with a 112x8 recess at (4,4).
-        final int FW = 120, FH = 16, TW = 112, TH = 8;
-        int x = (screenW - FW) / 2, y = screenH - 70;
-        int tx = x + 4, ty = y + 4;
+        // §strike-tune: the cast gauge's own geometry, and §gui-art moved it to the drawn sheet —
+        // frame 256x34, with a 230x14 recess at (13,10).
+        final int FW = 256, FH = 34, TW = 230, TH = 14;
+        int x = (screenW - FW) / 2, y = screenH - 88;
+        int tx = x + 13, ty = y + 10;
+        // §gui-180: the sheet is painted 256 wide and drawn 180 wide — scaled about the frame's own
+        // centre, so every rect below stays in the sheet's numbers and only this one factor moves.
+        final float S = 180f / FW;
+        float ccx = x + FW / 2f, ccy = y + FH / 2f;
+        g.pose().pushPose();
+        g.pose().translate(ccx, ccy, 0);
+        g.pose().scale(S, S, 1f);
+        g.pose().translate(-ccx, -ccy, 0);
 
-        g.blit(BAR, x, y, FW, FH, 0f, 0f, FW, FH, 128, 48);
+        g.blit(BAR, x, y, FW, FH, 0f, 0f, FW, FH, 256, 96);
 
         // The orange band is the 25% hook, the green is the whole fish; green goes on top because
         // where they overlap the better answer is the one the player should be aiming at.
@@ -80,8 +89,12 @@ public final class FloatTimingClient {
         g.fill(mx - 2, y - 2, mx + 3, y + FH + 2, 0xC0231A10);
         g.fill(mx - 1, y - 1, mx + 2, y + FH + 1, 0xFFFFE8A8);
 
+        g.pose().popPose();
+
+        // §gui-180: the prompt is drawn after the scale, at the font's own size, just above the frame
+        // where the scale actually left it.
         Component label = Component.translatable("hud.riverfishing.strike_timing");
-        int ly = y - 12;
+        int ly = (int) (ccy - FH * S / 2f) - 11;
         g.drawCenteredString(mc.font, label, screenW / 2, ly, 0xFFF0E6CD);
     }
 }

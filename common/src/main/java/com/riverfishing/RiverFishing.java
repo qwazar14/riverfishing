@@ -32,10 +32,15 @@ public final class RiverFishing {
         // keeping a list of its own. Registered through listen() so it runs when the item actually
         // exists: on some loaders common init is earlier than the registry is filled.
         for (dev.architectury.registry.registries.RegistrySupplier<net.minecraft.world.item.Item> seed
-                : java.util.List.of(com.riverfishing.registry.ModItems.CORN_SEEDS, com.riverfishing.registry.ModItems.PEA_SEEDS,
-                                    com.riverfishing.registry.ModItems.BARLEY_SEEDS)) {
+                : java.util.List.of(com.riverfishing.registry.ModItems.CORN, com.riverfishing.registry.ModItems.PEA,
+                                    com.riverfishing.registry.ModItems.PEARL_BARLEY)) {
             seed.listen(item -> net.minecraft.world.level.block.ComposterBlock.COMPOSTABLES
                     .put(item, 0.30f));
+        }
+        for (dev.architectury.registry.registries.RegistrySupplier<net.minecraft.world.item.Item> crop
+                : java.util.List.of(com.riverfishing.registry.ModItems.CORN_COB, com.riverfishing.registry.ModItems.PEA_POD)) {
+            crop.listen(item -> net.minecraft.world.level.block.ComposterBlock.COMPOSTABLES
+                    .put(item, 0.65f));
         }
         com.riverfishing.network.ModNetwork.register(); // Architectury NetworkManager (was SimpleChannel)
         com.riverfishing.event.ModEvents.init();        // reload/tick/quit/block-break + mob-bait loot

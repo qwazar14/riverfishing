@@ -93,16 +93,27 @@ public final class ModBlocks {
                     BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.ICE)));
 
     // §bait-crops: farmland crops for the plant baits (corn / pea / barley→pearl barley). No BlockItem —
-    // their ITEM is the seed (an ItemNameBlockItem in ModItems), exactly like vanilla wheat.
+    // §no-seeds: their ITEM is the bait itself (a PlantableBaitItem in ModItems) — corn, peas, pearl barley.
+    // Corn grows two blocks tall (CornCropBlock, the pitcher crop's logic); pea and barley are one-block crops.
     public static final RegistrySupplier<Block> CORN_CROP = BLOCKS.register("corn_crop",
-            () -> new com.riverfishing.block.BaitCropBlock("corn_seeds",
+            () -> new com.riverfishing.block.CornCropBlock(
                     BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)));
     public static final RegistrySupplier<Block> PEA_CROP = BLOCKS.register("pea_crop",
-            () -> new com.riverfishing.block.BaitCropBlock("pea_seeds",
+            () -> new com.riverfishing.block.BaitCropBlock("pea",
                     BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)));
     public static final RegistrySupplier<Block> BARLEY_CROP = BLOCKS.register("barley_crop",
-            () -> new com.riverfishing.block.BaitCropBlock("barley_seeds",
+            () -> new com.riverfishing.block.BaitCropBlock("pearl_barley",
                     BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WHEAT)));
+
+    // Reed and cattail: two-tall bank plants (models 3D/<name>/<name>.bbmodel, split into <name>_bottom/_top
+    // at y=16 by tools/split_tall_model.py), generated along water. Sunflower's properties rather than tall
+    // grass's: a placed plant isn't wiped by the next block put there.
+    public static final RegistrySupplier<Block> REED = registerSimple("reed",
+            () -> new com.riverfishing.block.BankPlantBlock(
+                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SUNFLOWER)));
+    public static final RegistrySupplier<Block> CATTAIL = registerSimple("cattail",
+            () -> new com.riverfishing.block.BankPlantBlock(
+                    BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SUNFLOWER)));
 
     /**
      * §tackle-box (0.7.0): four sizes of set-down tackle box. Their ITEM is a {@link

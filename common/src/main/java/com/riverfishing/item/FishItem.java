@@ -274,6 +274,11 @@ public class FishItem extends Item {
                 : String.format(java.util.Locale.ROOT, "%.2f lb", lb);
     }
 
+    /** §card-imperial: the length in inches beside the centimetres, as the weight has its pounds. */
+    public static String inchesText(int lengthCm) {
+        return String.format(java.util.Locale.ROOT, "%.1f in", lengthCm / 2.54);
+    }
+
     public static String weightLabel(int weightG) {
         return weightText(weightG).getString();
     }
@@ -307,7 +312,7 @@ public class FishItem extends Item {
     public static float getIconScale(ItemStack stack) {
         int len = getLengthCm(stack);
         if (len <= 0) return 1.0f; // creative-tab / JEI entry with no individual data
-        return Math.max(0.45f, Math.min(8.0f, len / 50.0f));
+        return Math.max(0.15f, Math.min(8.0f, len / 50.0f));   // §length-weight: a pond-grown young fish is drawn small too
     }
 
     public static boolean isLegal(ItemStack stack) {

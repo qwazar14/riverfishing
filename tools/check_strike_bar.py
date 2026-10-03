@@ -45,8 +45,8 @@ if cast and strike and cast != strike:
 
 if strike:
     fw, fh, tw, th = strike
-    if fw > 128 or fh > 48:
-        fails.append("the frame %dx%d does not fit the 128x48 sheet" % (fw, fh))
+    if fw > 256 or fh > 96:
+        fails.append("the frame %dx%d does not fit the 256x96 sheet" % (fw, fh))
     if tw + 8 > fw or th + 8 > fh:
         fails.append("the %dx%d recess does not sit inside the %dx%d frame with a 4px border"
                      % (tw, th, fw, fh))
@@ -67,12 +67,12 @@ if not os.path.exists(sheet):
 else:
     import struct
     w, h = struct.unpack(">II", io.open(sheet, "rb").read()[16:24])
-    if (w, h) != (128, 48):
-        fails.append("cast_bar.png is %dx%d but both gauges blit against a 128x48 sheet" % (w, h))
+    if (w, h) != (256, 96):
+        fails.append("cast_bar.png is %dx%d but both gauges blit against a 256x96 sheet (§gui-art)" % (w, h))
 
 if fails:
     print("FAILED:")
     for x in fails:
         print("  " + x)
     sys.exit(1)
-print("strike bar: frame %dx%d, recess %dx%d, shared with the cast gauge on a 128x48 sheet" % strike)
+print("strike bar: frame %dx%d, recess %dx%d, shared with the cast gauge on a 256x96 sheet" % strike)

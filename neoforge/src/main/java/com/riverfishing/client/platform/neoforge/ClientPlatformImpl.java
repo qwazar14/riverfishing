@@ -82,6 +82,10 @@ public final class ClientPlatformImpl {
                 event.register(tint, r.get());
             }
         }
+        // §boilies: whatever paints itself from its own data (a boilie's flavour, a bottle's liquid)
+        for (RegistrySupplier<Item> r : ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.Tinted t) event.register(t::tint, r.get());
+        }
         // §groundbait-tint: the jar's speckles wear the mix's own colour (layer 1).
         for (RegistrySupplier<Item> r : ModItems.ALL) {
             if (r.get() instanceof com.riverfishing.item.GroundbaitItem) {

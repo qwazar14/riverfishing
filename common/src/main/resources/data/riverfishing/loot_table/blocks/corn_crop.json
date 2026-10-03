@@ -3,36 +3,46 @@
   "pools": [
     {
       "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:block_state_property",
+          "block": "riverfishing:corn_crop",
+          "properties": {
+            "half": "lower"
+          }
+        }
+      ],
       "entries": [
         {
           "type": "minecraft:alternatives",
           "children": [
             {
               "type": "minecraft:item",
-              "name": "riverfishing:corn",
+              "name": "riverfishing:corn_cob",
               "conditions": [
-                { "condition": "minecraft:block_state_property", "block": "riverfishing:corn_crop", "properties": { "age": "3" } }
+                {
+                  "condition": "minecraft:block_state_property",
+                  "block": "riverfishing:corn_crop",
+                  "properties": {
+                    "age": "4"
+                  }
+                }
               ],
               "functions": [
-                { "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 1, "max": 3 } }
+                {
+                  "function": "minecraft:set_count",
+                  "count": {
+                    "type": "minecraft:uniform",
+                    "min": 1,
+                    "max": 2
+                  }
+                }
               ]
             },
-            { "type": "minecraft:item", "name": "riverfishing:corn_seeds" }
-          ]
-        }
-      ]
-    },
-    {
-      "rolls": 1,
-      "conditions": [
-        { "condition": "minecraft:block_state_property", "block": "riverfishing:corn_crop", "properties": { "age": "3" } }
-      ],
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "riverfishing:corn_seeds",
-          "functions": [
-            { "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 1, "max": 2 } }
+            {
+              "type": "minecraft:item",
+              "name": "riverfishing:corn"
+            }
           ]
         }
       ]

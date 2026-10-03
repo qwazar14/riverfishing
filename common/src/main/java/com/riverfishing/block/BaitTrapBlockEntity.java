@@ -121,15 +121,14 @@ public class BaitTrapBlockEntity extends BlockEntity {
         }
         double maxW = Math.min(150, pick.weightMax);
         int w = (int) (pick.weightMin + server.getRandom().nextDouble() * Math.max(1, maxW - pick.weightMin));
-        double lf = (w - pick.weightMin) / Math.max(1.0, pick.weightMax - pick.weightMin);
-        int len = (int) Math.round(pick.lengthMin + (pick.lengthMax - pick.lengthMin) * lf);
+        int len = (int) Math.round(pick.lengthAt(w));   // §length-weight
         var item = com.riverfishing.registry.ModItems.FISH_ITEMS.get(pick.id);
         if (item == null) return ItemStack.EMPTY;
         return com.riverfishing.item.FishItem.create(item.get(), pick.id, w, Math.max(1, len), true);
     }
 
     /**
-     * §c: up to 10 fry of whichever brood has the most fry here, off the ledger, with the population genome.
+     * §c: up to 32 fry (§fry-stack) of whichever brood has the most fry here, off the ledger, with the population genome.
      *
      * <p>§n §breeding: "here" is the trap's own WATER, not its region. The ledger is keyed by a ~128-block
      * region, so the richest fry in it could be the neighbour's — which is exactly what players saw: a trap
@@ -139,6 +138,11 @@ public class BaitTrapBlockEntity extends BlockEntity {
     private ItemStack netFry(ServerLevel server, Player player) {
         BlockPos waterPos = waterAt(server);
         if (waterPos == null) return ItemStack.EMPTY;
+        com.riverfishing.alife.Lake pond = com.riverfishing.fishing.PondLife.lake(server, waterPos);
+        if (pond != null) {   // §alife-pond: the pond's own fry — §trap-fry-owner: for its owner only, as with a net
+            return player.getUUID().equals(com.riverfishing.fishing.PondData.owner(server, waterPos))
+                    ? com.riverfishing.fishing.PondLife.netFry(pond) : ItemStack.EMPTY;
+        }
         var stocked = com.riverfishing.fishing.StockedData.get(server);
         long region = com.riverfishing.fishing.StockedData.regionAt(server, waterPos);
         String species = null;
@@ -152,7 +156,7 @@ public class BaitTrapBlockEntity extends BlockEntity {
             most = fry;
             species = s;
         }
-        int n = species == null ? 0 : stocked.takeFry(region, species, 10);
+        int n = species == null ? 0 : stocked.takeFry(region, species, com.riverfishing.fishing.PondLife.NET_FRY);   // §fry-stack
         if (n <= 0) {
             // Said out loud, or the trap looks broken to the man who knows there are fry in the region.
             if (elsewhere) player.displayClientMessage(Component.translatable("message.riverfishing.trap_fry_elsewhere")
@@ -214,6 +218,16 @@ public class BaitTrapBlockEntity extends BlockEntity {
                 || level.getFluidState(p.south()).is(FluidTags.WATER)
                 || level.getFluidState(p.east()).is(FluidTags.WATER)
                 || level.getFluidState(p.west()).is(FluidTags.WATER);
+    }
+
+    /** §farm-spill: the live bait and the fish in the trap pop out when it is broken — they went with the block. */
+    void spill() {
+        if (level == null || level.isClientSide()) return;
+        if (stored > 0) net.minecraft.world.level.block.Block.popResource(level, worldPosition,
+                new ItemStack(BuiltInRegistries.ITEM.get(com.riverfishing.RiverFishing.id("livebait")), stored));
+        for (ItemStack f : fishes) net.minecraft.world.level.block.Block.popResource(level, worldPosition, f);
+        fishes.clear();
+        stored = 0;
     }
 
     void collect(Player player) {

@@ -17,9 +17,11 @@ MAIN = r"C:/Users/Qwazar/VS Code Projects/fishing mod"
 TREES = [MAIN, r"C:/Users/Qwazar/wt/rf1201", r"C:/Users/Qwazar/wt/rf26"]
 A = "common/src/main/resources/assets/riverfishing"
 D = "common/src/main/resources/data/riverfishing"
-TAG = "§species-table (0.10)"
+TAG = "§species-table"   # the roster comment; say which table in it by hand
 DONOR = "pike"
-OLD_LEVEL_MAX = 12.0   # the hand-set ladder topped out here; the new one runs to 50
+# The 0.10 import stretched the old hand-set 0-12 ladder to 0-50; every profile has been on 0-50 since, so a later
+# table (1.1.0 onwards) must not stretch again — 50 makes the factor 1. Only ever 12.0 for the 0.10 table.
+OLD_LEVEL_MAX = 50.0
 
 # the crosses the table's hybrids come from — the parents get breeds_with, the hybrid gets hybrid_of
 HYBRIDS = {
@@ -143,7 +145,8 @@ def build_profile(row, old):
     p["provinces"] = listing(row["Provinces"])
     # §sea-roamers: the oceans carry a sea species everywhere — no provinces, whatever the column says
     wb = p["water_bodies"]
-    if (wb.get("sea", 0) > 0 and all(wb.get(k, 0) <= 0 for k in ("river", "lake", "pond", "swamp", "puddle"))) \n            or sid in ("bull_shark", "jack_crevalle", "mullet"):
+    if (wb.get("sea", 0) > 0 and all(wb.get(k, 0) <= 0 for k in ("river", "lake", "pond", "swamp", "puddle"))) \
+            or sid in ("bull_shark", "jack_crevalle", "mullet"):
         p["provinces"] = []
     p["biomes"] = weights(row["Biomes"])
     req = listing(row["Biomes require"])
@@ -267,9 +270,12 @@ def main():
     prof_dir = os.path.join(MAIN, D, "fish_profiles")
     old_main = {f[:-5]: jload(os.path.join(prof_dir, f)) for f in os.listdir(prof_dir) if f.endswith(".json")}
     print("table: %d species, %d already in the main tree" % (len(rows), sum(1 for r in rows if r["ID"] in old_main)))
+    # a hybrid in this table needs both parents — in the table, or already in the game (a table of only new
+    # species, like 1.1.0's, carries none of the old hybrids and none of their parents)
+    ids = {r["ID"] for r in rows}
     for sid, (a, b) in HYBRIDS.items():
-        ids = {r["ID"] for r in rows}
-        assert sid in ids and a in ids and b in ids, (sid, a, b)
+        if sid in ids:
+            assert (a in ids or a in old_main) and (b in ids or b in old_main), (sid, a, b)
     ph = None
     for t in trees:
         ph = wire_tree(t, rows, old_main)

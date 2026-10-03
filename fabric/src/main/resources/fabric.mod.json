@@ -19,7 +19,8 @@
   "entrypoints": {
     "main": ["com.riverfishing.fabric.RiverFishingFabric"],
     "client": ["com.riverfishing.fabric.RiverFishingFabricClient"],
-    "jade": ["com.riverfishing.integration.jade.RiverFishingJadePlugin"]
+    "jade": ["com.riverfishing.integration.jade.RiverFishingJadePlugin"],
+    "jei_mod_plugin": ["com.riverfishing.integration.jei.RiverFishingJeiPlugin"]
   },
   "mixins": ["riverfishing.mixins.json", "riverfishing-fabric.mixins.json"],
   "depends": {

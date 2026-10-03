@@ -82,6 +82,7 @@ public class GroundbaitItem extends Item {
         boolean overwrote = before.inZone() && before.mix() != null
                 && !before.mix().signature().equals(mix.signature());
         FeedZoneData.get(serverLevel).feed(pos, mix, serverLevel.getGameTime());
+        com.riverfishing.fishing.AlifeData.fed(serverLevel, pos, mix);   // §alife
         stack.shrink(1);
 
         serverLevel.playSound(null, pos, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.7f, 1.1f);

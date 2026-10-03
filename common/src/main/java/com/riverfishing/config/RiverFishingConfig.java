@@ -38,6 +38,12 @@ public final class RiverFishingConfig {
     public static boolean updateCheck = true;
     /** §flow-config: the river current — the moving texture, the drifting boats and foam, the rope. Off = still water everywhere. */
     public static boolean flow = true;
+    /**
+     * §alife (1.1.0): bites come from the living water (fish that move, feed, learn and are really taken)
+     * instead of the old per-cast roll. The old engine stays behind this one switch until release, and
+     * cutting it is deleting the {@code false} branch.
+     */
+    public static boolean alife = true;
     /** §season-config: days in a season of the mod's own calendar (a year is four of them; a sub-season a third). Ignored under Serene Seasons. */
     public static int seasonDays = 24;
     public static double bycatchJunk = 0.045;
@@ -70,6 +76,7 @@ public final class RiverFishingConfig {
     public static boolean consumeBait() { return consumeBait; }
     public static boolean consumeGroundbait() { return consumeGroundbait; }
     public static boolean flow() { return flow; }
+    public static boolean alife() { return alife; }
     public static double bycatchJunkChance() { return bycatchJunk; }
     public static double bycatchTreasureChance() { return bycatchTreasure; }
 }

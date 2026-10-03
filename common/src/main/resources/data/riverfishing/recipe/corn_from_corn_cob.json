@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "riverfishing:corn_cob" }
+  ],
+  "result": { "id": "riverfishing:corn", "count": 4 }
+}

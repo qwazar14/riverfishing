@@ -111,13 +111,15 @@ public class TieLurePacket implements ModNetwork.RfPacket {
     /** True when the wells and the inventory can pay for the drawing's materials (the hook is asked for separately). */
     public static boolean affordable(AbstractContainerMenu menu, byte[] design) {
         int[] cost = TiedDesign.cost(design);
+        int thread = 0;   // §thread-sum: every colour of thread comes off the one pile of string
         for (int px = 1; px <= TiedDesign.LAST; px++) {
             if (cost[px] == 0) continue;
-            if (count(menu, ingredient(px)) < cost[px]) return false;
+            if (px >= TiedDesign.THREAD0 && px < TiedDesign.THREAD0 + 16) thread += cost[px];
+            else if (count(menu, ingredient(px)) < cost[px]) return false;
             Predicate<ItemStack> dye = dyeFor(px);
             if (dye != null && count(menu, dye) < cost[px]) return false;
         }
-        return true;
+        return thread == 0 || count(menu, ingredient(TiedDesign.THREAD0)) >= thread;
     }
 
     public void handleServer(NetworkManager.PacketContext ctx) {

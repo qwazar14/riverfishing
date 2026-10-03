@@ -44,5 +44,16 @@ public final class ModRecipes {
             REGISTER.register("cook_fish_smoking",
                     () -> new net.minecraft.world.item.crafting.SimpleCookingSerializer<>(com.riverfishing.item.CookFishRecipe.Smoking::new, 100));
 
+    // §boilies: the paste, the flavour bottle and the snowman — all read their ingredients' data
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.BoilieRecipes.Paste>> BOILIE_PASTE =
+            REGISTER.register("crafting_boilie_paste",
+                    () -> new SimpleCraftingRecipeSerializer<>(com.riverfishing.item.BoilieRecipes.Paste::new));
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.BoilieRecipes.Bottle>> FLAVOUR_BOTTLE =
+            REGISTER.register("crafting_flavour_bottle",
+                    () -> new SimpleCraftingRecipeSerializer<>(com.riverfishing.item.BoilieRecipes.Bottle::new));
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.BoilieRecipes.Snowman>> SNOWMAN =
+            REGISTER.register("crafting_boilie_snowman",
+                    () -> new SimpleCraftingRecipeSerializer<>(com.riverfishing.item.BoilieRecipes.Snowman::new));
+
     private ModRecipes() {}
 }

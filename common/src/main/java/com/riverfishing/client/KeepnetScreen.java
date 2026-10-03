@@ -32,16 +32,6 @@ import net.minecraft.world.item.ItemStack;
  */
 public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
     private static final int CELL = KeepnetMenu.CELL;
-    /**
-     * §keepnet-tune: one multiplier over the measured fit, live-tunable through {@code /rfnet}.
-     *
-     * <p>It used to be three numbers, two of which were a GUESS at how much of its icon a fish fills. That
-     * guess is why no single value worked: a ray fills its canvas nearly corner to corner and a flounder
-     * is a flat oval, so a scale that suited one made the other tiny. The proportions are measured per
-     * species now ({@link FishBounds}), which leaves nothing to guess and this knob at 1.0.
-     */
-    public static float iconScale = 1.0f;
-
     /** Which way round the thing on the cursor goes down. Client state: it is a property of the pointer. */
     private int rot;
     private int btnW = 54;
@@ -171,7 +161,7 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
         // A turned fish lies on its side, so the footprint's axes swap for the purposes of fitting it.
         float availW = (rot == 0 ? cw : ch) * CELL;
         float availH = (rot == 0 ? ch : cw) * CELL;
-        float scale = Math.min(availW / fishW, availH / fishH) * iconScale;
+        float scale = Math.min(availW / fishW, availH / fishH);
 
         // The size is applied ONCE, by the renderer override. Scaling the pose as well multiplied it by
         // itself — a ray computed at 6.06 came out at 36, which is how it ended up larger than the screen.

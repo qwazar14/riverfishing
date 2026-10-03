@@ -3,7 +3,7 @@
 
     py -X utf8 tools/check_rep_debt.py
 
-Mirrors fishing/Warden.java (credit / toNextPoint / toClear / banned) so the arithmetic can be run
+Mirrors fishing/Warden.java (credit / banned) so the arithmetic can be run
 without a JVM, and reads the three constants back out of the Java so the mirror cannot drift. Exit 1
 on the first rule that breaks.
 """

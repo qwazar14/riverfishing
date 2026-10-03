@@ -1,7 +1,2583 @@
 {
-  "parent": "minecraft:block/crop",
-  "render_type": "minecraft:cutout",
+  "ambientocclusion": false,
   "textures": {
-    "crop": "riverfishing:block/barley_stage2"
-  }
+    "barley": "riverfishing:block/barley",
+    "particle": "riverfishing:block/barley"
+  },
+  "elements": [
+    {
+      "name": "stalk_1",
+      "from": [
+        3,
+        -1,
+        3
+      ],
+      "to": [
+        4,
+        7,
+        5
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          3.5,
+          -1,
+          4
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            12,
+            2.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            2,
+            12,
+            3,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            2,
+            12,
+            2.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            2,
+            12,
+            3,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            2,
+            12,
+            2.5,
+            13
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            2,
+            15.5,
+            2.5,
+            16.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_1_0",
+      "from": [
+        3,
+        7,
+        4
+      ],
+      "to": [
+        4,
+        10,
+        5
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          3.5,
+          7,
+          4.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            14,
+            5.5,
+            14.5,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            6,
+            6.5,
+            6.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            13.5,
+            4,
+            14,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            7,
+            5.5,
+            7.5,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            12.5,
+            7,
+            13,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            6,
+            6.5,
+            6.5,
+            7
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_1_1",
+      "from": [
+        3,
+        8,
+        3
+      ],
+      "to": [
+        4,
+        10,
+        4
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          3.5,
+          8,
+          3.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            14,
+            6.5,
+            14.5,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            6.5,
+            5.5,
+            7,
+            6.5
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            11,
+            6.5,
+            11.5,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            12,
+            4.5,
+            12.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            8,
+            5.5,
+            8.5,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            12.5,
+            6.5,
+            13,
+            7
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "stalk_2",
+      "from": [
+        7,
+        -1,
+        2
+      ],
+      "to": [
+        9,
+        7,
+        3
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          -1,
+          2.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            12,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            3,
+            12,
+            3.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            3,
+            12,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            3,
+            12,
+            3.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            3,
+            12,
+            4,
+            12.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            3,
+            15.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_2_0",
+      "from": [
+        7,
+        7,
+        2
+      ],
+      "to": [
+        8,
+        10,
+        3
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          7.5,
+          7,
+          2.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            15,
+            4,
+            15.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            8,
+            4,
+            8.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            8,
+            5.5,
+            8.5,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            8.5,
+            6.5,
+            9,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            14.5,
+            7.5,
+            15,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            13,
+            4,
+            13.5,
+            4.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_2_1",
+      "from": [
+        8,
+        8,
+        2
+      ],
+      "to": [
+        9,
+        10,
+        3
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8.5,
+          8,
+          2.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            4.5,
+            6.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            10,
+            5,
+            10.5,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            13,
+            4,
+            13.5,
+            5
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            7.5,
+            6.5,
+            8,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            13,
+            4.5,
+            13.5,
+            5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            14.5,
+            5,
+            15,
+            5.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "stalk_3",
+      "from": [
+        11,
+        -1,
+        3
+      ],
+      "to": [
+        12,
+        10,
+        5
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          11.5,
+          -1,
+          4
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            10.5,
+            2.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            2,
+            10.5,
+            3,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            2,
+            10.5,
+            2.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            2,
+            10.5,
+            3,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            2,
+            10.5,
+            2.5,
+            11.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            2,
+            15.5,
+            2.5,
+            16.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_3_0",
+      "from": [
+        11,
+        10,
+        3
+      ],
+      "to": [
+        12,
+        13,
+        4
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          11.5,
+          10,
+          3.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            11,
+            6.5,
+            11.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            13,
+            4.5,
+            13.5,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            15.5,
+            5.5,
+            16,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            8.5,
+            6,
+            9,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            10.5,
+            6.5,
+            11,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            14.5,
+            6,
+            15,
+            6.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_3_1",
+      "from": [
+        11,
+        11,
+        4
+      ],
+      "to": [
+        12,
+        13,
+        5
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          11.5,
+          11,
+          4.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            14.5,
+            7,
+            15,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            13,
+            6,
+            13.5,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            9.5,
+            6,
+            10,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            15,
+            7,
+            15.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            14,
+            7.5,
+            14.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            6,
+            4.5,
+            6.5,
+            5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "stalk_4",
+      "from": [
+        2,
+        -1,
+        7
+      ],
+      "to": [
+        4,
+        8,
+        8
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          3,
+          -1,
+          7.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            11.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            3,
+            11.5,
+            3.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            3,
+            11.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            3,
+            11.5,
+            3.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            3,
+            11.5,
+            4,
+            12
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            3,
+            15.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_4_0",
+      "from": [
+        3,
+        8,
+        7
+      ],
+      "to": [
+        4,
+        11,
+        8
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          3.5,
+          8,
+          7.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            13,
+            4,
+            13.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            11.5,
+            4.5,
+            12,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            9,
+            5,
+            9.5,
+            6.5
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            13.5,
+            6.5,
+            14,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            8,
+            5,
+            8.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            14,
+            5.5,
+            14.5,
+            6
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_4_1",
+      "from": [
+        2,
+        9,
+        7
+      ],
+      "to": [
+        3,
+        11,
+        8
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          2.5,
+          9,
+          7.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            8.5,
+            5,
+            9,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            6.5,
+            5,
+            7,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            10,
+            5,
+            10.5,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            7,
+            6,
+            7.5,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            9.5,
+            4.5,
+            10,
+            5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            8,
+            7,
+            8.5,
+            7.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "stalk_5",
+      "from": [
+        6,
+        -1,
+        6
+      ],
+      "to": [
+        7,
+        7,
+        8
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          6.5,
+          -1,
+          7
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            12,
+            2.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            2,
+            12,
+            3,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            2,
+            12,
+            2.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            2,
+            12,
+            3,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            2,
+            12,
+            2.5,
+            13
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            2,
+            15.5,
+            2.5,
+            16.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_5_0",
+      "from": [
+        6,
+        7,
+        6
+      ],
+      "to": [
+        7,
+        10,
+        7
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          6.5,
+          7,
+          6.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            13.5,
+            5.5,
+            14,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            9,
+            5,
+            9.5,
+            6.5
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            14.5,
+            6,
+            15,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            9,
+            4,
+            9.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            15,
+            7,
+            15.5,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            15.5,
+            4,
+            16,
+            4.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_5_1",
+      "from": [
+        6,
+        8,
+        7
+      ],
+      "to": [
+        7,
+        10,
+        8
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          6.5,
+          8,
+          7.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            11,
+            6,
+            11.5,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            6,
+            6.5,
+            6.5,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            12,
+            4,
+            12.5,
+            5
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            9,
+            6.5,
+            9.5,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            11,
+            5.5,
+            11.5,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            9.5,
+            7,
+            10,
+            7.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "stalk_6",
+      "from": [
+        10,
+        -1,
+        6
+      ],
+      "to": [
+        12,
+        8,
+        7
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          11,
+          -1,
+          6.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            11.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            3,
+            11.5,
+            3.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            3,
+            11.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            3,
+            11.5,
+            3.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            3,
+            11.5,
+            4,
+            12
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            3,
+            15.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_6_0",
+      "from": [
+        10,
+        8,
+        6
+      ],
+      "to": [
+        11,
+        11,
+        7
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          10.5,
+          8,
+          6.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            15,
+            4,
+            15.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            12.5,
+            4.5,
+            13,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            12.5,
+            4,
+            13,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            6,
+            6.5,
+            6.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            10,
+            4,
+            10.5,
+            4.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            9,
+            5,
+            9.5,
+            5.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_6_1",
+      "from": [
+        11,
+        9,
+        6
+      ],
+      "to": [
+        12,
+        11,
+        7
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          11.5,
+          9,
+          6.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9.5,
+            5,
+            10,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            6.5,
+            6,
+            7,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            7,
+            7,
+            7.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            8,
+            6,
+            8.5,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            11,
+            6,
+            11.5,
+            6.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            7,
+            7,
+            7.5,
+            7.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "stalk_7",
+      "from": [
+        12,
+        -1,
+        9
+      ],
+      "to": [
+        13,
+        8,
+        11
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          12.5,
+          -1,
+          10
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            11.5,
+            2.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            2,
+            11.5,
+            3,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            2,
+            11.5,
+            2.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            2,
+            11.5,
+            3,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            2,
+            11.5,
+            2.5,
+            12.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            2,
+            15.5,
+            2.5,
+            16.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_7_0",
+      "from": [
+        12,
+        8,
+        10
+      ],
+      "to": [
+        13,
+        11,
+        11
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          12.5,
+          8,
+          10.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            11,
+            6.5,
+            11.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            9.5,
+            4.5,
+            10,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            10.5,
+            5.5,
+            11,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            11.5,
+            4.5,
+            12,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            13,
+            4,
+            13.5,
+            4.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            7.5,
+            4.5,
+            8,
+            5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_7_1",
+      "from": [
+        12,
+        9,
+        9
+      ],
+      "to": [
+        13,
+        11,
+        10
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          12.5,
+          9,
+          9.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9,
+            5,
+            9.5,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            8,
+            7,
+            8.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            9.5,
+            5.5,
+            10,
+            6.5
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            9,
+            5.5,
+            9.5,
+            6.5
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            14,
+            4,
+            14.5,
+            4.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            8.5,
+            4,
+            9,
+            4.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "stalk_8",
+      "from": [
+        4,
+        -1,
+        11
+      ],
+      "to": [
+        6,
+        8,
+        12
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          5,
+          -1,
+          11.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            11.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            3,
+            11.5,
+            3.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            3,
+            11.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            3,
+            11.5,
+            3.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            3,
+            11.5,
+            4,
+            12
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            3,
+            15.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_8_0",
+      "from": [
+        4,
+        8,
+        11
+      ],
+      "to": [
+        5,
+        11,
+        12
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          4.5,
+          8,
+          11.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            11,
+            5,
+            11.5,
+            6.5
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            11,
+            5,
+            11.5,
+            6.5
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            6.5,
+            4,
+            7,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            12.5,
+            4,
+            13,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            13,
+            7.5,
+            13.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            9,
+            4.5,
+            9.5,
+            5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_8_1",
+      "from": [
+        5,
+        9,
+        11
+      ],
+      "to": [
+        6,
+        11,
+        12
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          5.5,
+          9,
+          11.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            15,
+            4,
+            15.5,
+            5
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            10.5,
+            4.5,
+            11,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            11,
+            6.5,
+            11.5,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            14.5,
+            5.5,
+            15,
+            6.5
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            12.5,
+            7,
+            13,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            10.5,
+            6,
+            11,
+            6.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "stalk_9",
+      "from": [
+        8,
+        -1,
+        10
+      ],
+      "to": [
+        9,
+        9,
+        12
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8.5,
+          -1,
+          11
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            11,
+            2.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            2,
+            11,
+            3,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            2,
+            11,
+            2.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            2,
+            11,
+            3,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            2,
+            11,
+            2.5,
+            12
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            2,
+            15.5,
+            2.5,
+            16.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_9_0",
+      "from": [
+        8,
+        9,
+        10
+      ],
+      "to": [
+        9,
+        12,
+        11
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8.5,
+          9,
+          10.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            14.5,
+            6.5,
+            15,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            7,
+            4,
+            7.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            6,
+            6,
+            6.5,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            13.5,
+            6.5,
+            14,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            12.5,
+            7,
+            13,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            9,
+            5,
+            9.5,
+            5.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_9_1",
+      "from": [
+        8,
+        10,
+        11
+      ],
+      "to": [
+        9,
+        12,
+        12
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8.5,
+          10,
+          11.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            8.5,
+            6.5,
+            9,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            13.5,
+            4.5,
+            14,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            8.5,
+            5,
+            9,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            7,
+            7,
+            7.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            11.5,
+            4.5,
+            12,
+            5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            7,
+            6.5,
+            7.5,
+            7
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "stalk_10",
+      "from": [
+        11,
+        -1,
+        12
+      ],
+      "to": [
+        13,
+        8,
+        13
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          12,
+          -1,
+          12.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            11.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            3,
+            11.5,
+            3.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            3,
+            11.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            3,
+            11.5,
+            3.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            3,
+            11.5,
+            4,
+            12
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            3,
+            15.5,
+            4,
+            16
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_10_0",
+      "from": [
+        12,
+        8,
+        12
+      ],
+      "to": [
+        13,
+        11,
+        13
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          12.5,
+          8,
+          12.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9,
+            4,
+            9.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            8,
+            5.5,
+            8.5,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            7.5,
+            4.5,
+            8,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            15,
+            6,
+            15.5,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            13,
+            5,
+            13.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            9,
+            4,
+            9.5,
+            4.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_10_1",
+      "from": [
+        11,
+        9,
+        12
+      ],
+      "to": [
+        12,
+        11,
+        13
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          11.5,
+          9,
+          12.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7.5,
+            5,
+            8,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            7.5,
+            5,
+            8,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            8,
+            7,
+            8.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            7,
+            4.5,
+            7.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            6.5,
+            4.5,
+            7,
+            5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            13.5,
+            6.5,
+            14,
+            7
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "stalk_11",
+      "from": [
+        6,
+        -1,
+        13
+      ],
+      "to": [
+        7,
+        10,
+        15
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          6.5,
+          -1,
+          14
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            10.5,
+            2.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            2,
+            10.5,
+            3,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            2,
+            10.5,
+            2.5,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            2,
+            10.5,
+            3,
+            16
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            2,
+            10.5,
+            2.5,
+            11.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            2,
+            15.5,
+            2.5,
+            16.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_11_0",
+      "from": [
+        6,
+        10,
+        13
+      ],
+      "to": [
+        7,
+        13,
+        14
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          6.5,
+          10,
+          13.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            11,
+            4.5,
+            11.5,
+            6
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            6,
+            6,
+            6.5,
+            7.5
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            10,
+            4,
+            10.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            15.5,
+            4,
+            16,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            7,
+            5,
+            7.5,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            6,
+            5,
+            6.5,
+            5.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    },
+    {
+      "name": "ear_11_1",
+      "from": [
+        6,
+        11,
+        14
+      ],
+      "to": [
+        7,
+        13,
+        15
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          6.5,
+          11,
+          14.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            7,
+            12.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "east": {
+          "uv": [
+            10,
+            7,
+            10.5,
+            8
+          ],
+          "texture": "#barley"
+        },
+        "south": {
+          "uv": [
+            10.5,
+            6,
+            11,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "west": {
+          "uv": [
+            12.5,
+            6,
+            13,
+            7
+          ],
+          "texture": "#barley"
+        },
+        "up": {
+          "uv": [
+            10.5,
+            5,
+            11,
+            5.5
+          ],
+          "texture": "#barley"
+        },
+        "down": {
+          "uv": [
+            11,
+            6,
+            11.5,
+            6.5
+          ],
+          "texture": "#barley"
+        }
+      }
+    }
+  ]
 }

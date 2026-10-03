@@ -12,6 +12,7 @@ import com.riverfishing.registry.ModItems;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,12 +30,16 @@ public final class JournalCommand {
                 dispatcher.register(Commands.literal("rffish")
                         // §guide-nudge: the ONE branch any player may run — it is what the offered line
                         // clicks, and it does nothing but open a page the journal already holds.
+                        // §hints-toggle: any player — the lines that explain a quiet water, off for immersion or back on
+                        .then(Commands.literal("hints")
+                                .then(Commands.literal("on").executes(c -> hints(c, true)))
+                                .then(Commands.literal("off").executes(c -> hints(c, false))))
                         .then(Commands.literal("guide")
                                 .then(Commands.argument("page", StringArgumentType.word())
                                         .executes(JournalCommand::guide)))
                         // §fish-give: a fish by name, made the way the water makes one — see give()
                         .then(Commands.literal("give").requires(s -> s.hasPermission(2))
-                                .then(Commands.argument("species", StringArgumentType.word())
+                                .then(Commands.argument("species", StringArgumentType.word()).suggests(SPECIES)
                                         .executes(c -> give(c, "", 1, -1))
                                         .then(Commands.argument("variety", StringArgumentType.word())
                                                 .executes(c -> give(c, StringArgumentType.getString(c, "variety"), 1, -1))
@@ -45,10 +50,127 @@ public final class JournalCommand {
                                                                 .executes(c -> give(c, StringArgumentType.getString(c, "variety"),
                                                                         com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "count"),
                                                                         com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "pattern"))))))))
+                        // §event-fish (1.1.0): an organiser's hand in the water, for competitions
+                        .then(Commands.literal("spawn").requires(s -> s.hasPermission(2))
+                                .then(Commands.argument("species", StringArgumentType.word()).suggests(SPECIES)
+                                        .then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 2000))
+                                                .executes(c -> spawn(c, false, -1))
+                                                .then(Commands.argument("grams", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1))
+                                                        .executes(c -> spawn(c, false, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "grams")))))
+                                        .then(Commands.literal("trophy")
+                                                .executes(c -> spawn(c, true, -1))
+                                                .then(Commands.argument("grams", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1))
+                                                        .executes(c -> spawn(c, true, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "grams")))))))
+                        .then(Commands.literal("clear").requires(s -> s.hasPermission(2))
+                                .executes(c -> clear(c, false))
+                                .then(Commands.literal("all").executes(c -> clear(c, true))))
+                        .then(Commands.literal("census").requires(s -> s.hasPermission(2))
+                                .executes(JournalCommand::census))
                         .then(Commands.literal("unlockall")
                                 .requires(s -> s.hasPermission(2)).executes(JournalCommand::unlockAll))
                         .then(Commands.literal("reset")
                                 .requires(s -> s.hasPermission(2)).executes(JournalCommand::reset))));
+    }
+
+    /** Every species id, for the commands that name one. */
+    private static final com.mojang.brigadier.suggestion.SuggestionProvider<CommandSourceStack> SPECIES = (c, b) ->
+            net.minecraft.commands.SharedSuggestionProvider.suggest(
+                    FishProfileManager.get().all().stream().map(p -> p.id.getPath()).sorted(), b);
+
+    private static final String EV = "command.riverfishing.event.";
+
+    /**
+     * §event-fish: the wild water at the command's position (so {@code execute positioned … run rffish spawn}
+     * works from a console or a command block), or a failure said why. A claimed pond is its owner's to stock.
+     */
+    private static com.riverfishing.alife.Lake eventWater(CommandContext<CommandSourceStack> c) {
+        net.minecraft.server.level.ServerLevel level = c.getSource().getLevel();
+        BlockPos pos = BlockPos.containing(c.getSource().getPosition());
+        if (!com.riverfishing.config.RiverFishingConfig.alife()) {
+            c.getSource().sendFailure(Component.translatable(EV + "off"));
+            return null;
+        }
+        if (com.riverfishing.fishing.PondLife.claimNear(level, pos) != null) {
+            c.getSource().sendFailure(Component.translatable(EV + "pond"));
+            return null;
+        }
+        com.riverfishing.alife.Lake lake = com.riverfishing.fishing.AlifeData.get(level).lakeAt(level, pos);
+        if (lake.zones.isEmpty()) {
+            c.getSource().sendFailure(Component.translatable(EV + "no_water"));
+            return null;
+        }
+        return lake;
+    }
+
+    /** §event-fish: /rffish spawn <species> <count> [grams] | <species> trophy [grams]. */
+    private static int spawn(CommandContext<CommandSourceStack> c, boolean trophy, int grams) {
+        String id = StringArgumentType.getString(c, "species");
+        FishProfile p = FishProfileManager.get().byId(RiverFishing.id(id));
+        if (p == null) {
+            c.getSource().sendFailure(Component.translatable(EV + "no_species", id));
+            return 0;
+        }
+        com.riverfishing.alife.Lake lake = eventWater(c);
+        if (lake == null) return 0;
+        int count = trophy ? 1 : com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "count");
+        // a trophy is the kind the water grows itself: well over the mean, under the record
+        double g = grams > 0 ? grams : trophy ? Math.min(p.weightMax * 0.9, p.weightMean * 3) : p.weightMean;
+        g = Math.max(Math.max(1, p.weightMin), Math.min(p.weightMax, g));
+        BlockPos pos = BlockPos.containing(c.getSource().getPosition());
+        int groups = com.riverfishing.fishing.AlifeData.spawnEvent(lake, p, pos, count, g, trophy);
+        com.riverfishing.fishing.AlifeData.get(c.getSource().getLevel()).setDirty();
+        if (groups < 0) {
+            c.getSource().sendFailure(Component.translatable(EV + "full", lake.agents.size()));
+            return 0;
+        }
+        Component name = Component.translatable("fish.riverfishing." + id);
+        long shown = Math.round(g);
+        int made = groups;
+        c.getSource().sendSuccess(() -> trophy
+                ? Component.translatable(EV + "trophy", name, shown)
+                : Component.translatable(EV + "spawned", name, count, shown, made), true);
+        return count;
+    }
+
+    /** §event-fish: /rffish clear — the event's fish out of this water; /rffish clear all — every fish in it. */
+    private static int clear(CommandContext<CommandSourceStack> c, boolean all) {
+        com.riverfishing.alife.Lake lake = eventWater(c);
+        if (lake == null) return 0;
+        int[] gone = com.riverfishing.fishing.AlifeData.clearEvent(lake, all);
+        com.riverfishing.fishing.AlifeData.get(c.getSource().getLevel()).setDirty();
+        c.getSource().sendSuccess(() -> Component.translatable(EV + (all ? "cleared_all" : "cleared"), gone[0], gone[1]), true);
+        return gone[0];
+    }
+
+    /** §event-fish: /rffish census — what swims in this water now, species by species, and how much of it is the event's. */
+    private static int census(CommandContext<CommandSourceStack> c) {
+        com.riverfishing.alife.Lake lake = eventWater(c);
+        if (lake == null) return 0;
+        var rows = com.riverfishing.fishing.AlifeData.census(lake);
+        double fish = 0, kg = 0, event = 0;
+        for (var r : rows) {
+            fish += r.getValue()[1];
+            kg += r.getValue()[2];
+            event += r.getValue()[3];
+        }
+        net.minecraft.network.chat.MutableComponent out = Component.translatable(EV + "census",
+                (long) fish, String.format(java.util.Locale.ROOT, "%.1f", kg), (long) event);
+        for (var r : rows) {
+            double[] v = r.getValue();
+            out.append("\n").append(Component.translatable(EV + "census_line", Component.translatable("fish.riverfishing." + r.getKey()),
+                    (long) v[1], String.format(java.util.Locale.ROOT, "%.1f", v[2]), (long) v[0]));
+            if (v[3] > 0) out.append(Component.translatable(EV + "census_event", (long) v[3]));
+        }
+        c.getSource().sendSuccess(() -> out, false);
+        return (int) fish;
+    }
+
+    private static int hints(CommandContext<CommandSourceStack> c, boolean on) throws CommandSyntaxException {
+        ServerPlayer sp = c.getSource().getPlayerOrException();
+        PlayerData.root(sp).putBoolean(com.riverfishing.fishing.FishingManager.NO_HINTS, !on);
+        PlayerData.markDirty(sp);
+        c.getSource().sendSuccess(() -> Component.translatable(on ? "message.riverfishing.hints_on" : "message.riverfishing.hints_off"), false);
+        return 1;
     }
 
     /**

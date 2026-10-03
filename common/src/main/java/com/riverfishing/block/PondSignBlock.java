@@ -148,7 +148,7 @@ public class PondSignBlock extends Block {
                 ? Component.translatable("message.riverfishing.pond_info_unnamed", c.ownerName, c.size())
                 : Component.translatable("message.riverfishing.pond_info_head", c.name, c.ownerName, c.size());
         out.add(head.withStyle(ChatFormatting.GOLD));
-        List<Component> modules = com.riverfishing.fishing.WaterUpgrades.inside(sl, packed -> c.holds(PondData.column(BlockPos.of(packed))));
+        List<Component> modules = com.riverfishing.fishing.WaterUpgrades.inside(sl, packed -> c.holds(PondData.column(BlockPos.of(packed))), c.water);
         if (modules.isEmpty()) {
             out.add(Component.translatable("message.riverfishing.pond_info_no_modules").withStyle(ChatFormatting.GRAY));
         } else {
@@ -164,6 +164,15 @@ public class PondSignBlock extends Block {
         com.riverfishing.fishing.StockedData stocked = com.riverfishing.fishing.StockedData.get(sl);
         java.util.Set<Long> regions = java.util.Set.of(stocked.pondKey(sl, c));   // §pond-ledger: the pond's own book
         java.util.Map<String, int[]> fish = new java.util.TreeMap<>();
+        // §alife-pond: a living pond is counted fish by fish, and says how full it is
+        com.riverfishing.alife.Lake pond = com.riverfishing.config.RiverFishingConfig.alife()
+                ? com.riverfishing.fishing.AlifeData.get(sl).pond(sl, c) : null;
+        if (pond != null) {
+            fish.putAll(com.riverfishing.fishing.PondLife.census(pond));
+            out.add(Component.translatable("message.riverfishing.pond_info_room",
+                    com.riverfishing.fishing.PondLife.fullness(pond)).withStyle(ChatFormatting.AQUA));
+            regions = java.util.Set.of();
+        }
         for (long r : regions) {
             for (String sp : stocked.farmSpecies(r)) {
                 int[] n = fish.computeIfAbsent(sp, k -> new int[2]);
@@ -176,8 +185,13 @@ public class PondSignBlock extends Block {
             out.add(Component.translatable("message.riverfishing.pond_info_empty").withStyle(ChatFormatting.GRAY));
         } else {
             for (var e : fish.entrySet()) {
-                out.add(Component.translatable("message.riverfishing.pond_info_fish",
-                        Component.translatable("fish.riverfishing." + e.getKey()), e.getValue()[0], e.getValue()[1])
+                int[] n = e.getValue();
+                int young = n.length > 4 ? n[4] : 0;   // §census-sex: a living pond knows its young apart
+                out.add((young > 0
+                        ? Component.translatable("message.riverfishing.pond_info_fish_young",
+                                Component.translatable("fish.riverfishing." + e.getKey()), n[0] - young, n[1], young)
+                        : Component.translatable("message.riverfishing.pond_info_fish",
+                                Component.translatable("fish.riverfishing." + e.getKey()), n[0], n[1]))
                         .withStyle(ChatFormatting.GREEN));
             }
         }

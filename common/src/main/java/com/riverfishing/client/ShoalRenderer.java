@@ -128,7 +128,9 @@ public final class ShoalRenderer {
                 // drawn, because the school is what you see.
                 if (!e.shoaling() && dist > 40 && e.lengthCm() < 90) continue;
                 if (!e.shoaling() && dist > 26 && e.lengthCm() < 35) continue;
-                TextureAtlasSprite sprite = FISH_ITEM ? null : spriteFor(atlas, e.species());
+                // §variety-icon: a carp is drawn as its scale variety; §koi-genes: a koi as its layers (below)
+                String draw = com.riverfishing.fish.Genome.drawnAs(e.species().getPath(), e.variety());
+                TextureAtlasSprite sprite = FISH_ITEM ? null : spriteFor(atlas, draw);
                 if (!FISH_ITEM && sprite == null) continue;
 
                 double x = f.x, y = f.y, z = f.z;
@@ -186,7 +188,7 @@ public final class ShoalRenderer {
                     drew = true;
                     continue;
                 }
-                float size = spriteSize(e.lengthCm());
+                float size = e.fry() ? 0.07f : spriteSize(e.lengthCm());
                 // §morph: the fish in the water are painted by the same table as the one in your hand.
                 double age = e.age() / 100.0;
                 String path = e.species().getPath();
@@ -204,8 +206,23 @@ public final class ShoalRenderer {
                 // §fish-3d-fins: the slab is the body; the flat sprite still draws — down the centreline,
                 // without its bulge — and that is where the fins, the fork and every thin thing come
                 // from. Inside the body the flanks cover it; outside, it is the fin.
+                if (com.riverfishing.fish.Genome.isKoiId(path)) {
+                    // §koi-genes: the white sprite and its three masks, each painted its variety's colour —
+                    // exactly the item's layers, so the kohaku in the pond is the kohaku in your hand. A
+                    // hair apart on the near side, so the masks never fight the body for the pixel.
+                    float side = plusNear ? 1f : -1f;
+                    for (int kl = 0; kl < KOI_LAYERS.length; kl++) {
+                        TextureAtlasSprite ls = kl == 0 ? sprite : spriteFor(atlas, KOI_LAYERS[kl]);
+                        if (ls == null) continue;
+                        int tint = kl < 4 ? com.riverfishing.fish.FishMorph.koiTint(e.variety(), kl, e.pattern()) : 0xFFFFFFFF;
+                        body(m, vc, ls, size, side, f, time, alpha, tint, overlayNow, side * 0.004f * kl);
+                    }
+                    pose.popPose();
+                    drew = true;
+                    continue;
+                }
                 boolean slab = FISH_3D && FishMesh.emit(m, vc, sprite, e.species(), size, f, time, alpha, tintNow, overlayNow);
-                body(m, vc, sprite, size, slab ? 0f : (plusNear ? 1f : -1f), f, time, alpha, tintNow, overlayNow);
+                body(m, vc, sprite, size, slab ? 0f : (plusNear ? 1f : -1f), f, time, alpha, tintNow, overlayNow, 0f);
                 pose.popPose();
                 drew = true;
             }
@@ -214,8 +231,12 @@ public final class ShoalRenderer {
         if (drew) buffers.endBatch(layer);
     }
 
-    /** The icon sprite for a species, or null when it is not on the atlas (a dev build, a broken pack). */
-    private static TextureAtlasSprite spriteFor(TextureAtlas atlas, ResourceLocation species) {
+    /** §koi-genes: the koi's drawing, layer by layer — the same five its item model stacks. */
+    private static final String[] KOI_LAYERS = {"koi_carp", "koi_carp_hi", "koi_carp_sumi", "koi_carp_crown", "koi_eye"};
+
+    /** The icon sprite of a drawing (a species, a carp variety, a koi layer), or null when it is not on the atlas. */
+    private static TextureAtlasSprite spriteFor(TextureAtlas atlas, String draw) {
+        ResourceLocation species = RiverFishing.id(draw);
         ResourceLocation tex = TEX.computeIfAbsent(species, id -> RiverFishing.id("item/fish/" + id.getPath()));
         TextureAtlasSprite sprite = atlas.getSprite(tex);
         // getSprite hands back the missing-texture checkerboard rather than null; an empty patch of water
@@ -300,6 +321,11 @@ public final class ShoalRenderer {
             tag.putInt(FishItem.TAG_WEIGHT, e.weightG());
             tag.putInt(FishItem.TAG_LENGTH, e.lengthCm());
             tag.putByte(FishItem.TAG_AGE, e.age());
+            // §koi-genes §variety-icon: the card is what the item renderer reads the variety and pattern off
+            net.minecraft.nbt.CompoundTag card = new net.minecraft.nbt.CompoundTag();
+            if (!e.variety().isEmpty()) card.putString("Variety", e.variety());
+            card.putInt(com.riverfishing.fish.Pattern.TAG, e.pattern());
+            tag.put(com.riverfishing.fish.CatchCard.TAG, card);
         });
         return stack;
     }
@@ -314,7 +340,7 @@ public final class ShoalRenderer {
     }
 
     private static void body(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, float side,
-                             ShoalSim.Fish f, float time, int alpha, int tint, int overlay) {
+                             ShoalSim.Fish f, float time, int alpha, int tint, int overlay, float lift) {
         float r = size / 2f;
         float u0 = sp.getU0(), u1 = sp.getU1();
         float v0 = sp.getV0(), v1 = sp.getV1();
@@ -329,7 +355,7 @@ public final class ShoalRenderer {
             float body = (float) Math.sin(Math.PI * Math.pow(t, 0.75));   // peaks at about a third back
             float thick = side * size * THICK * body;
             float wave = amp * t * t * Mth.sin(phase - t * 6.5f);       // grows toward the tail
-            zs[i] = thick + wave;
+            zs[i] = thick + wave + lift;
         }
         for (int i = 0; i < STRIPS; i++) {
             float ua = u0 + (u1 - u0) * (i / (float) STRIPS), ub = u0 + (u1 - u0) * ((i + 1) / (float) STRIPS);

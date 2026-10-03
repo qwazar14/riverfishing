@@ -79,7 +79,7 @@ public final class OrderBoard {
         if (!MarketData.orderOfTheDay(level).equals(species.getPath())) return;
         long day = level.getServer().overworld().getDayTime() / 24000L;
         CompoundTag root = PlayerData.root(sp).getCompound(TAG);
-        if (root.getLong("day") == day) return;              // one order a day, not one fish a minute
+        if (root.contains("day") && root.getLong("day") == day) return;              // one order a day, not one fish a minute
         root.putLong("day", day);
         int n = root.getInt("filled") + 1;
         root.putInt("filled", n);
@@ -200,13 +200,6 @@ public final class OrderBoard {
         t.put("v", v);
         t.putBoolean("ok", ok);
         return t;
-    }
-
-    private static CompoundTag rowSuffix(String label, String prefix, Iterable<String> ids,
-                                         String suffix, boolean ok) {
-        List<String> keys = new ArrayList<>();
-        for (String id : ids) keys.add(prefix + id + suffix);
-        return row(label, keys, ok);
     }
 
     private static CompoundTag text(String label, String value, boolean ok) {

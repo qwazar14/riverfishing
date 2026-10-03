@@ -98,8 +98,9 @@ public final class FishItemRenderer extends BlockEntityWithoutLevelRenderer {
                 || ctx == ItemDisplayContext.HEAD) ? 2.0f : 5.0f;
         if (gridScale <= 0f) s = Math.min(s, cap);
         // §gui-readability: in a SLOT even a gudgeon should be recognisable — floor the GUI scale
-        // (the ground drop and the aquarium keep the true-size 0.45 floor).
-        if (ctx == ItemDisplayContext.GUI && gridScale <= 0f) s = Math.max(s, 0.8f);
+        // (the ground drop and the aquarium keep the true-size 0.15 floor). §length-weight: 0.6, so a
+        // pond-grown young fish reads smaller than its parents in the slot too.
+        if (ctx == ItemDisplayContext.GUI && gridScale <= 0f) s = Math.max(s, 0.6f);
         // §release: a dropped fish shrinks away over its final 2 s in the water (the client mirrors
         // the server countdown stored in NBT). Only the loose item entity shrinks, not the inventory.
         if ((ctx == ItemDisplayContext.GROUND || ctx == ItemDisplayContext.NONE) && mc.level != null) {

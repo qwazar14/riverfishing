@@ -93,7 +93,8 @@ public class RigMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player p) {
-        return p.getItemInHand(hand).getItem() instanceof RigItem;
+        // §menu-dupe: the rig this menu opened on, still in the hand — not just any rig
+        return p.getItemInHand(hand) == rig && rig.getItem() instanceof RigItem;
     }
 
     @Override

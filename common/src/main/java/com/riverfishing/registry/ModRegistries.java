@@ -22,6 +22,7 @@ public final class ModRegistries {
         ModSounds.init();
         ModRecipes.init();
         ModVillagers.init();
+        com.riverfishing.water.AwayFromSeaFilter.init();   // worldgen placement type, before datapacks load the snags
         ModCreativeTabs.init();
     }
 }

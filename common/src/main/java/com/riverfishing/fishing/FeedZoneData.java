@@ -94,6 +94,7 @@ public class FeedZoneData extends SavedData {
         boolean sameMix = old != null && old.mix().signature().equals(mix.signature());
         double standing = sameMix ? old.freshness(gameTime) : 0.0;
 
+        zones.values().removeIf(z -> z.freshness(gameTime) <= 0);   // §feed-prune: every spot ever fed was kept
         zones.put(k, new Zone(center.getX(), center.getY(), center.getZ(), gameTime,
                 Math.min(ceiling(mix), standing + FEED_AMOUNT), mix, mix.rgb()));
         setDirty();

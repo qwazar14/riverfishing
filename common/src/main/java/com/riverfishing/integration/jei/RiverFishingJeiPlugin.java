@@ -21,9 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * JEI entry point (§pack-integration, 0.4.0). Lives in COMMON: JEI discovers {@code @JeiPlugin} by
- * annotation scan on both loaders, and the API is compileOnly, so without JEI installed this class is
- * simply never loaded — the mod stays soft-dependent.
+ * JEI entry point (§pack-integration, 0.4.0). Lives in COMMON: NeoForge's JEI finds it by the {@code @JeiPlugin}
+ * annotation, Fabric's by the {@code jei_mod_plugin} entrypoint in fabric.mod.json (without it the plugin never
+ * loaded there), and the API is compileOnly, so without JEI installed this class is simply never loaded — the mod
+ * stays soft-dependent.
  *
  * <p>The mod's three special crafts are {@code CustomRecipe}s, invisible to JEI's automatic crafting
  * scan — register display-only shapeless stand-ins so players can look them up: the oil-cake press
@@ -46,7 +47,7 @@ public class RiverFishingJeiPlugin implements IModPlugin {
         // §groundbait-one-jar: no hand-written groundbait entry any more. The one jar has a plain
         // shapeless recipe JEI finds by itself, and mixing is a CustomRecipe with a pantry of 27
         // ingredients — a page listing every legal grid would be noise, and the journal has two.
-        // Livebait: any small caught fish (≤150 g) becomes one live bait.
+        // Livebait: any caught fish becomes one live bait that keeps its weight (§livebait-4).
         Item livebait = item("livebait");
         if (livebait != Items.AIR) {
             recipes.add(display("jei_livebait", new ItemStack(livebait),

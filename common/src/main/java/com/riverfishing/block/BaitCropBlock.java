@@ -13,7 +13,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 
 /**
- * §bait-crops: a farmland crop that grows a plant bait (corn / pea / barley→pearl barley). Four visual
+ * §bait-crops: a farmland crop that grows a plant bait (pea / barley→pearl barley; corn is the two-block
+ * {@link CornCropBlock}). Four visual
  * stages (the beetroot pattern, {@code AGE_3}) so each stage gets a hand-made texture; everything else —
  * bonemeal, random ticks, farmland checks, Serene Seasons fertility (via the sereneseasons block tags in
  * our datapack) — rides the vanilla {@link CropBlock} behaviour unchanged.

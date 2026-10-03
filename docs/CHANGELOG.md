@@ -5,6 +5,77 @@ Full patchnotes. The short three-bullet form the in-game update checker shows li
 
 ---
 
+## 1.1.0 — the water lives on its own *(in progress, not released)*
+
+**Minecraft 1.21.1** (Fabric and NeoForge), **26.2** (NeoForge) and **26.3** (Fabric and NeoForge); 1.20.1 to follow. 26.1.2 is no longer supported.
+
+Full patchnote (kept up to date while it is built): [`docs/patchnotes/1.1.0.md`](patchnotes/1.1.0.md) ·
+[русский](patchnotes/1.1.0-ru.md).
+
+Every water is alive: shoals and single trophy fish that get hungry, move with the hour and the season, eat,
+learn baits, spawn, age and are eaten whether anyone is there or not — and the bite comes from them. Groundbait
+moves fish and a week of prebaiting teaches them; a fed-up shoal bites less; a catch is one fish fewer and a
+lost one makes the shoal wary. The wild balances itself (old age, starvation, predators, anglers; new fish only
+from the spawn), checked over a thousand game days. Private ponds are rebuilt: every fish is a record, a
+released trophy or legend is caught again as itself, roe hatches into fry and fry into young, room is set by
+the water's volume, a pond grows only on feed, old ponds carry their fish over, and the phantom-fish bug is
+gone. A fish released into the wild becomes a fish of that water. "Why no bite" is read off the fish, and the
+hint lines can be turned off (`/rffish hints off`). A cast is never refused; predators strike on reflex.
+Underwater: many more fish, by role, feeding, rising, hunting and spawning where you can see it; koi show
+their real colours. Boilies: paste, 14 flavours, sinker / wafter / pop-up / snowman, 10-24 mm, dips and
+prebaiting, judged by the season, hour, sky, pressure, water, bottom and fish; the journal keeps each
+species' favourite flavour. The journal is redesigned (four bookmarks, a species page in three sheets, a boilie
+page with a flavour table, a builder that shows the game's own bite factor and every rule behind it, and the
+recipe of the boilie you built, drawn as items; a chaptered guide, a leather look, animations); the fish finder is a device with keys and a scan line, and
+its corner strip draws the fish that are really there. The aquarium window is rebuilt: sex rings, the breeding pair joined, the breeding run
+as five nodes, an incubator that takes the fish slots' place. The fish card is the mod's own now — a catch record with the fish's
+place in its kind on a scale, a measuring board and stamps — and a contract is a paper order. Organisers can stock a water for a competition and clear it afterwards
+(`/rffish spawn`, `clear`, `census`). Every fight pattern has a signature move (zig-zag, into the weeds, torpedo, sulk, charge, tail-walk, plank), a tired fish rolls on its side, a landed one is lifted out to your hands and a lost one goes down; the fish swims where the line lets it. Shaders no longer send the line flying. The fisherman rolls his own boilies, each stall its own. The Tackle Station is drawn as a
+tackle-maker's bench. Items and fish have separate creative tabs. An upgraded keepnet or tackle box keeps its
+contents, farms and traps drop theirs when broken, and the order of the day no longer escapes a flooded market. Two item
+duplications are closed (a placed tackle box opened twice, a held rod, box or rig swapped mid-screen), and old unused code is gone.
+
+Plants and snags. Corn grows two blocks tall in five stages and ripens with a golden tassel and a cob; barley is drawn
+in 3D, blades turning gold under bending ears; peas are redrawn, with white flowers before the pods. Dry farmland no
+longer throws off corn, peas or barley. Reeds and cattails are new two-block bank plants that grow wild along rivers,
+lakes and swamps, on soil, sand, gravel or clay. Villages plant corn, peas and barley in their farms (and the savanna
+in its street fields). The snag pile has five looks — the old tangle, a half-sunk log, an upturned root stump, a forked
+branch, bleached driftwood — and snags lie in small groups on the bed of rivers, swamps and open lakes at least three
+blocks deep, never in a forest, a desert or the sea. A wild snag is cover for fish like one you set, and the pond sign
+lists it.
+
+Reeds and cattails stand in water one block deep and break where it reaches their top half; only shears gather them.
+The bait crops have no seeds any more: corn is planted from corn, peas from peas, barley from pearl barley, old seeds
+turn into these, grass no longer drops them, and the fisherman sells the crops instead. Ripe corn gives cobs and ripe
+peas pods (eat one, or craft it into four), ripe barley gives wheat as well. A hopper feeds the feeding station. A
+two-flavour boilie shows both colours and a dipped one drips. The finder's corner sounder and dial can each be switched
+off and dragged anywhere, as the player's own setting. The fish card gives the length in inches and names the region
+and the water. The hooked fish shows up where it took the bait and fights near the bottom until it tires; "into the
+weeds" needs weeds, reeds or snags near the fish and says which; a beaten fish no longer flips on and off its side.
+Living water keeps time with the calendar, so fry grow up for players who sleep through the nights.
+
+The rod and the line act now, with anticipation and follow-through: the rod whips up into the hands (already bent
+when grabbed off a pod on a bite), the reel turns when you wind and ticks backward on a run, a retrieve lowers the tip
+and flicks it on every click while the lure darts and a pause lets the line belly, a hookset sweeps up and a take on a
+lure or bottom rig slams the tip down, the tip beats with the fish's tail and is knocked by head-shakes, a jump
+slackens the line and the landing yanks it, the arrow keys hold the rod over and it rises at the bank, a running line
+cuts the water with spray and bubbles, a snapped line leaves a falling piece and a thrown hook whips the line back,
+and the tip bounces with your steps. Podded rods bend: nibbles, jerky nods on a take, a self-hooked fish pulling the
+rod over, a swinging bell and a flashing digital alarm. The rod no longer dips down and up on every click.
+
+Fry stack: one item is one fry, a hatch is a stack of one genome, fry of the same genes stack to 64, the pond trap
+brings up to 32 at a time, and old fry buckets turn into their fry in the inventory.
+A fish netted out of your own pond is a trophy and prime by its weight, as on the rod. Fish grown from fry show their
+sex from the day they grow up, and the pond sign lists the young apart. A fish lighter than its species' adults is
+measured by its weight (a 3 kg pond-grown mako is about 80 cm, not 150), and fish icons go down to smaller sizes.
+The rod pod gives you the rod you aim at (a rod with a fish still first) and lifts it as you look, docks rods and
+alarms on the rest you click by, and no longer shifts the second rod's line when the first is taken.
+
+33 new species (295 in all), from the common minnow and the taran to the Russian sturgeon, the opah and the Greenland
+shark, each with an icon, a journal picture, cooked effects and a buyer; the goblin shark has a Halloween picture.
+
+---
+
 ## 1.0.0 — the line is a rope, the river runs, the pond is yours
 
 **Minecraft 1.20.1 · 1.21.1 · 26.1.2 · 26.2** — Fabric, Forge (1.20.1) and NeoForge.

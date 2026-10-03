@@ -84,7 +84,6 @@ public final class FishingManager {
     private static final Map<UUID, FishingSession> SESSIONS = new HashMap<>();
     /** §spin-harder: counts active (spinning/ultralight) casts per player to burn 1 food point per 4. */
     private static final Map<UUID, Integer> ACTIVE_CAST_COUNT = new HashMap<>();
-    private static final double CAST_REACH = 32.0;
     private static final double MAX_SESSION_DISTANCE = 40.0;
     /**
      * §jig-4: the winter wait, cast to take. Four seconds at best — what a clean combo buys — and forty
@@ -125,11 +124,14 @@ public final class FishingManager {
     }
 
     /** Detach a player's waiting bottom-rod session so it can move onto a rod-pod (Module 2). */
-    public static FishingSession detachBottomSession(ServerPlayer sp) {
+    public static FishingSession detachBottomSession(ServerPlayer sp, InteractionHand hand) {
         FishingSession s = SESSIONS.get(sp.getUUID());
         if (s == null || s.fighting || s.rodClass != RodClass.BOTTOM) {
             return null;
         }
+        // §pod-dock: the rod that goes on the pod is the one the line was cast with — any bottom rod in the
+        // other hand took the line, so one baited rig filled a pod with bare rods and no bait was ever eaten
+        if (s.hand != hand || (s.rodSlot >= 0 && s.rodSlot != sp.getInventory().selected)) return null;
         if (s.bossBar != null) {
             s.bossBar.removeAllPlayers();
             s.bossBar = null;
@@ -141,7 +143,8 @@ public final class FishingManager {
 
     /** Start a fight straight from a podded line the player just grabbed during its bite window. */
     public static void startPodFight(ServerPlayer sp, BlockPos target, ResourceLocation species, String variety,
-                                     double lineStrainKg, double dragKg, boolean hasLeader, RigType rigType) {
+                                     double lineStrainKg, double dragKg, boolean hasLeader, RigType rigType,
+                                     FishingSession docked) {
         ServerLevel level = sp.serverLevel();
         long now = level.getGameTime();
         FishingSession session = new FishingSession(InteractionHand.MAIN_HAND, target, RodClass.BOTTOM, 0, now, species);
@@ -151,10 +154,54 @@ public final class FishingManager {
         session.hasLeader = hasLeader;
         session.leaderProtection = hasLeader ? 1.0 : 0.0;
         session.rigType = rigType;
+        podWater(level, target, species, docked, session);   // §pod-alife
+        FishingSession before = SESSIONS.get(sp.getUUID());
+        if (before != null) endSession(sp, before);   // §pod-grab: the old fight's boss bar outlived it
         SESSIONS.put(sp.getUUID(), session);
         ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, target, 0f, session.lineColor,
                 session.floatKind));
         hookUp(sp, level, session, now);
+    }
+
+    /**
+     * §pod-alife (1.1.0): the fish on a pod's line is a fish of the living water, as it is on a held rod. The docked
+     * session knows which shoal took; a pod reloaded since (that session is not saved) asks the water here again.
+     * Without this a pod fight rolled from the pre-1.1.0 pond book — a copy of a fish still in the pond — and never
+     * thinned a wild shoal at all.
+     */
+    private static void podWater(ServerLevel level, BlockPos target, ResourceLocation species, FishingSession docked,
+                                 FishingSession session) {
+        if (docked != null && docked.alifeLake != null) {
+            session.alifeLake = docked.alifeLake;
+            session.alifeAgent = docked.alifeAgent;
+            return;
+        }
+        BiteContext ctx = environmentAt(level, target, WaterBodyCache.forLevel(level).get(level, target));
+        AlifeData.attach(level, target, ctx);
+        if (ctx.lake == null) return;
+        session.alifeLake = ctx.lake;
+        if (species == null || ctx.lakeZone < 0) return;
+        com.riverfishing.alife.Lake.Zone here = ctx.lake.zones.get(ctx.lakeZone);
+        double best = Double.MAX_VALUE;
+        for (com.riverfishing.alife.Lake.Agent a : ctx.lake.agents) {
+            if (!a.alive() || !sameFish(a, species)) continue;
+            com.riverfishing.alife.Lake.Zone z = ctx.lake.zones.get(a.zone);
+            double d = Math.hypot(z.x - here.x, z.z - here.z);
+            if (d < best) {
+                best = d;
+                session.alifeAgent = a;
+            }
+        }
+    }
+
+    /**
+     * §alife: is this shoal the species that comes ashore? An old carp variety or koi id lands as {@code carp} or
+     * {@code koi_carp} (Genome.landed) — comparing the ids alone missed every such roster, and the landing then
+     * took a random remembered fish out of it while the angler got a rolled one.
+     */
+    static boolean sameFish(com.riverfishing.alife.Lake.Agent a, ResourceLocation landed) {
+        String id = a.sp.id();
+        return id.equals(landed.getPath()) || com.riverfishing.fish.Genome.landed(com.riverfishing.RiverFishing.id(id)).equals(landed);
     }
 
     /**
@@ -483,7 +530,8 @@ public final class FishingManager {
      * lifting the fly off the water ends it — every drift is a cast. Nothing is printed: the take is
      * the line, the strike is the rod, the fight is the fight.
      */
-    private static final Map<UUID, Integer> FLY_RESTED = new HashMap<>();
+    private static final Map<UUID, Long> FLY_RESTED = new HashMap<>();   // the tick the next roll is due
+    private static final Map<UUID, Long> FLY_CLOCK = new HashMap<>();    // the tick the bite clock last moved
     /** §fly-cast: the client saw the fly FLY to where it landed — only such a landing can start a session. */
     private static final Set<UUID> FLY_CAST = new HashSet<>();
     private static final Map<UUID, Integer> FLY_DRY = new HashMap<>();
@@ -533,6 +581,8 @@ public final class FishingManager {
             }
         }
         boolean active = (flags & com.riverfishing.network.FlyPacket.ACTIVE) != 0;
+        // §fly-trust: a fly is fished on a fly rod — any assembled rod could send these and cast silently, strike free
+        if (active && !(sp.getItemInHand(hand).getItem() instanceof RodItem fr && fr.rodType().isFly())) return;
         boolean onWater = (flags & com.riverfishing.network.FlyPacket.ON_WATER) != 0;
         boolean strike = (flags & com.riverfishing.network.FlyPacket.STRIKE) != 0;
         boolean strip = (flags & com.riverfishing.network.FlyPacket.STRIP) != 0;
@@ -554,6 +604,7 @@ public final class FishingManager {
             FLY_RESTED.remove(sp.getUUID());
             FLY_CAST.remove(sp.getUUID());
             FLY_DRY.remove(sp.getUUID());
+            FLY_CLOCK.remove(sp.getUUID());
             if (session != null && session.fly && !session.fighting) endSession(sp, session);
             return;
         }
@@ -565,18 +616,23 @@ public final class FishingManager {
                 FLY_RESTED.remove(sp.getUUID());
                 return;
             }
-            int rested = onWater && !level.getFluidState(at).isEmpty() ? FLY_RESTED.merge(sp.getUUID(), 1, Integer::sum) : 0;
-            if (rested == 0) FLY_RESTED.remove(sp.getUUID());
-            // Three updates on the water (about half a second) — a fly that only touched is not
-            // fishing; and then again every eight seconds the fly keeps sitting there, because the
-            // first roll can come up empty and a drift is not over until the line is lifted.
-            if (rested == 3 || (rested > 3 && rested % 40 == 3)) {
+            if (!onWater || level.getFluidState(at).isEmpty()) {
+                FLY_RESTED.remove(sp.getUUID());
+                return;
+            }
+            // Half a second on the water — a fly that only touched is not fishing; and then again every
+            // eight seconds the fly keeps sitting there, because the first roll can come up empty and a
+            // drift is not over until the line is lifted. §fly-trust: counted in game ticks — it counted
+            // packets, and a flood of them started the session at once.
+            long due = FLY_RESTED.computeIfAbsent(sp.getUUID(), u -> now + 10);
+            if (now >= due) {
+                FLY_RESTED.put(sp.getUUID(), now + 160);
                 if (startCast(sp, level, hand, now, 0.5, at)) {
                     FLY_CAST.remove(sp.getUUID());   // this cast is spent; the next session wants the next cast
                     FLY_DRY.remove(sp.getUUID());
                 } else {
                     String missing = RodData.missingKey(sp.getItemInHand(hand));
-                    com.riverfishing.RiverFishing.LOGGER.info("fly: no session at {} for {} - rod {}",
+                    com.riverfishing.RiverFishing.LOGGER.debug("fly: no session at {} for {} - rod {}",
                             at, sp.getName().getString(), missing == null ? "assembled, no bite rolled" : missing);
                 }
             }
@@ -606,8 +662,12 @@ public final class FishingManager {
             // §technique: every update is four ticks of drift; a fly fished the way it is fished gains
             // four more on the bite clock (it runs double), one fished wrong loses them (it stands
             // still), and in between the clock just ticks. Never a word — the take comes or does not.
-            if (session.biteAtTick > now) {
-                session.biteAtTick -= Math.round((Mth.clamp(presentation, 0f, 1f) - 0.5f) * 8f);
+            // §fly-trust: by the ticks that really passed since the last update, four at most — per packet, a
+            // flood of them ran the clock down to an instant take
+            long ticks = Math.min(4, now - FLY_CLOCK.getOrDefault(sp.getUUID(), now - 4));
+            FLY_CLOCK.put(sp.getUUID(), now);
+            if (session.biteAtTick > now && ticks > 0) {
+                session.biteAtTick -= Math.round((Mth.clamp(presentation, 0f, 1f) - 0.5f) * 2f * ticks);
             }
             return;
         }
@@ -616,6 +676,9 @@ public final class FishingManager {
 
     private static boolean startCast(ServerPlayer sp, ServerLevel level, InteractionHand hand, long now, double power,
                                      BlockPos flyAt) {
+        // §menu-cast: no cast under an open menu — the rod's screen holds a copy of its tackle and writes it back
+        // on close, so a bait eaten or a rig lost meanwhile came back (a modified client can cast with it open)
+        if (sp.containerMenu != sp.inventoryMenu) return false;
         boolean quiet = flyAt != null;   // §fly-take: the fly rod says nothing
         ItemStack rod = sp.getItemInHand(hand);
         if (!RodData.isAssembled(rod)) {
@@ -686,7 +749,7 @@ public final class FishingManager {
         double dz = waterPos.getZ() + 0.5 - sp.getZ();
         double castDistance = Math.sqrt(dx * dx + dz * dz);
 
-        BiteContext ctx = buildContext(sp, level, rod, hand, body, waterPos, castDistance, now);
+        BiteContext ctx = buildContext(sp, level, rod, hand, body, waterPos, now);
         RodClass rodClass = ctx.rod.rodClass();
 
         // A reel-less pole is just a fixed length of line on a tip — it physically can't reach far (§mechanics).
@@ -729,21 +792,26 @@ public final class FishingManager {
         }
 
         RandomSource random = level.getRandom();
+        AlifeData.attach(level, waterPos, ctx);   // §alife: null lake = the old engine
         BiteEngine.Outcome outcome = BiteEngine.evaluate(FishProfileManager.get().all(), ctx, random);
-        if (!outcome.willBite()) {
-            if (!quiet) {
-                noBitesHint(sp, ctx);
-                GuideNudge.failure(sp, ctx.rod.rodClass(), GuideNudge.NO_BITES);
-            }
-            return false;
+        // §cast-always (1.1.0): the angler casts wherever he likes. Water where nothing wants this rig is a
+        // line that sits — a float that never dips, a spoon worked home for nothing — and it comes alive by
+        // itself if the water changes (a shoal moves in, the evening comes). A 10 kg livebait in a 2×2
+        // puddle catches nothing, but it goes in. Only the fly, which lands by itself, still keeps quiet.
+        boolean dead = !outcome.willBite();
+        if (dead) {
+            if (quiet) return false;
+            noBitesHint(sp, ctx);
+            GuideNudge.failure(sp, ctx.rod.rodClass(), GuideNudge.NO_BITES);
         }
 
         // §scale-genes: the mirror and the leather carp were separate draws of one fish; the draw
         // still happens on their own profiles (their waters, their rarity), but what comes ashore is
         // a `carp` whose K/N genotype is the variety — the session carries it as far as the card.
-        ResourceLocation drawn = outcome.pickSpecies(random);
-        String variety = com.riverfishing.fish.Genome.varietyOfSpecies(drawn.getPath());
-        ResourceLocation species = com.riverfishing.fish.Genome.landed(drawn);
+        ResourceLocation drawn = dead ? null : outcome.pickSpecies(random);
+        String variety = drawn == null ? "" : com.riverfishing.fish.Genome.varietyOfSpecies(drawn.getPath());
+        ResourceLocation species = drawn == null ? null : com.riverfishing.fish.Genome.landed(drawn);
+        com.riverfishing.alife.Lake.Agent agent = drawn == null ? null : outcome.pickAgent(drawn, random);   // §alife
 
         // §feed-lands-where-the-rig-does: a feeder cage empties one jar per cast, and it empties it AT THE
         // BOBBER — the landing spot, not the water in front of your boots. It is exactly the same call
@@ -759,8 +827,9 @@ public final class FishingManager {
             ItemStack fedStack = RigData.consumeGroundbait(rigNow);
             if (!fedStack.isEmpty()) {
                 RodData.set(rod, ComponentSlot.RIG, rigNow);
-                FeedZoneData.get(level).feed(waterPos,
-                        com.riverfishing.groundbait.GroundbaitNbt.read(fedStack), now);
+                com.riverfishing.groundbait.GroundbaitMix cageMix = com.riverfishing.groundbait.GroundbaitNbt.read(fedStack);
+                FeedZoneData.get(level).feed(waterPos, cageMix, now);
+                AlifeData.fed(level, waterPos, cageMix);   // §alife
                 FeedZoneData.Query cage = FeedZoneData.get(level).query(waterPos, now);
                 ctx.inFeedZone = cage.inZone();
                 ctx.feedFreshness = cage.freshness();
@@ -768,10 +837,16 @@ public final class FishingManager {
             }
         }
 
+        // §boilies: the dip on the hook bait washes out a cast at a time
+        ItemStack dipRig = RodData.get(rod, ComponentSlot.RIG);
+        if (ctx.boilie != null && ctx.boilie.dip() != null && dipRig.getItem() instanceof RigItem && RigData.useDip(dipRig)) {
+            RodData.set(rod, ComponentSlot.RIG, dipRig);
+        }
+
         // Chunk fishing pressure (Module 7): a fished-out spot makes bites much slower (W_total falls).
         FishingPressureData pressure = FishingPressureData.get(level);
         long chunkKey = new ChunkPos(waterPos).toLong();
-        double depletion = pressure.attractiveness(chunkKey, now, spawnRegen(level));
+        double depletion = ctx.lake != null ? 1.0 : pressure.attractiveness(chunkKey, now, spawnRegen(level));
         // §skills QUICK_BITE: a keen angler feels the bite sooner (shorter wait).
         // §rod-test: an under-loaded blank presents the bait clumsily — a SILENT ~20% fewer bites
         // (longer wait). Never announced (the player only sees the shortened cast).
@@ -808,21 +883,25 @@ public final class FishingManager {
         }
         // §groundbait: a fed spot doesn't just look active — it visibly PULLS bites in faster (up to −40%
         // wait at a fresh spot), on top of the bite-engine bonus for feeding the right groundbait.
-        if (ctx.inFeedZone && ctx.feedFreshness > 0) {
+        if (ctx.lake == null && ctx.inFeedZone && ctx.feedFreshness > 0) {   // §alife: there the feed moved the fish
             delay = (long) Math.max(20, delay * (1.0 - 0.40 * Mth.clamp(ctx.feedFreshness, 0.0, 1.0)));
         }
         // §honest-tail: a barely-matching setup no longer silently capped at two minutes — the wait is
         // real now, and the player is TOLD the water is dour so they change something instead of camping.
-        if (delay > 2400 && !quiet) {
-            actionbar(sp, Component.translatable("message.riverfishing.sluggish").withStyle(ChatFormatting.GRAY));
+        if (dead) delay = DEAD_LINE;   // §cast-always: no clock until the water changes (reEvaluate revives it)
+        if (delay > 2400 && !quiet && !dead) {
+            if (ctx.lake != null) noBitesHint(sp, ctx);   // §alife-why: a slow water says why, like a dead one
+            else if (hintsOn(sp)) actionbar(sp, Component.translatable("message.riverfishing.sluggish").withStyle(ChatFormatting.GRAY));
         }
 
         // ACTIVE rods only "bite" while being retrieved, so their clock starts on the first retrieve tick.
-        if (quiet) delay = (long) (delay / lieInterest(waterPos, now));   // §lie-memory: a rested lie bites first
+        if (quiet && !dead) delay = (long) (delay / lieInterest(waterPos, now));   // §lie-memory: a rested lie bites first
         long biteAt = (rodClass == RodClass.ACTIVE) ? -1 : now + delay;
         FishingSession session = new FishingSession(hand, waterPos, rodClass, delay, biteAt, species);
         session.fly = quiet;         // §fly-take
         session.variety = variety;   // §scale-genes
+        session.alifeLake = ctx.lake;   // §alife
+        session.alifeAgent = agent;
         // Worn line keeps less of its strain; a dull hook is read from the rig (§3.8).
         int lineWear = WearData.get(RodData.get(rod, ComponentSlot.LINE));
         if (lineWear >= 100) {
@@ -935,7 +1014,7 @@ public final class FishingManager {
             actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
             return false;
         }
-        BiteContext ctx = buildContext(sp, level, rod, hand, body, waterPos, 2.0, now);
+        BiteContext ctx = buildContext(sp, level, rod, hand, body, waterPos, now);
         ctx.iceHole = true;
         ctx.season = com.riverfishing.engine.Season.WINTER; // a hole in the ice = winter conditions
         RandomSource random = level.getRandom();
@@ -1146,7 +1225,6 @@ public final class FishingManager {
             return;
         }
 
-        session.retrieving = true;
         session.retrieveTicks++;
 
         // §topwater (0.4.0): a popper is fished on the SURFACE with a pop-pause cadence, not a straight
@@ -1575,6 +1653,13 @@ public final class FishingManager {
         // The line is tied to THE rod it was cast with: switching hotbar slots (a different stack in
         // hand) drops the cast (§session-guard), same as walking away.
         ItemStack inHand = sp.getItemInHand(session.hand);
+        // §session-dim: the line stays in the water it was cast into — a portal near the origin kept the fight
+        // running against another dimension, and keepInventory kept it running on the death screen
+        if (session.dim == null) session.dim = level.dimension();
+        if (!sp.isAlive() || !level.dimension().equals(session.dim)) {
+            endSession(sp, session);
+            return;
+        }
         // §session-guard: compare the SLOT, never the stack object. An ItemStack reference goes stale
         // the moment anything rewrites the inventory slot, and this branch ends the cast with no
         // message — which reads as the rod reeling itself in the instant you cast.
@@ -1609,7 +1694,7 @@ public final class FishingManager {
             ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target,
                     visProgress, session.lineColor, session.floatKind,
                     session.bitten && !session.fighting && now <= session.biteWindowEnd,
-                    fightStress(session)));
+                    fightStress(session)).depths(hookDepth(session), bottomDepth(session)));
         }
 
         if (session.fighting) {
@@ -1662,7 +1747,7 @@ public final class FishingManager {
                 // §catch-the-moment: NO "Поклёвка!" text — the bobber PLUNGES on the client and
                 // that's the whole cue; spotting it is the game.
                 ModNetwork.toTracking(sp, new LineSyncPacket(sp.getId(), true, session.target, 0f,
-                        session.lineColor, session.floatKind, true));
+                        session.lineColor, session.floatKind, true).depths(hookDepth(session), bottomDepth(session)));
                 // §jig-3: under the ice there is no подсечка to make. The rhythm WAS the game — asking for
                 // a second piece of timing at the end of it only meant losing, at the last moment, the
                 // fish the run had earned. The mormyshka sets its own hook and the fight begins.
@@ -1736,7 +1821,7 @@ public final class FishingManager {
         if (totalWeight <= 1e-6) return 0.0;
         double s = BiteEngine.effectiveWeight(totalWeight);
         if (isFrenzy(level)) s *= Math.max(1.0, RiverFishingConfig.frenzySpeed());
-        if (ctx.inFeedZone && ctx.feedFreshness > 0) {
+        if (ctx.lake == null && ctx.inFeedZone && ctx.feedFreshness > 0) {
             s /= Math.max(0.2, 1.0 - 0.40 * Mth.clamp(ctx.feedFreshness, 0.0, 1.0));
         }
         return s;
@@ -1750,6 +1835,7 @@ public final class FishingManager {
         ctx.time = TimeOfDay.fromDayTime(level.getDayTime());
         ctx.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
         ctx.pressureFactor = com.riverfishing.engine.BarometricPressure.biteFactor(level);
+        ctx.pressureTrend = com.riverfishing.engine.BarometricPressure.trend(level);   // §boilies
         FishingPressureData popData = FishingPressureData.get(level);
         long popChunk = new ChunkPos(session.target).toLong();
         double popRegen = spawnRegen(level);
@@ -1767,6 +1853,7 @@ public final class FishingManager {
         Ecosystem.apply(level, session.target, ctx);
 
         RandomSource random = level.getRandom();
+        if (ctx.lake != null) AlifeData.attach(level, session.target, ctx);   // §alife: the water lived on meanwhile
         BiteEngine.Outcome outcome = BiteEngine.evaluate(FishProfileManager.get().all(), ctx, random);
         double sNew = currentBiteSpeed(level, ctx, outcome.totalWeight);
         if (sNew <= 0.0) {
@@ -1788,11 +1875,13 @@ public final class FishingManager {
         session.biteSpeed = sNew;
         // Re-pick the biter from the fresh weights — but a koi decided at cast stays sticky (re-rolling
         // its chance every 15 s would compound a per-cast rarity into a near-guarantee over a long wait).
-        if (!com.riverfishing.fish.Genome.isKoiId(session.species.getPath())) {   // §koi-genes
+        if (session.species == null || !com.riverfishing.fish.Genome.isKoiId(session.species.getPath())) {   // §koi-genes
             ResourceLocation was = session.species;
             ResourceLocation redrawn = outcome.pickSpecies(random);
             session.variety = com.riverfishing.fish.Genome.varietyOfSpecies(redrawn.getPath());
             session.species = com.riverfishing.fish.Genome.landed(redrawn);   // §scale-genes
+            session.alifeLake = ctx.lake;   // §alife
+            session.alifeAgent = outcome.pickAgent(redrawn, random);
             // §nature: this fish's temperament, decided with the fish — the take and the fight read it.
             session.nature = com.riverfishing.fish.CatchCard.rollNature(
                     FishProfileManager.get().byId(session.species), new java.util.Random(random.nextLong()));
@@ -2406,7 +2495,7 @@ public final class FishingManager {
      * of their own; everyone else hears it in the world at a third of the volume and a shade lower, so it
      * is still there — someone is into a fish next to you — and never mistakable for yours.
      */
-    private static void reelSound(ServerPlayer sp, ServerLevel level, net.minecraft.sounds.SoundEvent sound, float vol, float pitch) {
+    static void reelSound(ServerPlayer sp, ServerLevel level, net.minecraft.sounds.SoundEvent sound, float vol, float pitch) {
         sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSoundPacket(
                 net.minecraft.core.Holder.direct(sound), SoundSource.PLAYERS, sp.getX(), sp.getY(), sp.getZ(),
                 vol, pitch, level.getRandom().nextLong()));
@@ -2443,6 +2532,7 @@ public final class FishingManager {
         double armStrength = 0.35 + 0.65 * session.anglerStamina;
         session.tension += (inRun ? session.runTensionPulse : session.calmTensionPulse) * tired * wrongWay
                 * (session.lineSnagged ? 1.6 : 1.0)   // §line-snag: winding against a block rubs
+                * FightMoves.reelTension(session)       // §fight-moves: …and against weed, or a fish on the bottom
                 * (1.0 + 0.5 * (1.0 - session.anglerStamina));
         // …and the payoff. Winding INTO a run has always been near-useless (0.2x); winding while leaning on
         // the fish from the right side gains most of a normal crank. That is the whole mechanic in one
@@ -2457,7 +2547,9 @@ public final class FishingManager {
                         // 238 kg beluga lay beaten on the surface and could not be brought the last metre.
                         // A spent fish comes to a crank like any other; the penalty is the fight it has left.
                         * (session.outclassed ? 0.35 + 0.65 * session.fatigue : 1.0)
-                        * (session.lineSnagged ? 0.0 : 1.0), 0.0, 1.0);   // §line-snag: held — nothing comes
+                        * (session.lineSnagged ? 0.0 : 1.0)   // §line-snag: held — nothing comes
+                        * FightMoves.reelGain(session), 0.0, 1.0);   // §fight-moves: nor from weed or the bottom; more from a charge
+        FightMoves.onReel(session, level.getGameTime());
         // A crank is work whether it gains anything or not.
         session.anglerStamina = Math.max(0.0, session.anglerStamina - (inRun ? 0.030 * wrongWay : 0.014));
         session.tension = Math.max(0.0, session.tension);
@@ -2654,10 +2746,12 @@ public final class FishingManager {
             session.runTicksLeft--;
             if (session.runTicksLeft == 0) {
                 session.nextRunAt = now + runInterval(session, progress, random);
+                FightCourse was = session.course;
                 session.course = FightCourse.NONE;
                 session.barState = -1;
+                FightMoves.onRunEnd(sp, level, session, now, random, was);   // §fight-moves
             }
-        } else if (now >= session.nextRunAt) {
+        } else if (now >= session.nextRunAt && FightMoves.allowsRun(session)) {
             if (session.runsLeft > 0 && random.nextDouble() < runChance(session, progress)) {
                 session.runTicksLeft = runDuration(session, progress, random);
                 session.runTicksTotal = session.runTicksLeft;   // §dive-cost
@@ -2665,20 +2759,20 @@ public final class FishingManager {
                 // §fight-course: the run gets a direction, scripted by the species' own fight pattern.
                 session.course = FightCourse.forPattern(session.fightPattern, session.runIndex++, random);
                 session.barState = -1;   // force the bar to re-title with the new course
+                FightMoves.onRunStart(sp, level, session, now, random);   // §fight-moves
                 if (session.outclassed && !session.outclassedHinted) {   // §outclassed-hint: again, as the first run starts
                     session.outclassedHinted = true;
                     actionbar(sp, Component.translatable("message.riverfishing.outclassed",
                             String.format(java.util.Locale.ROOT, "%.1f", session.requiredKg / Math.max(0.5, session.requiredKg * session.tackleMargin)))
                             .withStyle(ChatFormatting.GOLD));
                 }
-                level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.7f, 1.2f);
-                level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
-                        session.target.getZ() + 0.5, 10, 0.2, 0.1, 0.2, 0.2);
+                net.minecraft.world.phys.Vec3 fishAt = FightMoves.fishPos(sp, session);   // §fight-moves: where the fish is
+                level.playSound(null, BlockPos.containing(fishAt), SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.7f, 1.2f);
+                level.sendParticles(ParticleTypes.SPLASH, fishAt.x, fishAt.y + 0.05, fishAt.z, 10, 0.2, 0.1, 0.2, 0.2);
                 if ("relentless".equals(session.fightPattern)) {
                     // §grass-carp: the amur breaks the surface and goes like a torpedo — a big boil + leap.
-                    level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.05,
-                            session.target.getZ() + 0.5, 28, 0.4, 0.18, 0.4, 0.4);
-                    level.playSound(null, session.target, SoundEvents.DOLPHIN_JUMP, SoundSource.PLAYERS, 0.5f, 1.4f);
+                    level.sendParticles(ParticleTypes.SPLASH, fishAt.x, fishAt.y + 0.1, fishAt.z, 28, 0.4, 0.18, 0.4, 0.4);
+                    level.playSound(null, BlockPos.containing(fishAt), SoundEvents.DOLPHIN_JUMP, SoundSource.PLAYERS, 0.5f, 1.4f);
                 }
             } else {
                 session.nextRunAt = now + 50;
@@ -2689,15 +2783,15 @@ public final class FishingManager {
         // tension and rips a little line back. This is what gives the spinning fight its sharp, jerky,
         // unpredictable rhythm. If you keep cranking through it (reelPulse) the tension snaps you off;
         // the answer is to ease off for a moment and let it tire.
-        if (session.predator && session.runTicksLeft == 0 && session.landProgress > 0.05
+        if (session.predator && session.runTicksLeft == 0 && session.landProgress > 0.05 && FightMoves.allowsRun(session)
                 && random.nextDouble() < session.headShakeChance) {
             session.runTicksLeft = 6 + random.nextInt(6);
             session.runTicksTotal = session.runTicksLeft;   // §dive-cost: a shake is its own span
             session.tension += session.runTensionPulse * 1.25;
             session.landProgress = Math.max(0.0, session.landProgress - 0.03);
-            level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.7f, 1.5f);
-            level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
-                    session.target.getZ() + 0.5, 8, 0.2, 0.1, 0.2, 0.25);
+            net.minecraft.world.phys.Vec3 shakeAt = FightMoves.fishPos(sp, session);
+            level.playSound(null, BlockPos.containing(shakeAt), SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 0.7f, 1.5f);
+            level.sendParticles(ParticleTypes.SPLASH, shakeAt.x, shakeAt.y + 0.05, shakeAt.z, 8, 0.2, 0.1, 0.2, 0.25);
         }
 
         // §big-game (0.5.0): the two ocean patterns get their signature events.
@@ -2731,7 +2825,7 @@ public final class FishingManager {
         double candleOdds = "greyhounding".equals(session.fightPattern) ? 0.008
                 : session.predator ? 0.003 : 0.0008;
         if (session.species != null && com.riverfishing.fish.FishPose.isFlat(session.species.getPath())) candleOdds = 0;
-        if (session.runTicksLeft == 0
+        if (session.runTicksLeft == 0 && FightMoves.allowsRun(session)
                 && now >= session.jumpWindowEnd && session.landProgress > 0.05
                 // §jump-pace: a breach every ~4 s of a long fight was not drama, it was a
                 // metronome the player could only lose to. Rarer, and rarer still as the
@@ -2739,18 +2833,20 @@ public final class FishingManager {
                 && random.nextDouble() < candleOdds * (1.0 - 0.75 * session.fatigue)) {
             // The jump: a full-body breach — SLACK OFF for the window or the hook rips out (reelPulse).
             session.jumpWindowEnd = now + 15;
-            level.playSound(null, session.target, SoundEvents.DOLPHIN_JUMP, SoundSource.PLAYERS, 1.0f, 0.8f);
-            level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.2,
-                    session.target.getZ() + 0.5, 40, 0.5, 0.5, 0.5, 0.4);
+            net.minecraft.world.phys.Vec3 leapAt = FightMoves.fishPos(sp, session);
+            level.playSound(null, BlockPos.containing(leapAt), SoundEvents.DOLPHIN_JUMP, SoundSource.PLAYERS, 1.0f, 0.8f);
+            level.sendParticles(ParticleTypes.SPLASH, leapAt.x, leapAt.y + 0.25, leapAt.z, 40, 0.5, 0.5, 0.5, 0.4);
             actionbar(sp, Component.translatable("message.riverfishing.fish_jumps").withStyle(ChatFormatting.RED));
         }
+
+        if (FightMoves.tick(sp, level, session, now, random)) return;   // §fight-moves: the move, and where the fish is
 
         // The classic last dash at the bank — ROLLED, not scripted (§final-surge-roll): a guaranteed
         // surge became a ritual the player waited out, and a ritual carries no fear. The odds follow
         // what is actually on the hook: a trophy nearly always makes that dash, a hard pattern often,
         // a modest fish usually comes in quiet — and a boot never fights the net. Rolled exactly once,
         // at the moment the bank is reached; a failed roll is a quiet landing, not a retry.
-        if (!session.finalSurgeDone && session.landProgress >= 0.85) {
+        if (!session.finalSurgeDone && session.landProgress >= 0.85 && FightMoves.allowsRun(session)) {
             session.finalSurgeDone = true;
             double odds = 0.35;
             if (session.trophy) odds += 0.35;
@@ -2766,11 +2862,12 @@ public final class FishingManager {
             // dash at the net was the ONLY run in the fight with nothing to answer.
             session.course = FightCourse.forPattern(session.fightPattern, session.runIndex++, random);
             session.barState = -1;
-            level.playSound(null, session.target, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 1.0f, 0.7f);
+            session.move = FightMoves.NONE;   // the plank too: it is not beaten after all
+            net.minecraft.world.phys.Vec3 dashAt = FightMoves.fishPos(sp, session);
+            level.playSound(null, BlockPos.containing(dashAt), SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.PLAYERS, 1.0f, 0.7f);
             // §sound: the long drag scream tears off for the final dash — at the player (the reel).
             reelSound(sp, level, com.riverfishing.registry.ModSounds.DRAG_LONG.get(), 0.9f, 1.0f);   // §coop-sound
-            level.sendParticles(ParticleTypes.SPLASH, session.target.getX() + 0.5, session.target.getY() + 1.0,
-                    session.target.getZ() + 0.5, 20, 0.3, 0.15, 0.3, 0.3);
+            level.sendParticles(ParticleTypes.SPLASH, dashAt.x, dashAt.y + 0.05, dashAt.z, 20, 0.3, 0.15, 0.3, 0.3);
             actionbar(sp, Component.translatable("message.riverfishing.final_surge").withStyle(ChatFormatting.RED));
             }
         }
@@ -2783,7 +2880,7 @@ public final class FishingManager {
 
         if (now - session.fightStartTick > session.fightTimeout) {
             endSession(sp, session);
-            actionbar(sp, Component.translatable("message.riverfishing.missed").withStyle(ChatFormatting.GRAY));
+            actionbar(sp, Component.translatable("message.riverfishing.hook_pulled").withStyle(ChatFormatting.YELLOW));   // §fight-moves
             GuideNudge.failure(sp, session.rodClass, GuideNudge.MISSED);
             return;
         }
@@ -2808,7 +2905,10 @@ public final class FishingManager {
             // Calm but critically loaded: the blank creaks a warning (~0.86 s, so spaced well out).
             reelSound(sp, level, com.riverfishing.registry.ModSounds.ROD_CREAK.get(), 0.8f, 1.0f);   // §coop-sound
         }
-        session.bossBar.setProgress((float) Mth.clamp(session.landProgress, 0.0, 1.0));
+        // §bar-smooth: the bar glides to the progress — a crank, a run or a leg-pump moved it in one jump,
+        // and the client only tweens the last tenth of a second of each move
+        session.barShown += (float) (Mth.clamp(session.landProgress, 0.0, 1.0) - session.barShown) * 0.2f;
+        session.bossBar.setProgress(Mth.clamp(session.barShown, 0f, 1f));
         // §bossbar-2: the bar tells WHOSE fight it is and what the fish is doing — no more guessing
         // between two friends' bars. Name re-sends only when the state flips.
         int barState = session.runTicksLeft > 0 ? 1 : session.fatigue > 0.7 ? 2 : 0;
@@ -2869,7 +2969,8 @@ public final class FishingManager {
                     // §hooked-fish: what is on the line, and what it is doing this tick
                     session.species == null ? "" : session.species.getPath(), session.weightG, session.lengthCm,
                     now < session.jumpWindowEnd, session.runTicksLeft > 0 && !session.course.isRun(),
-                    (float) session.fatigue, session.lineSnagged));
+                    (float) session.fatigue, session.lineSnagged, (float) session.swing, session.move)   // §fight-moves
+                    .depths(hookDepth(session), bottomDepth(session)));   // §fight-depth
         }
     }
 
@@ -2953,6 +3054,21 @@ public final class FishingManager {
 
     private static void landFish(ServerPlayer sp, ServerLevel level, FishingSession session) {
         if (session.fly) lieDisturbed(session.target, level.getGameTime());   // §lie-memory: one out, the rest go quiet
+        // §alife: the fish leaves the water for real — one fewer in its shoal, or the trophy's place empty
+        if (session.alifeAgent != null && session.bycatch == 0) {
+            if (session.alifeHead != null) {
+                // §alife-pond: that very fish — unless another rod or a net has it already. Then what comes ashore
+                // is an ordinary fish of its kind, never a second copy of that one (a second legend, say).
+                if (!session.alifeLake.remove(session.alifeHead)) {
+                    session.alifeHead = null;
+                    session.pondFish = null;
+                }
+            } else if (session.alifeAgent.heads == null && session.alifeAgent.alive()) {
+                session.alifeLake.take(session.alifeAgent);   // a counted shoal; a roster is never thinned at random
+            }
+        }
+        com.riverfishing.alife.Lake.Agent landedFrom = session.alifeAgent;   // the grusha's other hooks fish the same shoal
+        session.alifeAgent = null;   // landed: endSession must not also call it a lost fish
         // The "fish" was a boot or a find all along (§bycatch-intrigue) — reveal it now.
         if (session.bycatch != 0) {
             landBycatch(sp, level, session, session.bycatch == 2);
@@ -2965,7 +3081,12 @@ public final class FishingManager {
         // catch is a server event. Rolled at the landing so the whole fight already happened.
         boolean legendary = false;
         FishProfile legProfile = FishProfileManager.get().byId(session.species);
-        if (legal && legProfile != null && legProfile.legendaryWeightG > 0
+        if (session.alifeHead != null) {
+            // §alife-pond: a legend put back into a pond is still that legend — anyone may catch it again,
+            // but it is not a first catch: no server event, no achievement, it is already on the books
+            legendary = session.alifeHead.legend;
+            if (legendary) session.trophy = true;
+        } else if (legal && legProfile != null && legProfile.legendaryWeightG > 0
                 && !LegendaryData.get(level).isCaught(session.species)
                 && random.nextDouble() < legProfile.legendaryChance) {
             legendary = true;
@@ -2989,11 +3110,17 @@ public final class FishingManager {
         // §population: a landed fish leaves the water for real — depletion lands on THIS species only.
         FishingPressureData.get(level).addCatch(new ChunkPos(session.target).toLong(),
                 session.species.getPath(), level.getGameTime());
-        broodAfterCatch(level, sp, session.target, session.species);   // §c
+        if (session.alifeLake == null) broodAfterCatch(level, sp, session.target, session.species);   // §c (a living water keeps its own count)
         if (legal) {
             boolean newSpecies = JournalData.isNewSpecies(sp, session.species);
             boolean personalBest = JournalData.isPersonalBest(sp, session.species, session.weightG);
             JournalData.record(sp, session.species, session.weightG); // records (§15)
+            // §boilies: and which flavour it came out on, for the page's "favourite flavour"
+            if (session.ctx != null && session.ctx.boilie != null) {
+                java.util.List<String> fl = new java.util.ArrayList<>();
+                for (com.riverfishing.fish.Flavour f : session.ctx.boilie.flavours()) fl.add(f.id());
+                JournalData.recordFlavours(sp, session.species, fl);
+            }
             if (session.trophy) JournalData.addTrophy(sp);
             // §guide-nudge: this rod class works for this player now — nothing about it is on its way.
             GuideNudge.success(sp, session.rodClass);
@@ -3004,7 +3131,6 @@ public final class FishingManager {
                 if (pr != null) JournalData.recordTraits(sp, pr.group, pr.diet, session.weightG);
                 JournalData.recordProvince(sp, com.riverfishing.water.Provinces.at(level.getSeed(),
                         session.target.getX(), session.target.getZ()));
-                ItemStack rodNow = sessionRod(sp, session);
             }
             // §species-advancements (0.5.0): tiered + "all species" are CODE-counted — the old JSON
             // hand-listed 25 criteria and drifted from the real roster with every content wave.
@@ -3035,6 +3161,19 @@ public final class FishingManager {
         // Grusha (3 hooks): tiny chance of two or three near-identical fish at once (Module 4).
         int extras = legal ? grushaExtras(session, random) : 0;
         for (int i = 0; i < extras; i++) {
+            if (landedFrom != null && landedFrom.heads != null) {
+                // §alife-pond: the other hooks come up with real fish of the same shoal, or with nothing
+                com.riverfishing.alife.Life.Head h = session.alifeLake.pickHead(landedFrom);
+                if (h == null) break;
+                session.alifeLake.takeHead(landedFrom, h);
+                session.alifeHead = h;
+                session.pondFish = PondLife.record(h);
+                FishProfile ep = FishProfileManager.get().byId(session.species);
+                int hw = Math.max(1, (int) Math.round(h.weightG));
+                giveFish(sp, session.species, hw, ep == null ? session.lengthCm : lengthFor(ep, hw, random), true,
+                        h.trophy, h.legend, session.target, session);
+                continue;
+            }
             int w = (int) Math.round(session.weightG * (0.9 + random.nextDouble() * 0.2));
             int l = (int) Math.round(session.lengthCm * (0.95 + random.nextDouble() * 0.1));
             giveFish(sp, session.species, Math.max(1, w), Math.max(1, l), true, false, false,
@@ -3042,6 +3181,7 @@ public final class FishingManager {
         }
 
         playLand(level, session.target);
+        session.landed = true;   // §fight-moves: endSession shows it lifted out
         // The catch lands in the player's hands — celebrate there so it's always audible (§sound-range).
         level.playSound(null, sp.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.5f, 1.4f);
         if (extras > 0) {
@@ -3111,6 +3251,21 @@ public final class FishingManager {
         return 0;
     }
 
+    /**
+     * §prime-fish: a legal top-of-range specimen gets the prime grade — the fisherman buys these. Every prime
+     * landing saturates the market a little, and one of today's order species fills the order. The rod and
+     * (§net-grade) a net hauling out of a pond both come through here.
+     */
+    public static void gradePrime(ServerPlayer sp, ItemStack fish, ResourceLocation species, int weightG) {
+        FishProfile profile = FishProfileManager.get().byId(species);
+        if (profile == null) return;
+        int threshold = FishItem.primeThresholdG(profile.weightMax);
+        if (weightG < threshold) return;
+        FishItem.gradePrime(fish, threshold);
+        MarketData.get(sp.serverLevel()).addSupply(species.getPath());
+        OrderBoard.credit(sp, species);
+    }
+
     private static void giveFish(ServerPlayer sp, ResourceLocation species, int weightG, int lengthCm,
                                  boolean legal, boolean trophy, boolean legendary, BlockPos where,
                                  FishingSession session) {
@@ -3119,18 +3274,8 @@ public final class FishingManager {
             com.riverfishing.item.StackNbt.mutate(fish, t -> t.putBoolean(FishItem.TAG_LEGEND, true));
         }
         rollMorph(sp, fish, species, weightG, where);
-        // §prime-fish: a legal top-of-range specimen gets the prime grade — the fisherman buys these.
         FishProfile profile = FishProfileManager.get().byId(species);
-        if (legal && profile != null) {
-            int threshold = FishItem.primeThresholdG(profile.weightMax);
-            if (weightG >= threshold) {
-                FishItem.gradePrime(fish, threshold);
-                // market (0.5.0): every prime landing saturates that species a little.
-                MarketData.get(sp.serverLevel()).addSupply(species.getPath());
-                // §order-board: and if it IS today's order, that is the order filled.
-                OrderBoard.credit(sp, species);
-            }
-        }
+        if (legal) gradePrime(sp, fish, species, weightG);
         // §catch-card: a fish caught on a rod remembers its catch — who, where, on what, under what
         // sky — so a contract can read the fish a week later, out of a chest, with the rod long gone.
         if (session != null) {
@@ -3161,7 +3306,7 @@ public final class FishingManager {
             // §pond-roster: the fish that went in is the fish that came out — and it is out of the pond now.
             if (session.pondFish != null) {
                 applyPondFish(fish, session.pondFish);
-                com.riverfishing.fishing.StockedData.get(lvl).takeFish(
+                if (session.alifeHead == null) com.riverfishing.fishing.StockedData.get(lvl).takeFish(
                         com.riverfishing.fishing.StockedData.regionAt(lvl, where), path, session.pondFish.getLong("Uid"));
                 session.pondFish = null;
             }
@@ -3273,6 +3418,7 @@ public final class FishingManager {
         // weak line vs a heavy fish loses the whole rig at the 30% hard cap. Leader bite-offs always lose.
         double loseChance = Mth.clamp(0.30 * (weightKg * 1.5 / strain), 0.05, 0.30);
         boolean loseRig = leader || level.getRandom().nextDouble() < loseChance;
+        session.lineBroke = loseRig;   // §rod-anim: the client shows a snapped line, not a hook pulled free
         if (loseRig) {
             ItemStack rod = sessionRod(sp, session);
             if (rod.getItem() instanceof RodItem) {
@@ -3304,6 +3450,11 @@ public final class FishingManager {
     }
 
     static void endSession(ServerPlayer sp, FishingSession session) {
+        // §alife: every lost fish ends here — a snapped line, a thrown hook, a timed-out fight. It felt the
+        // hook, and it and its shoal will be warier of the next bait for a day or two.
+        if (session.fighting && session.alifeAgent != null) session.alifeLake.spooked(session.alifeAgent, false);
+        session.alifeAgent = null;
+        session.alifeHead = null;
         brace(sp, false);   // §fight-brace: every fight exits through here, so this is the only lift needed
         if (session.floatPeriod > 0) {
             clearFloatTiming(sp); // hide the strike-timing HUD (float or lure §strike-qte)
@@ -3312,6 +3463,12 @@ public final class FishingManager {
         if (session.bossBar != null) {   // §bossbar-end: the bar goes with the fight
             session.bossBar.removeAllPlayers();
             session.bossBar = null;
+        }
+        // §fight-moves: a fish that was on is seen to go — lifted out, or away and down — before the line is cleared
+        if (session.fighting && session.species != null && session.bycatch == 0) {
+            net.minecraft.world.phys.Vec3 at = FightMoves.fishPos(sp, session);
+            ModNetwork.toTracking(sp, new com.riverfishing.network.FishGonePacket(sp.getId(), session.landed,
+                    session.species.getPath(), session.lengthCm, at.x, at.y, at.z, session.lineBroke));
         }
         SESSIONS.remove(sp.getUUID());
         // Clear the line for everyone who can see this angler (§line-multiplayer).
@@ -3425,12 +3582,7 @@ public final class FishingManager {
         // §weight-curve (0.5.0): the profile's weight_g.mean is the MEDIAN catch — the power curve is
         // solved per species so half the catches land under it (0.5^k = (mean-min)/(max-min)). Profiles
         // without an explicit mean keep the classic big-fish-are-rare 2.4 curve.
-        double k = 2.4;
-        if (p.weightMeanSet && p.weightMean > p.weightMin && p.weightMean < p.weightMax) {
-            double f = (p.weightMean - p.weightMin) / (p.weightMax - p.weightMin);
-            k = Mth.clamp(Math.log(f) / Math.log(0.5), 0.5, 8.0); // median(u^k) = 0.5^k = f
-
-        }
+        double k = p.sizeCurveK();   // median(u^k) = 0.5^k = (mean - min) / (max - min) — the card's scale reads the same curve
         // §match-size: a crude setup catches the smaller end — the big wary specimens ignore it.
         k += Math.max(0.0, 0.85 - match) * 2.0;
         // §skills ANGLERS_LUCK flattens the size curve instead of handing out a flag: a lucky angler
@@ -3528,11 +3680,33 @@ public final class FishingManager {
         // came out ~56 cm instead of the real ~67 cm.) Endpoints still map min→min, max→max exactly.
         session.lengthCm = lengthFor(p, weight, random);
 
+        // §alife: a trophy is one fish that lives in this water — it weighs what it weighs, not a roll. A
+        // shoal's fish keep the species' own curve above.
+        com.riverfishing.alife.Lake.Agent agent = session.alifeAgent;
+        session.alifeHead = null;
+        if (agent != null && agent.heads != null && sameFish(agent, p.id)) {
+            // §alife-pond: a remembered fish — this one comes out, at its own weight, with its own card
+            com.riverfishing.alife.Life.Head h = session.alifeLake.pickHead(agent);
+            if (h != null) {
+                int w = (int) Math.round(h.weightG);
+                session.alifeHead = h;
+                session.weightG = w;
+                session.lengthCm = lengthFor(p, w, random);
+                session.trophy = h.trophy || w >= FishItem.trophyThresholdG(p.weightMin, p.weightMax);
+                session.pondFishLive = PondLife.record(h);
+            }
+        } else if (agent != null && agent.trophy && sameFish(agent, p.id)) {
+            int w = (int) Math.round(agent.weightG);
+            session.weightG = w;
+            session.lengthCm = lengthFor(p, w, random);
+            session.trophy = w >= FishItem.trophyThresholdG(p.weightMin, p.weightMax);
+        }
+
         // §pond-roster (1.0.0): in a pond the specimen is one of the fish that went in, grown — not a
         // roll. Peeked here (the fight reads its nature), taken at the landing. The mouth rule still
         // holds: a remembered fish under five times a live bait is not the one that took it.
         session.pondFish = null;
-        if (PondData.isClaimed(level, session.target)) {
+        if (session.alifeLake == null && PondData.isClaimed(level, session.target)) {
             StockedData st = StockedData.get(level);
             long region = StockedData.regionAt(level, session.target);
             CompoundTag rec = st.peekFish(region, p.id.getPath(), random);
@@ -3550,6 +3724,14 @@ public final class FishingManager {
                 }
             }
         }
+        // §alife-pond: the living pond's fish, if one was picked above — the old roster block left it alone
+        if (session.pondFishLive != null) {
+            session.pondFish = session.pondFishLive;
+            session.pondFishLive = null;
+            CompoundTag card = session.pondFish.getCompound("Card");
+            if (card.contains("Nature")) session.nature = card.getByte("Nature");
+            if (card.contains("Variety")) session.variety = card.getString("Variety");
+        }
     }
 
     /**
@@ -3558,13 +3740,8 @@ public final class FishingManager {
      * Endpoints map min→min, max→max exactly; ±2 % natural variation.
      */
     private static int lengthFor(FishProfile p, double weight, RandomSource random) {
-        double wc = Math.cbrt(Math.max(1.0, weight));
-        double wcMin = Math.cbrt(Math.max(1.0, p.weightMin));
-        double wcMax = Math.cbrt(Math.max(1.0, p.weightMax));
-        double lf = (wcMax > wcMin) ? (wc - wcMin) / (wcMax - wcMin) : 0.5;
-        double length = p.lengthMin + (p.lengthMax - p.lengthMin) * lf;
-        length *= 0.98 + random.nextDouble() * 0.04;
-        return (int) Math.round(Mth.clamp(length, p.lengthMin, p.lengthMax));
+        double length = p.lengthAt(weight) * (0.98 + random.nextDouble() * 0.04);   // §length-weight
+        return (int) Math.max(1, Math.round(Math.min(length, p.lengthMax)));
     }
 
     private static Component fishName(ResourceLocation species) {
@@ -3744,6 +3921,11 @@ public final class FishingManager {
         // §pond-any-fish (1.0.0): a pond runs no checks — a fish under breeding size goes on the book
         // like any other, or it is nowhere: the pond reads only its book now, and the chunk bank that
         // used to keep an immature release biting is not read there any more.
+        // §alife-pond: a living pond keeps the fish itself — card, badges, name — and runs no book at all
+        if (PondLife.release(level, pos, p, weightG, count, card, stack)) {
+            if (thrower != null) pondReleased(level, pos, thrower);
+            return;
+        }
         boolean pond = PondData.isClaimed(level, pos);
         release(level, pos, p, units, thrower, (stocked, region) -> {
             // §pond-roster: the pond remembers this very fish — card, morph, name, weight, day — so it
@@ -3759,11 +3941,28 @@ public final class FishingManager {
             for (int i = 0; i < Math.max(1, count); i++) {
                 stocked.addBrood(region, species.getPath(), sex, day, genes, thrower == null ? null : thrower.getUUID(), weightG);   // §lm: the pond's average weight learns from what went in   // §o: the work-off is Warden.credit now, by weight
             }
-        }, card != null && card.contains("At") ? BlockPos.of(card.getLong("At")) : null);
+        }, card != null && card.contains("At") ? BlockPos.of(card.getLong("At")) : null, w -> {
+            // §alife-wild: the fish itself goes into the living water, and the angler hears how many of its kind are there
+            if (!PondLife.releaseWild(level, w, p, weightG, count, card, stack, thrower == null ? null : thrower.getUUID())) return false;
+            if (thrower != null) {
+                com.riverfishing.alife.Lake lake = AlifeData.get(level).lakeAt(level, w);
+                actionbar(thrower, Component.translatable("message.riverfishing.wild_release", fishName(p.id),
+                        PondLife.count(lake, p.id.getPath())).withStyle(ChatFormatting.GREEN));
+            }
+            return true;
+        });
     }
 
     /** §pond-roster: what the pond writes down about a fish going in. */
-    private static CompoundTag pondRecord(ItemStack stack, @org.jetbrains.annotations.Nullable CompoundTag card, int weightG, long day) {
+    /** §alife-pond: what the angler hears when a fish goes into a living pond — how full it is now. */
+    private static void pondReleased(ServerLevel level, BlockPos pos, ServerPlayer thrower) {
+        com.riverfishing.alife.Lake lake = PondLife.lake(level, pos);
+        if (lake == null) return;
+        actionbar(thrower, Component.translatable("message.riverfishing.pond_release",
+                com.riverfishing.alife.Life.heads(lake), PondLife.fullness(lake)).withStyle(ChatFormatting.GREEN));
+    }
+
+    static CompoundTag pondRecord(ItemStack stack, @org.jetbrains.annotations.Nullable CompoundTag card, int weightG, long day) {
         CompoundTag r = new CompoundTag();
         if (card != null) r.put("Card", card.copy());
         String morph = com.riverfishing.item.StackNbt.get(stack).getString(FishItem.TAG_MORPH);
@@ -3806,6 +4005,11 @@ public final class FishingManager {
         if (p == null || count <= 0) return;
         // §h §breeding: fry thrown into open water are eaten — 70% make it in bare water, up to 100% with
         // snags to hide in (§F's frySurvival). Stock units and the ledger both count the survivors.
+        if (PondLife.releaseFry(level, pos, p, genome, count, pattern)) {   // §alife-pond: the pond's own predators and weed decide
+            if (thrower != null) actionbar(thrower, Component.translatable("message.riverfishing.pond_release_fry", count)
+                    .withStyle(ChatFormatting.GREEN));
+            return;
+        }
         int alive = Math.max(1, (int) Math.round(count * (0.7 + com.riverfishing.fishing.Ecosystem.frySurvival(level, pos))));
         // §fry-bank: fry bank NOTHING. The stock units a release banks are what the net hauls from, at
         // adult weights, and a water that holds only fry holds nothing a net can lift. The fish they
@@ -3814,7 +4018,7 @@ public final class FishingManager {
             stocked.addFry(region, species.getPath(), alive, StockedData.worldDay(level), genome,
                     thrower == null ? null : thrower.getUUID());
             stocked.setPattern(region, species.getPath(), pattern);   // §pattern: the bred line
-        }, null);
+        }, null, w -> PondLife.releaseFryWild(level, w, p, genome, alive, pattern));   // §alife-wild
     }
 
     /**
@@ -3826,6 +4030,15 @@ public final class FishingManager {
                                 @org.jetbrains.annotations.Nullable ServerPlayer thrower,
                                 java.util.function.ObjLongConsumer<StockedData> ledger,
                                 @org.jetbrains.annotations.Nullable BlockPos caughtAt) {
+        release(level, pos, p, units, thrower, ledger, caughtAt, null);
+    }
+
+    /** {@code living}: §alife-wild — once the water has been judged, the living water takes the fish (true) and no book is written. */
+    private static void release(ServerLevel level, BlockPos pos, FishProfile p, double units,
+                                @org.jetbrains.annotations.Nullable ServerPlayer thrower,
+                                java.util.function.ObjLongConsumer<StockedData> ledger,
+                                @org.jetbrains.annotations.Nullable BlockPos caughtAt,
+                                @org.jetbrains.annotations.Nullable java.util.function.Predicate<BlockPos> living) {
         if (thrower != null) com.riverfishing.quest.AnglerAdvancements.grant(thrower, "released");   // §progression-2
         // A floating item sits in the AIR block above the surface — resolve to the actual water.
         if (!level.getFluidState(pos).is(net.minecraft.tags.FluidTags.WATER)) {
@@ -3873,6 +4086,7 @@ public final class FishingManager {
             }
             return;
         }
+        if (living != null && !pond && living.test(pos)) return;   // §alife-wild
         boolean nativeHere = nativeHere(level, pos, body, p.id);
         StockedData stocked = StockedData.get(level);
         boolean resident = nativeHere || stocked.isStocked(region, id);
@@ -4074,8 +4288,7 @@ public final class FishingManager {
     }
 
     private static BiteContext buildContext(ServerPlayer sp, ServerLevel level, ItemStack rod,
-                                            InteractionHand hand, WaterBody body, BlockPos waterPos,
-                                            double castDistance, long now) {
+                                            InteractionHand hand, WaterBody body, BlockPos waterPos, long now) {
         BiteContext ctx = new BiteContext();
         ctx.rod = ((RodItem) rod.getItem()).rodType();
         ctx.bed = bedType(level, waterPos);   // §bed-bite
@@ -4101,6 +4314,7 @@ public final class FishingManager {
             ctx.lureWeightG = RigData.lureTackleWeightG(rigStack); // §lure-size: size gates the take
             ctx.hookSizes = RigData.hookSizes(rigStack);
             ctx.baits = RigData.baitIds(rigStack);
+            ctx.boilie = RigData.boilie(rigStack);   // §boilies
             ctx.livebaitG = RigData.livebaitWeightG(rigStack);   // §livebait-3
             ctx.tied = RigData.tiedLure(rigStack);   // §tying
             int lureRgb = RigData.lureColorRgb(rigStack);
@@ -4117,9 +4331,7 @@ public final class FishingManager {
         ctx.water = body.type();
         ctx.biomeRiver = body.river();
         ctx.biomeSwamp = body.swamp();
-        ctx.biomeOcean = body.ocean();
         ctx.waterWidth = body.width();
-        ctx.castDistance = castDistance;
 
         // §population: per-species depletion at this spot — a fished-out species stops biting HERE while
         // the others carry on; recovery is time-based (faster in spring, §spawn-recovery).
@@ -4134,6 +4346,7 @@ public final class FishingManager {
         ctx.time = TimeOfDay.fromDayTime(level.getDayTime());
         ctx.weather = level.isThundering() ? Weather.THUNDER : (level.isRaining() ? Weather.RAIN : Weather.CLEAR);
         ctx.pressureFactor = com.riverfishing.engine.BarometricPressure.biteFactor(level);
+        ctx.pressureTrend = com.riverfishing.engine.BarometricPressure.trend(level);   // §boilies
         ctx.biomeTemperature = level.getBiome(waterPos).value().getBaseTemperature();
         ctx.waterDepth = measureDepth(level, waterPos);
         ctx.privatePond = PondData.isClaimed(level, waterPos);   // §pond: size gates waived
@@ -4161,11 +4374,6 @@ public final class FishingManager {
     }
 
     /**
-     * Water analysis for the fish finder / admin probe (§QoL). Environment-only (no tackle): lists
-     * which species CAN bite here right now. The admin variant adds the full habitat summary,
-     * per-species environment scores, level gates and the species' favourite bait.
-     */
-    /**
      * §cull: everything that can be caught in this water right now, best fit first — the same set and the
      * same order the fish finder prints, because it is the same question asked of the same function.
      */
@@ -4182,7 +4390,13 @@ public final class FishingManager {
         return here.stream().map(java.util.Map.Entry::getKey).toList();
     }
 
-    public static void analyzeWater(ServerPlayer sp, ServerLevel level, BlockPos waterPos, boolean admin) {
+    /**
+     * The admin water probe (§QoL). Environment-only (no tackle): the habitat summary, every species
+     * that CAN bite here right now with its environment score, level gate and favourite bait, then the
+     * species that cannot, grouped by the first gate that blocks them. The player-facing finder is
+     * {@link #finderPayload}.
+     */
+    public static void analyzeWater(ServerPlayer sp, ServerLevel level, BlockPos waterPos) {
         WaterBody body = WaterBodyCache.forLevel(level).get(level, waterPos);
         if (body.type() == WaterType.NONE) {
             actionbar(sp, Component.translatable("message.riverfishing.no_water").withStyle(ChatFormatting.RED));
@@ -4200,109 +4414,47 @@ public final class FishingManager {
         }
         here.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
 
-        if (admin) {
-            sp.displayClientMessage(Component.literal("== RiverFishing probe ==").withStyle(ChatFormatting.GOLD), false);
-            sp.displayClientMessage(Component.literal(String.format("water=%s width=%.0f depth=%d biomes=%s",
-                    body.type().key(), body.width(), env.waterDepth, env.biomeGroups))
-                    .withStyle(ChatFormatting.GRAY), false);
-            sp.displayClientMessage(Component.literal(String.format("season=%s time=%s weather=%s frenzy=%s",
-                    env.season == null ? "-" : env.season.jsonKey(), env.time.jsonKey(),
-                    env.weather.jsonKey(), isFrenzy(level)))
-                    .withStyle(ChatFormatting.GRAY), false);
-            sp.displayClientMessage(Component.literal(String.format("pressure=%.1fhPa trend=%+.1f factor=%.2f",
-                    BarometricPressure.hPa(level), BarometricPressure.trend(level),
-                    BarometricPressure.biteFactor(level)))
-                    .withStyle(ChatFormatting.GRAY), false);
-            FishingPressureData probeStock = FishingPressureData.get(level);
-            long probeChunk = new ChunkPos(waterPos).toLong();
-            for (var e : here) {
-                FishProfile p = e.getKey();
-                String bait = topBait(p);
-                boolean resident = residentHere(level, waterPos, body, p.id);
-                int pct = resident
-                        ? probeStock.stockPercent(probeChunk, p.id.getPath(), level.getGameTime())
-                        : (int) Math.round(probeStock.surplusAround(waterPos.getX() >> 4, waterPos.getZ() >> 4,
-                                p.id.getPath(), level.getGameTime()) * 100);
-                sp.displayClientMessage(Component.literal(String.format("E=%.2f  ", e.getValue()))
-                        .withStyle(ChatFormatting.AQUA)
-                        .append(fishName(p.id))
-                        .append(Component.literal(String.format("  lvl>=%d  %s=%d%%  bait: %s",
-                                p.minAnglerLevel, resident ? "stock" : "TEMP", pct, bait))
-                                .withStyle(resident ? ChatFormatting.DARK_GRAY : ChatFormatting.GOLD)), false);
-            }
-            // Diagnosis (§QoL): group the GATED species by the first gate that blocks them here.
-            java.util.Map<String, java.util.List<String>> blocked = new java.util.LinkedHashMap<>();
-            for (FishProfile p : FishProfileManager.get().all()) {
-                double e = BiteEngine.environmentScore(p, env);
-                if (e > 1e-4) continue;
-                blocked.computeIfAbsent(gateReason(p, env), k -> new java.util.ArrayList<>())
-                        .add(fishName(p.id).getString());
-            }
-            for (var e : blocked.entrySet()) {
-                sp.displayClientMessage(Component.literal("blocked[" + e.getKey() + "]: "
-                        + String.join(", ", e.getValue())).withStyle(ChatFormatting.DARK_GRAY), false);
-            }
-            return;
-        }
-
-        // §pond: whose water this is, before the list — an empty wild list is the claim working.
-        String pondOwner = PondData.ownerName(level, waterPos);
-        if (!pondOwner.isEmpty()) {
-            sp.displayClientMessage(Component.translatable("finder.riverfishing.owner", pondOwner)
-                    .withStyle(ChatFormatting.GOLD), false);
-        }
-        // Player-facing fish finder: just the species list, no numbers.
-        if (here.isEmpty()) {
-            sp.displayClientMessage(Component.translatable("finder.riverfishing.none")
-                    .withStyle(ChatFormatting.GRAY), false);
-            return;
-        }
-        net.minecraft.network.chat.MutableComponent list = Component.empty();
-        int shown = 0;
+        sp.displayClientMessage(Component.literal("== RiverFishing probe ==").withStyle(ChatFormatting.GOLD), false);
+        sp.displayClientMessage(Component.literal(String.format("water=%s width=%.0f depth=%d biomes=%s",
+                body.type().key(), body.width(), env.waterDepth, env.biomeGroups))
+                .withStyle(ChatFormatting.GRAY), false);
+        sp.displayClientMessage(Component.literal(String.format("season=%s time=%s weather=%s frenzy=%s",
+                env.season == null ? "-" : env.season.jsonKey(), env.time.jsonKey(),
+                env.weather.jsonKey(), isFrenzy(level)))
+                .withStyle(ChatFormatting.GRAY), false);
+        sp.displayClientMessage(Component.literal(String.format("pressure=%.1fhPa trend=%+.1f factor=%.2f",
+                BarometricPressure.hPa(level), BarometricPressure.trend(level),
+                BarometricPressure.biteFactor(level)))
+                .withStyle(ChatFormatting.GRAY), false);
+        FishingPressureData probeStock = FishingPressureData.get(level);
+        long probeChunk = new ChunkPos(waterPos).toLong();
         for (var e : here) {
-            if (shown > 0) list.append(Component.literal(", "));
-            list.append(fishName(e.getKey().id));
-            if (++shown >= 8) break;
-        }
-        sp.displayClientMessage(Component.translatable("finder.riverfishing.header")
-                .withStyle(ChatFormatting.AQUA), false);
-        sp.displayClientMessage(list.withStyle(ChatFormatting.WHITE), false);
-        // §community: name the water's signature species — the "this is a tench lake" line.
-        net.minecraft.network.chat.MutableComponent sig = null;
-        for (var e : here) {
-            if (env.communityFactor.applyAsDouble(e.getKey().id) > 1.0) {
-                if (sig == null) sig = Component.empty();
-                else sig.append(Component.literal(", "));
-                sig.append(fishName(e.getKey().id));
-            }
-        }
-        if (sig != null) {
-            sp.displayClientMessage(Component.translatable("finder.riverfishing.signature", sig)
-                    .withStyle(ChatFormatting.GOLD), false);
-        }
-        // §stocking / §residency: live per-species stock. Residents show their 10..250% around the
-        // 100% baseline; an unsettled transplant shows its 0..100% TEMP population with a marker.
-        FishingPressureData stockData = FishingPressureData.get(level);
-        long stockChunk = new ChunkPos(waterPos).toLong();
-        net.minecraft.network.chat.MutableComponent stockLine = null;
-        for (var e : here) {
-            boolean resident = residentHere(level, waterPos, body, e.getKey().id);
+            FishProfile p = e.getKey();
+            String bait = topBait(p);
+            boolean resident = residentHere(level, waterPos, body, p.id);
             int pct = resident
-                    ? stockData.stockPercent(stockChunk, e.getKey().id.getPath(), level.getGameTime())
-                    : (int) Math.round(stockData.surplusAround(waterPos.getX() >> 4, waterPos.getZ() >> 4,
-                            e.getKey().id.getPath(), level.getGameTime()) * 100);
-            if (resident && Math.abs(pct - 100) < 10) continue;
-            if (stockLine == null) stockLine = Component.empty();
-            else stockLine.append(Component.literal(", "));
-            stockLine.append(fishName(e.getKey().id)).append(Component.literal(" " + pct + "%"));
-            if (!resident) stockLine.append(Component.translatable("finder.riverfishing.temp"));
+                    ? probeStock.stockPercent(probeChunk, p.id.getPath(), level.getGameTime())
+                    : (int) Math.round(probeStock.surplusAround(waterPos.getX() >> 4, waterPos.getZ() >> 4,
+                            p.id.getPath(), level.getGameTime()) * 100);
+            sp.displayClientMessage(Component.literal(String.format("E=%.2f  ", e.getValue()))
+                    .withStyle(ChatFormatting.AQUA)
+                    .append(fishName(p.id))
+                    .append(Component.literal(String.format("  lvl>=%d  %s=%d%%  bait: %s",
+                            p.minAnglerLevel, resident ? "stock" : "TEMP", pct, bait))
+                            .withStyle(resident ? ChatFormatting.DARK_GRAY : ChatFormatting.GOLD)), false);
         }
-        if (stockLine != null) {
-            sp.displayClientMessage(Component.translatable("finder.riverfishing.stock", stockLine)
-                    .withStyle(ChatFormatting.AQUA), false);
+        // Diagnosis (§QoL): group the GATED species by the first gate that blocks them here.
+        java.util.Map<String, java.util.List<String>> blocked = new java.util.LinkedHashMap<>();
+        for (FishProfile p : FishProfileManager.get().all()) {
+            double e = BiteEngine.environmentScore(p, env);
+            if (e > 1e-4) continue;
+            blocked.computeIfAbsent(gateReason(p, env), k -> new java.util.ArrayList<>())
+                    .add(fishName(p.id).getString());
         }
-        sp.displayClientMessage(pressureLine(level), false);
-        level.playSound(null, sp.blockPosition(), SoundEvents.NOTE_BLOCK_BIT.value(), SoundSource.PLAYERS, 0.6f, 1.5f);
+        for (var e : blocked.entrySet()) {
+            sp.displayClientMessage(Component.literal("blocked[" + e.getKey() + "]: "
+                    + String.join(", ", e.getValue())).withStyle(ChatFormatting.DARK_GRAY), false);
+        }
     }
 
     /**
@@ -4370,9 +4522,8 @@ public final class FishingManager {
             if (!finder.isEmpty()) {
                 w.putString("chart", com.riverfishing.item.FinderChart.mint(finder));
             }
-            // §o: where the angler stands with the fishermen, and how much of a kilogram is banked.
+            // §o: where the angler stands with the fishermen.
             w.putInt("rep", Contracts.rep(sp));
-            w.putInt("rep_grams", Warden.repGrams(sp));
         }
         // §f §ecosystem: the active effects as lang-key tails; the strip has no room and asks every second.        // §pond: whose water this is, if anyone's — the screen has no SavedData to ask.
         String pondOwner = PondData.ownerName(level, waterPos);
@@ -4421,6 +4572,13 @@ public final class FishingManager {
             }
             here.add(t);
         }
+        // §sonar-live: with the living water on, the sounder reports the fish that ARE here, not the ones that
+        // could be — and every sweep, the strip's once-a-second one included, picks up the shoals around it
+        if (com.riverfishing.config.RiverFishingConfig.alife()) {
+            com.riverfishing.alife.Lake lake = PondLife.lake(level, waterPos);
+            if (lake == null) lake = AlifeData.get(level).lakeAt(level, waterPos);
+            if (!lake.zones.isEmpty()) sonar(level, waterPos, lake, root, here, gone, full);
+        }
         root.put("here", here);
         root.put("gone", gone);
         if (full) {
@@ -4429,7 +4587,31 @@ public final class FishingManager {
             CompoundTag farm = new CompoundTag();
             StockedData st = StockedData.get(level);
             long region = StockedData.regionAt(level, waterPos);
-            for (String s : st.farmSpecies(region)) {
+            // §alife-pond: a living pond is read fish by fish — how full it is stands where the stock % was
+            com.riverfishing.alife.Lake pondLake = PondLife.lake(level, waterPos);
+            if (pondLake != null) {
+                for (java.util.Map.Entry<String, int[]> e : PondLife.census(pondLake).entrySet()) {
+                    FishProfile fp = FishProfileManager.get().byId(com.riverfishing.RiverFishing.id(e.getKey()));
+                    if (fp == null) continue;
+                    CompoundTag f = new CompoundTag();
+                    f.putInt("stock", PondLife.fullness(pondLake));
+                    f.putInt("f", e.getValue()[2]);
+                    f.putInt("m", e.getValue()[3]);
+                    f.putInt("fry", e.getValue()[1]);
+                    String genome = "";
+                    for (com.riverfishing.alife.Lake.Agent a : pondLake.agents) {
+                        if (a.heads != null && !a.heads.isEmpty() && a.sp.id().equals(e.getKey())) { genome = PondLife.genes(a.heads.get(0)); break; }
+                    }
+                    f.putString("genome", genome);
+                    f.putInt("grow", com.riverfishing.engine.Calendar.daysUntil(level, fp.spawnSeason, fp.spawnSub));
+                    f.putBoolean("settled", true);
+                    f.putString("spawn", fp.spawnSeason.jsonKey());
+                    f.putString("ssub", fp.spawnSub == null ? "" : fp.spawnSub.name().toLowerCase(java.util.Locale.ROOT));
+                    f.putInt("in", com.riverfishing.engine.Calendar.daysUntil(level, fp.spawnSeason, fp.spawnSub));
+                    farm.put(e.getKey(), f);
+                }
+            }
+            for (String s : pondLake != null ? java.util.Set.<String>of() : st.farmSpecies(region)) {
                 FishProfile fp = FishProfileManager.get().byId(com.riverfishing.RiverFishing.id(s));
                 if (fp == null) continue;
                 boolean settled = st.isStocked(region, s);
@@ -4482,6 +4664,85 @@ public final class FishingManager {
      * matching biome group and its factor, the season factor, and the fit itself. The client cannot
      * work any of these out: the profiles are server data.
      */
+    /** §sonar-live: how far from the sounding a fish counts as here, and how far the chart shows shoals. */
+    private static final double SONAR_NEAR = 24, SONAR_CHART = 96;
+
+    /**
+     * §sonar-live: the sounder reads the living water. {@code here} becomes the species that are actually
+     * swimming near the sounding, with how many of them (a bar of how they compare); a species this water
+     * could hold but that is nowhere near goes to the list below with "none nearby right now". And the
+     * chart gets its shoals — one halo per zone of water within reach, sized by its fish.
+     */
+    private static void sonar(ServerLevel level, BlockPos at, com.riverfishing.alife.Lake lake, CompoundTag root,
+                              ListTag here, ListTag gone, boolean full) {
+        java.util.Map<String, Integer> near = new java.util.HashMap<>();
+        java.util.Set<String> hunters = new java.util.HashSet<>();
+        CompoundTag[] zones = new CompoundTag[lake.zones.size()];
+        for (com.riverfishing.alife.Lake.Agent a : lake.agents) {
+            if (!a.alive() || a.fry) continue;
+            com.riverfishing.alife.Lake.Zone z = lake.zones.get(a.zone);
+            double d = Math.hypot(z.x - at.getX(), z.z - at.getZ());
+            if (d <= SONAR_NEAR) {
+                near.merge(a.sp.id(), a.count, Integer::sum);
+                // §finder-strip-calm: amber is for the fish an angler hunts — a perch shoal is not a pike
+                if (a.sp.predator() && a.sp.meanG() >= 800) hunters.add(a.sp.id());
+            }
+            if (d > SONAR_CHART) continue;
+            CompoundTag s = zones[a.zone];
+            if (s == null) {
+                s = zones[a.zone] = new CompoundTag();
+                s.putInt("x", z.ay == Integer.MIN_VALUE ? (int) z.x : z.ax);
+                s.putInt("z", z.ay == Integer.MIN_VALUE ? (int) z.z : z.az);
+            }
+            s.putInt("n", s.getInt("n") + a.count);
+            if (a.sp.predator()) s.putBoolean("pred", true);
+            if (a.count > s.getInt("topn")) { s.putString("sp", a.sp.id()); s.putInt("topn", a.count); }
+        }
+        ListTag shoals = new ListTag();
+        for (CompoundTag s : zones) if (s != null) shoals.add(s);
+        root.put("shoals", shoals);
+
+        // §finder-strip: the strip is told the same thing — the fish that are here and how many, and which
+        // of them hunt — so it draws fish, not a line for every species this water could ever hold
+        int most = 1;
+        for (int n : near.values()) most = Math.max(most, n);
+        java.util.Set<String> listed = new java.util.HashSet<>();
+        for (int i = here.size() - 1; i >= 0; i--) {
+            CompoundTag t = here.getCompound(i);
+            String sp = t.getString("sp");
+            listed.add(sp);
+            Integer n = near.get(sp);
+            if (n == null) {
+                here.remove(i);
+                if (full) {
+                    t.putString("why", "away");
+                    gone.add(t);
+                }
+                continue;
+            }
+            t.putInt("n", n);
+            if (hunters.contains(sp)) t.putBoolean("pred", true);
+            t.putFloat("e", (float) (0.15 + 0.85 * n / (double) most));
+        }
+        // a fish that swims here though the water would not have it — a stocked one, a pond's
+        for (java.util.Map.Entry<String, Integer> e : near.entrySet()) {
+            if (listed.contains(e.getKey())) continue;
+            FishProfile p = FishProfileManager.get().byId(com.riverfishing.RiverFishing.id(e.getKey()));
+            if (p == null) continue;
+            CompoundTag t = new CompoundTag();
+            t.putString("sp", e.getKey());
+            t.putInt("dmin", p.depthMin);
+            t.putInt("dmax", p.depthMax);
+            t.putInt("lvl", p.minAnglerLevel);
+            t.putString("bait", topBait(p));
+            t.putBoolean("res", true);
+            t.putInt("n", e.getValue());
+            if (hunters.contains(e.getKey())) t.putBoolean("pred", true);
+            t.putFloat("e", (float) (0.15 + 0.85 * e.getValue() / (double) most));
+            here.add(t);
+        }
+    }
+
     private static void habitatTag(FishProfile p, BiteContext env, BiteContext hab, CompoundTag t) {
         t.putFloat("wf", (float) p.waterFactor(env.water));
         t.putFloat("wmin", (float) p.widthMin);
@@ -4498,29 +4759,6 @@ public final class FishingManager {
     }
 
     /**
-     * The fish finder's barometer read-out (§weather-pressure): pressure in hPa, a trend arrow, and a
-     * colour-coded bite outlook — all straight from {@link BarometricPressure} so it can't drift.
-     */
-    private static Component pressureLine(ServerLevel level) {
-        int hpa = (int) Math.round(BarometricPressure.hPa(level));
-        int sign = BarometricPressure.trendSign(level);
-        String arrow = sign < 0 ? "↓" : (sign > 0 ? "↑" : "→");
-        String outlook = BarometricPressure.outlookKey(level);
-        ChatFormatting colour = switch (outlook) {
-            case "great" -> ChatFormatting.GREEN;
-            case "good" -> ChatFormatting.DARK_GREEN;
-            case "fair" -> ChatFormatting.YELLOW;
-            case "poor" -> ChatFormatting.RED;
-            default -> ChatFormatting.DARK_RED;
-        };
-        return Component.translatable("finder.riverfishing.pressure", hpa, arrow)
-                .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(" "))
-                .append(Component.translatable("finder.riverfishing.outlook." + outlook).withStyle(colour));
-    }
-
-    /** Which habitat gate blocks this species here — mirrors environmentScore's order (§QoL). */
-    /**
      * §why-nothing: instead of "nothing bites here", say what is actually in the way.
      *
      * <p>Every species is asked the engine's own question ({@link BiteEngine#blockReason}) and the most
@@ -4535,7 +4773,36 @@ public final class FishingManager {
      * <p>Deliberately a HINT, not an instruction: it names the category and never the answer. "The fish
      * here will not take that bait" sends a player to the journal; "use a worm" sends them to sleep.
      */
+    /** §cast-always: the wait of a line nobody wants — effectively never, until reEvaluate finds a taker. */
+    private static final long DEAD_LINE = 999_999L;
+
+    /** §hints-toggle: the angler who wants to read the water alone turns the explaining lines off ({@code /rffish hints off}). */
+    public static boolean hintsOn(ServerPlayer sp) {
+        return !PlayerData.root(sp).getBoolean(NO_HINTS);
+    }
+
+    public static final String NO_HINTS = "NoBiteHints";
+
     private static void noBitesHint(ServerPlayer sp, BiteContext ctx) {
+        if (!hintsOn(sp)) return;
+        if (ctx.lake != null) {
+            // §alife-why: ask the fish near the bait, not the rulebook — where they are, and what holds them back
+            com.riverfishing.alife.Lake.Diagnosis d = ctx.lake.diagnose(BiteEngine.alifeOffer(ctx), ctx.lakeNow);
+            String key = d.reason();
+            if ("empty".equals(key)) key = "water";
+            if ("rig".equals(key)) {
+                FishProfile p = FishProfileManager.get().byId(com.riverfishing.RiverFishing.id(d.species()));
+                String r = p == null ? null : BiteEngine.blockReason(p, ctx);
+                if ("absent".equals(r)) {
+                    String g = gateReason(p, ctx);
+                    int br = g.indexOf('(');
+                    r = br < 0 ? g : g.substring(0, br);
+                }
+                key = r == null ? "other" : r;
+            }
+            actionbar(sp, Component.translatable("message.riverfishing.no_bites." + key).withStyle(ChatFormatting.GRAY));
+            return;
+        }
         java.util.Map<String, Integer> tackle = new java.util.HashMap<>();
         java.util.Map<String, Integer> absent = new java.util.HashMap<>();
         int couldBeHere = 0;
@@ -4611,6 +4878,31 @@ public final class FishingManager {
             }
         }
         return best;
+    }
+
+    /**
+     * §fight-depth: how deep the bait hung when the fish took it, in blocks under the surface — a float at its set
+     * depth, a bottom rig on the bed, a fly in the film, a lure through the upper half. The client starts the hooked
+     * fish there and lets it come up only as it tires.
+     */
+    static float hookDepth(FishingSession session) {
+        float bottom = bottomDepth(session);
+        String set = session.ctx == null ? null : session.ctx.floatDepth;
+        if (session.fly || session.topwater) return Math.min(0.3f, bottom);
+        if (set != null) return switch (set) {
+            case "surface" -> Math.min(0.4f, bottom);
+            case "bottom" -> bottom;
+            default -> bottom * 0.5f;
+        };
+        if (session.rodClass == RodClass.BOTTOM || session.iceFishing) return bottom;
+        if (session.rodClass == RodClass.ACTIVE) return Math.min(bottom, Math.max(0.6f, bottom * 0.45f));
+        return bottom * 0.5f;
+    }
+
+    /** §fight-depth: the bed under the cast, a little above the blocks so the fish never sinks into them. */
+    static float bottomDepth(FishingSession session) {
+        int d = session.ctx == null ? 3 : session.ctx.waterDepth;
+        return Math.max(0.5f, d - 0.35f);
     }
 
     static int measureDepth(ServerLevel level, BlockPos surface) {

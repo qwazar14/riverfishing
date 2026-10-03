@@ -85,6 +85,21 @@ public class CullPacket implements ModNetwork.RfPacket {
             data.markStocked(region, species.getPath());
         }
 
+        // §alife: the living water hears it too — a cull takes the species out, a stock puts a shoal in
+        if (com.riverfishing.config.RiverFishingConfig.alife()) {
+            com.riverfishing.alife.Lake pond = com.riverfishing.fishing.PondLife.lake(level, water);
+            com.riverfishing.alife.Lake lake = pond != null ? pond : com.riverfishing.fishing.AlifeData.get(level).lakeAt(level, water);
+            if (!lake.zones.isEmpty()) {
+                String id = species.getPath();
+                if (remove) {
+                    lake.agents.removeIf(a -> a.sp.id().equals(id));
+                    lake.roe.removeIf(r -> r.sp.id().equals(id));
+                } else {
+                    com.riverfishing.fishing.AlifeData.stock(level, lake, pond != null, profile, water);
+                }
+                lake.touch();
+            }
+        }
         // The whole ~128-block region is one water community, so say so — an operator who thinks they
         // cleared one pond and actually cleared a river system should find that out now, not later.
         sp.displayClientMessage(Component.translatable(

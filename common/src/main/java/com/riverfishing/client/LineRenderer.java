@@ -33,7 +33,7 @@ public final class LineRenderer {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;
         FlyLineClient.render(pose, cam, pt);   // §rope: its own batch, its own tip read
-        if (ClientLineState.lines().isEmpty()) return;
+        if (ClientLineState.lines().isEmpty() && !LineFx.any()) return;
 
         float frameSeconds = mc.getTimer().getGameTimeDeltaTicks() / 20f;
         long now = mc.level.getGameTime();
@@ -63,9 +63,13 @@ public final class LineRenderer {
             double fdx = state.shownEnd.x - player.getX(), fdz = state.shownEnd.z - player.getZ();   // §line-glide
             double fl = Math.sqrt(fdx * fdx + fdz * fdz);
             state.tickFish(frameSeconds, fl > 1e-3 ? fdx / fl : 1.0, fl > 1e-3 ? fdz / fl : 0.0,
-                    (wx, wy, wz) -> !mc.level.getFluidState(BlockPos.containing(wx, wy, wz)).isEmpty(),
-                    lineBase(mc, player, state, pt));
+                    lineBase(mc, player, state, pt),
+                    com.riverfishing.fishing.FightMoves.bank(player.position(), player.getViewVector(pt)));   // §fight-moves
             renderLine(mc, buffers, m, nrm, player, state, pt);
+            drew = true;
+        }
+        if (LineFx.any()) {   // §rod-anim: snapped and thrown lines, fading
+            LineFx.draw(buffers.getBuffer(RenderType.lines()), m, nrm);
             drew = true;
         }
 
@@ -85,7 +89,7 @@ public final class LineRenderer {
      */
     public static void renderHooked(PoseStack pose, Vec3 cam, float pt) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null || ClientLineState.lines().isEmpty()) return;
+        if (mc.level == null || (ClientLineState.lines().isEmpty() && !FishExitRenderer.any())) return;
         pose.pushPose();
         pose.translate(-cam.x, -cam.y, -cam.z);
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
@@ -97,6 +101,7 @@ public final class LineRenderer {
             HookedFishRenderer.draw(mc, pose, buffers, state, lineEnd(mc, player, state, pt), pt);
             drew = true;
         }
+        drew |= FishExitRenderer.draw(mc, pose, buffers, pt);   // §fight-moves: lifted out, or getting away
         if (drew) buffers.endBatch();
         pose.popPose();
     }
@@ -133,6 +138,8 @@ public final class LineRenderer {
         // (and our own in third person) still belong to this pass.
         boolean handDrawn = player == mc.player && mc.options.getCameraType().isFirstPerson()
                 && RodItemRenderer.handLineFresh();
+        if (!handDrawn) state.lastTipW = tip;   // §rod-anim: the hand pass records its own, truer, tip
+        LineFx.tick(mc, state, state.lastTipW != null ? state.lastTipW : tip, end);
         if (!handDrawn) {
             // Vanilla string SHAPE (FishingHookRenderer.stringVertex), hang replaced by §line-taut —
             // tension straightens the string, a fish running at the angler bellies it.
@@ -212,8 +219,22 @@ public final class LineRenderer {
         BlockPos t = state.target;
         Vec3 e = state.shownEnd != null ? state.shownEnd : new Vec3(t.getX() + 0.5, t.getY(), t.getZ() + 0.5);   // §line-glide
         Vec3 water = new Vec3(e.x, e.y + 0.95 + bob, e.z);
-        Vec3 bank = player.position().add(player.getViewVector(pt).scale(1.2)).add(0, 0.1, 0);
-        return water.lerp(bank, Mth.clamp(state.smoothProgress * 0.85f, 0f, 0.9f));
+        if (player == mc.player) {
+            // §rod-anim: a retrieve click darts the lure toward you; a take kicks the line's end aside
+            float dart = RodAnim.dart(), kick = RodAnim.lineKick();
+            if (dart != 0f || kick != 0f) {
+                double hx = player.getX() - water.x, hz = player.getZ() - water.z, hl = Math.sqrt(hx * hx + hz * hz);
+                if (hl > 1e-3) {
+                    hx /= hl; hz /= hl;
+                    water = water.add(hx * dart + hz * kick, dart * 0.3, hz * dart - hx * kick);
+                }
+            }
+        }
+        Vec3 bank = com.riverfishing.fishing.FightMoves.bank(player.position(), player.getViewVector(pt));   // the server's point too
+        Vec3 p = water.lerp(bank, Mth.clamp(state.smoothProgress * 0.85f, 0f, 0.9f));
+        // §fight-depth: a hooked fish is towed in THROUGH the water — the bank point is at the angler's feet, and
+        // following it up hung the beaten fish on its side in the air over the bank. The lift-out takes it out.
+        return state.fighting && !state.species.isEmpty() ? new Vec3(p.x, water.y, p.z) : p;
     }
 
     /**

@@ -36,8 +36,7 @@ def string(s):
 def card(p):
     n = 0
     n += named("g", string(p.get("group", "other")))
-    for k in ("wmin", "wmax", "wmean", "lmin", "lmax", "trophy", "dmin", "dmax", "wdmin", "wdmax",
-              "lvl", "fr", "reel"):
+    for k in ("wmin", "wmax", "wmean", "trophy", "dmin", "dmax", "wdmin", "wdmax", "lvl", "fr"):
         n += named(k, 4)                      # TAG_Int
     for k in ("gbF", "gbN", "fs", "fst", "dia"):
         n += named(k, 4)                      # TAG_Float
@@ -48,10 +47,6 @@ def card(p):
     for k, src in (("bio", p.get("biomes", {})),
                    ("bait", p.get("ideal", {}).get("bait", {}))):
         inner = sum(named(name, 4) for name in src) + 1
-        n += named(k, inner)
-    for k, src in (("rod", p.get("ideal", {}).get("rod", [])),
-                   ("rig", p.get("ideal", {}).get("rig", []))):
-        inner = 1 + 4 + sum(string(s) for s in src)
         n += named(k, inner)
     return n + 1                              # TAG_End of this card
 

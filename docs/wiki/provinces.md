@@ -24,13 +24,13 @@ Seventy of the 107 species name their provinces. The other 37 are ungated: 31 se
 
 | Province | Species |
 |---|---|
-| Palearctic | **83** |
-| Nearctic | **94** |
-| Neotropic | **28** |
-| Indomalaya | **47** |
+| Palearctic | **98** |
+| Nearctic | **95** |
+| Neotropic | **29** |
+| Indomalaya | **46** |
 | Afrotropical | **46** |
 
-40 species are on **all five** provinces — the ones the oceans carry everywhere: **Anglerfish**, **Barracuda**, **Black marlin**, **Blacktail snapper**, **Blobfish**, **Blue marlin**, **Bluefin tuna**, **Bluefish**, **Bull shark**, **Cod**, **Conger eel**, **Flounder**, **Frilled shark**, **Garfish**, **Goliath grouper**, **Halibut**, **Herring**, **Jack crevalle**, **Laced moray**, **Mackerel**, **Mahi-mahi**, **Mako shark**, **Map puffer**, **Mullet**, **Ocean sunfish**, **Ocellaris clownfish**, **Palette surgeonfish**, **Pollock**, **Ray**, **Sailfish**, **Saithe**, **Sea bass**, **Starry puffer**, **Swordfish**, **Tiger shark**, **Wahoo**, **Whale shark**, **Turkey moray**, **White-spotted puffer**, **Yellowfin tuna**. Everything else is missing from at least one part of the world.
+51 species are on **all five** provinces — the ones the oceans carry everywhere: **Albacore**, **Anglerfish**, **Atlantic saury**, **Atlantic wolffish**, **Barracuda**, **Bigeye tuna**, **Black marlin**, **Blacktail snapper**, **Blobfish**, **Blue marlin**, **Bluefin tuna**, **Bluefish**, **Bull shark**, **Cod**, **Conger eel**, **Cusk (tusk)**, **European hake**, **Flounder**, **Frilled shark**, **Garfish**, **Goblin shark**, **Goliath grouper**, **Greenland shark**, **Haddock**, **Halibut**, **Herring**, **Jack crevalle**, **Laced moray**, **Mackerel**, **Mahi-mahi**, **Mako shark**, **Map puffer**, **Mullet**, **Ocean sunfish**, **Ocellaris clownfish**, **Opah**, **Palette surgeonfish**, **Pollock**, **Ray**, **Sailfish**, **Saithe**, **Sea bass**, **Starry puffer**, **Swordfish**, **Tiger shark**, **Common two-banded seabream**, **Wahoo**, **Whale shark**, **Turkey moray**, **White-spotted puffer**, **Yellowfin tuna**. Everything else is missing from at least one part of the world.
 
 The exact roster of each province is on each species' journal page and in the [fish finder](tools.md#fish-finder), which names the province you are standing in.
 

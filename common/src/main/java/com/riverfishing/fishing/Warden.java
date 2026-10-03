@@ -26,8 +26,7 @@ import net.minecraft.world.entity.player.Player;
  * and a bucket of undersized fish cannot buy a pardon (only mature fish count, the same size class
  * the stocking ledger takes as brood).
  *
- * <p>{@code poach_count} is kept as a plain record — the guide page and any future warden read it —
- * but nothing gates on it any more.
+ * <p>{@code poach_count} is kept as a plain record; nothing reads or gates on it any more.
  */
 public final class Warden {
     /** Reputation at or below which the contract board is closed: three hauls' worth, and no way to drift into it. */
@@ -44,15 +43,6 @@ public final class Warden {
     private static final String GRAMS = "rep_grams";
 
     private Warden() {}
-
-    public static int poachCount(Player p) {
-        return PlayerData.root(p).getInt(KEY);
-    }
-
-    /** Grams banked towards the next point of reputation, 0..{@link #GRAMS_PER_POINT}-1. */
-    public static int repGrams(Player p) {
-        return PlayerData.root(p).getInt(GRAMS);
-    }
 
     /** §o: the board is empty for this player (ModVillagers.sendBoard; Contracts.take refuses too). */
     public static boolean banned(Player p) {
@@ -93,24 +83,5 @@ public final class Warden {
                     .withStyle(rep < 0 ? ChatFormatting.YELLOW : ChatFormatting.GREEN), false);
         }
         PlayerData.markDirty(sp);
-    }
-
-    // ---- what the board and the finder say ------------------------------------------------------------
-    // Pure arithmetic on the two numbers the server sends, so the caption and the finder line cannot
-    // disagree about what is owed.
-
-    /** Grams still to release for the next point. */
-    public static int toNextPoint(int repGrams) {
-        return GRAMS_PER_POINT - repGrams;
-    }
-
-    /** Grams still to release to get back to zero — 0 when there is no debt. */
-    public static int toClear(int rep, int repGrams) {
-        return rep >= 0 ? 0 : -rep * GRAMS_PER_POINT - repGrams;
-    }
-
-    /** Grams as kilograms with one decimal: both screens say the debt in the same words. */
-    public static String kg(int grams) {
-        return String.format(java.util.Locale.ROOT, "%.1f", Math.max(0, grams) / 1000.0);
     }
 }

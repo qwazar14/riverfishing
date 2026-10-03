@@ -312,21 +312,31 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | African pike | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, spinner 0.85, fly_streamer 0.7 | No.6 | braid 0.15 ±0.06 | 0 / 0.07 | **yes** |
 | African sharptooth catfish | worm 1, dough 0.75, boilie 0.7, chicken_liver 0.7, fish_strip 0.7, livebait 0.6, silicone 0.55, wobbler 0.55, spoon 0.5, swimbait 0.5 | No.2 | braid 0.31 ±0.06 | 0.7 / 0.8 | — |
 | African tigerfish | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, spinner 0.85, spoon 0.8 | No.4 | braid 0.26 ±0.06 | 0 / 0.07 | **yes** |
+| Albacore | giant_spoon 1.05, octopus_jig 1, swimbait 1, livebait 0.9, wobbler 0.9, fish_strip 0.8, silicone 0.7 | No.2 | braid 0.35 ±0.06 | 0.99 / 0.75 | — |
 | Alligator gar | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, castmaster 0.8, crankbait 0.8, spoon 0.8, swimbait 0.8, giant_spoon 0.75, popper 0.75, chicken_liver 0.6 | No.1 | braid 0.37 ±0.06 | 0 / 0.03 | **yes** |
 | American paddlefish | jig 1, castmaster 0.85, giant_spoon 0.7 | No.2 | braid 0.33 ±0.06 | 0 / 0 | — |
+| Amur false gudgeon | bloodworm 1, worm 0.9, maggot 0.8, mormyshka 0.8 | No.16 | mono 0.12 ±0.06 | 0.22 / 0.54 | — |
+| Amur grayling | spinner 0.95, worm 0.9, castmaster 0.8, maggot 0.8, bloodworm 0.7, crankbait 0.6 | No.12 | mono 0.16 ±0.06 | 0.49 / 0.57 | — |
+| Amur pike | swimbait 1, wobbler 1, spoon 0.95, crankbait 0.9, livebait 0.9, spinner 0.9, spinnerbait 0.9, jig 0.85, bladebait 0.7, popper 0.7 | No.4 | braid 0.14 ±0.06 | 0.66 / 0.5 | **yes** |
 | Anglerfish | livebait 1.1, fish_strip 1 | No.1 | braid 0.3 ±0.08 | 0.72 / 0.8 | **yes** |
 | Angolian walking catfish | worm 1, dough 0.75, chicken_liver 0.7, fish_strip 0.7, livebait 0.6 | No.5 | braid 0.11 ±0.06 | 0.7 / 0.8 | — |
 | Ansorge's dwarf characin | bloodworm 1, maggot 0.95, worm 0.9, fly_nymph 0.85 | No.16 | mono 0.06 ±0.06 | 0.5 / 0.6 | — |
 | Arapaima | livebait 1, fish_strip 0.9, giant_spoon 0.85, swimbait 0.85, wobbler 0.75, silicone 0.6 | No.1 | braid 0.45 ±0.08 | 0.95 / 0.8 | **yes** |
 | Arctic char | spinner 1, castmaster 0.9, spoon 0.9, wobbler 0.7, worm 0.6 | No.8 | fluoro 0.2 ±0.05 | 0.59 / 0.7 | — |
+| Arctic grayling | fly_dry_fly 1, fly_nymph 0.9, spinner 0.9, fly_ant 0.8, worm 0.8, maggot 0.7 | No.12 | mono 0.16 ±0.06 | 0.49 / 0.57 | — |
 | Asian arowana | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, popper 0.75, fly_streamer 0.7, wacky_worm 0.55, fly_dry_fly 0.4 | No.5 | braid 0.2 ±0.06 | 0.1 / 0.24 | — |
 | Asp | spoon 1, castmaster 0.9, wobbler 0.9, popper 0.85, spinnerbait 0.85, spinner 0.8, bladebait 0.7, crankbait 0.7, swimbait 0.7, wacky_worm 0.5 | No.6 | braid 0.12 ±0.04 | 0.66 / 0.5 | — |
 | Atlantic salmon | spoon 1, wobbler 0.9, spinner 0.8, fish_strip 0.5 | No.4 | braid 0.25 ±0.06 | 0.77 / 0.75 | — |
+| Atlantic saury | fish_strip 1, maggot 0.6, spinner 0.6, castmaster 0.5 | No.12 | mono 0.16 ±0.06 | 0.51 / 0.75 | — |
+| Atlantic wolffish | fish_strip 1, octopus_jig 0.9, jig 0.8, livebait 0.6, silicone 0.6, worm 0.6 | No.2 | braid 0.35 ±0.06 | 0.79 / 0.75 | **yes** |
 | Barracuda | giant_spoon 1.1, swimbait 1.05, wobbler 1, octopus_jig 0.9, silicone 0.9, spinner 0.7, spinnerbait 0.7, fish_strip 0.6 | No.2 | braid 0.3 ±0.08 | 0.79 / 0.75 | **yes** |
 | Barramundi | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, castmaster 0.8, crankbait 0.8, spoon 0.8, swimbait 0.8, popper 0.75, spinnerbait 0.75 | No.2 | braid 0.32 ±0.06 | 0.03 / 0.14 | **yes** |
 | Beluga sturgeon | livebait 1, fish_strip 0.9, chicken_liver 0.85, worm 0.5 | No.1 | braid 0.55 ±0.1 | 0.98 / 0.82 | **yes** |
 | Bester | worm 1, bloodworm 0.85, dough 0.75, fish_strip 0.7, fly_pellet 0.55 | No.2 | braid 0.27 ±0.06 | 0.55 / 0.65 | — |
+| Bigeye tuna | giant_spoon 1.05, octopus_jig 1, swimbait 1, livebait 0.9, wobbler 0.9, fish_strip 0.8, silicone 0.7 | No.1 | braid 0.4 ±0.06 | 0.99 / 0.75 | — |
+| Bighead carp | dough 0.5, pearl_barley 0.5, boilie 0.4, corn 0.3 | No.6 | mono 0.4 ±0.06 | 0.79 / 0.81 | — |
 | Bitterling | bloodworm 1, maggot 1, bread 0.8, dough 0.7 | No.16 | mono 0.1 ±0.03 | 0.1 / 0.4 | — |
+| Black carp | boilie 1, corn 0.8, worm 0.7, pea 0.6, dough 0.5 | No.6 | mono 0.3 ±0.06 | 0.77 / 0.66 | — |
 | Black crappie | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, silicone 0.85, spinner 0.85, castmaster 0.8, crankbait 0.8, spoon 0.8, fly_streamer 0.7, worm 0.55, mormyshka 0.45, bloodworm 0.35, maggot 0.3 | No.12 | mono 0.22 ±0.06 | 0.17 / 0.32 | — |
 | Black drum | livebait 1, fish_strip 0.9, silicone 0.85, castmaster 0.8, spoon 0.8, chicken_liver 0.6, worm 0.55 | No.3 | braid 0.3 ±0.06 | 0.15 / 0.39 | — |
 | Black mahseer | worm 1, dough 0.75, boilie 0.7, fish_strip 0.7, livebait 0.6, spinner 0.6, wobbler 0.55, crankbait 0.5, fly_streamer 0.5, spoon 0.5 | No.4 | braid 0.24 ±0.06 | 0.65 / 0.8 | — |
@@ -355,6 +365,7 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Burbot | livebait 1, chicken_liver 0.9, worm 0.9, bladebait 0.8, jig 0.75, swimbait 0.6 | No.6 | mono 0.3 ±0.08 | 0.62 / 0.75 | — |
 | Cameroon suckermouth catfish | bloodworm 1, maggot 0.95, worm 0.9, fly_nymph 0.85 | No.16 | mono 0.06 ±0.06 | 0.6 / 0.7 | — |
 | Carp | boilie 1, corn 0.8, pea 0.6, pearl_barley 0.5 | No.6 | mono 0.3 ±0.08 | 0.73 / 0.85 | — |
+| Caspian roach | maggot 1, bloodworm 0.9, worm 0.9, mormyshka 0.8, dough 0.7 | No.14 | mono 0.14 ±0.06 | 0.31 / 0.47 | — |
 | Catfish | chicken_liver 1, livebait 1, swimbait 0.9, jig 0.85, worm 0.7, boilie 0.6 | No.4 | braid 0.18 ±0.04 | 0.81 / 0.81 | — |
 | Catla | dough 1, bread 0.9, corn 0.9, boilie 0.85, worm 0.85, fly_pellet 0.7, fly_dry_fly 0.45 | No.4 | mono 0.45 ±0.06 | 0.98 / 0.94 | — |
 | Chain pickerel | livebait 1, wobbler 0.9, jig 0.85, silicone 0.85, spinner 0.85, spoon 0.8 | No.3 | braid 0.18 ±0.06 | 0 / 0 | **yes** |
@@ -368,13 +379,17 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Climbing perch | worm 1, bloodworm 0.85, maggot 0.8, fish_strip 0.7, fly_nymph 0.6, jig 0.6, silicone 0.55, fly_ant 0.5, fly_dry_fly 0.5 | No.12 | mono 0.14 ±0.06 | 0.65 / 0.75 | — |
 | Cod | fish_strip 1, octopus_jig 1, jig 0.95, livebait 0.9, bladebait 0.85, giant_spoon 0.8, swimbait 0.8, silicone 0.7 | No.2 | braid 0.3 ±0.08 | 0.79 / 0.75 | — |
 | Coho salmon | fish_strip 1, wobbler 1, spinner 0.95, spoon 0.9, fly_streamer 0.8 | No.5 | braid 0.23 ±0.06 | 0 / 0.07 | — |
+| Comet goldfish | bread 1, worm 1, dough 0.9, maggot 0.8, corn 0.6 | No.12 | mono 0.18 ±0.06 | 0.4 / 0.63 | — |
 | Common barbel | dough 1, bread 0.9, corn 0.9, boilie 0.85, worm 0.85, pea 0.8, pearl_barley 0.8, bloodworm 0.7, maggot 0.7, fish_strip 0.3, silicone 0.2 | No.5 | mono 0.32 ±0.06 | 0.92 / 0.88 | — |
 | Common dace | maggot 1, worm 0.9, bread 0.7, bloodworm 0.65, dough 0.6, spinner 0.4 | No.14 | mono 0.14 ±0.04 | 0.34 / 0.52 | — |
+| Common minnow | maggot 1, bloodworm 0.9, worm 0.8, mormyshka 0.7, fly_nymph 0.5 | No.16 | mono 0.1 ±0.06 | 0.2 / 0.5 | — |
+| Common two-banded seabream | worm 1, fish_strip 0.8, dough 0.5, bread 0.4, silicone 0.4 | No.8 | mono 0.22 ±0.06 | 0.62 / 0.75 | — |
 | Conger eel | fish_strip 1, livebait 1, worm 0.4 | No.1 | mono 0.5 ±0.1 | 0.84 / 0.74 | **yes** |
 | Congo knifefish | livebait 1, fish_strip 0.9, jig 0.85, worm 0.55, bloodworm 0.35 | No.9 | braid 0.12 ±0.06 | 0.05 / 0.17 | — |
 | Cornish jack | livebait 1, fish_strip 0.9, jig 0.85, worm 0.55, bloodworm 0.35 | No.5 | fluoro 0.32 ±0.06 | 0.2 / 0.42 | **yes** |
 | Crimean barbel | worm 1, bloodworm 0.85, maggot 0.8, dough 0.75, bread 0.7, fly_nymph 0.6, jig 0.6, fly_ant 0.5 | No.7 | mono 0.24 ±0.06 | 0.8 / 0.8 | — |
 | Crucian Carp | worm 1, dough 0.9, maggot 0.8, corn 0.6, bread 0.5 | No.12 | mono 0.18 ±0.06 | 0.4 / 0.63 | — |
+| Cusk (tusk) | fish_strip 1, octopus_jig 1, jig 0.95, livebait 0.9, bladebait 0.85, giant_spoon 0.8, swimbait 0.8, silicone 0.7 | No.2 | braid 0.3 ±0.06 | 0.79 / 0.75 | — |
 | Cutbow | worm 1, fly_nymph 0.6, spinner 0.6, fly_dry_fly 0.5, spoon 0.5 | No.6 | braid 0.22 ±0.06 | 0 / 0.1 | — |
 | Cutthroat trout | worm 1, fly_nymph 0.6, spinner 0.6, fly_dry_fly 0.5, fly_streamer 0.5, spoon 0.5 | No.6 | braid 0.24 ±0.06 | 0 / 0.1 | — |
 | Desert pupfish | bloodworm 1, maggot 0.95, worm 0.9, fly_nymph 0.85 | No.16 | mono 0.07 ±0.06 | 0.4 / 0.5 | — |
@@ -382,12 +397,14 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Dolly Varden trout | fish_strip 1, wobbler 1, spinner 0.95, spoon 0.9, fly_streamer 0.8, worm 0.6 | No.6 | fluoro 0.34 ±0.06 | 0.03 / 0.17 | — |
 | Dolly Varden × bull trout hybrid | fish_strip 1, spinner 0.95, spoon 0.9, fly_streamer 0.8, worm 0.6 | No.7 | fluoro 0.29 ±0.06 | 0.03 / 0.17 | — |
 | Double-trunk elephant nose | bloodworm 1, maggot 0.95, worm 0.9, fly_nymph 0.85 | No.11 | fluoro 0.12 ±0.06 | 0.4 / 0.6 | — |
+| Eastern bream | maggot 1, worm 0.9, pearl_barley 0.8, mormyshka 0.7, corn 0.6, bread 0.4, boilie 0.3 | No.10 | braid 0.1 ±0.06 | 0.56 / 0.68 | — |
 | Eastern happy | bloodworm 1, maggot 0.95, worm 0.9, fly_nymph 0.85, silicone 0.5 | No.13 | fluoro 0.12 ±0.06 | 0.25 / 0.45 | — |
 | Eel | worm 1, livebait 0.8, chicken_liver 0.7, jig 0.7 | No.8 | mono 0.25 ±0.06 | 0.56 / 0.74 | — |
 | Electric catfish | worm 1, dough 0.75, chicken_liver 0.7, fish_strip 0.7, livebait 0.6 | No.3 | braid 0.25 ±0.06 | 0.7 / 0.8 | — |
 | Electric eel | livebait 1, fish_strip 0.9, jig 0.85, worm 0.55 | No.2 | braid 0.25 ±0.06 | 0.05 / 0.21 | **yes** |
 | Elephantnose fish | bloodworm 1, maggot 0.95, worm 0.9, fly_nymph 0.85 | No.10 | fluoro 0.16 ±0.06 | 0.4 / 0.6 | — |
 | Elongate lamprologus | livebait 1, fish_strip 0.9, jig 0.85, silicone 0.85, spinner 0.85, fly_streamer 0.7 | No.11 | fluoro 0.16 ±0.06 | 0.12 / 0.32 | — |
+| European hake | jig 1, octopus_jig 0.95, giant_spoon 0.9, bladebait 0.8, silicone 0.8, swimbait 0.8, castmaster 0.7, fish_strip 0.7 | No.4 | braid 0.25 ±0.06 | 0.71 / 0.75 | — |
 | F1 hybrid carp | dough 1, bread 0.9, corn 0.9, boilie 0.85, worm 0.85, pearl_barley 0.8 | No.9 | mono 0.27 ±0.06 | 0.98 / 0.88 | — |
 | Fierce bathybates | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, spinner 0.85, fly_streamer 0.7 | No.10 | fluoro 0.18 ±0.06 | 0.12 / 0.32 | — |
 | Flathead catfish | livebait 1, fish_strip 0.9, jig 0.85, chicken_liver 0.6, worm 0.55 | No.3 | braid 0.3 ±0.06 | 0.38 / 0.56 | — |
@@ -403,19 +420,25 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Giant gourami | dough 1, bread 0.9, corn 0.9, worm 0.85, pea 0.8, maggot 0.7, fly_ant 0.45, fly_dry_fly 0.45, fish_strip 0.3 | No.8 | mono 0.29 ±0.06 | 0.75 / 0.83 | — |
 | Giant mottled eel | livebait 1, fish_strip 0.9, chicken_liver 0.6, worm 0.55, bloodworm 0.35 | No.3 | braid 0.25 ±0.06 | 0.23 / 0.45 | **yes** |
 | giant snakehead | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, castmaster 0.8, crankbait 0.8, spoon 0.8, swimbait 0.8, popper 0.75, spinnerbait 0.75, chicken_liver 0.6, wacky_worm 0.55 | No.4 | braid 0.25 ±0.06 | 0 / 0.03 | **yes** |
+| Goblin shark | fish_strip 1, octopus_jig 1, livebait 0.8 | No.1 | braid 0.4 ±0.06 | 0.9 / 0.7 | **yes** |
 | Golden crucian | worm 1, bread 0.9, dough 0.9, maggot 0.85, corn 0.7, pearl_barley 0.6 | No.12 | mono 0.18 ±0.05 | 0.35 / 0.6 | — |
 | Golden dorado | wobbler 1, swimbait 0.95, spinner 0.9, spinnerbait 0.9, spoon 0.9, popper 0.85, crankbait 0.8, silicone 0.8, livebait 0.7 | No.2 | braid 0.28 ±0.06 | 0.6 / 0.7 | **yes** |
+| Golden trout | fly_dry_fly 1, spinner 1, fly_nymph 0.9, castmaster 0.8, fly_ant 0.7, worm 0.7 | No.10 | fluoro 0.16 ±0.06 | 0.58 / 0.7 | — |
 | Goliath grouper | livebait 1, fish_strip 0.95, octopus_jig 0.8, swimbait 0.8, giant_spoon 0.5 | No.1 | braid 0.55 ±0.1 | 0.97 / 0.78 | **yes** |
 | Goliath tigerfish | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, spoon 0.8, swimbait 0.8 | No.3 | braid 0.3 ±0.06 | 0 / 0.07 | **yes** |
 | Grass Carp | corn 1, bread 0.9, dough 0.8, pea 0.7, boilie 0.5 | No.6 | mono 0.3 ±0.08 | 0.77 / 0.66 | — |
 | Grayling | spinner 0.95, worm 0.9, castmaster 0.8, maggot 0.8, bloodworm 0.7, crankbait 0.6 | No.12 | mono 0.16 ±0.04 | 0.49 / 0.57 | — |
 | Green sunfish | worm 1, maggot 0.8, bread 0.7, jig 0.6, silicone 0.55 | No.14 | mono 0.18 ±0.06 | 0.45 / 0.55 | — |
 | Greengill sunfish / Hybrid bluegill | corn 1, bread 0.95, worm 0.9, maggot 0.75, jig 0.25, silicone 0.25 | No.14 | mono 0.18 ±0.06 | 0.52 / 0.61 | — |
+| Greenland shark | fish_strip 1, chicken_liver 0.7, livebait 0.6, octopus_jig 0.5 | No.1 | braid 0.6 ±0.06 | 0.95 / 0.8 | **yes** |
 | Gudgeon | bloodworm 1, mormyshka 0.9, worm 0.9, maggot 0.8 | No.16 | mono 0.14 ±0.04 | 0.22 / 0.54 | — |
+| Haddock | fish_strip 1, worm 0.9, jig 0.8, octopus_jig 0.8, silicone 0.6 | No.4 | braid 0.22 ±0.06 | 0.79 / 0.75 | — |
 | Halibut | fish_strip 1, octopus_jig 1, livebait 0.9, swimbait 0.9, silicone 0.8, giant_spoon 0.7, jig 0.7 | No.1 | braid 0.5 ±0.1 | 0.93 / 0.75 | — |
 | Helicopter Catfish | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, spoon 0.8, swimbait 0.8, chicken_liver 0.6 | No.2 | braid 0.29 ±0.06 | 0.33 / 0.56 | **yes** |
 | Herring | fish_strip 0.8, bloodworm 0.7, maggot 0.6, castmaster 0.5 | No.10 | mono 0.18 ±0.06 | 0.4 / 0.57 | — |
 | Himalayan mahseer | dough 1, boilie 0.95, fish_strip 0.95, livebait 0.85, spinner 0.75, wobbler 0.75, spoon 0.7, castmaster 0.65, crankbait 0.65, fly_streamer 0.65, swimbait 0.65, bladebait 0.55 | No.2 | braid 0.39 ±0.06 | 0.65 / 0.8 | — |
+| Humpback crucian carp | worm 1, bread 0.9, dough 0.9, maggot 0.85, corn 0.7, pearl_barley 0.6 | No.12 | mono 0.18 ±0.06 | 0.35 / 0.6 | — |
+| Humpback gibel carp | worm 1, dough 0.9, maggot 0.8, corn 0.6, bread 0.5 | No.12 | mono 0.18 ±0.06 | 0.4 / 0.63 | — |
 | Hybrid catfish (channel × blue catfish) | worm 1, dough 0.75, chicken_liver 0.7, fish_strip 0.7, livebait 0.6 | No.3 | braid 0.25 ±0.06 | 0.75 / 0.8 | — |
 | Hybrid crappie | livebait 1, jig 0.85, silicone 0.85, spinner 0.85, worm 0.55 | No.11 | mono 0.21 ±0.06 | 0.17 / 0.32 | — |
 | Hybrid sunfish (redear × green sunfish) | worm 1, maggot 0.8, bread 0.7, jig 0.6, silicone 0.55 | No.14 | mono 0.19 ±0.06 | 0.45 / 0.55 | — |
@@ -426,21 +449,18 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Jack crevalle | popper 1.25, giant_spoon 1.15, castmaster 1.1, spoon 1.1, swimbait 1.1, livebait 1, silicone 1, wobbler 0.95, spinnerbait 0.8 | No.1 | braid 0.35 ±0.08 | 0.76 / 0.5 | — |
 | Kaluga sturgeon | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, spoon 0.8, swimbait 0.8, giant_spoon 0.75, chicken_liver 0.6 | No.1 | braid 0.54 ±0.06 | 0.28 / 0.45 | — |
 | Kaluga-sterlet hybrid | worm 1, bloodworm 0.85, dough 0.75, chicken_liver 0.7, fish_strip 0.7 | No.2 | braid 0.28 ±0.06 | 0.55 / 0.65 | — |
-| Koi Asagi | boilie 1, corn 0.8, bread 0.6, pea 0.6 | No.6 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
-| Koi Bekko | boilie 1, corn 0.8, bread 0.6, pea 0.6 | No.6 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
 | Koi carp | boilie 1, corn 0.8, bread 0.6, pea 0.6 | No.6 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
-| Koi Kohaku | boilie 1, corn 0.8, bread 0.6, pea 0.6 | No.6 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
-| Koi Showa Sanke | boilie 1, corn 0.8, bread 0.6, pea 0.6 | No.6 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
-| Koi Tancho Sanke | boilie 1, corn 0.8, bread 0.6, pea 0.6 | No.6 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
 | Kuria labeo | dough 1, bread 0.9, corn 0.9, worm 0.85, pearl_barley 0.8, bloodworm 0.7, maggot 0.7, jig 0.25 | No.4 | mono 0.36 ±0.06 | 0.98 / 0.94 | — |
 | Kuria labeo × catla hybrid | dough 1, corn 0.9, worm 0.85, fly_pellet 0.7 | No.5 | mono 0.31 ±0.06 | 0.98 / 0.94 | — |
 | Kutum | worm 1, bloodworm 0.9, maggot 0.8, fish_strip 0.5, pea 0.4 | No.8 | mono 0.25 ±0.06 | 0.6 / 0.7 | — |
 | Laced moray | livebait 1, fish_strip 0.9, jig 0.85, octopus_jig 0.7 | No.2 | braid 0.27 ±0.06 | 0.07 / 0.28 | **yes** |
+| Lake minnow | bloodworm 1, maggot 0.9, worm 0.9, mormyshka 0.7, dough 0.6 | No.16 | mono 0.1 ±0.06 | 0.3 / 0.55 | — |
 | Lake sturgeon | worm 1, bloodworm 0.85, dough 0.75, chicken_liver 0.7, fish_strip 0.7 | No.1 | braid 0.35 ±0.06 | 0.55 / 0.65 | — |
 | Lake trout | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, spinner 0.85, castmaster 0.8, spoon 0.8, swimbait 0.8, giant_spoon 0.75, bladebait 0.7, fly_streamer 0.7, mormyshka 0.45 | No.5 | fluoro 0.4 ±0.06 | 0.03 / 0.17 | — |
 | Largemouth bass | popper 1.2, spinnerbait 1.1, wacky_worm 1.05, swimbait 1, wobbler 1, silicone 0.95, crankbait 0.9, jig 0.9, livebait 0.8, spinner 0.7 | No.4 | braid 0.16 ±0.05 | 0.62 / 0.5 | — |
 | Largemouth yellowfish | worm 1, corn 0.7, fish_strip 0.7, livebait 0.6, spinner 0.6, fly_streamer 0.5 | No.5 | braid 0.25 ±0.06 | 0.65 / 0.8 | — |
 | Largemouth × smallmouth bass hybrid | jig 1, silicone 0.95, crankbait 0.85, swimbait 0.85, wacky_worm 0.85, spinnerbait 0.7 | No.7 | fluoro 0.26 ±0.06 | 0.05 / 0.2 | — |
+| Lena sturgeon | worm 1, chicken_liver 0.8, bloodworm 0.7, maggot 0.5, livebait 0.4 | No.2 | braid 0.35 ±0.06 | 0.85 / 0.7 | — |
 | Lenok | wobbler 1, spinner 0.9, spoon 0.9, crankbait 0.8, worm 0.5 | No.6 | braid 0.14 ±0.05 | 0.62 / 0.7 | — |
 | Linear carp | boilie 1, corn 0.8, pea 0.6, pearl_barley 0.5 | No.6 | mono 0.3 ±0.08 | 0.72 / 0.85 | — |
 | Loach | bloodworm 1.1, worm 1, maggot 0.8, mormyshka 0.6, dough 0.4 | No.16 | mono 0.12 ±0.04 | 0.2 / 0.5 | — |
@@ -455,12 +475,14 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Malayan mahseer | dough 1, boilie 0.95, fish_strip 0.95, livebait 0.85, fly_nymph 0.75, spinner 0.75, wobbler 0.75, fly_dry_fly 0.7, spoon 0.7, crankbait 0.65, fly_streamer 0.65 | No.4 | braid 0.24 ±0.06 | 0.65 / 0.8 | — |
 | Map puffer | fish_strip 1, jig 0.95, silicone 0.9, worm 0.6 | No.8 | fluoro 0.26 ±0.06 | 0.12 / 0.32 | **yes** |
 | Marbled lungfish | worm 1, dough 0.75, chicken_liver 0.7, fish_strip 0.7, livebait 0.6 | No.3 | braid 0.24 ±0.06 | 0.35 / 0.6 | **yes** |
+| Masu salmon | spoon 1, spinner 0.9, castmaster 0.8, fish_strip 0.5 | No.6 | braid 0.18 ±0.06 | 0.61 / 0.75 | — |
 | Mayan cichlid | worm 1.2, bloodworm 1, maggot 1, wacky_worm 0.9, silicone 0.8, bread 0.7 | No.10 | mono 0.14 ±0.04 | 0.42 / 0.5 | — |
 | Meanmouth bass | jig 1, silicone 0.95, crankbait 0.85, wacky_worm 0.85, spinnerbait 0.7 | No.8 | fluoro 0.25 ±0.06 | 0.05 / 0.2 | — |
 | Mekong giant catfish | dough 1, bread 0.9, corn 0.9, boilie 0.85, pea 0.8, pearl_barley 0.8 | No.1 | braid 0.43 ±0.06 | 0.75 / 0.88 | — |
 | Mirror Carp | boilie 1, corn 0.8, pea 0.6, pearl_barley 0.5 | No.6 | mono 0.3 ±0.08 | 0.72 / 0.85 | — |
 | Motoro stingray | livebait 1, fish_strip 0.9, silicone 0.85, spoon 0.8, chicken_liver 0.6, worm 0.55 | No.3 | braid 0.27 ±0.06 | 0.28 / 0.49 | **yes** |
 | Mozambique tilapia | dough 1, bread 0.9, corn 0.9, worm 0.85, pea 0.8, pearl_barley 0.8, bloodworm 0.7, maggot 0.7, fish_strip 0.3, jig 0.25 | No.11 | mono 0.18 ±0.06 | 0.8 / 0.83 | — |
+| Muksun | bloodworm 1, mormyshka 0.9, maggot 0.8, worm 0.6 | No.10 | fluoro 0.18 ±0.06 | 0.57 / 0.52 | — |
 | Mullet | bread 1, dough 0.95, maggot 0.7, worm 0.6, corn 0.4, pea 0.3 | No.12 | mono 0.18 ±0.05 | 0.45 / 0.55 | — |
 | Muskellunge | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, spinner 0.85, castmaster 0.8, crankbait 0.8, spoon 0.8, swimbait 0.8, giant_spoon 0.75, popper 0.75, spinnerbait 0.75, bladebait 0.7, fly_streamer 0.7 | No.2 | braid 0.27 ±0.06 | 0 / 0 | **yes** |
 | Naked Carp | boilie 1, corn 0.85, pea 0.6, pearl_barley 0.55, dough 0.5 | No.4 | mono 0.35 ±0.08 | 0.75 / 0.88 | — |
@@ -472,6 +494,7 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Northern pike | livebait 1, wobbler 0.9, jig 0.85, silicone 0.85, spinner 0.85, spoon 0.8 | No.3 | braid 0.26 ±0.06 | 0 / 0 | **yes** |
 | Ocean sunfish | octopus_jig 1, silicone 0.85, fish_strip 0.6, livebait 0.35 | No.2 | braid 0.4 ±0.1 | 0.9 / 0.5 | — |
 | Ocellaris clownfish | bloodworm 1, maggot 0.95, worm 0.9, fly_shrimp 0.6 | No.16 | fluoro 0.09 ±0.06 | 0.2 / 0.4 | — |
+| Opah | octopus_jig 1, fish_strip 0.9, livebait 0.8, giant_spoon 0.6, silicone 0.5 | No.1 | braid 0.4 ±0.06 | 0.99 / 0.75 | — |
 | Oscar | worm 1.2, livebait 1.1, wacky_worm 1, maggot 0.9, silicone 0.9, jig 0.8 | No.8 | mono 0.16 ±0.04 | 0.47 / 0.68 | — |
 | Palette surgeonfish | bloodworm 1, maggot 0.95, worm 0.9, fly_shrimp 0.6 | No.13 | fluoro 0.17 ±0.06 | 0.2 / 0.4 | — |
 | Payara | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, spoon 0.8 | No.4 | braid 0.24 ±0.06 | 0 / 0.07 | **yes** |
@@ -492,6 +515,7 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Red-finned mahseer | worm 1, dough 0.75, boilie 0.7, fish_strip 0.7, livebait 0.6, spinner 0.6, wobbler 0.55, castmaster 0.5, crankbait 0.5, fly_streamer 0.5, spoon 0.5 | No.3 | braid 0.31 ±0.06 | 0.65 / 0.8 | — |
 | Redbreast sunfish | bloodworm 1, maggot 0.95, worm 0.9, fly_nymph 0.85, jig 0.55 | No.15 | mono 0.17 ±0.06 | 0.45 / 0.55 | — |
 | Redear sunfish | worm 1, bloodworm 0.85, maggot 0.8, corn 0.7, jig 0.6 | No.13 | mono 0.22 ±0.06 | 0.45 / 0.55 | — |
+| Redfin pickerel | livebait 1, spinner 0.9, silicone 0.85, jig 0.7, wobbler 0.7, worm 0.6 | No.6 | braid 0.12 ±0.06 | 0 / 0 | **yes** |
 | Redtail catfish | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, spoon 0.8, swimbait 0.8, giant_spoon 0.75, chicken_liver 0.6 | No.2 | braid 0.32 ±0.06 | 0.28 / 0.52 | — |
 | Reedfish | worm 1, bloodworm 0.85, maggot 0.8, fish_strip 0.7, jig 0.6, silicone 0.55, fly_streamer 0.5 | No.9 | mono 0.14 ±0.06 | 0.3 / 0.55 | — |
 | Reticulate knifefish | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, spinner 0.85, spoon 0.8, fly_streamer 0.7, worm 0.55 | No.6 | braid 0.15 ±0.06 | 0.05 / 0.17 | — |
@@ -507,6 +531,7 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Royal featherback | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, swimbait 0.8 | No.5 | braid 0.22 ±0.06 | 0.05 / 0.17 | — |
 | Rudd | bread 1, dough 0.9, maggot 0.8 | No.14 | mono 0.14 ±0.04 | 0.3 / 0.49 | — |
 | Ruffe | bloodworm 1, mormyshka 1, worm 1, maggot 0.7 | No.14 | mono 0.14 ±0.04 | 0.22 / 0.54 | — |
+| Russian sturgeon | chicken_liver 1, worm 0.9, livebait 0.7, boilie 0.5 | No.1 | braid 0.45 ±0.06 | 0.95 / 0.79 | — |
 | Sabrefish | castmaster 1, maggot 0.9, spinner 0.8, worm 0.8, bloodworm 0.7, silicone 0.6 | No.10 | mono 0.16 ±0.05 | 0.46 / 0.56 | — |
 | Saddled bichir | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, spoon 0.8, chicken_liver 0.6, worm 0.55 | No.7 | mono 0.24 ±0.06 | 0.15 / 0.39 | — |
 | Sailfish | livebait 1.1, octopus_jig 1, wobbler 1, giant_spoon 0.95, popper 0.8, silicone 0.7 | No.1 | braid 0.3 ±0.08 | 1 / 0.5 | — |
@@ -518,8 +543,10 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Sea bass | wobbler 1, silicone 0.95, livebait 0.9, popper 0.8, swimbait 0.8, fish_strip 0.7 | No.4 | braid 0.25 ±0.06 | 0.62 / 0.75 | — |
 | Semutundu | livebait 1, fish_strip 0.9, jig 0.85, chicken_liver 0.6, worm 0.55 | No.3 | braid 0.27 ±0.06 | 0.35 / 0.56 | — |
 | Senegal bichir | livebait 1, fish_strip 0.9, worm 0.55, bloodworm 0.35 | No.7 | mono 0.19 ±0.06 | 0.15 / 0.39 | — |
+| Sevan trout | castmaster 1, spinner 0.95, wobbler 0.9, crankbait 0.85, silicone 0.7, worm 0.6 | No.8 | fluoro 0.2 ±0.06 | 0.57 / 0.7 | — |
 | Short-tailed river stingray | livebait 1, fish_strip 0.9, chicken_liver 0.6, worm 0.55 | No.1 | braid 0.4 ±0.06 | 0.28 / 0.49 | **yes** |
 | Shovelnose sturgeon | worm 1, bloodworm 0.85, dough 0.75, chicken_liver 0.7, fish_strip 0.7 | No.3 | braid 0.19 ±0.06 | 0.55 / 0.65 | — |
+| Siberian roach | maggot 1, bloodworm 0.9, mormyshka 0.9, dough 0.7, bread 0.5 | No.14 | mono 0.14 ±0.06 | 0.31 / 0.47 | — |
 | Silver carp | pearl_barley 0.5, corn 0.4, boilie 0.3 | No.6 | mono 0.4 ±0.08 | 0.79 / 0.81 | — |
 | Silver catfish | livebait 1, fish_strip 0.9, spinner 0.85, worm 0.55, bloodworm 0.35 | No.4 | braid 0.14 ±0.06 | 0.35 / 0.56 | — |
 | Sixbar distichodus | dough 1, bread 0.9, corn 0.9, worm 0.85, pea 0.8, fly_pellet 0.7 | No.6 | mono 0.24 ±0.06 | 0.92 / 0.94 | — |
@@ -540,6 +567,7 @@ Match these and the fish's bite weight climbs sharply — and the bigger the fis
 | Taimen | wobbler 1, swimbait 0.95, spoon 0.9, popper 0.85, crankbait 0.8, livebait 0.8 | No.2 | braid 0.35 ±0.08 | 0.87 / 0.5 | **yes** |
 | Tambaqui | dough 1, bread 0.9, corn 0.9, boilie 0.85, worm 0.85 | No.5 | mono 0.38 ±0.06 | 0.92 / 0.94 | — |
 | Tapah Catfish | livebait 1, fish_strip 0.9, silicone 0.85, spoon 0.8, swimbait 0.8, giant_spoon 0.75, chicken_liver 0.6 | No.2 | braid 0.34 ±0.06 | 0.33 / 0.56 | **yes** |
+| Taran | maggot 1, bloodworm 0.9, worm 0.9, mormyshka 0.8, dough 0.7 | No.14 | mono 0.14 ±0.06 | 0.31 / 0.47 | — |
 | Tarpon | livebait 1.3, fish_strip 1.1, swimbait 1.1, popper 1, silicone 1, jig 0.9, giant_spoon 0.85 | No.1 | braid 0.45 ±0.1 | 0.99 / 0.75 | — |
 | Tench | worm 1, dough 0.8, corn 0.7, bread 0.6, maggot 0.6 | No.10 | mono 0.2 ±0.05 | 0.54 / 0.63 | — |
 | Terek barbel | worm 1, bloodworm 0.85, maggot 0.8, dough 0.75, bread 0.7, fly_nymph 0.6, jig 0.6, fly_ant 0.5 | No.8 | mono 0.2 ±0.06 | 0.8 / 0.8 | — |

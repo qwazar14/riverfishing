@@ -77,7 +77,10 @@ public final class OrderState {
         int y = topPos - H - 3;
         if (y < 2) y = topPos + MERCHANT_H + 3;      // a short window on a small GUI scale
 
-        g.blit(PANEL, x, y, W, H, 0f, 0f, W, H, 256, 64);
+        // §gui-art: the drawn body is (1,1) 254x48, so it is sourced and placed one pixel in —
+        // which leaves every interior feature (both wells, the sign band) on exactly the screen
+        // coordinates the code already uses.
+        g.blit(PANEL, x + 1, y + 1, W - 2, H, 1f, 1f, W - 2, H, 256, 64);
 
         // The trade row, into the two gilded wells the texture leaves for it.
         g.blit(RiverFishing.id("textures/item/fish/" + species.getPath() + ".png"),

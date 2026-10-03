@@ -43,7 +43,11 @@ public final class RodClientSettings {
             if (o.has("max")) RodPhysics.MAX_DEG = o.get("max").getAsFloat();
             if (o.has("jerk")) RodPhysics.JERK_GAIN = o.get("jerk").getAsFloat();
             if (o.has("pull")) RodPhysics.PULL_GAIN = o.get("pull").getAsFloat();
-            if (o.has("handSpace")) RodItemRenderer.HAND_SPACE = o.get("handSpace").getAsInt();
+            // §hand-space-watch (1.1.0): only /rfrod handspace view|world pins. "handSpace" (up to 1.0.0) held
+            // the MEASUREMENT saved as a pin, so it is read as a first guess now, and never pins again.
+            if (o.has("handSpacePin")) RodItemRenderer.HAND_SPACE = o.get("handSpacePin").getAsInt();
+            if (o.has("handSpaceSeen")) RodItemRenderer.seedHandSpace(o.get("handSpaceSeen").getAsInt());
+            else if (o.has("handSpace")) RodItemRenderer.seedHandSpace(o.get("handSpace").getAsInt());
             readVec(o, "pivot", RodHandTransform.PIVOT);
             readVec(o, "tip3d", LineRenderer.TIP3D_OFFSET);
         } catch (Exception ignored) {
@@ -66,7 +70,8 @@ public final class RodClientSettings {
             o.addProperty("max", RodPhysics.MAX_DEG);
             o.addProperty("jerk", RodPhysics.JERK_GAIN);
             o.addProperty("pull", RodPhysics.PULL_GAIN);
-            o.addProperty("handSpace", RodItemRenderer.HAND_SPACE);
+            o.addProperty("handSpacePin", RodItemRenderer.HAND_SPACE);
+            o.addProperty("handSpaceSeen", RodItemRenderer.handSpaceSeen());
             o.add("pivot", vec(RodHandTransform.PIVOT));
             o.add("tip3d", vec(LineRenderer.TIP3D_OFFSET));
             Files.writeString(file(), o.toString(), StandardCharsets.UTF_8);

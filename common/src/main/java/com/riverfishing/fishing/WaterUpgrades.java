@@ -74,6 +74,7 @@ public final class WaterUpgrades extends SavedData {
     }
 
     private int settle(Entry e) {
+        if (day < e.lastDay) e.lastDay = day;   // §time-back: /time set moved the world back
         if (e.charges > 0 && day > e.lastDay) {
             e.charges = (int) Math.max(0, e.charges - (day - e.lastDay));
             e.lastDay = day;
@@ -124,7 +125,38 @@ public final class WaterUpgrades extends SavedData {
             if (com.riverfishing.block.WaterUpgradeBlock.FEEDING_STATION.equals(e.kind) && charges <= 0) continue;
             kinds.add(e.kind);
         }
+        if (!kinds.contains("snags") && snagNear(level, waterPos)) kinds.add("snags");
         return kinds;
+    }
+
+    /**
+     * Wild snags — the world lays snag piles on river and lake beds (worldgen/placed_feature/snags) — are cover
+     * too, but no one placed them, so they are in no ledger. Looking for them costs little: a chunk section's
+     * palette says whether it can hold a snag at all, and only such a section (rare) is walked. Loaded chunks
+     * only; a bite never loads one.
+     */
+    private static boolean snagNear(ServerLevel level, BlockPos c) {
+        net.minecraft.world.level.block.Block snag = com.riverfishing.registry.ModBlocks.SNAG_PILE.get();
+        int x0 = c.getX() - RANGE_H, x1 = c.getX() + RANGE_H, z0 = c.getZ() - RANGE_H, z1 = c.getZ() + RANGE_H;
+        int y0 = c.getY() - RANGE_V, y1 = c.getY() + RANGE_V;
+        for (int cx = x0 >> 4; cx <= x1 >> 4; cx++) {
+            for (int cz = z0 >> 4; cz <= z1 >> 4; cz++) {
+                net.minecraft.world.level.chunk.LevelChunk chunk = level.getChunkSource().getChunkNow(cx, cz);
+                if (chunk == null) continue;
+                for (int sy = y0 >> 4; sy <= y1 >> 4; sy++) {
+                    int idx = chunk.getSectionIndexFromSectionY(sy);
+                    if (idx < 0 || idx >= chunk.getSectionsCount()) continue;
+                    net.minecraft.world.level.chunk.LevelChunkSection sec = chunk.getSection(idx);
+                    if (sec.hasOnlyAir() || !sec.maybeHas(s -> s.is(snag))) continue;
+                    int bx = cx << 4, by = sy << 4, bz = cz << 4;
+                    for (int x = Math.max(x0, bx); x <= Math.min(x1, bx + 15); x++)
+                        for (int y = Math.max(y0, by); y <= Math.min(y1, by + 15); y++)
+                            for (int z = Math.max(z0, bz); z <= Math.min(z1, bz + 15); z++)
+                                if (sec.getBlockState(x & 15, y & 15, z & 15).is(snag)) return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -133,9 +165,11 @@ public final class WaterUpgrades extends SavedData {
      * feeding station) never touch the water, hence the two-block reach; a station is listed whether
      * or not it has groundbait in it, because the question is what is built, not what is running.
      */
-    public static List<Component> inside(ServerLevel level, java.util.function.LongPredicate water) {
+    public static List<Component> inside(ServerLevel level, java.util.function.LongPredicate water, long[] columns) {
         WaterUpgrades data = get(level);
         List<Component> names = new ArrayList<>();
+        net.minecraft.world.level.block.Block snag = com.riverfishing.registry.ModBlocks.SNAG_PILE.get();
+        boolean snagListed = false;
         for (Map.Entry<Long, Entry> me : data.entries.entrySet()) {
             BlockPos pos = BlockPos.of(me.getKey());
             boolean near = false;
@@ -146,8 +180,32 @@ public final class WaterUpgrades extends SavedData {
             if (!near || !level.hasChunkAt(pos)) continue;
             if (!(level.getBlockState(pos).getBlock() instanceof com.riverfishing.block.WaterUpgradeBlock b)) continue;
             names.add(b.getName());
+            snagListed |= b == snag;
         }
+        // wild snags on the bed are cover like placed ones (see snagNear), so the sign lists them too
+        if (!snagListed && snagInColumns(level, columns, snag)) names.add(snag.getName());
         return names;
+    }
+
+    /** A snag anywhere down these x/z columns ({@link PondData#column}), found the way {@link #snagNear} finds one. */
+    private static boolean snagInColumns(ServerLevel level, long[] columns, net.minecraft.world.level.block.Block snag) {
+        Map<Long, List<BlockPos>> byChunk = new HashMap<>();
+        for (long col : columns) {
+            BlockPos p = PondData.columnPos(col);
+            byChunk.computeIfAbsent(net.minecraft.world.level.ChunkPos.asLong(p.getX() >> 4, p.getZ() >> 4), k -> new ArrayList<>()).add(p);
+        }
+        for (Map.Entry<Long, List<BlockPos>> me : byChunk.entrySet()) {
+            net.minecraft.world.level.chunk.LevelChunk chunk = level.getChunkSource().getChunkNow(
+                    net.minecraft.world.level.ChunkPos.getX(me.getKey()), net.minecraft.world.level.ChunkPos.getZ(me.getKey()));
+            if (chunk == null) continue;
+            for (net.minecraft.world.level.chunk.LevelChunkSection sec : chunk.getSections()) {
+                if (sec.hasOnlyAir() || !sec.maybeHas(s -> s.is(snag))) continue;
+                for (BlockPos p : me.getValue())
+                    for (int y = 0; y < 16; y++)
+                        if (sec.getBlockState(p.getX() & 15, y, p.getZ() & 15).is(snag)) return true;
+            }
+        }
+        return false;
     }
 
     // ---- persistence ---------------------------------------------------------------------------

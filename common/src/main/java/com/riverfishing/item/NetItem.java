@@ -72,7 +72,8 @@ public abstract class NetItem extends Item {
             haul(sp, sl, water);
             stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
             // §pond-haste: your own pond is worked, not raided — a third of the wait.
-            java.util.UUID pondOwner0 = com.riverfishing.fishing.PondData.owner(sl, water);
+            com.riverfishing.fishing.PondData.Claim claim0 = com.riverfishing.fishing.PondLife.claimNear(sl, water);
+            java.util.UUID pondOwner0 = claim0 == null ? null : claim0.owner;
             player.getCooldowns().addCooldown(this, pondOwner0 != null && pondOwner0.equals(sp.getUUID()) ? cooldownTicks / 3 : cooldownTicks);
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
@@ -95,7 +96,16 @@ public abstract class NetItem extends Item {
         RandomSource rng = level.random;
         // §pond: in a claimed pond the OWNER is legal for every species — his fish, his net. Anyone else
         // is poaching the lot, native book or no. Outside claimed water the stocking book rules as before.
-        UUID pondOwner = com.riverfishing.fishing.PondData.owner(level, pos);
+        // §alife-pond: a net cast a step past the claimed columns is still in the pond — the claim is frozen at the
+        // sign, and a pond dug wider used to answer as wild water: endless fresh fish of every native species.
+        com.riverfishing.fishing.PondData.Claim claim = com.riverfishing.fishing.PondLife.claimNear(level, pos);
+        UUID pondOwner = claim == null ? null : claim.owner;
+        com.riverfishing.alife.Lake living = claim != null ? com.riverfishing.fishing.PondLife.lake(level, pos)
+                : com.riverfishing.config.RiverFishingConfig.alife() ? com.riverfishing.fishing.AlifeData.get(level).lakeAt(level, pos) : null;
+        if (living != null && !living.zones.isEmpty()) {
+            haulLiving(sp, level, pos, living, claim, minFish + rng.nextInt(maxFish - minFish + 1));
+            return;
+        }
 
         List<FishProfile> pool = new ArrayList<>();
         List<Integer> weights = new ArrayList<>();
@@ -153,7 +163,9 @@ public abstract class NetItem extends Item {
             }
             hauled++;
             final int weightG = rec != null ? stocked.grownWeight(level, region, p.id.getPath(), p, rec) : rollWeight(p, rng);
-            ItemStack fish = FishItem.create(ModItems.fishItem(p.id), p.id, weightG, lengthCm(p, weightG, rng), true);
+            // §net-grade: a trophy by its weight, as on the rod
+            ItemStack fish = FishItem.create(ModItems.fishItem(p.id), p.id, weightG, lengthCm(p, weightG, rng), true,
+                    weightG >= FishItem.trophyThresholdG(p.weightMin, p.weightMax));
             pressure.addCatch(chunk, p.id.getPath(), now);
             // §net-ledger: a netted fish pays the ledger exactly as a landed one does — a settled water
             // from its head count, an unsettled brood from F/M, and the last one out ends the attempt.
@@ -185,6 +197,7 @@ public abstract class NetItem extends Item {
                 FishingManager.applyPondFish(fish, rec);
                 stocked.takeFish(region, p.id.getPath(), rec.getLong("Uid"));
             }
+            if (!poachedFish) FishingManager.gradePrime(sp, fish, p.id, weightG);   // §net-grade: a poached fish is no sale
             if (!sp.getInventory().add(fish)) sp.drop(fish, false);
         }
 
@@ -214,6 +227,76 @@ public abstract class NetItem extends Item {
         level.playSound(null, pos, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.8f, 0.9f);
     }
 
+    /**
+     * §alife-pond: a haul out of a living pond — each fish one of the pond's own, taken out of it, every badge
+     * and its card kept. Nothing is ever rolled here: an empty pond nets empty, and a netted-out pond stays so.
+     */
+    private void haulLiving(ServerPlayer sp, ServerLevel level, BlockPos pos, com.riverfishing.alife.Lake lake,
+                            @org.jetbrains.annotations.Nullable com.riverfishing.fishing.PondData.Claim claim, int count) {
+        RandomSource rng = level.random;
+        com.riverfishing.alife.Lake.Zone at = lake.zones.get(com.riverfishing.fishing.AlifeData.zoneAt(lake, pos));
+        int hauled = 0, poached = 0;
+        for (int i = 0; i < count; i++) {
+            // a pond is small enough to sweep whole; in wild water the net reaches the shoals around it
+            List<com.riverfishing.alife.Lake.Agent> near = new ArrayList<>();
+            int total = 0;
+            for (com.riverfishing.alife.Lake.Agent a : lake.agents) {
+                if (a.fry || !a.alive() || (claim != null && a.heads == null)) continue;
+                com.riverfishing.alife.Lake.Zone z = lake.zones.get(a.zone);
+                if (claim == null && Math.hypot(z.x - at.x, z.z - at.z) > NET_REACH) continue;
+                near.add(a);
+                total += a.count;
+            }
+            if (total == 0) break;
+            int roll = rng.nextInt(total);
+            com.riverfishing.alife.Lake.Agent from = near.get(near.size() - 1);
+            for (com.riverfishing.alife.Lake.Agent a : near) if ((roll -= a.count) < 0) { from = a; break; }
+            FishProfile p = FishProfileManager.get().byId(com.riverfishing.RiverFishing.id(from.sp.id()));
+            if (p == null) continue;
+            com.riverfishing.alife.Life.Head h = lake.pickHead(from);
+            int w;
+            boolean mine;
+            if (h != null) {
+                lake.takeHead(from, h);
+                w = (int) Math.round(h.weightG);
+                mine = claim != null ? claim.owner.equals(sp.getUUID()) : sp.getUUID().equals(com.riverfishing.fishing.PondLife.owner(h));
+            } else {
+                w = (int) Math.round(lake.take(from));   // a wild shoal's fish: nobody's, so nobody may net it
+                mine = false;
+            }
+            final int weightG = Math.max(1, w);
+            boolean poachedFish = !mine;
+            boolean trophy = h != null ? h.trophy : weightG >= FishItem.trophyThresholdG(p.weightMin, p.weightMax);
+            ItemStack fish = FishItem.create(ModItems.fishItem(p.id), p.id, weightG, lengthCm(p, weightG, rng), true, trophy);
+            if (h != null && h.legend) com.riverfishing.item.StackNbt.mutate(fish, t -> t.putBoolean(FishItem.TAG_LEGEND, true));
+            int base = com.riverfishing.registry.ModVillagers.baseEmeralds(p.id.getPath());
+            int value = base > 0 ? com.riverfishing.fishing.MarketData.get(level).price(level, p.id.getPath(), base) : 0;
+            String eco = h != null ? "stocked" : "native";
+            com.riverfishing.item.StackNbt.mutate(fish, t -> t.put(com.riverfishing.fish.CatchCard.TAG,
+                    com.riverfishing.fish.CatchCard.netted(sp, level, p, weightG, pos, eco, value, poachedFish)));
+            if (h != null) FishingManager.applyPondFish(fish, com.riverfishing.fishing.PondLife.record(h));
+            if (!poachedFish) FishingManager.gradePrime(sp, fish, p.id, weightG);   // §net-grade: as on the rod
+            if (!sp.getInventory().add(fish)) sp.drop(fish, false);
+            hauled++;
+            if (poachedFish) poached++;
+        }
+        if (hauled == 0) {
+            sp.displayClientMessage(Component.translatable("message.riverfishing.net_empty").withStyle(ChatFormatting.GRAY), true);
+            return;
+        }
+        if (poached > 0) {
+            if (claim != null) sp.displayClientMessage(Component.translatable("message.riverfishing.pond_not_yours", claim.ownerName)
+                    .withStyle(ChatFormatting.RED), false);
+            sp.displayClientMessage(Component.translatable("message.riverfishing.poaching").withStyle(ChatFormatting.RED), false);
+            com.riverfishing.fishing.Warden.onPoach(sp, level, pos, poached);
+        }
+        sp.displayClientMessage(Component.translatable("message.riverfishing.net_haul", hauled).withStyle(ChatFormatting.GREEN), true);
+        level.playSound(null, pos, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 0.8f, 0.9f);
+    }
+
+    /** §alife-wild: how far along the water a net's sweep reaches for shoals, in blocks. */
+    private static final double NET_REACH = 24;
+
     private static FishProfile pick(List<FishProfile> pool, List<Integer> weights, int total, RandomSource rng) {
         int r = rng.nextInt(total);
         for (int i = 0; i < pool.size(); i++) {
@@ -232,13 +315,8 @@ public abstract class NetItem extends Item {
 
     /** The bite engine's allometric law (L ∝ W^(1/3)) so a netted fish measures like a caught one. */
     private static int lengthCm(FishProfile p, int weightG, RandomSource rng) {
-        double wc = Math.cbrt(Math.max(1.0, weightG));
-        double wcMin = Math.cbrt(Math.max(1.0, p.weightMin));
-        double wcMax = Math.cbrt(Math.max(1.0, p.weightMax));
-        double lf = wcMax > wcMin ? (wc - wcMin) / (wcMax - wcMin) : 0.5;
-        double length = p.lengthMin + (p.lengthMax - p.lengthMin) * lf;
-        length *= 0.98 + rng.nextDouble() * 0.04;
-        return (int) Math.round(Mth.clamp(length, p.lengthMin, p.lengthMax));
+        double length = p.lengthAt(weightG) * (0.98 + rng.nextDouble() * 0.04);   // §length-weight: as the rod's
+        return (int) Math.max(1, Math.round(Math.min(length, p.lengthMax)));
     }
 
     @Override

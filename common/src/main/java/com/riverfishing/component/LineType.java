@@ -49,11 +49,4 @@ public enum LineType {
     public double breakingStrainKg(double diameterMm) {
         return STRAIN_K * diameterMm * diameterMm * strengthFactor;
     }
-
-    public static LineType fromJsonKey(String key) {
-        for (LineType t : values()) {
-            if (t.jsonKey.equals(key)) return t;
-        }
-        return MONO;
-    }
 }

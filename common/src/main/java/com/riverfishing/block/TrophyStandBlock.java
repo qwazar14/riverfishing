@@ -53,7 +53,6 @@ public class TrophyStandBlock extends BaseEntityBlock {
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
         // Face the player who placed it, so the mounted fish looks back at them.
         Direction facing = ctx.getHorizontalDirection().getOpposite();
-        com.riverfishing.RiverFishing.LOGGER.info("[RiverFishing] TrophyStand placed: facing={}", facing);
         return defaultBlockState().setValue(FACING, facing);
     }
 
@@ -81,7 +80,7 @@ public class TrophyStandBlock extends BaseEntityBlock {
 
         ItemStack held = player.getItemInHand(hand);
         // §mini-aquarium: up to 5 small fish (≤150 g each); empty hand takes the last one back out.
-        if (held.getItem() instanceof FishItem) {
+        if (held.getItem() instanceof FishItem && !com.riverfishing.item.CookedFish.isCooked(held)) {   // §cooking
             if (FishItem.getWeightG(held) > TrophyStandBlockEntity.MAX_WEIGHT_G) {
                 player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
                         "message.riverfishing.aquarium_too_big").withStyle(net.minecraft.ChatFormatting.YELLOW), true);

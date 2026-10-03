@@ -204,12 +204,17 @@ public final class PondData extends SavedData {
 
     /** Record the claim; a sign already at this position is replaced (re-placing refreshes the flood). */
     public void put(BlockPos sign, ServerPlayer owner, List<Long> water) {
+        put(sign, owner.getUUID(), owner.getGameProfile().getName(), water);
+    }
+
+    /** The same, for an owner who is not standing there — the op's debug claim from a console. */
+    public void put(BlockPos sign, UUID ownerId, String ownerName, List<Long> water) {
         Claim old = bySign.get(sign.asLong());
         String keepName = old == null ? "" : old.name;
         remove(sign);
         long[] arr = new long[water.size()];
         for (int i = 0; i < arr.length; i++) arr[i] = water.get(i);
-        Claim c = new Claim(sign.asLong(), owner.getUUID(), owner.getGameProfile().getName(), arr);
+        Claim c = new Claim(sign.asLong(), ownerId, ownerName, arr);
         c.name = keepName;   // re-planting refreshes the water, not the name
         bySign.put(c.sign, c);
         for (long w : arr) byWater.put(w, c);

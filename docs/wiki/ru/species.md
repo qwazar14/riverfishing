@@ -148,16 +148,22 @@
 | Азиатская арована | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, popper 0.75, fly_streamer 0.7, wacky_worm 0.55, fly_dry_fly 0.4 | №5 | braid 0.2 ±0.06 | 0.1 / 0.24 | — |
 | Акантикус адонис | worm 1, dough 0.75, boilie 0.7, fish_strip 0.7, jig 0.6, fly_pellet 0.55, silicone 0.55 | №4 | braid 0.22 ±0.06 | 0.7 / 0.75 | — |
 | Акантикус гистрикс | dough 1, corn 0.9, worm 0.85, pea 0.8, fly_pellet 0.7 | №4 | braid 0.21 ±0.06 | 0.8 / 0.83 | — |
+| Акула-домовой | fish_strip 1, octopus_jig 1, livebait 0.8 | №1 | braid 0.4 ±0.06 | 0.9 / 0.7 | **yes** |
 | Акула-мако | giant_spoon 1, livebait 1, octopus_jig 0.95, swimbait 0.95, fish_strip 0.9, wobbler 0.7 | №1 | braid 0.4 ±0.06 | 1 / 0.75 | **yes** |
 | Акулий сом | dough 1, bread 0.9, corn 0.9, worm 0.85, fly_pellet 0.7, fish_strip 0.3 | №2 | braid 0.29 ±0.06 | 0.75 / 0.88 | — |
 | Американская палия (ручьевая палия) | worm 1, fly_nymph 0.6, spinner 0.6, wobbler 0.55, fly_streamer 0.5, spoon 0.5 | №7 | fluoro 0.3 ±0.06 | 0.05 / 0.25 | — |
 | Амия ильная | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, crankbait 0.8, spoon 0.8, swimbait 0.8, spinnerbait 0.75, fly_streamer 0.7, chicken_liver 0.6, wacky_worm 0.55, worm 0.55 | №5 | braid 0.21 ±0.06 | 0.03 / 0.14 | **yes** |
+| Амурская щука | swimbait 1, wobbler 1, spoon 0.95, crankbait 0.9, livebait 0.9, spinner 0.9, spinnerbait 0.9, jig 0.85, bladebait 0.7, popper 0.7 | №4 | braid 0.14 ±0.06 | 0.66 / 0.5 | **yes** |
+| Амурский лжепескарь | bloodworm 1, worm 0.9, maggot 0.8, mormyshka 0.8 | №16 | mono 0.12 ±0.06 | 0.22 / 0.54 | — |
+| Амурский хариус | spinner 0.95, worm 0.9, castmaster 0.8, maggot 0.8, bloodworm 0.7, crankbait 0.6 | №12 | mono 0.16 ±0.06 | 0.49 / 0.57 | — |
 | Амфиприон оцеллярис | bloodworm 1, maggot 0.95, worm 0.9, fly_shrimp 0.6 | №16 | fluoro 0.09 ±0.06 | 0.2 / 0.4 | — |
 | Анабас | worm 1, bloodworm 0.85, maggot 0.8, fish_strip 0.7, fly_nymph 0.6, jig 0.6, silicone 0.55, fly_ant 0.5, fly_dry_fly 0.5 | №12 | mono 0.14 ±0.06 | 0.65 / 0.75 | — |
 | Ангольский клариас | worm 1, dough 0.75, chicken_liver 0.7, fish_strip 0.7, livebait 0.6 | №5 | braid 0.11 ±0.06 | 0.7 / 0.8 | — |
 | Арапайма | livebait 1, fish_strip 0.9, giant_spoon 0.85, swimbait 0.85, wobbler 0.75, silicone 0.6 | №1 | braid 0.45 ±0.08 | 0.95 / 0.8 | **yes** |
+| Арктический хариус | fly_dry_fly 1, fly_nymph 0.9, spinner 0.9, fly_ant 0.8, worm 0.8, maggot 0.7 | №12 | mono 0.16 ±0.06 | 0.49 / 0.57 | — |
 | Астатотиляпия каллиптера | bloodworm 1, maggot 0.95, worm 0.9, fly_nymph 0.85, silicone 0.5 | №13 | fluoro 0.12 ±0.06 | 0.25 / 0.45 | — |
 | Астронотус | worm 1.2, livebait 1.1, wacky_worm 1, maggot 0.9, silicone 0.9, jig 0.8 | №8 | mono 0.16 ±0.04 | 0.47 / 0.68 | — |
+| Атлантическая сайра | fish_strip 1, maggot 0.6, spinner 0.6, castmaster 0.5 | №12 | mono 0.16 ±0.06 | 0.51 / 0.75 | — |
 | Африканская рыба-нож | worm 1, bloodworm 0.85, maggot 0.8, fish_strip 0.7, fly_nymph 0.6, jig 0.6, spinner 0.6, silicone 0.55, fly_streamer 0.5 | №9 | braid 0.1 ±0.06 | 0.1 / 0.25 | — |
 | Африканская щука | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, spinner 0.85, fly_streamer 0.7 | №6 | braid 0.15 ±0.06 | 0 / 0.07 | **yes** |
 | Африканский глазчатый нож | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, spinner 0.85, spoon 0.8, fly_streamer 0.7, worm 0.55 | №6 | braid 0.15 ±0.06 | 0.05 / 0.17 | — |
@@ -177,6 +183,7 @@
 | Бестер | worm 1, bloodworm 0.85, dough 0.75, fish_strip 0.7, fly_pellet 0.55 | №2 | braid 0.27 ±0.06 | 0.55 / 0.65 | — |
 | Блюгилл | worm 1, maggot 0.9, bloodworm 0.8, corn 0.5 | №12 | mono 0.12 ±0.05 | 0.34 / 0.61 | — |
 | Большая тигровая рыба | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, spoon 0.8, swimbait 0.8 | №3 | braid 0.3 ±0.06 | 0 / 0.07 | **yes** |
+| Большеглазый тунец | giant_spoon 1.05, octopus_jig 1, swimbait 1, livebait 0.9, wobbler 0.9, fish_strip 0.8, silicone 0.7 | №1 | braid 0.4 ±0.06 | 0.99 / 0.75 | — |
 | Большеротый бас | popper 1.2, spinnerbait 1.1, wacky_worm 1.05, swimbait 1, wobbler 1, silicone 0.95, crankbait 0.9, jig 0.9, livebait 0.8, spinner 0.7 | №4 | braid 0.16 ±0.05 | 0.62 / 0.5 | — |
 | Бородатый тёмный горбыль | livebait 1, fish_strip 0.9, silicone 0.85, castmaster 0.8, spoon 0.8, chicken_liver 0.6, worm 0.55 | №3 | braid 0.3 ±0.06 | 0.15 / 0.39 | — |
 | Бурый паку | dough 1, bread 0.9, corn 0.9, boilie 0.85, worm 0.85 | №5 | mono 0.38 ±0.06 | 0.92 / 0.94 | — |
@@ -187,6 +194,8 @@
 | Ваху | giant_spoon 1.15, octopus_jig 1, swimbait 1, wobbler 1, castmaster 0.8, silicone 0.7 | №1 | braid 0.4 ±0.08 | 0.88 / 0.5 | **yes** |
 | Верховка | maggot 1, bread 0.95, bloodworm 0.85, dough 0.8 | №16 | mono 0.1 ±0.03 | 0.08 / 0.38 | — |
 | Веслонос | jig 1, castmaster 0.85, giant_spoon 0.7 | №2 | braid 0.33 ±0.06 | 0 / 0 | — |
+| Вобла | maggot 1, bloodworm 0.9, worm 0.9, mormyshka 0.8, dough 0.7 | №14 | mono 0.14 ±0.06 | 0.31 / 0.47 | — |
+| Восточный лещ | maggot 1, worm 0.9, pearl_barley 0.8, mormyshka 0.7, corn 0.6, bread 0.4, boilie 0.3 | №10 | braid 0.1 ±0.06 | 0.56 / 0.68 | — |
 | Вьюн | bloodworm 1.1, worm 1, maggot 0.8, mormyshka 0.6, dough 0.4 | №16 | mono 0.12 ±0.04 | 0.2 / 0.5 | — |
 | Гибрид американской палии и бычьей форели | worm 1, fly_nymph 0.6, spinner 0.6, fly_streamer 0.5, spoon 0.5 | №7 | fluoro 0.27 ±0.06 | 0.05 / 0.25 | — |
 | Гибрид большеротого и малоротого окуня | jig 1, silicone 0.95, crankbait 0.85, swimbait 0.85, wacky_worm 0.85, spinnerbait 0.7 | №7 | fluoro 0.26 ±0.06 | 0.05 / 0.2 | — |
@@ -226,12 +235,19 @@
 | Голубой сом | worm 1, dough 0.75, chicken_liver 0.7, fish_strip 0.7, livebait 0.6 | №2 | braid 0.31 ±0.06 | 0.75 / 0.8 | — |
 | Голубой хирург | bloodworm 1, maggot 0.95, worm 0.9, fly_shrimp 0.6 | №13 | fluoro 0.17 ±0.06 | 0.2 / 0.4 | — |
 | Голый карп | boilie 1, corn 0.85, pea 0.6, pearl_barley 0.55, dough 0.5 | №4 | mono 0.35 ±0.08 | 0.75 / 0.88 | — |
+| Гольян обыкновенный | maggot 1, bloodworm 0.9, worm 0.8, mormyshka 0.7, fly_nymph 0.5 | №16 | mono 0.1 ±0.06 | 0.2 / 0.5 | — |
+| Гольян озёрный | bloodworm 1, maggot 0.9, worm 0.9, mormyshka 0.7, dough 0.6 | №16 | mono 0.1 ±0.06 | 0.3 / 0.55 | — |
+| Горбатый золотой карась | worm 1, bread 0.9, dough 0.9, maggot 0.85, corn 0.7, pearl_barley 0.6 | №12 | mono 0.18 ±0.06 | 0.35 / 0.6 | — |
 | Горбуша | spoon 1, spinner 0.9, castmaster 0.8, fish_strip 0.5 | №6 | braid 0.18 ±0.05 | 0.61 / 0.75 | — |
 | Горчак | bloodworm 1, maggot 1, bread 0.8, dough 0.7 | №16 | mono 0.1 ±0.03 | 0.1 / 0.4 | — |
+| Гренландская полярная акула | fish_strip 1, chicken_liver 0.7, livebait 0.6, octopus_jig 0.5 | №1 | braid 0.6 ±0.06 | 0.95 / 0.8 | **yes** |
 | Густера | maggot 1, worm 0.9, bloodworm 0.7 | №12 | braid 0.1 ±0.04 | 0.42 / 0.57 | — |
+| Двухполосый морской карась | worm 1, fish_strip 0.8, dough 0.5, bread 0.4, silicone 0.4 | №8 | mono 0.22 ±0.06 | 0.62 / 0.75 | — |
 | Дистиходус шестиполосый | dough 1, bread 0.9, corn 0.9, worm 0.85, pea 0.8, fly_pellet 0.7 | №6 | mono 0.24 ±0.06 | 0.92 / 0.94 | — |
 | Длинноносый дистиходус | dough 1, bread 0.9, corn 0.9, pea 0.8, fly_pellet 0.7 | №8 | mono 0.18 ±0.06 | 0.92 / 0.94 | — |
+| Длинноперый тунец | giant_spoon 1.05, octopus_jig 1, swimbait 1, livebait 0.9, wobbler 0.9, fish_strip 0.8, silicone 0.7 | №2 | braid 0.35 ±0.06 | 0.99 / 0.75 | — |
 | Дьявольский карпозубик | bloodworm 1, maggot 0.95, worm 0.9, fly_nymph 0.85 | №16 | mono 0.06 ±0.06 | 0.4 / 0.5 | — |
+| Европейская мерлуза | jig 1, octopus_jig 0.95, giant_spoon 0.9, bladebait 0.8, silicone 0.8, swimbait 0.8, castmaster 0.7, fish_strip 0.7 | №4 | braid 0.25 ±0.06 | 0.71 / 0.75 | — |
 | Елец | maggot 1, worm 0.9, bread 0.7, bloodworm 0.65, dough 0.6, spinner 0.4 | №14 | mono 0.14 ±0.04 | 0.34 / 0.52 | — |
 | Желтопёрый тунец | giant_spoon 1.05, octopus_jig 1, swimbait 1, livebait 0.9, wobbler 0.9, fish_strip 0.8, silicone 0.7 | №1 | braid 0.4 ±0.08 | 0.99 / 0.75 | — |
 | Жерех | spoon 1, castmaster 0.9, wobbler 0.9, popper 0.85, spinnerbait 0.85, spinner 0.8, bladebait 0.7, crankbait 0.7, swimbait 0.7, wacky_worm 0.5 | №6 | braid 0.12 ±0.04 | 0.66 / 0.5 | — |
@@ -240,6 +256,8 @@
 | Звёздчатый иглобрюх | fish_strip 1, jig 0.95, octopus_jig 0.8, fly_shrimp 0.6 | №6 | fluoro 0.36 ±0.06 | 0.12 / 0.32 | **yes** |
 | Зелёный солнечник | worm 1, maggot 0.8, bread 0.7, jig 0.6, silicone 0.55 | №14 | mono 0.18 ±0.06 | 0.45 / 0.55 | — |
 | Зеркальный карп | boilie 1, corn 0.8, pea 0.6, pearl_barley 0.5 | №6 | mono 0.3 ±0.08 | 0.72 / 0.85 | — |
+| Золотая рыбка комета | bread 1, worm 1, dough 0.9, maggot 0.8, corn 0.6 | №12 | mono 0.18 ±0.06 | 0.4 / 0.63 | — |
+| Золотая форель | fly_dry_fly 1, spinner 1, fly_nymph 0.9, castmaster 0.8, fly_ant 0.7, worm 0.7 | №10 | fluoro 0.16 ±0.06 | 0.58 / 0.7 | — |
 | Золотой дорадо | wobbler 1, swimbait 0.95, spinner 0.9, spinnerbait 0.9, spoon 0.9, popper 0.85, crankbait 0.8, silicone 0.8, livebait 0.7 | №2 | braid 0.28 ±0.06 | 0.6 / 0.7 | **yes** |
 | Золотой карась | worm 1, bread 0.9, dough 0.9, maggot 0.85, corn 0.7, pearl_barley 0.6 | №12 | mono 0.18 ±0.05 | 0.35 / 0.6 | — |
 | Золотой махсир | dough 1, boilie 0.95, fish_strip 0.95, livebait 0.85, spinner 0.75, wobbler 0.75, spoon 0.7, castmaster 0.65, crankbait 0.65, fly_streamer 0.65, swimbait 0.65, bladebait 0.55 | №2 | braid 0.39 ±0.06 | 0.65 / 0.8 | — |
@@ -262,11 +280,6 @@
 | Кижуч | fish_strip 1, wobbler 1, spinner 0.95, spoon 0.9, fly_streamer 0.8 | №5 | braid 0.23 ±0.06 | 0 / 0.07 | — |
 | Китайский махсир | livebait 1, wobbler 0.9, jig 0.85, spinner 0.85, spoon 0.8, fly_streamer 0.7, worm 0.55, fly_nymph 0.4 | №7 | braid 0.15 ±0.06 | 0.33 / 0.56 | — |
 | Китовая акула | fish_strip 0.35, livebait 0.3 | №1 | braid 0.6 ±0.05 | 1 / 1 | — |
-| Кои Асаги | boilie 1, corn 0.8, bread 0.6, pea 0.6 | №6 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
-| Кои Бекко | boilie 1, corn 0.8, bread 0.6, pea 0.6 | №6 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
-| Кои Кохаку | boilie 1, corn 0.8, bread 0.6, pea 0.6 | №6 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
-| Кои Сёва Санке | boilie 1, corn 0.8, bread 0.6, pea 0.6 | №6 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
-| Кои Танчо Санке | boilie 1, corn 0.8, bread 0.6, pea 0.6 | №6 | mono 0.3 ±0.08 | 0.69 / 0.75 | — |
 | Колючий аротрон | fish_strip 1, jig 0.95, octopus_jig 0.8, fly_shrimp 0.6 | №9 | fluoro 0.22 ±0.06 | 0.12 / 0.32 | **yes** |
 | Короткохвостый речной хвостокол | livebait 1, fish_strip 0.9, chicken_liver 0.6, worm 0.55 | №1 | braid 0.4 ±0.06 | 0.28 / 0.49 | **yes** |
 | Корюшка | bloodworm 1, mormyshka 0.9, fish_strip 0.8, worm 0.7 | №16 | mono 0.12 ±0.05 | 0.22 / 0.56 | — |
@@ -274,8 +287,10 @@
 | Краснобрюхая пиранья | fish_strip 1.1, chicken_liver 1, livebait 0.95, worm 0.7, silicone 0.6, spinner 0.5 | №8 | mono 0.2 ±0.06 | 0.55 / 0.85 | **yes** |
 | Краснобрюхий солнечник | bloodworm 1, maggot 0.95, worm 0.9, fly_nymph 0.85, jig 0.55 | №15 | mono 0.17 ±0.06 | 0.45 / 0.55 | — |
 | Красноглазый каменный окунь | livebait 1, jig 0.85, silicone 0.85, spinner 0.85, worm 0.55 | №13 | mono 0.19 ±0.06 | 0.23 / 0.39 | — |
+| Краснопёрая щука | livebait 1, spinner 0.9, silicone 0.85, jig 0.7, wobbler 0.7, worm 0.6 | №6 | braid 0.12 ±0.06 | 0 / 0 | **yes** |
 | Краснопёрка | bread 1, dough 0.9, maggot 0.8 | №14 | mono 0.14 ±0.04 | 0.3 / 0.49 | — |
 | Краснопёрый махсир | worm 1, dough 0.75, boilie 0.7, fish_strip 0.7, livebait 0.6, spinner 0.6, wobbler 0.55, castmaster 0.5, crankbait 0.5, fly_streamer 0.5, spoon 0.5 | №3 | braid 0.31 ±0.06 | 0.65 / 0.8 | — |
+| Краснопёрый опах | octopus_jig 1, fish_strip 0.9, livebait 0.8, giant_spoon 0.6, silicone 0.5 | №1 | braid 0.4 ±0.06 | 0.99 / 0.75 | — |
 | Красноухий солнечник | worm 1, bloodworm 0.85, maggot 0.8, corn 0.7, jig 0.6 | №13 | mono 0.22 ±0.06 | 0.45 / 0.55 | — |
 | Краснохвостый сом | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, spoon 0.8, swimbait 0.8, giant_spoon 0.75, chicken_liver 0.6 | №2 | braid 0.32 ±0.06 | 0.28 / 0.52 | — |
 | Красный горбыль | livebait 1, wobbler 0.9, jig 0.85, silicone 0.85, spoon 0.8, worm 0.55 | №3 | braid 0.29 ±0.06 | 0.15 / 0.39 | — |
@@ -297,6 +312,7 @@
 | Малоротый окунь | worm 1, jig 0.6, spinner 0.6, silicone 0.55, crankbait 0.5, wacky_worm 0.5 | №7 | fluoro 0.26 ±0.06 | 0.05 / 0.2 | — |
 | Мальма | fish_strip 1, wobbler 1, spinner 0.95, spoon 0.9, fly_streamer 0.8, worm 0.6 | №6 | fluoro 0.34 ±0.06 | 0.03 / 0.17 | — |
 | Махи-махи | livebait 1.05, giant_spoon 1, octopus_jig 1, swimbait 1, wobbler 1, popper 0.9, silicone 0.8, fish_strip 0.6 | №2 | braid 0.3 ±0.08 | 0.77 / 0.75 | — |
+| Менёк | fish_strip 1, octopus_jig 1, jig 0.95, livebait 0.9, bladebait 0.85, giant_spoon 0.8, swimbait 0.8, silicone 0.7 | №2 | braid 0.3 ±0.06 | 0.79 / 0.75 | — |
 | Меч-рыба | livebait 1, octopus_jig 1, fish_strip 0.9, giant_spoon 0.85, wobbler 0.6 | №1 | braid 0.45 ±0.08 | 1 / 0.75 | — |
 | Минмаут (гибрид малоротого и пятнистого окуня) | jig 1, silicone 0.95, crankbait 0.85, wacky_worm 0.85, spinnerbait 0.7 | №8 | fluoro 0.25 ±0.06 | 0.05 / 0.2 | — |
 | Минтай | jig 1.05, livebait 1, fish_strip 0.95, bladebait 0.85, octopus_jig 0.85, silicone 0.85, castmaster 0.8, swimbait 0.75, giant_spoon 0.7 | №4 | braid 0.22 ±0.06 | 0.7 / 0.7 | — |
@@ -308,6 +324,7 @@
 | Морской чёрт | livebait 1.1, fish_strip 1 | №1 | braid 0.3 ±0.08 | 0.72 / 0.8 | **yes** |
 | Мраморный протоптер | worm 1, dough 0.75, chicken_liver 0.7, fish_strip 0.7, livebait 0.6 | №3 | braid 0.24 ±0.06 | 0.35 / 0.6 | **yes** |
 | Мраморный угорь | livebait 1, fish_strip 0.9, chicken_liver 0.6, worm 0.55, bloodworm 0.35 | №3 | braid 0.25 ±0.06 | 0.23 / 0.45 | **yes** |
+| Муксун | bloodworm 1, mormyshka 0.9, maggot 0.8, worm 0.6 | №10 | fluoro 0.18 ±0.06 | 0.57 / 0.52 | — |
 | Налим | livebait 1, chicken_liver 0.9, worm 0.9, bladebait 0.8, jig 0.75, swimbait 0.6 | №6 | mono 0.3 ±0.08 | 0.62 / 0.75 | — |
 | Наннохаракс Анзорга | bloodworm 1, maggot 0.95, worm 0.9, fly_nymph 0.85 | №16 | mono 0.06 ±0.06 | 0.5 / 0.6 | — |
 | Нельма | spoon 1.1, spinner 1, castmaster 0.95, livebait 0.95, swimbait 0.85, wobbler 0.85, jig 0.7, silicone 0.7 | №4 | braid 0.2 ±0.05 | 0.7 / 0.6 | — |
@@ -331,30 +348,39 @@
 | Папирокранус конголезский | livebait 1, fish_strip 0.9, jig 0.85, worm 0.55, bloodworm 0.35 | №9 | braid 0.12 ±0.06 | 0.05 / 0.17 | — |
 | Парусник | livebait 1.1, octopus_jig 1, wobbler 1, giant_spoon 0.95, popper 0.8, silicone 0.7 | №1 | braid 0.3 ±0.08 | 1 / 0.5 | — |
 | Пескарь | bloodworm 1, mormyshka 0.9, worm 0.9, maggot 0.8 | №16 | mono 0.14 ±0.04 | 0.22 / 0.54 | — |
+| Пикша | fish_strip 1, worm 0.9, jig 0.8, octopus_jig 0.8, silicone 0.6 | №4 | braid 0.22 ±0.06 | 0.79 / 0.75 | — |
 | Пирайба | livebait 1, fish_strip 0.95, chicken_liver 0.85, swimbait 0.7, worm 0.5 | №1 | braid 0.5 ±0.08 | 0.96 / 0.8 | **yes** |
 | Плащеносная акула | fish_strip 1, octopus_jig 0.95, livebait 0.85 | №1 | braid 0.4 ±0.08 | 0.9 / 0.7 | **yes** |
 | Плоскоголовый сом | livebait 1, fish_strip 0.9, jig 0.85, chicken_liver 0.6, worm 0.55 | №3 | braid 0.3 ±0.06 | 0.38 / 0.56 | — |
 | Плотва | maggot 1, bloodworm 0.9, mormyshka 0.9, dough 0.7, bread 0.5 | №14 | mono 0.14 ±0.04 | 0.31 / 0.47 | — |
 | Подкаменщик | worm 1, bloodworm 0.9, maggot 0.8, livebait 0.3 | №14 | mono 0.14 ±0.04 | 0.12 / 0.5 | — |
 | Подуст | maggot 1, bloodworm 0.8, worm 0.8, pearl_barley 0.7 | №12 | mono 0.16 ±0.05 | 0.46 / 0.59 | — |
+| Полосатая зубатка | fish_strip 1, octopus_jig 0.9, jig 0.8, livebait 0.6, silicone 0.6, worm 0.6 | №2 | braid 0.35 ±0.06 | 0.79 / 0.75 | **yes** |
 | Полосатый лаврак | livebait 1.2, swimbait 1.15, fish_strip 1.1, giant_spoon 1.05, bladebait 1, wobbler 1, silicone 0.95, spoon 0.9, jig 0.85 | №2 | braid 0.3 ±0.08 | 0.74 / 0.75 | — |
 | Пустынный карпозубик | bloodworm 1, maggot 0.95, worm 0.9, fly_nymph 0.85 | №16 | mono 0.07 ±0.06 | 0.4 / 0.5 | — |
 | Пятнистый панцирник | livebait 1, fish_strip 0.9, wobbler 0.9, silicone 0.85, spoon 0.8, swimbait 0.8, spinnerbait 0.75, fly_streamer 0.7, worm 0.55 | №3 | braid 0.18 ±0.06 | 0 / 0.03 | **yes** |
 | Пятнистый судачий горбыль | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, silicone 0.85, popper 0.75 | №4 | braid 0.2 ±0.06 | 0.15 / 0.39 | — |
 | Пятнистый чёрный окунь | livebait 1, wobbler 0.9, jig 0.85, silicone 0.85, crankbait 0.8, spinnerbait 0.75 | №8 | fluoro 0.26 ±0.06 | 0.03 / 0.14 | — |
+| Пёстрый толстолобик | dough 0.5, pearl_barley 0.5, boilie 0.4, corn 0.3 | №6 | mono 0.4 ±0.06 | 0.79 / 0.81 | — |
 | Радужная форель | spinner 1, castmaster 0.95, wobbler 0.85, crankbait 0.8, silicone 0.7, worm 0.6 | №8 | fluoro 0.18 ±0.05 | 0.58 / 0.7 | — |
 | Рипонский усач | worm 1, maggot 0.8, dough 0.75, boilie 0.7, corn 0.7, fish_strip 0.7, spinner 0.6, spoon 0.5 | №6 | mono 0.29 ±0.06 | 0.8 / 0.8 | — |
 | Ротан | worm 1, bloodworm 0.9, maggot 0.8, livebait 0.7, chicken_liver 0.6, silicone 0.6 | №12 | mono 0.18 ±0.08 | 0.27 / 0.6 | — |
 | Роху | dough 1, bread 0.9, corn 0.9, boilie 0.85, worm 0.85, pea 0.8, pearl_barley 0.8, bloodworm 0.7, fly_pellet 0.7 | №3 | mono 0.45 ±0.06 | 0.98 / 0.94 | — |
+| Русский осётр | chicken_liver 1, worm 0.9, livebait 0.7, boilie 0.5 | №1 | braid 0.45 ±0.06 | 0.95 / 0.79 | — |
 | Рыба-капля | fish_strip 0.9, worm 0.8, bloodworm 0.7, chicken_liver 0.5 | №6 | braid 0.25 ±0.08 | 0.55 / 0.45 | — |
 | Рыбец | worm 1, maggot 0.9, bloodworm 0.8, pea 0.5 | №10 | mono 0.2 ±0.05 | 0.53 / 0.6 | — |
 | Сазан | boilie 1, corn 0.85, pea 0.7, pearl_barley 0.55 | №4 | mono 0.3 ±0.07 | 0.75 / 0.84 | — |
 | Сайда | jig 1, octopus_jig 0.95, giant_spoon 0.9, bladebait 0.8, silicone 0.8, swimbait 0.8, castmaster 0.7, fish_strip 0.7 | №4 | braid 0.25 ±0.06 | 0.71 / 0.75 | — |
 | Сарган | fish_strip 1, castmaster 0.7, spinner 0.7, silicone 0.5 | №8 | mono 0.2 ±0.06 | 0.51 / 0.75 | — |
 | Светлопёрый судак | livebait 1, wobbler 0.9, jig 0.85, silicone 0.85, spinner 0.85, worm 0.55 | №5 | fluoro 0.31 ±0.06 | 0.05 / 0.21 | **yes** |
+| Севанская форель | castmaster 1, spinner 0.95, wobbler 0.9, crankbait 0.85, silicone 0.7, worm 0.6 | №8 | fluoro 0.2 ±0.06 | 0.57 / 0.7 | — |
 | Сельдь | fish_strip 0.8, bloodworm 0.7, maggot 0.6, castmaster 0.5 | №10 | mono 0.18 ±0.06 | 0.4 / 0.57 | — |
 | Сенегальский многопёр | livebait 1, fish_strip 0.9, worm 0.55, bloodworm 0.35 | №7 | mono 0.19 ±0.06 | 0.15 / 0.39 | — |
+| Серебряный горбатый карась | worm 1, dough 0.9, maggot 0.8, corn 0.6, bread 0.5 | №12 | mono 0.18 ±0.06 | 0.4 / 0.63 | — |
+| Сибирская плотва (чебак) | maggot 1, bloodworm 0.9, mormyshka 0.9, dough 0.7, bread 0.5 | №14 | mono 0.14 ±0.06 | 0.31 / 0.47 | — |
+| Сибирский (ленский) осётр | worm 1, chicken_liver 0.8, bloodworm 0.7, maggot 0.5, livebait 0.4 | №2 | braid 0.35 ±0.06 | 0.85 / 0.7 | — |
 | Сиг | bloodworm 1, mormyshka 0.9, maggot 0.8, worm 0.6 | №10 | fluoro 0.18 ±0.05 | 0.57 / 0.52 | — |
+| Сима | spoon 1, spinner 0.9, castmaster 0.8, fish_strip 0.5 | №6 | braid 0.18 ±0.06 | 0.61 / 0.75 | — |
 | Синеперый тунец | livebait 1.1, giant_spoon 1, swimbait 1, fish_strip 0.9, octopus_jig 0.9, castmaster 0.8, silicone 0.6 | №1 | braid 0.4 ±0.06 | 1 / 0.85 | — |
 | Синец | bloodworm 1, maggot 0.85, worm 0.7, pearl_barley 0.5 | №12 | mono 0.14 ±0.05 | 0.44 / 0.55 | — |
 | Синодонтис ангельский | worm 1, bloodworm 0.85, dough 0.75, chicken_liver 0.7, fish_strip 0.7 | №12 | mono 0.2 ±0.06 | 0.6 / 0.7 | — |
@@ -375,6 +401,7 @@
 | Судак | bladebait 1, silicone 1, jig 0.95, livebait 0.95, crankbait 0.85, swimbait 0.8, wobbler 0.8, spinnerbait 0.6 | №4 | braid 0.12 ±0.04 | 0.62 / 0.5 | **yes** |
 | Сёмга | spoon 1, wobbler 0.9, spinner 0.8, fish_strip 0.5 | №4 | braid 0.25 ±0.06 | 0.77 / 0.75 | — |
 | Таймень | wobbler 1, swimbait 0.95, spoon 0.9, popper 0.85, crankbait 0.8, livebait 0.8 | №2 | braid 0.35 ±0.08 | 0.87 / 0.5 | **yes** |
+| Тарань | maggot 1, bloodworm 0.9, worm 0.9, mormyshka 0.8, dough 0.7 | №14 | mono 0.14 ±0.06 | 0.31 / 0.47 | — |
 | Тарпон | livebait 1.3, fish_strip 1.1, swimbait 1.1, popper 1, silicone 1, jig 0.9, giant_spoon 0.85 | №1 | braid 0.45 ±0.1 | 0.99 / 0.75 | — |
 | Терский усач | worm 1, bloodworm 0.85, maggot 0.8, dough 0.75, bread 0.7, fly_nymph 0.6, jig 0.6, fly_ant 0.5 | №8 | mono 0.2 ±0.06 | 0.8 / 0.8 | — |
 | Тигровая акула | fish_strip 1.15, livebait 1.1, swimbait 0.9, chicken_liver 0.85, octopus_jig 0.7, giant_spoon 0.6 | №1 | braid 0.45 ±0.08 | 1 / 0.95 | **yes** |
@@ -400,6 +427,7 @@
 | Читала Блана | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, swimbait 0.8 | №5 | braid 0.22 ±0.06 | 0.05 / 0.17 | — |
 | Читала гигантская | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, spinner 0.85 | №4 | braid 0.23 ±0.06 | 0.05 / 0.17 | — |
 | Чёрная щука | livebait 1, wobbler 0.9, jig 0.85, silicone 0.85, spinner 0.85, spoon 0.8 | №3 | braid 0.18 ±0.06 | 0 / 0 | **yes** |
+| Чёрный амур | boilie 1, corn 0.8, worm 0.7, pea 0.6, dough 0.5 | №6 | mono 0.3 ±0.06 | 0.77 / 0.66 | — |
 | Чёрный краппи | livebait 1, fish_strip 0.9, wobbler 0.9, jig 0.85, silicone 0.85, spinner 0.85, castmaster 0.8, crankbait 0.8, spoon 0.8, fly_streamer 0.7, worm 0.55, mormyshka 0.45, bloodworm 0.35, maggot 0.3 | №12 | mono 0.22 ±0.06 | 0.17 / 0.32 | — |
 | Чёрный марлин | giant_spoon 1.05, octopus_jig 1, swimbait 0.95, fish_strip 0.9, wobbler 0.9, silicone 0.5 | №1 | braid 0.45 ±0.06 | 1 / 0.75 | **yes** |
 | Чёрный махсир | worm 1, dough 0.75, boilie 0.7, fish_strip 0.7, livebait 0.6, spinner 0.6, wobbler 0.55, crankbait 0.5, fly_streamer 0.5, spoon 0.5 | №4 | braid 0.24 ±0.06 | 0.65 / 0.8 | — |

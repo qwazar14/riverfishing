@@ -71,7 +71,7 @@ public final class GroundbaitNbt {
 
     /** Stamp a mix onto a stack. A plain jar writes nothing — the base is what an empty tag means. */
     public static void write(ItemStack stack, GroundbaitMix mix) {
-        if (mix == null || mix.isBase()) return;
+        if (mix == null || mix.isBase() && mix.rgb() == GroundbaitMix.BASE.rgb()) return;   // §dyed-base: a stained plain jar is written down
         StackNbt.mutate(stack, tag -> {
             ListTag list = new ListTag();
             for (GroundbaitMix.Part p : mix.parts()) {

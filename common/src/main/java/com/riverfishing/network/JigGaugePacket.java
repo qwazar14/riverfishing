@@ -10,8 +10,9 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 /**
  * Server → client: the jig gauge (§ice-rhythm) — on or off, where the needle's sweep started, its
- * period, how wide the stops are, and how many accents have landed (of the most the combo holds).
- * Re-sent after every accent; the server is authoritative.
+ * period, how wide the stops are, and how long the combo is. Re-sent after every click, hit or missed;
+ * the server is authoritative, and a combo that arrives as 0 after being higher IS the miss (§jig-3 —
+ * the client needs no second field to flash for it).
  */
 public class JigGaugePacket implements ModNetwork.RfPacket {
     public static final CustomPacketPayload.Type<JigGaugePacket> TYPE =
@@ -24,19 +25,13 @@ public class JigGaugePacket implements ModNetwork.RfPacket {
     public final int period;
     public final float zoneHalf;
     public final int beats;
-    public final int maxBeats;
-    /** The stroke the last accent landed on, -1 when none has. */
-    public final byte lastEnd;
 
-    public JigGaugePacket(boolean active, long startTick, int period, float zoneHalf, int beats,
-                          int maxBeats, byte lastEnd) {
+    public JigGaugePacket(boolean active, long startTick, int period, float zoneHalf, int beats) {
         this.active = active;
         this.startTick = startTick;
         this.period = period;
         this.zoneHalf = zoneHalf;
         this.beats = beats;
-        this.maxBeats = maxBeats;
-        this.lastEnd = lastEnd;
     }
 
     @Override
@@ -51,13 +46,11 @@ public class JigGaugePacket implements ModNetwork.RfPacket {
         buf.writeInt(period);
         buf.writeFloat(zoneHalf);
         buf.writeInt(beats);
-        buf.writeInt(maxBeats);
-        buf.writeByte(lastEnd);
     }
 
     public static JigGaugePacket decode(FriendlyByteBuf buf) {
         return new JigGaugePacket(buf.readBoolean(), buf.readLong(), buf.readInt(), buf.readFloat(),
-                buf.readInt(), buf.readInt(), buf.readByte());
+                buf.readInt());
     }
 
     public void handleClient() {

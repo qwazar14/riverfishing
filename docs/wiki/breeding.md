@@ -127,25 +127,67 @@ Two slots, one block each. The same five blocks work [in the world](blocks.md#wa
 
 ## Which species cross with which
 
-A pair does not have to be one species. Eight pools are written, and each cross carries a **strength** that scales the clutch — you read it off the egg count.
+A pair does not have to be one species. Each cross carries a **strength** that scales the clutch — you read it off the egg count.
 
 | Pool | Strength |
 |---|---|
-| Carp · Sazan · Koi carp | 1.0 |
+| Carp · Wild carp · Koi carp | 1.0 |
 | Crucian carp · Golden crucian | 1.0 |
-| Beluga · Sterlet · Sturgeon | 0.8 |
 | Bream · White bream | 0.9 |
-| The four breams, every other pair | 0.2 |
-| Salmon · Trout · Arctic char | 0.5 |
+| Beluga · Sterlet · Sturgeon | 0.8 |
+| A pair that makes a hybrid — see below | 0.5 |
+| Atlantic salmon · Trout · Arctic char | 0.5 |
 | Zander · Volga zander | 0.35 |
 | Roach · Rudd | 0.35 |
 | Whitefish · Nelma | 0.3 |
+| Any other pair inside one family — the four breams among themselves and with roach and rudd, the four sunfish, the chars, the black basses, kaluga with beluga and sturgeon | 0.2 |
 
-The fry always take the **mother's** species and a genome from both parents, so a cross moves *blood* between species rather than making a third one. A sazan hen and a carp cock give sazan fry carrying the domestic scale alleles; the other way round gives carp with wild blood in them. Full table and the reasoning behind each number on [Genetics](genetics.md#which-species-cross-with-which).
+The fry take the mother's species and a genome from both parents, so a cross usually moves *blood* between species rather than making a third one. A wild-carp hen and a carp cock give wild-carp fry carrying the domestic scale alleles; the other way round gives carp with wild blood in them. Full table and the reasoning behind each number on [Genetics](genetics.md#which-species-cross-with-which).
 
 The **silver crucian is the exception**: her eggs need the milt and none of his genes, so her clutch is a copy of her whoever the father was.
 
-**Hybrids are the tank's fish.** Thirty species are crosses — bester, tiger trout, the sunfish and crappie hybrids, bream × roach, the tilapia hybrids and more — and a pair of the two parents in the tank gives the hybrid's roe. In wild water a hybrid is one fish in twenty-five of what its profile would otherwise be, so you will all but never take one blind; stocked and settled, it fishes like anything else. The catch card names the cross.
+### The thirty crosses
+
+Some pairs make a third thing. Where the two parents are one of the crosses below, the fry are **the hybrid itself** — a species of its own, with its own card, its own journal page and its own record — instead of the mother's.
+
+| Family | Hybrid | The pair that gives it |
+|---|---|---|
+| **Sturgeons** | Bester | Beluga sturgeon + Sterlet |
+|  | Kaluga-sterlet hybrid | Kaluga sturgeon + Sterlet |
+| **Carps and other cyprinids** | Bream × roach hybrid | Bream + Roach |
+|  | F1 hybrid carp | Carp + Crucian Carp |
+|  | Kuria labeo × catla hybrid | Kuria labeo + Catla |
+|  | Roach × rudd hybrid | Roach + Rudd |
+|  | Rohu × catla hybrid | Rohu + Catla |
+|  | Rohu × kuria labeo hybrid | Rohu + Kuria labeo |
+| **Salmon and trout** | Brook trout × bull trout hybrid | Brook trout + Bull trout |
+|  | Chinook × coho salmon hybrid | Chinook salmon + Coho salmon |
+|  | Chinook × pink salmon hybrid | Chinook salmon + Pink salmon |
+|  | Cutbow | Cutthroat trout + Rainbow trout |
+|  | Dolly Varden × bull trout hybrid | Dolly Varden trout + Bull trout |
+|  | Splake | Brook trout + Lake trout |
+| **Predators** | Largemouth × smallmouth bass hybrid | Largemouth bass + Smallmouth bass |
+|  | Meanmouth bass | Smallmouth bass + Spotted bass |
+|  | Saugeye | Sauger + Walleye |
+|  | Tiger muskellunge | Muskellunge + Northern pike |
+|  | Wiper | White bass + Striped bass |
+| **Sunfish and crappie** | Bluegill × redbreast sunfish hybrid | Bluegill + Redbreast sunfish |
+|  | Bluegill × redear sunfish hybrid | Bluegill + Redear sunfish |
+|  | Greengill sunfish | Bluegill + Green sunfish |
+|  | Hybrid crappie | Black crappie + White crappie |
+|  | Hybrid sunfish | Redear sunfish + Green sunfish |
+|  | Pumpkingill | Bluegill + Pumpkinseed |
+| **Catfish** | Hybrid catfish | Channel catfish + Blue catfish |
+| **Tilapia** | Hybrid tilapia | Nile tilapia + Blue tilapia |
+|  | Hybrid tilapia (blue × Mozambique) | Blue tilapia + Mozambique tilapia |
+|  | Red tilapia | Nile tilapia + Mozambique tilapia |
+| **Gars** | Longnose × alligator gar hybrid | Longnose gar + Alligator gar |
+
+Every one of them spawns at strength **0.5**, with two exceptions where the parents already shared a pool: beluga × sterlet keeps the sturgeons' **0.8** and roach × rudd keeps its **0.35**. Both parents must be adult, as for any spawn, and the tank does not care which of the two is the mother.
+
+In wild water a hybrid is one fish in twenty-five of what its profile would otherwise be, so you will all but never take one blind; [stocked](stocking.md) and settled, it fishes like anything else. The catch card names the cross, and the first one you land is *Neither One Nor the Other*.
+
+Most of them are Nearctic — the black basses, the sunfish and crappie, the Pacific salmon, the gars. The sturgeon crosses and the bream-and-roach crosses are Palearctic, the three Indian carps Indomalayan, and the tilapias Afrotropical.
 
 ## The pond grows itself
 

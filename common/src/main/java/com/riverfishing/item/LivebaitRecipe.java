@@ -17,9 +17,6 @@ import net.minecraft.world.level.Level;
  * BiteEngine's gate), so a ten-kilo bait is a bait for a fifty-kilo fish and nothing smaller.
  */
 public class LivebaitRecipe extends CustomRecipe {
-    /** §fly-rig keeps its own limit (RigMenu.flyTakes): a fly rod carries a baitfish, not a bream. */
-    public static final int MAX_WEIGHT_G = 150;
-
     public LivebaitRecipe(CraftingBookCategory category) {
         super(category);
     }

@@ -188,7 +188,9 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      */
     public static int HAND_SPACE = -1;
     private static int handSpaceLatch = 0;
-    private static boolean spaceDecided, spaceHasPrev;
+    private static boolean spaceDecided, spaceHasPrev, spaceSeeded;
+    /** §hand-space-watch: clear turns in a row that disagreed with the verdict in force. */
+    private static int spaceAgainst;
     private static final org.joml.Vector3f spaceTipPrev = new org.joml.Vector3f();
     private static final org.joml.Quaternionf spaceCamPrev = new org.joml.Quaternionf();
     /** What the deciding turn saw, for /rfrod tipinfo to show its work. */
@@ -405,7 +407,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // guess, and the frame the verdict lands on is a visible jump across the screen. Draw nothing
         // until it is known: handLineNanos stays stale meanwhile, so the world pass keeps the line on
         // screen and the switch never shows.
-        if (HAND_SPACE < 0 && !spaceDecided) {
+        if (HAND_SPACE < 0 && !spaceDecided && !spaceSeeded) {
             sampleHandSpace(new org.joml.Vector3f(TIP_VIEW[0], TIP_VIEW[1], TIP_VIEW[2]),
                     new org.joml.Quaternionf(cam0.rotation()));
             return;
@@ -447,6 +449,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         sampleHandSpace(tipV, q);
         int space = effectiveHandSpace();
         net.minecraft.world.phys.Vec3 tipW = tipWorld(tipV, cp, q, space);
+        own.lastTipW = tipW;   // §rod-anim: the line effects start from the tip that was really drawn
         double dx = tipW.x - end.x, dy = tipW.y - end.y, dz = tipW.z - end.z;
 
         // The hand and world projections genuinely disagree about where the tip is on screen, so the
@@ -571,14 +574,14 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
 
     /**
      * §hand-space: decides the reading by MEASURING what the camera does to the captured tip - and
-     * decides it ONCE. The two spaces differ in exactly one way: turn the head, and a tip held in eye
+     * decides it on a clear turn and keeps watching (§hand-space-watch). The two spaces differ in exactly one way: turn the head, and a tip held in eye
      * space does not move (the hand is pinned to the screen), while a tip in world-relative space
      * swings with the camera. So sample the tip and the camera, wait for a real turn, and ask which
-     * of the two the tip actually did. Either it followed the camera or it did not; once answered it
-     * is latched, so the line can never flip between two places mid-fight.
+     * of the two the tip actually did. Either it followed the camera or it did not; a verdict only
+     * changes after three clear turns against it, so the line cannot flip mid-fight on one noisy frame.
      */
     private static void sampleHandSpace(org.joml.Vector3f tipV, org.joml.Quaternionf q) {
-        if (spaceDecided || HAND_SPACE >= 0) return;
+        if (HAND_SPACE >= 0) return;   // pinned by /rfrod handspace view|world
         if (!spaceHasPrev) {
             spaceTipPrev.set(tipV);
             spaceCamPrev.set(q);
@@ -596,25 +599,46 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         spaceCamPrev.set(q);
         // Only a CLEAR answer counts; a close call means the turn was not telling, so wait for a better one.
         if (Math.min(dView, dWorld) * 2f > Math.max(dView, dWorld)) return;
-        handSpaceLatch = dWorld < dView ? 1 : 0;
-        spaceDecided = true;
         spaceEvidenceView = dView;
         spaceEvidenceWorld = dWorld;
-        // Persist it: the answer cannot change for a given install, so measuring it once per launch
-        // only buys one avoidable wobble per launch.
-        HAND_SPACE = handSpaceLatch;
-        RodClientSettings.save();
+        int reading = dWorld < dView ? 1 : 0;
+        // §hand-space-watch (1.1.0): AUTO keeps watching. The first clear turn decides; after that it takes
+        // three clear turns in a row against the verdict to change it, so the line cannot flip mid-fight on
+        // one noisy frame. It used to decide once and save the answer as a PIN — and a shaderpack switched
+        // on later moves the hand into the other space, so the line flew about until /rfrod handspace auto.
+        if (spaceDecided && reading == handSpaceLatch) {
+            spaceAgainst = 0;
+            return;
+        }
+        if (spaceDecided && ++spaceAgainst < 3) return;
+        spaceAgainst = 0;
+        handSpaceLatch = reading;
+        spaceDecided = true;
+        RodClientSettings.save();   // the next launch starts from this guess; it is never saved as a pin
     }
 
     /** §hand-space: re-open the question - /rfrod handspace auto starts the measurement over. */
     public static void resetHandSpace() {
         spaceDecided = false;
         spaceHasPrev = false;
+        spaceAgainst = 0;
     }
 
     /** §hand-space: the reading in force right now - pinned value, else the latched measurement. */
     public static int effectiveHandSpace() {
         return HAND_SPACE >= 0 ? HAND_SPACE : handSpaceLatch;
+    }
+
+    /** §hand-space-watch: the verdict in force, saved as the next launch's first guess — never as a pin. */
+    public static int handSpaceSeen() {
+        return handSpaceLatch;
+    }
+
+    /** §hand-space-watch: last launch's verdict, to draw with until the first clear turn confirms or corrects it. */
+    public static void seedHandSpace(int seen) {
+        if (seen < 0 || seen > 1) return;
+        handSpaceLatch = seen;
+        spaceSeeded = true;
     }
 
     /** §hand-space: what the last measurement saw - /rfrod tipinfo prints it. */
@@ -674,7 +698,8 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             float s = (float) Math.cbrt(ri.size() / 4000.0);
             float ax = (19.3f + 0.15f * s) / 16f - 0.5f;   // crank axis: the gear boss (19.45, 7.0)
             float ay = (9.55f - 2.55f * s) / 16f - 0.5f;
-            float deg = crankAngle(tension);
+            // §rod-anim: the local rod's handle turns with YOUR winding and backs off with the drag
+            float deg = tension >= 0f && RodAnim.ENABLED && localHeld(stack) ? RodAnim.crankDeg() : crankAngle(tension);
             pose.pushPose();
             pose.translate(ax, ay, 0);
             pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(deg));
@@ -705,6 +730,17 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
      */
     public static boolean drawPodBlank(ItemStack stack, PoseStack pose, MultiBufferSource buffers,
                                        int light, int overlay) {
+        return drawPodBlank(stack, pose, buffers, light, overlay, 0f, null);
+    }
+
+    /**
+     * §pod-anim: the docked rod BENT by {@code load} (a nod, a take, a run) — the same joints and shares the
+     * hand's chain bends by, all in the plane toward the guides, which on a pod is down toward the water.
+     * {@code track}, when given, is carried through the same joint turns, so on return it is the tip
+     * segment's frame and the pod's line can leave the tip that was really drawn.
+     */
+    public static boolean drawPodBlank(ItemStack stack, PoseStack pose, MultiBufferSource buffers,
+                                       int light, int overlay, float load, org.joml.Matrix4f track) {
         if (!BLANK_3D) return false;
         if (!(stack.getItem() instanceof RodItem rod)) return false;
         String rodKey = rod.rodType().modelKey();
@@ -715,21 +751,52 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         if (root == null) return false;
         ItemRenderer ir = mc.getItemRenderer();
         ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, root);
-        int joints = BLANK_JOINTS_X.getOrDefault(rodKey, NO_JOINTS).length;
-        for (int i = 1; i <= joints; i++) {
-            BakedModel seg = resolve(mm, missing, false, RodModelLayers.segment(rodKey, i));
-            if (seg != null) {
-                ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, seg);
-            }
-        }
-        drawReel3d(stack, rodKey, -1f, ir, mm, missing, pose, buffers, light, overlay); // resting crank
+        drawReel3d(stack, rodKey, -1f, ir, mm, missing, pose, buffers, light, overlay); // resting crank, in the unbent base frame
+        float[] joints = BLANK_JOINTS_X.getOrDefault(rodKey, NO_JOINTS);
         float[][] lp = guideLinePoints(stack, rodKey);
-        if (lp != null) {
-            org.joml.Vector3f[] thread = new org.joml.Vector3f[lp.length];
+        org.joml.Vector3f[] thread = lp == null ? null : new org.joml.Vector3f[lp.length];
+        if (load <= 0.001f) {
+            for (int i = 1; i <= joints.length; i++) {
+                BakedModel seg = resolve(mm, missing, false, RodModelLayers.segment(rodKey, i));
+                if (seg != null) {
+                    ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, seg);
+                }
+            }
             captureLineStage(thread, lp, pose, NO_JOINTS, 0);   // podded rod is straight: one stage
-            drawLinePath(buffers, thread, lineStyle(stack));
+        } else {
+            captureLineStage(thread, lp, pose, joints, 0);
+            float jy = BLANK_AXIS_Y / 16f - 0.5f, jz = BLANK_AXIS_Z / 16f - 0.5f;
+            pose.pushPose();
+            for (int i = 0; i < joints.length; i++) {
+                float jx = joints[i] / 16f - 0.5f;
+                float bendDeg = load * MAX_BEND_DEG * jointShare(i, joints.length);
+                pose.translate(jx, jy, jz);
+                pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(bendDeg));
+                pose.translate(-jx, -jy, -jz);
+                if (track != null) track.translate(jx, jy, jz).rotateZ((float) Math.toRadians(bendDeg)).translate(-jx, -jy, -jz);
+                BakedModel seg = resolve(mm, missing, false, RodModelLayers.segment(rodKey, i + 1));
+                if (seg != null) {
+                    ir.render(stack, ItemDisplayContext.NONE, false, pose, buffers, light, overlay, seg);
+                }
+                captureLineStage(thread, lp, pose, joints, i + 1);
+            }
+            pose.popPose();
         }
+        if (thread != null) drawLinePath(buffers, thread, lineStyle(stack));
         return true;
+    }
+
+    /**
+     * Is this stack the LOCAL player's held rod? Reference equality first; component equality as the fallback,
+     * because the first-person pass may still hold the stack from before the server's last rewrite of it.
+     */
+    static boolean localHeld(ItemStack stack) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return false;
+        ItemStack main = mc.player.getMainHandItem(), off = mc.player.getOffhandItem();
+        return stack == main || stack == off
+                || ItemStack.isSameItemSameComponents(stack, main)
+                || ItemStack.isSameItemSameComponents(stack, off);
     }
 
     /** §rod-bend: the line's break-risk 0..1 — the crank strain and the sprite buckets read this. */
@@ -855,6 +922,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         // then WHIPS forward on release (driven by the vanilla swing fired on a successful cast). Applied
         // in the arm frame (before the hand pose) so it pitches in the natural cast plane.
         applyCastAnim(pose, ctx);
+        if (ctx.firstPerson()) RodAnim.applyFirstPerson(pose);   // §rod-anim: equip, retrieve, strike, fight holds — the hands acting
         // The rod's hand pose lives in code (§rod-debug) so it can be tuned live with /rfrod; the
         // model's hand display is identity, so this IS the whole in-hand transform. No-op elsewhere.
         RodHandTransform.apply(pose, ctx, chainRoot != null, rodKey);
@@ -871,6 +939,8 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
             bend = liveBend();
             tension = liveTension();
             rodLoad = liveRodLoad(); // §rod-load: the chain bends off the blank's load, not break-risk
+            // §rod-anim: the load as it is DRAWN — beating with the fish's tail, bowed by a take on the tip
+            if (FORCE_BEND < 0 && !FlyLineClient.active()) rodLoad = RodAnim.displayLoad(rodLoad);
         }
 
         int layer = 0;

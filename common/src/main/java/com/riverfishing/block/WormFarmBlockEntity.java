@@ -65,6 +65,14 @@ public class WormFarmBlockEntity extends BlockEntity {
         }
     }
 
+    /** §farm-spill: the worms pop out when the farm is broken — they used to go with the block. */
+    void spill() {
+        if (level == null || level.isClientSide() || worms <= 0) return;
+        net.minecraft.world.level.block.Block.popResource(level, worldPosition,
+                new ItemStack(BuiltInRegistries.ITEM.get(com.riverfishing.RiverFishing.id("worm")), worms));
+        worms = 0;
+    }
+
     void collect(Player player) {
         if (worms <= 0) {
             player.displayClientMessage(Component.translatable("message.riverfishing.farm_empty")

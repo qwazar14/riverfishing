@@ -67,9 +67,22 @@ public final class KeepnetSale {
         }
         data.write(net);
         com.riverfishing.quest.AnglerAdvancements.grant(sp, "keepnet_sale");   // §progression
-        ItemStack pay = new ItemStack(Items.EMERALD, em);
-        if (!sp.getInventory().add(pay)) sp.drop(pay, false);
+        payEmeralds(sp, em);
         sp.displayClientMessage(Component.translatable("message.riverfishing.keepnet_sold", count, em).withStyle(ChatFormatting.GREEN), true);
         level.playSound(null, sp.blockPosition(), SoundEvents.VILLAGER_YES, SoundSource.PLAYERS, 0.8f, 1.1f);
+    }
+
+    /**
+     * §payout-stacks: emeralds paid in stacks of at most 64, into the inventory or at the feet. One stack of 180
+     * (a full keepnet on the order of the day) went to the ground on a full inventory — and a stack over 99 does
+     * not survive a save: the entity fails to write and the server with it.
+     */
+    public static void payEmeralds(net.minecraft.server.level.ServerPlayer sp, int emeralds) {
+        for (int left = emeralds; left > 0; ) {
+            int n = Math.min(left, Items.EMERALD.getDefaultMaxStackSize());
+            left -= n;
+            ItemStack pay = new ItemStack(Items.EMERALD, n);
+            if (!sp.getInventory().add(pay)) sp.drop(pay, false);
+        }
     }
 }

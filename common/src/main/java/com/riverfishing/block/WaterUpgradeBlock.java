@@ -43,7 +43,7 @@ public class WaterUpgradeBlock extends Block implements SimpleWaterloggedBlock {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final String FEEDING_STATION = "feeding_station";
     /** Groundbait per jar; a full station is {@link WaterUpgrades#MAX_CHARGES}. */
-    private static final int CHARGES_PER_JAR = 4;
+    static final int CHARGES_PER_JAR = 4;
 
     private final String kind;
     private final boolean inWater;

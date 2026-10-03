@@ -66,6 +66,7 @@ public final class ConfigLoader {
             RiverFishingConfig.consumeGroundbait = bool(o, "consume_groundbait", RiverFishingConfig.consumeGroundbait);
             RiverFishingConfig.updateCheck = bool(o, "update_check", RiverFishingConfig.updateCheck);
             RiverFishingConfig.flow = bool(o, "flow", RiverFishingConfig.flow);
+            RiverFishingConfig.alife = bool(o, "alife", RiverFishingConfig.alife);
             RiverFishingConfig.seasonDays = (int) num(o, "season_days", RiverFishingConfig.seasonDays, 3, 3000);
             com.riverfishing.engine.Calendar.setSeasonDays(RiverFishingConfig.seasonDays);
 

@@ -23,6 +23,14 @@ public final class ModBiomeTags {
     /** A sakura grove is a cherry grove by another name, and the koi do not read release notes. */
     public static final TagKey<Biome> IS_CHERRY =
             TagKey.create(Registries.BIOME, RiverFishing.id("is_cherry"));
+    /** Where reeds / cattails grow wild along the water (worldgen placed_feature patch_reed, patch_cattail). */
+    public static final TagKey<Biome> HAS_REEDS =
+            TagKey.create(Registries.BIOME, RiverFishing.id("has_reeds"));
+    public static final TagKey<Biome> HAS_CATTAILS =
+            TagKey.create(Registries.BIOME, RiverFishing.id("has_cattails"));
+    /** Where snag piles lie on the bed of fresh water (placed_feature snags) — scenery, not a player's upgrade. */
+    public static final TagKey<Biome> HAS_SNAGS =
+            TagKey.create(Registries.BIOME, RiverFishing.id("has_snags"));
 
     private ModBiomeTags() {}
 }

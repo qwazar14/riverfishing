@@ -18,6 +18,7 @@
     "MerchantOrderPanelMixin",
     "FightEdgeGuardMixin",
     "TooltipFrameMixin",
-    "RopeInputMixin"
+    "RopeInputMixin",
+    "RodNoDipMixin"
   ]
 }

@@ -28,21 +28,25 @@ import net.minecraft.world.item.Items;
  * shift-click that lets {@link #moveItemStackTo} pick the slot by those same filters.
  */
 public class AquariumMenu extends AbstractContainerMenu {
-    public static final int TANK_SLOTS = 12, DATA_SIZE = 11;   // §scale-genes: +1, the pair's varieties
+    public static final int TANK_SLOTS = 12, DATA_SIZE = 13;   // §scale-genes: +1, the pair's varieties; §aquarium-cabinet: +2, the pair's slots and the fry
     public static final int FISH_FIRST = 0, FISH_LAST = 5, FOOD = 6, GROUNDBAIT = 7, WATER = 8, RESULT = 9,
             MODULE_FIRST = 10, MODULE_LAST = 11;
     public static final int INV_START = TANK_SLOTS;
 
     // Menu = container order for the first twelve slots, so a menu index IS a container index here.
     /** Pixel positions of the tank slots, index-aligned with the table above; the screen texture is drawn on them. */
+    // §aquarium-cabinet (1.1.0): the fish sit apart — 6 px across, 8 between the rows — so the pair's line
+    // has a gutter to run in. tools/gen_aquarium_gui.py draws each well one pixel up and left of these.
     public static final int[][] SLOT_XY = {
-            {44, 20}, {62, 20}, {80, 20}, {44, 38}, {62, 38}, {80, 38}, // fish 3×2
-            {8, 66},    // food
-            {30, 66},   // groundbait
-            {8, 20},    // water
-            {126, 29},  // result
-            {152, 20}, {152, 38} // modules
+            {71, 24}, {95, 24}, {119, 24}, {71, 48}, {95, 48}, {119, 48}, // fish 3×2
+            {17, 105},  // food
+            {37, 105},  // groundbait
+            {17, 25},   // water
+            {202, 84},  // result
+            {173, 29}, {197, 29} // modules
     };
+    /** Where the inventory's first slot sits; rows are 18 apart and the hotbar 58 below the first row. */
+    public static final int INV_X = 35, INV_Y = 163;
 
     private final Container tank;
     private final ContainerData data;
@@ -55,7 +59,15 @@ public class AquariumMenu extends AbstractContainerMenu {
         this.data = data;
         tank.startOpen(inv.player);
 
-        for (int i = FISH_FIRST; i <= FISH_LAST; i++) addSlot(filtered(i, AquariumMenu::isCardedFish, 1));
+        for (int i = FISH_FIRST; i <= FISH_LAST; i++) {
+            addSlot(new Slot(tank, i, SLOT_XY[i][0], SLOT_XY[i][1]) {
+                // §incubator: roe and fish do not share a tank — none goes in while the cup holds roe or fry
+                @Override public boolean mayPlace(ItemStack s) { return isCardedFish(s) && !cupHolds(); }
+                @Override public int getMaxStackSize() { return 1; }
+                // …and while it incubates in an empty tank, the fish slots step aside for the incubator
+                @Override public boolean isActive() { return !incubatorMode(); }
+            });
+        }
         addSlot(filtered(FOOD, AquariumMenu::isFood, 64));
         addSlot(filtered(GROUNDBAIT, s -> s.getItem() instanceof GroundbaitItem, 64));
         addSlot(filtered(WATER, s -> s.is(Items.WATER_BUCKET), 1));
@@ -67,10 +79,10 @@ public class AquariumMenu extends AbstractContainerMenu {
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(inv, col + row * 9 + 9, 8 + col * 18, 140 + row * 18));
+                addSlot(new Slot(inv, col + row * 9 + 9, INV_X + col * 18, INV_Y + row * 18));
             }
         }
-        for (int col = 0; col < 9; col++) addSlot(new Slot(inv, col, 8 + col * 18, 198));
+        for (int col = 0; col < 9; col++) addSlot(new Slot(inv, col, INV_X + col * 18, INV_Y + 58));
 
         addDataSlots(data);
     }
@@ -94,6 +106,23 @@ public class AquariumMenu extends AbstractContainerMenu {
         };
     }
 
+    /** §incubator: roe or fry in the result cup. */
+    public boolean cupHolds() {
+        Item it = tank.getItem(RESULT).getItem();
+        return it instanceof com.riverfishing.item.RoeItem || it instanceof com.riverfishing.item.FryItem;
+    }
+
+    /** §incubator: roe or fry in the cup and not a fish in the tank — the window is an incubator now. */
+    public boolean incubatorMode() {
+        for (int i = FISH_FIRST; i <= FISH_LAST; i++) if (!tank.getItem(i).isEmpty()) return false;
+        return cupHolds();
+    }
+
+    /** A tank slot's stack, for the window's drawings (the sex rings, the cup's count). */
+    public ItemStack tankItem(int i) {
+        return tank.getItem(i);
+    }
+
     static boolean isCardedFish(ItemStack s) {
         return s.getItem() instanceof FishItem && CatchCard.has(s) && !com.riverfishing.item.CookedFish.isCooked(s);   // §cooking
     }
@@ -109,7 +138,7 @@ public class AquariumMenu extends AbstractContainerMenu {
                 || s.is(ModBlocks.FEEDING_STATION.get().asItem());
     }
 
-    /** The ten ints of the contract (status, spawn day, incubation day/total, feed ticks, water, window, fish, clutch). */
+    /** The ints of the contract (docs/design/breeding-api.md, Layer 4). */
     public int data(int i) {
         return data.get(i);
     }

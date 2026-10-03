@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "riverfishing:pea_pod" }
+  ],
+  "result": { "id": "riverfishing:pea", "count": 4 }
+}

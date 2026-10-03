@@ -338,12 +338,19 @@ script developed on a scratch copy, because C may touch its update tag at the sa
 `getFishes()` keeps returning the non-empty fish stacks (the renderer uses it). Fields `roe`
 (ItemStack, = slot 9) and `incubate` (long) keep their names and meaning for stream C.
 
-## ContainerData (B fills, A reads) — 10 ints
+## ContainerData (B fills, A reads) — 13 ints
 0 status (ordinal of `AquariumBreeding.Status`: EMPTY, NO_PAIR, NOT_MATURE, OUT_OF_SEASON, HUNGRY,
 BAD_WATER, SPAWNING, ROE_READY, INCUBATING, FRY_READY, BUSY), 1 spawn day (0..3), 2 incubation day,
-3 incubation days total (4 or 8), 4 ticks until the next feeding (0..24000; 0 = starving),
-5 water 0..100, 6 window season ordinal, 7 window sub ordinal (-1 = whole season), 8 fish count,
-9 clutch preview (eggs the current pair would give, 0 when none).
+3 incubation days total (4 or 8), 4 SECONDS until the next feeding (0 = starving; §aq-feed 1.1.0 — a
+container int travels as a short, so ticks overflowed on fish meal's three days), 5 water 0..100,
+6 window season ordinal, 7 window sub ordinal (-1 = whole season), 8 fish count, 9 clutch preview (eggs
+the current pair would give, 0 when none), 10 the pair's carp varieties (♀ | ♂ << 8), 11 the pair's
+SLOTS (♀ + 1 | ♂ + 1 << 4, 0 = no pair — the window joins them), 12 the fry the roe in slot 9 will hatch
+into (0 when there is no roe).
+
+§incubator (1.1.0): the fish slots refuse a fish while slot 9 holds roe or fry (menu AND
+`canPlaceItem`, so a hopper cannot either), and in an empty tank with roe or fry in slot 9 they are
+inactive — the window draws the incubator where they were.
 
 ## Rules (B)
 - Feeding: `fedUntil` world time. When it lapses and slot 6 or 7 has food, one unit is taken and

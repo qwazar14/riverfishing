@@ -106,7 +106,7 @@ public class TackleBoxScreen extends AbstractContainerScreen<TackleBoxMenu> {
     @Override
     public boolean keyPressed(int key, int scan, int mods) {
         // While the name field has focus, E must type an "e" rather than slamming the screen shut.
-        if (nameField != null && nameField.isFocused() && key != 256) {
+        if (nameField != null && nameField.isFocused() && key != com.mojang.blaze3d.platform.InputConstants.KEY_ESCAPE) {
             return nameField.keyPressed(key, scan, mods) || nameField.canConsumeInput()
                     || super.keyPressed(key, scan, mods);
         }

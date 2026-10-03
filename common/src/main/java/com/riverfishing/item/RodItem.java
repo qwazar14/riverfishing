@@ -39,6 +39,21 @@ public class RodItem extends Item {
 
     public RodType rodType() { return rodType; }
 
+    /**
+     * §rod-anim: the server rewrites a rod's data all through a session (wear, bait, the fight), and each rewrite
+     * dropped the rod out of the hands and brought it back up. The rod's own motion is RodAnim's now, so the same
+     * rod staying in the same hand never re-equips. Two loader hooks with one answer, both plain methods here
+     * (common code cannot name either interface): Fabric's FabricItem#allowComponentsUpdateAnimation and
+     * NeoForge's IItemExtension#shouldCauseReequipAnimation — each loader overrides the one it knows.
+     */
+    public boolean allowComponentsUpdateAnimation(Player player, InteractionHand hand, ItemStack oldStack, ItemStack newStack) {
+        return false;
+    }
+
+    public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+        return slotChanged || oldStack.getItem() != newStack.getItem();
+    }
+
     // §multiloader: the composited rod icon (§rod-layers) is a custom item renderer registered per platform
     // in the client bootstrap (Forge IClientItemExtensions / Fabric BuiltinItemRendererRegistry) — no longer
     // via Forge's Item#initializeClient, which doesn't exist on the vanilla/common Item.
@@ -77,6 +92,9 @@ public class RodItem extends Item {
         } else {
             sessionAction = dev.architectury.utils.EnvExecutor.getEnvSpecific(
                     () -> () -> com.riverfishing.client.ClientLineState.active(), () -> () -> false);
+            // §rod-anim: what the click LOOKS like — a turn of the handle, a twitch, a hookset
+            if (sessionAction) dev.architectury.utils.EnvExecutor.runInEnv(net.fabricmc.api.EnvType.CLIENT,
+                    () -> () -> com.riverfishing.client.RodAnim.click());
         }
         // §click-retrieve (0.5.1): with a LIVE session every CLICK is a crank/twitch — the lure game
         // (handled in handleRodUse; gaps between clicks ARE the lure action). No item-use hold during
@@ -227,8 +245,12 @@ public class RodItem extends Item {
         }
         // §reel-hint: a reel-less blank tells you which reel sizes spool onto it.
         if (rodType.takesReel() && RodData.get(stack, ComponentSlot.REEL).isEmpty()) {
-            tooltip.add(Component.translatable("tooltip.riverfishing.rod_reel_sizes",
-                    rodType.minReel(), rodType.maxReel()).withStyle(ChatFormatting.DARK_AQUA));
+            // §fly-reel-hint: a fly blank seats the fly reel of its own class and nothing else — the size
+            // window was a spinning rod's, and it told a #9 owner that a #9 reel (size 8000) would not fit
+            tooltip.add((rodType.isFly()
+                    ? Component.translatable("tooltip.riverfishing.rod_reel_fly", rodType.flyWeight())
+                    : Component.translatable("tooltip.riverfishing.rod_reel_sizes", rodType.minReel(), rodType.maxReel()))
+                    .withStyle(ChatFormatting.DARK_AQUA));
         }
         appendComponentLine(stack, ComponentSlot.REEL, tooltip);
         appendComponentLine(stack, ComponentSlot.LINE, tooltip);

@@ -68,90 +68,133 @@ public final class ClientLineState {
         public boolean wasInAir;         // for the splash on the way out and the way back
         /** §hooked-fish: client game time the take began, -1 when none is on — the body climbs over its first eight ticks. */
         public long riseStart = -1;
+        /**
+         * §fight-moves: the fish's bearing round the rod, the server's and the drawn one (radians, − = the angler's
+         * left), the move under way, and where the rod holds the line. The fish is the line's end turned round
+         * that point — so a run that takes line carries it OUT, and a side run swings it round.
+         */
+        public float swing, swingShown;
+        public byte move;
+        public net.minecraft.world.phys.Vec3 pivot;
+        /** Where the body was drawn last — the lift-out and the getaway start from here. */
+        public net.minecraft.world.phys.Vec3 lastFishAt;
+        private net.minecraft.world.phys.Vec3 prevAt;
+        /** Eased: 0 upright, 75 on its side — a beaten fish, or a plank. */
+        public float roll;
+        /** §fight-depth: where the bait hung and where the bed is, blocks under the surface (0 = not told). */
+        public float hookDepth, bottomDepth;
+        /** A beaten fish stays on its side through a twitch; only a real run or a breach rights it. */
+        private boolean beatenShown;
+        private float runFor;
+
+        /** §fight-depth: how deep the body is drawn on the take — at the bait. */
+        public float takeDepth() {
+            return Math.max(0.05f, hookDepth);
+        }
 
         /**
          * §hooked-fish: one frame of the body. {@code fwd} points from the angler to the water end,
          * horizontal and unit; {@code side} is its left-hand perpendicular — "LEFT" on a course means
          * the angler's left, which is what the rod lean and the bar already mean by it.
          */
-        /** A point in the world: is it water? The client's level answers; the body never leaves it. */
-        public interface WaterTest { boolean at(double x, double y, double z); }
-
         public double swimSpeed;         // blocks/s this frame — ramps, so a run starts like a fish, not a bullet
 
-        public void tickFish(float dt, double fwdX, double fwdZ, WaterTest water, net.minecraft.world.phys.Vec3 base) {
+        public void tickFish(float dt, double fwdX, double fwdZ, net.minecraft.world.phys.Vec3 base, net.minecraft.world.phys.Vec3 pivot) {
+            this.pivot = pivot;
             if (!fighting || species.isEmpty()) {
-                if (biting && !species.isEmpty()) heading = (float) Math.atan2(fwdZ, fwdX);   // §hooked-fish: a fish on the take faces away from the angler
-                fx *= Math.max(0f, 1f - dt * 4f); fy *= Math.max(0f, 1f - dt * 4f); fz *= Math.max(0f, 1f - dt * 4f);
+                boolean taking = biting && !species.isEmpty();
+                if (taking) heading = (float) Math.atan2(fwdZ, fwdX);   // §hooked-fish: a fish on the take faces away from the angler
+                fx *= Math.max(0f, 1f - dt * 4f); fz *= Math.max(0f, 1f - dt * 4f);
+                // §fight-depth: on the take it is down at the bait, so the hookset starts the fight from there
+                fy = taking ? -takeDepth() : fy * Math.max(0f, 1f - dt * 4f);
+                beatenShown = false;
+                runFor = 0f;
                 jumpT = -1f;
+                swingShown = swing;
+                prevAt = null;
                 return;
             }
-            double sideX = -fwdZ, sideZ = fwdX;
-            // where the fish is trying to be: a run pulls it out along its course, rest leaves it
-            // hanging just under the surface a little beyond the line's end
-            // how far a run can take it: a big fish farther, a tired one less — and a SHORT line less: near
-            // the bank the angler holds most of the string, and the fish can only take what is left
+            fx = fz = 0.0;   // §fight-moves: the bearing carries it now, not an offset off the line's end
+            // the server moves the bearing at a fish's pace every tick and says so every fifth: follow it smoothly
+            swingShown = Mth.lerp(Math.min(1f, dt * 5f), swingShown, swing);
+            boolean charging = move == com.riverfishing.fishing.FightMoves.CHARGE || move == com.riverfishing.fishing.FightMoves.CHARGE_SLACK;
+            // beaten: on its side and towed in — and it stays so through a twitch of the line (the server's short
+            // runs and head-shakes flipped it upright and back every second); a real run or a breach rights it
+            runFor = running ? runFor + dt : 0f;
+            if (move == com.riverfishing.fishing.FightMoves.PLANK || (fatigue >= 0.75f && smoothProgress >= 0.7f && !running)) beatenShown = true;
+            else if (runFor > 0.5f || jumping || fatigue < 0.6f) beatenShown = false;
+            boolean beaten = beatenShown;
+            // §fight-depth: how deep. It fights down where it took the bait, and towards the bed, and comes up only as
+            // it tires and nears the bank; a dive or a sulk goes to the bottom, the weed holds it under, a charging or
+            // jump-bound fish rides high, a beaten one lies on the surface. Never below the bed at the cast.
+            float bottom = bottomDepth > 0f ? bottomDepth : 3f, hook = hookDepth > 0f ? hookDepth : 0.2f;
+            double deep = Math.min(bottom, Math.max(hook, Math.min(bottom * 0.6, 3.0)));
+            double up = Mth.clamp(fatigue * 0.9 + smoothProgress * 0.5, 0.0, 1.0);
+            double rest = Mth.lerp(up * up, deep, 0.2);
             double reach = Mth.clamp(2.5 + lengthCm / 50.0, 2.0, 6.0) * (1.0 - 0.45 * fatigue)
                     * (0.3 + 0.7 * (1.0 - Mth.clamp(smoothProgress, 0f, 1f)));
-            // at rest it does not swim home: it holds where the run left it, just under, and the reel
-            // brings it in — the line's end itself walks to the bank with progress
-            double tx = fx, ty = -0.2, tz = fz, tPitch = 0f;
-            if (running && course == 1) { tx = -sideX * reach; tz = -sideZ * reach; ty = -0.5; }
-            else if (running && course == 2) { tx = sideX * reach; tz = sideZ * reach; ty = -0.5; }
-            else if (running && course == 3) { tx = fwdX * reach * 0.5; tz = fwdZ * reach * 0.5; ty = -reach * 0.8; tPitch = 28f; }
-            else if (running && course == 4) { tx = fwdX * reach * 0.4; tz = fwdZ * reach * 0.4; ty = -0.1; tPitch = -25f; }
-            else if (running) { tx = fwdX * reach * 0.7; tz = fwdZ * reach * 0.7; ty = -0.6; }   // a course-less surge: straight away
+            double ty = -rest;
+            float tPitch = 0f;
+            if (move == com.riverfishing.fishing.FightMoves.SULK || (running && course == 3)) { ty = -Math.min(bottom, Math.max(rest, reach * 0.8)); tPitch = 28f; }
+            else if (move == com.riverfishing.fishing.FightMoves.WEEDED) ty = -Math.min(bottom, Math.max(rest, 0.7));
+            else if (running && course == 4) { ty = -0.1; tPitch = -25f; }
+            else if (charging || move == com.riverfishing.fishing.FightMoves.TORPEDO) ty = -Math.min(rest, 0.3);
+            else if (running) ty = -Math.min(bottom, rest + 0.4);
+            if (beaten) ty = -0.02;
             // a breach: an arc over three quarters of a second, then back to the surface
             if (jumping && jumpT < 0f) jumpT = 0f;
             if (jumpT >= 0f) {
                 jumpT += dt / 0.75f;
                 if (jumpT >= 1f) jumpT = jumping ? 0.999f : -1f;
             }
-            // §fish-speed: a run is a SWIM, not a lerp — the body moves toward where it is going at a
-            // fish's pace (a big fish is faster; a tired one slower) and never jumps blocks in a frame.
-            // §line-snag: held on a block — the body stays where the line stopped it, and strains.
-            double ox = fx, oz = fz;
-            double ddx = tx - fx, ddz = tz - fz, dd = Math.sqrt(ddx * ddx + ddz * ddz);
-            // §fish-accel: the pace it WANTS, and the pace it HAS — a run builds over a third of a second
-            // and dies the same way, so the body never snaps between standing and full speed
-            double pace = dd < 0.05 || snagged ? 0.0 : (running ? 2.2 + lengthCm / 60.0 : 0.6) * (1.0 - 0.4 * fatigue);
-            swimSpeed += (pace - swimSpeed) * Math.min(1.0, dt * 3.0);
-            double step = Math.min(dd, swimSpeed * dt);
-            if (dd > 1e-6 && step > 0.0) {
-                double nx = fx + ddx / dd * step, nz = fz + ddz / dd * step;
-                // §fish-water: it swims where there is water to swim in; the bank stops a run cold
-                if (water == null || water.at(base.x + nx, base.y + fy, base.z + nz)) { fx = nx; fz = nz; }
-                else swimSpeed = 0.0;
-            }
             fy = Mth.lerp(Math.min(1f, dt * 2.2f), fy, ty);
-            // a head-shake, or straining on a snag: a sideways shudder at a fish's rate — a few beats a
+            // a head-shake, the weed, or straining on a snag: a sideways shudder at a fish's rate — a few beats a
             // second, wider on a big fish — a DISPLAY offset, never folded into the eased position
-            // (folded in, a held fish crept sideways every frame)
-            double j = (shaking || snagged) ? Math.sin(tail * 2.4) * (0.10 + lengthCm / 700.0) : 0.0;
+            // §candle: a fish in the air shakes its head to throw the hook — the same shudder
+            double sideX = -fwdZ, sideZ = fwdX;
+            double j = (shaking || snagged || move == com.riverfishing.fishing.FightMoves.WEEDED || jumpT >= 0f)
+                    ? Math.sin(tail * 2.4) * (0.10 + lengthCm / 700.0) : 0.0;
             jx = sideX * j; jz = sideZ * j;
             double jumpY = jumpT >= 0f ? Math.sin(Math.PI * jumpT) * (1.0 + lengthCm / 120.0) : 0.0;
-            if (jumpT >= 0f) { fy = Math.max(fy, -0.05) ; tPitch = jumpT < 0.5f ? -40f : 25f; }
-            // heading: the way it moved this frame when it moved, else away from the angler
-            double vx = fx - ox, vz = fz - oz;
-            float want = (vx * vx + vz * vz) > 1e-6 ? (float) Math.atan2(vz, vx) : (float) Math.atan2(fwdZ, fwdX);
+            // §candle: it leaves the water standing on its tail, hangs near-vertical at the top
+            // and only tips over on the way down — hence the squared term rather than a flat flip.
+            if (jumpT >= 0f) { fy = Math.max(fy, -0.05) ; tPitch = -78f + 140f * jumpT * jumpT; }
+            // heading: at the rod when it charges or is towed in beaten; else the way it moved; else away
+            net.minecraft.world.phys.Vec3 at = com.riverfishing.fishing.FightMoves.swung(pivot, base, swingShown);
+            double vx = prevAt == null ? 0 : at.x - prevAt.x, vz = prevAt == null ? 0 : at.z - prevAt.z;
+            prevAt = at;
+            float want = charging || beaten ? (float) Math.atan2(pivot.z - at.z, pivot.x - at.x)
+                    : (vx * vx + vz * vz) > 1e-6 ? (float) Math.atan2(vz, vx)
+                    : (float) Math.atan2(at.z - pivot.z, at.x - pivot.x);
             float d = want - heading;
             while (d > Math.PI) d -= (float) (2 * Math.PI);
             while (d < -Math.PI) d += (float) (2 * Math.PI);
-            heading += d * Math.min(1f, dt * (running ? 6f : 3f));
-            pitch = Mth.lerp(Math.min(1f, dt * 6f), pitch, (float) tPitch);
-            tail += dt * (running ? 13f : 6f) * (1f - 0.5f * fatigue);
+            heading += d * Math.min(1f, dt * (running || charging ? 6f : 3f));
+            pitch = Mth.lerp(Math.min(1f, dt * 6f), pitch, tPitch);
+            // a flatfish is drawn lying flat already: rolled again it would stand on its edge
+            float lie = beaten && jumpT < 0f && !com.riverfishing.fish.FishPose.isFlat(species) ? 75f : 0f;
+            roll = Mth.lerp(Math.min(1f, dt * 3f), roll, lie);
+            tail += dt * (running || charging ? 13f : beaten ? 3f : 6f) * (1f - 0.5f * fatigue);
             fyJump = (float) jumpY;
+            lastFishAt = at.add(jx, fy + fyJump, jz);
         }
 
         /** The breach's lift above the eased offset — kept apart so the arc is not eased away. */
         public float fyJump;
         public double jx, jz;            // the shudder, this frame
+        /** §rod-anim: where the line left the rod tip last frame (world), and LineFx's per-tick memory. */
+        public net.minecraft.world.phys.Vec3 lastTipW;
+        long fxTick;
+        float fxTaut;
+        net.minecraft.world.phys.Vec3 fxEntry;
         /** §line-calm: the kink as DRAWN — chases the clipped point instead of jumping to it. */
         public net.minecraft.world.phys.Vec3 kinkShown;
 
         /** Where the body is this frame, given the line's water end. */
         public net.minecraft.world.phys.Vec3 fishAt(net.minecraft.world.phys.Vec3 end) {
-            return end.add(fx + jx, fy + fyJump, fz + jz);
+            net.minecraft.world.phys.Vec3 at = pivot == null || !fighting ? end
+                    : com.riverfishing.fishing.FightMoves.swung(pivot, end, swingShown);   // §fight-moves
+            return at.add(fx + jx, fy + fyJump, fz + jz);
         }
 
         /** Eases the rendered progress toward the server value; call once per frame. */
@@ -183,14 +226,28 @@ public final class ClientLineState {
                 // was the "it is coming at you" read from before the fish was drawn; the body is that
                 // read now, and a two-block loop of string on a resting fish was all the belly said.
                 boolean hooked = !species.isEmpty();
-                tautTarget = running ? 1f
+                // §fight-moves: a fish coming at you faster than the reel takes line — the one slack a hooked line shows
+                boolean slack = move == com.riverfishing.fishing.FightMoves.CHARGE_SLACK;
+                tautTarget = slack ? 0f : running ? 1f
                         : Math.max(hooked ? 0.6f : 0f, smoothstep(Mth.clamp((smoothTension - 0.02f) / 0.33f, 0f, 1f)));
-                slackTarget = running || hooked ? 0f : Mth.clamp((0.10f - smoothTension) / 0.10f, 0f, 1f);
+                slackTarget = slack ? 0.8f : running || hooked ? 0f : Mth.clamp((0.10f - smoothTension) / 0.10f, 0f, 1f);
+                // §rod-anim: a fish in the air takes the pull off — slack while it flies, snapped tight when it lands
+                if (jumpT >= 0f && jumpT < 0.85f) { tautTarget = 0.05f; slackTarget = 0.5f; }
+            } else if (isOwn()) {
+                // §line-retrieve: winding draws the line straight to the lure; a pause lets it belly
+                int r = RodAnim.retrieveLine();
+                if (r == 1) tautTarget = 0.55f;
+                else if (r == 2) slackTarget = 0.5f;
             }
             float kUp = Math.min(1f, frameSeconds * 12f);   // a jerk snaps the line tight
             float kDown = Math.min(1f, frameSeconds * 3f);  // slack develops at cable speed
             dispTaut = Mth.lerp(tautTarget > dispTaut ? kUp : kDown, dispTaut, tautTarget);
             dispSlack = Mth.lerp(slackTarget > dispSlack ? kDown : kUp, dispSlack, slackTarget);
+        }
+
+        private boolean isOwn() {
+            Minecraft mc = Minecraft.getInstance();
+            return mc.player != null && LINES.get(mc.player.getId()) == this;
         }
 
         private static float smoothstep(float s) {
@@ -236,6 +293,9 @@ public final class ClientLineState {
         line.shaking = p.shaking;
         line.fatigue = p.fatigue;
         line.snagged = p.snagged;
+        line.swing = p.swing;   // §fight-moves
+        line.move = p.move;
+        if (p.bottomDepth > 0f) { line.hookDepth = p.hookDepth; line.bottomDepth = p.bottomDepth; }   // §fight-depth
         line.lastUpdate = Minecraft.getInstance().level != null
                 ? Minecraft.getInstance().level.getGameTime() : 0;
     }

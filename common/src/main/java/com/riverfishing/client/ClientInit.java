@@ -26,13 +26,14 @@ public final class ClientInit {
 
     /** Fabric client entry: everything at once â registry objects are already bound by init time. */
     public static void init() {
-        RodClientSettings.load();   // §rod-client-settings: /rfrod toggles survive relaunches
         registerEvents();
         registerRenderers();
     }
 
     /** Event listeners only â safe during Forge mod construction (nothing calls {@code .get()}). */
     public static void registerEvents() {
+        RodClientSettings.load();   // §rod-client-settings: /rfrod toggles survive relaunches (both loaders pass here)
+        FinderHudSettings.load();   // §finder-hud-settings
         // §s2c-split + update hooks: S2C packet receivers are CLIENT-only (dedicated servers crash on
         // the dist-stripped receiver path — see ModNetwork).
         com.riverfishing.network.ModNetwork.registerClientReceivers();
@@ -63,8 +64,6 @@ public final class ClientInit {
 
         // /rfrod live pose debugger (Forge RegisterClientCommandsEvent â Architectury client command).
         ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> RodDebugCommand.register(dispatcher));
-        // §keepnet-tune: live sizing for the fish in the grid, dialled in with the box open.
-        ClientCommandRegistrationEvent.EVENT.register((dispatcher, registry) -> KeepnetDebugCommand.register(dispatcher));
 
         // Platform-only event hooks (in-world line render + extra-model bake) â no registry objects.
         ClientPlatform.registerExtraModels();
@@ -87,6 +86,10 @@ public final class ClientInit {
 
         // Â§lure-color: tint provider for painted lures (needs the items bound, so it lives here).
         ClientPlatform.registerItemColors();
+        // §boilie-look: a dipped boilie draws the dripping model (models/item/boilie.json overrides on this)
+        dev.architectury.registry.item.ItemPropertiesRegistry.register(com.riverfishing.registry.ModItems.BOILIE.get(),
+                com.riverfishing.RiverFishing.id("dipped"),
+                (stack, level, entity, seed) -> com.riverfishing.item.BoilieItem.read(stack).dip() != null ? 1f : 0f);
 
         // Non-solid block render layers (aquarium glass, ice hole, bait trap) â Fabric only; Forge reads
         // "render_type" from the model. Needs the blocks bound, so it lives here with the renderers.

@@ -227,11 +227,6 @@ public final class StockedData extends SavedData {
         return brood.computeIfAbsent(key(region, species), k -> new CompoundTag());
     }
 
-    /** The old six-argument call: a fish whose weight the caller never had. §lm */
-    public void addBrood(long region, String species, int sex, long day, String genome, java.util.UUID owner) {
-        addBrood(region, species, sex, day, genome, owner, 0);
-    }
-
     /**
      * sex: 0 ♀, 1 ♂ (Card.Sex), -1 unknown — an old or villager-bought fish has no card and fills whichever side the pair is missing.
      *
@@ -438,20 +433,6 @@ public final class StockedData extends SavedData {
             setDirty();
         }
         return take;
-    }
-
-    /** The species with the most fry in a region, or null — what a fry net pulls up first. */
-    public String richestFry(long region) {
-        String best = null;
-        int most = 0;
-        String prefix = region + "|";
-        for (Map.Entry<String, CompoundTag> e : brood.entrySet()) {
-            if (e.getKey().startsWith(prefix) && e.getValue().getInt("Fry") > most) {
-                most = e.getValue().getInt("Fry");
-                best = e.getKey().substring(prefix.length());
-            }
-        }
-        return best;
     }
 
     // ---- §h §breeding (0.9.0): the population's genome is an AVERAGE, not the last writer -----------
@@ -727,14 +708,6 @@ public final class StockedData extends SavedData {
         return out;
     }
 
-    /** Days since the species' window last closed, 0 on the closing day. Calendar arithmetic, like Due. */
-    private static int sinceClose(ServerLevel level, com.riverfishing.fish.FishProfile p) {
-        int start = p.spawnSeason.ordinal() * com.riverfishing.engine.Calendar.SEASON_DAYS
-                + (p.spawnSub == null ? 0 : p.spawnSub.ordinal() * com.riverfishing.engine.Calendar.SUB_DAYS);
-        int len = p.spawnSub == null ? com.riverfishing.engine.Calendar.SEASON_DAYS : com.riverfishing.engine.Calendar.SUB_DAYS;
-        return Math.floorMod(com.riverfishing.engine.Calendar.dayOfYear(level) - (start + len), com.riverfishing.engine.Calendar.YEAR_DAYS);
-    }
-
     /**
      * Days until the next growth tick, 1..24 — the farm view's "grows in". §lm: growth is per SEASON now,
      * so this counts to the next season boundary of the same world-day clock growIfDue runs on (not
@@ -749,6 +722,8 @@ public final class StockedData extends SavedData {
 
     /** Every farm species in the region the position is in — the per-player tick's call. */
     public void growAround(ServerLevel level, BlockPos pos) {
+        // §alife: every fish lives, grows and breeds in the living water now; this book is only read once, to migrate
+        if (com.riverfishing.config.RiverFishingConfig.alife()) return;
         // §grow-around-9 (1.0.0): the region the player stands in AND the eight around it — a brood five
         // blocks over a region border waited for somebody to stand on its side of the line.
         for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++) {
@@ -855,6 +830,16 @@ public final class StockedData extends SavedData {
         if (list.isEmpty()) return null;
         int at = rng.nextInt(list.size());
         return list.getCompound(at).copy();
+    }
+
+    /** §alife-pond: copies of every fish the old roster remembers — what a living pond is built from, once. */
+    public java.util.List<CompoundTag> fishRecords(long region, String species) {
+        java.util.List<CompoundTag> out = new java.util.ArrayList<>();
+        CompoundTag t = brood.get(key(region, species));
+        if (t == null) return out;
+        ListTag list = t.getList("Fish", Tag.TAG_COMPOUND);
+        for (int i = 0; i < list.size(); i++) out.add(list.getCompound(i).copy());
+        return out;
     }
 
     /** How many fish the pond remembers of this species — the recorded part of the head count. */

@@ -66,7 +66,8 @@ public class FlyPacket implements ModNetwork.RfPacket {
     public void handleServer(NetworkManager.PacketContext ctx) {
         if (ctx.getPlayer() instanceof ServerPlayer sp) {
             // Never further than a long line from the angler — anything else is not a fly.
-            if (sp.distanceToSqr(x, y, z) > 40.0 * 40.0) return;
+            // §fly-trust: NaN passes a "greater than" and lands the fly at 0,0,0, loading the chunk there
+            if (!Float.isFinite(x) || !Float.isFinite(y) || !Float.isFinite(z) || !(sp.distanceToSqr(x, y, z) <= 40.0 * 40.0)) return;
             com.riverfishing.fishing.FishingManager.flyUpdate(sp,
                     mainHand ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, x, y, z, flags, presentation, landSpeed);
         }

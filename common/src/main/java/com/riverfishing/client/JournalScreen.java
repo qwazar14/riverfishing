@@ -53,8 +53,6 @@ public class JournalScreen extends Screen {
     private static final String[] SPECIES = java.util.Arrays.stream(ModItems.FISH_SPECIES)
             .filter(sp -> !com.riverfishing.fish.Genome.isKoiId(sp) || "koi_carp".equals(sp))
             .toArray(String[]::new);
-    private static final int ROW_H = 16;
-    private static final int GRID_TOP = 54;
     // §journal-room (0.8.0): the page carries four more blocks than it did, and the list grew a family
     // column and a search field. Both need width. The shrink-to-fit below is what makes this safe: the
     // panel is a MAXIMUM, and a small screen scales the whole thing down rather than clipping it.
@@ -63,18 +61,11 @@ public class JournalScreen extends Screen {
     /** §fish-list: one row per species, wide enough to carry the catch count and the personal best. */
     private static final int LIST_ROW = 15;
     private static final int FAM_W = 116;
-    private static final int LIST_TOP = 76;
+    private static final int LIST_TOP = 58;
     // Panel width adapts to the screen (GUI scale) so it never clips off-screen; columns + illustration follow.
     private int W = MAX_W;
     private int COL_W = MAX_W - FAM_W - 24;
-    /**
-     * §journal-columns: the bait/gear catalog lays items out in a grid and the species list does not, so
-     * they stopped sharing a width the moment the list grew a family rail. One name, one meaning.
-     */
-    private static final int CAT_COLS = 2;
-    private int catColW = (MAX_W - 20) / CAT_COLS;
     private int ILLUS_W = 240;
-    private int ILLUS_H = 160;
 
     private static final int TAB_FISH = 0;
     private static final int TAB_BAIT = 1;
@@ -84,13 +75,45 @@ public class JournalScreen extends Screen {
     private static final int TAB_SKILL = 5;
     private static final int TAB_RECORD = 6;
     private static final int TAB_GUIDE = 7;
+    /** §boilie-page: the flavours against the day — the gear bookmark's last page. */
+    private static final int TAB_BOILIE = 8;
     /** §discord: same invite as the mod metadata and the wiki — one place for the community. */
     private static final String DISCORD_URL = "https://discord.gg/Kk2nKvsuRh";
-    private static final String[] TAB_KEYS = {
-            "journal.riverfishing.tab_fish", "journal.riverfishing.tab_bait",
-            "journal.riverfishing.tab_lure", "journal.riverfishing.tab_gear",
-            "journal.riverfishing.tab_quest", "journal.riverfishing.tab_skill",
-            "journal.riverfishing.tab_record", "journal.riverfishing.tab_guide"};
+
+    /**
+     * §journal-book (1.1.0): eight tabs in one row became four bookmarks down the left edge, each with its
+     * own few pages across the top. The eight were three reference tables of one kind, three pages about
+     * the angler, the fish and the guide — so they are grouped the way a reader looks for them. Every
+     * renderer below still keys on {@link #tab}; {@link #go} is the one place that maps a bookmark and a
+     * page onto it.
+     */
+    private static final int SEC_FISH = 0, SEC_GEAR = 1, SEC_ANGLER = 2, SEC_GUIDE = 3;
+    private static final String[] BOOK_KEYS = {"journal.riverfishing.tab_fish", "journal.riverfishing.tab_gear",
+            "journal.riverfishing.book_angler", "journal.riverfishing.book_guide"};
+    /** Each bookmark's leather, multiplied over the grey sprite. */
+    private static final int[] BOOK_TINT = {0x54A0B0, 0xBE824A, 0x86A852, 0xC85646};
+    private static final String[] NO_PAGES = {};
+    /** §journal-sheets: a species page is three sheets — the fish, how to catch it, how it lives. */
+    private static final String[] SHEET_KEYS = {"journal.riverfishing.sheet_fish",
+            "journal.riverfishing.sheet_catch", "journal.riverfishing.sheet_habits"};
+    /** The gear bookmark's pages: the four tackle shelves, then baits and lures. Order = {@link #go}'s map. */
+    private static final String[] GEAR_KEYS = {"journal.riverfishing.sec_rod", "journal.riverfishing.sec_reel",
+            "journal.riverfishing.sec_line", "journal.riverfishing.sec_rig",
+            "journal.riverfishing.tab_bait", "journal.riverfishing.tab_lure", "journal.riverfishing.tab_boilie"};
+    private static final String[] ANGLER_KEYS = {"journal.riverfishing.tab_quest",
+            "journal.riverfishing.tab_skill", "journal.riverfishing.tab_record"};
+    private static final ResourceLocation BOOK_TEX = RiverFishing.id("textures/gui/journal/book.png");
+    private static final ResourceLocation BOOKMARK_TEX = RiverFishing.id("textures/gui/journal/bookmark.png");
+    /** How far a resting bookmark shows past the cover, and how much further the open one is pulled. */
+    private static final int BOOKMARK_OUT = 96, BOOKMARK_PULL = 8;
+    private static final int BOOKMARK_H = 22, BOOKMARK_STEP = 28, BOOKMARK_TOP = 30;
+    /** The page row's band, and the parchment it is cut from (the tab that is open joins the page). */
+    private static final int TAB_Y0 = 5, TAB_Y1 = 19;
+    private static final int PAGE = 0xFFE6D9BB;
+    /** The angler bookmark's pages all start under its level header. */
+    private static final int ANGLER_TOP = 46;
+    /** §journal-list: the species list sits right under the search field now the level moved out. */
+    private static final int SEARCH_Y = 38;
 
     /**
      * §gb-pantry (0.8.0): GB_PART is the shelf of things that only ever go INTO a mix — the ballast and
@@ -183,26 +206,12 @@ public class JournalScreen extends Screen {
      * cannot disagree with the tackle it describes.
      */
     private void renderGearTable(GuiGraphics g, int mouseX, int mouseY) {
-        int railW = 96;
-        int x = left + 10, railX = left + 10, tableX = railX + railW + 8;
-        int wAll = W - 28 - railW - 8;
+        // §journal-book: the shelf is picked on the page row above now, so the table has the whole width
+        int x = left + 12, tableX = x;
+        int wAll = W - 32;
 
         g.drawString(this.font, Component.translatable("journal.riverfishing.gt_hint"),
-                x, top + 22, GuiStyle.TEXT_HINT, false);
-
-        int y0 = top + 40;
-        g.fill(railX - 2, y0 - 2, railX + railW + 2, y0 + 4 * LIST_ROW + 2, 0x22000000);
-        for (int i = 0; i < GEAR_KINDS.length; i++) {
-            int ry = y0 + i * LIST_ROW;
-            boolean hov = mouseX >= railX && mouseX < railX + railW && mouseY >= ry && mouseY < ry + LIST_ROW;
-            if (i == gearCat) {
-                g.fill(railX, ry, railX + railW, ry + LIST_ROW, 0x55B08D3C);
-            } else if (hov) {
-                g.fill(railX, ry, railX + railW, ry + LIST_ROW, 0x22000000);
-            }
-            g.drawString(this.font, Component.translatable(sectionKey(GEAR_KINDS[i])), railX + 4, ry + 4,
-                    i == gearCat ? GuiStyle.TEXT : GuiStyle.TEXT_HINT, false);
-        }
+                x, top + 25, GuiStyle.TEXT_HINT, false);
 
         Kind kind = GEAR_KINDS[gearCat];
         String[] heads = switch (kind) {
@@ -326,7 +335,8 @@ public class JournalScreen extends Screen {
             case ROD -> {
                 if (!(it instanceof RodItem rod)) return new String[]{"—", "—", "—"};
                 var rt = rod.rodType();
-                String reel = rt.takesReel() ? (rt.minReel() / 1000) + "–" + (rt.maxReel() / 1000) + "k"
+                String reel = rt.isFly() ? "#" + rt.flyWeight()
+                        : rt.takesReel() ? (rt.minReel() / 1000) + "–" + (rt.maxReel() / 1000) + "k"
                         : Component.translatable("journal.riverfishing.gt_noreel").getString();
                 String range = rt.takesReel()
                         ? (rt.longRange() ? "32" : (rt == com.riverfishing.component.RodType.SPINNING ? "16" : "18"))
@@ -337,7 +347,7 @@ public class JournalScreen extends Screen {
                 if (!(it instanceof ReelItem reel)) return new String[]{"—", "—"};
                 return new String[]{
                         String.format(java.util.Locale.ROOT, "%.0f", reel.maxDragKg()),
-                        String.format(java.util.Locale.ROOT, "%.2f",
+                        reel.fly() ? "#" + reel.flyWeight() : String.format(java.util.Locale.ROOT, "%.2f",
                                 com.riverfishing.component.TackleCompat.maxLineDiameter(reel.size()))};
             }
             case LINE -> {
@@ -419,9 +429,9 @@ public class JournalScreen extends Screen {
      * either suits or does not, and it swims in a LAYER. None of that was anywhere in the game.
      */
     private void renderLureTable(GuiGraphics g, int mouseX, int mouseY) {
-        int x = left + 10, wAll = W - 26;
+        int x = left + 12, wAll = W - 32;
         g.drawString(this.font, Component.translatable("journal.riverfishing.note_lure"),
-                x, top + 22, GuiStyle.TEXT_HINT, false);
+                x, top + 25, GuiStyle.TEXT_HINT, false);
 
         // §lure-colour-note: colour was a COLUMN, and it printed "any — dye it" on every single row —
         // ninety-six pixels of the same sentence eleven times, which is exactly the width the retrieve
@@ -519,9 +529,9 @@ public class JournalScreen extends Screen {
      * statements and only one of them is true of a spinner.
      */
     private void renderBaitTable(GuiGraphics g, int mouseX, int mouseY) {
-        int x = left + 10, wAll = W - 26;
+        int x = left + 12, wAll = W - 32;
         g.drawString(this.font, Component.translatable("journal.riverfishing.tab_bait_hint"),
-                x, top + 22, GuiStyle.TEXT_HINT, false);
+                x, top + 25, GuiStyle.TEXT_HINT, false);
 
         int nameW = wAll - 42 - 42 - 46 - 46 - 62;
         baitCols[0] = x;
@@ -836,10 +846,28 @@ public class JournalScreen extends Screen {
     private int top;
     private float uiScale = 1f;   // §journal-scale: <1 shrinks the whole panel to fit a small (high-GUI-scale) screen
     private int tab = TAB_FISH;
+    /** §journal-book: which bookmark is open, and which of its pages (a gear shelf, an angler page, a fish sheet). */
+    private int section = SEC_FISH;
+    private int sub;
+    /** §journal-guide: the guide chapter whose pages are listed. */
+    private int guideChapter;
+
+    // §journal-anim: everything that moves eases toward where it should be, by frame time.
+    private long openedAt = net.minecraft.Util.getMillis();
+    private long lastFrame = openedAt;
+    private float animScale = 1f, animOff;
+    private final float[] markOut = new float[BOOK_KEYS.length];
+    private float plateX = -1, plateW;
+    /** The scroll the page is drawn at, easing toward {@link #scroll} (which stays the target every handler sets). */
+    private float shownScroll;
+    private String pageKey;
+    private long turnAt;
     private String detail;      // opened fish species, or null
     private int catDetail = -1; // opened bait/gear entry index (in the current tab's list), or -1
     /** §craft-grid: what the cursor is over this frame — its tooltip is drawn after the whole page. */
     private ItemStack hoverStack = ItemStack.EMPTY;
+    /** The cursor in journal space this frame, for the pages that are drawn without it. */
+    private int hoverX, hoverY;
     private int scroll;
     private int lastCatH;       // measured content height of the last catalog render (for scroll clamp)
     /** Visible height of whatever the last render scrolled, so the wheel clamps to the RIGHT viewport. */
@@ -927,7 +955,8 @@ public class JournalScreen extends Screen {
         addGuide("groundbait", modStack("groundbait_powder"));
         addGuide("gbnumbers", modStack("corn"));
         addGuide("feeding", modStack("groundbait_soil"));
-        addGuide("gbrecipes", modStack("boilie"));
+        addGuide("gbrecipes", modStack("groundbait_powder"));
+        addGuide("boilies", modStack("boilie"));   // §boilies
         addGuide("keepnet", modStack("keepnet_medium"));
 
         guideGroupNow = 2;   // predators
@@ -1008,22 +1037,28 @@ public class JournalScreen extends Screen {
     public static void open(CompoundTag data, String guideId) {
         JournalScreen next = new JournalScreen(data);
         if (guideId != null && !guideId.isEmpty()) {
-            for (int i = 0; i < next.guideCat.size(); i++) {
-                if (next.guideCat.get(i).id().equals(guideId)) {
-                    next.tab = TAB_GUIDE;
-                    next.catDetail = i;
-                    Minecraft.getInstance().setScreen(next);
-                    return;
-                }
+            next.openGuide(guideId);
+            if (next.catDetail >= 0) {
+                Minecraft.getInstance().setScreen(next);
+                return;
             }
         }
         // A refresh (server re-sends the journal after a skill unlock / quest claim) reuses this same
         // entry point — carry the reader's place over so they don't get thrown back to the FISH tab.
         if (Minecraft.getInstance().screen instanceof JournalScreen prev) {
-            next.tab = prev.tab;
+            next.go(prev.section, prev.sub);
             next.scroll = prev.scroll;
             next.detail = prev.detail;
             next.catDetail = prev.catDetail;
+            next.guideChapter = prev.guideChapter;
+            next.family = prev.family;
+            // the same book, re-read: no opening flourish, no page turn, bookmarks where they were
+            next.openedAt = prev.openedAt;
+            next.pageKey = prev.pageKey;
+            next.shownScroll = prev.shownScroll;
+            System.arraycopy(prev.markOut, 0, next.markOut, 0, next.markOut.length);
+            next.plateX = prev.plateX;
+            next.plateW = prev.plateW;
         }
         Minecraft.getInstance().setScreen(next);
     }
@@ -1032,45 +1067,135 @@ public class JournalScreen extends Screen {
     protected void init() {
         this.W = MAX_W;
         this.COL_W = this.W - FAM_W - 24;
-        this.catColW = (this.W - 20) / CAT_COLS;
         buildFamilies();
         this.ILLUS_W = 240;
-        this.ILLUS_H = this.ILLUS_W * 2 / 3;
         // §journal-scale: at a high GUI scale the screen is small in GUI units and the full-size journal
         // (W×H) would clip off the bottom (unusable at scale 4). Shrink the whole panel to fit, centred; the
         // render + mouse + scissor all go through this factor so clicks and clipping stay aligned.
-        this.uiScale = Math.min(1f, Math.min((this.width - 8f) / MAX_W, (this.height - 8f) / H));
-        this.left = (this.width - W) / 2;
+        // §journal-book: the bookmarks stand out past the cover, so the book and its bookmarks are centred together
+        int span = MAX_W + BOOKMARK_OUT + BOOKMARK_PULL;
+        this.uiScale = Math.min(1f, Math.min((this.width - 8f) / span, (this.height - 8f) / H));
+        this.left = (this.width - W + BOOKMARK_OUT + BOOKMARK_PULL) / 2;
         this.top = (this.height - H) / 2;
     }
 
-    /** Screen → journal-space coordinate (the render is scaled by {@link #uiScale} around the screen centre). */
-    private double toJournalX(double sx) { return (sx - this.width / 2.0) / uiScale + this.width / 2.0; }
-    private double toJournalY(double sy) { return (sy - this.height / 2.0) / uiScale + this.height / 2.0; }
+    /** The scale the book is drawn at: fit-to-screen, times the opening flourish. */
+    private float drawScale() {
+        return uiScale * animScale;
+    }
+
+    /** Screen → journal-space coordinate (the render is scaled by {@link #drawScale} around the screen centre). */
+    private double toJournalX(double sx) { return (sx - this.width / 2.0) / drawScale() + this.width / 2.0; }
+    private double toJournalY(double sy) { return (sy - this.height / 2.0 - animOff) / drawScale() + this.height / 2.0; }
 
     /** Scissor rect given in journal space, pushed in the scaled screen space the content actually draws to. */
     private void scissorJournal(GuiGraphics g, int x1, int y1, int x2, int y2) {
-        float cx = this.width / 2f, cy = this.height / 2f;
-        g.enableScissor(Math.round(cx + (x1 - cx) * uiScale), Math.round(cy + (y1 - cy) * uiScale),
-                Math.round(cx + (x2 - cx) * uiScale), Math.round(cy + (y2 - cy) * uiScale));
+        float cx = this.width / 2f, cy = this.height / 2f + animOff, s = drawScale();
+        float jy = this.height / 2f;
+        g.enableScissor(Math.round(cx + (x1 - cx) * s), Math.round(cy + (y1 - jy) * s),
+                Math.round(cx + (x2 - cx) * s), Math.round(cy + (y2 - jy) * s));
+    }
+
+    /**
+     * §journal-book: open a bookmark on one of its pages. The legacy {@link #tab} every renderer reads is
+     * derived here and nowhere else, so a bookmark, its page row and the page drawn cannot disagree.
+     */
+    private void go(int sec, int page) {
+        if (sec != section) plateX = -1;   // a new row of pages: the open tab appears, it does not slide in
+        section = sec;
+        sub = page;
+        catDetail = -1;
+        scroll = 0;
+        searchFocus = false;
+        if (sec != SEC_FISH) detail = null;
+        tab = switch (sec) {
+            case SEC_FISH -> TAB_FISH;
+            case SEC_GEAR -> page < GEAR_KINDS.length ? TAB_GEAR
+                    : page == GEAR_KINDS.length ? TAB_BAIT : page == GEAR_KINDS.length + 1 ? TAB_LURE : TAB_BOILIE;
+            case SEC_ANGLER -> TAB_QUEST + page;   // quests, skills and records are consecutive
+            default -> TAB_GUIDE;
+        };
+        if (tab == TAB_GEAR && gearCat != page) {
+            // the shelves do not share a column count, so a sort held across would point at nothing
+            gearCat = page;
+            gearSort = -1;
+        }
+    }
+
+    /** Back out of an opened fish, bait, gear or guide page to its list. */
+    private boolean back() {
+        if (detail == null && catDetail < 0) return false;
+        detail = null;
+        catDetail = -1;
+        scroll = 0;
+        return true;
+    }
+
+    /** The row of pages across the top for where the reader is — empty where a bookmark has only one. */
+    private String[] subKeys() {
+        return switch (section) {
+            case SEC_FISH -> detail != null ? SHEET_KEYS : NO_PAGES;
+            case SEC_GEAR -> GEAR_KEYS;
+            case SEC_ANGLER -> ANGLER_KEYS;
+            default -> NO_PAGES;
+        };
+    }
+
+    private static float ease(float t) {
+        float u = 1f - Mth.clamp(t, 0f, 1f);
+        return 1f - u * u * u;
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(g, mouseX, mouseY, partialTick);
         hoverStack = ItemStack.EMPTY;   // §craft-grid: refilled by whatever the cursor is over
-        boolean scaled = uiScale < 0.999f;
-        if (scaled) {
-            g.pose().pushPose();
-            g.pose().translate(this.width / 2f, this.height / 2f, 0);
-            g.pose().scale(uiScale, uiScale, 1f);
-            g.pose().translate(-this.width / 2f, -this.height / 2f, 0);
-            // hover in the same space the panel now draws in
-            mouseX = (int) Math.round(toJournalX(mouseX));
-            mouseY = (int) Math.round(toJournalY(mouseY));
+
+        // §journal-anim: frame time drives every ease, so it moves the same at 30 fps and at 240
+        long now = net.minecraft.Util.getMillis();
+        float dt = Math.min(0.1f, (now - lastFrame) / 1000f);
+        lastFrame = now;
+        float k = 1f - (float) Math.exp(-dt * 16f);
+        float opening = ease((now - openedAt) / 260f);
+        animScale = 0.93f + 0.07f * opening;
+        animOff = (1f - opening) * 14f;
+
+        // a new page turns in, and lands at its own scroll rather than sliding there from the last one's
+        String key = section + "/" + sub + "/" + detail + "/" + catDetail + "/" + guideChapter
+                + (tab == TAB_BOILIE ? "/" + boPage : "");
+        if (pageKey != null && !pageKey.equals(key)) {
+            turnAt = now;
+            shownScroll = scroll;
         }
-        GuiStyle.panel(g, left, top, W, H);
-        renderTabs(g, mouseX, mouseY);
+        pageKey = key;
+        // §journal-scroll-ease: handlers move the target; the page glides to it. The species list counts in
+        // rows, where a glide would only stutter between them, so it follows at once.
+        boolean rowList = tab == TAB_FISH && detail == null && section == SEC_FISH;
+        int target = scroll;
+        shownScroll = rowList ? scroll : shownScroll + (scroll - shownScroll) * k;
+        if (Math.abs(scroll - shownScroll) < 0.5f) shownScroll = scroll;
+        scroll = Math.round(shownScroll);
+
+        g.pose().pushPose();
+        g.pose().translate(this.width / 2f, this.height / 2f + animOff, 0);
+        g.pose().scale(drawScale(), drawScale(), 1f);
+        g.pose().translate(-this.width / 2f, -this.height / 2f, 0);
+        // hover in the same space the book now draws in
+        mouseX = (int) Math.round(toJournalX(mouseX));
+        mouseY = (int) Math.round(toJournalY(mouseY));
+
+        hoverX = mouseX;
+        hoverY = mouseY;
+        fishBoLink[2] = 0;
+        sheetLinks.clear();
+        catFishLinks.clear();
+        catFishIds.clear();
+        renderBookmarks(g, mouseX, mouseY, k);
+        g.blit(BOOK_TEX, left, top, W, H, 0f, 0f, W, H, 512, 512);
+        g.fill(left + 12, top + TAB_Y1, left + W - 15, top + TAB_Y1 + 1, 0xFFB08D3C);
+        g.fill(left + 12, top + TAB_Y1 + 1, left + W - 15, top + TAB_Y1 + 2, 0x33000000);
+        renderTabs(g, mouseX, mouseY, k);
+        if (section == SEC_ANGLER) renderAnglerHead(g);
         if (tab == TAB_FISH) {
             if (detail != null) renderFishDetail(g, detail);
             else renderFishGrid(g, mouseX, mouseY);
@@ -1080,6 +1205,8 @@ public class JournalScreen extends Screen {
             renderSkills(g, mouseX, mouseY);
         } else if (tab == TAB_RECORD) {
             renderRecords(g, mouseX, mouseY);
+        } else if (tab == TAB_BOILIE) {
+            renderBoilie(g, mouseX, mouseY);
         } else {
             List<Cat> list = tabList();
             if (catDetail >= 0 && catDetail < list.size()) {
@@ -1091,12 +1218,86 @@ public class JournalScreen extends Screen {
             } else if (tab == TAB_GEAR) {
                 renderGearTable(g, mouseX, mouseY);
             } else {
-                renderCatalog(g, list, mouseX, mouseY);
+                renderGuideShelf(g, mouseX, mouseY);
             }
         }
+        pageTurn(g, now);
         // §craft-grid: last, so a tooltip is never drawn under the page it belongs to.
         if (!hoverStack.isEmpty()) g.renderTooltip(this.font, hoverStack, mouseX, mouseY);
-        if (scaled) g.pose().popPose();
+        g.pose().popPose();
+
+        // the page may have clamped what it drew; the target stays where the handlers put it, inside the page
+        if (scroll != Math.round(shownScroll)) shownScroll = scroll;
+        scroll = rowList ? scroll : Mth.clamp(target, 0, Math.max(0, lastCatH - lastViewH));
+    }
+
+    /**
+     * §journal-anim: the page turn. A blank leaf, cut from the same parchment, is drawn over the new page and
+     * pulled away to the right with a curl of shadow at its edge — the new page is uncovered, not swapped in.
+     */
+    private void pageTurn(GuiGraphics g, long now) {
+        float t = (now - turnAt) / 280f;
+        if (t >= 1f) return;
+        int x0 = left + 8, x1 = left + W - 10, y0 = top + TAB_Y1 + 2, y1 = top + H - 10;
+        int edge = x0 + Math.round((x1 - x0) * ease(t));
+        if (edge >= x1) return;
+        g.flush();
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 300);   // over the page's items as well as its text
+        g.blit(BOOK_TEX, edge, y0, x1 - edge, y1 - y0, edge - left, y0 - top, x1 - edge, y1 - y0, 512, 512);
+        for (int i = 0; i < 10; i++) {   // the curl's shadow falls on the page it is uncovering
+            int a = (int) (0x38 * (i + 1) / 10f * (1f - t));
+            g.fill(edge - 10 + i, y0, edge - 9 + i, y1, a << 24);
+        }
+        g.fill(edge, y0, edge + 1, y1, 0x55FFFFFF);   // the leaf's lit edge
+        g.pose().popPose();
+    }
+
+    /**
+     * §journal-book: the four bookmarks, leather tabs standing out of the cover's left edge. The open one is
+     * pulled further out and in full colour; the one under the cursor leans out to meet it.
+     */
+    private void renderBookmarks(GuiGraphics g, int mouseX, int mouseY, float k) {
+        for (int i = 0; i < BOOK_KEYS.length; i++) {
+            int y = top + BOOKMARK_TOP + i * BOOKMARK_STEP;
+            boolean hov = mouseX >= left - BOOKMARK_OUT - BOOKMARK_PULL && mouseX < left
+                    && mouseY >= y && mouseY < y + BOOKMARK_H;
+            float want = i == section ? BOOKMARK_PULL : (hov ? BOOKMARK_PULL / 2f : 0f);
+            markOut[i] += (want - markOut[i]) * k;
+            int x = left - BOOKMARK_OUT - Math.round(markOut[i]);
+            int t = BOOK_TINT[i];
+            float dim = i == section ? 1f : (hov ? 0.9f : 0.76f);
+            g.setColor(((t >> 16) & 0xFF) / 255f * dim, ((t >> 8) & 0xFF) / 255f * dim, (t & 0xFF) / 255f * dim, 1f);
+            g.blit(BOOKMARK_TEX, x, y, 100, BOOKMARK_H, 0f, 0f, 100, 22, 100, 22);
+            g.setColor(1f, 1f, 1f, 1f);
+            if (i == SEC_FISH) drawFishIcon(g, "carp", x + 6, y + 3);
+            else g.renderFakeItem(bookmarkIcon(i), x + 6, y + 3);
+            String label = fitName(Component.translatable(BOOK_KEYS[i]).getString(), left - x - 28);
+            g.drawString(this.font, label, x + 25, y + 7, i == section ? 0xFFFFF6E0 : 0xFFE8DCC0, true);
+        }
+    }
+
+    private ItemStack bookmarkIcon(int i) {
+        return switch (i) {
+            case SEC_GEAR -> new ItemStack(ModItems.RODS.get(0).get());
+            case SEC_ANGLER -> new ItemStack(net.minecraft.world.item.Items.EXPERIENCE_BOTTLE);
+            default -> new ItemStack(net.minecraft.world.item.Items.BOOK);
+        };
+    }
+
+    /** §journal-book: the angler bookmark's header — level, rank, and how far to the next — over all three pages. */
+    private void renderAnglerHead(GuiGraphics g) {
+        long xp = data.getLong(JournalData.XP);
+        int level = JournalData.levelForXp(xp);
+        String angler = this.font.plainSubstrByWidth(
+                Component.translatable("journal.riverfishing.angler", level,
+                        Component.translatable("rank.riverfishing." + JournalData.rankKey(level)),
+                        xp, JournalData.xpForLevel(level + 1) - xp).getString(), W - 24);
+        g.drawString(this.font, angler, left + 12, top + 25, GuiStyle.TEXT, false);
+        long lvlBase = JournalData.xpForLevel(level);
+        long lvlNext = JournalData.xpForLevel(level + 1);
+        float frac = lvlNext > lvlBase ? (float) (xp - lvlBase) / (lvlNext - lvlBase) : 0f;
+        bar(g, left + 12, top + 36, W - 30, 3, frac, 0xFFC89C4A);
     }
 
     /**
@@ -1111,31 +1312,55 @@ public class JournalScreen extends Screen {
 
     // ---- tabs ----
 
-    private int tabW(int i) {
-        return this.font.width(Component.translatable(TAB_KEYS[i])) + 12;
+    private int tabW(String[] keys, int i) {
+        return this.font.width(Component.translatable(keys[i])) + 12;
     }
 
-    private int tabX(int i) {
-        int x = left + 8;
-        for (int j = 0; j < i; j++) x += tabW(j) + 4;
+    private int tabX(String[] keys, int i) {
+        int x = left + 12;
+        for (int j = 0; j < i; j++) x += tabW(keys, j) + 3;
         return x;
     }
 
-    private void renderTabs(GuiGraphics g, int mouseX, int mouseY) {
-        int y0 = top + 3, y1 = top + 18;
-        for (int i = 0; i < TAB_KEYS.length; i++) {
-            int x = tabX(i), w = tabW(i);
-            boolean active = tab == i;
-            boolean hov = mouseX >= x && mouseX < x + w && mouseY >= y0 && mouseY < y1;
-            int fill = active ? GuiStyle.PANEL_FACE : (hov ? 0xFF8A7038 : 0xFF63512F);
-            g.fill(x, y0, x + w, y1, fill);
-            int hi = active ? GuiStyle.PANEL_HI : 0xFF9A8048;
-            g.fill(x, y0, x + w, y0 + 1, hi);
-            g.fill(x, y0, x + 1, y1, hi);
-            g.fill(x + w - 1, y0, x + w, y1, 0xFF3A2A16);
-            if (!active) g.fill(x, y1 - 1, x + w, y1, 0xFF3A2A16);
-            int tc = active ? GuiStyle.TEXT : 0xFFEDE2C6;
-            g.drawString(this.font, Component.translatable(TAB_KEYS[i]), x + 7, top + 6, tc, !active);
+    /**
+     * §journal-book: the open bookmark's pages, as leather tabs along the top of the page. The open one is a
+     * plate of the page itself that slides from tab to tab; a bookmark with one page shows its title instead.
+     */
+    private void renderTabs(GuiGraphics g, int mouseX, int mouseY, float k) {
+        String[] keys = subKeys();
+        if (keys.length == 0) {
+            plateX = -1;
+            Component title = Component.translatable(section == SEC_FISH ? "journal.riverfishing.header" : BOOK_KEYS[section]);
+            g.drawString(this.font, title, left + (W - this.font.width(title)) / 2, top + 8, 0xFF8A5A00, false);
+            return;
+        }
+        int y0 = top + TAB_Y0, y1 = top + TAB_Y1;
+        int open = Mth.clamp(sub, 0, keys.length - 1);
+        for (int i = 0; i < keys.length; i++) {
+            int x = tabX(keys, i), w = tabW(keys, i);
+            boolean hov = i != open && mouseX >= x && mouseX < x + w && mouseY >= y0 && mouseY < y1;
+            g.fill(x, y0, x + w, y1, hov ? 0xFF7A5232 : 0xFF5C3B23);
+            g.fill(x, y0, x + w, y0 + 1, hov ? 0xFFA07A50 : 0xFF86603E);
+            g.fill(x + w - 1, y0, x + w, y1, 0xFF2A180C);
+        }
+        int ax = tabX(keys, open), aw = tabW(keys, open);
+        if (plateX < 0) {
+            plateX = ax;
+            plateW = aw;
+        } else {
+            plateX += (ax - plateX) * k;
+            plateW += (aw - plateW) * k;
+        }
+        int px = Math.round(plateX), pw = Math.round(plateW);
+        g.fill(px, y0 - 1, px + pw, y1 + 2, PAGE);            // down over the rule: the tab IS the page
+        g.fill(px, y0 - 1, px + pw, y0, 0xFFF4ECD6);
+        g.fill(px, y0 - 1, px + 1, y1 + 2, 0xFFB8A27A);
+        g.fill(px + pw - 1, y0 - 1, px + pw, y1 + 2, 0xFFB8A27A);
+        for (int i = 0; i < keys.length; i++) {
+            int x = tabX(keys, i);
+            boolean on = i == open;
+            g.drawString(this.font, Component.translatable(keys[i]), x + 6, top + 8,
+                    on ? GuiStyle.TEXT : 0xFFEDE2C6, !on);
         }
     }
 
@@ -1187,22 +1412,9 @@ public class JournalScreen extends Screen {
         if (families.isEmpty()) buildFamilies();
         int discovered = 0;
         for (String sp : SPECIES) if (caught(sp)) discovered++;
-        long xp = data.getLong(JournalData.XP);
-        int level = JournalData.levelForXp(xp);
-
-        String angler = this.font.plainSubstrByWidth(
-                Component.translatable("journal.riverfishing.angler", level,
-                        Component.translatable("rank.riverfishing." + JournalData.rankKey(level)),
-                        xp, JournalData.xpForLevel(level + 1) - xp).getString(), W - 20);
-        g.drawString(this.font, angler, left + 10, top + 22, GuiStyle.TEXT, false);
-
-        long lvlBase = JournalData.xpForLevel(level);
-        long lvlNext = JournalData.xpForLevel(level + 1);
-        float frac = lvlNext > lvlBase ? (float) (xp - lvlBase) / (lvlNext - lvlBase) : 0f;
-        bar(g, left + 10, top + 33, W - 20, 3, frac, 0xFFC89C4A);
-
+        // §journal-book: the level and its bar live on the angler bookmark now; the list keeps the tally
         g.drawString(this.font, Component.translatable("journal.riverfishing.total",
-                data.getInt("total"), discovered + "/" + SPECIES.length), left + 10, top + 40,
+                data.getInt("total"), discovered + "/" + SPECIES.length), left + 12, top + 26,
                 GuiStyle.TEXT_HINT, false);
 
         renderFamilyColumn(g, mouseX, mouseY);
@@ -1212,7 +1424,7 @@ public class JournalScreen extends Screen {
 
     /** The left rail: every family with "how many you have caught / how many there are". */
     private void renderFamilyColumn(GuiGraphics g, int mouseX, int mouseY) {
-        int x = left + 8, y0 = top + LIST_TOP;
+        int x = left + 12, y0 = top + LIST_TOP;
         g.fill(x - 2, y0 - 2, x + FAM_W + 2, y0 + (families.size() + 1) * LIST_ROW + 2, 0x22000000);
         for (int i = 0; i <= families.size(); i++) {
             int y = y0 + i * LIST_ROW;
@@ -1241,7 +1453,7 @@ public class JournalScreen extends Screen {
 
     /** §fish-search: type to narrow the list. Click it to focus, Escape or a click elsewhere lets it go. */
     private void renderSearchBox(GuiGraphics g, int mouseX, int mouseY) {
-        int x = left + FAM_W + 16, y = top + 56, w = COL_W - 8, h = 14;
+        int x = left + FAM_W + 20, y = top + SEARCH_Y, w = COL_W - 16, h = 14;
         g.fill(x - 1, y - 1, x + w + 1, y + h + 1, searchFocus ? 0xFF8A7038 : 0xFF6E5A3C);
         g.fill(x, y, x + w, y + h, 0xFFF3EBD6);
         String shownText = search.isEmpty() && !searchFocus
@@ -1259,7 +1471,7 @@ public class JournalScreen extends Screen {
         shown.clear();
         for (String sp : ordered) if (inFilter(sp)) shown.add(sp);
 
-        int x = left + FAM_W + 16, y0 = top + LIST_TOP, w = COL_W - 8;
+        int x = left + FAM_W + 20, y0 = top + LIST_TOP, w = COL_W - 16;
         int rows = listRows();
         scroll = Mth.clamp(scroll, 0, Math.max(0, shown.size() - rows));
         if (shown.isEmpty()) {
@@ -1325,7 +1537,7 @@ public class JournalScreen extends Screen {
      */
     private void rowScrollbar(GuiGraphics g, int y0, int trackH, int rows, int total) {
         if (total <= rows) return;
-        int tx = left + W - 5;
+        int tx = left + W - 17;
         int knobH = Math.max(16, trackH * rows / total);
         int knobY = y0 + (trackH - knobH) * scroll / Math.max(1, total - rows);
         g.fill(tx, y0, tx + 2, y0 + trackH, 0x40000000);
@@ -1357,13 +1569,7 @@ public class JournalScreen extends Screen {
         byBest.sort((a, b) -> Integer.compare(data.getCompound(key(b)).getInt("best"),
                 data.getCompound(key(a)).getInt("best")));
 
-        int y = top + 24;
-        long xp = data.getLong(JournalData.XP);
-        int level = JournalData.levelForXp(xp);
-        g.drawString(this.font, Component.translatable("journal.riverfishing.rec_rank", level,
-                Component.translatable("rank.riverfishing." + JournalData.rankKey(level))),
-                left + 10, y, GuiStyle.TEXT, false);
-        y += 14;
+        int y = top + ANGLER_TOP;   // §journal-book: the level is the bookmark's header now
 
         int colW = (W - 28) / 2;
         y = tile(g, left + 10, y, colW, "journal.riverfishing.rec_caught", Integer.toString(caught));
@@ -1430,98 +1636,180 @@ public class JournalScreen extends Screen {
         g.fill(x, y, x + (int) (w * Mth.clamp(frac, 0f, 1f)), y + h, colour);
     }
 
-    // ---- FISH: detail with illustration ----
+    // ---- FISH: a species, on three sheets ----
 
+    /**
+     * §journal-sheets (1.1.0): the species page was one scroll of twenty blocks — the picture, the prose,
+     * the record, the feed, the water, the fight, the baits, the season, the varieties — all at once. It is
+     * three sheets now, each answering one question: what is this fish (and how have I done with it), how
+     * do I catch it, how does it live. The header — icon, name, latin, your tally — stays over all three.
+     */
     private void renderFishDetail(GuiGraphics g, String sp) {
         ResourceLocation id = RiverFishing.id(sp);
         // fixed header
-        drawFishIcon(g, sp, left + 10, top + 22);
+        drawFishIcon(g, sp, left + 12, top + 23);
         g.drawString(this.font, Component.translatable("fish.riverfishing." + sp),
-                left + 30, top + 26, GuiStyle.TEXT, false);
+                left + 32, top + 27, GuiStyle.TEXT, false);
         CompoundTag rec = data.getCompound(key(sp));
         String recStr = "x" + rec.getInt("count") + "  •  " + weight(rec.getInt("best"));
         // §cards-2: the scientific name after the common one, when there is room before the record.
         String latin = card(sp).latin();
-        int nameEnd = left + 30 + this.font.width(Component.translatable("fish.riverfishing." + sp)) + 6;
-        if (!latin.isEmpty() && nameEnd + this.font.width(latin) < left + W - 14 - this.font.width(recStr)) {
+        int nameEnd = left + 32 + this.font.width(Component.translatable("fish.riverfishing." + sp)) + 6;
+        if (!latin.isEmpty() && nameEnd + this.font.width(latin) < left + W - 20 - this.font.width(recStr)) {
             g.drawString(this.font, Component.literal(latin).withStyle(net.minecraft.ChatFormatting.ITALIC),
-                    nameEnd, top + 26, GuiStyle.TEXT_HINT, false);
+                    nameEnd, top + 27, GuiStyle.TEXT_HINT, false);
         }
-        g.drawString(this.font, recStr, left + W - 10 - this.font.width(recStr), top + 26,
+        g.drawString(this.font, recStr, left + W - 16 - this.font.width(recStr), top + 27,
                 GuiStyle.TEXT_HINT, false);
 
-        // scrollable body: illustration → description → how-to-catch
-        int contentTop = top + 38, contentBottom = top + H - 16;
+        int contentTop = top + 42, contentBottom = top + H - 24;
         int visibleH = contentBottom - contentTop;
         scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - visibleH));
-        scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
+        scissorJournal(g, left + 8, contentTop, left + W - 10, contentBottom);
         com.riverfishing.fish.FishCard c = card(sp);
-        // §journal-two-column (0.8.0): the illustration and the prose keep the left; the numbers get a
-        // rail of their own on the right. The single column meant every number was a sentence, and five
-        // sentences of numbers is a page nobody reads to the bottom of.
-        int railW = 186;
-        int leftW = W - railW - 30;
         int y = contentTop - scroll;
-        int railY = y;
-        drawIllustration(g, sp, left + 10, y, Math.min(ILLUS_W, leftW), Math.min(ILLUS_W, leftW) * 2 / 3);
-        y += Math.min(ILLUS_W, leftW) * 2 / 3 + 8;
-        String desc = descText(sp);
-        if (!desc.isEmpty()) {
-            for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.literal(desc), leftW)) {
-                g.drawString(this.font, seq, left + 10, y, GuiStyle.TEXT, false);
-                y += 11;
-            }
-            y += 4;
+        if (sub == 1 && c.present()) {
+            y = sheetCatch(g, sp, c, y);
+        } else if (sub == 2 && c.present()) {
+            y = sheetHabits(g, c, y);
+        } else {
+            y = sheetFish(g, sp, id, c, rec, y);
         }
-        if (c.present()) {
-            railY = statRail(g, sp, c, left + W - railW - 10, railY, railW);
-        }
-        y = Math.max(y, railY + 4);
-        if (c.present()) {
-            String pop = data.getCompound("pop").getString(sp);   // §h: the population where the player stands
-            if (!pop.isEmpty()) y = line(g, y, "journal.riverfishing.pop_here", pop);
-            y = line(g, y, "guide.riverfishing.water", waters(c));
-            y = line(g, y, "guide.riverfishing.bait", baits(c));
-            y = line(g, y, "guide.riverfishing.tackle", tackle(c));
-            y = line(g, y, "guide.riverfishing.best",
-                    bestOf(c.seasons(), com.riverfishing.fish.FishCard.SEASONS, "season")
-                            + "  •  " + bestOf(c.times(), com.riverfishing.fish.FishCard.TIMES, "time"));
-            if (c.minLevel() > 0) {
-                g.drawString(this.font, Component.translatable("jei.riverfishing.level", c.minLevel()),
-                        left + 10, y, 0xFFB05A00, false);
-                y += 12;
-            }
-        }
-        // §guide-nudge: honest bookkeeping. Nothing is withheld and nothing is locked — the record just
-        // says this one was landed after the mod offered a hand.
-        if (com.riverfishing.fishing.JournalData.wasHinted(data, id)) {
-            g.drawString(this.font, Component.translatable("journal.riverfishing.hinted"),
-                    left + 10, y, GuiStyle.GHOST, false);
-            y += 12;
-        }
-        y = morphRow(g, sp, id, y);
-        y = patternRow(g, id, y);   // §pattern
         lastCatH = (y + scroll) - contentTop;
         lastViewH = contentBottom - contentTop;
         g.disableScissor();
         renderScrollbar(g, contentTop, contentBottom);
 
         g.drawString(this.font, Component.translatable("guide.riverfishing.back"),
-                left + 10, top + H - 14, GuiStyle.GHOST, false);
+                left + 12, top + H - 20, GuiStyle.GHOST, false);
     }
 
-    /**
-     * The right-hand rail of a species page: your record, the groundbait it answers to, the water it can
-     * live in, and what it does once it is hooked.
-     *
-     * <p>Every number here was already being computed and none of it was ever shown. The grind/richness
-     * pair in particular arrived with 0.8.0's groundbait and existed only on the wiki, which is a poor
-     * place to keep the one fact that decides what your feed catches.
-     */
-    private int statRail(GuiGraphics g, String sp, com.riverfishing.fish.FishCard c, int x, int y, int w) {
-        CompoundTag rec = data.getCompound(key(sp));
+    /** Sheet one: the picture and the prose, your record beside them, and the varieties you have found. */
+    private int sheetFish(GuiGraphics g, String sp, ResourceLocation id, com.riverfishing.fish.FishCard c,
+                          CompoundTag rec, int y) {
+        int railW = 176;
+        int leftW = W - railW - 40;
+        int iw = Math.min(ILLUS_W, leftW);
+        drawIllustration(g, sp, left + 15, y + 3, iw, iw * 2 / 3);
+        int ly = y + iw * 2 / 3 + 12;
+        String desc = descText(sp);
+        if (!desc.isEmpty()) {
+            for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.literal(desc), leftW)) {
+                g.drawString(this.font, seq, left + 12, ly, GuiStyle.TEXT, false);
+                ly += 11;
+            }
+        }
+        int rx = left + W - railW - 18;
+        int ry = y;
+        if (c.present()) {
+            ry = recordBlock(g, c, rec, rx, ry, railW);
+            String fav = favouriteFlavour(c, rec);
+            if (fav != null) ry = railLine(g, "journal.riverfishing.fav_flavour", fav, rx, ry, railW);
+        }
+        // §guide-nudge: honest bookkeeping. Nothing is withheld and nothing is locked — the record just
+        // says this one was landed after the mod offered a hand.
+        if (JournalData.wasHinted(data, id)) {
+            for (net.minecraft.util.FormattedCharSequence seq
+                    : this.font.split(Component.translatable("journal.riverfishing.hinted"), railW)) {
+                g.drawString(this.font, seq, rx, ry, GuiStyle.GHOST, false);
+                ry += 10;
+            }
+        }
+        y = Math.max(ly, ry) + 2;
+        y = morphRow(g, sp, id, y);
+        return patternRow(g, id, y);   // §pattern
+    }
 
-        y = railHead(g, "journal.riverfishing.stat_record", x, y, w);
+    /** Sheet two: where, when and on what — and what the feed has to be to hold it. */
+    private int sheetCatch(GuiGraphics g, String sp, com.riverfishing.fish.FishCard c, int y) {
+        int colW = (W - 44) / 2;
+        int lx = left + 12, rx = lx + colW + 16;
+        int ly = railHead(g, "journal.riverfishing.sheet_catch", lx, y + 2, colW);
+        String pop = data.getCompound("pop").getString(sp);   // §h: the population where the player stands
+        if (!pop.isEmpty()) ly = railLine(g, "journal.riverfishing.pop_here", pop, lx, ly, colW);
+        ly = railLine(g, "guide.riverfishing.water", waters(c), lx, ly, colW);
+        ly = railLine(g, "guide.riverfishing.best",
+                bestOf(c.seasons(), com.riverfishing.fish.FishCard.SEASONS, "season")
+                        + " • " + bestOf(c.times(), com.riverfishing.fish.FishCard.TIMES, "time"), lx, ly, colW);
+        ly = baitLinks(g, c, lx, ly, colW);
+        ly = railLine(g, "guide.riverfishing.tackle", tackle(c), lx, ly, colW);
+        // §boilie-builder: the builder, asking about this fish — only where the page shows the line
+        Component bl = Component.translatable("journal.riverfishing.bo_for_fish");
+        if (onPage(ly + 2, ly + 13)) {
+            boolean hov = over(hoverX, hoverY, lx, ly + 2, lx + this.font.width(bl), ly + 13);
+            g.drawString(this.font, bl, lx, ly + 3, hov ? 0xFFD8A93C : 0xFF8A5A00, false);
+            fishBoLink[0] = lx; fishBoLink[1] = ly + 2; fishBoLink[2] = lx + this.font.width(bl); fishBoLink[3] = ly + 13;
+        }
+        ly += 14;
+        if (c.minLevel() > 0) {
+            for (net.minecraft.util.FormattedCharSequence seq : this.font.split(
+                    Component.translatable("jei.riverfishing.level", c.minLevel()), colW)) {
+                g.drawString(this.font, seq, lx, ly + 3, 0xFFB05A00, false);
+                ly += 11;
+            }
+            ly += 3;
+        }
+        int ry = railHead(g, "journal.riverfishing.stat_groundbait", rx, y + 2, colW);
+        ry = paramTable(g, rx, ry, colW, List.of(
+                new Param("journal.riverfishing.stat_grind", c.grind(), 0xFF8A6E3C),
+                new Param("journal.riverfishing.stat_richness", c.richness(), 0xFF6E8A3C))) + 4;
+        return Math.max(ly, ry);
+    }
+
+    /** Sheet three: the water it lives in, what it eats, and what it does on the line. */
+    private int sheetHabits(GuiGraphics g, com.riverfishing.fish.FishCard c, int y) {
+        int colW = (W - 44) / 2;
+        int lx = left + 12, rx = lx + colW + 16;
+        int ly = railHead(g, "journal.riverfishing.stat_habitat", lx, y + 2, colW);
+        ly = railLine(g, "journal.riverfishing.stat_depth", range(c.depthMin(), c.depthMax(), 999), lx, ly, colW);
+        ly = railLine(g, "journal.riverfishing.stat_width", range(c.widthMin(), c.widthMax(), 99999), lx, ly, colW);
+        StringBuilder bio = new StringBuilder();
+        for (Map.Entry<String, Float> e : c.biomes().entrySet()) {
+            if (e.getValue() <= 0) continue;
+            if (bio.length() > 0) bio.append(", ");
+            bio.append(Component.translatable("biomegroup.riverfishing." + e.getKey()).getString());
+        }
+        ly = railLine(g, "journal.riverfishing.stat_biomes",
+                bio.length() == 0 ? Component.translatable("journal.riverfishing.stat_anywhere").getString()
+                        : bio.toString(), lx, ly, colW);
+        if (!c.diet().isEmpty()) {   // §species-table
+            ly = railLine(g, "journal.riverfishing.diet",
+                    Component.translatable("diet.riverfishing." + c.diet()).getString(), lx, ly, colW);
+        }
+
+        int ry = railHead(g, "journal.riverfishing.stat_fight", rx, y + 2, colW);
+        ry = paramTable(g, rx, ry, colW, List.of(
+                new Param("journal.riverfishing.stat_strength", c.fightStrength(), 0xFF9A4A3C),
+                new Param("journal.riverfishing.stat_stamina", c.fightStamina(), 0xFF3C6E9A))) + 2;
+        ry = railLine(g, "journal.riverfishing.stat_runs", Integer.toString(c.fightRuns()), rx, ry, colW);
+        ry = railLine(g, "journal.riverfishing.stat_pattern",
+                Component.translatable("fightpattern.riverfishing." + c.fightPattern()).getString(), rx, ry, colW);
+        return Math.max(ly, ry);
+    }
+
+    /** §boilies: a favourite shows once three fish have come out on it — until then, how close you are. */
+    private static final int FAVOURITE_AFTER = 3;
+
+    /**
+     * §boilies: the flavour this angler has caught this fish on most — "???" and the count toward it until one
+     * flavour has three fish. Null (no line) unless the species takes boilies or was caught on a flavour.
+     */
+    private static String favouriteFlavour(com.riverfishing.fish.FishCard c, CompoundTag rec) {
+        CompoundTag fl = rec.getCompound("fl");
+        if (fl.isEmpty() && !c.baits().containsKey("boilie")) return null;
+        String best = null;
+        int most = 0;
+        for (String k : fl.getAllKeys()) {
+            if (fl.getInt(k) > most) { most = fl.getInt(k); best = k; }
+        }
+        return best != null && most >= FAVOURITE_AFTER
+                ? Component.translatable("flavour.riverfishing." + best).getString() + " (" + most + ")"
+                : "??? (" + most + "/" + FAVOURITE_AFTER + ")";
+    }
+
+    /** Your best against the species' own scale, with the trophy line marked on the same bar. */
+    private int recordBlock(GuiGraphics g, com.riverfishing.fish.FishCard c, CompoundTag rec, int x, int y, int w) {
+        y = railHead(g, "journal.riverfishing.stat_record", x, y + 2, w);
         int best = rec.getInt("best");
         int max = Math.max(1, c.weightMax());
         g.drawString(this.font, weight(best), x, y, GuiStyle.TEXT, false);
@@ -1535,38 +1823,7 @@ public class JournalScreen extends Screen {
         y += 8;
         g.drawString(this.font, Component.translatable("journal.riverfishing.stat_trophy_at",
                 weight(c.trophyG())), x, y, GuiStyle.TEXT_HINT, false);
-        y += 14;
-
-        y = railHead(g, "journal.riverfishing.stat_groundbait", x, y, w);
-        y = paramTable(g, x, y, w, List.of(
-                new Param("journal.riverfishing.stat_grind", c.grind(), 0xFF8A6E3C),
-                new Param("journal.riverfishing.stat_richness", c.richness(), 0xFF6E8A3C))) + 4;
-
-        y = railHead(g, "journal.riverfishing.stat_habitat", x, y, w);
-        y = railLine(g, "journal.riverfishing.stat_depth", range(c.depthMin(), c.depthMax(), 999), x, y, w);
-        y = railLine(g, "journal.riverfishing.stat_width", range(c.widthMin(), c.widthMax(), 99999), x, y, w);
-        StringBuilder bio = new StringBuilder();
-        for (Map.Entry<String, Float> e : c.biomes().entrySet()) {
-            if (e.getValue() <= 0) continue;
-            if (bio.length() > 0) bio.append(", ");
-            bio.append(Component.translatable("biomegroup.riverfishing." + e.getKey()).getString());
-        }
-        y = railLine(g, "journal.riverfishing.stat_biomes",
-                bio.length() == 0 ? Component.translatable("journal.riverfishing.stat_anywhere").getString()
-                        : bio.toString(), x, y, w);
-        y += 4;
-
-        y = railHead(g, "journal.riverfishing.stat_fight", x, y, w);
-        y = paramTable(g, x, y, w, List.of(
-                new Param("journal.riverfishing.stat_strength", c.fightStrength(), 0xFF9A4A3C),
-                new Param("journal.riverfishing.stat_stamina", c.fightStamina(), 0xFF3C6E9A))) + 2;
-        if (!c.diet().isEmpty()) {   // §species-table
-            y = railLine(g, "journal.riverfishing.diet", Component.translatable("diet.riverfishing." + c.diet()).getString(), x, y, w);
-        }
-        y = railLine(g, "journal.riverfishing.stat_runs", Integer.toString(c.fightRuns()), x, y, w);
-        y = railLine(g, "journal.riverfishing.stat_pattern",
-                Component.translatable("fightpattern.riverfishing." + c.fightPattern()).getString(), x, y, w);
-        return y;
+        return y + 14;
     }
 
     /** A rail section heading with a rule under it. */
@@ -1618,7 +1875,7 @@ public class JournalScreen extends Screen {
     }
 
     private void renderQuests(GuiGraphics g, int mouseX, int mouseY) {
-        int contentTop = top + 24, contentBottom = top + H - 6;
+        int contentTop = top + ANGLER_TOP, contentBottom = top + H - 14;
         int visibleH = contentBottom - contentTop;
         scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - visibleH));
         scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
@@ -1653,17 +1910,17 @@ public class JournalScreen extends Screen {
             boolean claimed = done && isClaimed(q);
             boolean ready = done && !claimed;
             if (ready) { // a claimable reward glows behind the whole row (§quest-claim)
-                g.fill(left + 8, y - 2, left + W - 8, y + 11, 0x38E8B430);
+                g.fill(left + 8, y - 2, left + W - 18, y + 11, 0x38E8B430);
             }
             int boxOuter = claimed ? 0xFF3FA34A : (ready ? 0xFFE8B430 : 0xFF3A2A18);
             int boxInner = claimed ? 0xFF57C063 : (ready ? 0xFFFFDE70 : 0xFF241A10);
             g.fill(left + 10, y, left + 18, y + 8, boxOuter);
             g.fill(left + 11, y + 1, left + 17, y + 7, boxInner);
-            String title = this.font.plainSubstrByWidth(q.title().getString(), W - 110);
+            String title = this.font.plainSubstrByWidth(q.title().getString(), W - 120);
             int tc = claimed ? 0xFF6E5A3C : (ready ? 0xFF9A6E10 : GuiStyle.TEXT);
             g.drawString(this.font, title, left + 24, y, tc, false);
             ItemStack rw = q.rewardStack();
-            int rx = left + W - 26;
+            int rx = left + W - 34;
             if (!rw.isEmpty()) g.renderItem(rw, rx, y - 4);
             if (ready) {
                 Component claim = Component.translatable("quest.riverfishing.claim");
@@ -1674,7 +1931,7 @@ public class JournalScreen extends Screen {
                     g.drawString(this.font, prog, rx - 6 - this.font.width(prog), y, GuiStyle.TEXT_HINT, false);
                 }
             }
-            boolean hov = mouseX >= left + 8 && mouseX < left + W - 8 && mouseY >= y - 2 && mouseY < y + 12
+            boolean hov = mouseX >= left + 8 && mouseX < left + W - 18 && mouseY >= y - 2 && mouseY < y + 12
                     && mouseY >= contentTop && mouseY < contentBottom;
             if (hov && !rw.isEmpty()) {
                 tooltip = new ArrayList<>();
@@ -1724,9 +1981,9 @@ public class JournalScreen extends Screen {
         var perks = com.riverfishing.fishing.AnglerSkills.Perk.values();
         int avail = availablePts();
         g.drawString(this.font, Component.translatable("journal.riverfishing.skill_points", avail),
-                left + 10, top + 24, avail > 0 ? 0xFF3FA34A : GuiStyle.TEXT_HINT, false);
+                left + 12, top + ANGLER_TOP, avail > 0 ? 0xFF3FA34A : GuiStyle.TEXT_HINT, false);
 
-        int contentTop = top + 38, contentBottom = top + H - 6;
+        int contentTop = top + ANGLER_TOP + 14, contentBottom = top + H - 14;
         scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - (contentBottom - contentTop)));
         scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
         int y = contentTop - scroll;
@@ -1747,7 +2004,7 @@ public class JournalScreen extends Screen {
                             .withStyle(rank > 0 ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY)),
                     left + 12, y, GuiStyle.TEXT, false);
             // rank pips on the right
-            int pipsX = left + W - 22 - p.maxRank * 8;
+            int pipsX = left + W - 36 - p.maxRank * 8;
             for (int r = 0; r < p.maxRank; r++) {
                 int px = pipsX + r * 8;
                 int col = r < rank ? 0xFFE8B430 : 0xFF3A2A18;
@@ -1766,7 +2023,7 @@ public class JournalScreen extends Screen {
             skillRects[i][0] = 0; skillRects[i][1] = 0; skillRects[i][2] = 0; skillRects[i][3] = 0;
             int by = y - 20;
             if (canBuy) {
-                int bx = left + W - 20;
+                int bx = left + W - 32;
                 boolean hov = mouseX >= bx && mouseX < bx + 12 && mouseY >= by && mouseY < by + 12;
                 g.fill(bx, by, bx + 12, by + 12, hov ? 0xFF57C063 : 0xFF3FA34A);
                 g.fill(bx + 1, by + 1, bx + 11, by + 11, hov ? 0xFF6FD07B : 0xFF4FB459);
@@ -1774,7 +2031,7 @@ public class JournalScreen extends Screen {
                 skillRects[i][0] = bx; skillRects[i][1] = by; skillRects[i][2] = bx + 12; skillRects[i][3] = by + 12;
             } else if (maxed) {
                 g.drawString(this.font, Component.translatable("skill.riverfishing.maxed")
-                        .withStyle(ChatFormatting.DARK_GREEN), left + W - 20 - this.font.width(
+                        .withStyle(ChatFormatting.DARK_GREEN), left + W - 32 - this.font.width(
                                 Component.translatable("skill.riverfishing.maxed")), by + 2, GuiStyle.GHOST, false);
             }
             y += 8;
@@ -1790,7 +2047,7 @@ public class JournalScreen extends Screen {
         int visibleH = contentBottom - contentTop;
         int maxScroll = Math.max(0, lastCatH - visibleH);
         if (maxScroll <= 0) return;
-        int tx = left + W - 5;
+        int tx = left + W - 17;
         int knobH = Math.max(16, (int) ((long) visibleH * visibleH / lastCatH));
         int knobY = contentTop + (int) ((visibleH - knobH) * (scroll / (float) maxScroll));
         g.fill(tx, contentTop, tx + 2, contentBottom, 0x40000000);
@@ -1813,61 +2070,908 @@ public class JournalScreen extends Screen {
         }
     }
 
-    // ---- BAIT / GEAR: scrolling sectioned catalog ----
+    // ---- BOILIES: every flavour against the day, read by the rules the fish go by ----
 
-    private void renderCatalog(GuiGraphics g, List<Cat> list, int mouseX, int mouseY) {
-        int contentTop = top + 38, contentBottom = top + H - 6;
-        int visibleH = contentBottom - contentTop;
-        scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - visibleH));
+    /** The boilie page's columns: five fixed moments, then now. */
+    private static final String[] BOILIE_HEADS = {"journal.riverfishing.bo_cold", "journal.riverfishing.bo_heat",
+            "journal.riverfishing.bo_night", "journal.riverfishing.bo_murky", "journal.riverfishing.bo_pred",
+            "journal.riverfishing.bo_now"};
 
-        scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
-        int y = contentTop - scroll;
-        int col = 0;
-        Kind section = null;
-        // §guide-order: the guide shelf is all one Kind, so it breaks on its PROGRESSION GROUP instead.
-        // Everything else still breaks on kind; one variable, two meanings of "a new heading is due".
-        int gsection = -1;
-        List<Component> tooltip = null;
-        for (int i = 0; i < list.size(); i++) {
-            Cat e = list.get(i);
-            int gnow = guideGroup.getOrDefault(e.id(), -1);
-            boolean newSection = tab == TAB_GUIDE ? gnow != gsection : e.kind() != section;
-            if (newSection) {
-                if (col != 0) { y += ROW_H; col = 0; }
-                if (i != 0) y += 3;
-                section = e.kind();
-                gsection = gnow;
-                Component headText = tab == TAB_GUIDE
-                        ? Component.translatable("guidegroup.riverfishing." + gnow)
-                        : Component.translatable(sectionKey(section));
-                g.drawString(this.font, headText, left + 10, y, 0xFFB0842C, false);
-                y += 12;
-            }
-            int x = left + 10 + col * catColW;
-            catRects[i][0] = x;
-            catRects[i][1] = y;
-            g.renderItem(e.stack(), x, y);
-            String name = fitName(e.stack().getHoverName().getString(), catColW - 24);
-            boolean hov = mouseX >= x && mouseX < x + catColW - 8 && mouseY >= y && mouseY < y + ROW_H - 1
-                    && mouseY >= contentTop && mouseY < contentBottom;
-            g.drawString(this.font, name, x + 20, y + 4, hov ? 0xFFB8860B : GuiStyle.TEXT, false);
-            if (hov) tooltip = catTooltip(e);
-            if (++col >= CAT_COLS) { col = 0; y += ROW_H; }
+    private static com.riverfishing.fish.Boilie.Scene boilieScene(com.riverfishing.engine.Season s,
+            com.riverfishing.engine.TimeOfDay t, com.riverfishing.engine.Weather w, double clarity, int bed, String diet) {
+        String group = "predator".equals(diet) ? "catfish" : com.riverfishing.fish.FishGroup.CYPRINID;
+        return new com.riverfishing.fish.Boilie.Scene(s, t, w, false, clarity, bed, 0.3, false, diet, group, 3000);
+    }
+
+    /**
+     * §boilie-page: the five moments the table is read at — a three-kilo carp on a gravel bed unless the
+     * column says otherwise. Cold water, a hot clear noon, the night, murky water over mud after rain,
+     * and a predator at dusk: the corners of the author's rules, where the flavours part the most.
+     */
+    private static final com.riverfishing.fish.Boilie.Scene[] BOILIE_SCENES = {
+            boilieScene(com.riverfishing.engine.Season.SPRING, com.riverfishing.engine.TimeOfDay.DAY,
+                    com.riverfishing.engine.Weather.CLEAR, 0.9, 2, "peaceful"),
+            boilieScene(com.riverfishing.engine.Season.SUMMER, com.riverfishing.engine.TimeOfDay.DAY,
+                    com.riverfishing.engine.Weather.CLEAR, 0.9, 2, "peaceful"),
+            boilieScene(com.riverfishing.engine.Season.SUMMER, com.riverfishing.engine.TimeOfDay.NIGHT,
+                    com.riverfishing.engine.Weather.CLEAR, 0.9, 2, "peaceful"),
+            boilieScene(com.riverfishing.engine.Season.AUTUMN, com.riverfishing.engine.TimeOfDay.DAY,
+                    com.riverfishing.engine.Weather.RAIN, 0.6, 4, "peaceful"),
+            boilieScene(com.riverfishing.engine.Season.SUMMER, com.riverfishing.engine.TimeOfDay.DUSK,
+                    com.riverfishing.engine.Weather.CLEAR, 0.9, 2, "predator")};
+
+    /** The moment as this client sees it: the season, the hour and the sky. The water it cannot know. */
+    private static com.riverfishing.fish.Boilie.Scene boilieNow() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) return BOILIE_SCENES[1];
+        var weather = mc.level.isThundering() ? com.riverfishing.engine.Weather.THUNDER
+                : mc.level.isRaining() ? com.riverfishing.engine.Weather.RAIN : com.riverfishing.engine.Weather.CLEAR;
+        return boilieScene(com.riverfishing.integration.SeasonProvider.getSeason(mc.level),
+                com.riverfishing.engine.TimeOfDay.fromDayTime(mc.level.getDayTime()), weather, 0.9, 0, "peaceful");
+    }
+
+    /** One flavour, on a plain 20 mm bottom boilie — so the column is the flavour and nothing else. */
+    private static double boilieFactor(com.riverfishing.fish.Flavour f, com.riverfishing.fish.Boilie.Scene s) {
+        return new com.riverfishing.fish.Boilie(List.of(f), com.riverfishing.fish.Boilie.Buoyancy.SINKER, 20, false, null)
+                .factor(s);
+    }
+
+    private static int factorColour(double f) {
+        return lerpColour(0xFFA0402E, 0xFF2E7D32, (float) Mth.clamp((f - 0.5) / 1.1, 0.0, 1.0));
+    }
+
+    private static String times(double f) {
+        return String.format(java.util.Locale.ROOT, "×%.1f", f);
+    }
+
+    // ---- §boilie-builder (1.1.0): the boilie page is three pages — the flavour table, a builder that runs the
+    // real rulebook on the boilie and the water you set and says why, and how that boilie of yours is made ----
+
+    private static final String[] BO_PAGES = {"journal.riverfishing.bo_page_table",
+            "journal.riverfishing.bo_page_build", "journal.riverfishing.bo_page_make"};
+    private static final int BC_PAGE = 0, BC_SLOT = 1, BC_PAL = 2, BC_FORM = 3, BC_SIZE = 4, BC_MEAL = 5,
+            BC_SEASON = 6, BC_TIME = 7, BC_WEATHER = 8, BC_WATER = 9, BC_BED = 10, BC_CURRENT = 11, BC_COVER = 12,
+            BC_SHIFT = 13, BC_FISH = 14, BC_NOW = 15, BC_ROW = 16, BC_HEAD = 17, BC_CELL = 18, BC_GUIDE = 19,
+            BC_CLEAR = 20;
+    /** The water's look as the rulebook reads it — untouched, ordinary, murky — and the bottom: mud, hard, not known. */
+    private static final double[] BO_CLARITY = {1.0, 0.9, 0.6};
+    private static final int[] BO_BED = {4, 2, 0};
+
+    // The builder's boilie and water live for the session: a book shut and opened again has the last try on it.
+    private static int boPage;
+    /** Two flavours and the dip; {@code null} is an empty slot. */
+    private static final com.riverfishing.fish.Flavour[] boSlot = new com.riverfishing.fish.Flavour[3];
+    private static int boTarget;
+    private static int boForm, boSize = 2, boSeason = 1, boTime = 1, boWeather, boWater = 1, boBed = 1;
+    /** The chosen fish by name — a preset's key or a species id — so a list rebuilt after a catch keeps it. */
+    private static String boFishId = "journal.riverfishing.bf_carp";
+    private static boolean boMeal, boCurrent, boCover, boShift;
+    /** What was drawn where this frame, {x0, y0, x1, y1, control, value} — the clicks read it back. */
+    private final List<int[]> boHits = new ArrayList<>();
+    /** The species sheet's link into the builder, {x0, y0, x1, y1}. */
+    private final int[] fishBoLink = new int[4];
+
+    private record BoFish(String key, String sp, String diet, String group, double meanG) {}
+
+    /** The fish the builder can ask: four kinds to begin with, then every species in the journal. */
+    private List<BoFish> boFishes() {
+        List<BoFish> out = new ArrayList<>(List.of(
+                new BoFish("journal.riverfishing.bf_carp", null, "peaceful", com.riverfishing.fish.FishGroup.CYPRINID, 3500),
+                new BoFish("journal.riverfishing.bf_big", null, "peaceful", com.riverfishing.fish.FishGroup.CYPRINID, 12000),
+                new BoFish("journal.riverfishing.bf_small", null, "peaceful", com.riverfishing.fish.FishGroup.CYPRINID, 150),
+                new BoFish("journal.riverfishing.bf_pred", null, "predator", com.riverfishing.fish.FishGroup.PREDATOR, 3000)));
+        for (String sp : ordered) {
+            if (!caught(sp)) continue;
+            com.riverfishing.fish.FishCard c = card(sp);
+            if (c.present()) out.add(new BoFish(null, sp, c.diet(), c.group(), c.weightMean()));
         }
-        if (col != 0) y += ROW_H;
-        lastCatH = (y + scroll) - contentTop;
-        lastViewH = contentBottom - contentTop;
-        g.disableScissor();
+        return out;
+    }
 
-        int maxScroll = Math.max(0, lastCatH - visibleH);
-        if (maxScroll > 0) {
-            int tx = left + W - 5;
-            int knobH = Math.max(16, (int) ((long) visibleH * visibleH / lastCatH));
-            int knobY = contentTop + (int) ((visibleH - knobH) * (scroll / (float) maxScroll));
-            g.fill(tx, contentTop, tx + 2, contentBottom, 0x40000000);
-            g.fill(tx, knobY, tx + 2, knobY + knobH, 0xFF8A6E3C);
+    /** Where the chosen fish is in this journal's list; the first (carp) when it is not there. */
+    private static int boFishIndex(List<BoFish> fishes) {
+        for (int i = 0; i < fishes.size(); i++) {
+            BoFish f = fishes.get(i);
+            if (boFishId.equals(f.sp() != null ? f.sp() : f.key())) return i;
+        }
+        return 0;
+    }
+
+    /** Step the chosen fish along the list, and keep it by name. */
+    private void boFishStep(int by) {
+        List<BoFish> fishes = boFishes();
+        BoFish f = fishes.get(Math.floorMod(boFishIndex(fishes) + by, fishes.size()));
+        boFishId = f.sp() != null ? f.sp() : f.key();
+    }
+
+    private static com.riverfishing.fish.Boilie boBuilt() {
+        List<com.riverfishing.fish.Flavour> fl = new ArrayList<>();
+        for (int i = 0; i < 2; i++) if (boSlot[i] != null && !fl.contains(boSlot[i])) fl.add(boSlot[i]);
+        return new com.riverfishing.fish.Boilie(fl, com.riverfishing.fish.Boilie.Buoyancy.values()[boForm],
+                com.riverfishing.fish.Boilie.SIZES[boSize], boMeal, boSlot[2]);
+    }
+
+    private static com.riverfishing.fish.Boilie.Scene boScene(BoFish f) {
+        return new com.riverfishing.fish.Boilie.Scene(com.riverfishing.engine.Season.values()[boSeason],
+                com.riverfishing.engine.TimeOfDay.values()[boTime], com.riverfishing.engine.Weather.values()[boWeather],
+                boShift, BO_CLARITY[boWater], BO_BED[boBed], boCover ? 0.6 : 0.2, boCurrent, f.diet(), f.group(), f.meanG());
+    }
+
+    /** The builder's water set to one of the table's moments (its fish too, where the column names one). */
+    private static void boFrom(com.riverfishing.fish.Boilie.Scene s) {
+        boSeason = s.season().ordinal();
+        boTime = s.time().ordinal();
+        boWeather = s.weather().ordinal();
+        boWater = s.clarity() >= 1.0 ? 0 : s.clarity() >= 0.85 ? 1 : 2;
+        boBed = s.bed() == 4 ? 0 : s.bed() >= 1 ? 1 : 2;
+        boShift = s.shift();
+        boCurrent = s.current();
+        boCover = s.cover() >= 0.5;
+        boFishId = "predator".equals(s.diet()) ? "journal.riverfishing.bf_pred" : "journal.riverfishing.bf_carp";
+    }
+
+    /** What this client can see of now — the season, the hour and the sky; the water under the float stays as set. */
+    private static void boNow() {
+        com.riverfishing.fish.Boilie.Scene s = boilieNow();
+        boSeason = s.season().ordinal();
+        boTime = s.time().ordinal();
+        boWeather = s.weather().ordinal();
+    }
+
+    /** The species sheet's way in: the builder, asking about that fish. */
+    private void openBuilder(String sp) {
+        go(SEC_GEAR, GEAR_KINDS.length + 2);
+        boPage = 1;
+        boFishId = sp;
+    }
+
+    private static boolean over(double mx, double my, int x0, int y0, int x1, int y1) {
+        return mx >= x0 && mx < x1 && my >= y0 && my < y1;
+    }
+
+    private static String cap(String s) {
+        return s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
+    private static String[] tr(String prefix, String... ids) {
+        String[] out = new String[ids.length];
+        for (int i = 0; i < ids.length; i++) out[i] = cap(Component.translatable(prefix + ids[i]).getString());
+        return out;
+    }
+
+    /** One pressable face on the page: leather when it is set, a shade under the cursor, a ruled box otherwise. */
+    private static void boFace(GuiGraphics g, int x0, int y0, int x1, int y1, boolean on, boolean hov) {
+        if (on) {
+            g.fill(x0, y0, x1, y1, 0xFF5C3B23);
+            g.fill(x0, y0, x1, y0 + 1, 0xFF86603E);
+        } else {
+            g.fill(x0, y0, x1, y1, hov ? 0x30000000 : 0x14000000);
+            g.fill(x0, y1 - 1, x1, y1, 0x30000000);
+        }
+    }
+
+    /** A button sized to its label; returns the x after it. */
+    private int boButton(GuiGraphics g, int x, int y, String label, boolean on, int control, int value, int mx, int my) {
+        int x1 = x + this.font.width(label) + 10;
+        boFace(g, x, y, x1, y + 13, on, over(mx, my, x, y, x1, y + 13));
+        g.drawString(this.font, label, x + 5, y + 3, on ? 0xFFF4ECD6 : GuiStyle.TEXT, false);
+        boHits.add(new int[]{x, y, x1, y + 13, control, value});
+        return x1 + 3;
+    }
+
+    /**
+     * A row of buttons across {@code w}, the {@code sel}-th pressed; returns the y under it. Each is as wide as
+     * its word plus a share of what is left — "Світанок" beside "Ніч" — and equal only when the words do not fit.
+     */
+    private int boSeg(GuiGraphics g, int x, int y, int w, String[] labels, int sel, int control, int mx, int my) {
+        int n = labels.length, room = w - (n - 1) * 2, words = 0;
+        int[] bws = new int[n];
+        for (int i = 0; i < n; i++) words += bws[i] = this.font.width(labels[i]) + 6;
+        for (int i = 0; i < n; i++) bws[i] = words <= room ? bws[i] + (room - words) / n : room / n;
+        int bx = x;
+        for (int i = 0; i < n; i++, bx += bws[i - 1] + 2) {
+            int bw = i == n - 1 ? x + w - bx : bws[i];
+            boFace(g, bx, y, bx + bw, y + 13, i == sel, over(mx, my, bx, y, bx + bw, y + 13));
+            String label = fitName(labels[i], bw - 4);
+            g.drawString(this.font, label, bx + (bw - this.font.width(label)) / 2, y + 3,
+                    i == sel ? 0xFFF4ECD6 : GuiStyle.TEXT, false);
+            boHits.add(new int[]{bx, y, bx + bw, y + 13, control, i});
+        }
+        return y + 16;
+    }
+
+    /** {@link #boSeg} with its name in the margin. */
+    private int boRow(GuiGraphics g, int x, int y, int w, String key, String[] labels, int sel, int control, int mx, int my) {
+        g.drawString(this.font, fitName(Component.translatable(key).getString(), 42), x, y + 3, GuiStyle.TEXT_HINT, false);
+        return boSeg(g, x + 44, y, w - 44, labels, sel, control, mx, my);
+    }
+
+    /** A tick box and its label; returns the x after it. */
+    private int boTick(GuiGraphics g, int x, int y, String key, boolean on, int control, int mx, int my) {
+        Component label = Component.translatable(key);
+        int x1 = x + 12 + this.font.width(label);
+        boolean hov = over(mx, my, x, y, x1, y + 11);
+        g.fill(x, y + 1, x + 9, y + 10, 0xFF5C3B23);
+        g.fill(x + 1, y + 2, x + 8, y + 9, hov ? 0xFFF4ECD6 : PAGE);
+        if (on) g.fill(x + 2, y + 3, x + 7, y + 8, 0xFF2E7D32);
+        g.drawString(this.font, label, x + 12, y + 2, GuiStyle.TEXT, false);
+        boHits.add(new int[]{x, y, x1, y + 11, control, 0});
+        return x1 + 8;
+    }
+
+    private static String times2(double f) {
+        return String.format(java.util.Locale.ROOT, "×%.2f", f);
+    }
+
+    private static ItemStack boilieStack(com.riverfishing.fish.Boilie b, int count) {
+        ItemStack st = new ItemStack(ModItems.BOILIE.get(), count);
+        com.riverfishing.item.BoilieItem.write(st, b);
+        if (b.dip() != null) com.riverfishing.item.BoilieItem.dip(st, b.dip());
+        return st;
+    }
+
+    private static ItemStack ingredientOf(com.riverfishing.fish.Flavour f) {
+        ResourceLocation id = ResourceLocation.tryParse(f.ingredient.contains(":") ? f.ingredient : "minecraft:" + f.ingredient);
+        return id == null ? ItemStack.EMPTY : new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(id));
+    }
+
+    private List<Component> flavourTooltip(com.riverfishing.fish.Flavour f) {
+        List<Component> tip = new ArrayList<>();
+        tip.add(Component.translatable("flavour.riverfishing." + f.id()).withStyle(s -> s.withColor(f.rgb)));
+        tip.add(Component.translatable("journal.riverfishing.bo_kind",
+                Component.translatable("journal.riverfishing.bo_strength_" + f.strength.name().toLowerCase(java.util.Locale.ROOT)),
+                Component.translatable(f.bright ? "journal.riverfishing.bo_bright" : "journal.riverfishing.bo_dark"))
+                .withStyle(ChatFormatting.GRAY));
+        ItemStack ing = ingredientOf(f);
+        if (!ing.isEmpty()) {
+            tip.add(Component.translatable("journal.riverfishing.bo_bottle", ing.getHoverName()).withStyle(ChatFormatting.DARK_GRAY));
+        }
+        return tip;
+    }
+
+    /** The boilie page: its three pages' switch along the top, then the page. */
+    private void renderBoilie(GuiGraphics g, int mouseX, int mouseY) {
+        boHits.clear();
+        int x = left + 12, bx = x;
+        for (int i = 0; i < BO_PAGES.length; i++) {
+            bx = boButton(g, bx, top + 24, Component.translatable(BO_PAGES[i]).getString(), i == boPage, BC_PAGE, i,
+                    mouseX, mouseY);
+        }
+        if (boPage == 1) renderBoilieBuilder(g, mouseX, mouseY);
+        else if (boPage == 2) renderBoilieMake(g, mouseX, mouseY);
+        else renderBoilieTable(g, mouseX, mouseY);
+    }
+
+    /**
+     * §boilie-page (1.1.0): the flavours as a table the angler can read the day off. Every cell is the
+     * real rulebook ({@link com.riverfishing.fish.Boilie#factor}) run on one flavour at one moment, so the
+     * page cannot say strawberry and the water mean chili. The last column is now, from what this client
+     * can see — the season, the hour and the sky; the water under the float it leaves to the angler.
+     * §boilie-builder: a flavour, a column or a cell opens the builder on it.
+     */
+    private void renderBoilieTable(GuiGraphics g, int mouseX, int mouseY) {
+        int x = left + 12, wAll = W - 32, top = this.top + 17;
+        g.drawString(this.font, fitName(Component.translatable("journal.riverfishing.bo_hint").getString(), wAll),
+                x, top + 25, GuiStyle.TEXT_HINT, false);
+
+        com.riverfishing.fish.Flavour[] fl = com.riverfishing.fish.Flavour.values();
+        com.riverfishing.fish.Boilie.Scene now = boilieNow();
+        double[][] cell = new double[fl.length][BOILIE_HEADS.length];
+        int[] best = new int[BOILIE_HEADS.length];
+        int worstNow = 0;
+        for (int i = 0; i < fl.length; i++) {
+            for (int c = 0; c < BOILIE_HEADS.length; c++) {
+                cell[i][c] = boilieFactor(fl[i], c < BOILIE_SCENES.length ? BOILIE_SCENES[c] : now);
+                if (cell[i][c] > cell[best[c]][c]) best[c] = i;
+            }
+            if (cell[i][BOILIE_HEADS.length - 1] < cell[worstNow][BOILIE_HEADS.length - 1]) worstNow = i;
+        }
+
+        // the moment, and what it wants
+        int nowC = BOILIE_HEADS.length - 1;
+        g.fill(x, top + 36, x + wAll, top + 62, 0x18000000);
+        g.drawString(this.font, Component.translatable("journal.riverfishing.bo_now_is",
+                Component.translatable("season.riverfishing." + now.season().jsonKey()),
+                Component.translatable("time.riverfishing." + now.time().jsonKey()),
+                Component.translatable("weather.riverfishing." + now.weather().jsonKey())),
+                x + 5, top + 40, GuiStyle.TEXT_HINT, false);
+        g.drawString(this.font, fitName(Component.translatable("journal.riverfishing.bo_best",
+                Component.translatable("flavour.riverfishing." + fl[best[nowC]].id()), times(cell[best[nowC]][nowC]),
+                Component.translatable("flavour.riverfishing." + fl[worstNow].id()), times(cell[worstNow][nowC])).getString(),
+                wAll - 10), x + 5, top + 51, 0xFF8A5A00, false);
+
+        // the table: the flavour, its family, then a column a moment
+        int cols = BOILIE_HEADS.length;
+        int[] colW = new int[cols];
+        int used = 0;
+        for (int c = 0; c < cols; c++) {
+            colW[c] = Math.max(36, this.font.width(Component.translatable(BOILIE_HEADS[c])) + 8);
+            used += colW[c];
+        }
+        int famW = 70, nameW = wAll - used - famW;
+        int head = top + 70;
+        g.drawString(this.font, Component.translatable("journal.riverfishing.bo_flavour"), x, head, 0xFFB0842C, false);
+        int cx = x + nameW + famW;
+        int[] right = new int[cols];
+        for (int c = 0; c < cols; c++) {
+            cx += colW[c];
+            right[c] = cx;
+            Component h = Component.translatable(BOILIE_HEADS[c]);
+            boolean hovH = over(mouseX, mouseY, cx - colW[c] + 4, head - 2, cx + 2, head + 10);
+            if (hovH) g.fill(cx - colW[c] + 4, head - 2, cx + 2, head + 10, 0x22000000);
+            g.drawString(this.font, h, cx - this.font.width(h), head, c == nowC || hovH ? 0xFFD8A93C : 0xFFB0842C, false);
+            boHits.add(new int[]{cx - colW[c] + 4, head - 2, cx + 2, head + 10, BC_HEAD, c});
+        }
+        g.fill(x, head + 10, x + wAll, head + 11, 0x33000000);
+
+        int y = head + 14;
+        List<Component> tooltip = null;
+        for (int i = 0; i < fl.length; i++) {
+            com.riverfishing.fish.Flavour f = fl[i];
+            boolean hov = over(mouseX, mouseY, x, y - 1, x + wAll, y + 16);
+            if (hov) g.fill(x, y - 1, x + wAll, y + 16, 0x22000000);
+            g.renderItem(com.riverfishing.item.FlavourItem.make(f), x, y);
+            g.drawString(this.font, fitName(Component.translatable("flavour.riverfishing." + f.id()).getString(), nameW - 24),
+                    x + 20, y + 4, hov ? 0xFF8A5A00 : GuiStyle.TEXT, false);
+            g.drawString(this.font, fitName(Component.translatable("flavourfamily.riverfishing."
+                            + f.family.name().toLowerCase(java.util.Locale.ROOT)).getString(), famW - 4),
+                    x + nameW, y + 4, GuiStyle.TEXT_HINT, false);
+            boolean onCell = false;
+            for (int c = 0; c < cols; c++) {
+                int c0 = right[c] - colW[c] + 4;
+                if (best[c] == i) g.fill(c0, y - 1, right[c] + 2, y + 15, 0x2240A040);
+                if (over(mouseX, mouseY, c0, y - 1, right[c] + 2, y + 16)) {
+                    g.fill(c0, y - 1, right[c] + 2, y + 16, 0x33000000);
+                    onCell = true;
+                }
+                String s = times(cell[i][c]);
+                g.drawString(this.font, s, right[c] - this.font.width(s), y + 4, factorColour(cell[i][c]), false);
+                boHits.add(new int[]{c0, y - 1, right[c] + 2, y + 16, BC_CELL, i * 8 + c});
+            }
+            boHits.add(new int[]{x, y - 1, x + wAll, y + 16, BC_ROW, i});
+            if (hov) {
+                tooltip = flavourTooltip(f);
+                tooltip.add(Component.translatable(onCell ? "journal.riverfishing.bo_click_cell" : "journal.riverfishing.bo_click_row")
+                        .withStyle(ChatFormatting.DARK_GREEN));
+            }
+            y += 17;
+        }
+
+        y += 4;
+        g.drawString(this.font, fitName(Component.translatable("journal.riverfishing.bo_table_hint").getString(), wAll),
+                x, y, GuiStyle.TEXT_HINT, false);
+        y += 13;
+        Component link = Component.translatable("journal.riverfishing.bo_recipes");
+        boolean hovLink = over(mouseX, mouseY, x, y - 1, x + this.font.width(link), y + 10);
+        g.drawString(this.font, link, x, y, hovLink ? 0xFFD8A93C : 0xFF8A5A00, false);
+        boHits.add(new int[]{x, y - 1, x + this.font.width(link), y + 10, BC_GUIDE, 0});
+        if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
+    }
+
+    /**
+     * §boilie-builder (1.1.0): a boilie and a swim, set by hand, and the rulebook's answer — the same
+     * {@link com.riverfishing.fish.Boilie#factor} the bite engine multiplies a bite by — with every rule that
+     * moved it listed, so the page teaches the notes instead of hiding them behind a number.
+     */
+    private void renderBoilieBuilder(GuiGraphics g, int mouseX, int mouseY) {
+        int x = left + 12, wAll = W - 32, lw = 206, rx = x + 220, rw = wAll - 220;
+        List<Component> tooltip = null;
+        List<BoFish> fishes = boFishes();
+        BoFish fish = fishes.get(boFishIndex(fishes));
+
+        // ---- the boilie ----
+        int y = top + 42;
+        g.drawString(this.font, Component.translatable("journal.riverfishing.bo_the_boilie"), x, y, 0xFFB0842C, false);
+        String clear = Component.translatable("journal.riverfishing.bo_clear").getString();
+        boButton(g, x + lw - this.font.width(clear) - 10, y - 3, clear, false, BC_CLEAR, 0, mouseX, mouseY);
+        y = top + 56;
+        for (int i = 0; i < 3; i++) {
+            int sx = x + (i == 2 ? 52 : i * 22);
+            boolean hov = over(mouseX, mouseY, sx, y, sx + 20, y + 20);
+            g.fill(sx, y, sx + 20, y + 20, i == boTarget ? 0xFFD8A93C : 0xFF5C3B23);
+            g.fill(sx + 1, y + 1, sx + 19, y + 19, hov ? 0xFF7A6446 : GuiStyle.SLOT_BG);
+            if (boSlot[i] != null) g.renderItem(com.riverfishing.item.FlavourItem.make(boSlot[i]), sx + 2, y + 2);
+            boHits.add(new int[]{sx, y, sx + 20, y + 20, BC_SLOT, i});
+            if (hov) {
+                tooltip = new ArrayList<>();
+                tooltip.add(Component.translatable(i == 2 ? "journal.riverfishing.bo_slot_dip" : "journal.riverfishing.bo_slot_flavour"));
+                com.riverfishing.fish.Flavour sf = boSlot[i];
+                if (sf != null) tooltip.add(Component.translatable("flavour.riverfishing." + sf.id()).withStyle(st -> st.withColor(sf.rgb)));
+                tooltip.add(Component.translatable("journal.riverfishing.bo_slot_hint").withStyle(ChatFormatting.DARK_GREEN));
+            }
+        }
+        g.drawString(this.font, "+", x + 45, y + 6, GuiStyle.TEXT_HINT, false);
+        Component fLabel = Component.translatable("journal.riverfishing.bo_slot_flavours"), dLabel = Component.translatable("journal.riverfishing.bo_slot_dip_short");
+        g.drawString(this.font, fLabel, x + 21 - this.font.width(fLabel) / 2, y + 22, GuiStyle.TEXT_HINT, false);
+        g.drawString(this.font, dLabel, x + 62 - this.font.width(dLabel) / 2, y + 22, GuiStyle.TEXT_HINT, false);
+
+        // what came out: the ball itself, big, and what it is
+        com.riverfishing.fish.Boilie b = boBuilt();
+        g.pose().pushPose();
+        g.pose().translate(x + 84, y - 4, 0);
+        g.pose().scale(2f, 2f, 1f);
+        g.renderItem(boilieStack(b, 1), 0, 0);
+        g.pose().popPose();
+        int tx = x + 120, tw = lw - 120, ty = y - 2;
+        g.drawString(this.font, fitName(Component.translatable("journal.riverfishing.bo_form_size",
+                Component.translatable("journal.riverfishing.bo_f_" + b.buoyancy().name().toLowerCase(java.util.Locale.ROOT)).getString(),
+                b.sizeMm()).getString(), tw), tx, ty, GuiStyle.TEXT, false);
+        ty += 10;
+        String taste = b.flavours().isEmpty() ? Component.translatable("journal.riverfishing.bo_no_flavour").getString()
+                : b.flavours().stream().map(fv -> Component.translatable("flavour.riverfishing." + fv.id()).getString())
+                .collect(Collectors.joining(" + "));
+        for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.literal(taste), tw)) {
+            if (ty > y + 22) break;
+            g.drawString(this.font, seq, tx, ty, GuiStyle.TEXT_HINT, false);
+            ty += 10;
+        }
+
+        // the palette
+        com.riverfishing.fish.Flavour[] fl = com.riverfishing.fish.Flavour.values();
+        int py = top + 92;
+        for (int i = 0; i < fl.length; i++) {
+            int px = x + (i % 7) * 20, pyy = py + (i / 7) * 20;
+            boolean hov = over(mouseX, mouseY, px, pyy, px + 18, pyy + 18);
+            boolean used = fl[i] == boSlot[0] || fl[i] == boSlot[1] || fl[i] == boSlot[2];
+            boFace(g, px, pyy, px + 18, pyy + 18, false, hov);
+            if (used) {
+                g.fill(px, pyy, px + 18, pyy + 1, 0xFF2E7D32);
+                g.fill(px, pyy + 17, px + 18, pyy + 18, 0xFF2E7D32);
+            }
+            g.renderItem(com.riverfishing.item.FlavourItem.make(fl[i]), px + 1, pyy + 1);
+            boHits.add(new int[]{px, pyy, px + 18, pyy + 18, BC_PAL, i});
+            if (hov) {
+                tooltip = flavourTooltip(fl[i]);
+                tooltip.add(Component.translatable(boTarget == 2 ? "journal.riverfishing.bo_pal_dip" : "journal.riverfishing.bo_pal_flavour")
+                        .withStyle(ChatFormatting.DARK_GREEN));
+            }
+        }
+        y = top + 136;
+        y = boSeg(g, x, y, lw, tr("journal.riverfishing.bo_f_", "sinker", "wafter", "popup", "snowman"), boForm, BC_FORM, mouseX, mouseY);
+        String[] sizes = new String[com.riverfishing.fish.Boilie.SIZES.length];
+        for (int i = 0; i < sizes.length; i++) {
+            sizes[i] = Component.translatable("journal.riverfishing.bo_mm", com.riverfishing.fish.Boilie.SIZES[i]).getString();
+        }
+        y = boSeg(g, x, y, lw, sizes, boSize, BC_SIZE, mouseX, mouseY);
+        boTick(g, x, y + 1, "journal.riverfishing.bo_meal", boMeal, BC_MEAL, mouseX, mouseY);
+
+        // ---- the swim and the fish ----
+        y = top + 42;
+        g.drawString(this.font, Component.translatable("journal.riverfishing.bo_the_water"), rx, y, 0xFFB0842C, false);
+        String nowL = Component.translatable("journal.riverfishing.bo_now_btn").getString();
+        boButton(g, rx + rw - this.font.width(nowL) - 10, y - 3, nowL, false, BC_NOW, 0, mouseX, mouseY);
+        y = top + 56;
+        y = boRow(g, rx, y, rw, "journal.riverfishing.bo_l_season", tr("season.riverfishing.", "spring", "summer", "autumn", "winter"),
+                boSeason, BC_SEASON, mouseX, mouseY);
+        y = boRow(g, rx, y, rw, "journal.riverfishing.bo_l_time", tr("time.riverfishing.", "dawn", "day", "dusk", "night"),
+                boTime, BC_TIME, mouseX, mouseY);
+        y = boRow(g, rx, y, rw, "journal.riverfishing.bo_l_weather", tr("weather.riverfishing.", "clear", "rain", "thunder"),
+                boWeather, BC_WEATHER, mouseX, mouseY);
+        y = boRow(g, rx, y, rw, "journal.riverfishing.bo_l_water", tr("journal.riverfishing.bo_w_", "clear", "normal", "murky"),
+                boWater, BC_WATER, mouseX, mouseY);
+        y = boRow(g, rx, y, rw, "journal.riverfishing.bo_l_bed", tr("journal.riverfishing.bo_b_", "mud", "hard", "any"),
+                boBed, BC_BED, mouseX, mouseY);
+        int tickX = boTick(g, rx, y, "journal.riverfishing.bo_current", boCurrent, BC_CURRENT, mouseX, mouseY);
+        tickX = boTick(g, tickX, y, "journal.riverfishing.bo_cover", boCover, BC_COVER, mouseX, mouseY);
+        boTick(g, tickX, y, "journal.riverfishing.bo_shift", boShift, BC_SHIFT, mouseX, mouseY);
+        y += 15;
+        // the fish: ◀ name ▶, the wheel turns it too
+        g.drawString(this.font, fitName(Component.translatable("journal.riverfishing.bo_l_fish").getString(), 42),
+                rx, y + 5, GuiStyle.TEXT_HINT, false);
+        int fx = rx + 44, fw = rw - 44;
+        boFace(g, fx, y, fx + 12, y + 18, false, over(mouseX, mouseY, fx, y, fx + 12, y + 18));
+        g.drawString(this.font, "◀", fx + 3, y + 5, GuiStyle.TEXT, false);
+        boFace(g, fx + fw - 12, y, fx + fw, y + 18, false, over(mouseX, mouseY, fx + fw - 12, y, fx + fw, y + 18));
+        g.drawString(this.font, "▶", fx + fw - 9, y + 5, GuiStyle.TEXT, false);
+        boHits.add(new int[]{fx, y, fx + 12, y + 18, BC_FISH, -1});
+        boHits.add(new int[]{fx + fw - 12, y, fx + fw, y + 18, BC_FISH, 1});
+        boHits.add(new int[]{fx + 12, y, fx + fw - 12, y + 18, BC_FISH, 1});
+        int nx = fx + 15;
+        if (fish.sp() != null) {
+            drawFishIcon(g, fish.sp(), nx, y + 1);
+            nx += 18;
+        }
+        String fname = fish.sp() != null ? Component.translatable("fish.riverfishing." + fish.sp()).getString()
+                : Component.translatable(fish.key()).getString();
+        String weight = fish.meanG() >= 1000
+                ? Component.translatable("journal.riverfishing.bo_kg", String.format(java.util.Locale.ROOT, "%.1f", fish.meanG() / 1000.0)).getString()
+                : Component.translatable("journal.riverfishing.bo_g", Math.round(fish.meanG())).getString();
+        g.drawString(this.font, fitName(fname + " · " + weight, fx + fw - 14 - nx), nx, y + 5, GuiStyle.TEXT, false);
+        if (over(mouseX, mouseY, fx, y, fx + fw, y + 18)) {
+            tooltip = List.of(Component.translatable("journal.riverfishing.bo_fish_hint").withStyle(ChatFormatting.DARK_GREEN));
+        }
+
+        // ---- the answer ----
+        com.riverfishing.fish.Boilie.Scene s = boScene(fish);
+        java.util.Map<String, Double> why = new java.util.LinkedHashMap<>();
+        double f = b.factor(s, (k, v) -> why.merge(k, v, Double::sum));
+        y = top + 186;
+        g.fill(x, y, x + wAll, y + 1, 0x33000000);
+        y += 6;
+        g.pose().pushPose();
+        g.pose().translate(x, y, 0);
+        g.pose().scale(2f, 2f, 1f);
+        g.drawString(this.font, times2(f), 0, 0, factorColour(f), false);
+        g.pose().popPose();
+        // the corridor, 0.3 to 2.0, with the plain boilie marked
+        int barX = x + 90, barW = wAll - 90, barY = y + 3;
+        for (int i = 0; i < barW; i++) {
+            g.fill(barX + i, barY, barX + i + 1, barY + 6, factorColour(0.3 + 1.7 * i / (double) barW));
+        }
+        int one = barX + (int) Math.round((1.0 - 0.3) / 1.7 * barW);
+        g.fill(one, barY - 2, one + 1, barY + 8, 0xFF3A2A18);
+        int at = barX + (int) Math.round(Mth.clamp((f - 0.3) / 1.7, 0.0, 1.0) * (barW - 1));
+        g.fill(at - 1, barY - 3, at + 2, barY + 9, 0xFF1A120A);
+        g.fill(at, barY - 2, at + 1, barY + 8, 0xFFF4ECD6);
+        g.drawString(this.font, "×0.3", barX, barY + 9, GuiStyle.TEXT_HINT, false);
+        g.drawString(this.font, "×1", one - this.font.width("×1") / 2, barY + 9, GuiStyle.TEXT_HINT, false);
+        g.drawString(this.font, "×2", barX + barW - this.font.width("×2"), barY + 9, GuiStyle.TEXT_HINT, false);
+
+        y += 24;
+        String verdict = f >= 1.15 ? "journal.riverfishing.bo_v_good" : f <= 0.87 ? "journal.riverfishing.bo_v_bad"
+                : "journal.riverfishing.bo_v_same";
+        g.drawString(this.font, fitName(Component.translatable(verdict).getString()
+                        + (f >= 2.0 || f <= 0.3 ? " " + Component.translatable("journal.riverfishing.bo_v_cap").getString() : ""), wAll),
+                x, y, factorColour(f), false);
+        y += 11;
+        List<Component> notes = new ArrayList<>();
+        if (b.flavours().isEmpty() && b.dip() == null) notes.add(Component.translatable("journal.riverfishing.bo_n_empty"));
+        if (b.tooBigFor(fish.meanG())) notes.add(Component.translatable("journal.riverfishing.bo_n_big"));
+        if (b.nuisanceBait() && fish.meanG() >= 300) notes.add(Component.translatable("journal.riverfishing.bo_n_nuisance"));
+        double reach = b.reachBonus(s);
+        if (reach > 0) notes.add(Component.translatable("journal.riverfishing.bo_n_reach", (int) reach));
+        for (Component n : notes) {
+            g.drawString(this.font, fitName(n.getString(), wAll), x, y, 0xFFB05A00, false);
+            y += 10;
+        }
+
+        // why: every rule that moved it, the strongest first
+        y += 3;
+        g.drawString(this.font, Component.translatable("journal.riverfishing.bo_why"), x, y, 0xFFB0842C, false);
+        y += 11;
+        List<Map.Entry<String, Double>> lines = new ArrayList<>(why.entrySet());
+        lines.removeIf(e -> Math.abs(e.getValue()) < 0.005);
+        lines.sort((a, c) -> Double.compare(Math.abs(c.getValue()), Math.abs(a.getValue())));
+        int colW = (wAll - 12) / 2, rows = Math.max(1, (top + H - 14 - y) / 10);
+        if (lines.isEmpty()) g.drawString(this.font, Component.translatable("journal.riverfishing.bo_why_none"), x, y, GuiStyle.TEXT_HINT, false);
+        for (int i = 0; i < lines.size() && i < rows * 2; i++) {
+            int lx = x + (i / rows) * (colW + 12), ly = y + (i % rows) * 10;
+            String k = lines.get(i).getKey();
+            int slash = k.indexOf('/');
+            String rule = cap(Component.translatable("journal.riverfishing.bw_" + k.substring(slash + 1)).getString());
+            if (slash > 0) {
+                rule = Component.translatable("flavour.riverfishing." + k.substring(0, slash)).getString() + " · "
+                        + rule.toLowerCase(java.util.Locale.ROOT);
+            }
+            double mult = Math.exp(0.85 * lines.get(i).getValue());
+            String v = times2(mult);
+            g.drawString(this.font, fitName(rule, colW - this.font.width(v) - 6), lx, ly, GuiStyle.TEXT, false);
+            g.drawString(this.font, v, lx + colW - this.font.width(v), ly, mult >= 1 ? 0xFF2E7D32 : 0xFFA0402E, false);
         }
         if (tooltip != null) g.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
+    }
+
+    /** A recipe as items: the stacks with a "+" between, an arrow, what comes out. Returns the x after it. */
+    private int boChain(GuiGraphics g, int x, int y, List<ItemStack> in, ItemStack out, int mx, int my) {
+        for (int i = 0; i < in.size(); i++) {
+            if (i > 0) {
+                g.drawString(this.font, "+", x, y + 5, GuiStyle.TEXT_HINT, false);
+                x += 8;
+            }
+            x = boStack(g, in.get(i), x, y, mx, my);
+        }
+        g.drawString(this.font, "→", x + 1, y + 5, GuiStyle.TEXT, false);
+        return boStack(g, out, x + 12, y, mx, my);
+    }
+
+    private int boStack(GuiGraphics g, ItemStack st, int x, int y, int mx, int my) {
+        g.renderItem(st, x, y);
+        g.renderItemDecorations(this.font, st, x, y);
+        if (over(mx, my, x, y, x + 16, y + 16)) hoverStack = st;
+        return x + 18;
+    }
+
+    /** A step's heading and its line of explanation around a chain; returns the y under it. */
+    private int boStep(GuiGraphics g, int x, int y, int w, String head, String text) {
+        g.drawString(this.font, Component.translatable(head), x, y, 0xFF8A5A00, false);
+        int ty = y + 30;
+        for (net.minecraft.util.FormattedCharSequence seq : this.font.split(Component.translatable(text), w)) {
+            g.drawString(this.font, seq, x, ty, GuiStyle.TEXT_HINT, false);
+            ty += 10;
+        }
+        return ty + 5;
+    }
+
+    /**
+     * §boilie-builder: how the boilie on the builder is made, drawn as items — the flavour bottles it needs,
+     * the paste with the wheat for its size and the kelp for its float, the boil, and the snowman or the dip
+     * where it has one. The guide says the same in words; this is the one you just built.
+     */
+    private void renderBoilieMake(GuiGraphics g, int mouseX, int mouseY) {
+        int x = left + 12, wAll = W - 32, y = top + 42;
+        com.riverfishing.fish.Boilie b = boBuilt();
+        java.util.LinkedHashSet<com.riverfishing.fish.Flavour> bottles = new java.util.LinkedHashSet<>(b.flavours());
+        if (b.dip() != null) bottles.add(b.dip());
+
+        // 1. the bottles
+        int ny = boStep(g, x, y, wAll, "journal.riverfishing.bm_bottle", "journal.riverfishing.bm_bottle_t");
+        int cx = x;
+        if (bottles.isEmpty()) {
+            g.drawString(this.font, Component.translatable("journal.riverfishing.bm_no_flavour"), x, y + 16, GuiStyle.TEXT_HINT, false);
+        }
+        for (com.riverfishing.fish.Flavour f : bottles) {
+            cx = boChain(g, cx, y + 11, List.of(new ItemStack(net.minecraft.world.item.Items.GLASS_BOTTLE),
+                    new ItemStack(net.minecraft.world.item.Items.SUGAR), ingredientOf(f)),
+                    com.riverfishing.item.FlavourItem.make(f), mouseX, mouseY) + 14;
+        }
+        y = ny;
+
+        // 2. the paste: wheat is the size, kelp the float; a snowman is a bottom ball and a pop-up
+        boolean snow = b.buoyancy() == com.riverfishing.fish.Boilie.Buoyancy.SNOWMAN;
+        List<com.riverfishing.fish.Flavour> fl = b.flavours();
+        com.riverfishing.fish.Boilie low = snow
+                ? new com.riverfishing.fish.Boilie(fl.isEmpty() ? List.of() : List.of(fl.get(0)), com.riverfishing.fish.Boilie.Buoyancy.SINKER, b.sizeMm(), b.meal(), null)
+                : new com.riverfishing.fish.Boilie(fl, b.buoyancy(), b.sizeMm(), b.meal(), null);
+        com.riverfishing.fish.Boilie high = snow
+                ? new com.riverfishing.fish.Boilie(fl.isEmpty() ? List.of() : List.of(fl.get(fl.size() - 1)), com.riverfishing.fish.Boilie.Buoyancy.POPUP, b.sizeMm(), b.meal(), null)
+                : null;
+        ny = boStep(g, x, y, wAll, "journal.riverfishing.bm_paste", snow ? "journal.riverfishing.bm_paste_snow" : "journal.riverfishing.bm_paste_t");
+        cx = x;
+        for (com.riverfishing.fish.Boilie ball : high == null ? List.of(low) : List.of(low, high)) {
+            int wheat = boSize + 1;
+            List<ItemStack> in = new ArrayList<>();
+            // one to a slot: the paste counts the SLOTS that hold wheat and kelp, not how many are stacked in one
+            for (int k = 0; k < wheat; k++) in.add(new ItemStack(net.minecraft.world.item.Items.WHEAT));
+            in.add(new ItemStack(net.minecraft.world.item.Items.EGG));
+            for (com.riverfishing.fish.Flavour f : ball.flavours()) in.add(com.riverfishing.item.FlavourItem.make(f));
+            int kelp = switch (ball.buoyancy()) {
+                case WAFTER -> 1;
+                case POPUP -> 2;
+                default -> 0;
+            };
+            for (int k = 0; k < kelp; k++) in.add(new ItemStack(net.minecraft.world.item.Items.DRIED_KELP));
+            if (ball.meal()) in.add(new ItemStack(ModItems.FISH_MEAL.get()));
+            ItemStack paste = new ItemStack(ModItems.BOILIE_PASTE.get(), wheat * 2);
+            com.riverfishing.item.BoiliePasteItem.write(paste, ball);
+            cx = boChain(g, cx, y + 11, in, paste, mouseX, mouseY) + 14;
+        }
+        y = ny;
+
+        // 3. the boil
+        ny = boStep(g, x, y, wAll, "journal.riverfishing.bm_boil", "journal.riverfishing.bm_boil_t");
+        ItemStack onePaste = new ItemStack(ModItems.BOILIE_PASTE.get());
+        com.riverfishing.item.BoiliePasteItem.write(onePaste, low);
+        cx = boChain(g, x, y + 11, List.of(onePaste, new ItemStack(net.minecraft.world.item.Items.WATER_BUCKET),
+                new ItemStack(net.minecraft.world.item.Items.CAULDRON), new ItemStack(net.minecraft.world.item.Items.CAMPFIRE)),
+                boilieStack(low, com.riverfishing.item.BoiliePasteItem.PER_PASTE), mouseX, mouseY);
+        y = ny;
+
+        // 4. the snowman, 5. the dip — where this boilie has them
+        if (snow) {
+            ny = boStep(g, x, y, wAll, "journal.riverfishing.bm_snow", "journal.riverfishing.bm_snow_t");
+            boChain(g, x, y + 11, List.of(boilieStack(low, 1), boilieStack(high, 1)),
+                    boilieStack(new com.riverfishing.fish.Boilie(fl, b.buoyancy(), b.sizeMm(), b.meal(), null), 1), mouseX, mouseY);
+            y = ny;
+        }
+        if (b.dip() != null) {
+            ny = boStep(g, x, y, wAll, "journal.riverfishing.bm_dip", "journal.riverfishing.bm_dip_t");
+            com.riverfishing.fish.Boilie dry = new com.riverfishing.fish.Boilie(fl, b.buoyancy(), b.sizeMm(), b.meal(), null);
+            boChain(g, x, y + 11, List.of(com.riverfishing.item.FlavourItem.make(b.dip()), boilieStack(dry, 16)),
+                    boilieStack(b, 16), mouseX, mouseY);
+            y = ny;
+        }
+
+        Component link = Component.translatable("journal.riverfishing.bo_recipes");
+        boolean hovLink = over(mouseX, mouseY, x, y - 1, x + this.font.width(link), y + 10);
+        g.drawString(this.font, link, x, y, hovLink ? 0xFFD8A93C : 0xFF8A5A00, false);
+        boHits.add(new int[]{x, y - 1, x + this.font.width(link), y + 10, BC_GUIDE, 0});
+    }
+
+    /** A click on the boilie page: whatever {@link #boHits} says was drawn there. */
+    private boolean boilieClick(double mx, double my, int button) {
+        for (int[] h : boHits) {
+            if (!over(mx, my, h[0], h[1], h[2], h[3])) continue;
+            int v = h[5];
+            if (button == com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT) {   // a right click only ever empties a slot
+                if (h[4] != BC_SLOT) return false;
+                boSlot[v] = null;
+                boTarget = v;
+                return true;
+            }
+            switch (h[4]) {
+                case BC_PAGE -> boPage = v;
+                case BC_SLOT -> boTarget = v;
+                case BC_PAL -> {
+                    com.riverfishing.fish.Flavour f = com.riverfishing.fish.Flavour.values()[v];
+                    if (boSlot[boTarget] == f) {
+                        boSlot[boTarget] = null;   // the same flavour again takes it out
+                    } else {
+                        if (boTarget < 2 && boSlot[1 - boTarget] == f) boSlot[1 - boTarget] = null;   // one flavour, one slot
+                        boSlot[boTarget] = f;
+                        if (boTarget == 0 && boSlot[1] == null) boTarget = 1;
+                    }
+                }
+                case BC_FORM -> boForm = v;
+                case BC_SIZE -> boSize = v;
+                case BC_MEAL -> boMeal = !boMeal;
+                case BC_SEASON -> boSeason = v;
+                case BC_TIME -> boTime = v;
+                case BC_WEATHER -> boWeather = v;
+                case BC_WATER -> boWater = v;
+                case BC_BED -> boBed = v;
+                case BC_CURRENT -> boCurrent = !boCurrent;
+                case BC_COVER -> boCover = !boCover;
+                case BC_SHIFT -> boShift = !boShift;
+                case BC_FISH -> boFishStep(v);
+                case BC_NOW -> boNow();
+                case BC_CLEAR -> {
+                    java.util.Arrays.fill(boSlot, null);
+                    boTarget = 0;
+                }
+                case BC_ROW, BC_CELL -> {
+                    int f = h[4] == BC_ROW ? v : v / 8, c = h[4] == BC_ROW ? BOILIE_HEADS.length - 1 : v % 8;
+                    boFrom(c < BOILIE_SCENES.length ? BOILIE_SCENES[c] : boilieNow());
+                    // the table's boilie is a plain 20 mm bottom one: the builder shows the cell's number, not a
+                    // pop-up left over from last time
+                    boForm = 0;
+                    boSize = 2;
+                    boMeal = false;
+                    boSlot[0] = com.riverfishing.fish.Flavour.values()[f];
+                    boSlot[1] = null;
+                    boSlot[2] = null;
+                    boTarget = 1;
+                    boPage = 1;
+                }
+                case BC_HEAD -> {
+                    boFrom(v < BOILIE_SCENES.length ? BOILIE_SCENES[v] : boilieNow());
+                    boPage = 1;
+                }
+                case BC_GUIDE -> openGuide("boilies");
+                default -> { }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // ---- §journal-links (1.1.0): the book cross-referenced — a species' baits open the bait, a bait's fish
+    // open the species, so "what does it take" and "what takes it" are one click apart ----
+
+    /** A bait named on a species sheet, {x0, y0, x1, y1, tab, index}: a click opens its page. */
+    private final List<int[]> sheetLinks = new ArrayList<>();
+    /** A fish on a bait's page, {x0, y0, x1, y1}, parallel to {@link #catFishIds}: a click opens the species. */
+    private final List<int[]> catFishLinks = new ArrayList<>();
+    private final List<String> catFishIds = new ArrayList<>();
+
+    /** Is a line from y0 to y1 inside the page, where the scroll has not taken it under the edge? */
+    private boolean onPage(int y0, int y1) {
+        return y0 >= top + 42 && y1 <= top + H - 24;   // the sheet's clip: under its header, over the back line
+    }
+
+    private static boolean baitIs(Cat c, String id) {
+        return id.equals(c.id()) || id.equals(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(c.stack().getItem()).getPath());
+    }
+
+    /** Where a bait lives in the gear bookmark, {tab, index}, or null for one the shelves do not carry. */
+    private int[] baitPage(String id) {
+        for (int i = 0; i < baitCat.size(); i++) if (baitIs(baitCat.get(i), id)) return new int[]{TAB_BAIT, i};
+        for (int i = 0; i < lureCat.size(); i++) if (baitIs(lureCat.get(i), id)) return new int[]{TAB_LURE, i};
+        return null;
+    }
+
+    /**
+     * The species' three best baits, each with its picture and a link to its own page: the sheet says what the
+     * fish takes, the click says how that bait is had and what else takes it. Returns the y under them.
+     */
+    private int baitLinks(GuiGraphics g, com.riverfishing.fish.FishCard c, int x, int y, int w) {
+        List<String> ids = c.baitsRanked().stream().limit(3).map(Map.Entry::getKey).toList();
+        if (ids.isEmpty()) return railLine(g, "guide.riverfishing.bait", "—", x, y, w);
+        g.drawString(this.font, Component.translatable("guide.riverfishing.bait"), x, y, GuiStyle.TEXT_HINT, false);
+        y += 11;
+        int cx = x;
+        for (String id : ids) {
+            int[] page = baitPage(id);
+            ItemStack st = page == null ? ItemStack.EMPTY : (page[0] == TAB_BAIT ? baitCat : lureCat).get(page[1]).stack();
+            String name = st.isEmpty() ? Component.translatable("item.riverfishing." + id).getString() : st.getHoverName().getString();
+            int wd = 18 + this.font.width(name);
+            if (cx > x && cx + wd > x + w) {
+                cx = x;
+                y += 18;
+            }
+            boolean hov = page != null && over(hoverX, hoverY, cx, y, cx + wd, y + 16);
+            if (hov) g.fill(cx - 1, y - 1, cx + wd + 1, y + 17, 0x22000000);
+            if (!st.isEmpty()) g.renderItem(st, cx, y);
+            g.drawString(this.font, name, cx + 18, y + 4, page == null ? GuiStyle.TEXT : hov ? 0xFFD8A93C : 0xFF8A5A00, false);
+            if (page != null && onPage(y, y + 16)) sheetLinks.add(new int[]{cx, y, cx + wd, y + 16, page[0], page[1]});
+            cx += wd + 10;
+        }
+        return y + 19;
+    }
+
+    /** A bait's page, from a species sheet. */
+    private void openCat(int tabOf, int index) {
+        go(SEC_GEAR, tabOf == TAB_BAIT ? GEAR_KINDS.length : GEAR_KINDS.length + 1);
+        catDetail = index;
+    }
+
+    /** A species' page, on its "how to catch" sheet — where its baits are — from a bait's page. */
+    private void openSpecies(String sp) {
+        go(SEC_FISH, 1);
+        detail = sp;
+        scroll = 0;
+    }
+
+    /** Open a guide page by id, on its chapter — the boilie page's link and the §guide-nudge both come here. */
+    private void openGuide(String id) {
+        for (int i = 0; i < guideCat.size(); i++) {
+            if (guideCat.get(i).id().equals(id)) {
+                go(SEC_GUIDE, 0);
+                guideChapter = guideGroup.getOrDefault(id, 0);
+                catDetail = i;
+                return;
+            }
+        }
+    }
+
+    // ---- GUIDE: chapters on the left, the chapter's pages on the right ----
+
+    private static final int CHAPTER_ROW = 18, GUIDE_ROW = 26, GUIDE_TOP = 28;
+
+    private int guideChapters() {
+        int n = 0;
+        for (int gi : guideGroup.values()) n = Math.max(n, gi + 1);
+        return n;
+    }
+
+    /**
+     * §journal-guide (1.1.0): the shelf was thirty-one pages in two columns under nine headings, all on one
+     * scroll. It is a table of contents now: pick a chapter, and only its pages are listed — each with its
+     * first line, so a title that does not say enough is not a page you have to open to find out.
+     */
+    private void renderGuideShelf(GuiGraphics g, int mouseX, int mouseY) {
+        int x = left + 12, y0 = top + GUIDE_TOP, chapters = guideChapters();
+        g.fill(x - 2, y0 - 2, x + FAM_W + 2, y0 + chapters * CHAPTER_ROW + 2, 0x22000000);
+        for (int i = 0; i < chapters; i++) {
+            int y = y0 + i * CHAPTER_ROW;
+            boolean hov = mouseX >= x && mouseX < x + FAM_W && mouseY >= y && mouseY < y + CHAPTER_ROW;
+            if (i == guideChapter) {
+                g.fill(x, y, x + FAM_W, y + CHAPTER_ROW, 0x55B08D3C);
+            } else if (hov) {
+                g.fill(x, y, x + FAM_W, y + CHAPTER_ROW, 0x22000000);
+            }
+            g.drawString(this.font, fitName(Component.translatable("guidegroup.riverfishing." + i).getString(), FAM_W - 8),
+                    x + 4, y + 5, i == guideChapter ? GuiStyle.TEXT : GuiStyle.TEXT_HINT, false);
+        }
+
+        int px = left + FAM_W + 24, pw = W - FAM_W - 44;
+        int y = y0;
+        for (int i = 0; i < guideCat.size(); i++) {
+            Cat e = guideCat.get(i);
+            if (guideGroup.getOrDefault(e.id(), -1) != guideChapter) {
+                catRects[i][0] = Integer.MIN_VALUE / 2;   // not on this chapter: nowhere a click can land
+                catRects[i][1] = Integer.MIN_VALUE / 2;
+                continue;
+            }
+            catRects[i][0] = px;
+            catRects[i][1] = y;
+            boolean hov = mouseX >= px && mouseX < px + pw && mouseY >= y && mouseY < y + GUIDE_ROW - 2;
+            if (hov) g.fill(px - 2, y - 1, px + pw, y + GUIDE_ROW - 3, 0x22000000);
+            g.renderItem(e.stack(), px, y + 3);
+            g.drawString(this.font, fitName(e.stack().getHoverName().getString(), pw - 24), px + 22, y + 2,
+                    hov ? 0xFF8A5A00 : GuiStyle.TEXT, false);
+            g.drawString(this.font, fitName(guideLead(e.id()), pw - 24), px + 22, y + 13, GuiStyle.GHOST, false);
+            y += GUIDE_ROW;
+        }
+        lastCatH = 0;
+        lastViewH = 1;
+    }
+
+    /** A guide page's first line of prose — what the page is about, in its own words. */
+    private static String guideLead(String id) {
+        for (String para : I18n.get("guide.riverfishing." + id + ".text").split("\n")) {
+            if (!para.isBlank() && !para.startsWith(HEADING)) return para.trim();
+        }
+        return "";
     }
 
     private void renderCatDetail(GuiGraphics g, Cat e, int mouseX, int mouseY) {
@@ -1911,7 +3015,7 @@ public class JournalScreen extends Screen {
         // §guide-page (0.5.0): a guide is a TEXT page — no giant icon, no "how to craft" of whatever
         // item happens to illustrate it. Just the how-to, scrollable, with breathing room per line.
         if (e.kind() == Kind.GUIDE) {
-            int contentTop = top + 58, contentBottom = top + H - 20;
+            int contentTop = top + 58, contentBottom = top + H - 24;
             scroll = Mth.clamp(scroll, 0, Math.max(0, lastCatH - (contentBottom - contentTop)));
             scissorJournal(g, left + 6, contentTop, left + W - 6, contentBottom);
             int dy = contentTop - scroll;
@@ -1928,7 +3032,7 @@ public class JournalScreen extends Screen {
             if ("discord".equals(e.id())) {
                 Component label = Component.translatable("guide.riverfishing.discord.button");
                 int bw = this.font.width(label) + 14, bh = 14;
-                int bx = left + 10, by = top + H - 32;
+                int bx = left + 12, by = top + H - 38;
                 boolean hov = mouseX >= bx && mouseX < bx + bw && mouseY >= by && mouseY < by + bh;
                 g.fill(bx, by, bx + bw, by + bh, hov ? 0xFF57C063 : 0xFF3FA34A);
                 g.fill(bx + 1, by + 1, bx + bw - 1, by + bh - 1, hov ? 0xFF6FD07B : 0xFF4FB459);
@@ -1936,7 +3040,7 @@ public class JournalScreen extends Screen {
                 linkRect[0] = bx; linkRect[1] = by; linkRect[2] = bx + bw; linkRect[3] = by + bh;
             }
             g.drawString(this.font, Component.translatable("guide.riverfishing.back"),
-                    left + 10, top + H - 14, GuiStyle.GHOST, false);
+                    left + 12, top + H - 20, GuiStyle.GHOST, false);
             return;
         }
 
@@ -1964,7 +3068,7 @@ public class JournalScreen extends Screen {
         if (e.kind() == Kind.GROUNDBAIT) {
             renderPantryTable(g);
             g.drawString(this.font, Component.translatable("guide.riverfishing.back"),
-                    left + 10, top + H - 14, GuiStyle.GHOST, false);
+                    left + 12, top + H - 20, GuiStyle.GHOST, false);
             return;
         }
 
@@ -2011,16 +3115,20 @@ public class JournalScreen extends Screen {
                 for (int i = 0; i < fish.size(); i++) {
                     int fx = left + 10 + (i % perRow) * 18, fy = y + (i / perRow) * 18;
                     GuiStyle.slot(g, fx, fy);
+                    boolean hov = mouseX >= fx && mouseX < fx + 16 && mouseY >= fy && mouseY < fy + 16;
+                    if (hov && caught(fish.get(i))) g.fill(fx - 1, fy - 1, fx + 17, fy + 17, 0x55D8A93C);
                     drawFishIcon(g, fish.get(i), fx, fy);
-                    if (mouseX >= fx && mouseX < fx + 16 && mouseY >= fy && mouseY < fy + 16) {
-                        hoverStack = modStack(fish.get(i));
+                    if (hov) hoverStack = modStack(fish.get(i));
+                    if (caught(fish.get(i)) && onPage(fy, fy + 16)) {   // §journal-links: a fish you know opens its page
+                        catFishLinks.add(new int[]{fx, fy, fx + 16, fy + 16});
+                        catFishIds.add(fish.get(i));
                     }
                 }
                 y += ((fish.size() + perRow - 1) / perRow) * 18;
             }
         }
         g.drawString(this.font, Component.translatable("guide.riverfishing.back"),
-                left + 10, top + H - 14, GuiStyle.GHOST, false);
+                left + 12, top + H - 20, GuiStyle.GHOST, false);
     }
 
     /**
@@ -2031,7 +3139,7 @@ public class JournalScreen extends Screen {
      * map the engine averages when it scores a fed spot — so this table cannot drift from the game.
      */
     private void renderPantryTable(GuiGraphics g) {
-        int x = left + 10, wAll = W - 26;
+        int x = left + 12, wAll = W - 32;
         int nameW = wAll - 40 - 40 - 96;
         int nutX = x + nameW, fracX = nutX + 40, pullX = fracX + 40;
 
@@ -2167,17 +3275,22 @@ public class JournalScreen extends Screen {
         return t;
     }
 
-    /** The species this bait takes, keenest first — ids, so a caller can draw them. */
-    private static List<String> fishIdsFor(Cat e, int limit) {
-        return FishProfileManager.get().all().stream()
-                .filter(p -> p.baitScore(e.id()) >= 0.5)
-                .sorted((a, b) -> Double.compare(b.baitScore(e.id()), a.baitScore(e.id())))
-                .limit(limit)
-                .map(p -> p.id.getPath())
-                .collect(Collectors.toList());
+    /**
+     * The species this bait takes, keenest first — ids, so a caller can draw them. §bait-mp: read off the cards
+     * the server sends with the journal (their "bait" map is the profiles' own scores): the profiles themselves
+     * exist only in single player, so on a server this list used to come up empty.
+     */
+    private List<String> fishIdsFor(Cat e, int limit) {
+        List<Map.Entry<String, Float>> scored = new ArrayList<>();
+        for (String sp : data.getCompound("cards").getAllKeys()) {
+            Float s = card(sp).baits().get(e.id());
+            if (s != null && s >= 0.5f) scored.add(Map.entry(sp, s));
+        }
+        scored.sort((a, b) -> Float.compare(b.getValue(), a.getValue()));
+        return scored.stream().limit(limit).map(Map.Entry::getKey).collect(Collectors.toList());
     }
 
-    private static List<String> fishFor(Cat e, int limit) {
+    private List<String> fishFor(Cat e, int limit) {
         return fishIdsFor(e, limit).stream()
                 .map(sp -> Component.translatable("fish.riverfishing." + sp).getString())
                 .collect(Collectors.toList());
@@ -2413,13 +3526,13 @@ public class JournalScreen extends Screen {
             int need = c.getInt("N");
             int have = heldFish(c);                                    // §catch-card
             boolean ready = have >= need;
-            if (ready) g.fill(left + 8, y - 3, left + W - 8, y + 24, 0x38E8B430);
+            if (ready) g.fill(left + 8, y - 3, left + W - 18, y + 24, 0x38E8B430);
 
             drawFishIcon(g, sp, left + 10, y - 2);
             g.drawString(this.font, com.riverfishing.item.ContractItem.headline(c), left + 30, y,
                     ready ? 0xFF9A6E10 : GuiStyle.TEXT, false);
             ItemStack em = new ItemStack(net.minecraft.world.item.Items.EMERALD);
-            int ex = left + W - 26;
+            int ex = left + W - 34;
             g.renderItem(em, ex, y - 4);
             String n = String.valueOf(c.getInt("Em"));
             g.drawString(this.font, n, ex - 4 - this.font.width(n), y, 0xFF2E7D32, false);
@@ -2556,13 +3669,6 @@ public class JournalScreen extends Screen {
         return at < 0 ? "—" : Component.translatable(prefix + ".riverfishing." + names[at]).getString();
     }
 
-    private static String baits(com.riverfishing.fish.FishCard c) {
-        return c.baitsRanked().stream()
-                .limit(3)
-                .map(e -> Component.translatable("item.riverfishing." + e.getKey()).getString())
-                .reduce((a, b) -> a + ", " + b).orElse("—");
-    }
-
     /** §species-table: the line and the hook — the two asks a species still makes of your tackle. */
     private static String tackle(com.riverfishing.fish.FishCard c) {
         String line = Component.translatable("linetype.riverfishing." + c.lineType()).getString();   // §line-name
@@ -2577,6 +3683,15 @@ public class JournalScreen extends Screen {
         // §fish-list: the species list counts in ROWS and everything else counts in PIXELS. They share
         // one `scroll`, so the wheel has to be told which unit it is turning — mixing them is how a list
         // ends up scrolling nineteen species per notch.
+        if (tab == TAB_BOILIE) {   // §boilie-builder
+            for (int[] h : boHits) {
+                if (h[4] == BC_FISH && over(toJournalX(mouseX), toJournalY(mouseY), h[0], h[1], h[2], h[3])) {
+                    boFishStep(-(int) Math.signum(scrollY));
+                    return true;
+                }
+            }
+            return true;
+        }
         if (tab == TAB_FISH && detail == null) {
             scroll = Mth.clamp(scroll - (int) Math.signum(scrollY) * 3, 0,
                     Math.max(0, shown.size() - listRows()));
@@ -2593,7 +3708,7 @@ public class JournalScreen extends Screen {
         // The clamp uses the viewport the LAST RENDER actually measured rather than a hardcoded H-44:
         // the guide page, the catalog and the species page each start at a different y, so one constant
         // was wrong for at least two of them — cutting some pages short and letting others overscroll.
-        scroll = Mth.clamp(scroll - (int) (scrollY * 18), 0, Math.max(0, lastCatH - lastViewH));
+        scroll = Mth.clamp(scroll - (int) (scrollY * 24), 0, Math.max(0, lastCatH - lastViewH));   // §journal-scroll-ease glides it
         return true;
     }
 
@@ -2611,12 +3726,13 @@ public class JournalScreen extends Screen {
     @Override
     public boolean keyPressed(int key, int scancode, int modifiers) {
         if (tab == TAB_FISH && detail == null && searchFocus) {
-            if (key == 259 && !search.isEmpty()) {          // backspace
+            if (key == com.mojang.blaze3d.platform.InputConstants.KEY_BACKSPACE && !search.isEmpty()) {          // backspace
                 search = search.substring(0, search.length() - 1);
                 scroll = 0;
                 return true;
             }
-            if (key == 256) {                                // escape closes the box, not the journal
+            // §key-codes: the constants — 26.3 moved to SDL scancodes (Esc 41, Backspace 42), 256 and 259 are gone
+            if (key == com.mojang.blaze3d.platform.InputConstants.KEY_ESCAPE) {                                // escape closes the box, not the journal
                 if (!search.isEmpty()) {
                     search = "";
                     scroll = 0;
@@ -2626,6 +3742,8 @@ public class JournalScreen extends Screen {
                 return true;
             }
         }
+        // §journal-book: Escape on an opened page goes back to its list; on a list it closes the book
+        if (key == com.mojang.blaze3d.platform.InputConstants.KEY_ESCAPE && back()) return true;
         return super.keyPressed(key, scancode, modifiers);
     }
 
@@ -2634,27 +3752,63 @@ public class JournalScreen extends Screen {
         // §journal-scale: hit-test in journal space (the panel is drawn scaled around the screen centre).
         mouseX = toJournalX(mouseX);
         mouseY = toJournalY(mouseY);
-        if (button == 0) {
-            for (int i = 0; i < TAB_KEYS.length; i++) {
-                int x = tabX(i), w = tabW(i);
-                if (mouseX >= x && mouseX < x + w && mouseY >= top + 3 && mouseY < top + 18) {
-                    if (tab != i) { tab = i; catDetail = -1; scroll = 0; detail = null; }
+        // §journal-book: a right click anywhere on an opened page goes back to its list
+        // §mouse-buttons: the constants, not 0 and 1 — 26.3 numbers the buttons as SDL does (left 1, right 3)
+        if (button == com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT && back()) return true;
+        if (button == com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT && tab == TAB_BOILIE && boilieClick(mouseX, mouseY, button)) return true;
+        if (button == com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT) {
+            for (int i = 0; i < BOOK_KEYS.length; i++) {
+                int by = top + BOOKMARK_TOP + i * BOOKMARK_STEP;
+                if (mouseX >= left - BOOKMARK_OUT - BOOKMARK_PULL && mouseX < left
+                        && mouseY >= by && mouseY < by + BOOKMARK_H) {
+                    if (i != section) go(i, 0);
+                    else back();   // the open bookmark again: back to its own first page
                     return true;
                 }
             }
+            String[] pages = subKeys();
+            for (int i = 0; i < pages.length; i++) {
+                int x = tabX(pages, i), w = tabW(pages, i);
+                if (mouseX >= x && mouseX < x + w && mouseY >= top + TAB_Y0 && mouseY < top + TAB_Y1) {
+                    if (section == SEC_FISH) {   // a species' sheets: the species stays open
+                        sub = i;
+                        scroll = 0;
+                    } else if (i != sub || catDetail >= 0) {
+                        go(section, i);
+                    }
+                    return true;
+                }
+            }
+            // an opened page closes from its "back" line; a click elsewhere on it is just a click
+            if ((detail != null || catDetail >= 0) && mouseY >= top + H - 24 && mouseY < top + H - 10) {
+                back();
+                return true;
+            }
             if (tab == TAB_FISH) {
-                if (detail != null) { detail = null; scroll = 0; return true; }
+                if (detail != null) {
+                    for (int[] l : sheetLinks) {
+                        if (over(mouseX, mouseY, l[0], l[1], l[2], l[3])) {
+                            openCat(l[4], l[5]);
+                            return true;
+                        }
+                    }
+                }
+                if (detail != null && fishBoLink[2] > 0 && over(mouseX, mouseY, fishBoLink[0], fishBoLink[1], fishBoLink[2], fishBoLink[3])) {
+                    openBuilder(detail);   // §boilie-builder: the species sheet's way into the builder
+                    return true;
+                }
+                if (detail != null) return true;
                 if (families.isEmpty()) buildFamilies();
                 // The search box takes the keyboard on a click and gives it up on a click anywhere else,
                 // so typing "щук" never eats a keystroke the rest of the screen wanted.
-                int sx = left + FAM_W + 16, sy = top + 56;
-                boolean onSearch = mouseX >= sx - 1 && mouseX < sx + COL_W - 7
+                int sx = left + FAM_W + 20, sy = top + SEARCH_Y;
+                boolean onSearch = mouseX >= sx - 1 && mouseX < sx + COL_W - 15
                         && mouseY >= sy - 1 && mouseY < sy + 15;
                 searchFocus = onSearch;
                 if (onSearch) return true;
                 for (int i = 0; i <= families.size(); i++) {
                     int y = top + LIST_TOP + i * LIST_ROW;
-                    if (mouseX >= left + 8 && mouseX < left + 8 + FAM_W && mouseY >= y && mouseY < y + LIST_ROW) {
+                    if (mouseX >= left + 12 && mouseX < left + 12 + FAM_W && mouseY >= y && mouseY < y + LIST_ROW) {
                         family = i;
                         scroll = 0;
                         return true;
@@ -2662,7 +3816,7 @@ public class JournalScreen extends Screen {
                 }
                 for (int i = 0; i < listRows() && i + scroll < shown.size(); i++) {
                     int y = top + LIST_TOP + i * LIST_ROW;
-                    if (mouseX >= sx && mouseX < sx + COL_W - 8 && mouseY >= y && mouseY < y + LIST_ROW
+                    if (mouseX >= sx && mouseX < sx + COL_W - 16 && mouseY >= y && mouseY < y + LIST_ROW
                             && caught(shown.get(i + scroll))) {
                         detail = shown.get(i + scroll);
                         scroll = 0;
@@ -2670,10 +3824,10 @@ public class JournalScreen extends Screen {
                     }
                 }
             } else if (tab == TAB_QUEST) {
-                int contentTop = top + 24, contentBottom = top + H - 6;
+                int contentTop = top + ANGLER_TOP, contentBottom = top + H - 14;
                 for (int i = 0; i < Quests.ALL.size(); i++) {
                     int x = questRects[i][0], y = questRects[i][1];
-                    if (mouseX >= x - 2 && mouseX < left + W - 8 && mouseY >= y - 2 && mouseY < y + 12
+                    if (mouseX >= x - 2 && mouseX < left + W - 18 && mouseY >= y - 2 && mouseY < y + 12
                             && mouseY >= contentTop && mouseY < contentBottom) {
                         Quests.Quest q = Quests.ALL.get(i);
                         if (q.goal().complete(data) && !isClaimed(q)) {
@@ -2698,7 +3852,9 @@ public class JournalScreen extends Screen {
                         return true;
                     }
                 }
-            } else if (tab == TAB_BAIT || tab == TAB_GEAR || tab == TAB_GUIDE) {
+            } else if (tab == TAB_BOILIE) {
+                if (boilieClick(mouseX, mouseY, button)) return true;
+            } else {   // the gear bookmark's shelves and the guide
                 // §discord: test the link button before the "any click closes the page" rule below.
                 if (linkRect[2] > 0 && mouseX >= linkRect[0] && mouseX < linkRect[2]
                         && mouseY >= linkRect[1] && mouseY < linkRect[3]) {
@@ -2706,8 +3862,36 @@ public class JournalScreen extends Screen {
                     net.minecraft.client.gui.screens.ConfirmLinkScreen.confirmLinkNow(this, DISCORD_URL);
                     return true;
                 }
-                if (catDetail >= 0) { catDetail = -1; scroll = 0; return true; }
+                if (catDetail >= 0) {
+                    for (int i = 0; i < catFishLinks.size(); i++) {
+                        int[] l = catFishLinks.get(i);
+                        if (over(mouseX, mouseY, l[0], l[1], l[2], l[3])) {
+                            openSpecies(catFishIds.get(i));
+                            return true;
+                        }
+                    }
+                    return true;
+                }
                 List<Cat> list = tabList();
+                // §journal-guide: a chapter on the left, one of its pages on the right
+                if (tab == TAB_GUIDE) {
+                    for (int i = 0; i < guideChapters(); i++) {
+                        int y = top + GUIDE_TOP + i * CHAPTER_ROW;
+                        if (mouseX >= left + 12 && mouseX < left + 12 + FAM_W && mouseY >= y && mouseY < y + CHAPTER_ROW) {
+                            guideChapter = i;
+                            return true;
+                        }
+                    }
+                    for (int i = 0; i < list.size(); i++) {
+                        int x = catRects[i][0], y = catRects[i][1];
+                        if (mouseX >= x && mouseX < left + W - 20 && mouseY >= y && mouseY < y + GUIDE_ROW - 2) {
+                            catDetail = i;
+                            scroll = 0;
+                            return true;
+                        }
+                    }
+                    return super.mouseClicked(mouseX, mouseY, button);
+                }
                 // §bait-table: the headings sort. Clicking the one already sorted flips the direction,
                 // and the third click on it goes back to the shelf's own order — no state you cannot undo.
                 if (tab == TAB_BAIT && mouseY >= top + 38 && mouseY < top + 48) {
@@ -2746,26 +3930,10 @@ public class JournalScreen extends Screen {
                         return true;
                     }
                 }
-                // §gear-table: the category rail on the left, same shape as the fish tab's families.
-                if (tab == TAB_GEAR) {
-                    for (int i = 0; i < GEAR_KINDS.length; i++) {
-                        int ry = top + 40 + i * LIST_ROW;
-                        if (mouseX >= left + 10 && mouseX < left + 106
-                                && mouseY >= ry && mouseY < ry + LIST_ROW) {
-                            gearCat = i;
-                            // The categories do not share a column count — rods have four headings and
-                            // reels three — so a sort held across the switch would point at a column
-                            // that is not there. Drop it; the new shelf opens in its own order.
-                            gearSort = -1;
-                            scroll = 0;
-                            return true;
-                        }
-                    }
-                }
-                boolean table = tab == TAB_BAIT || tab == TAB_LURE || tab == TAB_GEAR;
-                int rowH = table ? 17 : ROW_H - 1;
-                int rowW = table ? (tab == TAB_GEAR ? W - 132 : W - 26) : catColW - 8;
-                int contentTop = top + 38, contentBottom = top + H - 6;
+                // every shelf here is a table of 17 px rows across the page (lures included — their rows
+                // used to fall through this handler and could not be opened at all)
+                int rowH = 17, rowW = W - 32;
+                int contentTop = top + 38, contentBottom = top + H - 14;
                 for (int i = 0; i < list.size(); i++) {
                     int x = catRects[i][0], y = catRects[i][1];
                     if (mouseX >= x && mouseX < x + rowW && mouseY >= y && mouseY < y + rowH

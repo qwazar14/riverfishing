@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "half=lower": {"model": "riverfishing:block/reed_bottom"},
+    "half=upper": {"model": "riverfishing:block/reed_top"}
+  }
+}
