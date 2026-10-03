@@ -27,8 +27,6 @@ import javax.annotation.Nullable;
  * loaded from the held rod's NBT and written back on change/close.
  */
 public class RodAssemblyMenu extends AbstractContainerMenu {
-    public static final int SLOT_Y = 34;
-    private static final int SLOT_SPACING = 32;
     /** Max internal rig slots across all rig types (GRUSHA has 7) — proxy slots are always present. */
     public static final int RIG_SLOTS = 7;
     /** Below the slot diagonal (its lowest slot ends at y=70) and above the inventory (y=108). */
@@ -42,6 +40,12 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
     private boolean syncingRig;
     /** Lure rods (§spinning-tackle) carry leader+lure directly via this internal rig — no RIG column. */
     private final boolean directTackle;
+    /**
+     * §menu-dupe: the rod this menu opened on. The hand is still read fresh (§live-rod), but it is written only
+     * while it IS this rod — a number-key swap put a bare rod in the hand, and closing stamped this rod's reel,
+     * line and rig onto it while this one kept them too.
+     */
+    private final ItemStack opened;
     private ItemStack directRig = ItemStack.EMPTY;
 
     public RodAssemblyMenu(int id, Inventory inv, InteractionHand hand) {
@@ -53,6 +57,7 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
         // then every slot edit is written into a detached copy: the GUI shows a full rod, the NBT stays
         // empty, and the player gets "the rod is not assembled" with tackle visibly in the slots.
         ItemStack rod = inv.player.getItemInHand(hand);
+        this.opened = rod;
 
         RodType rodType = rod.getItem() instanceof RodItem ri ? ri.rodType() : null;
         this.directTackle = rodType != null && rodType.directTackle();
@@ -110,10 +115,6 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
         return r.getItem() instanceof com.riverfishing.item.RigItem
                 ? com.riverfishing.rig.RigLayout.rolesFor(com.riverfishing.rig.RigData.rigType(r))
                 : new com.riverfishing.rig.SlotRole[0];
-    }
-
-    public int rigProxyStart() {
-        return slotTypes.length;
     }
 
     private void loadRigContents() {
@@ -239,7 +240,7 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
     private void saveToRod() {
         if (player.level().isClientSide()) return;
         ItemStack rod = rodStack();
-        if (!(rod.getItem() instanceof RodItem)) return; // hand no longer holds the rod — don't stamp NBT on it
+        if (rod != opened || !(rod.getItem() instanceof RodItem)) return; // hand no longer holds THIS rod — don't stamp NBT on it
         for (int i = 0; i < slotTypes.length; i++) {
             // §one-piece: a rod holds ONE of each part. The slot view caps its stack at 1, but the cap is a
             // UI rule — a stack that reaches the container another way (a dropped-in stack, an older
@@ -265,7 +266,7 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
                 ItemStack extra = st.copyWithCount(st.getCount() - 1);
                 components.setItem(i, st.copyWithCount(1));
                 if (!p.getInventory().add(extra)) {
-                    p.drop(extra, false);
+                    com.riverfishing.compat.Mc.drop(p, extra, false);
                 }
             }
         }
@@ -274,7 +275,8 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player p) {
-        return p.getItemInHand(hand).getItem() instanceof RodItem;
+        ItemStack rod = p.getItemInHand(hand);
+        return rod == opened && rod.getItem() instanceof RodItem;   // §menu-dupe
     }
 
     @Override
@@ -368,6 +370,8 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
                 return Component.translatable("validation.riverfishing.reel_none");
             }
             if (!rt.acceptsReel(reel)) {
+                if (rt.isFly()) return Component.translatable("validation.riverfishing.reel_fly_class", rt.flyWeight());
+                if (reel.fly()) return Component.translatable("validation.riverfishing.reel_fly_only");
                 return Component.translatable("validation.riverfishing.reel_size");
             }
             // §tackle-compat: a small reel can't spool the thick line already fitted.
@@ -390,17 +394,6 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
         return null;
     }
 
-    /** The reel size currently in the reel slot (0 = none / reel-less rod). */
-    private int installedReelSize() {
-        for (int i = 0; i < slotTypes.length; i++) {
-            if (slotTypes[i] == ComponentSlot.REEL && components.getItem(i).getItem() instanceof ReelItem r) {
-                return r.size();
-            }
-        }
-        return 0;
-    }
-
-    /** The diameter (mm) of the line currently in the line slot (0 = none). */
     /** §fly-reel: the fitted reel as an item, or null. */
     private ReelItem installedReel() {
         return RodData.get(rodStack(), ComponentSlot.REEL).getItem() instanceof ReelItem r ? r : null;
@@ -409,15 +402,6 @@ public class RodAssemblyMenu extends AbstractContainerMenu {
     /** §fly-reel: the fitted line as an item, or null. */
     private com.riverfishing.item.LineItem installedLine() {
         return RodData.get(rodStack(), ComponentSlot.LINE).getItem() instanceof com.riverfishing.item.LineItem l ? l : null;
-    }
-
-    private double installedLineDiameter() {
-        for (int i = 0; i < slotTypes.length; i++) {
-            if (slotTypes[i] == ComponentSlot.LINE && components.getItem(i).getItem() instanceof com.riverfishing.item.LineItem l) {
-                return l.diameterMm();
-            }
-        }
-        return 0;
     }
 
     /** A component slot that only accepts the matching tackle piece. */

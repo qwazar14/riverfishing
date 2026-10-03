@@ -34,8 +34,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * would look wrong on three sides out of four.
  */
 public class TackleBoxBlock extends BaseEntityBlock {
+    //? if <26.3 {
     public static final com.mojang.serialization.MapCodec<TackleBoxBlock> CODEC =
             simpleCodec(p -> new TackleBoxBlock(TackleBoxTier.SMALL, p));
+    //?}
 
     private static final VoxelShape SHAPE = Block.box(2.0, 0.0, 3.0, 14.0, 7.0, 13.0);
 
@@ -52,10 +54,12 @@ public class TackleBoxBlock extends BaseEntityBlock {
         return tier;
     }
 
+    //? if <26.3 {
     @Override
     protected com.mojang.serialization.MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
+    //?}
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {

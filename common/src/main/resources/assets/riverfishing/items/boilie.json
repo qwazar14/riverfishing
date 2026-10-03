@@ -1,6 +1,44 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "riverfishing:item/boilie"
+    "type": "minecraft:condition",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "riverfishing:item/boilie_dipped",
+      "tints": [
+        {
+          "type": "minecraft:custom_model_data",
+          "index": 0,
+          "default": -3630486
+        },
+        {
+          "type": "minecraft:custom_model_data",
+          "index": 1,
+          "default": -3630486
+        },
+        {
+          "type": "minecraft:custom_model_data",
+          "index": 2,
+          "default": -1
+        }
+      ]
+    },
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "riverfishing:item/boilie",
+      "tints": [
+        {
+          "type": "minecraft:custom_model_data",
+          "index": 0,
+          "default": -3630486
+        },
+        {
+          "type": "minecraft:custom_model_data",
+          "index": 1,
+          "default": -3630486
+        }
+      ]
+    }
   }
 }

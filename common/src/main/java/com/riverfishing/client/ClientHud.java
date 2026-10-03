@@ -23,92 +23,236 @@ public final class ClientHud {
      * <p>It scrolls: each sounding is a column pushed on the right, the way a paper sounder wrote. So
      * walking a bank draws the bottom you walked over, and a hole in the bed is a shape you can see
      * rather than a number that changed while you were not looking.
+     *
+     * <p>§finder-strip (1.1.0): drawn as the instrument's own little screen. The water darkens with depth,
+     * the bed is its own colour with the bright line a real echo makes where the sound hits it, and the fish
+     * are fish — the sounder's arches, as many as the living water says are there, amber where they hunt —
+     * instead of one line per species the water could hold. It glides between soundings rather than
+     * jumping a column a second, slides in when the finder comes out, and the needle under it turns
+     * rather than snapping.
      */
+    static final int STRIP_W = 132, STRIP_H = 78;
+    private static final int STRIP_STEP = 2;
+    private static final int FISH = 0xFF6FF5CF, HUNTER = 0xFFFFB347, SURFACE_LINE = 0xFF7FE9D0;
+    private static float stripIn, shownDepth = -1, shownScale = 6, needle = Float.NaN;
+    private static long stripFrame;
+
     private static void renderFinderStrip(GuiGraphicsExtractor g, Minecraft mc) {
         if (mc.player == null) return;
         boolean held = isFinder(mc.player.getMainHandItem()) || isFinder(mc.player.getOffhandItem());
         if (!held) {
             FinderState.clear();
+            stripIn = 0;
+            shownDepth = -1;
+            needle = Float.NaN;
             return;
         }
-        java.util.List<int[]> trace = FinderState.trace();
+        java.util.List<FinderState.Col> trace = FinderState.trace();
         boolean live = FinderState.fresh() && !trace.isEmpty();
-        if (!live && ClientSoundings.target() == null) return;
 
-        final int W = 122, H = 62;
-        int x = mc.getWindow().getGuiScaledWidth() - W - 6;
-        int y = 6;
+        long now = net.minecraft.util.Util.getMillis();
+        float dt = Math.min(0.1f, (now - stripFrame) / 1000f);
+        stripFrame = now;
+        float k = 1f - (float) Math.exp(-dt * 10f);
+        stripIn += ((live ? 1f : 0f) - stripIn) * k;
+        if (!live && stripIn < 0.01f && ClientSoundings.target() == null) return;
 
+        // §finder-hud-settings: each piece can be switched off and put anywhere (the finder screen's lower keys);
+        // in its own corner the sounder still slides in from the edge
+        int sw = mc.getWindow().getGuiScaledWidth(), sh = mc.getWindow().getGuiScaledHeight();
+        int[] at = FinderHudSettings.stripPos(sw, sh), dial = FinderHudSettings.arrowPos(sw, sh);
+        int x = at[0] + (FinderHudSettings.stripMoved() ? 0 : Math.round((1f - stripIn) * (STRIP_W + 12)));
+        if (FinderHudSettings.showStrip && !trace.isEmpty() && stripIn > 0.01f) drawStrip(g, mc, x, at[1], trace, k, now);
+        if (FinderHudSettings.showArrow) drawNeedle(g, mc, dial[0], dial[1], k);
+    }
+
+    private static void drawStrip(GuiGraphicsExtractor g, Minecraft mc, int x, int y, java.util.List<FinderState.Col> trace,
+                                  float k, long now) {
+        // the casing: a rounded dark body with a lit rim
+        rounded(g, x, y, STRIP_W, STRIP_H, 0xFF3C4E47);
+        rounded(g, x + 1, y + 1, STRIP_W - 2, STRIP_H - 2, 0xF0141C1A);
+        g.fill(x + 3, y + 1, x + STRIP_W - 3, y + 2, 0x30FFFFFF);
+
+        FinderState.Col last = trace.get(trace.size() - 1);
+        if (shownDepth < 0) shownDepth = last.depth();
+        shownDepth += (last.depth() - shownDepth) * k;
         int scale = 6;
-        for (int[] col : trace) scale = Math.max(scale, col[0]);
+        for (FinderState.Col c : trace) scale = Math.max(scale, c.depth() + 1);
+        shownScale += (scale - shownScale) * k;
 
-        if (live) {
-        g.fill(x - 1, y - 1, x + W + 1, y + H + 1, 0xCC0B1E22);
-        g.fill(x, y, x + W, y + 1, 0x5540E0B0);
-
-        int cols = trace.size();
-        int step = Math.max(1, W / FinderState.TRACE);
-        for (int i = 0; i < cols; i++) {
-            int[] col = trace.get(i);
-            // Oldest at the left edge, newest against the right: the direction a sounder writes.
-            int cx = x + W - (cols - i) * step;
-            if (cx < x) continue;
-            int floorY = y + 2 + (int) Math.round(col[0] / (double) scale * (H - 6));
-            g.fill(cx, floorY, cx + step, y + H, 0xFF6B5A38);
-            g.fill(cx, floorY, cx + step, floorY + 1, 0xFF8A7448);
-            for (int k = 1; k < col.length; k++) {
-                int fy = y + 2 + (int) Math.round(Math.min(col[k], col[0]) / (double) scale * (H - 6));
-                if (fy >= floorY) continue;      // a fish under the bed is a fish that is not here
-                g.fill(cx, fy, cx + step, fy + 2, 0xFF40E0B0);
+        // the header: how deep where you aim, which way it is going, what the bottom is, and the power lamp
+        String depth = Component.translatable("finder.riverfishing.metres", Math.round(shownDepth)).getString();
+        g.text(mc.font, depth, x + 5, y + 4, 0xFFD6FFF2, true);
+        int dx = x + 7 + mc.font.width(depth);
+        if (trace.size() >= 2) {
+            int prev = trace.get(trace.size() - 2).depth();
+            if (prev != last.depth()) {
+                g.text(mc.font, last.depth() > prev ? "↓" : "↑", dx, y + 4,
+                        last.depth() > prev ? 0xFF6FB0F5 : 0xFFB0F56F, true);
             }
         }
+        String bed = Component.translatable("bed.riverfishing." + FinderScreen.bedKey(last.bed())).getString();
+        g.text(mc.font, bed, x + STRIP_W - 12 - mc.font.width(bed), y + 4,
+                FinderScreen.lighten(FinderScreen.bedColour(last.bed())), true);
+        int lamp = 0x40 + (int) (0xBF * (0.5 + 0.5 * Math.sin(now / 260.0)));
+        g.fill(x + STRIP_W - 8, y + 6, x + STRIP_W - 5, y + 9, (lamp << 24) | 0x5CF08A);
 
-        // The one number worth carrying on the strip: how deep it is where you are aiming.
-        String depth = FinderState.latest().getCompoundOrEmpty("water").getIntOr("depth", 0) + " m";
-        g.text(mc.font, depth, x + 3, y + 3, 0xFF9FE9D0, false);
+        // the screen
+        int sx = x + 4, sy = y + 15, sw = STRIP_W - 8, sh = STRIP_H - 19;
+        g.fill(sx - 1, sy - 1, sx + sw + 1, sy + sh + 1, 0xFF070B0A);
+        for (int r = 0; r < sh; r++) {   // water, darkening with depth
+            g.fill(sx, sy + r, sx + sw, sy + r + 1, lerp(0xFF12404A, 0xFF06161C, r / (float) sh));
+        }
+        float px = sh / shownScale;
+        int gridStep = shownScale <= 7 ? 1 : shownScale <= 14 ? 2 : shownScale <= 35 ? 5 : 10;
+        for (int d = gridStep; d < shownScale; d += gridStep) {
+            g.fill(sx, sy + Math.round(d * px), sx + sw, sy + Math.round(d * px) + 1, 0x1C40E0B0);
         }
 
-        // §ledge-arrow: a pointer to the nearest feature you have found, under the strip. Rotated by
-        // the difference between where it is and where you face, so it reads like a compass needle:
-        // straight up is "walk forward". Only for features already on the map — this finds your way
-        // back to a hole, it does not find holes.
-        int[] near = FinderState.latest().getIntArray("near").orElse(null);
+        g.enableScissor(sx, sy, sx + sw, sy + sh);
+        int cols = trace.size();
+        int shift = Math.round((1f - FinderState.slide()) * STRIP_STEP);
+        for (int i = 0; i < cols; i++) {
+            FinderState.Col c = trace.get(i);
+            int cx = sx + sw - (cols - i) * STRIP_STEP + shift;
+            if (cx + STRIP_STEP < sx) continue;
+            int bedC = FinderScreen.bedColour(c.bed());
+            float from = i > 0 ? trace.get(i - 1).depth() : c.depth();
+            for (int p = 0; p < STRIP_STEP; p++) {
+                // the bed slopes from the last sounding to this one instead of stepping a metre at a time
+                int floorY = sy + Math.round((from + (c.depth() - from) * (p + 1) / (float) STRIP_STEP) * px);
+                // the bright line of the echo, then its colour, fading into the ground under it
+                g.fill(cx + p, floorY + 3, cx + p + 1, sy + sh, lerp(bedC, 0xFF000000, 0.55f));
+                g.fill(cx + p, floorY + 1, cx + p + 1, floorY + 3, bedC);
+                g.fill(cx + p, floorY, cx + p + 1, floorY + 1, FinderScreen.lighten(bedC));
+            }
+        }
+        for (int i = 0; i < cols; i++) {
+            FinderState.Col c = trace.get(i);
+            int cx = sx + sw - (cols - i) * STRIP_STEP + shift;
+            if (cx + 8 < sx) continue;
+            int floorY = sy + Math.round(c.depth() * px);
+            // §finder-strip-calm: at most one echo a column, and only now and then — a sounder shows a fish
+            // where its cone crossed one, not every fish the water holds. The chance grows with the log of
+            // everything heard; which fish it is goes by its share, so forty roach make a busy strip and a
+            // lone pike the odd amber arch. (Every species in every column was a wall of arches.)
+            int heard = 0;
+            for (int n : c.n()) heard += Math.max(1, n);   // 0 = the old engine's "may be here": count it once
+            if (heard == 0) continue;
+            double chance = Math.min(0.28, 0.03 + 0.035 * (Math.log(1 + heard) / Math.log(2)));
+            long h = mix(c.seq() * 0x9E3779B97F4A7C15L);
+            if ((h >>> 11) % 1000 >= chance * 1000) continue;
+            h = mix(h);
+            long r = (h >>> 11) % heard;
+            int j = 0;
+            for (int acc = 0; j < c.n().length; j++) {
+                acc += Math.max(1, c.n()[j]);
+                if (r < acc) break;
+            }
+            if (j >= c.n().length) continue;
+            double lo = c.dmin()[j], hi = Math.min(c.dmax()[j], c.depth() - 0.6);
+            if (hi < lo) lo = hi = Math.max(0.3, c.depth() - 0.8);
+            // nearer the middle of its band than its edges: two draws averaged
+            double u = ((((h >>> 32) & 0xFFFF) + (mix(h) & 0xFFFF)) / 131070.0);
+            double d = lo + (hi - lo) * u;
+            int fy = sy + Math.round((float) (d * px));
+            int w = c.pred()[j] ? 7 : 5;
+            if (fy + 2 >= floorY || fy <= sy + 1) continue;
+            arch(g, cx - w / 2, fy, w, c.pred()[j] ? HUNTER : FISH);
+        }
+        g.disableScissor();
+        g.fill(sx, sy, sx + sw, sy + 1, SURFACE_LINE);
+        String deepest = String.valueOf(Math.round(shownScale - 1));
+        g.text(mc.font, deepest, sx + sw - mc.font.width(deepest) - 1, sy + sh - 9, 0x7040E0B0, false);
+    }
+
+    /** A sounder's fish: the echo of a body crossing the cone, an arch brightest at its crown. */
+    private static void arch(GuiGraphicsExtractor g, int x, int y, int w, int colour) {
+        g.fill(x + 1, y, x + w - 1, y + 1, colour);
+        g.fill(x, y + 1, x + 1, y + 2, colour & 0xA0FFFFFF);
+        g.fill(x + w - 1, y + 1, x + w, y + 2, colour & 0xA0FFFFFF);
+    }
+
+    /** A rectangle with its corners taken off — the casing's shape at HUD size. */
+    private static void rounded(GuiGraphicsExtractor g, int x, int y, int w, int h, int colour) {
+        g.fill(x + 2, y, x + w - 2, y + 1, colour);
+        g.fill(x + 1, y + 1, x + w - 1, y + 2, colour);
+        g.fill(x, y + 2, x + w, y + h - 2, colour);
+        g.fill(x + 1, y + h - 2, x + w - 1, y + h - 1, colour);
+        g.fill(x + 2, y + h - 1, x + w - 2, y + h, colour);
+    }
+
+    private static long mix(long z) {
+        z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+        z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+        return z ^ (z >>> 31);
+    }
+
+    private static int lerp(int a, int b, float t) {
+        int r = (int) (((a >> 16) & 0xFF) + (((b >> 16) & 0xFF) - ((a >> 16) & 0xFF)) * t);
+        int gr = (int) (((a >> 8) & 0xFF) + (((b >> 8) & 0xFF) - ((a >> 8) & 0xFF)) * t);
+        int bl = (int) ((a & 0xFF) + ((b & 0xFF) - (a & 0xFF)) * t);
+        return 0xFF000000 | (r << 16) | (gr << 8) | bl;
+    }
+
+    /**
+     * §ledge-arrow: a pointer to the nearest feature you have found, under the strip — a compass dial now.
+     * Rotated by the difference between where it is and where you face, so straight up is "walk forward",
+     * and eased round rather than snapped. Only for features already on the map — this finds your way
+     * back to a hole, it does not find holes.
+     */
+    private static void drawNeedle(GuiGraphicsExtractor g, Minecraft mc, int ax, int ay, float k) {
+        int[] near = FinderState.latest().getIntArray("near").orElse(new int[0]);
         // §arrow-target: a mark picked on the chart outranks the nearest one, and it is measured
         // from where you stand right now rather than from the last sounding — you may have walked.
         boolean picked = false;
         Long target = ClientSoundings.target();
-        if (target != null && mc.player != null) {
+        if (target != null) {
             Byte kind = ClientSoundings.spots().get(target);
             near = new int[]{ClientSoundings.keyX(target) - mc.player.getBlockX(),
                     ClientSoundings.keyZ(target) - mc.player.getBlockZ(), kind == null ? 1 : kind};
             picked = true;
         }
-        if (near != null && near.length == 3 && mc.player != null) {
-            double toSpot = Math.toDegrees(Math.atan2(-near[0], near[1]));    // yaw the spot lies at
-            double rel = Math.toRadians(net.minecraft.util.Mth.wrapDegrees(toSpot - mc.player.getYRot()));
-            int ax = x + W / 2, ay = y + H + 14;
-            double sx = Math.sin(rel), sy = -Math.cos(rel);
-            g.fill(ax - 11, ay - 11, ax + 12, ay + 12, 0xCC0B1E22);
-            for (int k = -8; k <= 8; k++) {
-                int px = (int) Math.round(ax + sx * k), py = (int) Math.round(ay + sy * k);
-                g.fill(px, py, px + 2, py + 2, 0xFFFFC83C);
-            }
-            // the head: two short strokes back from the tip
-            for (int k = 0; k < 5; k++) {
-                double bx = sx * (8 - k), by = sy * (8 - k);
-                int lx = (int) Math.round(ax + bx + sy * k), ly = (int) Math.round(ay + by - sx * k);
-                int rx = (int) Math.round(ax + bx - sy * k), ry = (int) Math.round(ay + by + sx * k);
-                g.fill(lx, ly, lx + 2, ly + 2, 0xFFFFC83C);
-                g.fill(rx, ry, rx + 2, ry + 2, 0xFFFFC83C);
-            }
-            int dist = (int) Math.round(Math.sqrt((double) near[0] * near[0] + (double) near[1] * near[1]));
-            // §arrow-label: two lines under the needle, centred — what it is, then how far. One
-            // line beside it read as a sentence; a needle wants a caption.
-            String kind = (picked ? "\u2605 " : "") + Component.translatable("spot.riverfishing." + (near[2] == 0 ? "hole" : "ledge")).getString();
-            String range = Component.translatable("finder.riverfishing.metres", dist).getString();
-            g.text(mc.font, kind, ax - mc.font.width(kind) / 2, ay + 14, 0xFFFFC83C, true);
-            g.text(mc.font, range, ax - mc.font.width(range) / 2, ay + 24, 0xFFFFC83C, true);
+        if (near == null || near.length != 3) {
+            needle = Float.NaN;
+            return;
         }
+        double toSpot = Math.toDegrees(Math.atan2(-near[0], near[1]));    // yaw the spot lies at
+        float rel = (float) Math.toRadians(net.minecraft.util.Mth.wrapDegrees(toSpot - mc.player.getYRot()));
+        if (Float.isNaN(needle)) needle = rel;
+        float turn = (float) Math.atan2(Math.sin(rel - needle), Math.cos(rel - needle));   // the short way round
+        needle += turn * k;
+
+        int r = 13;
+        for (int dy = -r; dy <= r; dy++) {
+            int hw = (int) Math.round(Math.sqrt(r * r - dy * dy));
+            g.fill(ax - hw, ay + dy, ax + hw + 1, ay + dy + 1, 0xE0141C1A);
+        }
+        for (int a = 0; a < 64; a++) {
+            double t = a * Math.PI / 32;
+            int px = (int) Math.round(ax + Math.sin(t) * r), py = (int) Math.round(ay - Math.cos(t) * r);
+            g.fill(px, py, px + 1, py + 1, 0xFF3C4E47);
+        }
+        g.fill(ax, ay - r + 1, ax + 1, ay - r + 4, SURFACE_LINE);   // forward
+        double sx = Math.sin(needle), sy = -Math.cos(needle);
+        for (int kk = -8; kk <= 8; kk++) {
+            int px = (int) Math.round(ax + sx * kk), py = (int) Math.round(ay + sy * kk);
+            g.fill(px, py, px + 2, py + 2, kk > 0 ? 0xFFFFC83C : 0xFF8A6A20);
+        }
+        // the head: two short strokes back from the tip
+        for (int kk = 0; kk < 5; kk++) {
+            double bx = sx * (8 - kk), by = sy * (8 - kk);
+            int lx = (int) Math.round(ax + bx + sy * kk), ly = (int) Math.round(ay + by - sx * kk);
+            int rx = (int) Math.round(ax + bx - sy * kk), ry = (int) Math.round(ay + by + sx * kk);
+            g.fill(lx, ly, lx + 2, ly + 2, 0xFFFFC83C);
+            g.fill(rx, ry, rx + 2, ry + 2, 0xFFFFC83C);
+        }
+        int dist = (int) Math.round(Math.sqrt((double) near[0] * near[0] + (double) near[1] * near[1]));
+        // §arrow-label: two lines under the dial, centred — what it is, then how far.
+        String kind = (picked ? "★ " : "") + Component.translatable("spot.riverfishing." + (near[2] == 0 ? "hole" : "ledge")).getString();
+        String range = Component.translatable("finder.riverfishing.metres", dist).getString();
+        g.text(mc.font, kind, ax - mc.font.width(kind) / 2, ay + r + 4, 0xFFFFC83C, true);
+        g.text(mc.font, range, ax - mc.font.width(range) / 2, ay + r + 14, 0xFFFFC83C, true);
     }
 
     private static boolean isFinder(net.minecraft.world.item.ItemStack stack) {
@@ -138,16 +282,22 @@ public final class ClientHud {
     private static void renderPumpReel(GuiGraphicsExtractor g, Minecraft mc) {
         // §26.2: Options.hideGui moved onto the Hud itself (mc.gui.hud.isHidden()).
         //? if <26.2 {
-        if (mc.player == null || mc.options.hideGui) return;
-        //?} else {
-        /*if (mc.player == null || mc.gui.hud.isHidden()) return;
-        *///?}
+        /*if (mc.player == null || mc.options.hideGui) return;
+        *///?} else {
+        if (mc.player == null || mc.gui.hud.isHidden()) return;
+        //?}
         ClientLineState.Line l = ClientLineState.lines().get(mc.player.getId());
         if (l == null || !l.fighting) return;
         String key;
         int color;
-        if (l.smoothTension > 0.85f) {
+        byte move = l.move;   // §fight-moves: a move has its own answer
+        if (l.smoothTension > 0.85f || move == com.riverfishing.fishing.FightMoves.WEEDED
+                || (move == com.riverfishing.fishing.FightMoves.TORPEDO && l.running)) {
             key = "hud.riverfishing.drag_now"; color = 0xFFFF5040;
+        } else if (move == com.riverfishing.fishing.FightMoves.SULK) {
+            key = "hud.riverfishing.lift"; color = 0xFFFFC850;
+        } else if (move == com.riverfishing.fishing.FightMoves.CHARGE || move == com.riverfishing.fishing.FightMoves.CHARGE_SLACK) {
+            key = "hud.riverfishing.reel_fast"; color = 0xFF7CE07C;
         } else if (l.running) {
             key = "hud.riverfishing.ease"; color = 0xFFFFC850;
         } else {
@@ -180,7 +330,7 @@ public final class ClientHud {
      * number printed above the gauge now is the real throw — the same {@code castDistance} the server
      * lands the line at, read off the same rod and rig on this side, so it cannot disagree.
      *
-     * <p>§cast-bar: drawn off a generated sheet (tools/gen_cast_bar.py) — an oak frame with a brass
+     * <p>§cast-bar: drawn off the sheet the author painted (§gui-art) — an oak frame with a brass
      * rim, the charge as a lit tube from green through amber to red, the dead band an under-loaded
      * rig cannot reach hatched in red, and the metres on a parchment plaque. Ticks every five metres,
      * because the scale is metres now and a tick at "fifty percent" would be a tick at nothing.
@@ -207,20 +357,34 @@ public final class ClientHud {
 
         int sw = mc.getWindow().getGuiScaledWidth();
         int sh = mc.getWindow().getGuiScaledHeight();
-        final int FW = 120, FH = 16, TW = 112, TH = 8;
-        int x = (sw - FW) / 2, y = sh - 70;
-        int tx = x + 4, ty = y + 4;                          // the recess the sheet leaves for the fill
+        // §gui-art: the author's sheet, measured. Frame 256x34 at (0,0); the trough inside it is
+        // 230x14 at (+13,+10) — and the fill sprite is exactly that 230 wide, so nothing is ever
+        // scaled. The bottom edge stays where the old 120x16 frame's was (sh-54), which is what keeps
+        // a 34-tall frame clear of the health row.
+        final int FW = 256, FH = 34, TW = 230, TH = 14;
+        int x = (sw - FW) / 2, y = sh - 88;
+        int tx = x + 13, ty = y + 10;                        // the recess the sheet leaves for the fill
+        // §gui-180: the sheet is painted 256 wide and drawn 180 wide — scaled about the frame's own
+        // centre, so every rect below stays in the sheet's numbers and only this one factor moves.
+        final float S = 180f / FW;
+        float ccx = x + FW / 2f, ccy = y + FH / 2f;
+        g.pose().pushMatrix();
+        g.pose().translate(ccx, ccy);
+        g.pose().scale(S, S);
+        g.pose().translate(-ccx, -ccy);
 
-        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, x, y, 0f, 0f, FW, FH, 128, 48);
+        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, x, y, 0f, 0f, FW, FH, 256, 96);
         // The charge, clipped to the metres: a fraction of the base reach, so the tube fills to where
         // the line will land on the gauge's own scale.
         int fill = (int) Math.round(TW * Math.min(1.0, (metres / Math.max(1.0, base))));
-        if (fill > 0) g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, tx, ty, 0f, 16f, fill, TH, 128, 48);
+        if (fill > 0) g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, tx, ty, 0f, 36f, fill, TH, 256, 96);
         // The dead band: hatched, tiled, from the rig's reach to the rod's.
         int cut = (int) Math.round(TW * usable);
-        for (int hx = tx + cut; hx < tx + TW; hx += 8) {
-            int hw = Math.min(8, tx + TW - hx);
-            g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, hx, ty, 0f, 24f, hw, TH, 128, 48);
+        // §gui-art: the blocked chip is 18 wide, so the tile step is 18 — a step that is not the
+        // chip's own width either seams or overlaps the hatching.
+        for (int hx = tx + cut; hx < tx + TW; hx += 18) {
+            int hw = Math.min(18, tx + TW - hx);
+            g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, hx, ty, 234f, 36f, hw, TH, 256, 96);
         }
         if (usable < 1f) g.fill(tx + cut, ty, tx + cut + 1, ty + TH, 0xFFE05A4A);
         // Ticks every five metres of the base reach, brighter at ten.
@@ -229,15 +393,23 @@ public final class ClientHud {
             g.fill(px, ty, px + 1, ty + TH, (m % 10 == 0) ? 0x88FFFFFF : 0x44FFFFFF);
         }
 
-        // The metres, on the plaque above the frame.
-        String label = String.format(java.util.Locale.ROOT, "%.1f m", metres);
+        // The plaque rides with the frame — it is art, and art scales.
+        int px = x + (FW - 100) / 2, py = y - 44;
+        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, px, py, 0f, 51f, 100, 38, 256, 96);
+        g.pose().popMatrix();
+
+        // §gui-180: the writing does NOT scale. The metres in bold, at the font's own size, centred
+        // on the plaque where the scale put it — the parchment is full width only on rows 7..30, so
+        // the line sits on the middle of that band.
+        Component label = Component.literal(String.format(java.util.Locale.ROOT, "%.1f m", metres))
+                .withStyle(net.minecraft.ChatFormatting.BOLD);
         int lw = mc.font.width(label);
-        int px = x + (FW - 48) / 2, py = y - 18;
-        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BAR, px, py, 0f, 32f, 48, 16, 128, 48);
-        g.text(mc.font, label, px + (48 - lw) / 2, py + 4, 0xFF3A2A18, false);
-        // And what the rod could do, small, at the far end.
+        float signCy = ccy + (py + 19 - ccy) * S;
+        g.text(mc.font, label, (int) (ccx - lw / 2f), (int) (signCy - 4f), 0xFF3A2A18, false);
+        // And what the rod could do, small, past the frame's right end — which a 180-wide gauge has
+        // room for again.
         String top = String.format(java.util.Locale.ROOT, "%.0f", base);
-        g.text(mc.font, top, x + FW + 3, y + 4, 0xFFB08D3C, true);
+        g.text(mc.font, top, (int) (ccx + (x + FW - ccx) * S) + 3, (int) (ccy - 4f), 0xFFB08D3C, true);
     }
 
 }

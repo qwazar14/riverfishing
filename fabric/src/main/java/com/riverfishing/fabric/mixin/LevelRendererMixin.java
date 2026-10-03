@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LevelRenderer.class)
 public class LevelRendererMixin {
     //? if <26.2 {
-    @Inject(method = "lambda$addMainPass$0",
+    /*@Inject(method = "lambda$addMainPass$0",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;renderTranslucentFeatures()V",
                     shift = At.Shift.AFTER))
@@ -32,11 +32,11 @@ public class LevelRendererMixin {
                 mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
     }
 
-    /**
+    /^*
      * §shoal: the fish sit UNDER the water, so they must be drawn BEFORE the translucent pass — that pass
      * writes depth, and anything submitted after it that sits behind the surface is thrown away. Same
      * injection point as the line above, opposite shift.
-     */
+     ^/
     @Inject(method = "lambda$addMainPass$0",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;renderTranslucentFeatures()V",
@@ -48,7 +48,7 @@ public class LevelRendererMixin {
                 mc.gameRenderer.getMainCamera().position(),
                 mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
     }
-    //?}
+    *///?}
     // On 26.2 the class is an empty no-op: the cast line goes through the loader-neutral common
     // LevelRendererSubmitMixin (submit-based) instead.
 }

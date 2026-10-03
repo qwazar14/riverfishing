@@ -16,6 +16,7 @@
   },
   "client": [
     "ItemInHandRendererMixin",
+    "FirstPersonHandsMixin",
     "ItemInHandLayerMixin",
     "LevelRendererSubmitMixin",
     "ItemEntityRenderStateMixin",
@@ -23,6 +24,8 @@
     "MerchantOrderPanelMixin",
     "FightEdgeGuardMixin",
     "RopeInputMixin",
-    "SpecialModelRenderersAccessor"
+    "SpecialModelRenderersAccessor",
+    "TooltipFrameMixin",
+    "RodNoDipMixin"
   ]
 }

@@ -89,6 +89,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         final List<Swim> fishes = new ArrayList<>();
         float plateYRot;
         int waterArgb;                                    // §aqua-view: 0 = no water to draw
+        int skyDarken;                                    // §aqua-night: the level's sky darkening, 0 day .. 11 night
         float tankYRot;
         double tankX, tankZ;
         final List<ItemStackRenderState> modules = new ArrayList<>();
@@ -133,6 +134,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         // §aqua-view: the water and the modules first — an empty tank still has water in it.
         s.tankX = tankX; s.tankZ = tankZ; s.tankYRot = -facing.toYRot();
         s.waterArgb = be.getWater() <= 0 ? 0 : waterColor(be.getWater());
+        s.skyDarken = be.getLevel() == null ? 0 : be.getLevel().getSkyDarken();
         for (int slot = 10; slot <= 11; slot++) {
             ItemStack m = be.getItem(slot);
             if (m.isEmpty()) continue;
@@ -289,8 +291,8 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         for (Swim swim : s.fishes) {
             pose.pushPose();
             pose.translate(swim.x, swim.y, swim.z);
-            pose.mulPose(Axis.YP.rotationDegrees(swim.yRot));
-            if (swim.xRot != 0f) pose.mulPose(Axis.XP.rotationDegrees(swim.xRot));
+            com.riverfishing.compat.Mc.rotate(pose, Axis.YP.rotationDegrees(swim.yRot));
+            if (swim.xRot != 0f) com.riverfishing.compat.Mc.rotate(pose, Axis.XP.rotationDegrees(swim.xRot));
             pose.scale(swim.scale, swim.scale, swim.scale);
             swim.item.submit(pose, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
             pose.popPose();
@@ -299,7 +301,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
 
         pose.pushPose();
         pose.translate(s.plateX, 0.62, s.plateZ);
-        pose.mulPose(Axis.YP.rotationDegrees(s.plateYRot));
+        com.riverfishing.compat.Mc.rotate(pose, Axis.YP.rotationDegrees(s.plateYRot));
         pose.scale(0.011f, -0.011f, 0.011f); // Y flipped for text
         int n = s.fishes.size();
         float lineH = 10f;
@@ -374,10 +376,17 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
     private static void submitWater(State s, PoseStack pose, SubmitNodeCollector collector) {
         if (s.waterArgb == 0) return;
         int c = s.waterArgb, light = s.lightCoords;
-        int r = (c >> 16) & 0xFF, g = (c >> 8) & 0xFF, b = c & 0xFF, a = (c >>> 24) & 0xFF;
+        // §aqua-night: the beam shader is unlit — it glows, which is what a beacon wants and a tank does not: at night
+        // the box shone like a block of ice and tinted the sky behind it (26.3 beta). The light is put into the colour.
+        // ponytail: max(block, sky − darkening) on vanilla's l/(4−3l) curve — a stand-in for the lightmap (no gamma,
+        // no night vision); a lit translucent type that writes no depth would make it exact.
+        float l = Math.max((light >> 4) & 0xF, Math.max(0, ((light >> 20) & 0xF) - s.skyDarken)) / 15f;
+        float shade = 0.15f + 0.85f * l / (4f - 3f * l);
+        int r = Math.round(((c >> 16) & 0xFF) * shade), g = Math.round(((c >> 8) & 0xFF) * shade),
+                b = Math.round((c & 0xFF) * shade), a = (c >>> 24) & 0xFF;
         pose.pushPose();
         pose.translate(s.tankX, 0, s.tankZ);
-        pose.mulPose(Axis.YP.rotationDegrees(s.tankYRot));
+        com.riverfishing.compat.Mc.rotate(pose, Axis.YP.rotationDegrees(s.tankYRot));
         collector.submitCustomGeometry(pose, WATER_LAYER, (p, vc) -> waterBox(p.pose(), vc, r, g, b, a, light));
         pose.popPose();
     }
@@ -386,7 +395,7 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         for (int i = 0; i < s.modules.size(); i++) {
             pose.pushPose();
             pose.translate(s.tankX, MOD_Y, s.tankZ);
-            pose.mulPose(Axis.YP.rotationDegrees(s.tankYRot));
+            com.riverfishing.compat.Mc.rotate(pose, Axis.YP.rotationDegrees(s.tankYRot));
             pose.translate(s.moduleLeft.get(i) ? -MOD_X : MOD_X, 0, MOD_Z);
             pose.scale(MOD_SCALE, MOD_SCALE, MOD_SCALE);
             s.modules.get(i).submit(pose, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
@@ -398,8 +407,8 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         for (Swim c : s.fry) {
             pose.pushPose();
             pose.translate(c.x, c.y, c.z);
-            pose.mulPose(Axis.YP.rotationDegrees(c.yRot));
-            if (c.xRot != 0f) pose.mulPose(Axis.XP.rotationDegrees(c.xRot));
+            com.riverfishing.compat.Mc.rotate(pose, Axis.YP.rotationDegrees(c.yRot));
+            if (c.xRot != 0f) com.riverfishing.compat.Mc.rotate(pose, Axis.XP.rotationDegrees(c.xRot));
             pose.scale(c.scale, c.scale, c.scale);
             s.fryItem.submit(pose, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
             pose.popPose();
@@ -410,8 +419,8 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         pose.pushPose();
         pose.translate(s.roeX, s.roeY, s.roeZ);
         // Same yaw as the fish, then laid flat on the gravel; the quad is drawn in its own x-y plane below.
-        pose.mulPose(Axis.YP.rotationDegrees(s.roeYRot));
-        pose.mulPose(Axis.XP.rotationDegrees(90f));
+        com.riverfishing.compat.Mc.rotate(pose, Axis.YP.rotationDegrees(s.roeYRot));
+        com.riverfishing.compat.Mc.rotate(pose, Axis.XP.rotationDegrees(90f));
         float u0 = s.roeFrame / (float) ROE_FRAMES, u1 = (s.roeFrame + 1) / (float) ROE_FRAMES;
         float h = ROE_HALF;
         int light = s.lightCoords;

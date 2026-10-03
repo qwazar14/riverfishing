@@ -1,0 +1,18 @@
+{
+  "wants": {
+    "id": "riverfishing:devils_hole_pupfish",
+    "components": {
+      "riverfishing:prime": 2
+    }
+  },
+  "gives": {
+    "id": "minecraft:emerald"
+  },
+  "max_uses": 12,
+  "xp": 1,
+  "reputation_discount": 0.05,
+  "merchant_predicate": {
+    "type": "minecraft:random_chance",
+    "chance": 0.09302
+  }
+}

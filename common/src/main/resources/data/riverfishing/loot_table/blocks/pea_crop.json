@@ -9,30 +9,31 @@
           "children": [
             {
               "type": "minecraft:item",
-              "name": "riverfishing:pea",
+              "name": "riverfishing:pea_pod",
               "conditions": [
-                { "condition": "minecraft:block_state_property", "block": "riverfishing:pea_crop", "properties": { "age": "3" } }
+                {
+                  "condition": "minecraft:block_state_property",
+                  "block": "riverfishing:pea_crop",
+                  "properties": {
+                    "age": "3"
+                  }
+                }
               ],
               "functions": [
-                { "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 1, "max": 3 } }
+                {
+                  "function": "minecraft:set_count",
+                  "count": {
+                    "type": "minecraft:uniform",
+                    "min": 1,
+                    "max": 3
+                  }
+                }
               ]
             },
-            { "type": "minecraft:item", "name": "riverfishing:pea_seeds" }
-          ]
-        }
-      ]
-    },
-    {
-      "rolls": 1,
-      "conditions": [
-        { "condition": "minecraft:block_state_property", "block": "riverfishing:pea_crop", "properties": { "age": "3" } }
-      ],
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "riverfishing:pea_seeds",
-          "functions": [
-            { "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 1, "max": 2 } }
+            {
+              "type": "minecraft:item",
+              "name": "riverfishing:pea"
+            }
           ]
         }
       ]

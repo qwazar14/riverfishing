@@ -21,8 +21,10 @@ public final class PlatformHelperImpl {
      * themselves live in common.
      */
     public static void registerBrewing() {
+        //? if <26.3 {
         net.fabricmc.fabric.api.registry.FabricPotionBrewingBuilder.BUILD
                 .register(com.riverfishing.registry.ModPotions::addMixes);
+        //?}
     }
 
     /** §26.1: the vanilla BlockEntityType ctor is private — Fabric's builder is the blessed path. */

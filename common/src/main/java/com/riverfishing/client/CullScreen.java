@@ -89,10 +89,10 @@ public class CullScreen extends Screen {
 
     public static void open(CullListPacket p) {
         //? if <26.2 {
-        Minecraft.getInstance().setScreen(new CullScreen(p));
-        //?} else {
-        /*Minecraft.getInstance().setScreenAndShow(new CullScreen(p));
-        *///?}
+        /*Minecraft.getInstance().setScreen(new CullScreen(p));
+        *///?} else {
+        Minecraft.getInstance().setScreenAndShow(new CullScreen(p));
+        //?}
     }
 
     private Component name(int i) {

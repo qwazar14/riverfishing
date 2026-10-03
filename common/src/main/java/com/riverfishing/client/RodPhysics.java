@@ -126,6 +126,7 @@ public final class RodPhysics {
         float dPitch = pitch - lastPitch;
         lastYaw = yaw; lastPitch = pitch;
         if (dt <= 0f) return;
+        RodAnim.update(dt);   // §rod-anim: one clock for both — its knocks land in this frame's springs
 
         if (!ENABLED) { swingYaw = swingPitch = velYaw = velPitch = 0f; lastTension = 0f; return; }
 
@@ -172,6 +173,16 @@ public final class RodPhysics {
         // clamping the angle without clamping the velocity would let it keep charging into the wall
         if (Math.abs(swingYaw) >= MAX_DEG) velYaw = 0f;
         if (Math.abs(swingPitch) >= MAX_DEG) velPitch = 0f;
+    }
+
+    /**
+     * §rod-anim: a knock on the blank, degrees/second of spring velocity — pitch + drives the tip DOWN, yaw +
+     * LEFT, the same convention as the fish's own pull. The springs' overshoot is the follow-through.
+     */
+    public static void kick(float yawVel, float pitchVel) {
+        if (!ENABLED) return;
+        velYaw += yawVel;
+        velPitch += pitchVel;
     }
 
     /** Sideways lag in degrees (view yaw), 0 when disabled. */

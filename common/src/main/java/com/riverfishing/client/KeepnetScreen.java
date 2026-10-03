@@ -38,16 +38,6 @@ import net.minecraft.world.item.ItemStack;
  */
 public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
     private static final int CELL = KeepnetMenu.CELL;
-    /**
-     * §keepnet-tune: one multiplier over the measured fit, live-tunable through {@code /rfnet}.
-     *
-     * <p>It used to be three numbers, two of which were a GUESS at how much of its icon a fish fills. That
-     * guess is why no single value worked: a ray fills its canvas nearly corner to corner and a flounder
-     * is a flat oval, so a scale that suited one made the other tiny. The proportions are measured per
-     * species now ({@link FishBounds}), which leaves nothing to guess and this knob at 1.0.
-     */
-    public static float iconScale = 1.0f;
-
 
     /** Which way round the thing on the cursor goes down. Client state: it is a property of the pointer. */
     private int rot;
@@ -192,7 +182,7 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
         float availW = (rot == 0 ? cw : ch) * CELL;
         float availH = (rot == 0 ? ch : cw) * CELL;
         // The canvas side that makes the FISH — not the canvas — fill the space it was given.
-        int side = Math.round(Math.min(availW / b[0], availH / b[1]) * iconScale);
+        int side = Math.round(Math.min(availW / b[0], availH / b[1]));
 
         g.pose().pushMatrix();
         g.pose().translate(px + cw * CELL / 2f, py + ch * CELL / 2f);
@@ -248,7 +238,7 @@ public class KeepnetScreen extends AbstractContainerScreen<KeepnetMenu> {
     @Override
     public boolean keyPressed(KeyEvent event) {
         // R turns whatever is on the cursor. The preview under the pointer shows the result before you commit.
-        if (event.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_R) {
+        if (event.key() == com.mojang.blaze3d.platform.InputConstants.KEY_R) {
             rot = 1 - rot;
             return true;
         }

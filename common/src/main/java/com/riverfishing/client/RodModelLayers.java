@@ -82,6 +82,15 @@ public final class RodModelLayers {
         return com.riverfishing.RiverFishing.id("rod/blank_" + rodKey + "_s" + index);
     }
 
+    /**
+     * §reel-26x: the reel's three pieces as ITEM-DEFINITION ids (items/rod/reel_N[_handle|_knob]_3d.json), which
+     * is what RodChain.piece() resolves. It was handed {@link #reel3d}'s MODEL ids, looked for
+     * items/item/rod/…, found nothing and drew no reel on any rod — hand, third person and pod (26.3 beta).
+     */
+    public static Identifier reelItemModel(int size, String part) {
+        return com.riverfishing.RiverFishing.id("rod/reel_" + size + part + "_3d");
+    }
+
     public static Identifier segment(String rodKey, int index) {
         return loc("blank_" + rodKey + "_s" + index);
     }

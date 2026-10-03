@@ -31,7 +31,8 @@ public final class ClientInit {
 
     /** Event listeners only — safe during Forge mod construction (nothing calls {@code .get()}). */
     public static void registerEvents() {
-        RodClientSettings.load();   // §rod-client-settings: /rfrod toggles survive relaunches (both loaders pass here)
+        RodClientSettings.load();
+        FinderHudSettings.load();   // §finder-hud-settings   // §rod-client-settings: /rfrod toggles survive relaunches (both loaders pass here)
         // s2c-split (0.4.0): S2C packet receivers are CLIENT-only - dedicated servers crash on the
         // dist-stripped receiver path (see ModNetwork).
         com.riverfishing.network.ModNetwork.registerClientReceivers();
@@ -61,9 +62,9 @@ public final class ClientInit {
         // update-check (0.4.0): one quiet version digest per game launch, on first world join.
         ClientPlayerEvent.CLIENT_PLAYER_JOIN.register(player -> UpdateChecker.onJoin());
 
-        // /rfrod + /rfnet, per loader. These used to ride Architectury's client-command event, which
-        // never fires on this line — everything after it in this method ran, and the commands did not
-        // exist in game. Each loader's own registration path does fire, so that is what they use now.
+        // /rfrod, per loader. It used to ride Architectury's client-command event, which
+        // never fires on this line — everything after it in this method ran, and the command did not
+        // exist in game. Each loader's own registration path does fire, so that is what it uses now.
         ClientPlatform.registerClientCommands();
 
         // Platform-only event hook (in-world line render) — no registry objects. §26.1: the extra-model

@@ -40,16 +40,20 @@ public class RodPodBlock extends BaseEntityBlock {
 
     private final int slotCount;
 
+    //? if <26.3 {
     public static final com.mojang.serialization.MapCodec<RodPodBlock> CODEC =
         com.mojang.serialization.codecs.RecordCodecBuilder.mapCodec(i -> i.group(
             com.mojang.serialization.Codec.INT.fieldOf("slot_count").forGetter(RodPodBlock::slotCount),
             propertiesCodec()
         ).apply(i, RodPodBlock::new));
+    //?}
 
+    //? if <26.3 {
     @Override
     protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
         return CODEC;
     }
+    //?}
 
     public RodPodBlock(int slotCount, Properties properties) {
         super(properties);
@@ -66,7 +70,6 @@ public class RodPodBlock extends BaseEntityBlock {
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
         // Face the way the player is looking (toward the water), so the rods/lines point at it.
         Direction facing = ctx.getHorizontalDirection();
-        com.riverfishing.RiverFishing.LOGGER.info("[RiverFishing] RodPod placed: facing={}", facing);
         return defaultBlockState().setValue(FACING, facing);
     }
 
@@ -107,7 +110,7 @@ public class RodPodBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
         if (level.getBlockEntity(pos) instanceof RodPodBlockEntity be) {
-            InteractionResult r = be.onUse(player, hand);
+            InteractionResult r = be.onUse(player, hand, hit.getLocation());   // §pod-slot: the rod you aimed at
             if (r == InteractionResult.PASS) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
             if (r == InteractionResult.FAIL) return net.minecraft.world.InteractionResult.FAIL;
             return InteractionResult.SUCCESS;

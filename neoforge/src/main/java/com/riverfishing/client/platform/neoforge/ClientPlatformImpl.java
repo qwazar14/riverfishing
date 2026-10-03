@@ -43,12 +43,11 @@ public final class ClientPlatformImpl {
     }
 
     /** §26.1: no-op — layers are data-driven (force_translucent in the model; cutout is automatic). */
-    /** /rfrod + /rfnet on NeoForge's own client-command event — Architectury's never fires here. */
+    /** /rfrod on NeoForge's own client-command event — Architectury's never fires here. */
     public static void registerClientCommands() {
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
                 (net.neoforged.neoforge.client.event.RegisterClientCommandsEvent e) -> {
                     com.riverfishing.client.RodDebugCommand.register(e.getDispatcher());
-                    com.riverfishing.client.KeepnetDebugCommand.register(e.getDispatcher());
                 });
     }
 
@@ -88,7 +87,7 @@ public final class ClientPlatformImpl {
 
     public static void registerLevelRenderer() {
         //? if <26.2 {
-        // §26.1: RenderLevelStageEvent became typed per-stage subclasses (no getStage()).
+        /*// §26.1: RenderLevelStageEvent became typed per-stage subclasses (no getStage()).
         NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent.AfterTranslucentBlocks e) -> {
             LineRenderer.render(e.getPoseStack(), e.getLevelRenderState().cameraRenderState.pos,
                     net.minecraft.client.Minecraft.getInstance().getDeltaTracker()
@@ -104,7 +103,7 @@ public final class ClientPlatformImpl {
                     net.minecraft.client.Minecraft.getInstance().getDeltaTracker()
                             .getGameTimeDeltaPartialTick(false));
         });
-        //?}
+        *///?}
         // On 26.2 this is a no-op: the stage event fires at DRAW time — too late to submit retained
         // geometry. The cast line goes through the loader-neutral common LevelRendererSubmitMixin.
     }

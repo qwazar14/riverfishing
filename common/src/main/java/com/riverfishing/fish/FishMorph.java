@@ -131,13 +131,6 @@ public final class FishMorph {
         return null;
     }
 
-    /** Total collection entries: one per species, plus one per morph that species can show. */
-    public static int totalEntries(String[] allSpecies) {
-        int n = 0;
-        for (String sp : allSpecies) n += 1 + forSpecies(sp).size();
-        return n;
-    }
-
     /**
      * Roll this specimen's morph, or null for an ordinary fish.
      *

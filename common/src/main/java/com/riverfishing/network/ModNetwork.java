@@ -62,6 +62,7 @@ public final class ModNetwork {
             NetworkManager.registerS2CPayloadType(JigGaugePacket.TYPE, JigGaugePacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(JournalOpenPacket.TYPE, JournalOpenPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(LineSyncPacket.TYPE, LineSyncPacket.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(FishGonePacket.TYPE, FishGonePacket.STREAM_CODEC);   // §fight-moves
             NetworkManager.registerS2CPayloadType(ShoalPacket.TYPE, ShoalPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(OrderPacket.TYPE, OrderPacket.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(ContractBoardPacket.TYPE, ContractBoardPacket.STREAM_CODEC);
@@ -81,6 +82,9 @@ public final class ModNetwork {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, JournalOpenPacket.TYPE, JournalOpenPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, LineSyncPacket.TYPE, LineSyncPacket.STREAM_CODEC,
+                (payload, ctx) -> ctx.queue(payload::handleClient));
+        // §fight-moves: the fish lifted out, or gone
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, FishGonePacket.TYPE, FishGonePacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, RodWarningPacket.TYPE, RodWarningPacket.STREAM_CODEC,
                 (payload, ctx) -> ctx.queue(payload::handleClient));

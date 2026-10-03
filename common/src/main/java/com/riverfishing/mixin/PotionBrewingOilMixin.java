@@ -4,7 +4,6 @@ import com.riverfishing.registry.ModItems;
 import com.riverfishing.registry.ModPotions;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionBrewing;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -16,8 +15,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Fabric opens none, so the oil's only road there was the furnace — where, now that every fish cooks,
  * it fought the cooked fish for the same input. Three questions the stand asks, answered here first:
  * is this an ingredient, is there a mix, what comes out.
+ * 26.3 brews from JSON (tools/gen_brewing_26_3.py) and has no PotionBrewing, so there this is an empty
+ * mixin. No comments inside the version blocks.
  */
-@Mixin(PotionBrewing.class)
+//? if <26.3 {
+@Mixin(net.minecraft.world.item.alchemy.PotionBrewing.class)
 public abstract class PotionBrewingOilMixin {
 
     @Inject(method = "isIngredient", at = @At("HEAD"), cancellable = true)
@@ -35,3 +37,8 @@ public abstract class PotionBrewingOilMixin {
         if (ModPotions.isOilyFish(reagent) && potion.is(Items.GLASS_BOTTLE)) cir.setReturnValue(new ItemStack(ModItems.FISH_OIL.get()));
     }
 }
+//?} else {
+/*@Mixin(net.minecraft.world.item.alchemy.Potions.class)
+public abstract class PotionBrewingOilMixin {
+}
+*///?}

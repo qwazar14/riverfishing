@@ -82,7 +82,7 @@ public final class FrySpecialRenderer implements SpecialModelRenderer<ItemStack>
             pose.pushPose();
             // a hair of depth per fish so the flat sprites never z-fight where they overlap
             pose.translate(0.5 + f[0], 0.5 + f[1], 0.5 + i * 0.02);
-            if (f[3] > 0f) pose.mulPose(Axis.YP.rotationDegrees(180f)); // mirror: the sprite is two-faced
+            if (f[3] > 0f) com.riverfishing.compat.Mc.rotate(pose, Axis.YP.rotationDegrees(180f)); // mirror: the sprite is two-faced
             pose.scale(f[2], f[2], f[2]);
             submitStack(mc, stack, pose, collector, light, overlay, outlineColor);
             pose.popPose();

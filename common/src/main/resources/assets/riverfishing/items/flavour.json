@@ -1,0 +1,16 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "riverfishing:item/flavour",
+    "tints": [
+      {
+        "type": "minecraft:dye",
+        "default": -13083194
+      },
+      {
+        "type": "minecraft:constant",
+        "value": -1
+      }
+    ]
+  }
+}

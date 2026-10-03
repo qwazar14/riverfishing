@@ -296,11 +296,16 @@ public final class ModVillagers {
             net.minecraft.world.item.Item it = net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(
                     RiverFishing.id((String) row[1])).orElse(null);
             if (it == null) continue;
+            // §trust-xp: a shelf offer from before the fix sits on the counter with 20 xp — take it down, put the new one up
+            offers.removeIf(o -> o.getResult().getItem() == it && o.getXp() > 2
+                    && o.getBaseCostA().is(net.minecraft.world.item.Items.EMERALD) && o.getBaseCostA().getCount() == (int) row[2]);
             boolean dup = false;
             for (MerchantOffer o : offers) dup |= o.getResult().getItem() == it;
             if (dup) continue;
+            // §trust-xp: 2 villager xp, not 20 — the shelf is there from a novice stall on, and ten 6-emerald alarms
+            // took one from novice to half-way through expert (Besoulq, 26.3 beta); it is a favour, not a lesson
             offers.add(new MerchantOffer(new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.EMERALD, (int) row[2]),
-                    new net.minecraft.world.item.ItemStack(it), 12, 20, 0.05f));
+                    new net.minecraft.world.item.ItemStack(it), 12, 2, 0.05f));
         }
     }
 
@@ -347,7 +352,6 @@ public final class ModVillagers {
         // §i: a poacher's board is blank — the flag tells the client why, the empty list tells it what.
         boolean banned = com.riverfishing.fishing.Warden.banned(sp);
         t.putBoolean("banned", banned);
-        t.putInt("rep_grams", com.riverfishing.fishing.Warden.repGrams(player));   // §o: what the debt costs, in kilograms
         net.minecraft.nbt.ListTag posts = new net.minecraft.nbt.ListTag();
         net.minecraft.nbt.CompoundTag ledger = com.riverfishing.fishing.Contracts.ledger(sp, level);   // §board-taken
         for (net.minecraft.nbt.CompoundTag post : banned ? java.util.List.<net.minecraft.nbt.CompoundTag>of()   // §i

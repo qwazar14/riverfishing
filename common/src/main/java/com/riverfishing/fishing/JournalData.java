@@ -33,6 +33,22 @@ public final class JournalData {
         PlayerData.markDirty(player);
     }
 
+    /**
+     * §boilies: this fish came out on a boilie of these flavours — one to each, under the species' own record
+     * ({@code fl}: flavour id → catches), so the page can say which flavour this angler does best on it.
+     */
+    public static void recordFlavours(Player player, Identifier species, java.util.List<String> flavours) {
+        if (flavours.isEmpty()) return;
+        CompoundTag root = get(player);
+        CompoundTag fish = root.getCompoundOrEmpty(species.toString());
+        CompoundTag fl = fish.getCompoundOrEmpty("fl");
+        for (String f : flavours) fl.putInt(f, fl.getIntOr(f, 0) + 1);
+        fish.put("fl", fl);
+        root.put(species.toString(), fish);
+        PlayerData.root(player).put(TAG, root);
+        PlayerData.markDirty(player);
+    }
+
     /** Records a trophy-grade catch (§quests): a separate counter for trophy-hunting goals. */
     public static void addTrophy(Player player) {
         CompoundTag root = get(player);
@@ -242,11 +258,6 @@ public final class JournalData {
         int level = 0;
         while (xpForLevel(level + 1) <= xp) level++;
         return level;
-    }
-
-    /** XP still needed to reach the next level. */
-    public static long xpToNext(Player player) {
-        return xpForLevel(getLevel(player) + 1) - getXp(player);
     }
 
     /** A lang-suffix rank key for the level: bronze &lt;5, silver &lt;10, gold &lt;20, else master. */

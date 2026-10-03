@@ -7,7 +7,6 @@ import com.riverfishing.fish.FishGroup;
 import com.riverfishing.fish.FishProfile;
 import com.riverfishing.fish.FishProfileManager;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 
@@ -40,7 +39,7 @@ public final class Ecosystem {
     private static final Set<String> BIG_PREDATORS = Set.of("pike", "zander", "catfish");
     private static final Set<String> SMALL_CYPRINIDS = Set.of("bleak", "verkhovka", "gudgeon", "roach", "rudd", "white_bream");
 
-    /** Everything at this spot in one read, so apply/weightScale/frySurvival/describe cannot disagree. */
+    /** Everything at this spot in one read, so apply/weightScale/frySurvival cannot disagree. */
     private record Spot(boolean grassCarp, boolean silverCarp, boolean bigCarp, boolean bigPredator,
                         boolean aerator, boolean snags, boolean gravel, boolean warmOutflow, boolean feeder) {
         double clarity() {
@@ -57,10 +56,13 @@ public final class Ecosystem {
         StockedData st = StockedData.get(level);
         long region = StockedData.regionAt(level, pos);
         Set<String> up = WaterUpgrades.at(level, pos);
+        // §alife-pond: a living pond answers from its fish; otherwise the book
+        com.riverfishing.alife.Lake pond = AlifeData.get(level).existingPond(level, pos);
+        java.util.function.Predicate<String> holds = pond != null ? s -> PondLife.holds(pond, s) : s -> st.pondHolds(region, s);
         // §pond-empty: a species fished out to the last head has stopped silting the bed
-        return new Spot(st.pondHolds(region, "grass_carp"), st.pondHolds(region, "silver_carp"),
-                BIG_CARP.stream().anyMatch(s -> st.pondHolds(region, s)),
-                BIG_PREDATORS.stream().anyMatch(s -> st.pondHolds(region, s)),
+        return new Spot(holds.test("grass_carp"), holds.test("silver_carp"),
+                BIG_CARP.stream().anyMatch(holds),
+                BIG_PREDATORS.stream().anyMatch(holds),
                 up.contains("aerator"), up.contains("snags"), up.contains("gravel"),
                 up.contains("warm_outflow"), up.contains("feeding_station"));
     }
@@ -130,11 +132,5 @@ public final class Ecosystem {
         if (s.warmOutflow()) out.add("warm_outflow");
         if (s.feeder()) out.add("feeding_station");
         return out;
-    }
-
-    /** One translatable line per active effect, {@code ecosystem.riverfishing.<effect>}. */
-    public static List<Component> describe(ServerLevel level, BlockPos pos) {
-        return effects(level, pos).stream()
-                .map(k -> (Component) Component.translatable("ecosystem.riverfishing." + k)).toList();
     }
 }

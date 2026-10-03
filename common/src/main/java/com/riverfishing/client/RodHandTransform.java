@@ -191,19 +191,19 @@ public final class RodHandTransform {
         float swingYaw = RodPhysics.yaw(), swingPitch = RodPhysics.pitch();
         if (swingYaw != 0f || swingPitch != 0f) {
             pose.translate(PIVOT[0] / 16f, PIVOT[1] / 16f, PIVOT[2] / 16f);
-            pose.mulPose(new Quaternionf().rotationXYZ(
+            com.riverfishing.compat.Mc.rotate(pose, new Quaternionf().rotationXYZ(
                     (float) Math.toRadians(swingPitch), (float) Math.toRadians(swingYaw), 0f));
             pose.translate(-PIVOT[0] / 16f, -PIVOT[1] / 16f, -PIVOT[2] / 16f);
         }
         pose.translate(a[0] / 16f, a[1] / 16f, a[2] / 16f);
-        pose.mulPose(new Quaternionf().rotationXYZ(
+        com.riverfishing.compat.Mc.rotate(pose, new Quaternionf().rotationXYZ(
                 (float) Math.toRadians(a[3] + lean[1]), (float) Math.toRadians(a[4] + lean[0]),
                 (float) Math.toRadians(a[5])));
         // §rod-pose-offset: the rod's own nudge, in the rod's frame the hand pose just set up
         float[] o = blank3d ? rodOffset(rodKey) : NO_OFFSET;
         if (o != NO_OFFSET) {
             pose.translate(o[0] / 16f, o[1] / 16f, o[2] / 16f);
-            pose.mulPose(new Quaternionf().rotationXYZ(
+            com.riverfishing.compat.Mc.rotate(pose, new Quaternionf().rotationXYZ(
                     (float) Math.toRadians(o[3]), (float) Math.toRadians(o[4]), (float) Math.toRadians(o[5])));
         }
         pose.scale(a[6] * o[6], a[6] * o[6], a[6] * o[6]);

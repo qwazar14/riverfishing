@@ -1,5 +1,8 @@
 {
   "variants": {
-    "": { "model": "riverfishing:block/fishing_stall" }
+    "facing=north": { "model": "riverfishing:block/fishing_stall" },
+    "facing=east":  { "model": "riverfishing:block/fishing_stall", "y": 90 },
+    "facing=south": { "model": "riverfishing:block/fishing_stall", "y": 180 },
+    "facing=west":  { "model": "riverfishing:block/fishing_stall", "y": 270 }
   }
 }

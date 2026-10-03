@@ -1,0 +1,5 @@
+{
+  "_comment": "A drilled hole in the ice drops nothing, like the ice it replaced. Declared explicitly so the server stops logging a missing-loot-table error every time one is broken.",
+  "type": "minecraft:block",
+  "pools": []
+}

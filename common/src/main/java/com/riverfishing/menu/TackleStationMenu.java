@@ -80,7 +80,7 @@ public class TackleStationMenu extends AbstractContainerMenu {
         // handing the same stack back on both sides is how you print one.
         // §26.1: Level.isClientSide the FIELD is private now — call the isClientSide() method.
         if (!inv.player.level().isClientSide() && !materials.getItem(C_HOOK).isEmpty()) {
-            inv.player.getInventory().placeItemBackInInventory(materials.removeItemNoUpdate(C_HOOK));
+            com.riverfishing.compat.Mc.placeBack(inv.player.getInventory(), materials.removeItemNoUpdate(C_HOOK));
             materials.setChanged();
         }
 
@@ -294,6 +294,7 @@ public class TackleStationMenu extends AbstractContainerMenu {
         if (index == SLOT_RESULT) {
             if (!moveItemStackTo(stack, INV_START, slots.size(), true)) return ItemStack.EMPTY;
             slot.onTake(p, stack);
+            return before;   // §station-shift: onTake already set the next result — clearing it blanked the preview
         } else if (index < INV_START) {
             if (!moveItemStackTo(stack, INV_START, slots.size(), false)) return ItemStack.EMPTY;
         } else {
@@ -317,6 +318,9 @@ public class TackleStationMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player p) {
-        return p.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0;
+        // §station-gone: a broken bench's menu stayed open on its orphaned container, and what went in was lost
+        return p.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0
+                && (p.level().isClientSide() || p.level().getBlockEntity(pos)
+                        instanceof com.riverfishing.block.TackleStationBlockEntity be && be.items() == materials);
     }
 }

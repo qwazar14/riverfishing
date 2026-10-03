@@ -38,6 +38,8 @@ public class FinderScreen extends Screen {
     private static final int VIEW_X = 10, VIEW_Y = 30, VIEW_W = 236, VIEW_H = 150;
     private static final int LIST_X = 254, LIST_W = 176;
     private static final int ROW = 13;
+    /** §finder-strip: the status strip at the foot of the section — the bed's legend and "+N more". */
+    private static final int LEGEND_H = 12;
 
     /**
      * §fish-icons: drawn at 24 px, and at most ten of them. The textures are 256 px; at 16 px a
@@ -55,6 +57,37 @@ public class FinderScreen extends Screen {
     private static final int[] CHART_BANDS = {
             0xFF163A44,   // unsounded water: the face's own dark
             0xFF3FB0A4, 0xFF2F8F8E, 0xFF246E78, 0xFF1B5264, 0xFF143C50, 0xFF0F2A3C};
+
+    /**
+     * §finder-device (1.1.0): the finder is drawn as the instrument it is — a graphite casing with the glass
+     * let into it and the readings printed on a plate under it — and its three views are picked with rubber
+     * keys down its left side, the way the journal's sections are bookmarks. Everything on the glass and the
+     * case is written in the instrument's own light ink; the parchment colours were for a book.
+     */
+    private static final net.minecraft.resources.Identifier BODY = com.riverfishing.RiverFishing.id("textures/gui/finder/body.png");
+    private static final net.minecraft.resources.Identifier KEY = com.riverfishing.RiverFishing.id("textures/gui/finder/key.png");
+    private static final int KEY_OUT = 80, KEY_PULL = 6, KEY_H = 20, KEY_STEP = 26, KEY_TOP = 36;
+    private static final String[] KEY_LABELS = {"finder.riverfishing.view_section", "finder.riverfishing.view_map",
+            "finder.riverfishing.view_sample"};
+    /** Each key's lamp: teal for the section, gold for the chart, green for the sample. */
+    private static final int[] KEY_LAMP = {0x40E0B0, 0xE8B430, 0x7CE07C};
+    /**
+     * §finder-hud-settings: three more keys below a gap — the corner sounder on or off, the direction dial on or
+     * off (a lit lamp is on), and Move. They set the player's own HUD, not anything on this finder.
+     */
+    private static final String[] HUD_KEYS = {"finder.riverfishing.hud_strip_key", "finder.riverfishing.hud_arrow_key",
+            "finder.riverfishing.hud_move"};
+    private static final int HUD_TOP = KEY_TOP + 3 * KEY_STEP + 14, HUD_LAMP = 0x7FE9D0;
+    private static final int INK = 0xFFB0E8D8, INK_DIM = 0xFF6FA89A, INK_GHOST = 0xFF4F7A70, INK_HEAD = 0xFFE8B430,
+            INK_BAD = 0xFFFF7A66, INK_GOOD = 0xFF7CE07C, CASE_TEXT = 0xFFC8D6CF, CASE_DIM = 0xFF7F948C;
+    /** The glass behind the panes. */
+    private static final int GLASS = 0xFF081416, PANE = 0xFF0C1B1E;
+
+    // §finder-anim: the device lifts in, its keys lean out, and a changed view is swept onto the glass
+    private float uiScale = 1f, animScale = 1f, animOff;
+    private long openedAt = net.minecraft.util.Util.getMillis(), lastFrame = openedAt, scanAt = openedAt;
+    private final float[] keyOut = new float[KEY_LABELS.length], hudOut = new float[HUD_KEYS.length];
+    private String glassKey;
 
     private final CompoundTag data;
     private final List<CompoundTag> here = new ArrayList<>();
@@ -142,8 +175,29 @@ public class FinderScreen extends Screen {
 
     @Override
     protected void init() {
-        left = (this.width - W) / 2;
+        // the keys stand out past the case, so the case and its keys are centred together, and a small
+        // screen shrinks the lot rather than cutting it off
+        int span = W + KEY_OUT + KEY_PULL;
+        uiScale = Math.min(1f, Math.min((this.width - 8f) / span, (this.height - 8f) / H));
+        left = (this.width - W + KEY_OUT + KEY_PULL) / 2;
         top = (this.height - H) / 2;
+    }
+
+    private float drawScale() {
+        return uiScale * animScale;
+    }
+
+    private double localX(double sx) { return (sx - this.width / 2.0) / drawScale() + this.width / 2.0; }
+    private double localY(double sy) { return (sy - this.height / 2.0 - animOff) / drawScale() + this.height / 2.0; }
+
+    /** A scissor given in the case's own space, pushed where the scaled case actually draws. */
+    private void scissor(GuiGraphicsExtractor g, int x1, int y1, int x2, int y2) {
+        g.enableScissor(x1, y1, x2, y2);   // §26.1: the rect goes through the pose already on the stack
+    }
+
+    private static float ease(float t) {
+        float u = 1f - Mth.clamp(t, 0f, 1f);
+        return 1f - u * u * u;
     }
 
     @Override
@@ -174,7 +228,9 @@ public class FinderScreen extends Screen {
     }
 
     private int yForDepth(double metres) {
-        return VIEW_Y + top + (int) Math.round(metres / depthScale() * (VIEW_H - 18)) + 8;
+        // §finder-strip: the deepest metre sits LEGEND_H above the face's foot — the strip under it is the bed's
+        // legend, where "Bed: silt, sand" used to print over the deepest depth label and over the sand itself
+        return VIEW_Y + top + (int) Math.round(metres / depthScale() * (VIEW_H - 18 - LEGEND_H)) + 8;
     }
 
     /** Where metre {@code i} of the profile sits on the face. The ruler takes the first 22 px. */
@@ -186,7 +242,7 @@ public class FinderScreen extends Screen {
         return Math.max(2, (VIEW_W - 30) / (FishingManager.PROFILE_N - 1) + 1);
     }
 
-    private static int bedColour(int t) {
+    static int bedColour(int t) {
         return switch (t) {
             case 1 -> 0xFFC9B37A;   // sand
             case 2 -> 0xFF8C8C86;   // gravel
@@ -258,13 +314,13 @@ public class FinderScreen extends Screen {
                                 t.getIntOr("dmin", 0), t.getIntOr("dmax", 0)).getVisualOrderText());
             }
         }
+        // What the bed is made of, read off the profile — the legend a real sounder prints, on its own dark strip
+        g.fill(x0 + 1, y0 + VIEW_H - LEGEND_H, x0 + VIEW_W - 1, y0 + VIEW_H - 1, 0xE0081A1E);
+        g.text(this.font, bedLegend(pd, pb), x0 + 4, y0 + VIEW_H - 10, 0xCC40E0B0, false);
         if (here.size() > shown) {
             Component more = Component.translatable("finder.riverfishing.more_fish", here.size() - shown);
-            g.text(this.font, more, x0 + VIEW_W - this.font.width(more) - 6, y0 + VIEW_H - 11, 0x9940E0B0, false);
+            g.text(this.font, more, x0 + VIEW_W - this.font.width(more) - 6, y0 + VIEW_H - 10, 0xCC40E0B0, false);
         }
-
-        // What the bed is made of, read off the profile — the legend a real sounder prints.
-        g.text(this.font, bedLegend(pd, pb), x0 + 4, y0 + VIEW_H - 11, 0x9940E0B0, false);
     }
 
     /**
@@ -349,7 +405,7 @@ public class FinderScreen extends Screen {
         return out;
     }
 
-    private static String bedKey(int t) {
+    static String bedKey(int t) {
         return switch (t) {
             case 1 -> "sand";
             case 2 -> "gravel";
@@ -360,7 +416,7 @@ public class FinderScreen extends Screen {
         };
     }
 
-    private static int lighten(int argb) {
+    static int lighten(int argb) {
         int r = Math.min(255, ((argb >> 16) & 0xFF) + 40);
         int gr = Math.min(255, ((argb >> 8) & 0xFF) + 40);
         int b = Math.min(255, (argb & 0xFF) + 40);
@@ -458,6 +514,37 @@ public class FinderScreen extends Screen {
             if (py > y0 && py < y0 + h) g.fill(x0 + 1, py, x0 + w - 1, py + 1, GRID);
         }
 
+        // §sonar-live: the shoals the sounder picked up — a halo for each zone of fish, sized by how many,
+        // teal for the peaceful ones and amber where a predator is among them. What the sounder SEES; it
+        // is as fresh as the last sounding, so the fish move on and the chart does not, until you sound again.
+        long nowTick = net.minecraft.client.Minecraft.getInstance().level == null ? 0
+                : net.minecraft.client.Minecraft.getInstance().level.getGameTime();
+        for (long[] s : FinderState.halos()) {
+            int px = (int) Math.floor(ox + (s[0] + 0.5) * ppb);
+            int py = (int) Math.floor(oz + (s[1] + 0.5) * ppb);
+            int n = (int) s[2];
+            // an old sighting fades: the fish were there, they need not be now
+            double fresh = Mth.clamp(1.0 - (nowTick - s[5]) / (double) FinderState.SHOAL_MEMORY, 0.15, 1.0);
+            int r = (int) Mth.clamp(Math.sqrt(n) * 1.6 * Math.max(1.0, ppb / 2.0), 3, 16);
+            if (px + r < x0 || px - r > x0 + w || py + r < y0 || py - r > y0 + h) continue;
+            int rgb = s[4] != 0 ? 0xE09040 : 0x40E0B0;
+            for (int ring = r; ring > 0; ring--) {
+                int a = (int) ((0x18 + 0x60 * (1.0 - ring / (double) r)) * fresh);
+                int col = (a << 24) | rgb;
+                for (int dy = -ring; dy <= ring; dy++) {
+                    int hw = (int) Math.round(Math.sqrt(ring * ring - dy * dy));
+                    int yy = py + dy;
+                    if (yy <= y0 || yy >= y0 + h) continue;
+                    if (ring == r || Math.abs(dy) == ring) g.fill(Math.max(x0, px - hw), yy, Math.min(x0 + w, px + hw + 1), yy + 1, col);
+                }
+            }
+            g.fill(px - 1, py - 1, px + 2, py + 2, 0xFF000000 | rgb);
+            if (mouseX >= px - r && mouseX <= px + r && mouseY >= py - r && mouseY <= py + r && hover == null) {
+                hover = List.of(fishName(FinderState.haloSpecies(s)).copy().append(" ×" + s[3]).getVisualOrderText(),
+                        Component.translatable("finder.riverfishing.shoal_total", n).getVisualOrderText());
+            }
+        }
+
         // Marks: a ring for a hole, a diamond for a drop-off — and a white halo on the one the
         // strip's needle is set to. Clicking a mark sets it; clicking it again lets it go.
         markRects.clear();
@@ -548,59 +635,95 @@ public class FinderScreen extends Screen {
         return 1 + Math.min(5, (v - ClientSoundings.DEPTH0) * 6 / (deepest + 1));
     }
 
-    /**
-     * §finder2: the controls on the face — the two views you are NOT on, and on the chart a way back to
-     * yourself. Right-aligned against the face's edge, left to right in {@link #tabKeys} order.
-     */
-    private void renderViewTab(GuiGraphicsExtractor g, int mouseX, int mouseY) {
-        List<String> keys = tabKeys();
-        int[] xs = tabXs(keys);
-        for (int i = 0; i < keys.size(); i++) tab(g, mouseX, mouseY, xs[i], keys.get(i));
-    }
-
-    private List<String> tabKeys() {
-        List<String> k = new ArrayList<>();
-        if (view == CHART) k.add("finder.riverfishing.to_me");
-        if (view != SECTION) k.add("finder.riverfishing.to_section");
-        if (view != CHART) k.add("finder.riverfishing.to_map");
-        if (view != SAMPLE) k.add("finder.riverfishing.to_sample");
-        return k;
-    }
-
     private int faceWidth() {
         return view == SECTION ? VIEW_W : W - 2 * VIEW_X;
     }
 
-    private int[] tabXs(List<String> keys) {
-        int[] xs = new int[keys.size()];
-        int x = left + VIEW_X + faceWidth();
-        for (int i = keys.size() - 1; i >= 0; i--) {
-            x -= this.font.width(Component.translatable(keys.get(i))) + 10;
-            xs[i] = x;
-            x -= 4;
-        }
-        return xs;
+    /** §finder-device: the one control the chart keeps on the case — back to where you stand. */
+    private int[] meRect() {
+        Component label = Component.translatable("finder.riverfishing.to_me");
+        int w = this.font.width(label) + 12, x = left + W - 34 - w;
+        return new int[]{x, top + 7, x + w, top + 20};
     }
 
-    private void tab(GuiGraphicsExtractor g, int mouseX, int mouseY, int x, String key) {
-        Component label = Component.translatable(key);
-        int w = this.font.width(label) + 10, y = top + VIEW_Y - 13;
-        boolean hov = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + 12;
-        g.fill(x, y, x + w, y + 12, hov ? 0xFF8A7038 : 0xFF63512F);
-        g.text(this.font, label, x + 5, y + 2, 0xFFEDE2C6, false);
+    private void renderMeButton(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+        int[] r = meRect();
+        boolean hov = mouseX >= r[0] && mouseX < r[2] && mouseY >= r[1] && mouseY < r[3];
+        g.fill(r[0], r[1], r[2], r[3], 0xFF0E1311);
+        g.fill(r[0] + 1, r[1] + 1, r[2] - 1, r[3] - 1, hov ? 0xFF3A4A44 : 0xFF2A3430);
+        g.fill(r[0] + 1, r[1] + 1, r[2] - 1, r[1] + 2, 0x30FFFFFF);
+        g.text(this.font, Component.translatable("finder.riverfishing.to_me"), r[0] + 6, r[1] + 3,
+                hov ? 0xFFFFFFFF : CASE_TEXT, false);
     }
 
-    /** The lang key of the tab under the cursor, or null. */
-    private String clickedTab(double mx, double my) {
-        int y = top + VIEW_Y - 13;
-        if (my < y || my >= y + 12) return null;
-        List<String> keys = tabKeys();
-        int[] xs = tabXs(keys);
-        for (int i = 0; i < keys.size(); i++) {
-            int w = this.font.width(Component.translatable(keys.get(i))) + 10;
-            if (mx >= xs[i] && mx < xs[i] + w) return keys.get(i);
+    /**
+     * §finder-device: the three rubber keys down the left side. The open one is pressed out a little further
+     * with its lamp lit; the one under the cursor leans out to meet the finger.
+     */
+    private void renderKeys(GuiGraphicsExtractor g, int mouseX, int mouseY, float k, long now) {
+        for (int i = 0; i < KEY_LABELS.length; i++) {
+            int y = top + KEY_TOP + i * KEY_STEP;
+            boolean hov = mouseX >= left - KEY_OUT - KEY_PULL && mouseX < left && mouseY >= y && mouseY < y + KEY_H;
+            float want = i == view ? KEY_PULL : hov ? KEY_PULL / 2f : 0f;
+            keyOut[i] += (want - keyOut[i]) * k;
+            int x = left - KEY_OUT - Math.round(keyOut[i]);
+            g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, KEY, x, y, 0f, 0f, 84, KEY_H, 84, 20, 84, 20);
+            int lamp = KEY_LAMP[i];
+            int glow = i == view ? 0xFF000000 | lamp : (0x55 << 24) | lamp;
+            g.fill(x + 3, y + 3, x + 6, y + KEY_H - 3, glow);
+            if (i == view) g.fill(x + 6, y + 3, x + 7, y + KEY_H - 3, (0x40 << 24) | lamp);
+            String label = this.font.plainSubstrByWidth(Component.translatable(KEY_LABELS[i]).getString(), left - x - 14);
+            g.text(this.font, label, x + 11, y + 6, i == view ? 0xFFFFFFFF : hov ? CASE_TEXT : CASE_DIM, i == view);
         }
-        return null;
+    }
+
+    private void renderHudKeys(GuiGraphicsExtractor g, int mouseX, int mouseY, float k) {
+        for (int i = 0; i < HUD_KEYS.length; i++) {
+            int y = top + HUD_TOP + i * KEY_STEP;
+            boolean hov = mouseX >= left - KEY_OUT - KEY_PULL && mouseX < left && mouseY >= y && mouseY < y + KEY_H;
+            boolean lit = i == 0 ? FinderHudSettings.showStrip : i == 1 ? FinderHudSettings.showArrow : hov;
+            hudOut[i] += ((hov ? KEY_PULL / 2f : 0f) - hudOut[i]) * k;
+            int x = left - KEY_OUT - Math.round(hudOut[i]);
+            g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, KEY, x, y, 0f, 0f, 84, KEY_H, 84, 20, 84, 20);
+            g.fill(x + 3, y + 3, x + 6, y + KEY_H - 3, lit ? 0xFF000000 | HUD_LAMP : (0x40 << 24) | HUD_LAMP);
+            String label = this.font.plainSubstrByWidth(Component.translatable(HUD_KEYS[i]).getString(), left - x - 14);
+            g.text(this.font, label, x + 11, y + 6, hov ? 0xFFFFFFFF : lit ? CASE_TEXT : CASE_DIM, false);
+        }
+    }
+
+    /** The HUD key under the cursor, or -1. */
+    private int hudKeyAt(double mx, double my) {
+        for (int i = 0; i < HUD_KEYS.length; i++) {
+            int y = top + HUD_TOP + i * KEY_STEP;
+            if (mx >= left - KEY_OUT - KEY_PULL && mx < left && my >= y && my < y + KEY_H) return i;
+        }
+        return -1;
+    }
+
+    /** The key under the cursor, or -1. */
+    private int keyAt(double mx, double my) {
+        for (int i = 0; i < KEY_LABELS.length; i++) {
+            int y = top + KEY_TOP + i * KEY_STEP;
+            if (mx >= left - KEY_OUT - KEY_PULL && mx < left && my >= y && my < y + KEY_H) return i;
+        }
+        return -1;
+    }
+
+    /**
+     * §finder-anim: a new picture is swept onto the glass the way a sounder redraws — a bright line runs down
+     * the face and the new view is behind it. It also runs when the finder is switched on.
+     */
+    private void scan(GuiGraphicsExtractor g, long now) {
+        float t = (now - scanAt) / 340f;
+        if (t >= 1f) return;
+        int x0 = left + VIEW_X, x1 = left + W - VIEW_X, y0 = top + VIEW_Y, y1 = y0 + VIEW_H;
+        int sy = y0 + Math.round((y1 - y0) * ease(t));
+        g.nextStratum();   // over the fish icons as well as the text
+        if (sy < y1) g.fill(x0, sy, x1, y1, GLASS);
+        for (int i = 1; i <= 6; i++) {
+            g.fill(x0, Math.max(y0, sy - i), x1, Math.max(y0, sy - i + 1), ((0x30 - i * 5) << 24) | 0x40E0B0);
+        }
+        g.fill(x0, Math.min(y1 - 1, sy), x1, Math.min(y1, sy + 1), 0xFF9FF5E0);
     }
 
     // ---- the list ------------------------------------------------------------------------------
@@ -626,8 +749,9 @@ public class FinderScreen extends Screen {
         return out;
     }
 
+    /** §finder-strip: one row short of the face, so "…and N more below" prints inside it and not over the frame. */
     private int visibleRows() {
-        return (VIEW_H) / ROW;
+        return (VIEW_H - ROW) / ROW;
     }
 
     private void renderList(GuiGraphicsExtractor g, int mouseX, int mouseY) {
@@ -638,28 +762,28 @@ public class FinderScreen extends Screen {
         for (int i = scroll; i < rows.size() && i < scroll + vis; i++) {
             Row r = rows.get(i);
             if (r.sp() == null) {
-                g.text(this.font, r.heading(), x, y, r.blocked() ? 0xFF9A4A3C : 0xFFB0842C, false);
+                g.text(this.font, r.heading(), x, y, r.blocked() ? INK_BAD : INK_HEAD, false);
                 y += ROW;
                 continue;
             }
             boolean hov = mouseX >= x - 2 && mouseX < x + LIST_W && mouseY >= y - 2 && mouseY < y + 11;
-            if (hov) g.fill(x - 2, y - 2, x + LIST_W, y + 11, 0x22000000);
+            if (hov) g.fill(x - 2, y - 2, x + LIST_W, y + 11, 0x1840E0B0);
             CompoundTag t = find(r.sp());
             if (!r.blocked() && t != null) {
                 // A bar for how well the water suits it — the number itself is engine noise.
                 int wBar = (int) (18 * Mth.clamp(t.getFloatOr("e", 0f), 0f, 1f));
-                g.fill(x, y + 2, x + 18, y + 8, 0x33000000);
+                g.fill(x, y + 2, x + 18, y + 8, 0x2240E0B0);
                 g.fill(x, y + 2, x + wBar, y + 8, 0xFF3FA34A);
             } else {
-                g.text(this.font, "×", x + 6, y, 0xFF9A4A3C, false);
+                g.text(this.font, "×", x + 6, y, INK_BAD, false);
             }
             String label = this.font.plainSubstrByWidth(fishName(r.sp()).getString(), LIST_W - 30);
-            g.text(this.font, label, x + 24, y, r.blocked() ? GuiStyle.GHOST : GuiStyle.TEXT, false);
+            g.text(this.font, label, x + 24, y, r.blocked() ? INK_GHOST : INK, false);
             y += ROW;
         }
         if (rows.size() > scroll + vis) {
             g.text(this.font, Component.translatable("finder.riverfishing.more", rows.size() - scroll - vis),
-                    x, top + VIEW_Y + VIEW_H - 2, GuiStyle.GHOST, false);
+                    x, top + VIEW_Y + vis * ROW, INK_GHOST, false);
         }
     }
 
@@ -670,7 +794,7 @@ public class FinderScreen extends Screen {
         if (t == null) { detail = null; return; }
         int x = left + LIST_X, y = top + VIEW_Y;
         drawFish(g, detail, x, y - 4);
-        g.text(this.font, fishName(detail), x + ICON + 4, y + 6, GuiStyle.TEXT, false);
+        g.text(this.font, fishName(detail), x + ICON + 4, y + 6, INK, false);
         y += ICON + 4;
 
         y = line(g, x, y, "finder.riverfishing.depth_band",
@@ -680,13 +804,15 @@ public class FinderScreen extends Screen {
         if (!detailBlocked) {
             y = line(g, x, y, "finder.riverfishing.bait",
                     Component.translatable("item.riverfishing." + t.getStringOr("bait", "")));
-            y = line(g, x, y, "finder.riverfishing.stock_label",
+            // §sonar-live: the living water counts fish, it does not guess a stock percent
+            if (t.contains("n")) y = line(g, x, y, "finder.riverfishing.near_label", Component.literal(String.valueOf(t.getIntOr("n", 0))));
+            else y = line(g, x, y, "finder.riverfishing.stock_label",
                     Component.literal(t.getIntOr("stock", 0) + "%")
                             .append(t.getBooleanOr("res", false) ? Component.empty()
                                     : Component.translatable("finder.riverfishing.temp")));
             if (t.getBooleanOr("sig", false)) {
                 g.text(this.font, Component.translatable("finder.riverfishing.is_signature"),
-                        x, y, 0xFFB05A00, false);
+                        x, y, INK_HEAD, false);
                 y += 12;
             }
             // §bed-bite: the bottom here, and whether this fish would rather it were something else.
@@ -695,7 +821,7 @@ public class FinderScreen extends Screen {
             String bedKeyLine = bf > 1.02f ? "finder.riverfishing.bed_likes"
                     : bf < 0.98f ? "finder.riverfishing.bed_dislikes" : "finder.riverfishing.bed_neutral";
             g.text(this.font, Component.translatable(bedKeyLine, bedName), x, y,
-                    bf > 1.02f ? 0xFF2E7D32 : bf < 0.98f ? 0xFF9A4A3C : GuiStyle.TEXT_HINT, false);
+                    bf > 1.02f ? INK_GOOD : bf < 0.98f ? INK_BAD : INK_DIM, false);
             y += 12;
         } else {
             // The one thing this tool can say that nothing else does.
@@ -704,7 +830,7 @@ public class FinderScreen extends Screen {
                     + t.getStringOr("why", "other").replaceAll("\\(.*\\)", ""));
             for (var seq : this.font.split(
                     Component.translatable("finder.riverfishing.blocked", why), LIST_W)) {
-                g.text(this.font, seq, x, y, 0xFF9A4A3C, false);
+                g.text(this.font, seq, x, y, INK_BAD, false);
                 y += 11;
             }
         }
@@ -713,18 +839,18 @@ public class FinderScreen extends Screen {
         if (t.contains("fit")) {
             List<Component> lines = suitLines(t);
             for (int i = 0; i < lines.size(); i++) {
-                int colour = i < lines.size() - 1 ? GuiStyle.TEXT_HINT : t.getFloatOr("fit", 0f) > 0 ? 0xFF2E7D32 : 0xFF9A4A3C;
+                int colour = i < lines.size() - 1 ? INK_DIM : t.getFloatOr("fit", 0f) > 0 ? INK_GOOD : INK_BAD;
                 g.text(this.font, this.font.plainSubstrByWidth(lines.get(i).getString(), LIST_W), x, y, colour, false);
                 y += 11;
             }
         }
         g.text(this.font, Component.translatable("guide.riverfishing.back"),
-                x, top + VIEW_Y + VIEW_H - 10, GuiStyle.GHOST, false);
+                x, top + VIEW_Y + VIEW_H - 10, INK_GHOST, false);
     }
 
     private int line(GuiGraphicsExtractor g, int x, int y, String key, Component value) {
-        g.text(this.font, Component.translatable(key), x, y, GuiStyle.TEXT_HINT, false);
-        g.text(this.font, value, x + 74, y, GuiStyle.TEXT, false);
+        g.text(this.font, Component.translatable(key), x, y, INK_DIM, false);
+        g.text(this.font, value, x + 74, y, INK, false);
         return y + 12;
     }
 
@@ -975,7 +1101,7 @@ public class FinderScreen extends Screen {
         g.fill(x0, y0, x0 + w, y0 + h, FACE);
         List<Line> lines = sampleLines();
         sampleScroll = Mth.clamp(sampleScroll, 0, Math.max(0, lines.size() - 3));
-        g.enableScissor(x0, y0, x0 + w, y0 + h);
+        scissor(g, x0, y0, x0 + w, y0 + h);
         int x = x0 + 6, y = y0 + 5;
         for (int i = sampleScroll; i < lines.size() && y < y0 + h; i++) {
             Line l = lines.get(i);
@@ -1001,16 +1127,15 @@ public class FinderScreen extends Screen {
 
     private void renderBar(GuiGraphicsExtractor g) {
         CompoundTag w = water();
-        int x = left + 10, y = top + VIEW_Y + VIEW_H + 8;
-        g.fill(x, y - 4, left + W - 10, y - 3, 0x33000000);
+        int x = left + 16, y = top + VIEW_Y + VIEW_H + 14;
 
         String outlook = w.getStringOr("outlook", "fair");
         int colour = switch (outlook) {
-            case "great" -> 0xFF2E7D32;
-            case "good" -> 0xFF3FA34A;
-            case "fair" -> 0xFFB0842C;
-            case "poor" -> 0xFF9A4A3C;
-            default -> 0xFF7A2A22;
+            case "great" -> 0xFF7CE07C;
+            case "good" -> 0xFF5CC86A;
+            case "fair" -> 0xFFE8B430;
+            case "poor" -> 0xFFFF8A66;
+            default -> 0xFFFF5A4A;
         };
         int trend = w.getIntOr("trend", 0);
         String arrow = trend < 0 ? "↓" : trend > 0 ? "↑" : "→";
@@ -1029,15 +1154,8 @@ public class FinderScreen extends Screen {
                 Component.translatable("finder.riverfishing.metres", w.getIntOr("depth", 0)));
         y = pair(g, x, y, "finder.riverfishing.width",
                 Component.translatable("finder.riverfishing.metres", Math.round(w.getFloatOr("width", 0f))));
-        // §pond: a claimed pond says whose it is — and why the wild list is short.
-        if (!w.getStringOr("owner", "").isEmpty()) {
-            g.text(this.font, Component.translatable("finder.riverfishing.owner", w.getStringOr("owner", "")),
-                    x, y, 0xFFB08A00, false);
-            y += 12;
-        }
-
-        int x2 = left + 230;
-        int y2 = top + VIEW_Y + VIEW_H + 8;
+        int x2 = left + 236;
+        int y2 = top + VIEW_Y + VIEW_H + 14;
         if (!w.getStringOr("season", "").isEmpty()) {
             y2 = pair2(g, x2, y2, "finder.riverfishing.season",
                     Component.translatable("season.riverfishing." + w.getStringOr("season", "")));
@@ -1046,25 +1164,28 @@ public class FinderScreen extends Screen {
                 Component.translatable("weather.riverfishing." + w.getStringOr("weather", "clear")));
         // Pressure and outlook on their own line each — the first cut printed them over each other.
         g.text(this.font, Component.translatable("finder.riverfishing.pressure_short",
-                w.getIntOr("hpa", 1013), arrow), x2, y2, GuiStyle.TEXT_HINT, false);
+                w.getIntOr("hpa", 0), arrow), x2, y2, CASE_DIM, false);
         g.text(this.font, Component.translatable("finder.riverfishing.outlook." + outlook),
                 x2 + 96, y2, colour, false);
-
-        if (w.getBooleanOr("frenzy", false)) {
-            g.text(this.font, Component.translatable("finder.riverfishing.frenzy"),
-                    x, top + H - 16, 0xFFB05A00, false);
+        y2 += 12;
+        // §pond: a claimed pond says whose it is — and why the wild list is short. The frenzy shares the line.
+        if (!w.getStringOr("owner", "").isEmpty()) {
+            g.text(this.font, Component.translatable("finder.riverfishing.owner", w.getStringOr("owner", "")),
+                    x2, y2, INK_HEAD, false);
+        } else if (w.getBooleanOr("frenzy", false)) {
+            g.text(this.font, Component.translatable("finder.riverfishing.frenzy"), x2, y2, 0xFFFFB347, false);
         }
     }
 
     private int pair(GuiGraphicsExtractor g, int x, int y, String key, Component value) {
-        g.text(this.font, Component.translatable(key), x, y, GuiStyle.TEXT_HINT, false);
-        g.text(this.font, value, x + 62, y, GuiStyle.TEXT, false);
+        g.text(this.font, Component.translatable(key), x, y, CASE_DIM, false);
+        g.text(this.font, value, x + 62, y, CASE_TEXT, false);
         return y + 12;
     }
 
     private int pair2(GuiGraphicsExtractor g, int x, int y, String key, Component value) {
-        g.text(this.font, Component.translatable(key), x, y, GuiStyle.TEXT_HINT, false);
-        g.text(this.font, value, x + 96, y, GuiStyle.TEXT, false);
+        g.text(this.font, Component.translatable(key), x, y, CASE_DIM, false);
+        g.text(this.font, value, x + 96, y, CASE_TEXT, false);
         return y + 12;
     }
 
@@ -1072,30 +1193,57 @@ public class FinderScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
-        GuiStyle.panel(g, left, top, W, H);
-        g.text(this.font, Component.translatable("screen.riverfishing.finder"),
-                left + 10, top + 6, GuiStyle.TEXT, false);
+        long now = net.minecraft.util.Util.getMillis();
+        float dt = Math.min(0.1f, (now - lastFrame) / 1000f);
+        lastFrame = now;
+        float k = 1f - (float) Math.exp(-dt * 16f);
+        float on = ease((now - openedAt) / 260f);
+        animScale = 0.93f + 0.07f * on;
+        animOff = (1f - on) * 14f;
+        String key = view + "/" + detail;
+        if (glassKey != null && !glassKey.equals(key)) scanAt = now;
+        glassKey = key;
 
+        g.pose().pushMatrix();
+        g.pose().translate(this.width / 2f, this.height / 2f + animOff);
+        g.pose().scale(drawScale(), drawScale());
+        g.pose().translate(-this.width / 2f, -this.height / 2f);
+        mouseX = (int) Math.round(localX(mouseX));
+        mouseY = (int) Math.round(localY(mouseY));
+
+        renderKeys(g, mouseX, mouseY, k, now);
+        renderHudKeys(g, mouseX, mouseY, k);
+        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BODY, left, top, 0f, 0f, W, H, W, H, 512, 256);
+        g.text(this.font, Component.translatable("screen.riverfishing.finder"), left + 19, top + 9, CASE_TEXT, false);
+        // the power lamp, breathing while the finder is fresh off a sounding
+        int lamp = 0x70 + (int) (0x8F * (0.5 + 0.5 * Math.sin(now / 300.0)));
+        g.fill(left + W - 25, top + 11, left + W - 22, top + 14, (lamp << 24) | 0x5CF08A);
+        g.fill(left + VIEW_X, top + VIEW_Y, left + W - VIEW_X, top + VIEW_Y + VIEW_H, GLASS);
+
+        hover = null;
         if (water().isEmpty()) {
             g.text(this.font, Component.translatable("message.riverfishing.no_water"),
-                    left + 10, top + 30, 0xFF9A4A3C, false);
-            return;
-        }
-        hover = null;
-        if (view == CHART) {
-            // The chart takes the whole face: a species list beside a map of last week's lake is a
-            // list about the wrong water.
-            renderMap(g, mouseX, mouseY);
-        } else if (view == SAMPLE) {
-            renderSample(g);
+                    left + VIEW_X + 8, top + VIEW_Y + 8, INK_BAD, false);
         } else {
-            renderSection(g, mouseX, mouseY);
-            if (detail == null) renderList(g, mouseX, mouseY);
-            else renderDetail(g);
+            if (view == CHART) {
+                // The chart takes the whole face: a species list beside a map of last week's lake is a
+                // list about the wrong water.
+                renderMap(g, mouseX, mouseY);
+                renderMeButton(g, mouseX, mouseY);
+            } else if (view == SAMPLE) {
+                renderSample(g);
+            } else {
+                renderSection(g, mouseX, mouseY);
+                g.fill(left + LIST_X - 5, top + VIEW_Y, left + W - VIEW_X, top + VIEW_Y + VIEW_H, PANE);
+                g.fill(left + LIST_X - 6, top + VIEW_Y, left + LIST_X - 5, top + VIEW_Y + VIEW_H, 0xFF050C0D);
+                if (detail == null) renderList(g, mouseX, mouseY);
+                else renderDetail(g);
+            }
+            renderBar(g);
         }
-        renderViewTab(g, mouseX, mouseY);
-        renderBar(g);
+        scan(g, now);
         if (hover != null) g.setTooltipForNextFrame(this.font, hover, mouseX, mouseY);
+        g.pose().popMatrix();
     }
 
     @Override
@@ -1105,16 +1253,33 @@ public class FinderScreen extends Screen {
 
     @Override
     public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
-        double mx = event.x(), my = event.y();
-        String tab = clickedTab(mx, my);
-        if (tab != null) {
-            switch (tab) {
-                case "finder.riverfishing.to_me" -> centreOnMe();
-                case "finder.riverfishing.to_section" -> view = SECTION;
-                case "finder.riverfishing.to_map" -> view = CHART;
-                default -> view = SAMPLE;
-            }
+        double mx = localX(event.x()), my = localY(event.y());
+        int key = keyAt(mx, my);
+        if (key >= 0) {
+            view = key;   // SECTION, CHART, SAMPLE are the keys' own order
             return true;
+        }
+        int hud = hudKeyAt(mx, my);
+        if (hud == 0 || hud == 1) {
+            if (hud == 0) FinderHudSettings.showStrip = !FinderHudSettings.showStrip;
+            else FinderHudSettings.showArrow = !FinderHudSettings.showArrow;
+            FinderHudSettings.save();
+            return true;
+        }
+        if (hud == 2) {
+            //? if <26.2 {
+            /*minecraft.setScreen(new FinderHudEditScreen(this));
+            *///?} else {
+            minecraft.setScreenAndShow(new FinderHudEditScreen(this));
+            //?}
+            return true;
+        }
+        if (view == CHART) {
+            int[] r = meRect();
+            if (mx >= r[0] && mx < r[2] && my >= r[1] && my < r[3]) {
+                centreOnMe();
+                return true;
+            }
         }
         if (view == SAMPLE) return true;
         if (view == CHART) {
@@ -1158,9 +1323,10 @@ public class FinderScreen extends Screen {
 
     @Override
     public boolean mouseDragged(net.minecraft.client.input.MouseButtonEvent event, double dx, double dy) {
-        if (view == CHART && event.button() == 0) {
-            mapCx -= dx / ppb();
-            mapCz -= dy / ppb();
+        // §mouse-buttons: the constant, not 0 — 26.3 numbers the buttons as SDL does and left is 1 there
+        if (view == CHART && event.button() == com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT) {
+            mapCx -= dx / drawScale() / ppb();
+            mapCz -= dy / drawScale() / ppb();
             return true;
         }
         return super.mouseDragged(event, dx, dy);

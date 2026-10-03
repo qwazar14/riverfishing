@@ -70,7 +70,7 @@ public class TrophyStandRenderer implements BlockEntityRenderer<TrophyStandBlock
             pose.pushPose();
             pose.translate(px, py, pz);
             // Tangent heading: -(a+90°) aligns the sprite's long axis with the swim direction.
-            pose.mulPose(Axis.YP.rotationDegrees(-(float) Math.toDegrees(a) - 90f));
+            com.riverfishing.compat.Mc.rotate(pose, Axis.YP.rotationDegrees(-(float) Math.toDegrees(a) - 90f));
             pose.scale(0.5f, 0.5f, 0.5f);
             s.fish[i].submit(pose, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
             pose.popPose();

@@ -36,7 +36,11 @@ public final class RodClientSettings {
             if (o.has("bendDeg")) RodChain.MAX_BEND_DEG = o.get("bendDeg").getAsFloat();
             if (o.has("whip")) RodChain.WHIP_GAIN = o.get("whip").getAsFloat();
             if (o.has("handFov")) RodChain.HAND_FOV = o.get("handFov").getAsFloat();
-            if (o.has("handSpace")) RodChain.HAND_SPACE = o.get("handSpace").getAsInt();
+            // §hand-space-watch (1.1.0): only /rfrod handspace view|world pins. "handSpace" (up to 1.0.0) held
+            // the MEASUREMENT saved as a pin, so it is read as a first guess now, and never pins again.
+            if (o.has("handSpacePin")) RodChain.HAND_SPACE = o.get("handSpacePin").getAsInt();
+            if (o.has("handSpaceSeen")) RodChain.seedHandSpace(o.get("handSpaceSeen").getAsInt());
+            else if (o.has("handSpace")) RodChain.seedHandSpace(o.get("handSpace").getAsInt());
             if (o.has("phys")) RodPhysics.ENABLED = o.get("phys").getAsBoolean();
             if (o.has("stiffness")) RodPhysics.STIFFNESS = o.get("stiffness").getAsFloat();
             if (o.has("damping")) RodPhysics.DAMPING = o.get("damping").getAsFloat();
@@ -59,7 +63,8 @@ public final class RodClientSettings {
             o.addProperty("bendDeg", RodChain.MAX_BEND_DEG);
             o.addProperty("whip", RodChain.WHIP_GAIN);
             o.addProperty("handFov", RodChain.HAND_FOV);
-            o.addProperty("handSpace", RodChain.HAND_SPACE);
+            o.addProperty("handSpacePin", RodChain.HAND_SPACE);
+            o.addProperty("handSpaceSeen", RodChain.handSpaceSeen());
             o.addProperty("phys", RodPhysics.ENABLED);
             o.addProperty("stiffness", RodPhysics.STIFFNESS);
             o.addProperty("damping", RodPhysics.DAMPING);

@@ -39,7 +39,7 @@ public final class ShoalBank {
     private static final Map<Long, float[]> CACHE = new java.util.LinkedHashMap<>(64, 0.75f, true) {
         @Override
         protected boolean removeEldestEntry(Map.Entry<Long, float[]> eldest) {
-            return size() > 512;
+            return size() > 4096;
         }
     };
     private static Level cachedLevel;
@@ -61,13 +61,22 @@ public final class ShoalBank {
             CACHE.clear();
             cachedLevel = level;
         }
-        float[] profile = CACHE.computeIfAbsent(centre.asLong(), k -> measure(level, centre, y));
+        // §shoal-open: per LAYER. Keyed by the patch alone, the first fish to ask fixed the bank for all of
+        // them — a bottom fish down a narrow hole, and every fish of the shoal circled a single block.
+        float[] profile = CACHE.computeIfAbsent(centre.asLong() * 31L + Mth.floor(y), k -> measure(level, centre, y));
         // Between two measured bearings, take the nearer of them rather than interpolating: a lap that
         // rounds a point of land should turn early, not cut the corner.
         float step = Mth.TWO_PI / BEARINGS;
         int i = Mth.floor((angle % Mth.TWO_PI + Mth.TWO_PI) % Mth.TWO_PI / step);
         int j = (i + 1) % BEARINGS;
         return Math.min(profile[i], profile[j % BEARINGS]);
+    }
+
+    /** §shoal-open: the most room this patch has at a depth, on its best bearing. */
+    public static synchronized double room(Level level, BlockPos centre, double y) {
+        double best = 0;
+        for (int b = 0; b < BEARINGS; b++) best = Math.max(best, reach(level, centre, y, b * (Mth.TWO_PI / BEARINGS) + 0.01f));
+        return best;
     }
 
     private static float[] measure(Level level, BlockPos centre, double y) {

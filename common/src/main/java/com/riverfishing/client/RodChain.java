@@ -138,7 +138,9 @@ public final class RodChain {
      */
     public static int HAND_SPACE = -1;
     private static int handSpaceLatch = 0;
-    private static boolean spaceDecided, spaceHasPrev;
+    private static boolean spaceDecided, spaceHasPrev, spaceSeeded;
+    /** §hand-space-watch: clear turns in a row that disagreed with the verdict in force. */
+    private static int spaceAgainst;
     private static final org.joml.Vector3f spaceTipPrev = new org.joml.Vector3f();
     private static final org.joml.Quaternionf spaceCamPrev = new org.joml.Quaternionf();
     /** What the deciding turn saw, for /rfrod tipinfo to show its work. */
@@ -254,7 +256,9 @@ public final class RodChain {
         if (mc.player == null) return 0f;
         ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
         if (own == null) return 0f;
-        var d = net.minecraft.world.phys.Vec3.atCenterOf(own.target).subtract(mc.player.position());
+        // §rod-follows-fish: at the fish where it is DRAWN — swung round the rod, not the line's end before the swing
+        boolean drawn = own.fighting && !own.species.isEmpty() && own.lastFishAt != null;
+        var d = (drawn ? own.lastFishAt : net.minecraft.world.phys.Vec3.atCenterOf(own.target)).subtract(mc.player.position());
         float yawTo = (float) Math.toDegrees(net.minecraft.util.Mth.atan2(-d.x, d.z));
         float off = net.minecraft.util.Mth.degreesDifference(mc.player.getYRot(), yawTo);
         // saturates by 45° off-view: countering a run (fish left, camera swung right) should put the
@@ -262,7 +266,7 @@ public final class RodChain {
         float lat = net.minecraft.util.Mth.clamp(off / 45f, -1f, 1f);
         if (own.fighting) {
             // fish running LEFT drags the tip further left — same sign language the lean spoke
-            lat += own.course == 1 ? -0.5f : own.course == 2 ? 0.5f : 0f;
+            lat -= 0.5f * (drawn ? own.sideLean() : own.course == 1 ? 1f : own.course == 2 ? -1f : 0f);
         }
         return net.minecraft.util.Mth.clamp(lat, -1f, 1f);
     }
@@ -346,9 +350,9 @@ public final class RodChain {
             float whipYaw = RodPhysics.yaw() * whipGain * share;
             float bendDeg = load * MAX_BEND_DEG * share;
             pose.translate(jx, jy, jz);
-            pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(bendDeg * bendVert + whipPitch));
+            com.riverfishing.compat.Mc.rotate(pose, com.mojang.math.Axis.ZP.rotationDegrees(bendDeg * bendVert + whipPitch));
             float yawDeg = bendDeg * bendYaw + whipYaw;
-            if (yawDeg != 0f) pose.mulPose(com.mojang.math.Axis.YP.rotationDegrees(yawDeg));
+            if (yawDeg != 0f) com.riverfishing.compat.Mc.rotate(pose, com.mojang.math.Axis.YP.rotationDegrees(yawDeg));
             pose.translate(-jx, -jy, -jz);
             piece(stack, RodModelLayers.segmentItemModel(rodKey, i + 1), pose, collector, light, overlay);
             captureLineStage(thread, lp, pose, joints, i + 1);
@@ -376,6 +380,17 @@ public final class RodChain {
      */
     public static boolean submitPod(ItemStack stack, PoseStack pose, SubmitNodeCollector collector,
                                     int light, int overlay) {
+        return submitPod(stack, pose, collector, light, overlay, 0f, null);
+    }
+
+    /**
+     * §pod-anim: the docked rod BENT by {@code load} (a nod, a take, a run) — the same joints and shares the
+     * hand's chain bends by, all in the plane toward the guides, which on a pod is down toward the water.
+     * {@code track}, when given, is carried through the same joint turns, so on return it is the tip
+     * segment's frame and the pod's line can leave the tip that was really drawn.
+     */
+    public static boolean submitPod(ItemStack stack, PoseStack pose, SubmitNodeCollector collector,
+                                    int light, int overlay, float load, org.joml.Matrix4f track) {
         if (!ENABLED) return false;
         if (!(stack.getItem() instanceof com.riverfishing.item.RodItem rod)) return false;
         String rodKey = rod.rodType().modelKey();
@@ -395,17 +410,30 @@ public final class RodChain {
             }
             return false;
         }
-        int joints = JOINTS.getOrDefault(rodKey, NO_JOINTS).length;
-        for (int i = 1; i <= joints; i++) {
-            piece(stack, RodModelLayers.segmentItemModel(rodKey, i), pose, collector, light, overlay);
-        }
-        submitReel(stack, rodKey, -1f, pose, collector, light, overlay);   // resting crank
+        float[] joints = JOINTS.getOrDefault(rodKey, NO_JOINTS);
+        submitReel(stack, rodKey, -1f, pose, collector, light, overlay);   // resting crank, in the unbent base frame
         float[][] lp = guideLinePoints(stack, rodKey);
-        if (lp != null) {
-            org.joml.Vector3f[] thread = new org.joml.Vector3f[lp.length];
+        org.joml.Vector3f[] thread = lp == null ? null : new org.joml.Vector3f[lp.length];
+        if (load <= 0.001f) {
+            for (int i = 1; i <= joints.length; i++) {
+                piece(stack, RodModelLayers.segmentItemModel(rodKey, i), pose, collector, light, overlay);
+            }
             captureLineStage(thread, lp, pose, NO_JOINTS, 0);   // straight rod: one stage holds all
-            submitThread(collector, thread, lineStyle(stack));
+        } else {
+            captureLineStage(thread, lp, pose, joints, 0);
+            float jy = AXIS_Y / 16f - 0.5f, jz = AXIS_Z / 16f - 0.5f;
+            for (int i = 0; i < joints.length; i++) {
+                float jx = joints[i] / 16f - 0.5f;
+                float bendDeg = load * MAX_BEND_DEG * jointShare(i, joints.length);
+                pose.translate(jx, jy, jz);
+                com.riverfishing.compat.Mc.rotate(pose, com.mojang.math.Axis.ZP.rotationDegrees(bendDeg));
+                pose.translate(-jx, -jy, -jz);
+                if (track != null) track.translate(jx, jy, jz).rotateZ((float) Math.toRadians(bendDeg)).translate(-jx, -jy, -jz);
+                piece(stack, RodModelLayers.segmentItemModel(rodKey, i + 1), pose, collector, light, overlay);
+                captureLineStage(thread, lp, pose, joints, i + 1);
+            }
         }
+        if (thread != null) submitThread(collector, thread, lineStyle(stack));
         return true;
     }
 
@@ -474,24 +502,25 @@ public final class RodChain {
         if (!(reel.getItem() instanceof ReelItem ri)) return;
         pose.pushPose();
         pose.translate(off[0] / 16f, off[1] / 16f, 0);
-        if (piece(stack, RodModelLayers.reel3d(ri.size()), pose, collector, light, overlay)) {
+        if (piece(stack, RodModelLayers.reelItemModel(ri.size(), ""), pose, collector, light, overlay)) {
             // Pivots from the master, scaled about the foot anchor (19.3, 9.55) with the same cube
             // root the geometry uses — tools/gen_reels.js prints them, tools/check_rod_assets.js
             // verifies them against every size's geometry. A model coord e maps to e/16 - 0.5.
             float s = (float) Math.cbrt(ri.size() / 4000.0);
             float ax = (19.3f + 0.15f * s) / 16f - 0.5f;   // crank axis: the gear boss (19.45, 7.0)
             float ay = (9.55f - 2.55f * s) / 16f - 0.5f;
-            float deg = crankAngle(load);
+            // §rod-anim: the local reel turns when its owner winds (and backs off on a run); anyone else's by load
+            float deg = load >= 0f && RodAnim.ENABLED && localHeld(stack) ? RodAnim.crankDeg() : crankAngle(load);
             pose.pushPose();
             pose.translate(ax, ay, 0);
-            pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(deg));
+            com.riverfishing.compat.Mc.rotate(pose, com.mojang.math.Axis.ZP.rotationDegrees(deg));
             pose.translate(-ax, -ay, 0);
-            if (piece(stack, RodModelLayers.reel3dHandle(ri.size()), pose, collector, light, overlay)) {
+            if (piece(stack, RodModelLayers.reelItemModel(ri.size(), "_handle"), pose, collector, light, overlay)) {
                 float ky = (9.55f - 3.8f * s) / 16f - 0.5f; // knob centre: master (19.45, 5.75)
                 pose.translate(ax, ky, 0);
-                pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(-deg));
+                com.riverfishing.compat.Mc.rotate(pose, com.mojang.math.Axis.ZP.rotationDegrees(-deg));
                 pose.translate(-ax, -ky, 0);
-                piece(stack, RodModelLayers.reel3dKnob(ri.size()), pose, collector, light, overlay);
+                piece(stack, RodModelLayers.reelItemModel(ri.size(), "_knob"), pose, collector, light, overlay);
             }
             pose.popPose();
         }
@@ -689,28 +718,28 @@ public final class RodChain {
     /** The fov the WORLD pass is actually drawn at this frame — the camera knows, ask it. */
     private static double worldFov(Minecraft mc) {
         //? if <26.2 {
-        return mc.gameRenderer.getMainCamera().getFov();
-        //?} else {
-        /*return mc.gameRenderer.mainCamera().getFov();
-        *///?}
+        /*return mc.gameRenderer.getMainCamera().getFov();
+        *///?} else {
+        return mc.gameRenderer.mainCamera().getFov();
+        //?}
     }
 
     // Package-private on purpose: LineRenderer and RodDebugCommand read the camera through these, so
     // the 26.1↔26.2 accessor renames (getMainCamera→mainCamera, getPosition→position) live HERE once.
     static net.minecraft.world.phys.Vec3 cameraPos(Minecraft mc) {
         //? if <26.2 {
-        return mc.gameRenderer.getMainCamera().position();
-        //?} else {
-        /*return mc.gameRenderer.mainCamera().position();
-        *///?}
+        /*return mc.gameRenderer.getMainCamera().position();
+        *///?} else {
+        return mc.gameRenderer.mainCamera().position();
+        //?}
     }
 
     static org.joml.Quaternionf cameraRot(Minecraft mc) {
         //? if <26.2 {
-        return new org.joml.Quaternionf(mc.gameRenderer.getMainCamera().rotation());
-        //?} else {
-        /*return new org.joml.Quaternionf(mc.gameRenderer.mainCamera().rotation());
-        *///?}
+        /*return new org.joml.Quaternionf(mc.gameRenderer.getMainCamera().rotation());
+        *///?} else {
+        return new org.joml.Quaternionf(mc.gameRenderer.mainCamera().rotation());
+        //?}
     }
 
     // ===== §hand-line: the first-person water line draws WITH the rod, not a pass later =====
@@ -736,7 +765,7 @@ public final class RodChain {
         // §hand-space: while the space is still being measured, ANY line drawn here is drawn on a guess,
         // and the frame the verdict lands on is a visible jump across the screen. Draw nothing until it
         // is known: the world pass keeps the line on screen meanwhile, and the switch never shows.
-        if (HAND_SPACE < 0 && !spaceDecided) {
+        if (HAND_SPACE < 0 && !spaceDecided && !spaceSeeded) {
             sampleHandSpace(new org.joml.Vector3f(TIP_VIEW[0], TIP_VIEW[1], TIP_VIEW[2]), cameraRot(mc));
             return;
         }
@@ -771,6 +800,7 @@ public final class RodChain {
         // the sag SHAPE is computed in world space (gravity hangs in world-down, not camera-down),
         // anchored on the tip's world position; the on-screen TIP endpoint stays the captured point
         net.minecraft.world.phys.Vec3 tipW = tipWorld(tipV, cp, q, space);
+        own.lastTipW = tipW;   // §rod-anim: the line effects start from the tip that was really drawn
         double dx = tipW.x - end.x, dy = tipW.y - end.y, dz = tipW.z - end.z;
 
         org.joml.Vector3f tipWarped = toNode(tipW, cp, q, warp, space);
@@ -896,7 +926,7 @@ public final class RodChain {
 
     /**
      * §hand-space: decides the reading by MEASURING what the camera does to the captured tip — and
-     * decides it ONCE. The two spaces differ in exactly one way: turn the head, and a tip held in eye
+     * decides it on a clear turn and keeps watching (§hand-space-watch). The two spaces differ in exactly one way: turn the head, and a tip held in eye
      * space does not move (the hand is pinned to the screen), while a tip in world-relative space
      * swings with the camera. So sample the tip and the camera, wait for a real turn, and ask which
      * of the two the tip actually did.
@@ -907,7 +937,7 @@ public final class RodChain {
      * cannot tie: either the tip followed the camera or it did not, and once answered it is latched.
      */
     private static void sampleHandSpace(org.joml.Vector3f tipV, org.joml.Quaternionf q) {
-        if (spaceDecided || HAND_SPACE >= 0) return;
+        if (HAND_SPACE >= 0) return;   // pinned by /rfrod handspace view|world
         if (!spaceHasPrev) {
             spaceTipPrev.set(tipV);
             spaceCamPrev.set(q);
@@ -925,24 +955,45 @@ public final class RodChain {
         spaceCamPrev.set(q);
         // Only a CLEAR answer counts; a close call means the turn was not telling, so wait for a better one.
         if (Math.min(dView, dWorld) * 2f > Math.max(dView, dWorld)) return;
-        handSpaceLatch = dWorld < dView ? 1 : 0;
-        spaceDecided = true;
         spaceEvidenceView = dView;
         spaceEvidenceWorld = dWorld;
-        // Persist it: the answer cannot change for a given version, so measuring it once per launch
-        // only buys one avoidable wobble per launch.
-        HAND_SPACE = handSpaceLatch;
-        RodClientSettings.save();
+        int reading = dWorld < dView ? 1 : 0;
+        // §hand-space-watch (1.1.0): AUTO keeps watching. The first clear turn decides; after that it takes
+        // three clear turns in a row against the verdict to change it, so the line cannot flip mid-fight on
+        // one noisy frame. It used to decide once and save the answer as a PIN — and a shaderpack switched
+        // on later moves the hand into the other space, so the line flew about until /rfrod handspace auto.
+        if (spaceDecided && reading == handSpaceLatch) {
+            spaceAgainst = 0;
+            return;
+        }
+        if (spaceDecided && ++spaceAgainst < 3) return;
+        spaceAgainst = 0;
+        handSpaceLatch = reading;
+        spaceDecided = true;
+        RodClientSettings.save();   // the next launch starts from this guess; it is never saved as a pin
     }
     /** §hand-space: re-open the question — /rfrod handspace auto starts the measurement over. */
     public static void resetHandSpace() {
         spaceDecided = false;
         spaceHasPrev = false;
+        spaceAgainst = 0;
     }
 
     /** §hand-space: the reading in force right now — pinned value, else the latched measurement. */
     public static int effectiveHandSpace() {
         return HAND_SPACE >= 0 ? HAND_SPACE : handSpaceLatch;
+    }
+
+    /** §hand-space-watch: the verdict in force, saved as the next launch's first guess — never as a pin. */
+    public static int handSpaceSeen() {
+        return handSpaceLatch;
+    }
+
+    /** §hand-space-watch: last launch's verdict, to draw with until the first clear turn confirms or corrects it. */
+    public static void seedHandSpace(int seen) {
+        if (seen < 0 || seen > 1) return;
+        handSpaceLatch = seen;
+        spaceSeeded = true;
     }
 
     /** §hand-space: what the last measurement saw — /rfrod tipinfo prints it. */

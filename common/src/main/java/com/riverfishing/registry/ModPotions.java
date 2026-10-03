@@ -8,7 +8,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionBrewing;
 import net.minecraft.world.item.alchemy.Potions;
 
 /**
@@ -81,12 +80,12 @@ public final class ModPotions {
     private static final String[] OILY = {"herring", "mackerel", "salmon", "pink_salmon", "sabrefish",
                                           "eel", "bluefish", "bluefin_tuna", "pollock"};
 
-    public static void addMixes(PotionBrewing.Builder builder) {
+    // §oil-brew: and the FISH itself, over an awkward base. The oil had one source, a furnace, and a smoker
+    // runs no smelting recipe — so the obvious tool for a fish did nothing and the oil looked unobtainable.
+    // 26.3 builds none of this in code: its brews are JSON (tools/gen_brewing_26_3.py).
+    //? if <26.3 {
+    public static void addMixes(net.minecraft.world.item.alchemy.PotionBrewing.Builder builder) {
         builder.addMix(Potions.WATER, ModItems.FISH_OIL.get(), holder(FISH_OIL));
-
-        // §oil-brew: and the FISH itself, over an awkward base. The oil had one source, a furnace, and a
-        // smoker runs no smelting recipe — so the obvious tool for a fish did nothing and the oil looked
-        // unobtainable. The rendering step is still there for anyone who wants the ingredient.
         for (String sp : OILY) {
             var fish = ModItems.FISH_ITEMS.get(com.riverfishing.RiverFishing.id(sp));
             if (fish != null) builder.addMix(Potions.AWKWARD, fish.get(), holder(FISH_OIL));
@@ -95,6 +94,7 @@ public final class ModPotions {
         builder.addMix(holder(FISH_OIL), Items.GLOWSTONE_DUST, holder(STRONG_FISH_OIL));
         builder.addMix(holder(FISH_OIL), Items.REDSTONE, holder(LONG_FISH_OIL));
     }
+    //?}
 
     /**
      * §arch-21: a {@code RegistrySupplier} WAS a {@code Holder} up to Architectury 20 (26.1.x) and stopped
@@ -102,10 +102,10 @@ public final class ModPotions {
      * the difference is confined to this one line rather than spread over every call site.
      */
     //? if <26.2 {
-    private static <T> net.minecraft.core.Holder<T> holder(RegistrySupplier<T> entry) { return entry; }
-    //?} else {
-    /*private static <T> net.minecraft.core.Holder<T> holder(RegistrySupplier<T> entry) { return entry.asHolder(); }
-    *///?}
+    /*private static <T> net.minecraft.core.Holder<T> holder(RegistrySupplier<T> entry) { return entry; }
+    *///?} else {
+    private static <T> net.minecraft.core.Holder<T> holder(RegistrySupplier<T> entry) { return entry.asHolder(); }
+    //?}
 
     /**
      * §oil-stand (1.0.0): is this a fish the stand renders into oil — one of the nine, raw. The furnace

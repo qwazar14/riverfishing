@@ -238,9 +238,7 @@ public final class AquariumBreeding {
     /** Vigour is what survives the egg: VV nine in ten, vv one in two; a snag pile to hide in adds 0.15. Never fewer than one fry. */
     private static void hatch(AquariumBlockEntity be) {
         String g = RoeItem.genome(be.roe);
-        double survival = !Genome.dominant(g, 'V') ? 0.5 : Genome.pure(g, 'V') ? 0.9 : 0.7;
-        if (module(be, ModBlocks.SNAG_PILE.get())) survival = Math.min(0.95, survival + 0.15);
-        int n = Math.max(1, (int) Math.round(RoeItem.count(be.roe) * survival));
+        int n = fryOf(be);
         int pattern = RoeItem.pattern(be.roe);   // §pattern: the index survives the egg
         be.roe = FryItem.of(RoeItem.species(be.roe), g, n);
         RoeItem.setPattern(be.roe, pattern);
@@ -263,6 +261,14 @@ public final class AquariumBreeding {
         return suits ? 4 : 8;
     }
 
+    /** The fry this roe will hatch into: vigour as {@link #hatch} counts it — the window forecasts the same number. */
+    private static int fryOf(AquariumBlockEntity be) {
+        String g = RoeItem.genome(be.roe);
+        double survival = !Genome.dominant(g, 'V') ? 0.5 : Genome.pure(g, 'V') ? 0.9 : 0.7;
+        if (module(be, ModBlocks.SNAG_PILE.get())) survival = Math.min(0.95, survival + 0.15);
+        return Math.max(1, (int) Math.round(RoeItem.count(be.roe) * survival));
+    }
+
     // ---- the window's numbers ----
 
     /** The ten ints the menu shows, in the contract's order (docs/design/breeding-api.md, Layer 4). */
@@ -274,7 +280,9 @@ public final class AquariumBreeding {
         boolean roe = be.roe.getItem() instanceof RoeItem;
         v[3] = roe ? incubateDays(level, be) : 0;
         v[2] = roe && be.incubate != 0 ? (int) Math.min(v[3], (now - be.incubate) / DAY) : 0;
-        v[4] = (int) Math.max(0, Math.min(Integer.MAX_VALUE, be.fedUntil - now));   // §aq-feed: fish meal is three days, and the window said 20:00 for two of them; the bar clamps to a day itself
+        // §aq-feed: SECONDS, not ticks. A container int travels as a short, so the three days of fish meal
+        // (72 000 ticks) arrived as a negative number and the window said 0:00 on a tank fed for days.
+        v[4] = (int) Math.max(0, Math.min(Short.MAX_VALUE, (be.fedUntil - now) / 20));
         v[5] = be.water;
         // The window of the first fish that has a profile; a lone fish still says when its kind spawns.
         FishProfile p = null;
@@ -289,6 +297,15 @@ public final class AquariumBreeding {
         // names them, so a clutch that came out a quarter short says why on its own.
         // §koi-metal: a byte each, not a nibble — the metallic locus took the list past sixteen.
         v[10] = pair == null ? 0 : variety(pair[0]) | variety(pair[1]) << 8;
+        // §aquarium-cabinet: the pair's SLOTS, ♀ then ♂, each +1 in a nibble (0 = none) — the window joins them
+        v[11] = pair == null ? 0 : slotOf(be, pair[0]) + 1 | slotOf(be, pair[1]) + 1 << 4;
+        // …and the fry the roe in the cup will hatch into, as hatch() will count them
+        v[12] = roe ? fryOf(be) : 0;
+    }
+
+    private static int slotOf(AquariumBlockEntity be, ItemStack fish) {
+        for (int i = 0; i < AquariumBlockEntity.MAX_FISH; i++) if (be.getItem(i) == fish) return i;
+        return -1;
     }
 
     /**

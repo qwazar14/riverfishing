@@ -49,11 +49,14 @@ FISH = sorted({f[:-5] for f in os.listdir(PROFILES) if f.endswith(".json")}
 # at 2.0, which is the INVENTORY cap — so every fish over a metre rendered identically everywhere, and
 # a 450 cm marlin in the hand was the same object as a 100 cm pike. The rungs above 2.0 exist for the
 # hand and the ground; nothing needs to go past 5.0 because that is where those contexts cap.
-BUCKETS = [0.45, 0.6, 0.75, 0.9, 1.05, 1.25, 1.55, 2.0, 2.5, 3.2, 4.0, 5.0]
+# §length-weight: three rungs under 0.45 — a young fish grown up in a pond is measured by its weight now (a 3 kg
+# mako is ~80 cm, a pond-grown carp of 50 g ~13 cm), and below the lowest rung the definition falls back to the
+# UNSCALED model, which drew the smallest fish bigger than the small ones.
+BUCKETS = [0.15, 0.25, 0.35, 0.45, 0.6, 0.75, 0.9, 1.05, 1.25, 1.55, 2.0, 2.5, 3.2, 4.0, 5.0]
 # §fish-scale caps, per display context — the numbers the BEWLR applied on 1.21.1 before 26.x made the
 # model do the sizing. A slot stays readable (0.8..2.0); in the hand, dropped or mounted the giants are
 # the spectacle they are meant to be.
-GUI_MIN, GUI_MAX, WORLD_MAX = 0.8, 2.0, 5.0
+GUI_MIN, GUI_MAX, WORLD_MAX = 0.6, 2.0, 5.0   # §length-weight: a slot's floor 0.8 -> 0.6, so a young fish reads small
 SLOT_CONTEXTS = ("gui", "fixed", "head")
 
 
@@ -256,7 +259,7 @@ def main():
             "property": "minecraft:display_context",
             "cases": cases,
             "fallback": parts("rod_layer", rod, True),
-        }})
+        }, "hand_animation_on_swap": False})   # §rod-anim: the bend written onto the rod must not replay the swap bob
 
     # ---- fish ----
     SCALE_DISPATCH = {}

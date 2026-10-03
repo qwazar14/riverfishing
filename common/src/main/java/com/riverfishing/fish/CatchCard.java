@@ -112,6 +112,7 @@ public final class CatchCard {
         c.putString("Angler", sp.getGameProfile().name());
         c.putLong("Day", level.getServer().overworld().getOverworldClockTime() / 24000L);
         c.putString("Date", java.time.LocalDate.now().toString());
+        c.putLong("CaughtAt", java.time.Instant.now().getEpochSecond());   // §catch-time: unix seconds, for tournaments
         c.putString("Rod", s.rodClass.name().toLowerCase(java.util.Locale.ROOT));
         c.putString("RodItem", rod.getItem() instanceof com.riverfishing.item.RodItem
                 ? net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(rod.getItem()).getPath() : "");
@@ -125,6 +126,7 @@ public final class CatchCard {
         c.putString("Water", ctx == null ? "" : ctx.water.key());
         c.putLong("At", s.target.asLong());   // §home-water: where it came out, for the release
         c.putString("Biome", level.getBiome(s.target).unwrapKey().map(k -> k.identifier().toString()).orElse(""));
+        c.putString("Province", com.riverfishing.water.Provinces.at(level.getSeed(), s.target.getX(), s.target.getZ()));
         c.putString("Time", ctx == null ? "" : ctx.time.jsonKey());
         c.putString("Season", ctx == null || ctx.season == null ? "" : ctx.season.jsonKey());
         c.putString("Weather", ctx == null ? "" : ctx.weather.jsonKey());
@@ -158,12 +160,14 @@ public final class CatchCard {
         c.putString("Angler", sp.getGameProfile().name());
         c.putLong("Day", level.getServer().overworld().getOverworldClockTime() / 24000L);
         c.putString("Date", java.time.LocalDate.now().toString());
+        c.putLong("CaughtAt", java.time.Instant.now().getEpochSecond());   // §catch-time: unix seconds, for tournaments
         c.putString("Rod", "net");
         c.putString("RodItem", "");
         c.putString("Bait", "");
         c.putString("Water", com.riverfishing.water.WaterBodyCache.forLevel(level).get(level, pos).type().key());
         c.putLong("At", pos.asLong());   // §home-water
         c.putString("Biome", level.getBiome(pos).unwrapKey().map(k -> k.identifier().toString()).orElse(""));
+        c.putString("Province", com.riverfishing.water.Provinces.at(level.getSeed(), pos.getX(), pos.getZ()));
         c.putString("Time", com.riverfishing.engine.TimeOfDay.fromDayTime(level.getOverworldClockTime()).jsonKey());
         c.putString("Season", com.riverfishing.engine.Calendar.season(level).jsonKey());
         c.putString("Weather", level.isThundering() ? "thunder" : level.isRaining() ? "rain" : "clear");
@@ -196,12 +200,14 @@ public final class CatchCard {
         c.putString("Angler", sp.getGameProfile().name());
         c.putLong("Day", level.getServer().overworld().getOverworldClockTime() / 24000L);
         c.putString("Date", java.time.LocalDate.now().toString());
+        c.putLong("CaughtAt", java.time.Instant.now().getEpochSecond());   // §catch-time: unix seconds, for tournaments
         c.putString("Rod", "debug");
         c.putString("RodItem", "");
         c.putString("Bait", "");
         c.putString("Water", com.riverfishing.water.WaterBodyCache.forLevel(level).get(level, pos).type().key());
         c.putLong("At", pos.asLong());   // §home-water
         c.putString("Biome", level.getBiome(pos).unwrapKey().map(k -> k.identifier().toString()).orElse(""));
+        c.putString("Province", com.riverfishing.water.Provinces.at(level.getSeed(), pos.getX(), pos.getZ()));
         c.putString("Time", com.riverfishing.engine.TimeOfDay.fromDayTime(level.getOverworldClockTime()).jsonKey());
         c.putString("Season", com.riverfishing.engine.Calendar.season(level).jsonKey());
         c.putString("Weather", level.isThundering() ? "thunder" : level.isRaining() ? "rain" : "clear");
@@ -245,6 +251,16 @@ public final class CatchCard {
         c.putString("Latin", p == null ? "" : p.latin);   // §cards-2
         c.putString("Life", p == null ? "" : p.depthPref);
         c.putString("Hybrid", p == null ? "" : String.join(",", p.hybridOf));   // §hybrid-rare: whose cross it is
+        // §weight-scale (1.1.0): where this fish stands in its kind, for the card's scale — per mille of the
+        // species' ordinary catches it outweighs, the trophy bar on the same scale, and the longest of its kind
+        // for the measuring board. Stamped here: the client on a server never sees a profile.
+        if (p != null) {
+            int trophyG = com.riverfishing.item.FishItem.trophyThresholdG(p.weightMin, p.weightMax);
+            c.putShort("WPct", (short) Math.round(1000 * p.weightPercentile(weightG)));
+            c.putShort("TPct", (short) Math.round(1000 * p.weightPercentile(trophyG)));
+            c.putInt("TrophyG", trophyG);
+            c.putShort("LMax", (short) Math.round(p.lengthMax));
+        }
 
         // The hidden two. Seeded off the fish itself so a duplicated stack is the same fish.
         c.putByte("Sex", (byte) rng.nextInt(2));

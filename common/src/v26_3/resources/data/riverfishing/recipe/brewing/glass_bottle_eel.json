@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:brewing",
+  "input": {
+    "item": "minecraft:glass_bottle"
+  },
+  "reagent": {
+    "item": "riverfishing:eel"
+  },
+  "output": {
+    "id": "riverfishing:fish_oil"
+  }
+}

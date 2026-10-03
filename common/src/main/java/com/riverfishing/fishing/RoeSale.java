@@ -45,8 +45,7 @@ public final class RoeSale {
         }
         int n = roe.getCount(), em = each * n;
         roe.shrink(n);
-        ItemStack pay = new ItemStack(Items.EMERALD, em);
-        if (!sp.getInventory().add(pay)) sp.drop(pay, false);
+        KeepnetSale.payEmeralds(sp, em);   // §payout-stacks
         sp.sendOverlayMessage(Component.translatable("message.riverfishing.roe_sold",
                 RoeItem.speciesName(species), em).withStyle(ChatFormatting.GREEN));
         sp.level().playSound(null, sp.blockPosition(), SoundEvents.VILLAGER_YES, SoundSource.PLAYERS, 0.8f, 1.1f);

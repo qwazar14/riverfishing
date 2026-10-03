@@ -312,7 +312,7 @@ public final class Quests {
             if (!q.goal().complete(JournalData.get(sp))) return;
             QuestData.markRewarded(sp, q.id());
             ItemStack reward = q.rewardStack();
-            if (!reward.isEmpty() && !sp.getInventory().add(reward)) sp.drop(reward, false);
+            if (!reward.isEmpty() && !sp.getInventory().add(reward)) com.riverfishing.compat.Mc.drop(sp, reward, false);
             if (q.xp() > 0) JournalData.addXp(sp, q.xp());
             sp.sendSystemMessage(Component.translatable("message.riverfishing.quest_done", q.title())
                     .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));

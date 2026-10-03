@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "riverfishing:item/boilie_paste",
+    "tints": [
+      {
+        "type": "minecraft:dye",
+        "default": -2570072
+      }
+    ]
+  }
+}

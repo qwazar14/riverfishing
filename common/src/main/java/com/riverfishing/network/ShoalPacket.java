@@ -35,20 +35,45 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
      * the surface, {@code lane} groups a shoal onto one circuit, {@code phase} places each fish on it.
      */
     public record Entry(Identifier species, int weightG, int lengthCm, byte age,
-                        byte depth, byte lane, byte phase, byte kind) {
-        /** §shoal-life: bit 0 a predator, bit 1 a jumper, bit 2 a species that moves in numbers. */
-        public static final byte PREDATOR = 1, JUMPER = 2, SHOALING = 4;
+                        byte depth, byte lane, byte phase, int kind, int group, String variety, int pattern) {
+        /**
+         * §shoal-life: bit 0 a predator, bit 1 a jumper, bit 2 a species that moves in numbers.
+         * §shoal-live: bit 3 feeding on the bottom (bubbles), bit 4 feeding at the surface (rings), bit 5 a
+         * predator hunting (strikes), bit 6 a trophy, bit 7 a batch of fry.
+         */
+        public static final int PREDATOR = 1, JUMPER = 2, SHOALING = 4,
+                FEEDING = 8, RISING = 16, HUNTING = 32, TROPHY = 64, FRY = 128,
+                /** §fish-world: how it lives — on the bottom, lying in wait, in an open-water school, patrolling. */
+                BOTTOM = 256, AMBUSH = 512, SCHOOL = 1024, CHASER = 16384,
+                /** §fish-world: resting (out of its hours, or full), spawning, feeding over the angler's groundbait. */
+                REST = 2048, SPAWNING = 4096, BAITED = 8192;
+
+        /** The old shape — a fish with no group, variety or pattern (the scenery path). */
+        public Entry(Identifier species, int weightG, int lengthCm, byte age, byte depth, byte lane, byte phase, byte kind) {
+            this(species, weightG, lengthCm, age, depth, lane, phase, kind, 0, "", 0);
+        }
 
         public boolean predator() { return (kind & PREDATOR) != 0; }
         public boolean jumper() { return (kind & JUMPER) != 0; }
         public boolean shoaling() { return (kind & SHOALING) != 0; }
+        public boolean feeding() { return (kind & FEEDING) != 0; }
+        public boolean rising() { return (kind & RISING) != 0; }
+        public boolean hunting() { return (kind & HUNTING) != 0; }
+        public boolean trophy() { return (kind & TROPHY) != 0; }
+        public boolean fry() { return (kind & FRY) != 0; }
+        public boolean is(int flag) { return (kind & flag) != 0; }
     }
 
     /**
      * One shoal, anchored to a water surface block. {@code clarity} is how well this water shows what it
      * holds, {@code spread} how far its circuits may reach before they would leave the water.
      */
-    public record Spot(BlockPos centre, float clarity, byte spread, byte spook, List<Entry> fish) {
+    public record Spot(BlockPos centre, float clarity, byte spread, byte spook, List<Entry> fish,
+                       boolean hasBait, float baitX, float baitZ) {
+        public Spot(BlockPos centre, float clarity, byte spread, byte spook, List<Entry> fish) {
+            this(centre, clarity, spread, spook, fish, false, 0f, 0f);
+        }
+
         /** §shoal-spook: 0..100, how disturbed this water is right now (see SpookTracker). */
         public float spookFraction() {
             return Math.max(0f, Math.min(1f, spook / 100f));
@@ -81,6 +106,14 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
         }
         buf.writeVarInt(palette.size());
         for (Identifier id : palette) buf.writeIdentifier(id);
+        // §shoal-live: varieties the same way — "koi_kohaku" once, not once per koi
+        List<String> varieties = new ArrayList<>();
+        Map<String, Integer> vIndex = new HashMap<>();
+        for (Spot s : p.spots) for (Entry e : s.fish()) {
+            if (!e.variety().isEmpty()) vIndex.computeIfAbsent(e.variety(), v -> { varieties.add(v); return varieties.size() - 1; });
+        }
+        buf.writeVarInt(varieties.size());
+        for (String v : varieties) buf.writeUtf(v);
 
         buf.writeVarInt(p.spots.size());
         for (Spot s : p.spots) {
@@ -88,6 +121,8 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
             buf.writeFloat(s.clarity());
             buf.writeByte(s.spread());
             buf.writeByte(s.spook());
+            buf.writeBoolean(s.hasBait());
+            if (s.hasBait()) { buf.writeFloat(s.baitX()); buf.writeFloat(s.baitZ()); }
             buf.writeVarInt(s.fish().size());
             for (Entry e : s.fish()) {
                 buf.writeVarInt(index.get(e.species()));
@@ -97,7 +132,10 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
                 buf.writeByte(e.depth());
                 buf.writeByte(e.lane());
                 buf.writeByte(e.phase());
-                buf.writeByte(e.kind());
+                buf.writeVarInt(e.kind());
+                buf.writeInt(e.group());
+                buf.writeVarInt(e.variety().isEmpty() ? 0 : vIndex.get(e.variety()) + 1);
+                buf.writeVarInt(e.pattern());
             }
         }
     }
@@ -106,6 +144,9 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
         int np = buf.readVarInt();
         List<Identifier> palette = new ArrayList<>(np);
         for (int i = 0; i < np; i++) palette.add(buf.readIdentifier());
+        int nv = buf.readVarInt();
+        List<String> varieties = new ArrayList<>(nv);
+        for (int i = 0; i < nv; i++) varieties.add(buf.readUtf());
 
         int ns = buf.readVarInt();
         List<Spot> spots = new ArrayList<>(ns);
@@ -114,16 +155,21 @@ public record ShoalPacket(List<Spot> spots) implements ModNetwork.RfPacket {
             float clarity = buf.readFloat();
             byte spread = buf.readByte();
             byte spook = buf.readByte();
+            boolean hasBait = buf.readBoolean();
+            float bx = hasBait ? buf.readFloat() : 0f, bz = hasBait ? buf.readFloat() : 0f;
             int nf = buf.readVarInt();
             List<Entry> fish = new ArrayList<>(nf);
             for (int i = 0; i < nf; i++) {
                 int pi = buf.readVarInt();
                 Identifier id = pi >= 0 && pi < palette.size() ? palette.get(pi) : null;
-                Entry e = new Entry(id, buf.readVarInt(), buf.readVarInt(), buf.readByte(),
-                        buf.readByte(), buf.readByte(), buf.readByte(), buf.readByte());
+                int w = buf.readVarInt(), len = buf.readVarInt();
+                byte age = buf.readByte(), depth = buf.readByte(), lane = buf.readByte(), phase = buf.readByte();
+                int kind = buf.readVarInt(), group = buf.readInt(), vi = buf.readVarInt(), pattern = buf.readVarInt();
+                String variety = vi > 0 && vi <= varieties.size() ? varieties.get(vi - 1) : "";
+                Entry e = new Entry(id, w, len, age, depth, lane, phase, kind, group, variety, pattern);
                 if (id != null) fish.add(e);
             }
-            spots.add(new Spot(centre, clarity, spread, spook, fish));
+            spots.add(new Spot(centre, clarity, spread, spook, fish, hasBait, bx, bz));
         }
         return new ShoalPacket(spots);
     }

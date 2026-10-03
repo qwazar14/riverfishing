@@ -79,7 +79,7 @@ public final class OrderBoard {
         if (!MarketData.orderOfTheDay(level).equals(species.getPath())) return;
         long day = level.getServer().overworld().getOverworldClockTime() / 24000L;
         CompoundTag root = PlayerData.root(sp).getCompoundOrEmpty(TAG);
-        if (root.getLongOr("day", 0L) == day) return;        // one order a day, not one fish a minute
+        if (root.contains("day") && root.getLongOr("day", 0L) == day) return;        // one order a day, not one fish a minute
         root.putLong("day", day);
         int n = root.getIntOr("filled", 0) + 1;
         root.putInt("filled", n);
@@ -93,7 +93,7 @@ public final class OrderBoard {
         if (n % MILESTONE_EVERY == 0 && rung >= 0 && rung < MILESTONES.length) {
             ItemStack prize = reward(MILESTONES[rung]);
             if (!prize.isEmpty()) {
-                if (!sp.getInventory().add(prize)) sp.drop(prize, false);
+                if (!sp.getInventory().add(prize)) com.riverfishing.compat.Mc.drop(sp, prize, false);
                 sp.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
                                 "message.riverfishing.order_milestone", n, prize.getHoverName())
                         .withStyle(net.minecraft.ChatFormatting.GOLD));
@@ -201,13 +201,6 @@ public final class OrderBoard {
         t.put("v", v);
         t.putBoolean("ok", ok);
         return t;
-    }
-
-    private static CompoundTag rowSuffix(String label, String prefix, Iterable<String> ids,
-                                         String suffix, boolean ok) {
-        List<String> keys = new ArrayList<>();
-        for (String id : ids) keys.add(prefix + id + suffix);
-        return row(label, keys, ok);
     }
 
     private static CompoundTag text(String label, String value, boolean ok) {

@@ -1,0 +1,39 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 4
+  },
+  "gives": {
+    "id": "riverfishing:boilie",
+    "count": 8,
+    "components": {
+      "minecraft:custom_data": {
+        "Boilie": {
+          "F": "liver",
+          "B": "WAFTER",
+          "S": 15,
+          "M": true,
+          "D": "pineapple",
+          "DL": 8
+        }
+      },
+      "minecraft:custom_model_data": {
+        "flags": [
+          true
+        ],
+        "colors": [
+          -9822690,
+          -9822690,
+          -862928
+        ]
+      }
+    }
+  },
+  "max_uses": 12,
+  "xp": 10,
+  "reputation_discount": 0.05,
+  "merchant_predicate": {
+    "type": "minecraft:random_chance",
+    "chance": 0.125
+  }
+}

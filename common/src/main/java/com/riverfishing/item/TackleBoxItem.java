@@ -29,6 +29,11 @@ public class TackleBoxItem extends net.minecraft.world.item.BlockItem {
         this.tier = tier;
     }
 
+    @Override
+    public void onCraftedBy(ItemStack stack, Player player) {
+        KeepnetItem.carryOver(stack, player);   // §upgrade-keeps
+    }
+
     public TackleBoxTier tier() {
         return tier;
     }

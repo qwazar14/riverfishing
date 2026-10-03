@@ -79,12 +79,12 @@ public record KeepnetActionPacket(int action, int x, int y, int rot) implements 
                 data.repack();
                 data.write(net);
                 for (ItemStack over : data.spilled()) {
-                    if (!sp.getInventory().add(over)) sp.drop(over, false);
+                    if (!sp.getInventory().add(over)) com.riverfishing.compat.Mc.drop(sp, over, false);
                 }
             }
             case EMPTY -> {
                 for (var p : java.util.List.copyOf(data.items())) {
-                    if (!sp.getInventory().add(p.stack())) sp.drop(p.stack(), false);
+                    if (!sp.getInventory().add(p.stack())) com.riverfishing.compat.Mc.drop(sp, p.stack(), false);
                 }
                 data.items().clear();
                 data.write(net);

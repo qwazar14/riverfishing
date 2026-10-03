@@ -26,5 +26,4 @@ public enum AlarmType {
     public double phantomPerTick() { return phantomPerTick; }
     public double soundVolume() { return soundVolume; }
     public boolean hud() { return hud; }
-    public double rangeBlocks() { return soundVolume * 16.0; }
 }

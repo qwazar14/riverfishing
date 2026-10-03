@@ -51,5 +51,16 @@ public final class ModRecipes {
     public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.CookFishRecipe.Smoking>> COOK_FISH_SMOKING =
             REGISTER.register("cook_fish_smoking", () -> unit(new com.riverfishing.item.CookFishRecipe.Smoking()));
 
+    // §boilies: the paste, the flavour bottle and the snowman — all read their ingredients' data
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.BoilieRecipes.Paste>> BOILIE_PASTE =
+            REGISTER.register("crafting_boilie_paste",
+                    () -> unit(new com.riverfishing.item.BoilieRecipes.Paste()));
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.BoilieRecipes.Bottle>> FLAVOUR_BOTTLE =
+            REGISTER.register("crafting_flavour_bottle",
+                    () -> unit(new com.riverfishing.item.BoilieRecipes.Bottle()));
+    public static final RegistrySupplier<RecipeSerializer<com.riverfishing.item.BoilieRecipes.Snowman>> SNOWMAN =
+            REGISTER.register("crafting_boilie_snowman",
+                    () -> unit(new com.riverfishing.item.BoilieRecipes.Snowman()));
+
     private ModRecipes() {}
 }

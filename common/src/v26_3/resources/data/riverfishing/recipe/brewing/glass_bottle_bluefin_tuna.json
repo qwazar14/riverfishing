@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:brewing",
+  "input": {
+    "item": "minecraft:glass_bottle"
+  },
+  "reagent": {
+    "item": "riverfishing:bluefin_tuna"
+  },
+  "output": {
+    "id": "riverfishing:fish_oil"
+  }
+}

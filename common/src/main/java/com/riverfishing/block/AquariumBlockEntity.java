@@ -45,7 +45,7 @@ public class AquariumBlockEntity extends BlockEntity implements net.minecraft.wo
     long clock;                      // world time the ticker last saw (not saved: a reload skips the gap)
     boolean oil;                     // fish oil was taken at the start of the current spawn run
     String lastFood = "";            // what the last feeding was ("fish_meal" makes the clutch richer)
-    final int[] view = new int[11];  // the ints the window reads, filled by the rules once a second
+    final int[] view = new int[13];  // the ints the window reads, filled by the rules once a second
 
     public AquariumBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.AQUARIUM.get(), pos, state);
@@ -112,7 +112,9 @@ public class AquariumBlockEntity extends BlockEntity implements net.minecraft.wo
     @Override
     public boolean canPlaceItem(int slot, ItemStack s) {
         if (slot < MAX_FISH) return s.getItem() instanceof com.riverfishing.item.FishItem && com.riverfishing.fish.CatchCard.has(s)
-                && !com.riverfishing.item.CookedFish.isCooked(s);   // §cooking: the menu refused a cooked fish, a hopper did not
+                && !com.riverfishing.item.CookedFish.isCooked(s)   // §cooking: the menu refused a cooked fish, a hopper did not
+                // §incubator: no fish goes in on top of roe or fry — the window refuses it, and so does a hopper
+                && !(roe.getItem() instanceof com.riverfishing.item.RoeItem || roe.getItem() instanceof com.riverfishing.item.FryItem);
         return switch (slot) {
             case 6 -> s.getItem() instanceof com.riverfishing.item.BaitItem b && !b.artificial()
                     || s.getItem() instanceof com.riverfishing.item.FishMealItem

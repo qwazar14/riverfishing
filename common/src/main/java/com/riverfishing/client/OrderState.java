@@ -77,8 +77,10 @@ public final class OrderState {
         int y = topPos - H - 3;
         if (y < 2) y = topPos + MERCHANT_H + 3;      // a short window on a small GUI scale
 
+        // §gui-art: the drawn body is (1,1) 254x48, so it is sourced and placed one pixel in — which
+        // leaves every interior feature on exactly the screen coordinates the code already uses.
         g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, PANEL,
-                x, y, 0f, 0f, W, H, W, H, 256, 64);
+                x + 1, y + 1, 1f, 1f, W - 2, H, W - 2, H, 256, 64);
 
         // The trade row, into the two gilded wells the texture leaves for it.
         FishIcon.draw(g, species.getPath(), x + 21, y + 16);
@@ -150,6 +152,17 @@ public final class OrderState {
         int y = topPos - H - 3;
         if (y < 2) y = topPos + MERCHANT_H + 3;
         return new int[]{x, y};
+    }
+
+    /**
+     * §order-board-stack: the first free y under the merchant window. On a small screen the sign hangs BELOW the
+     * window, and the contract board used to drop to the same y and cover it — "I don't have the order of the
+     * day" (26.3 beta). The board stacks under the sign instead.
+     */
+    public static int belowY() {
+        int[] b = bounds();
+        int under = (Minecraft.getInstance().getWindow().getGuiScaledHeight() - MERCHANT_H) / 2 + MERCHANT_H + 3;
+        return species != null && b[1] >= under ? b[1] + H + 3 : under;
     }
 
     /**

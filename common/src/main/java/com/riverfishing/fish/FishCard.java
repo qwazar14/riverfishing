@@ -4,7 +4,6 @@ import com.riverfishing.item.FishItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.FloatTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 
 import java.util.ArrayList;
@@ -62,8 +61,6 @@ public final class FishCard {
         c.putInt("wmin", (int) p.weightMin);
         c.putInt("wmax", (int) p.weightMax);
         c.putInt("wmean", (int) p.weightMean);
-        c.putInt("lmin", (int) p.lengthMin);
-        c.putInt("lmax", (int) p.lengthMax);
         c.putInt("trophy", FishItem.trophyThresholdG(p.weightMin, p.weightMax));
         c.putFloat("gbF", (float) p.gbFraction);
         c.putFloat("gbN", (float) p.gbNutrition);
@@ -104,12 +101,6 @@ public final class FishCard {
         return t;
     }
 
-    private static ListTag strings(Iterable<String> values) {
-        ListTag list = new ListTag();
-        for (String s : values) list.add(StringTag.valueOf(s));
-        return list;
-    }
-
     // ---- client side ----
 
     /** True when the server sent a card at all. An old server, or a species a datapack removed. */
@@ -126,8 +117,6 @@ public final class FishCard {
     public int weightMin() { return tag.getIntOr("wmin", 0); }
     public int weightMax() { return tag.getIntOr("wmax", 0); }
     public int weightMean() { return tag.getIntOr("wmean", 0); }
-    public int lengthMin() { return tag.getIntOr("lmin", 0); }
-    public int lengthMax() { return tag.getIntOr("lmax", 0); }
     public int trophyG() { return tag.getIntOr("trophy", 0); }
     public float grind() { return tag.getFloatOr("gbF", 0f); }
     public float richness() { return tag.getFloatOr("gbN", 0f); }
@@ -140,7 +129,6 @@ public final class FishCard {
     public float fightStamina() { return tag.getFloatOr("fst", 0f); }
     public int fightRuns() { return tag.getIntOr("fr", 0); }
     public String fightPattern() { return tag.contains("fp") ? tag.getStringOr("fp", "") : "steady"; }
-    public int reelSize() { return tag.getIntOr("reel", 0); }
     public String diet() { return tag.getStringOr("diet", ""); }   // §species-table
     public String lineType() { return tag.contains("line") ? tag.getStringOr("line", "") : "mono"; }
     public float lineDiameter() { return tag.getFloatOr("dia", 0f); }
@@ -150,8 +138,6 @@ public final class FishCard {
     public float[] times() { return readFloats("time", TIMES.length); }
 
     public int hookIdeal() { return tag.getIntOr("hook", 0); }   // §species-table
-    public List<String> rods() { return readStrings("rod"); }
-    public List<String> rigs() { return readStrings("rig"); }
 
     public Map<String, Float> biomes() { return readKeyed("bio"); }
     public Map<String, Float> baits() { return readKeyed("bait"); }
@@ -180,13 +166,6 @@ public final class FishCard {
         ListTag list = tag.getListOrEmpty(key);
         float[] out = new float[n];
         for (int i = 0; i < n && i < list.size(); i++) out[i] = list.getFloatOr(i, 0f);
-        return out;
-    }
-
-    private List<String> readStrings(String key) {
-        ListTag list = tag.getListOrEmpty(key);
-        List<String> out = new ArrayList<>(list.size());
-        for (int i = 0; i < list.size(); i++) out.add(list.getStringOr(i, ""));
         return out;
     }
 

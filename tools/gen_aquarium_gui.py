@@ -1,117 +1,214 @@
-# -*- coding: utf-8 -*-
-"""§aquarium-window: the tank window's background, 256x256 with the 176x222 panel at (0,0).
+#!/usr/bin/env python3
+"""§aquarium-window (1.1.0): the tank's window as a cabinet — the Tackle Station's dark-oak frame and walnut
+worktop, a pane of tank glass in a brass rim for the water, the fish and the modules, a groove for the
+breeding run that breaks where the fish have to leave (roe -> incubation), a brass cup for the result, and
+the inventory in a drawer. The parts the screen places itself sit off-panel to the right.
 
-    py tools/gen_aquarium_gui.py
+    python tools/gen_aquarium_gui.py
 
-Dark blue-green glass instead of the shop's parchment: it is a window INTO the tank, not paperwork.
-Slot frames sit exactly where menu/AquariumMenu.SLOT_XY puts the slots (frame = slot - 1, 18x18);
-the arrow and feed-bar geometry is shared with client/AquariumScreen — change both or they drift.
-The lit arrow (176,0 20x8) and the bar fill (176,8 112x10) live off-panel to the right.
+Writes textures/gui/aquarium.png (256x296, the 232x290 panel at 0,0). Every position here is a slot's or a
+drawing's in menu/AquariumMenu.SLOT_XY and client/AquariumScreen — move one, move both. Seeded.
 """
-import os, struct, zlib
+import os
+import sys
 
-W = H = 256
-PANEL_W, PANEL_H = 176, 222
-CLEAR = (0, 0, 0, 0)
-EDGE      = (0x0B, 0x1C, 0x20, 0xFF)   # outer line
-GLASS     = (0x17, 0x3A, 0x42, 0xFF)   # panel body
-GLASS_HI  = (0x2C, 0x5E, 0x66, 0xFF)   # top/left bevel
-GLASS_LO  = (0x0E, 0x28, 0x2E, 0xFF)   # bottom/right bevel
-WELL      = (0x0C, 0x22, 0x28, 0xFF)   # slot inside
-WELL_DK   = (0x06, 0x14, 0x18, 0xFF)   # slot top/left
-WELL_LT   = (0x3E, 0x78, 0x80, 0xFF)   # slot bottom/right
-MODULE    = (0x8C, 0x6A, 0x2E, 0xFF)   # module slots: brass frame so they read as fittings, not fish
-TROUGH    = (0x08, 0x18, 0x1C, 0xFF)
-ARROW     = (0x2A, 0x50, 0x56, 0xFF)
-ARROW_LIT = (0x7C, 0xE0, 0xC8, 0xFF)
-BAR_LIT   = (0x3F, 0xA8, 0x8A, 0xFF)
-BAR_LIT_HI= (0x6C, 0xD4, 0xB0, 0xFF)
+import numpy as np
+from PIL import Image
 
-# Same numbers as AquariumMenu.SLOT_XY (tank) + the vanilla inventory grid the menu adds.
-SLOTS = [(44, 20), (62, 20), (80, 20), (44, 38), (62, 38), (80, 38),
-         (8, 66), (30, 66), (8, 20), (126, 29)]
-MODULES = [(152, 20), (152, 38)]
-INV = [(8 + c * 18, 140 + r * 18) for r in range(3) for c in range(9)] + [(8 + c * 18, 198) for c in range(9)]
-ARROW_X, ARROW_Y, ARROW_W, ARROW_H = 102, 34, 20, 8
-BAR_X, BAR_Y, BAR_W, BAR_H = 55, 70, 112, 10
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import gen_tackle_bench as B   # the bench's wood, brass and recesses: one cabinet-maker for both
 
-px = [[CLEAR] * W for _ in range(H)]
+ROOT = os.path.dirname(HERE)
+ASSETS = os.path.join(ROOT, "common/src/main/resources/assets/riverfishing")
+OUT = os.path.join(ASSETS, "textures/gui/aquarium.png")
+W, H = 232, 240   # §aquarium-fit: 240 is the least height the auto GUI scale promises
+TEX_W, TEX_H = 256, 256
+B.rng = np.random.default_rng(3107)
+rng = B.rng
 
+# ---- the panel (AquariumMenu.SLOT_XY is each well + 1) ----
+TANK = (10, 16, 222, 70)
+WATER = (16, 24)
+TUBE = (38, 20, 45, 66)
+FISH = [(70 + c * 24, 23 + r * 24) for r in range(2) for c in range(3)]
+MODULES = [(172, 28), (196, 28)]
+NODES = [26 + i * 38 for i in range(5)]
+NODE_Y = 92
+CUP = (201, 83)
+FOOD, GROUNDBAIT = (16, 104), (36, 104)
+BAR = (58, 108, 190, 118)
+DRAWER = (157, 239)
+PLATE = (76, 2, 156, 15)   # the nameplate, set into the top of the frame
+INV_X = 35
 
-def put(x, y, c):
-    if 0 <= x < W and 0 <= y < H:
-        px[y][x] = c
+# ---- off-panel sprites (x, y, w, h), mirrored in AquariumScreen ----
+NODE_OFF, NODE_DONE, NODE_CUR = (232, 0, 15, 15), (232, 15, 15, 15), (232, 30, 15, 15)
+GLOW = (232, 45, 21, 21)
+HEART_ON, HEART_OFF = (232, 66, 7, 6), (240, 66, 7, 6)
+GLASS_ON, GLASS_OFF = (248, 66, 5, 5), (248, 72, 5, 5)
+BADGE = (232, 74, 7, 8)
 
-
-def rect(x0, y0, x1, y1, c):
-    for y in range(y0, y1):
-        for x in range(x0, x1):
-            put(x, y, c)
-
-
-def bevel(x0, y0, x1, y1, body, hi, lo):
-    rect(x0, y0, x1, y1, body)
-    for x in range(x0, x1):
-        put(x, y0, hi); put(x, y1 - 1, lo)
-    for y in range(y0, y1):
-        put(x0, y, hi); put(x1 - 1, y, lo)
+HEART = ['.XX.XX.', 'XXXXXXX', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...']
+HOURGLASS = ['XXXXX', '.XXX.', '..X..', '.X.X.', 'XXXXX']
+BANG = ['XXXXXXX', 'XXX.XXX', 'XXX.XXX', 'XXX.XXX', 'XXXXXXX', 'XXX.XXX', 'XXXXXXX', '.......']
 
 
-def slot(x, y, lo=WELL_DK, hi=WELL_LT):
-    # vanilla convention: the 18x18 frame starts one pixel up-left of the item square
-    bevel(x - 1, y - 1, x + 17, y + 17, WELL, lo, hi)
+def glass(rgb, x0, y0, x1, y1):
+    """A pane of tank glass: deep teal, lit from above, a soft ray or two, in a brass rim."""
+    h, w = y1 - y0, x1 - x0
+    ys = np.linspace(0, 1, h)[:, None]
+    g = np.zeros((h, w, 3)) + np.array([22, 58, 64], float)
+    g += (18 * (1 - ys))[..., None] * np.array([0.6, 1.0, 1.0])
+    xs = np.arange(w)[None, :]
+    ray = np.clip(1 - np.abs(((xs - ys * 30) % 70) - 35) / 9, 0, 1) * (1 - ys) * 10
+    g += ray[..., None] * np.array([0.5, 1, 1])
+    g += rng.normal(0, 1.6, (h, w))[..., None]
+    rgb[y0:y1, x0:x1] = g
+    rgb[y0, x0:x1] = [200, 160, 80]
+    rgb[y1 - 1, x0:x1] = [120, 88, 38]
+    rgb[y0:y1, x0] = [180, 140, 64]
+    rgb[y0:y1, x1 - 1] = [120, 88, 38]
+    rgb[y0 + 1, x0 + 1:x1 - 1] -= 20
+    rgb[y0 + 1:y1 - 1, x0 + 1] -= 14
 
 
-def arrow(x, y, c):
-    # a 20x8 right arrow: 12px shaft, 8px head
-    rect(x, y + 2, x + 12, y + 6, c)
-    for i in range(4):
-        rect(x + 12 + i, y + i, x + 12 + i + 1, y + 8 - i, c)
-    put(x + 16, y + 3, c); put(x + 16, y + 4, c)
+def glass_well(rgb, x, y):
+    rgb[y:y + 18, x:x + 18] = [10, 30, 36]
+    rgb[y, x:x + 18] = [5, 18, 22]
+    rgb[y:y + 18, x] = [5, 18, 22]
+    rgb[y + 17, x:x + 18] = [60, 118, 126]
+    rgb[y:y + 18, x + 17] = [60, 118, 126]
 
 
-# panel
-rect(0, 0, PANEL_W, PANEL_H, EDGE)
-bevel(1, 1, PANEL_W - 1, PANEL_H - 1, GLASS, GLASS_HI, GLASS_LO)
-# a faint waterline band across the tank area so the top half reads as "the tank"
-rect(2, 17, PANEL_W - 2, 18, GLASS_LO)
-rect(2, 60, PANEL_W - 2, 61, GLASS_LO)
-# the player inventory area, one shade darker: it is the player's, not the tank's
-rect(2, 136, PANEL_W - 2, PANEL_H - 2, GLASS_LO)
-rect(2, 136, PANEL_W - 2, 137, EDGE)
-
-for s in SLOTS + INV:
-    slot(*s)
-for s in MODULES:
-    slot(s[0], s[1], MODULE, MODULE)
-
-# feed bar trough (one pixel around the fill) and the grey arrow
-bevel(BAR_X - 1, BAR_Y - 1, BAR_X + BAR_W + 1, BAR_Y + BAR_H + 1, TROUGH, WELL_DK, WELL_LT)
-arrow(ARROW_X, ARROW_Y, ARROW)
-
-# off-panel sprites: lit arrow, bar fill
-arrow(176, 0, ARROW_LIT)
-rect(176, ARROW_H, 176 + BAR_W, ARROW_H + BAR_H, BAR_LIT)
-rect(176, ARROW_H, 176 + BAR_W, ARROW_H + 1, BAR_LIT_HI)
+def fish_icon(size):
+    im = Image.open(os.path.join(ASSETS, "textures/item/fish/crucian_carp.png")).convert("RGBA")
+    return np.asarray(im.resize((size, size), Image.NEAREST)).astype(float)
 
 
-def png(path, rows):
-    raw = b"".join(b"\x00" + b"".join(struct.pack("4B", *p) for p in row) for row in rows)
+def panel():
+    rgb = B.wood(H, W, (58, 38, 25), 0, 0.8)
+    rgb[6:DRAWER[0], 6:W - 6] = B.wood(DRAWER[0] - 6, W - 12, (98, 68, 44), 20)
+    rgb[DRAWER[0]:DRAWER[1], 6:W - 6] = B.wood(DRAWER[1] - DRAWER[0], W - 12, (86, 58, 38), 0, 0.9)
+    rgb[0, :] = rgb[-1, :] = [24, 16, 10]
+    rgb[:, 0] = rgb[:, -1] = [24, 16, 10]
+    B.bevel(rgb, 1, 1, W - 1, H - 1, 30, -22)
+    B.bevel(rgb, 6, 6, W - 6, H - 1, -30, 18)   # the drawer runs to the foot: the frame is 1 px there
+    rgb[DRAWER[0], 6:W - 6] -= 16
+    rgb[DRAWER[0] + 1, 6:W - 6] += 18
+    B.bevel(rgb, 8, DRAWER[0] + 2, W - 8, DRAWER[1], 12, -18)
+    for row in range(3):
+        for col in range(9):
+            B.recess(rgb, INV_X - 1 + col * 18, DRAWER[0] + 5 + row * 18, INV_X + 16 + col * 18, DRAWER[0] + 22 + row * 18, 34)
+    for col in range(9):
+        B.recess(rgb, INV_X - 1 + col * 18, DRAWER[0] + 63, INV_X + 16 + col * 18, DRAWER[0] + 80, 34)
+    for cx, cy in ((1, 1), (W - 12, 1), (1, H - 12), (W - 12, H - 12)):
+        B.brass(rgb, cx, cy, cx + 11, cy + 11)
+        B.screw(rgb, cx + 5, cy + 5)
+    # the nameplate the title is engraved on, set into the top of the frame
+    x0, y0, x1, y1 = PLATE
+    B.brass(rgb, x0, y0, x1, y1)
+    rgb[y0 + 2:y1 - 2, x0 + 2:x1 - 2] -= 16
+    B.screw(rgb, x0 + 3, (y0 + y1) // 2)
+    B.screw(rgb, x1 - 3, (y0 + y1) // 2)
 
-    def chunk(tag, data):
-        c = tag + data
-        return struct.pack(">I", len(data)) + c + struct.pack(">I", zlib.crc32(c) & 0xFFFFFFFF)
+    glass(rgb, *TANK)
+    glass_well(rgb, *WATER)
+    for x, y in FISH:
+        glass_well(rgb, x, y)
+    for x, y in MODULES:
+        B.brass(rgb, x - 2, y - 2, x + 20, y + 20, domed=False)
+        glass_well(rgb, x, y)
+    x0, y0, x1, y1 = TUBE                               # the test tube the water reads on
+    rgb[y0:y1, x0:x1] = [14, 34, 40]
+    rgb[y0:y1, x0] += 40
+    rgb[y0:y1, x1 - 1] += 20
+    rgb[y1 - 1, x0:x1] += 30
 
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as f:
-        f.write(b"\x89PNG\r\n\x1a\n")
-        f.write(chunk(b"IHDR", struct.pack(">IIBBBBB", W, H, 8, 6, 0, 0, 0)))
-        f.write(chunk(b"IDAT", zlib.compress(raw, 9)))
-        f.write(chunk(b"IEND", b""))
+    # the breeding run: a groove from node to node, broken between roe and incubation, where the fish leave
+    for a, b in ((NODES[0], NODES[2]), (NODES[3], NODES[-1]), (NODES[-1], CUP[0] - 4)):
+        rgb[NODE_Y - 1:NODE_Y + 2, a:b] -= 38
+        rgb[NODE_Y + 2, a:b] += 12
+    for x in range(NODES[2] + 9, NODES[3] - 8, 3):
+        rgb[NODE_Y, x] -= 40
+    ys, xs = np.ogrid[:H, :W]
+    for nx in NODES:
+        r = np.hypot(ys - NODE_Y, xs - nx)
+        rgb[r < 8.5] = [120, 88, 38]
+        rgb[r < 7.5] = [52, 36, 24]
+    # the hand-off: a fish struck through, so the rule is on the board before it is needed
+    fx, fy = (NODES[2] + NODES[3]) // 2 - 5, NODE_Y - 5
+    ic = fish_icon(10)
+    a = ic[..., 3:4] / 255 * 0.9
+    rgb[fy:fy + 10, fx:fx + 10] = rgb[fy:fy + 10, fx:fx + 10] * (1 - a) + ic[..., :3] * a
+    for k in range(11):
+        rgb[NODE_Y + 4 - k:NODE_Y + 6 - k, fx + k] = [210, 60, 50]
+    cup = np.zeros((26, 26, 3))
+    B.brass(cup, 0, 0, 26, 26)
+    rgb[CUP[1] - 4:CUP[1] + 22, CUP[0] - 4:CUP[0] + 22] = cup
+    B.recess(rgb, CUP[0], CUP[1], CUP[0] + 18, CUP[1] + 18, 40)
+
+    for x, y in (FOOD, GROUNDBAIT):
+        B.recess(rgb, x, y, x + 18, y + 18, 40)
+    x0, y0, x1, y1 = BAR
+    rgb[y0:y1, x0:x1] = [34, 22, 14]
+    rgb[y0, x0:x1] -= 10
+    rgb[y1 - 1, x0:x1] += 30
+    return rgb
 
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(REPO, "common", "src", "main", "resources", "assets", "riverfishing",
-                   "textures", "gui", "aquarium.png")
-png(OUT, px)
-print("%s  %dx%d" % (OUT, W, H))
+def disc(size, fill, alpha_ring=None):
+    img = np.zeros((size, size, 4))
+    c = (size - 1) / 2
+    ys, xs = np.ogrid[:size, :size]
+    r = np.hypot(ys - c, xs - c)
+    if alpha_ring:
+        m = (r > c - 1.2) & (r <= c + 0.2)
+        img[m] = list(fill) + [alpha_ring]
+    else:
+        m = r <= c + 0.2
+        img[m] = list(fill) + [255]
+        img[(r > c - 1.2) & m, :3] *= 0.8                 # a darker lip round the edge
+    return img
+
+
+def pixels(pattern, rgb):
+    h, w = len(pattern), len(pattern[0])
+    img = np.zeros((h, w, 4))
+    for y, row in enumerate(pattern):
+        for x, v in enumerate(row):
+            if v == 'X':
+                img[y, x] = list(rgb) + [255]
+    return img
+
+
+def main():
+    tex = np.zeros((TEX_H, TEX_W, 4))
+    tex[:H, :W, :3] = panel()
+    tex[:H, :W, 3] = 255
+
+    def put(rect, img):
+        x, y, w, h = rect
+        tex[y:y + h, x:x + w] = img
+
+    put(NODE_OFF, disc(15, (66, 46, 30)))
+    put(NODE_DONE, disc(15, (214, 172, 84)))
+    put(NODE_CUR, disc(15, (250, 214, 120)))
+    put(GLOW, disc(21, (255, 230, 150), 140))
+    put(HEART_ON, pixels(HEART, (200, 60, 110)))
+    put(HEART_OFF, pixels(HEART, (120, 80, 70)))
+    put(GLASS_ON, pixels(HOURGLASS, (60, 40, 20)))
+    put(GLASS_OFF, pixels(HOURGLASS, (130, 100, 70)))
+    badge = pixels(BANG, (200, 50, 40))
+    for y, row in enumerate(BANG):
+        for x, v in enumerate(row):
+            if v == '.' and y < 7:
+                badge[y, x] = [255, 240, 220, 255]
+    put(BADGE, badge)
+
+    Image.fromarray(np.clip(tex, 0, 255).astype(np.uint8), "RGBA").save(OUT)
+    print("wrote", OUT)
+
+
+if __name__ == "__main__":
+    main()

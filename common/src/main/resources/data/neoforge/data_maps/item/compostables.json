@@ -1,13 +1,19 @@
 {
   "values": {
-    "riverfishing:corn_seeds": {
+    "riverfishing:corn": {
       "chance": 0.3
     },
-    "riverfishing:pea_seeds": {
+    "riverfishing:pea": {
       "chance": 0.3
     },
-    "riverfishing:barley_seeds": {
+    "riverfishing:pearl_barley": {
       "chance": 0.3
+    },
+    "riverfishing:corn_cob": {
+      "chance": 0.65
+    },
+    "riverfishing:pea_pod": {
+      "chance": 0.65
     }
   }
 }

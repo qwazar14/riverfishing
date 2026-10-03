@@ -33,7 +33,7 @@ lang file, every assembled rod legal against RodType's reel band and TackleCompa
 bench stamp equal to TackleForm's own numbers). Non-zero exit = do not commit the output.
 """
 import json
-import random, math, os, re, shutil, sys
+import random, math, os, re, shutil, sys, zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 COMMON = os.path.normpath(os.path.join(HERE, "..", "common", "src", "main"))
@@ -61,7 +61,7 @@ STARTER_FISH = ["bleak", "roach", "gudgeon", "rotan"]  # live in every water —
 # assembled float rig on its own — it lives INSIDE the float rods (JournalScreen.isInternalRig) and is
 # never tied by itself, so a standalone sale was a component with a price tag. That decision never
 # reached this generator, which is why the two branches disagreed about tier 2 by exactly one slot.
-TARGET_POOL = {1: 12, 2: 11, 3: 11, 4: 18, 5: 16}
+TARGET_POOL = {1: 12, 2: 11, 3: 13, 4: 18, 5: 16}   # §boilie-trades: L3 +flavours +boilies
 
 
 # ---------------------------------------------------------------- SNBT
@@ -241,10 +241,13 @@ def rig_only(name, rig_id, contents, cost, xp):
     }
 
 
-def prime_threshold(fish):
+def weight_max(fish):
     with open(os.path.join(PROFILES, fish + ".json"), encoding="utf-8") as f:
-        prof = json.load(f)
-    return math.ceil(prof["weight_g"]["max"] * PRIME_FRACTION)
+        return json.load(f)["weight_g"]["max"]
+
+
+def prime_threshold(fish):
+    return math.ceil(weight_max(fish) * PRIME_FRACTION)
 
 
 def buy(fish, emeralds, xp):
@@ -356,7 +359,7 @@ SEA_KIT = [("leader_titanium", 2), ("octopus_jig", 1, 100, 200, True),
 
 def kits(name, box, key, colour, parts, cost, xp, variants):
     """The same kit rolled `variants` ways; they share one pool slot (§trade-pool)."""
-    return [kit("%s_%d" % (name, i + 1), box, key, colour, parts, cost, xp, hash((name, i)) & 0xFFFF)
+    return [kit("%s_%d" % (name, i + 1), box, key, colour, parts, cost, xp, seed(name, i))
             for i in range(variants)]
 
 
@@ -365,7 +368,7 @@ def painted(form_id, cost, count, xp, shades=3):
     share its slot — a rack of identical silver blades is not a tackle shop."""
     out = []
     for i in range(shades):
-        rng = random.Random(hash((form_id, i)) & 0xFFFF)
+        rng = random.Random(seed(form_id, i))
         name, trade = tackle(form_id, cost, count, xp)
         trade = dict(trade)
         trade["given_item_modifiers"] = list(trade["given_item_modifiers"]) + [
@@ -373,6 +376,87 @@ def painted(form_id, cost, count, xp, shades=3):
              "components": {"minecraft:dyed_color": mix_dyes(rng)}}]
         out.append(("%s_%d" % (name, i + 1), trade))
     return out
+
+
+def seed(*parts):
+    """A roll's seed from its name. Not hash(): a str hash is salted per process, so the old seeds re-rolled
+    every kit and every painted lure on every run and the output never settled."""
+    return zlib.crc32(repr(parts).encode("utf-8")) & 0xFFFF
+
+
+def flavours():
+    """Flavour.java's enum, in order: (id, rgb)."""
+    return [(m.group(1).lower(), int(m.group(2), 16))
+            for m in re.finditer(r'^\s+([A-Z_]+)\("[^"]+", Family\.\w+, Strength\.\w+, 0x([0-9A-Fa-f]{6})',
+                                 _java("fish/Flavour.java"), re.M)]
+
+
+FLAVOURS = flavours()
+DIP_CASTS = int(re.search(r"DIP_CASTS = (\d+);", _java("item/BoilieItem.java")).group(1))
+
+
+def flavour(fid):
+    """§boilies: a bottle of one flavour, tinted like FlavourItem.make() tints it."""
+    rgb = dict(FLAVOURS)[fid]
+    return "flavour_" + fid, {
+        "wants": {"id": "minecraft:emerald", "count": 2},
+        "gives": {"id": "riverfishing:flavour", "count": 1,
+                  "components": {"minecraft:custom_data": {"Flavour": fid}, "minecraft:dyed_color": rgb}},
+        "max_uses": 12, "xp": 5, "reputation_discount": DISCOUNT,
+    }
+
+
+def brighten(rgb, k):
+    """BoilieItem.brighten: a pop-up's colour pushed toward white-hot."""
+    r, g, b = (rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255
+    r, g, b = int(r + (255 - r) * k), int(g + (255 - g) * k), int(b + (255 - b) * k)
+    return (r << 16) | (g << 8) | b
+
+
+def boilie(name, cost, count, xp, rich, rng):
+    """§boilie-trades (1.1.0): one boilie the stall rolled — the data twin of ModVillagers.randomBoilieOf. Plain:
+    one flavour; bottom, wafter or pop-up (pop-ups small). Rich: a second flavour half the time, fish meal a
+    third, a snowman among the forms, a dip on a third of the rest. Tinted as BoilieItem.tint tints it."""
+    first = rng.choice(FLAVOURS)
+    fl = [first]
+    if rich and rng.random() < 0.5:
+        second = rng.choice(FLAVOURS)
+        if second != first:
+            fl.append(second)
+    form = rng.choice(["SINKER", "WAFTER", "POPUP", "SNOWMAN"] if rich else ["SINKER", "SINKER", "WAFTER", "POPUP"])
+    size = rng.choice([10, 15]) if form == "POPUP" else rng.choice([15, 20, 24])
+    tag = {"F": ",".join(f for f, _ in fl), "B": form, "S": size}
+    if rich and rng.random() < 1 / 3:
+        tag["M"] = True
+    if rich and form != "SNOWMAN" and rng.random() < 1 / 3:
+        tag["D"] = rng.choice(FLAVOURS)[0]
+        tag["DL"] = DIP_CASTS
+    return name, {
+        "wants": {"id": "minecraft:emerald", "count": cost},
+        "gives": {"id": "riverfishing:boilie", "count": count,
+                  "components": {"minecraft:custom_data": {"Boilie": tag}, "minecraft:custom_model_data": boilie_look(tag)}},
+        "max_uses": 12, "xp": xp, "reputation_discount": DISCOUNT,
+    }
+
+
+def boilie_look(tag):
+    """§boilie-look: BoilieItem.stampTint's CUSTOM_MODEL_DATA — the two halves' colours, the dip's, and whether it drips."""
+    rgb = dict(FLAVOURS)
+    fl = [f for f in tag["F"].split(",") if f]
+    argb = lambda c: (c | 0xFF000000) - (1 << 32)        # opaque, as the signed int Java stores
+    paint = lambda f: argb(brighten(rgb[f], 0.35) if tag["B"] == "POPUP" else rgb[f])
+    a = paint(fl[0]) if fl else -3630486
+    b = paint(fl[1]) if len(fl) > 1 else a
+    dipped = bool(tag.get("D"))
+    dip = argb(rgb[tag["D"]]) if dipped else -1
+    return {"flags": [dipped], "colors": [a, b, dip]}
+
+
+def boilies(name, cost, count, xp, rich, variants):
+    """The stall's boilies rolled `variants` ways, sharing one pool slot — a datapack trade cannot roll per
+    villager, so this is how each stall still sells its own (§trade-pool)."""
+    return [boilie("%s_%d" % (name, i + 1), cost, count, xp, rich, random.Random(seed(name, i)))
+            for i in range(variants)]
 
 
 # One list per level; each element is one POOL SLOT (variants inside it share the slot).
@@ -385,7 +469,7 @@ POOL = {
         [sell("float", 1, 2, 2)],
         [sell("groundbait_powder", 1, 6, 2)],
         # §bait-crops: the "buy from traders" leg of the seed economy.
-        [sell("corn_seeds", 1, 3, 1), sell("pea_seeds", 1, 3, 1), sell("barley_seeds", 1, 3, 1)],
+        [sell("corn", 1, 3, 1), sell("pea", 1, 3, 1), sell("pearl_barley", 1, 3, 1)],
         [sell("line_mono_014", 2, 1, 3)],
         [sell("worm_farm", 4, 1, 4)],
         # §vanilla-stock: every reeled rod recipe wants string for the guide wraps (§tackle-craft),
@@ -417,12 +501,16 @@ POOL = {
                PIKE_KIT, 18, 16, 3),
         [assembled("assembled_spinning_rod", "spinning_rod", "reel_2000", "line_braid_016",
                    "rig_predator", PREDATOR_RIG, 16, 14)],
+        # §boilies: a bottle of one of the everyday flavours — the fruit, the fish and the spice
+        [flavour("strawberry"), flavour("fish"), flavour("garlic")],
+        # §boilie-trades (1.1.0): the stall's own boilies, one flavour, a plain form
+        boilies("boilie_plain", 3, 8, 6, False, 8),
     ],
     # ---- Level 4 — Expert: predator/carp gear, winter tackle, ready feeder. 12 + 2 = 14.
     4: [
         painted("wobbler", 7, 1, 15) + painted("crankbait", 7, 1, 15) + painted("popper", 6, 1, 14),
         [sell("livebait", 2, 3, 8)],
-        [sell("boilie", 3, 8, 10)],
+        boilies("boilie_rich", 4, 8, 10, True, 8),          # §boilie-trades: two flavours, a snowman, a dip…
         [sell("reel_5000", 10, 1, 15), sell("reel_6000", 13, 1, 16)],
         [sell("line_fluoro_030", 6, 1, 12)],
         [sell("ice_auger", 9, 1, 14)],                      # §ice-fishing: drill your first hole
@@ -524,6 +612,25 @@ FISH = {
         ("anglerfish", 15, 27), ("black_marlin", 32, 46), ("bluefin_tuna", 28, 40), ("whale_shark", 40, 60), ("nelma", 13, 24), ("ocean_sunfish", 16, 28), ("tiger_shark", 26, 38)],
 }
 
+# §species-table (0.10): the xlsx import registered some 160 species the table above never priced.
+# Rather than hand-list them, each is priced like the fish it would be confused with on the scale:
+# its NEIGHBOURS nearest hand-priced species by max weight (log scale, so a 2 g pupfish and a tonne
+# of sturgeon both have sane neighbours), and of those the MIDDLE row — tier, emeralds and xp taken
+# together, so the result is always a price some real fish already has, never a blend of three.
+# A species listed above keeps its hand price; the koi stay out.
+NEIGHBOURS = 5
+
+
+def price_by_weight():
+    listed = [(math.log(weight_max(f)), lvl, e, x, f) for lvl in FISH for f, e, x in FISH[lvl]]
+    for s in sorted(fish_species() - {r[4] for r in listed}):
+        if s.startswith("carp_koi"):
+            continue
+        w = math.log(weight_max(s))
+        near = sorted(listed, key=lambda r: (abs(r[0] - w), r[4]))[:NEIGHBOURS]
+        _, lvl, e, x, _ = sorted(near, key=lambda r: r[1:4])[NEIGHBOURS // 2]
+        FISH[lvl].append((s, e, x))
+
 
 # ---------------------------------------------------------------- writing
 
@@ -547,6 +654,7 @@ def weighted(trade, weight):
 def generate():
     for d in (TRADE_DIR, SET_DIR, TAG_DIR):
         shutil.rmtree(d, ignore_errors=True)
+    price_by_weight()
     tags, weights = {}, {}
 
     for lvl in range(1, 6):

@@ -93,8 +93,6 @@ public class WaterProbeItem extends Item {
         }
         BlockPos waterPos = findWater(level, player);
         if (!level.isClientSide() && player instanceof ServerPlayer sp && level instanceof ServerLevel sl) {
-            com.riverfishing.RiverFishing.LOGGER.info("[RiverFishing] probe scan by {}: admin={}, water={}",
-                    sp.getGameProfile().name(), admin, waterPos);
             if (waterPos == null) {
                 // Chat (not action bar) so the feedback can never be missed.
                 sp.sendSystemMessage(Component.translatable("message.riverfishing.no_water")
@@ -103,7 +101,7 @@ public class WaterProbeItem extends Item {
                 // §finder-screen: the admin probe keeps its chat dump — it is a diagnostic, and its
                 // caller is reading a log. The player-facing finder opens the screen instead.
                 if (admin) {
-                    FishingManager.analyzeWater(sp, sl, waterPos, true);
+                    FishingManager.analyzeWater(sp, sl, waterPos);
                 } else {
                     net.minecraft.nbt.CompoundTag payload =
                             FishingManager.finderPayload(sp, sl, waterPos);

@@ -179,6 +179,16 @@ public final class RodDebugCommand {
                                     say(c, "§ablank deg = " + RodChain.MAX_BEND_DEG);
                                     return 1;
                                 }))))
+                // §rod-anim: the rod acting in your hands — status, switch, and the pitch sign should a frame disagree.
+                .then(lit("anim")
+                        .executes(c -> { say(c, RodAnim.describe()); return 1; })
+                        .then(lit("on").executes(c -> { RodAnim.ENABLED = true; say(c, "§aanim ON"); return 1; }))
+                        .then(lit("off").executes(c -> { RodAnim.ENABLED = false; say(c, "§canim OFF"); return 1; }))
+                        .then(lit("flip").executes(c -> {
+                            RodAnim.POSE_SIGN = -RodAnim.POSE_SIGN;
+                            say(c, "§aanim pitch sign " + (RodAnim.POSE_SIGN > 0 ? "+" : "-"));
+                            return 1;
+                        })))
                 // §rod-physics: the springs — status, switch, tunables, whip and the swing pivot.
                 .then(lit("phys")
                         .executes(c -> { say(c, RodPhysics.describe()); return 1; })

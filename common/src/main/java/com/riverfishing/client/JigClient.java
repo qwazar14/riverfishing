@@ -131,10 +131,10 @@ public final class JigClient {
         if (!active) return;
         Minecraft mc = Minecraft.getInstance();
         //? if <26.2 {
-        if (mc.level == null || mc.options.hideGui) return;
-        //?} else {
-        /*if (mc.level == null || mc.gui.hud.isHidden()) return;
-        *///?}
+        /*if (mc.level == null || mc.options.hideGui) return;
+        *///?} else {
+        if (mc.level == null || mc.gui.hud.isHidden()) return;
+        //?}
         if (heldWinterRod(mc).isEmpty()) return;
         float t = (mc.level.getGameTime() - startTick) + partialTick;
 

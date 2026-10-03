@@ -71,7 +71,7 @@ public final class GroundbaitNbt {
 
     /** Stamp a mix onto a stack. A plain jar writes nothing — the base is what an empty tag means. */
     public static void write(ItemStack stack, GroundbaitMix mix) {
-        if (mix == null || mix.isBase()) return;
+        if (mix == null || mix.isBase() && mix.rgb() == GroundbaitMix.BASE.rgb()) return;   // §dyed-base: a stained plain jar is written down
         // §26.x: item tinting here is declared in assets/riverfishing/items/*.json, and the only tint
         // source that can see a per-stack colour is minecraft:dye — which reads this component. So the
         // jar carries its colour as well as computing it, written from the same mix at the same moment

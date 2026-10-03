@@ -4,8 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 //? if <26.2 {
-import net.minecraft.client.renderer.MultiBufferSource;
-//?}
+/*import net.minecraft.client.renderer.MultiBufferSource;
+*///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -59,7 +59,7 @@ public final class LineRenderer {
     }
 
     //? if <26.2 {
-    // 26.1: immediate mode — pull the shared buffer source and flush the lines batch ourselves.
+    /*// 26.1: immediate mode — pull the shared buffer source and flush the lines batch ourselves.
     public static void render(PoseStack pose, Vec3 cam, float pt) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;
@@ -77,13 +77,13 @@ public final class LineRenderer {
         pose.popPose();
     }
 
-    /**
+    /^*
      * §hooked-visible (1.0.0): the fish on the line is drawn in the SHOAL's pass — before the water —
      * so a fish under the surface is seen through it, the way a squid is. It used to ride the line's
      * pass, after the translucent terrain, and the surface's depth threw away everything but a breach:
      * the fight was a bar and a rod until the fish jumped. The body's own frame integration still
      * happens in the line pass; this reads the position it left, one frame behind, which no eye sees.
-     */
+     ^/
     public static void renderHooked(PoseStack pose, Vec3 cam, float pt) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || ClientLineState.lines().isEmpty()) return;
@@ -101,23 +101,24 @@ public final class LineRenderer {
         if (drew) buffers.endBatch();
         pose.popPose();
     }
-    //?} else {
-    /*// 26.2: MultiBufferSource is gone — geometry rides the frame's SubmitNodeCollector, exactly
+    *///?} else {
+    // 26.2: MultiBufferSource is gone — geometry rides the frame's SubmitNodeCollector, exactly
     // like the BlockEntity renderers (see RodPodRenderer.submitCustomGeometry).
     public static void submit(PoseStack pose, Vec3 cam, float pt,
                               net.minecraft.client.renderer.SubmitNodeCollector collector) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;
         FlyLineClient.submit(pose, cam, pt, collector);   // §rope
-        if (ClientLineState.lines().isEmpty()) return;
+        if (ClientLineState.lines().isEmpty() && !FishExitRenderer.any() && !LineFx.any()) return;
         pose.pushPose();
         pose.translate(-cam.x, -cam.y, -cam.z);
+        FishExitRenderer.submit(mc, pose, collector, pt);   // §fight-moves: lifted out, or getting away
         collector.submitCustomGeometry(pose, net.minecraft.client.renderer.rendertype.RenderTypes.lines(),
                 (posePose, vc) -> drawAll(mc, vc, posePose.pose(), posePose.normal(), pt));
         forEachHooked(mc, pt, (player, state, end) -> HookedFishRenderer.submit(mc, pose, collector, state, end, pt));   // §hooked-fish
         pose.popPose();
     }
-    *///?}
+    //?}
 
     /** §hooked-fish: every line with a fish on it, and where that fish is this frame. */
     private interface Hooked { void accept(Player player, ClientLineState.Line state, Vec3 end); }
@@ -151,9 +152,13 @@ public final class LineRenderer {
             double fdx = state.shownEnd.x - player.getX(), fdz = state.shownEnd.z - player.getZ();   // §line-glide
             double fl = Math.sqrt(fdx * fdx + fdz * fdz);
             state.tickFish(frameSeconds, fl > 1e-3 ? fdx / fl : 1.0, fl > 1e-3 ? fdz / fl : 0.0,
-                    (wx, wy, wz) -> !mc.level.getFluidState(BlockPos.containing(wx, wy, wz)).isEmpty(),
-                    lineBase(mc, player, state, pt));
+                    lineBase(mc, player, state, pt),
+                    com.riverfishing.fishing.FightMoves.bank(player.position(), player.getViewVector(pt)));   // §fight-moves
             renderLine(mc, vc, m, nrm, player, state, pt);
+            drew = true;
+        }
+        if (LineFx.any()) {   // §rod-anim: snapped and thrown lines, fading
+            LineFx.draw(vc, m, nrm);
             drew = true;
         }
         return drew;
@@ -186,6 +191,8 @@ public final class LineRenderer {
         // (and our own in third person) still belong to this pass.
         boolean handDrawn = player == mc.player && mc.options.getCameraType().isFirstPerson()
                 && RodChain.handLineFresh();
+        if (!handDrawn) state.lastTipW = tip;   // §rod-anim: the hand pass records its own, truer, tip
+        LineFx.tick(mc, state, state.lastTipW != null ? state.lastTipW : tip, end);
         if (!handDrawn) {
             // Vanilla string SHAPE (FishingHookRenderer.stringVertex), hang replaced by §line-taut —
             // tension straightens the string, a fish running at the angler bellies it.
@@ -262,8 +269,22 @@ public final class LineRenderer {
         BlockPos t = state.target;
         Vec3 e = state.shownEnd != null ? state.shownEnd : new Vec3(t.getX() + 0.5, t.getY(), t.getZ() + 0.5);   // §line-glide
         Vec3 water = new Vec3(e.x, e.y + 0.95 + bob, e.z);
-        Vec3 bank = player.position().add(player.getViewVector(pt).scale(1.2)).add(0, 0.1, 0);
-        return water.lerp(bank, Mth.clamp(state.smoothProgress * 0.85f, 0f, 0.9f));
+        if (player == mc.player) {
+            // §rod-anim: a retrieve click darts the lure toward you; a take kicks the line's end aside
+            float dart = RodAnim.dart(), kick = RodAnim.lineKick();
+            if (dart != 0f || kick != 0f) {
+                double hx = player.getX() - water.x, hz = player.getZ() - water.z, hl = Math.sqrt(hx * hx + hz * hz);
+                if (hl > 1e-3) {
+                    hx /= hl; hz /= hl;
+                    water = water.add(hx * dart + hz * kick, dart * 0.3, hz * dart - hx * kick);
+                }
+            }
+        }
+        Vec3 bank = com.riverfishing.fishing.FightMoves.bank(player.position(), player.getViewVector(pt));   // the server's point too
+        Vec3 p = water.lerp(bank, Mth.clamp(state.smoothProgress * 0.85f, 0f, 0.9f));
+        // §fight-depth: a hooked fish is towed in THROUGH the water — the bank point is at the angler's feet, and
+        // following it up hung the beaten fish on its side in the air over the bank. The lift-out takes it out.
+        return state.fighting && !state.species.isEmpty() ? new Vec3(p.x, water.y, p.z) : p;
     }
 
     /**
@@ -362,17 +383,17 @@ public final class LineRenderer {
         if (!(player.getMainHandItem().getItem() instanceof com.riverfishing.item.RodItem)) {
             arm = -arm; // the rod is in the off hand
         }
-        float swingProgress = player.getAttackAnim(pt);
+        float swingProgress = com.riverfishing.compat.Mc.attackAnim(player, pt);
         float swing = Mth.sin(Mth.sqrt(swingProgress) * (float) Math.PI);
 
         if (player == mc.player && mc.options.getCameraType().isFirstPerson()) {
             // §zoom-anchor: the FOV the frame is ACTUALLY drawn at, not the one in the settings menu.
             // The camera knows the answer; ask it.
             //? if <26.2 {
-            double fov = mc.gameRenderer.getMainCamera().getFov();
-            //?} else {
-            /*double fov = mc.gameRenderer.mainCamera().getFov();
-            *///?}
+            /*double fov = mc.gameRenderer.getMainCamera().getFov();
+            *///?} else {
+            double fov = mc.gameRenderer.mainCamera().getFov();
+            //?}
             double fovScale = 960.0 / fov;
             float px, py;
             if (RodChain.tipNdcFresh()) {
@@ -396,10 +417,10 @@ public final class LineRenderer {
             }
             // §26.1: getNearPlane now takes the fov in degrees instead of reading it itself.
             //? if <26.2 {
-            Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane((float) fov)
-            //?} else {
-            /*Vec3 v = mc.gameRenderer.mainCamera().getNearPlane((float) fov)
-            *///?}
+            /*Vec3 v = mc.gameRenderer.getMainCamera().getNearPlane((float) fov)
+            *///?} else {
+            Vec3 v = mc.gameRenderer.mainCamera().getNearPlane((float) fov)
+            //?}
                     .getPointOnPlane(px, py)
                     .scale(fovScale)
                     .yRot(swing * 0.5f)
@@ -420,8 +441,8 @@ public final class LineRenderer {
             // (the view rotation lives in the frame's matrices now), so TIP_VIEW is already a world
             // offset from the camera; rotating it again put the line a body-width off the tip.
             //? if <26.2 {
-            RodChain.cameraRot(mc).transform(w);
-            //?}
+            /*RodChain.cameraRot(mc).transform(w);
+            *///?}
             Vec3 cp = RodChain.cameraPos(mc);
             return new Vec3(cp.x + w.x(), cp.y + w.y(), cp.z + w.z());
         }

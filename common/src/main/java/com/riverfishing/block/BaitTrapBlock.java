@@ -37,12 +37,16 @@ public class BaitTrapBlock extends BaseEntityBlock implements SimpleWaterloggedB
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     private static final VoxelShape SHAPE = Block.box(1, 0, 1, 15, 13, 15);
 
+    //? if <26.3 {
     public static final com.mojang.serialization.MapCodec<BaitTrapBlock> CODEC = simpleCodec(BaitTrapBlock::new);
+    //?}
 
+    //? if <26.3 {
     @Override
     protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
         return CODEC;
     }
+    //?}
 
     public BaitTrapBlock(Properties properties) {
         super(properties);

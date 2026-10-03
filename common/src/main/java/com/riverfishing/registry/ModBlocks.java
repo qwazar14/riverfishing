@@ -112,15 +112,43 @@ public final class ModBlocks {
                 .randomTicks()
                 .instabreak()
                 .sound(SoundType.CROP)
+                //? if >=26.3 {
+                /*.pushReaction(net.minecraft.world.level.material.PushReaction.POPPED);
+                *///?} else {
                 .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY);
+                //?}
     }
 
+    // Corn grows two blocks tall (CornCropBlock, the pitcher crop's logic); pea and barley are one-block crops.
     public static final RegistrySupplier<Block> CORN_CROP = BLOCKS.register("corn_crop",
-            () -> new com.riverfishing.block.BaitCropBlock("corn_seeds", cropProps("corn_crop")));
+            () -> new com.riverfishing.block.CornCropBlock(cropProps("corn_crop")));
     public static final RegistrySupplier<Block> PEA_CROP = BLOCKS.register("pea_crop",
-            () -> new com.riverfishing.block.BaitCropBlock("pea_seeds", cropProps("pea_crop")));
+            () -> new com.riverfishing.block.BaitCropBlock("pea", cropProps("pea_crop")));
     public static final RegistrySupplier<Block> BARLEY_CROP = BLOCKS.register("barley_crop",
-            () -> new com.riverfishing.block.BaitCropBlock("barley_seeds", cropProps("barley_crop")));
+            () -> new com.riverfishing.block.BaitCropBlock("pearl_barley", cropProps("barley_crop")));
+
+    // Reed and cattail: two-tall bank plants (models 3D/<name>/<name>.bbmodel, split into <name>_bottom/_top
+    // at y=16 by tools/split_tall_model.py), generated along water. A sunflower's properties, built from scratch
+    // (no ofFullCopy on 26.x): a placed plant isn't wiped by the next block put there, as tall grass would be.
+    public static final RegistrySupplier<Block> REED = registerSimple("reed",
+            () -> new com.riverfishing.block.BankPlantBlock(plantProps("reed")));
+    public static final RegistrySupplier<Block> CATTAIL = registerSimple("cattail",
+            () -> new com.riverfishing.block.BankPlantBlock(plantProps("cattail")));
+
+    private static BlockBehaviour.Properties plantProps(String name) {
+        return blockProps(name)
+                .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                .noCollision()
+                .instabreak()
+                .sound(SoundType.GRASS)
+                .offsetType(BlockBehaviour.OffsetType.XZ)
+                .ignitedByLava()
+                //? if >=26.3 {
+                /*.pushReaction(net.minecraft.world.level.material.PushReaction.POPPED);
+                *///?} else {
+                .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY);
+                //?}
+    }
 
     /**
      * §tackle-box (0.7.0): four sizes of set-down tackle box. Their ITEM is a {@link

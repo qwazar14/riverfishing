@@ -1,0 +1,19 @@
+{
+  "wants": {
+    "id": "riverfishing:chum_salmon",
+    "components": {
+      "riverfishing:prime": 11130
+    }
+  },
+  "gives": {
+    "id": "minecraft:emerald",
+    "count": 7
+  },
+  "max_uses": 12,
+  "xp": 14,
+  "reputation_discount": 0.05,
+  "merchant_predicate": {
+    "type": "minecraft:random_chance",
+    "chance": 0.0367
+  }
+}

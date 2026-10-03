@@ -60,6 +60,13 @@ public class TackleBoxMenu extends AbstractContainerMenu {
     private final TackleBoxTier tier;
     private final Container contents;
     /**
+     * §menu-dupe: the very stack this menu opened on. The slots are a copy of ITS contents, so they are only
+     * ever written back into it, and the menu is valid only while that same object is still the box — a
+     * number-key swap put another box of the same class in the hand, and closing wrote this box's contents
+     * into that one as well.
+     */
+    private final ItemStack opened;
+    /**
      * Set once the container is filled. Without it, the load loop below writes an EMPTY box straight back
      * over the real one — {@code setItem} fires {@code setChanged} on every slot, and the first of those
      * ran while {@code contents} was still null, so the whole menu threw in its own constructor and the
@@ -72,6 +79,7 @@ public class TackleBoxMenu extends AbstractContainerMenu {
         this.player = inv.player;
         this.source = source;
         ItemStack box = box();
+        this.opened = box;
         this.tier = TackleBoxData.tierOf(box);
 
         NonNullList<ItemStack> loaded = TackleBoxData.load(box);
@@ -136,7 +144,7 @@ public class TackleBoxMenu extends AbstractContainerMenu {
 
     private void save() {
         if (contents == null || player.level().isClientSide()) return;
-        ItemStack box = box();
+        ItemStack box = opened;
         if (box.isEmpty()) return;
         NonNullList<ItemStack> out = NonNullList.withSize(tier.slots(), ItemStack.EMPTY);
         for (int i = 0; i < tier.slots(); i++) {
@@ -159,7 +167,7 @@ public class TackleBoxMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player p) {
         ItemStack box = box();
-        if (!(box.getItem() instanceof TackleBoxItem)) return false;
+        if (box != opened || !(box.getItem() instanceof TackleBoxItem)) return false;   // §menu-dupe
         return !source.isBlock() || p.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(source.pos())) <= 64.0;
     }
 
@@ -200,6 +208,15 @@ public class TackleBoxMenu extends AbstractContainerMenu {
     }
 
     public static void open(ServerPlayer sp, BlockPos pos) {
+        // §box-one-viewer: each menu edits its own copy of the box, so two at once printed whatever one took out
+        for (ServerPlayer o : sp.level().getServer().getPlayerList().getPlayers()) {
+            if (o != sp && o.level() == sp.level() && o.containerMenu instanceof TackleBoxMenu m
+                    && m.source.isBlock() && m.source.pos().equals(pos)) {
+                sp.sendOverlayMessage(Component.translatable("message.riverfishing.tackle_box_busy", o.getDisplayName())
+                        .withStyle(net.minecraft.ChatFormatting.GRAY));
+                return;
+            }
+        }
         openAt(sp, new Source(InteractionHand.MAIN_HAND, pos));
     }
 

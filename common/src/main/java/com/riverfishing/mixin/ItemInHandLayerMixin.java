@@ -46,7 +46,8 @@ public class ItemInHandLayerMixin {
             String rodKey = RodModelLayers.rodKey(stack);
             if (rodKey != null && RodChain.has(rodKey)) {
                 float load = RodChain.localHeld(stack)
-                        ? (com.riverfishing.client.FlyLineClient.active() ? com.riverfishing.client.FlyLineClient.load() : ClientLineState.ownRodLoad())
+                        ? (com.riverfishing.client.FlyLineClient.active() ? com.riverfishing.client.FlyLineClient.load()
+                                : com.riverfishing.client.RodAnim.displayLoad(ClientLineState.ownRodLoad()))
                         : Mth.clamp((float) com.riverfishing.item.RodData.getBend(stack)
                                 / com.riverfishing.item.RodData.BEND_BUCKETS, 0f, 1f);
                 pose.pushPose();

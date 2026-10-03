@@ -11,7 +11,7 @@ buildscript {
     }
     dependencies {
         classpath("dev.architectury:architectury-loom:1.17.491")
-        classpath("architectury-plugin:architectury-plugin.gradle.plugin:3.5.169")
+        classpath("architectury-plugin:architectury-plugin.gradle.plugin:3.5.170")
     }
 }
 
@@ -19,4 +19,4 @@ plugins {
     id("dev.kikugie.stonecutter")
 }
 
-stonecutter active "26.1.2" /* [SC] DO NOT EDIT */
+stonecutter active "26.2" /* [SC] DO NOT EDIT */

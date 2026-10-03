@@ -1,0 +1,13 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/C:/Users/Qwazar/.gradle/wrapper/dists/gradle-9.6.1-bin/4ticwg1pgcbps2hj28r8so764/gradle-9.6.1/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+[Architectury Transformer] Read classpath in 1.396 s
+[Architectury Transformer] Transformed jar with 4 transformer(s) in 2.314 s
+[Architectury Transformer] Read classpath in 1.371 s
+[Architectury Transformer] Transformed jar with 5 transformer(s) in 2.943 s
+[Architectury Transformer] Read classpath in 1.995 s
+[Architectury Transformer] Transformed jar with 4 transformer(s) in 2.747 s
+[Architectury Transformer] Read classpath in 1.834 s
+[Architectury Transformer] Transformed jar with 5 transformer(s) in 3.375 s

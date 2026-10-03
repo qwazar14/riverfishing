@@ -38,16 +38,21 @@ public final class HookedFishRenderer {
         ItemStack stack = stackFor(state);
         if (stack == null) return null;
         float time = mc.level.getGameTime() % 100000L + pt;
-        // §hooked-fish: the body comes up under the bait, nose up, over the first eight ticks of the take
+        // §hooked-fish: the body comes up to the bait, nose up, over the first eight ticks of the take
         boolean rising = state.biting && !state.fighting;
         double riseY = 0.0;
         float risePitch = 0f;
         if (rising) {
             float rt = state.riseStart < 0 ? 1f : Mth.clamp(((mc.level.getGameTime() - state.riseStart) + pt) / 8f, 0f, 1f)   /* §float-clock: the longs first */;
-            riseY = Mth.lerp(rt, -0.4f, -0.05f);
+            riseY = Mth.lerp(rt, -0.35f, 0f) - state.takeDepth();   // §fight-depth: up to the bait, wherever it hangs
             risePitch = -35f;
         }
 
+        // §fight-moves: a fish sulking on the bottom breathes a thread of bubbles up to the surface
+        if (state.move == com.riverfishing.fishing.FightMoves.SULK && mc.level.getRandom().nextInt(3) == 0) {
+            mc.level.addParticle(ParticleTypes.BUBBLE, at.x + (mc.level.getRandom().nextDouble() - 0.5) * 0.3, at.y + 0.2,
+                    at.z + (mc.level.getRandom().nextDouble() - 0.5) * 0.3, 0, 0.12, 0);
+        }
         // the splash: once when the body leaves the water, once when it comes back
         double surfaceY = state.target.getY() + 0.95;
         boolean inAir = at.y > surfaceY + 0.15;
@@ -64,13 +69,14 @@ public final class HookedFishRenderer {
         // Sprite head is on local −X (ShoalRenderer's derivation): a Y turn of 180 − heading sends it
         // along the heading. The tail beat swings the whole body, the nose swings with it.
         float beat = Mth.sin(state.tail) * (state.running ? 7f : 4f);
-        pose.mulPose(Axis.YP.rotationDegrees(180f - (float) Math.toDegrees(state.heading) + beat));
+        com.riverfishing.compat.Mc.rotate(pose, Axis.YP.rotationDegrees(180f - (float) Math.toDegrees(state.heading) + beat));
+        if (state.roll > 1f) com.riverfishing.compat.Mc.rotate(pose, Axis.XP.rotationDegrees(state.roll));   // §fight-moves: beaten, on its side
         if (com.riverfishing.fish.FishPose.isFlat(state.species)) {
-            pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
+            com.riverfishing.compat.Mc.rotate(pose, Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
         }
-        pose.mulPose(Axis.ZP.rotationDegrees((rising ? risePitch : state.pitch) + Mth.sin(time * 0.05f) * 2f));
+        com.riverfishing.compat.Mc.rotate(pose, Axis.ZP.rotationDegrees((rising ? risePitch : state.pitch) + Mth.sin(time * 0.05f) * 2f));
         // the item's FIXED display turns the model 180° about Y; one more here puts the head back on −X
-        pose.mulPose(Axis.YP.rotationDegrees(180f + Mth.sin(state.tail * 1.0f) * 6f));
+        com.riverfishing.compat.Mc.rotate(pose, Axis.YP.rotationDegrees(180f + Mth.sin(state.tail * 1.0f) * 6f));
         float s = Mth.clamp(state.lengthCm / 100f, 0.12f, 4.5f);   // true length, one block a metre
         pose.scale(s, s, s);
         // §hooked-mouth: the extra Y turn above flipped local X, so the head now points +X here —
@@ -82,7 +88,7 @@ public final class HookedFishRenderer {
     }
 
     //? if <26.2 {
-    // 26.1: the world pass is immediate mode and an ItemStackRenderState only knows how to SUBMIT, so
+    /*// 26.1: the world pass is immediate mode and an ItemStackRenderState only knows how to SUBMIT, so
     // the body is the flat sprite here — a double-sided quad off the item atlas, the way the shoal's
     // 26.1 path draws its fish. The pose is the same; only the last step differs.
     public static void render(Minecraft mc, PoseStack pose, net.minecraft.client.renderer.MultiBufferSource buffers,
@@ -124,15 +130,15 @@ public final class HookedFishRenderer {
         vc.addVertex(m, x, y, z).setColor(255, 255, 255, 255).setUv(u, v)
                 .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0f, 1f, 0f);
     }
-    //?} else {
-    /*public static void submit(Minecraft mc, PoseStack pose, net.minecraft.client.renderer.SubmitNodeCollector collector,
+    *///?} else {
+    public static void submit(Minecraft mc, PoseStack pose, net.minecraft.client.renderer.SubmitNodeCollector collector,
                               ClientLineState.Line state, Vec3 at, float pt) {
         pose.pushPose();
         ItemStackRenderState rs = pose(mc, pose, state, at, pt);
         if (rs != null) rs.submit(pose, collector, depthLight(state.depth), OverlayTexture.NO_OVERLAY, 0);
         pose.popPose();
     }
-    *///?}
+    //?}
 
     /**
      * §hooked-dim: a fish under water is lit by the water above it. Full bright at the surface, down to
@@ -147,19 +153,25 @@ public final class HookedFishRenderer {
     /** The item the fish is drawn as — rebuilt only when the species on the line changes. */
     private static ItemStack stackFor(ClientLineState.Line state) {
         if (state.stack != null && state.species.equals(state.stackSpecies)) return state.stack;
-        Identifier id = RiverFishing.id(state.species);
+        ItemStack stack = stackOf(state.species, state.weightG, state.lengthCm);
+        if (stack == null) return null;
+        state.stack = stack;
+        state.stackSpecies = state.species;
+        return stack;
+    }
+
+    /** The item a fish of this species and size is drawn as, or null for a species with none. */
+    static ItemStack stackOf(String species, int weightG, int lengthCm) {
+        Identifier id = RiverFishing.id(species);
         var item = ModItems.fishItem(id);
         if (item == null) return null;
         ItemStack stack = new ItemStack(item);
-        int w = state.weightG, l = state.lengthCm;
         StackNbt.mutate(stack, tag -> {
             tag.putString(FishItem.TAG_SPECIES, id.toString());
-            tag.putInt(FishItem.TAG_WEIGHT, w);
-            tag.putInt(FishItem.TAG_LENGTH, l);
+            tag.putInt(FishItem.TAG_WEIGHT, weightG);
+            tag.putInt(FishItem.TAG_LENGTH, lengthCm);
         });
         FishItem.stampIcon(stack);   // 26.x: the icon is stack-driven — no stamp, no fish
-        state.stack = stack;
-        state.stackSpecies = state.species;
         return stack;
     }
 }

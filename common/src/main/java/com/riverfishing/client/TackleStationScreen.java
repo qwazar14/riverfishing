@@ -32,7 +32,8 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
      * longest Russian cost line in two lines.
      */
     private static final int COLS = 5;
-    private static final int TRACK_X = 116, TRACK_W = 70;
+    /** §bench-look: the drawer's controls sit under its label, left of the paper tag — not on top of it. */
+    private static final int TRACK_X = GRID_X, TRACK_W = 70;
     /** §hook-pick: the well the hook SLOT used to occupy, now the size picker. */
     private static final int HOOK_X = 38;
     /** The two arrow buttons either side of it. The material wells moved right to make room. */
@@ -40,6 +41,8 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
     private static final int HOOK_Y = 149, HOOK_BTN_H = 18;
     /** Where the right-hand column starts. Derived from the grid, so it cannot fall out of step with it. */
     private static final int TEXT_X = GRID_X + COLS * CELL + 10;
+    /** §bench-look: the paper tag the column is written on, and the room the ink has on it. */
+    private static final int TAG_X = 128, TAG_Y = 25, TEXT_W = TAG_X + 112 - TEXT_X - 6;
     private boolean predatorTab;
     /** §tying: the third page — the hook in the vise and the canvas over it. */
     private boolean tying;
@@ -75,7 +78,7 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
     /** Draw wrapped, advance past what was drawn. The only honest way to place text in nine languages. */
     private int flow(GuiGraphicsExtractor g, String text, int x, int y, int colour) {
         for (net.minecraft.util.FormattedCharSequence line
-                : font.split(net.minecraft.network.chat.Component.literal(text), imageWidth - TEXT_X - 8)) {
+                : font.split(net.minecraft.network.chat.Component.literal(text), TEXT_W)) {
             g.text(font, line, x, y, colour, false);
             y += 11;
         }
@@ -86,161 +89,179 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         return pendingLeader >= 0 ? pendingLeader : menu.leaderCm();
     }
 
+    // ---- §bench-look (1.1.0): the station is a tackle-maker's bench — a walnut worktop in a dark-oak frame,
+    // brass-framed labels for the three pages, the forms in the compartments of a tray, the item's name and
+    // bill on a paper tag, the materials in wells cut into a rail and the inventory in a drawer. One sheet,
+    // drawn by tools/gen_tackle_bench.py; the rectangles below are where that script puts each part. ----
+
+    private static final net.minecraft.resources.Identifier BENCH = com.riverfishing.RiverFishing.id("textures/gui/tackle_station/bench.png");
+    private static final int TEX_W = 256, TEX_H = 400;
+    /** {u, v, w, h} on the sheet. */
+    private static final int[] TAG = {0, 264, 112, 117}, TAB_ON = {120, 264, 64, 14}, TAB_OFF = {120, 280, 64, 14},
+            CELL_UV = {188, 264, 20, 20}, CELL_SEL = {210, 264, 20, 20}, WELL = {188, 286, 18, 18},
+            CUP = {210, 286, 26, 26}, PLATE = {232, 264, 18, 18}, KNOB = {120, 296, 7, 11};
+    /** Ink on the tag, and the brass-and-parchment text of the labels. */
+    private static final int INK = 0xFF3A2A18, INK_SOFT = 0xFF5E4A30, INK_RED = 0xFF8A3A10, INK_GREEN = 0xFF3E6A2A;
+    private static final int[] TAB_X = {10, 84, 158};
+    private static final String[] TAB_KEYS = {"tab_peaceful", "tab_predator", "tab_tie"};
+
+    static void sprite(GuiGraphicsExtractor g, int[] s, int x, int y) {
+        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BENCH, x, y, s[0], s[1], s[2], s[3], TEX_W, TEX_H);
+    }
+
+    /**
+     * A key on the bench: a raised wooden button, brass when it is the one set, sunk dark and flat when it
+     * cannot do anything — the tying page's buttons are these too.
+     */
+    static void benchButton(GuiGraphicsExtractor g, net.minecraft.client.gui.Font font, int x, int y, int w, int h, String label,
+                            boolean on, boolean live, boolean hov) {
+        if (!live) {
+            g.fill(x, y, x + w, y + h, 0xFF2E2016);
+            g.fill(x, y, x + w, y + 1, 0xFF20150D);
+        } else {
+            int face = on ? 0xFFB88A3E : hov ? 0xFF8A603E : 0xFF72492E;
+            g.fill(x, y, x + w, y + h, on ? 0xFF6E4E1E : 0xFF3A2416);
+            g.fill(x, y, x + w - 1, y + h - 1, on ? 0xFFEAC678 : 0xFF9A7050);
+            g.fill(x + 1, y + 1, x + w - 1, y + h - 1, face);
+        }
+        int colour = !live ? 0xFF6B5A48 : on ? 0xFF2A1C0C : 0xFFF0E2C4;
+        g.text(font, label, x + (w - font.width(label)) / 2, y + (h - 8) / 2 + 1, colour, false);
+    }
+
+    private static boolean in(double mx, double my, int x0, int y0, int x1, int y1) {
+        return mx >= x0 && mx < x1 && my >= y0 && my < y1;
+    }
+
     @Override
     public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(g, mouseX, mouseY, partialTick);
         int x = leftPos, y = topPos;
-        g.fill(x, y, x + imageWidth, y + imageHeight, 0xF0242018);
-        g.fill(x + 1, y + 1, x + imageWidth - 1, y + imageHeight - 1, 0xFF3a3227);
-        g.fill(x + 2, y + 2, x + imageWidth - 2, y + imageHeight - 2, 0xFF57493a);
-
-        drawTab(g, x + 10, y + 8, !predatorTab && !tying, I18n.get("screen.riverfishing.tackle_station.tab_peaceful"));
-        drawTab(g, x + 84, y + 8, predatorTab && !tying, I18n.get("screen.riverfishing.tackle_station.tab_predator"));
-        drawTab(g, x + 158, y + 8, tying, I18n.get("screen.riverfishing.tackle_station.tab_tie"));
-        if (tying) {   // §tying: the page is the canvas; the hook picker and the wells below stay
+        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BENCH, x, y, 0, 0, imageWidth, imageHeight, TEX_W, TEX_H);
+        drawTabs(g, x, y, mouseX, mouseY);
+        if (tying) {   // §tying: the page is the canvas; the hook picker below it and the store wells stay
             canvas.draw(g, font, x, y, mouseX, mouseY, menu);
             canvas.markBrush(g, x, y);
-            drawHookPicker(g, x, y);
+            drawHookPicker(g, x, y, mouseX, mouseY);
             drawWells(g, x, y, true);
             return;
         }
 
-        // Form grid.
+        // The tray: one compartment a form, the chosen one in brass.
         List<TackleForm> forms = tabForms();
         TackleForm sel = menu.form();
         for (int i = 0; i < forms.size(); i++) {
             int cx = x + GRID_X + (i % COLS) * CELL;
             int cy = y + GRID_Y + (i / COLS) * CELL;
-            boolean isSel = forms.get(i) == sel;
-            g.fill(cx, cy, cx + 20, cy + 20, isSel ? 0xFFC8A050 : 0xFF2a241c);
-            g.fill(cx + 1, cy + 1, cx + 19, cy + 19, isSel ? 0xFF6e5a3a : 0xFF463b2d);
+            sprite(g, forms.get(i) == sel ? CELL_SEL : CELL_UV, cx, cy);
+            if (forms.get(i) != sel && in(mouseX, mouseY, cx, cy, cx + 20, cy + 20)) g.fill(cx + 2, cy + 2, cx + 18, cy + 18, 0x24FFE6B0);
             g.item(new ItemStack(forms.get(i).item()), cx + 2, cy + 2);
         }
 
-        // Right column: name, weight stepper, cast hint, cost.
+        // The tag: name, weight stepper, cast hint, cost — in ink.
+        g.fill(x + TAG_X + 2, y + TAG_Y + 2, x + TAG_X + TAG[2] + 2, y + TAG_Y + TAG[3] + 2, 0x44000000);
+        sprite(g, TAG, x + TAG_X, y + TAG_Y);
         int rx = x + TEXT_X;
-        int avail = imageWidth - TEXT_X - 8;
-        // The name is clipped to one line rather than wrapped: the stepper under it is clickable, and a
-        // name that pushed it down would move its hit box away from where it is drawn.
-        g.text(font, font.split(new ItemStack(sel.item()).getHoverName(), avail).get(0),
-                rx, y + GRID_Y, 0xFFEDE4D0, false);
+        int avail = TEXT_W;
+        // The name is clipped rather than wrapped: the two lines under it are at fixed offsets because
+        // the weight stepper is clickable, and a name that pushed them down would move its hit box.
+        g.text(font, font.split(new ItemStack(sel.item()).getHoverName(), avail).get(0), rx, y + GRID_Y, INK, false);
         int grams = menu.weightGrams();
-        g.text(font, "< " + I18n.get("screen.riverfishing.tackle_station.weight", grams) + " >",
-                rx, y + GRID_Y + 16, 0xFFFFD97A, false);
+        boolean stepHov = in(mouseX, mouseY, rx, y + GRID_Y + 14, rx + 90, y + GRID_Y + 28);
+        g.text(font, "◄ " + I18n.get("screen.riverfishing.tackle_station.weight", grams) + " ►",
+                rx, y + GRID_Y + 16, stepHov ? 0xFFB85A20 : INK_RED, false);
         int ly = y + GRID_Y + 32;
         ly = flow(g, I18n.get("screen.riverfishing.tackle_station.cast_hint",
-                TackleForm.castHintBlocks(grams)), rx, ly, 0xFFB8AE9A);
+                TackleForm.castHintBlocks(grams)), rx, ly, INK_SOFT);
         ly = flow(g, I18n.get("screen.riverfishing.tackle_station.cost",
-                menu.ironNeeded(), sel.stringNeeded()), rx, ly, 0xFFB8AE9A);
+                menu.ironNeeded(), sel.stringNeeded()), rx, ly, INK_SOFT);
         if (sel.dyeable) {
-            flow(g, I18n.get("screen.riverfishing.tackle_station.dye_hint"), rx, ly, 0xFF8FB08A);
+            flow(g, I18n.get("screen.riverfishing.tackle_station.dye_hint"), rx, ly, INK_GREEN);
         }
 
         // §tackle-adv drawer: its own labeled section, nothing overlaps.
+        boolean advHov = in(mouseX, mouseY, x + GRID_X, y + advY() - 2, x + GRID_X + 110, y + advY() + 10);
         g.text(font, (advanced ? "▼ " : "► ")
                         + I18n.get("screen.riverfishing.tackle_station.advanced"),
-                x + GRID_X, y + advY(), 0xFFB8AE9A, false);
+                x + GRID_X, y + advY(), advHov ? 0xFFFFE6B0 : 0xFFD8C8A8, false);
         if (advanced) {
             if (sel.rig) {
-                // Hook link (distance hook → anchor point) — rigs only.
+                // Hook link (distance hook → anchor point) — rigs only: a groove in the worktop, a brass slide.
                 g.text(font, I18n.get("screen.riverfishing.tackle_station.hook_link_label"),
-                        x + GRID_X, y + advY() + 15, 0xFF9a8d78, false);
-                int tx = x + TRACK_X, ty = y + advY() + 13;
-                g.fill(tx, ty + 3, tx + TRACK_W, ty + 6, 0xFF2a241c);
+                        x + GRID_X, y + advY() + 12, 0xFFC8B89A, false);
+                int tx = x + TRACK_X, ty = y + advY() + 23;
+                g.fill(tx, ty + 3, tx + TRACK_W, ty + 6, 0xFF24170E);
+                g.fill(tx, ty + 6, tx + TRACK_W, ty + 7, 0x40FFE6B0);
                 int hx = tx + (int) ((shownLeader() - 5) / 95.0 * TRACK_W);
-                g.fill(hx - 2, ty, hx + 3, ty + 9, 0xFFFFD97A);
+                sprite(g, KNOB, hx - 3, ty - 1);
                 g.text(font, shownLeader() + " " + I18n.get("screen.riverfishing.tackle_station.cm"),
                         tx + TRACK_W + 6, ty, 0xFFEDE4D0, false);
             } else {
                 // Balance — lures only.
                 g.text(font, I18n.get("screen.riverfishing.tackle_station.balance_label"),
-                        x + GRID_X, y + advY() + 15, 0xFF9a8d78, false);
+                        x + GRID_X, y + advY() + 12, 0xFFC8B89A, false);
                 String[] keys = {"balance_nose", "balance_center", "balance_tail"};
                 for (int i = 0; i < 3; i++) {
-                    int bx = x + TRACK_X + i * 38;
-                    boolean on = menu.balancePos() == i;
-                    g.fill(bx, y + advY() + 12, bx + 36, y + advY() + 23, on ? 0xFF6e5a3a : 0xFF2a241c);
-                    g.centeredText(font, I18n.get("screen.riverfishing.tackle_station." + keys[i]),
-                            bx + 18, y + advY() + 14, on ? 0xFFFFE6B0 : 0xFF9a8d78);
+                    int bx = x + TRACK_X + i * 38, by = y + advY() + 23;
+                    benchButton(g, font, bx, by, 36, 11, I18n.get("screen.riverfishing.tackle_station." + keys[i]),
+                            menu.balancePos() == i, true, in(mouseX, mouseY, bx, by, bx + 36, by + 11));
                 }
             }
         }
 
-        // Material wells + ghost hints + live requirement counts (red when short).
-        int[][] wells = {{HOOK_X, 150}, {76, 150}, {100, 150}, {124, 150}, {176, 150}};
-        for (int[] w : wells) {
-            g.fill(x + w[0] - 1, y + w[1] - 1, x + w[0] + 17, y + w[1] + 17, 0xFF2a241c);
-        }
+        // The rail: the hook picker, the material wells with ghost hints and live counts (red when short),
+        // and the result cup.
+        drawHookPicker(g, x, y, mouseX, mouseY);
+        drawWells(g, x, y, false);
         // §26.2: the sixteen separate dye items collapsed into one ColorCollection, so Items.RED_DYE
         // became Items.DYE.red(). Only this ghost hint needs a dye, so guard just the lookup.
         //? if <26.2 {
-        net.minecraft.world.item.Item redDye = net.minecraft.world.item.Items.RED_DYE;
-        //?} else {
-        /*net.minecraft.world.item.Item redDye = net.minecraft.world.item.Items.DYE.red();
-        *///?}
+        /*net.minecraft.world.item.Item redDye = net.minecraft.world.item.Items.RED_DYE;
+        *///?} else {
+        net.minecraft.world.item.Item redDye = net.minecraft.world.item.Items.DYE.red();
+        //?}
         ItemStack[] ghosts = {
                 new ItemStack(net.minecraft.world.item.Items.IRON_INGOT),
                 new ItemStack(net.minecraft.world.item.Items.STRING),
                 new ItemStack(redDye)};
         int[] need = {menu.ironNeeded(), sel.stringNeeded(), 0};
-        // §hook-pick: the first well is no longer a slot — it is the hook PICKER, with an arrow button
-        // either side of it. The iron cost below already includes whatever size it is showing.
-        g.fill(x + HOOK_X - 1, y + 149, x + HOOK_X + 17, y + 167, 0xFF463b2d);
-        g.item(new ItemStack(ModItems.HOOKS.get(menu.hookIdx()).get()), x + HOOK_X, y + 150);
-        // Dim at the ends of the ladder: a button that cannot do anything should not look
-        // like one that can — #16 is the smallest hook there is and #1 the biggest.
-        drawHookArrow(g, x + HOOK_DOWN_X, y + HOOK_Y, "◄", menu.hookIdx() > 0);
-        drawHookArrow(g, x + HOOK_UP_X, y + HOOK_Y, "►",
-                menu.hookIdx() < TackleForm.HOOK_SIZES.length - 1);
-        g.centeredText(font, "#" + menu.hookSize(), x + HOOK_X + 8, y + 169, 0xFFFFD97A);
-
+        int[] wellX = {76, 100, 124};
         for (int i = 0; i < ghosts.length; i++) {
             ItemStack in = menu.getSlot(i).getItem();
-            int w0 = wells[i + 1][0];        // well 0 is the picker, not a slot
+            int wx = x + wellX[i], wy = y + 150;
             if (in.isEmpty()) {
-                g.fakeItem(ghosts[i], x + w0, y + wells[i + 1][1]);
-                // §26.1: RenderType.guiGhostRecipeOverlay() is gone; vanilla's own GhostSlots now dims a
-                // ghost with a plain fill drawn straight after the fake item, so do the same.
-                g.fill(x + w0, y + wells[i + 1][1],
-                        x + w0 + 16, y + wells[i + 1][1] + 16, 0x8857493a);
+                g.fakeItem(ghosts[i], wx, wy);
+                // §26.1: RenderType.guiGhostRecipeOverlay() is gone; vanilla's GhostSlots dims with a plain fill too
+                g.fill(wx, wy, wx + 16, wy + 16, 0x9946301E);
             }
             if (need[i] > 0) {
                 boolean short_ = in.getCount() < need[i];
-                g.centeredText(font, "×" + need[i], x + w0 + 8, y + 169,
-                        short_ ? 0xFFE06050 : 0xFF9a8d78);
+                g.centeredText(font, "×" + need[i], wx + 8, y + 169, short_ ? 0xFFE06050 : 0xFFD8C8A8);
             }
         }
-        g.text(font, "→", x + 158, y + 154, 0xFFB8AE9A, false);
-
-        drawWells(g, x, y, false);
+        g.text(font, "→", x + 158, y + 154, 0xFFE8DCC0, false);
     }
 
-    /** The material wells and the player's inventory — every page has them; a tie pays out of both. */
+    /** The wells cut into the rail: three and a cup on the tackle pages, the nine store wells on the tying page. */
     private void drawWells(GuiGraphicsExtractor g, int x, int y, boolean store) {
-        if (store) for (int i = 0; i < TackleStationMenu.STORE_SLOTS; i++) g.fill(x + 75 + i * 18, y + 149, x + 93 + i * 18, y + 167, 0xFF2a241c);
-        else for (int wx : new int[] {76, 100, 124, 176}) g.fill(x + wx - 1, y + 149, x + wx + 17, y + 167, 0xFF2a241c);
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                g.fill(x + 42 + col * 18, y + 179 + row * 18, x + 60 + col * 18, y + 197 + row * 18, 0xFF2a241c);
-            }
+        if (store) {
+            for (int i = 0; i < TackleStationMenu.STORE_SLOTS; i++) sprite(g, WELL, x + 75 + i * 18, y + 149);
+            return;
         }
-        for (int col = 0; col < 9; col++) {
-            g.fill(x + 42 + col * 18, y + 239, x + 60 + col * 18, y + 257, 0xFF2a241c);
-        }
+        for (int wx : new int[]{75, 99, 123}) sprite(g, WELL, x + wx, y + 149);
+        sprite(g, CUP, x + 171, y + 145);
     }
 
-    /** One of the two hook-size buttons: same look as the balance buttons, dim when stuck. */
-    private void drawHookArrow(GuiGraphicsExtractor g, int bx, int by, String glyph, boolean live) {
-        g.fill(bx, by, bx + HOOK_BTN_W, by + HOOK_BTN_H, live ? 0xFF6e5a3a : 0xFF2a241c);
-        g.centeredText(font, glyph, bx + HOOK_BTN_W / 2, by + 5, live ? 0xFFFFE6B0 : 0xFF6b6257);
-    }
-
-    /** §tying: the hook picker alone — the Tie page keeps it, because the hook is what you tie on. */
-    private void drawHookPicker(GuiGraphicsExtractor g, int x, int y) {
-        g.fill(x + HOOK_X - 1, y + 149, x + HOOK_X + 17, y + 167, 0xFF463b2d);
+    /** §hook-pick: the hook on its brass plate between two keys — the Tie page keeps it, the hook is what you tie on. */
+    private void drawHookPicker(GuiGraphicsExtractor g, int x, int y, int mouseX, int mouseY) {
+        sprite(g, PLATE, x + HOOK_X - 1, y + 149);
         g.item(new ItemStack(ModItems.HOOKS.get(menu.hookIdx()).get()), x + HOOK_X, y + 150);
-        drawHookArrow(g, x + HOOK_DOWN_X, y + HOOK_Y, "◄", menu.hookIdx() > 0);
-        drawHookArrow(g, x + HOOK_UP_X, y + HOOK_Y, "►", menu.hookIdx() < TackleForm.HOOK_SIZES.length - 1);
+        // Dim at the ends of the ladder: a button that cannot do anything should not look
+        // like one that can — #16 is the smallest hook there is and #1 the biggest.
+        boolean down = menu.hookIdx() > 0, up = menu.hookIdx() < TackleForm.HOOK_SIZES.length - 1;
+        benchButton(g, font, x + HOOK_DOWN_X, y + HOOK_Y, HOOK_BTN_W, HOOK_BTN_H, "◄", false, down,
+                in(mouseX, mouseY, x + HOOK_DOWN_X, y + HOOK_Y, x + HOOK_DOWN_X + HOOK_BTN_W, y + HOOK_Y + HOOK_BTN_H));
+        benchButton(g, font, x + HOOK_UP_X, y + HOOK_Y, HOOK_BTN_W, HOOK_BTN_H, "►", false, up,
+                in(mouseX, mouseY, x + HOOK_UP_X, y + HOOK_Y, x + HOOK_UP_X + HOOK_BTN_W, y + HOOK_Y + HOOK_BTN_H));
         g.centeredText(font, "#" + menu.hookSize(), x + HOOK_X + 8, y + 169, 0xFFFFD97A);
     }
 
@@ -262,11 +283,26 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         return false;
     }
 
-    private void drawTab(GuiGraphicsExtractor g, int x, int y, boolean active, String label) {
-        int w = 64;
-        g.fill(x, y, x + w, y + 14, active ? 0xFF6e5a3a : 0xFF2a241c);
-        g.centeredText(font, label, x + w / 2, y + 3, active ? 0xFFFFE6B0 : 0xFF9a8d78);
+    /** The three labels in their brass frames, each with its page's own tackle drawn small beside the word. */
+    private void drawTabs(GuiGraphicsExtractor g, int x, int y, int mouseX, int mouseY) {
+        int open = tying ? 2 : predatorTab ? 1 : 0;
+        ItemStack[] icons = {new ItemStack(ModItems.FLOAT.get()), new ItemStack(TackleForm.SPINNER.item()),
+                new ItemStack(net.minecraft.world.item.Items.FEATHER)};
+        for (int i = 0; i < 3; i++) {
+            int tx = x + TAB_X[i], ty = y + 8;
+            sprite(g, i == open ? TAB_ON : TAB_OFF, tx, ty);
+            if (i != open && in(mouseX, mouseY, tx, ty, tx + 64, ty + 14)) g.fill(tx + 2, ty + 2, tx + 62, ty + 12, 0x28FFF0C8);
+            g.pose().pushMatrix();
+            g.pose().translate(tx + 3, ty + 2);
+            g.pose().scale(0.625f, 0.625f);
+            g.item(icons[i], 0, 0);
+            g.pose().popMatrix();
+            net.minecraft.util.FormattedCharSequence label = font.split(
+                    Component.translatable("screen.riverfishing.tackle_station." + TAB_KEYS[i]), 48).get(0);
+            g.text(font, label, tx + 14 + (48 - font.width(label)) / 2, ty + 3, i == open ? INK : 0xFF4A3622, false);
+        }
     }
+
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
@@ -301,13 +337,13 @@ public class TackleStationScreen extends AbstractContainerScreen<TackleStationMe
         }
         if (advanced) {
             // Slider: press starts a DRAG (round-4 feedback: click-only was fiddly).
-            if (menu.form().rig && my >= y + advY() + 9 && my < y + advY() + 26
+            if (menu.form().rig && my >= y + advY() + 19 && my < y + advY() + 36
                     && mx >= x + TRACK_X - 4 && mx < x + TRACK_X + TRACK_W + 5) {
                 draggingLeader = true;
                 pendingLeader = leaderAt(mx);
                 return true;
             }
-            if (!menu.form().rig && my >= y + advY() + 12 && my < y + advY() + 23) {
+            if (!menu.form().rig && my >= y + advY() + 23 && my < y + advY() + 34) {
                 for (int i = 0; i < 3; i++) {
                     int bx = x + TRACK_X + i * 38;
                     if (mx >= bx && mx < bx + 36) {

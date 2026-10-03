@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "half=lower": {"model": "riverfishing:block/cattail_bottom"},
+    "half=upper": {"model": "riverfishing:block/cattail_top"}
+  }
+}

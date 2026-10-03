@@ -13,15 +13,18 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 
 /**
- * §bait-crops: a farmland crop that grows a plant bait (corn / pea / barley→pearl barley). Four visual
+ * §bait-crops: a farmland crop that grows a plant bait (pea / barley→pearl barley; corn is the two-block
+ * {@link CornCropBlock}). Four visual
  * stages (the beetroot pattern, {@code AGE_3}) so each stage gets a hand-made texture; everything else —
  * bonemeal, random ticks, farmland checks, Serene Seasons fertility (via the sereneseasons block tags in
  * our datapack) — rides the vanilla {@link CropBlock} behaviour unchanged.
  */
 public class BaitCropBlock extends CropBlock {
+    //? if <26.3 {
     public static final MapCodec<BaitCropBlock> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
             Codec.STRING.fieldOf("seed").forGetter(b -> b.seedPath),
             propertiesCodec()).apply(i, BaitCropBlock::new));
+    //?}
 
     public static final int MAX_AGE = 3;
     public static final IntegerProperty AGE = BlockStateProperties.AGE_3;
@@ -34,10 +37,12 @@ public class BaitCropBlock extends CropBlock {
         this.seedPath = seedPath;
     }
 
+    //? if <26.3 {
     @Override
     public MapCodec<BaitCropBlock> codec() {
         return CODEC;
     }
+    //?}
 
     @Override
     protected ItemLike getBaseSeedId() {

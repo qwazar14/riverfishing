@@ -3,13 +3,13 @@ package com.riverfishing.mixin;
 import net.minecraft.client.renderer.LevelRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 //? if >=26.2 {
-/*import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.riverfishing.client.LineRenderer;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-*///?}
+//?}
 
 /**
  * §26.2: the level pass is fully retained — the in-world cast line (§line-multiplayer) submits its
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LevelRenderer.class)
 public class LevelRendererSubmitMixin {
     //? if >=26.2 {
-    /*@Inject(method = "submitFeatures", at = @At("TAIL"))
+    @Inject(method = "submitFeatures", at = @At("TAIL"))
     private void riverfishing$submitCastLines(net.minecraft.client.renderer.state.level.LevelRenderState state,
             net.minecraft.client.renderer.SubmitNodeCollector collector, boolean translucentOnly,
             CallbackInfo ci) {
@@ -33,5 +33,5 @@ public class LevelRendererSubmitMixin {
                 pt, collector);
         LineRenderer.submit(new PoseStack(), state.cameraRenderState.pos, pt, collector);
     }
-    *///?}
+    //?}
 }

@@ -7,8 +7,8 @@ import com.riverfishing.RiverFishing;
 import com.riverfishing.network.ShoalPacket;
 import net.minecraft.client.Minecraft;
 //? if <26.2 {
-import net.minecraft.client.renderer.MultiBufferSource;
-//?}
+/*import net.minecraft.client.renderer.MultiBufferSource;
+*///?}
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
@@ -58,7 +58,7 @@ public final class ShoalRenderer {
     private ShoalRenderer() {}
 
     //? if <26.2 {
-    // 26.1: immediate mode — pull the shared buffer source and flush the batch ourselves.
+    /*// 26.1: immediate mode — pull the shared buffer source and flush the batch ourselves.
     public static void render(PoseStack pose, Vec3 cam, float partialTick) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
@@ -71,8 +71,8 @@ public final class ShoalRenderer {
             buffers.endBatch(layer);
         }
     }
-    //?} else {
-    /*// 26.2: MultiBufferSource is gone — the quads ride the frame's SubmitNodeCollector, like every
+    *///?} else {
+    // 26.2: MultiBufferSource is gone — the quads ride the frame's SubmitNodeCollector, like every
     // other piece of custom geometry in this build (see LineRenderer.submit).
     public static void submit(PoseStack pose, Vec3 cam, float partialTick,
                               net.minecraft.client.renderer.SubmitNodeCollector collector) {
@@ -82,7 +82,7 @@ public final class ShoalRenderer {
         collector.submitCustomGeometry(pose, LAYER,
                 (posePose, vc) -> drawAll(mc, atlas, pose, cam, partialTick, vc));
     }
-    *///?}
+    //?}
 
     /**
      * §26.x: the atlas the fish sprites are stitched into — the ITEM atlas.
@@ -156,7 +156,9 @@ public final class ShoalRenderer {
                 // drawn, because the school is what you see.
                 if (!e.shoaling() && dist > 40 && e.lengthCm() < 90) continue;
                 if (!e.shoaling() && dist > 26 && e.lengthCm() < 35) continue;
-                TextureAtlasSprite sprite = spriteFor(atlas, e.species());
+                // §variety-icon: a carp is drawn as its scale variety; §koi-genes: a koi as its layers (below)
+                String draw = com.riverfishing.fish.Genome.drawnAs(e.species().getPath(), e.variety());
+                TextureAtlasSprite sprite = spriteFor(atlas, draw);
                 if (sprite == null) continue;
 
                 double x = f.x, y = f.y, z = f.z;
@@ -181,18 +183,18 @@ public final class ShoalRenderer {
 
                 pose.pushPose();
                 pose.translate(x - cam.x, y - cam.y, z - cam.z);
-                pose.mulPose(Axis.YP.rotationDegrees(yaw));
+                com.riverfishing.compat.Mc.rotate(pose, Axis.YP.rotationDegrees(yaw));
                 // §fish-pose: a flounder, a halibut and a ray are drawn from ABOVE — their sprite is the
                 // broad face of a fish that lies horizontal, and these three travel along the bottom.
                 // Parallel to it, then: from the bank one is barely anything, which is exactly what a
                 // flatfish looks like from there.
                 if (com.riverfishing.fish.FishPose.isFlat(e.species().getPath())) {
-                    pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
+                    com.riverfishing.compat.Mc.rotate(pose, Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
                 }
                 // Local Z is the fish's own left-right axis now, so this is a nose-up, nose-down pitch
                 // rather than the screen-plane roll it used to be. It reads better, and it is free.
-                pose.mulPose(Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + f.phase) * 3f + f.pitch));   // §shoal-jump
-                float size = spriteSize(e.lengthCm());
+                com.riverfishing.compat.Mc.rotate(pose, Axis.ZP.rotationDegrees(Mth.sin(time * 0.05f + f.phase) * 3f + f.pitch));   // §shoal-jump
+                float size = e.fry() ? 0.07f : spriteSize(e.lengthCm());
                 // §morph: the fish in the water are painted by the same table as the one in your hand.
                 double age = e.age() / 100.0;
                 String path = e.species().getPath();
@@ -210,8 +212,23 @@ public final class ShoalRenderer {
                 // §fish-3d-fins: the slab is the body; the flat sprite still draws — down the centreline,
                 // without its bulge — and that is where the fins, the fork and every thin thing come
                 // from. Inside the body the flanks cover it; outside, it is the fin.
+                if (com.riverfishing.fish.Genome.isKoiId(path)) {
+                    // §koi-genes: the white sprite and its three masks, each painted its variety's colour —
+                    // exactly the item's layers, so the kohaku in the pond is the kohaku in your hand. A
+                    // hair apart on the near side, so the masks never fight the body for the pixel.
+                    float side = plusNear ? 1f : -1f;
+                    for (int kl = 0; kl < KOI_LAYERS.length; kl++) {
+                        TextureAtlasSprite ls = kl == 0 ? sprite : spriteFor(atlas, KOI_LAYERS[kl]);
+                        if (ls == null) continue;
+                        int tint = kl < 4 ? com.riverfishing.fish.FishMorph.koiTint(e.variety(), kl, e.pattern()) : 0xFFFFFFFF;
+                        body(m, vc, ls, size, side, f, time, alpha, tint, overlayNow, side * 0.004f * kl);
+                    }
+                    pose.popPose();
+                    drew = true;
+                    continue;
+                }
                 boolean slab = FISH_3D && FishMesh.emit(m, vc, sprite, e.species(), size, f, time, alpha, tintNow, overlayNow);
-                body(m, vc, sprite, size, slab ? 0f : (plusNear ? 1f : -1f), f, time, alpha, tintNow, overlayNow);
+                body(m, vc, sprite, size, slab ? 0f : (plusNear ? 1f : -1f), f, time, alpha, tintNow, overlayNow, 0f);
                 pose.popPose();
                 drew = true;
             }
@@ -219,8 +236,12 @@ public final class ShoalRenderer {
         return drew;
     }
 
-    /** The icon sprite for a species, or null when it is not on the atlas (a dev build, a broken pack). */
-    private static TextureAtlasSprite spriteFor(TextureAtlas atlas, Identifier species) {
+    /** §koi-genes: the koi's drawing, layer by layer — the same five its item model stacks. */
+    private static final String[] KOI_LAYERS = {"koi_carp", "koi_carp_hi", "koi_carp_sumi", "koi_carp_crown", "koi_eye"};
+
+    /** The icon sprite of a drawing (a species, a carp variety, a koi layer), or null when it is not on the atlas. */
+    private static TextureAtlasSprite spriteFor(TextureAtlas atlas, String draw) {
+        Identifier species = RiverFishing.id(draw);
         Identifier tex = TEX.computeIfAbsent(species, id -> RiverFishing.id("item/fish/" + id.getPath()));
         TextureAtlasSprite sprite = atlas.getSprite(tex);
         // getSprite hands back the missing-texture checkerboard rather than null; an empty patch of water
@@ -260,7 +281,7 @@ public final class ShoalRenderer {
     public static boolean FISH_3D = false;
 
     private static void body(Matrix4f m, VertexConsumer vc, TextureAtlasSprite sp, float size, float side,
-                             ShoalSim.Fish f, float time, int alpha, int tint, int overlay) {
+                             ShoalSim.Fish f, float time, int alpha, int tint, int overlay, float lift) {
         float r = size / 2f;
         float u0 = sp.getU0(), u1 = sp.getU1();
         float v0 = sp.getV0(), v1 = sp.getV1();
@@ -275,7 +296,7 @@ public final class ShoalRenderer {
             float body = (float) Math.sin(Math.PI * Math.pow(t, 0.75));   // peaks at about a third back
             float thick = side * size * THICK * body;
             float wave = amp * t * t * Mth.sin(phase - t * 6.5f);       // grows toward the tail
-            zs[i] = thick + wave;
+            zs[i] = thick + wave + lift;
         }
         for (int i = 0; i < STRIPS; i++) {
             float ua = u0 + (u1 - u0) * (i / (float) STRIPS), ub = u0 + (u1 - u0) * ((i + 1) / (float) STRIPS);

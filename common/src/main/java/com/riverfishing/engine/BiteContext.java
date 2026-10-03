@@ -53,7 +53,6 @@ public class BiteContext {
     public double biomeTemperature = 0.7;
     public boolean biomeRiver;
     public boolean biomeSwamp;
-    public boolean biomeOcean;
     public double waterWidth = 32;  // max horizontal span of the water body (§4.1)
     public int waterDepth = 3;      // water-column depth (blocks) at the cast point — habitat gate
     /** §pond: a claimed private pond — the depth and width gates are waived; a dug pit is the size its owner made it. */
@@ -69,7 +68,6 @@ public class BiteContext {
      * Empty only where nothing set it (a test, a probe with no level), which reads as "no gate".
      */
     public String province = "";
-    public double castDistance = 8;
 
     // ---- Fed spot (§5) ----
     public boolean inFeedZone;
@@ -83,6 +81,14 @@ public class BiteContext {
 
     /** §ice-fishing: the cast is through a hole in an ice sheet — the engine treats it as winter. */
     public boolean iceHole;
+    /** §boilies: the boilie on the hook — flavours, float, size, dip — or null when there is none. */
+    public com.riverfishing.fish.Boilie boilie;
+    /** §boilies: how far the glass has moved lately, hPa (a sharp change kills appetite). */
+    public double pressureTrend;
+    /** §alife: the living water this cast fishes, its zone and its conditions — null = the old engine. */
+    public com.riverfishing.alife.Lake lake;
+    public int lakeZone = -1;
+    public com.riverfishing.alife.Species.Conditions lakeNow;
 
     /** §population: per-species depletion at this spot (1.0 plenty … 0.1 fished out), or null = neutral. */
     public java.util.function.ToDoubleFunction<net.minecraft.resources.Identifier> speciesFactor;

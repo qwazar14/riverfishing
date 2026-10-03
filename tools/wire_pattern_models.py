@@ -24,7 +24,7 @@ mask at that scale, tinted by one more custom_model_data colour]. A family the s
 
 66 + 792 files on 26.x. Ugly in the jar, invisible in the source: this script owns all of them.
 """
-import copy, io, json, os, sys
+import re, copy, io, json, os, sys
 
 ROOT = sys.argv[1]
 D = sys.argv[2] if len(sys.argv) > 2 else "1211"
@@ -70,7 +70,9 @@ for draw in DRAWS:
         dump(os.path.join(A, "models/item/pattern/%s_%s.json" % (draw, fam)),
              {"parent": "minecraft:item/generated", "textures": {"layer0": tex(draw, fam)}})
         n += 1
-        for i in range(12):
+        buckets = len([f for f in os.listdir(os.path.join(A, "models/item/fish_scaled"))
+                       if re.fullmatch(re.escape(draw) + r"_\d+\.json", f)])   # however many rungs gen_dynamic_icons made
+        for i in range(buckets):
             scaled = json.load(io.open(os.path.join(A, "models/item/fish_scaled/%s_%d.json" % (draw, i)), encoding="utf-8"))
             dump(os.path.join(A, "models/item/pattern_scaled/%s_%s_%d.json" % (draw, fam, i)),
                  {"parent": "riverfishing:item/pattern/%s_%s" % (draw, fam), "display": scaled["display"]})

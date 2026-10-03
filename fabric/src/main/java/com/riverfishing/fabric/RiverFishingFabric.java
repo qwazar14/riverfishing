@@ -39,5 +39,18 @@ public final class RiverFishingFabric implements ModInitializer {
                 BiomeSelectors.tag(com.riverfishing.water.ModBiomeTags.IS_CHERRY),
                 GenerationStep.Decoration.LAKES,
                 ResourceKey.create(Registries.PLACED_FEATURE, RiverFishing.id("cherry_pond")));
+        // Reeds, cattails and snags along the water — the NeoForge side is biome_modifier/patch_*, snags.
+        BiomeModifications.addFeature(
+                BiomeSelectors.tag(com.riverfishing.water.ModBiomeTags.HAS_REEDS),
+                GenerationStep.Decoration.VEGETAL_DECORATION,
+                ResourceKey.create(Registries.PLACED_FEATURE, RiverFishing.id("patch_reed")));
+        BiomeModifications.addFeature(
+                BiomeSelectors.tag(com.riverfishing.water.ModBiomeTags.HAS_CATTAILS),
+                GenerationStep.Decoration.VEGETAL_DECORATION,
+                ResourceKey.create(Registries.PLACED_FEATURE, RiverFishing.id("patch_cattail")));
+        BiomeModifications.addFeature(
+                BiomeSelectors.tag(com.riverfishing.water.ModBiomeTags.HAS_SNAGS),
+                GenerationStep.Decoration.VEGETAL_DECORATION,
+                ResourceKey.create(Registries.PLACED_FEATURE, RiverFishing.id("snags")));
     }
 }

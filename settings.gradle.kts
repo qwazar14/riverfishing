@@ -20,12 +20,12 @@ stonecutter {
     kotlinController = true
     centralScript = "build.gradle"
     create(rootProject) {
-        // 26.x family only (all unobfuscated). 1.21.1 was the port base; it stays frozen/released on the
-        // mc-1.21.1 branch. 26.2 gets added once 26.1.2 compiles + runs.
-        branch("common")   { versions("26.1.2", "26.2") }
-        branch("fabric")   { versions("26.1.2", "26.2") }
-        branch("neoforge") { versions("26.1.2", "26.2") }
-        vcsVersion = "26.1.2"
+        // 26.2 and 26.3: 26.1.2 is no longer supported (user, 2026-09-25). 1.21.1 and 1.20.1 live on their
+        // own branches.
+        branch("common")   { versions("26.2", "26.3") }
+        branch("fabric")   { versions("26.2", "26.3") }
+        branch("neoforge") { versions("26.2", "26.3") }
+        vcsVersion = "26.2"
     }
 }
 

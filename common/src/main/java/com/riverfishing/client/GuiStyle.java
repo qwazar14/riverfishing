@@ -18,13 +18,9 @@ public final class GuiStyle {
     private static final int BRASS = 0xFFB08D3C;
 
     // Legacy palette kept so existing screens compile; warm-tuned for the parchment face.
-    public static final int PANEL_FACE = 0xFFE3D6B8;
     public static final int PANEL_EDGE = 0xFF34271A;
-    public static final int PANEL_HI = 0xFFF0E6CD;
     public static final int TITLE_BAR = 0xFFB08D3C;
     public static final int SLOT_BG = 0xFF5C4A34;
-    public static final int SLOT_DARK = 0xFF2B2016;
-    public static final int SLOT_HI = 0xFF7A6446;
     public static final int TEXT = 0xFF3A2A18; // §26.1: text() respects alpha — 0x00-alpha renders invisible
     public static final int TEXT_HINT = 0xFF6E5A3C;
     public static final int GHOST = 0xFF9C8968;

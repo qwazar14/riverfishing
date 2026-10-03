@@ -53,6 +53,16 @@ public final class ModItems {
     public static final List<RegistrySupplier<Item>> RODS = new ArrayList<>();
     // ---- Caught fish: one item + texture per species (Module 8; ÃÂ§ecology adds habitat-bound species) ----
     public static final String[] FISH_SPECIES = {
+            // §species-table (1.1.0): the author's reviewed table — 33 new species in one wave.
+            "comet_goldfish", "common_minnow", "lake_minnow", "amur_false_gudgeon",
+            "caspian_roach", "taran", "lena_sturgeon", "russian_sturgeon",
+            "black_carp", "amur_pike", "redfin_pickerel", "muksun",
+            "two_banded_seabream", "gibel_humpback", "crucian_humpback", "siberian_roach",
+            "eastern_bream", "greenland_shark", "bighead_carp", "golden_trout",
+            "haddock", "opah", "arctic_grayling", "amur_grayling",
+            "atlantic_wolffish", "masu_salmon", "sevan_trout", "atlantic_saury",
+            "european_hake", "cusk", "albacore", "bigeye_tuna",
+            "goblin_shark",
             // §species-table (0.10): the author's species table — 160 species in one wave.
             "aba_aba", "adonis_pleco", "african_arowana", "african_knifefish",
             "african_pike_characin", "african_sharptooth_catfish", "alligator_gar", "angolan_clarias",
@@ -147,13 +157,19 @@ public final class ModItems {
     // ---- Baits referenced by event drops ----
     public static final RegistrySupplier<Item> WORM;
     public static final RegistrySupplier<Item> CHICKEN_LIVER;
+    /** §boilies: the boilie (flavour, float, size in its data), the paste it is boiled from, and the flavour bottle. */
+    public static final RegistrySupplier<Item> BOILIE;
+    public static final RegistrySupplier<Item> BOILIE_PASTE = reg("boilie_paste",
+            () -> new com.riverfishing.item.BoiliePasteItem(props("boilie_paste")));
+    public static final RegistrySupplier<Item> FLAVOUR = reg("flavour",
+            () -> new com.riverfishing.item.FlavourItem(props("flavour").stacksTo(16).craftRemainder(net.minecraft.world.item.Items.GLASS_BOTTLE)));
     // ---- In-rig components (Module 4): referenced by slot validation ----
     /**
-     * §farm-feed: the crop seeds, held onto because they have to be registered as compostable once
-     * they exist. Vanilla wheat, beetroot, melon and pumpkin seeds all sit at 0.30 and these are the
-     * same kind of thing, so they sit there too.
+     * §farm-feed §no-seeds: the three plant baits ARE what is planted (the seed items are gone, 2026-09-28), held
+     * onto because they have to be registered as compostable once they exist — at a vanilla seed's 0.30; the cob
+     * and the pod a ripe crop gives compost like a carrot.
      */
-    public static final RegistrySupplier<Item> CORN_SEEDS, PEA_SEEDS, BARLEY_SEEDS;
+    public static final RegistrySupplier<Item> CORN, PEA, PEARL_BARLEY, CORN_COB, PEA_POD;
 
     public static final RegistrySupplier<Item> LEADER;
     public static final RegistrySupplier<Item> LEADER_FLUORO;
@@ -189,6 +205,25 @@ public final class ModItems {
     // groundbait bowl; oil is scent in the bowl and nothing else. Both are pantry entries in GroundbaitMix.
     public static final RegistrySupplier<Item> FISH_MEAL = reg("fish_meal", () -> new com.riverfishing.item.FishMealItem(props("fish_meal")));
     public static final RegistrySupplier<Item> FISH_OIL = reg("fish_oil", () -> new com.riverfishing.item.FishOilItem(props("fish_oil")));
+
+    /** §farm-feed: a plant bait composts like a vanilla seed — on 26.3 that is part of the item itself. */
+    private static Item.Properties plantProps(String name) {
+        //? if >=26.3 {
+        /*return props(name).compostable(net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders.COMPOSTABLE_LOW);
+        *///?} else {
+        return props(name);
+        //?}
+    }
+
+    /** §no-seeds: a ripe cob or pod — eaten like bread (2.5 shanks), or crafted into four of its bait. */
+    private static Item.Properties harvestProps(String name) {
+        //? if >=26.3 {
+        /*return props(name).food(new FoodProperties.Builder().nutrition(5).saturationModifier(0.6f).build())
+                .compostable(net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders.COMPOSTABLE_MEDIUM);
+        *///?} else {
+        return props(name).food(new FoodProperties.Builder().nutrition(5).saturationModifier(0.6f).build());
+        //?}
+    }
 
     private static RegistrySupplier<Item> reg(String name, Supplier<Item> supplier) {
         RegistrySupplier<Item> obj = REGISTER.register(name, supplier);
@@ -322,22 +357,26 @@ public final class ModItems {
         registerBait("maggot", false);
         WORM = registerBait("worm", false);
         registerBait("bloodworm", false);
-        registerBait("corn", false);
-        registerBait("pea", false);
-        registerBait("pearl_barley", false);
+        // §no-seeds: the plant baits are planted themselves — on farmland they set their crop
+        CORN = reg("corn", () -> new com.riverfishing.item.PlantableBaitItem("corn", () -> ModBlocks.CORN_CROP.get(), plantProps("corn")));
+        PEA = reg("pea", () -> new com.riverfishing.item.PlantableBaitItem("pea", () -> ModBlocks.PEA_CROP.get(), plantProps("pea")));
+        PEARL_BARLEY = reg("pearl_barley", () -> new com.riverfishing.item.PlantableBaitItem("pearl_barley", () -> ModBlocks.BARLEY_CROP.get(), plantProps("pearl_barley")));
         registerBait("dough", false);
         registerBait("bread", false);
-        registerBait("boilie", false);
+        BOILIE = reg("boilie", () -> new com.riverfishing.item.BoilieItem(props("boilie")));   // §boilies: same id, now with its data
         registerBait("livebait", false);
         CHICKEN_LIVER = registerBait("chicken_liver", false);
         // Mormyshka / "Ice Jig" (ÃÂ§ice-fishing): a tiny weighted winter JIG Ã¢ÂÂ artificial for gate purposes, but
         // SlotRole.BAIT admits it (fished tipped with a grub in the ice rig). Its tooltip is the ice-rod
         // descriptor, not the generic "artificial lure (predators only)" line.
         registerBait("mormyshka", true, "tooltip.riverfishing.bait_ice_jig");
-        // ÃÂ§bait-crops: seeds for the plant baits Ã¢ÂÂ plantable on farmland (vanilla wheat-style seeds).
-        CORN_SEEDS = reg("corn_seeds", () -> new net.minecraft.world.item.BlockItem(ModBlocks.CORN_CROP.get(), props("corn_seeds").useItemDescriptionPrefix()));
-        PEA_SEEDS = reg("pea_seeds", () -> new net.minecraft.world.item.BlockItem(ModBlocks.PEA_CROP.get(), props("pea_seeds").useItemDescriptionPrefix()));
-        BARLEY_SEEDS = reg("barley_seeds", () -> new net.minecraft.world.item.BlockItem(ModBlocks.BARLEY_CROP.get(), props("barley_seeds").useItemDescriptionPrefix()));
+        // §no-seeds: a ripe corn plant gives a cob, a ripe pea plant a pod — eat it, or craft it into four baits.
+        // The old seed items stay registered only so saves load; they turn into their bait in a player's inventory.
+        CORN_COB = reg("corn_cob", () -> new Item(harvestProps("corn_cob")));
+        PEA_POD = reg("pea_pod", () -> new Item(harvestProps("pea_pod")));
+        for (String[] seed : new String[][]{{"corn_seeds", "corn"}, {"pea_seeds", "pea"}, {"barley_seeds", "pearl_barley"}}) {
+            REGISTER.register(seed[0], () -> new com.riverfishing.item.LegacySeedItem(seed[1], props(seed[0])));
+        }
 
         // ----- Artificial baits (predators only) -----
         registerBait("spinner", true);

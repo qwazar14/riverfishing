@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#riverfishing:has_reeds",
+  "features": "riverfishing:patch_reed",
+  "step": "vegetal_decoration"
+}

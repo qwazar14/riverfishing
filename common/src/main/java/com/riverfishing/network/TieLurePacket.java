@@ -110,13 +110,15 @@ public class TieLurePacket implements ModNetwork.RfPacket {
     /** True when the wells and the inventory can pay for the drawing's materials (the hook is asked for separately). */
     public static boolean affordable(AbstractContainerMenu menu, byte[] design) {
         int[] cost = TiedDesign.cost(design);
+        int thread = 0;   // §thread-sum: every colour of thread comes off the one pile of string
         for (int px = 1; px <= TiedDesign.LAST; px++) {
             if (cost[px] == 0) continue;
-            if (count(menu, ingredient(px)) < cost[px]) return false;
+            if (px >= TiedDesign.THREAD0 && px < TiedDesign.THREAD0 + 16) thread += cost[px];
+            else if (count(menu, ingredient(px)) < cost[px]) return false;
             Predicate<ItemStack> dye = dyeFor(px);
             if (dye != null && count(menu, dye) < cost[px]) return false;
         }
-        return true;
+        return thread == 0 || count(menu, ingredient(TiedDesign.THREAD0)) >= thread;
     }
 
     public void handleServer(NetworkManager.PacketContext ctx) {
@@ -147,7 +149,7 @@ public class TieLurePacket implements ModNetwork.RfPacket {
             tag.putString(TiedDesign.TAG_MAKER, maker);
             if (thing) tag.putDouble(TiedDesign.TAG_CHAOS, chaos);
         });
-        if (!sp.getInventory().add(lure)) sp.drop(lure, false);
+        if (!sp.getInventory().add(lure)) com.riverfishing.compat.Mc.drop(sp, lure, false);
         sp.level().playSound(null, sp.blockPosition(), net.minecraft.sounds.SoundEvents.BUNDLE_INSERT,
                 net.minecraft.sounds.SoundSource.PLAYERS, 0.8f, 1.1f);
     }

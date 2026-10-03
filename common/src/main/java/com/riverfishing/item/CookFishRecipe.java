@@ -28,6 +28,7 @@ public final class CookFishRecipe {
         public Smelting() { super(common(), book(), Ingredient.of(Items.COD), new ItemStackTemplate(Items.COOKED_COD), 0.35f, 200); }
         @Override public boolean matches(SingleRecipeInput input, Level level) { return raw(input.item()); }
         @Override public ItemStack assemble(SingleRecipeInput input) { return CookedFish.cook(input.item()); }
+        @Override public Ingredient input() { return anyFish(); }
         @Override public boolean isSpecial() { return true; }
         @SuppressWarnings("unchecked")
         @Override public RecipeSerializer<SmeltingRecipe> getSerializer() { return (RecipeSerializer<SmeltingRecipe>) (RecipeSerializer<?>) com.riverfishing.registry.ModRecipes.COOK_FISH_SMELTING.get(); }
@@ -37,9 +38,26 @@ public final class CookFishRecipe {
         public Smoking() { super(common(), book(), Ingredient.of(Items.COD), new ItemStackTemplate(Items.COOKED_COD), 0.35f, 100); }
         @Override public boolean matches(SingleRecipeInput input, Level level) { return raw(input.item()); }
         @Override public ItemStack assemble(SingleRecipeInput input) { return CookedFish.cook(input.item()); }
+        @Override public Ingredient input() { return anyFish(); }
         @Override public boolean isSpecial() { return true; }
         @SuppressWarnings("unchecked")
         @Override public RecipeSerializer<SmokingRecipe> getSerializer() { return (RecipeSerializer<SmokingRecipe>) (RecipeSerializer<?>) com.riverfishing.registry.ModRecipes.COOK_FISH_SMOKING.get(); }
+    }
+
+    /**
+     * §cook-shift: every species, as the recipe's input. 26.x lets a shift-click put into a furnace only what
+     * some cooking recipe LISTS as its input (the furnace-input property set, synced to the client), and the
+     * placeholder here was cod — so a caught fish went in by dragging and never by shift-click. Built on first
+     * ask, because the recipe is made while the registries may still be filling.
+     */
+    private static Ingredient anyFish;
+
+    static Ingredient anyFish() {
+        if (anyFish == null) {
+            anyFish = Ingredient.of(com.riverfishing.registry.ModItems.FISH_ITEMS.values().stream()
+                    .map(dev.architectury.registry.registries.RegistrySupplier::get));
+        }
+        return anyFish;
     }
 
     static boolean raw(ItemStack s) {

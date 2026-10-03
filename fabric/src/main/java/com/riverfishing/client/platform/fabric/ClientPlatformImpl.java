@@ -41,12 +41,11 @@ public final class ClientPlatformImpl {
     }
 
     /** §26.1: no-op — layers are data-driven (force_translucent in the model; cutout is automatic). */
-    /** /rfrod + /rfnet on fabric-command-api-v2 — Architectury's client-command event never fires here. */
+    /** /rfrod on fabric-command-api-v2 — Architectury's client-command event never fires here. */
     public static void registerClientCommands() {
         net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback.EVENT.register(
                 (dispatcher, registryAccess) -> {
                     com.riverfishing.client.RodDebugCommand.register(dispatcher);
-                    com.riverfishing.client.KeepnetDebugCommand.register(dispatcher);
                 });
     }
 

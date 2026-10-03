@@ -32,12 +32,16 @@ public class TrophyStandBlock extends BaseEntityBlock {
             Block.box(1, 0, 1, 15, 3, 15),    // base
             Block.box(2, 3, 2, 14, 14, 14));  // §mini-aquarium: the glass tank
 
+    //? if <26.3 {
     public static final com.mojang.serialization.MapCodec<TrophyStandBlock> CODEC = simpleCodec(TrophyStandBlock::new);
+    //?}
 
+    //? if <26.3 {
     @Override
     protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
         return CODEC;
     }
+    //?}
 
     public TrophyStandBlock(Properties properties) {
         super(properties);
@@ -53,7 +57,6 @@ public class TrophyStandBlock extends BaseEntityBlock {
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
         // Face the player who placed it, so the mounted fish looks back at them.
         Direction facing = ctx.getHorizontalDirection().getOpposite();
-        com.riverfishing.RiverFishing.LOGGER.info("[RiverFishing] TrophyStand placed: facing={}", facing);
         return defaultBlockState().setValue(FACING, facing);
     }
 
@@ -81,7 +84,7 @@ public class TrophyStandBlock extends BaseEntityBlock {
 
         ItemStack held = player.getItemInHand(hand);
         // §mini-aquarium: up to 5 small fish (≤150 g each); empty hand takes the last one back out.
-        if (held.getItem() instanceof FishItem) {
+        if (held.getItem() instanceof FishItem && !com.riverfishing.item.CookedFish.isCooked(held)) {   // §cooking
             if (FishItem.getWeightG(held) > TrophyStandBlockEntity.MAX_WEIGHT_G) {
                 player.sendOverlayMessage(net.minecraft.network.chat.Component.translatable(
                         "message.riverfishing.aquarium_too_big").withStyle(net.minecraft.ChatFormatting.YELLOW));
@@ -98,7 +101,7 @@ public class TrophyStandBlock extends BaseEntityBlock {
         if (held.isEmpty()) {
             ItemStack fish = be.removeLast();
             if (fish.isEmpty()) return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
-            if (!player.getInventory().add(fish)) player.drop(fish, false);
+            if (!player.getInventory().add(fish)) com.riverfishing.compat.Mc.drop(player, fish, false);
             return net.minecraft.world.InteractionResult.CONSUME;
         }
         return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;

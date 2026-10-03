@@ -39,12 +39,16 @@ public class WormFarmBlock extends BaseEntityBlock {
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 4);
     private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 10, 16);
 
+    //? if <26.3 {
     public static final com.mojang.serialization.MapCodec<WormFarmBlock> CODEC = simpleCodec(WormFarmBlock::new);
+    //?}
 
+    //? if <26.3 {
     @Override
     protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.BaseEntityBlock> codec() {
         return CODEC;
     }
+    //?}
 
     public WormFarmBlock(Properties properties) {
         super(properties);
@@ -84,7 +88,11 @@ public class WormFarmBlock extends BaseEntityBlock {
     protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         ItemStack held = player.getItemInHand(hand);
+        //? if >=26.3 {
+        /*boolean compostable = held.has(net.minecraft.core.component.DataComponents.COMPOSTABLE);
+        *///?} else {
         boolean compostable = ComposterBlock.COMPOSTABLES.containsKey(held.getItem());
+        //?}
         if (compostable && state.getValue(LEVEL) < 4) {
             if (!level.isClientSide()) {
                 if (!player.getAbilities().instabuild) held.shrink(1);

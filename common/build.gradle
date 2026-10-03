@@ -39,6 +39,21 @@ java {
     targetCompatibility = jv
 }
 
+// §26.3-data: 26.3 reads a reshaped loot DSL, renamed trade and feature fields, and brews from recipes —
+// its copies live in common/src/v26_3/resources (tools/gen_data_26_3.py, tools/gen_brewing_26_3.py), and
+// where both trees hold a file the shared one is left out, so the 26.3 copy is the one that ships. NeoForge 26.3 has no
+// compostables data map any more (compost is an item component), so that file stays out.
+if (stonecutter.eval(mcVersion, ">=26.3")) {
+    def overlay = rootProject.file("common/src/v26_3/resources")
+    sourceSets.main.resources.srcDir(overlay)
+    processResources {
+        exclude "data/neoforge/data_maps/item/compostables.json"
+        eachFile { f ->
+            if (!f.file.path.startsWith(overlay.path) && new File(overlay, f.path).exists()) f.exclude()
+        }
+    }
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
     options.release = project.property("java_version") as int

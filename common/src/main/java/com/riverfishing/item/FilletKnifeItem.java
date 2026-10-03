@@ -61,7 +61,7 @@ public class FilletKnifeItem extends Item {
             target.shrink(1);
             ItemStack cut = new ItemStack(ModItems.FISH_STRIP.get(), count);
             if (!player.getInventory().add(cut)) {
-                player.drop(cut, false);
+                com.riverfishing.compat.Mc.drop(player, cut, false);
             }
             knife.hurtAndBreak(1, player, hand == net.minecraft.world.InteractionHand.MAIN_HAND ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
             level.playSound(null, player.blockPosition(), SoundEvents.PLAYER_ATTACK_SWEEP,

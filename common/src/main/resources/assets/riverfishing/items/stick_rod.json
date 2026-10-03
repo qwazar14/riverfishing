@@ -2429,5 +2429,6 @@
         }
       ]
     }
-  }
+  },
+  "hand_animation_on_swap": false
 }

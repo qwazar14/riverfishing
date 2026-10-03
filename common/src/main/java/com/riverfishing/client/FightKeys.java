@@ -60,15 +60,4 @@ public final class FightKeys {
         KeyMappingRegistry.register(LIFT);
         KeyMappingRegistry.register(PUSH);
     }
-
-    /**
-     * What the player would actually have to press, as bound right now.
-     *
-     * <p>The boss-bar strings used to end in a hardcoded {@code [W]}. That was already a lie for anyone
-     * who had rebound movement in the vanilla Controls screen, and it would have become a lie for
-     * everyone the moment these keys existed. One owner: the binding itself is asked.
-     */
-    public static String label(KeyMapping k) {
-        return k.isUnbound() ? "—" : k.getTranslatedKeyMessage().getString();
-    }
 }

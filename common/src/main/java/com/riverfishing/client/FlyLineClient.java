@@ -6,8 +6,8 @@ import com.riverfishing.fishing.Rope;
 import com.riverfishing.item.RodItem;
 import net.minecraft.client.Minecraft;
 //? if <26.2 {
-import net.minecraft.client.renderer.MultiBufferSource;
-//?}
+/*import net.minecraft.client.renderer.MultiBufferSource;
+*///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
@@ -91,10 +91,10 @@ public final class FlyLineClient {
 
     private static boolean screenOpen(Minecraft mc) {
         //? if <26.2 {
-        return mc.screen != null;
-        //?} else {
-        /*return mc.gui.screen() != null;
-        *///?}
+        /*return mc.screen != null;
+        *///?} else {
+        return mc.gui.screen() != null;
+        //?}
     }
 
     /** 0..1 blank load from the rope's pull on the tip; 0 when the rope is not out. */
@@ -407,7 +407,7 @@ public final class FlyLineClient {
     }
 
     //? if <26.2 {
-    /** World pass (26.1, immediate mode): called by {@link LineRenderer#render} before its own early-outs. */
+    /*/^* World pass (26.1, immediate mode): called by {@link LineRenderer#render} before its own early-outs. ^/
     static void render(PoseStack pose, Vec3 cam, float pt) {
         Minecraft mc = Minecraft.getInstance();
         if (!readTip(mc, pt)) return;
@@ -419,8 +419,8 @@ public final class FlyLineClient {
         buffers.endBatch(net.minecraft.client.renderer.rendertype.RenderTypes.lines());
         pose.popPose();
     }
-    //?} else {
-    /*static void submit(PoseStack pose, Vec3 cam, float pt, net.minecraft.client.renderer.SubmitNodeCollector collector) {
+    *///?} else {
+    static void submit(PoseStack pose, Vec3 cam, float pt, net.minecraft.client.renderer.SubmitNodeCollector collector) {
         Minecraft mc = Minecraft.getInstance();
         if (!readTip(mc, pt)) return;
         pose.pushPose();
@@ -429,5 +429,5 @@ public final class FlyLineClient {
                 (posePose, vc) -> drawRope(mc, vc, posePose.pose(), posePose.normal(), pt));
         pose.popPose();
     }
-    *///?}
+    //?}
 }
