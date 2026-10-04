@@ -110,4 +110,10 @@ public class BaitTrapBlock extends BaseEntityBlock implements SimpleWaterloggedB
         }
         return InteractionResult.CONSUME;
     }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof BaitTrapBlockEntity be) be.spill();   // §farm-spill
+        super.onRemove(state, level, pos, newState, moved);
+    }
 }

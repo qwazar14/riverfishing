@@ -85,4 +85,10 @@ public class MaggotFarmBlock extends BaseEntityBlock {
         }
         return InteractionResult.CONSUME;
     }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof MaggotFarmBlockEntity be) be.spill();   // §farm-spill
+        super.onRemove(state, level, pos, newState, moved);
+    }
 }

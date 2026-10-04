@@ -54,6 +54,11 @@ public final class ClientPlatformImpl {
                 Minecraft.getInstance().getItemColors().register(tint, r.get());
             }
         }
+        // §boilies: whatever paints itself from its own data (a boilie's flavour, a bottle's liquid)
+        for (dev.architectury.registry.registries.RegistrySupplier<net.minecraft.world.item.Item> r
+                : com.riverfishing.registry.ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.Tinted t) Minecraft.getInstance().getItemColors().register(t::tint, r.get());
+        }
         // §groundbait-tint: the jar's speckles wear the mix's own colour (layer 1). Forge on 1.20.1 has no
         // colour-handler EVENT here — this whole method exists because it registers straight on the live
         // ItemColors — so the neoforge form of this loop, which is what was pasted in, could never compile.

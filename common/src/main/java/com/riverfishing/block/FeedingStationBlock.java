@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
  * createBlockStateDefinition either, because Block's constructor calls that before a subclass has
  * assigned its kind.
  */
-public class FeedingStationBlock extends WaterUpgradeBlock {
+public class FeedingStationBlock extends WaterUpgradeBlock implements net.minecraft.world.WorldlyContainerHolder {
     /** How full it LOOKS: 0 empty, 1 nearly out, 2 half (one jar), 3 brimming. */
     public static final IntegerProperty FILL = IntegerProperty.create("fill", 0, 3);
 
@@ -69,5 +69,59 @@ public class FeedingStationBlock extends WaterUpgradeBlock {
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         sync(level, pos, WaterUpgrades.get(level).settle(pos));
+    }
+
+    /**
+     * §feeder-hopper: a hopper on top keeps the station fed — each jar it pushes in is loaded as if by hand, and a
+     * full station refuses the next (the hopper simply holds on to it). Only from above, and nothing comes out.
+     */
+    @Override
+    public net.minecraft.world.WorldlyContainer getContainer(BlockState state, net.minecraft.world.level.LevelAccessor level, BlockPos pos) {
+        return new HopperIn(level, pos);
+    }
+
+    private static final class HopperIn extends net.minecraft.world.SimpleContainer implements net.minecraft.world.WorldlyContainer {
+        private static final int[] TOP = {0}, NONE = {};
+        private final net.minecraft.world.level.LevelAccessor level;
+        private final BlockPos pos;
+
+        HopperIn(net.minecraft.world.level.LevelAccessor level, BlockPos pos) {
+            super(1);
+            this.level = level;
+            this.pos = pos;
+        }
+
+        @Override
+        public int getMaxStackSize() {
+            return 1;
+        }
+
+        @Override
+        public int[] getSlotsForFace(net.minecraft.core.Direction side) {
+            return side == net.minecraft.core.Direction.UP ? TOP : NONE;
+        }
+
+        @Override
+        public boolean canPlaceItemThroughFace(int slot, net.minecraft.world.item.ItemStack stack, net.minecraft.core.Direction side) {
+            return side == net.minecraft.core.Direction.UP && getItem(0).isEmpty()
+                    && stack.getItem() instanceof com.riverfishing.item.GroundbaitItem
+                    && level instanceof ServerLevel sl && WaterUpgrades.get(sl).settle(pos) < WaterUpgrades.MAX_CHARGES;
+        }
+
+        @Override
+        public boolean canTakeItemThroughFace(int slot, net.minecraft.world.item.ItemStack stack, net.minecraft.core.Direction side) {
+            return false;
+        }
+
+        /** The hopper put a jar in: load it and empty the slot, as the hand path in WaterUpgradeBlock.use does. */
+        @Override
+        public void setChanged() {
+            if (getItem(0).isEmpty() || !(level instanceof ServerLevel sl)) return;
+            WaterUpgrades data = WaterUpgrades.get(sl);
+            data.put(pos, FEEDING_STATION);
+            data.load(pos, CHARGES_PER_JAR);
+            sync(sl, pos, data.charges(pos));
+            removeItemNoUpdate(0);
+        }
     }
 }

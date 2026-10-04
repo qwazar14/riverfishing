@@ -1,0 +1,89 @@
+{
+  "display": "Bighead carp",
+  "latin": "Hypophthalmichthys nobilis",
+  "group": "cyprinid",
+  "diet": "peaceful",
+  "spawn": {
+    "season": "summer",
+    "sub": "early"
+  },
+  "water_bodies": {
+    "lake": 1.3,
+    "pond": 0.9,
+    "river": 0.8,
+    "swamp": 0.2,
+    "sea": 0.0,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 3000,
+    "max": 40000,
+    "mean": 8000
+  },
+  "length_cm": {
+    "min": 55.0,
+    "max": 146.0
+  },
+  "fight": {
+    "strength": 0.9,
+    "stamina": 0.95,
+    "runs": 4,
+    "pattern": "relentless",
+    "aggression": 0.8
+  },
+  "ideal": {
+    "line": {
+      "type": "mono",
+      "diameter_mm": 0.4,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.79,
+      "nutrition": 0.81
+    },
+    "bait": {
+      "pearl_barley": 0.5,
+      "dough": 0.5,
+      "boilie": 0.4,
+      "corn": 0.3
+    },
+    "hook": {
+      "ideal": 6
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 0.8,
+    "summer": 1.4,
+    "autumn": 0.9,
+    "winter": 0.05
+  },
+  "time": {
+    "dawn": 1.2,
+    "day": 1.1,
+    "dusk": 1.0,
+    "night": 0.4
+  },
+  "weather": {
+    "clear": 1.2,
+    "rain": 0.8,
+    "thunder": 0.6
+  },
+  "depth_pref": "mid",
+  "habitat": {
+    "depth_min": 3,
+    "width_min": 14
+  },
+  "provinces": [
+    "indomalaya",
+    "palearctic",
+    "nearctic",
+    "neotropic"
+  ],
+  "biomes": {
+    "warm": 1.3,
+    "temperate": 1.0
+  },
+  "base": 0.4,
+  "min_angler_level": 28
+}

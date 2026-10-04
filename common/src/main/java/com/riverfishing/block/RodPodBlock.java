@@ -57,7 +57,6 @@ public class RodPodBlock extends BaseEntityBlock {
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
         // Face the way the player is looking (toward the water), so the rods/lines point at it.
         Direction facing = ctx.getHorizontalDirection();
-        com.riverfishing.RiverFishing.LOGGER.info("[RiverFishing] RodPod placed: facing={}", facing);
         return defaultBlockState().setValue(FACING, facing);
     }
 
@@ -111,7 +110,7 @@ public class RodPodBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
         if (level.getBlockEntity(pos) instanceof RodPodBlockEntity be) {
-            InteractionResult r = be.onUse(player, hand);
+            InteractionResult r = be.onUse(player, hand, hit.getLocation());   // §pod-slot: the rod you aimed at
             if (r == InteractionResult.PASS) return InteractionResult.PASS;
             if (r == InteractionResult.FAIL) return InteractionResult.FAIL;
             return InteractionResult.SUCCESS;

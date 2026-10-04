@@ -59,11 +59,11 @@ public final class MarketData extends SavedData {
     /** The fisherman's actual pay for {@code species} given a base price. Never below 1 emerald. */
     public int price(ServerLevel level, String species, int base) {
         decayWith(level);
-        if (species.equals(orderOfTheDay(level))) {
-            return Math.max(1, (int) Math.round(base * ORDER_MULT));
-        }
+        // §order-glut: the order of the day pays ×2.5 on top of the market, not instead of it — it used to skip
+        // the glut, so a farm of that one species sold without end at the full order price.
+        double mult = species.equals(orderOfTheDay(level)) ? ORDER_MULT : 1.0;
         double g = glut.getOrDefault(species, 0.0);
-        return Math.max(1, (int) Math.round(base * (1.0 - 0.5 * g)));
+        return Math.max(1, (int) Math.round(base * mult * (1.0 - 0.5 * g)));
     }
 
     private void decay() {
@@ -73,6 +73,7 @@ public final class MarketData extends SavedData {
     private void decayWith(ServerLevel level) {
         long day = level.getServer().overworld().getDayTime() / 24000L;
         if (lastDay < 0) lastDay = day;
+        if (day < lastDay) { lastDay = day; setDirty(); }   // §time-back: /time set moved the world back
         if (day > lastDay) {
             double k = Math.pow(DAILY_RECOVERY, day - lastDay);
             glut.replaceAll((s, v) -> v * k);

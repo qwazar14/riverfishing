@@ -9,15 +9,21 @@
           "children": [
             {
               "type": "minecraft:item",
-              "name": "riverfishing:pearl_barley",
+              "name": "minecraft:wheat",
               "conditions": [
-                { "condition": "minecraft:block_state_property", "block": "riverfishing:barley_crop", "properties": { "age": "3" } }
-              ],
-              "functions": [
-                { "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 1, "max": 2 } }
+                {
+                  "condition": "minecraft:block_state_property",
+                  "block": "riverfishing:barley_crop",
+                  "properties": {
+                    "age": "3"
+                  }
+                }
               ]
             },
-            { "type": "minecraft:item", "name": "riverfishing:barley_seeds" }
+            {
+              "type": "minecraft:item",
+              "name": "riverfishing:pearl_barley"
+            }
           ]
         }
       ]
@@ -25,17 +31,36 @@
     {
       "rolls": 1,
       "conditions": [
-        { "condition": "minecraft:block_state_property", "block": "riverfishing:barley_crop", "properties": { "age": "3" } }
+        {
+          "condition": "minecraft:block_state_property",
+          "block": "riverfishing:barley_crop",
+          "properties": {
+            "age": "3"
+          }
+        }
       ],
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "riverfishing:barley_seeds",
+          "name": "riverfishing:pearl_barley",
           "functions": [
-            { "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 1, "max": 2 } }
+            {
+              "function": "minecraft:apply_bonus",
+              "enchantment": "minecraft:fortune",
+              "formula": "minecraft:binomial_with_bonus_count",
+              "parameters": {
+                "extra": 3,
+                "probability": 0.5714286
+              }
+            }
           ]
         }
       ]
+    }
+  ],
+  "functions": [
+    {
+      "function": "minecraft:explosion_decay"
     }
   ]
 }

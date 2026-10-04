@@ -78,7 +78,7 @@ public final class ContractBoardState {
         int sw = mc.getWindow().getGuiScaledWidth(), sh = mc.getWindow().getGuiScaledHeight();
         int leftPos = (sw - MERCHANT_W) / 2, topPos = (sh - MERCHANT_H) / 2;
         int x = leftPos + MERCHANT_W + 4, y = topPos;
-        if (x + W > sw - 2) { x = leftPos; y = topPos + MERCHANT_H + 3; }   // no room beside: below
+        if (x + W > sw - 2) { x = leftPos; y = OrderState.belowY(); }   // no room beside: below — under the order sign
         return new int[]{x, y};
     }
 

@@ -63,11 +63,8 @@ public final class FishProfile {
     public final double fightAggression;
 
     // Ideal tackle
-    public final Set<String> idealRods;
-    public final int reelSize, reelTolerance;
     public final String lineType;
     public final double lineDiameter, lineTolerance;
-    public final Set<String> idealRigs;
     /**
      * §groundbait-one-jar: the grind this species answers to. 0 is a cloud of dust, 1 is whole grain
      * lying on the bottom. <b>A big fraction calls big fish</b>, so this mostly tracks the fish's own
@@ -90,7 +87,6 @@ public final class FishProfile {
     public final Map<String, Double> weather;
     public final Map<String, Double> bed;
     public final String depthPref;
-    public final double distMin, distMax;
 
     // Habitat hard gates (§ecology): the fish only lives in water of this depth/size…
     public final int depthMin, depthMax;
@@ -158,13 +154,9 @@ public final class FishProfile {
         this.fightRuns = b.fightRuns;
         this.fightPattern = b.fightPattern;
         this.fightAggression = b.fightAggression;
-        this.idealRods = b.idealRods;
-        this.reelSize = b.reelSize;
-        this.reelTolerance = b.reelTolerance;
         this.lineType = b.lineType;
         this.lineDiameter = b.lineDiameter;
         this.lineTolerance = b.lineTolerance;
-        this.idealRigs = b.idealRigs;
         this.gbFraction = b.gbFraction;
         this.gbNutrition = b.gbNutrition;
         this.baitScores = b.baitScores;
@@ -176,8 +168,6 @@ public final class FishProfile {
         this.weather = b.weather;
         this.bed = b.bed;
         this.depthPref = b.depthPref;
-        this.distMin = b.distMin;
-        this.distMax = b.distMax;
         this.legendaryWeightG = b.legendaryWeightG;
         this.legendaryChance = b.legendaryChance;
         this.base = b.base;
@@ -194,6 +184,20 @@ public final class FishProfile {
     }
 
     // ---- Lookups used by the engine ----
+
+    /**
+     * §length-weight: the length of a fish of this weight, in cm. Inside the species' range it is the range read
+     * in cube-root weight. Below the lightest adult the fish keeps the same build and shrinks with the cube root
+     * of its weight, so a 3 kg mako grown up in a pond is about 80 cm; it used to be clamped to the adults'
+     * 150. Never over the longest adult.
+     */
+    public double lengthAt(double weightG) {
+        double wc = Math.cbrt(Math.max(1.0, weightG));
+        double wcMin = Math.cbrt(Math.max(1.0, weightMin)), wcMax = Math.cbrt(Math.max(1.0, weightMax));
+        if (wc < wcMin) return Math.max(1.0, lengthMin * wc / wcMin);
+        double lf = wcMax > wcMin ? (wc - wcMin) / (wcMax - wcMin) : 0.5;
+        return Math.min(lengthMax, lengthMin + (lengthMax - lengthMin) * lf);
+    }
 
     public double waterFactor(WaterType type) {
         return waterBodies.getOrDefault(type.key(), 0.0);
@@ -252,6 +256,16 @@ public final class FishProfile {
     public double baitScore(String baitId) {
         if (baitId == null) return 0.0;
         return baitScores.getOrDefault(baitId, 0.0);
+    }
+
+    /** §weight-curve: this species' size curve exponent — {@link SizeCurve#k}. */
+    public double sizeCurveK() {
+        return SizeCurve.k(weightMin, weightMax, weightMean, weightMeanSet);
+    }
+
+    /** §weight-scale: the share of this species' ordinary catches lighter than {@code grams} — {@link SizeCurve#percentile}. */
+    public double weightPercentile(double grams) {
+        return SizeCurve.percentile(weightMin, weightMax, sizeCurveK(), grams);
     }
 
     /**
@@ -328,14 +342,10 @@ public final class FishProfile {
         b.fightAggression = GsonHelper.getAsDouble(fight, "aggression", 0.5);
 
         JsonObject ideal = GsonHelper.getAsJsonObject(json, "ideal", new JsonObject());
-        b.idealRods = readStringSet(ideal, "rod");
-        b.reelSize = GsonHelper.getAsInt(ideal, "reel_size", 0);
-        b.reelTolerance = GsonHelper.getAsInt(ideal, "reel_tolerance", 1000);
         JsonObject line = GsonHelper.getAsJsonObject(ideal, "line", new JsonObject());
         b.lineType = GsonHelper.getAsString(line, "type", "mono");
         b.lineDiameter = GsonHelper.getAsDouble(line, "diameter_mm", 0.20);
         b.lineTolerance = GsonHelper.getAsDouble(line, "tolerance_mm", 0.06);
-        b.idealRigs = readStringSet(ideal, "rig");
         b.baitScores = readDoubleMap(GsonHelper.getAsJsonObject(ideal, "bait", new JsonObject()));
         // §groundbait-one-jar: "groundbait" used to be a LIST of jar names and is now a pair of numbers.
         // The isJsonObject guard is not politeness — a modpack still shipping the old array would other-
@@ -357,10 +367,6 @@ public final class FishProfile {
         b.bed = readDoubleMap(GsonHelper.getAsJsonObject(json, "bed", new JsonObject()));
         b.depthPref = GsonHelper.getAsString(json, "depth_pref", "bottom");
 
-        JsonObject dist = GsonHelper.getAsJsonObject(json, "distance_pref", new JsonObject());
-        b.distMin = GsonHelper.getAsDouble(dist, "min", 2);
-        b.distMax = GsonHelper.getAsDouble(dist, "max", 40);
-
         b.base = GsonHelper.getAsDouble(json, "base", 1.0);
         b.minAnglerLevel = GsonHelper.getAsInt(json, "min_angler_level", 0);
 
@@ -378,8 +384,9 @@ public final class FishProfile {
         b.widthMin = GsonHelper.getAsDouble(hab, "width_min", 0);
         b.widthMax = GsonHelper.getAsDouble(hab, "width_max", 99999);
         b.biomes = readDoubleMap(GsonHelper.getAsJsonObject(json, "biomes", new JsonObject()));
-        b.provinces = readStringSet(json, "provinces");          // §provinces
-        b.biomesRequire = readStringSet(json, "biomes_require"); // §biomes-require
+        // §provinces §biomes-require: plain string arrays, read by the set reader.
+        b.provinces = readStringSet(json, "provinces");
+        b.biomesRequire = readStringSet(json, "biomes_require");
         // §breed-rate: a map of id to how well the cross takes. Written as a bare ARRAY in the
         // first cut of §breeds-with and by any third-party profile that copied it — those read as
         // "everything at full strength", which is what they meant, rather than failing the load.
@@ -459,11 +466,8 @@ public final class FishProfile {
         int fightRuns;
         String fightPattern = "steady";
         double fightAggression = 0.5;
-        Set<String> idealRods = new HashSet<>();
-        int reelSize, reelTolerance;
         String lineType = "mono";
         double lineDiameter, lineTolerance;
-        Set<String> idealRigs = new HashSet<>();
         double gbFraction, gbNutrition;
         Map<String, Double> baitScores = new HashMap<>();
         int hookIdeal, hookTolerance;
@@ -473,7 +477,6 @@ public final class FishProfile {
         Map<String, Double> weather = new HashMap<>();
         Map<String, Double> bed = new java.util.HashMap<>();
         String depthPref = "bottom";
-        double distMin, distMax;
         double base = 1.0;
         int minAnglerLevel = 0;
         int legendaryWeightG = 0;

@@ -1,6 +1,7 @@
 {
   "credit": "River Fishing \u2014 snag pile, a tangle of dark oak; opens in Blockbench",
   "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
   "textures": {
     "particle": "minecraft:block/dark_oak_log",
     "side": "minecraft:block/dark_oak_log",
@@ -454,6 +455,5 @@
         0.5
       ]
     }
-  },
-  "render_type": "minecraft:cutout"
+  }
 }

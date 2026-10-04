@@ -77,6 +77,9 @@ public class RodItem extends Item {
         } else {
             sessionAction = dev.architectury.utils.EnvExecutor.getEnvSpecific(
                     () -> () -> com.riverfishing.client.ClientLineState.active(), () -> () -> false);
+            // §rod-anim: what the click LOOKS like — a turn of the handle, a twitch, a hookset
+            if (sessionAction) dev.architectury.utils.EnvExecutor.runInEnv(net.fabricmc.api.EnvType.CLIENT,
+                    () -> () -> com.riverfishing.client.RodAnim.click());
         }
         // §click-retrieve (0.5.1): with a LIVE session every CLICK is a crank/twitch — the lure game
         // (handled in handleRodUse; gaps between clicks ARE the lure action). No item-use hold during
@@ -227,8 +230,12 @@ public class RodItem extends Item {
         }
         // §reel-hint: a reel-less blank tells you which reel sizes spool onto it.
         if (rodType.takesReel() && RodData.get(stack, ComponentSlot.REEL).isEmpty()) {
-            tooltip.add(Component.translatable("tooltip.riverfishing.rod_reel_sizes",
-                    rodType.minReel(), rodType.maxReel()).withStyle(ChatFormatting.DARK_AQUA));
+            // §fly-reel-hint: a fly blank seats the fly reel of its own class and nothing else — the size
+            // window was a spinning rod's, and it told a #9 owner that a #9 reel (size 8000) would not fit
+            tooltip.add((rodType.isFly()
+                    ? Component.translatable("tooltip.riverfishing.rod_reel_fly", rodType.flyWeight())
+                    : Component.translatable("tooltip.riverfishing.rod_reel_sizes", rodType.minReel(), rodType.maxReel()))
+                    .withStyle(ChatFormatting.DARK_AQUA));
         }
         appendComponentLine(stack, ComponentSlot.REEL, tooltip);
         appendComponentLine(stack, ComponentSlot.LINE, tooltip);

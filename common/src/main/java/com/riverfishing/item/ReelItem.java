@@ -45,11 +45,6 @@ public class ReelItem extends Item implements RodComponentItem {
 
     public int size() { return size; }
 
-    /** Distance multiplier for the cast mini-game (§4): larger reels throw farther. */
-    public double distanceMultiplier() {
-        return 1.0 + (size - 1000) / 6000.0 * 0.9;
-    }
-
     /**
      * Maximum drag in kg (§3.2): a weak drag against a strong fish snaps the line.
      * §sea-tackle (0.5.0): the freshwater ladder stays linear (1000→1 kg … 7000→7 kg); the saltwater
@@ -75,7 +70,8 @@ public class ReelItem extends Item implements RodComponentItem {
 
     @Override
     public void appendHoverText(ItemStack stack, net.minecraft.world.level.Level level, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.riverfishing.reel_size", size).withStyle(s -> s.withColor(0xA0A0A0)));
+        tooltip.add(fly ? Component.translatable("tooltip.riverfishing.reel_fly_for", flyWeight).withStyle(s -> s.withColor(0x88C8E6))
+                : Component.translatable("tooltip.riverfishing.reel_size", size).withStyle(s -> s.withColor(0xA0A0A0)));
         tooltip.add(Component.translatable("tooltip.riverfishing.reel_drag", String.format("%.1f", maxDragKg())).withStyle(s -> s.withColor(0xA0A0A0)));
         if (fly) return;   // §fly-reel: the fly line is the only line, no diameter window to print
         // §tackle-compat: the working line-diameter window this spool takes.

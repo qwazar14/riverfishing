@@ -22,8 +22,48 @@ import javax.annotation.Nullable;
  * drop on break.
  */
 public class FishingStallBlock extends Block implements net.minecraft.world.level.block.EntityBlock {
+    /**
+     * §tackle-station (0.9.x): the bench is a BARREL with drawers down one side, so it has to know which
+     * way it is pointing — without this the drawers face whichever way north happens to be.
+     */
+    public static final net.minecraft.world.level.block.state.properties.DirectionProperty FACING =
+            net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
+
+    /** The model is a barrel inset from the block edges; the hitbox follows it rather than the full cube. */
+    private static final net.minecraft.world.phys.shapes.VoxelShape SHAPE =
+            Block.box(1.0, 0.0, 1.0, 15.0, 15.5, 15.0);
+
     public FishingStallBlock(Properties properties) {
         super(properties);
+        registerDefaultState(stateDefinition.any().setValue(FACING, net.minecraft.core.Direction.NORTH));
+    }
+
+    @Override
+    protected void createBlockStateDefinition(
+            net.minecraft.world.level.block.state.StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(FACING);
+    }
+
+    @Override
+    public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    public BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    public BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    @Override
+    public net.minecraft.world.phys.shapes.VoxelShape getShape(
+            BlockState state, net.minecraft.world.level.BlockGetter level, BlockPos pos,
+            net.minecraft.world.phys.shapes.CollisionContext context) {
+        return SHAPE;
     }
 
     @Nullable

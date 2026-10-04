@@ -79,7 +79,7 @@ public class IceHoleBlock extends IceBlock {
                 ? player instanceof ServerPlayer sp2 && FishingManager.hasSession(sp2)
                 : dev.architectury.utils.EnvExecutor.getEnvSpecific(
                         () -> () -> com.riverfishing.client.ClientLineState.active(), () -> () -> false);
-        if (lineOut) return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        if (lineOut) return InteractionResult.PASS;
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
             FishingManager.startIceFishing(sp, pos, hand);
         }

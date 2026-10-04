@@ -1,7 +1,1569 @@
 {
-  "parent": "minecraft:block/crop",
-  "render_type": "minecraft:cutout",
+  "ambientocclusion": false,
   "textures": {
-    "crop": "riverfishing:block/corn_stage1"
-  }
+    "corn": "riverfishing:block/corn",
+    "particle": "riverfishing:block/corn"
+  },
+  "elements": [
+    {
+      "name": "stalk",
+      "from": [
+        7,
+        -1,
+        7
+      ],
+      "to": [
+        9,
+        5,
+        9
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          -1,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            13,
+            2,
+            16
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            1,
+            13,
+            2,
+            16
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            1,
+            13,
+            2,
+            16
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            1,
+            13,
+            2,
+            16
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            1,
+            13,
+            2,
+            14
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            1,
+            15,
+            2,
+            16
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_1_0",
+      "from": [
+        9,
+        -1,
+        7
+      ],
+      "to": [
+        10,
+        1,
+        9
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          -1,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            0.5,
+            2.5,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            2,
+            0.5,
+            3,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            2,
+            1,
+            2.5,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            2,
+            0.5,
+            3,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            2,
+            1,
+            2.5,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            2,
+            2,
+            2.5,
+            3
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_1_1",
+      "from": [
+        10,
+        0,
+        7
+      ],
+      "to": [
+        11,
+        2,
+        9
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          -1,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3.5,
+            0,
+            4,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            3,
+            3,
+            4,
+            4
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            3,
+            2,
+            3.5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            3,
+            0,
+            4,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            3.5,
+            0.5,
+            4,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            3,
+            0.5,
+            3.5,
+            1.5
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_1_2",
+      "from": [
+        11,
+        1,
+        7
+      ],
+      "to": [
+        12,
+        2,
+        9
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          -1,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            2.5,
+            4.5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            4,
+            2.5,
+            5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            4,
+            1.5,
+            4.5,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            4,
+            3.5,
+            5,
+            4
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            2,
+            5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            4.5,
+            2,
+            5,
+            3
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_1_3",
+      "from": [
+        12,
+        -1,
+        7.5
+      ],
+      "to": [
+        13,
+        1,
+        8.5
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          -1,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            1,
+            5.5,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            5.5,
+            3,
+            6,
+            4
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            5.5,
+            3,
+            6,
+            4
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            5.5,
+            0.5,
+            6,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            5,
+            2.5,
+            5.5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            5.5,
+            3.5,
+            6,
+            4
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_2_0",
+      "from": [
+        6,
+        -1,
+        7
+      ],
+      "to": [
+        7,
+        1,
+        9
+      ],
+      "rotation": {
+        "angle": 22.5,
+        "axis": "y",
+        "origin": [
+          8,
+          -1,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            2,
+            2.5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            2,
+            3,
+            3,
+            4
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            2,
+            0,
+            2.5,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            2,
+            2.5,
+            3,
+            3.5
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            2.5,
+            0.5,
+            3,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            2.5,
+            3,
+            3,
+            4
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_2_1",
+      "from": [
+        5,
+        0,
+        7
+      ],
+      "to": [
+        6,
+        2,
+        9
+      ],
+      "rotation": {
+        "angle": 22.5,
+        "axis": "y",
+        "origin": [
+          8,
+          -1,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3.5,
+            1,
+            4,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            3,
+            2,
+            4,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            3.5,
+            1,
+            4,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            3,
+            1,
+            4,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            3.5,
+            0,
+            4,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            3,
+            1,
+            3.5,
+            2
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_2_2",
+      "from": [
+        4,
+        1,
+        7
+      ],
+      "to": [
+        5,
+        2,
+        9
+      ],
+      "rotation": {
+        "angle": 22.5,
+        "axis": "y",
+        "origin": [
+          8,
+          -1,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            3,
+            4.5,
+            3.5
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            4,
+            0,
+            5,
+            0.5
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            4,
+            2.5,
+            4.5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            4,
+            2,
+            5,
+            2.5
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            4,
+            0,
+            4.5,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            4.5,
+            1,
+            5,
+            2
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_2_3",
+      "from": [
+        3,
+        -1,
+        7.5
+      ],
+      "to": [
+        4,
+        1,
+        8.5
+      ],
+      "rotation": {
+        "angle": 22.5,
+        "axis": "y",
+        "origin": [
+          8,
+          -1,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            2,
+            5.5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            5,
+            0,
+            5.5,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            5,
+            1.5,
+            5.5,
+            2.5
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            5,
+            1.5,
+            5.5,
+            2.5
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            5,
+            1.5,
+            5.5,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            5,
+            3,
+            5.5,
+            3.5
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_3_0",
+      "from": [
+        7,
+        2,
+        9
+      ],
+      "to": [
+        9,
+        4,
+        10
+      ],
+      "rotation": {
+        "angle": -22.5,
+        "axis": "y",
+        "origin": [
+          8,
+          2,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            0,
+            3,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            2,
+            1.5,
+            2.5,
+            2.5
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            2,
+            3,
+            3,
+            4
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            2,
+            0,
+            2.5,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            2,
+            3,
+            3,
+            3.5
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            2,
+            1,
+            3,
+            1.5
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_3_1",
+      "from": [
+        7,
+        3,
+        10
+      ],
+      "to": [
+        9,
+        5,
+        11
+      ],
+      "rotation": {
+        "angle": -22.5,
+        "axis": "y",
+        "origin": [
+          8,
+          2,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            0,
+            4,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            3.5,
+            0,
+            4,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            3,
+            0,
+            4,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            3.5,
+            2.5,
+            4,
+            3.5
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            3,
+            1,
+            4,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            3,
+            3.5,
+            4,
+            4
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_3_2",
+      "from": [
+        7,
+        4,
+        11
+      ],
+      "to": [
+        9,
+        5,
+        12
+      ],
+      "rotation": {
+        "angle": -22.5,
+        "axis": "y",
+        "origin": [
+          8,
+          2,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            0.5,
+            5,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            4.5,
+            2.5,
+            5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            4,
+            2,
+            5,
+            2.5
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            4,
+            0,
+            4.5,
+            0.5
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            4,
+            1.5,
+            5,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            4,
+            1,
+            5,
+            1.5
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_3_3",
+      "from": [
+        7.5,
+        2,
+        12
+      ],
+      "to": [
+        8.5,
+        4,
+        13
+      ],
+      "rotation": {
+        "angle": -22.5,
+        "axis": "y",
+        "origin": [
+          8,
+          2,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            2,
+            5.5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            5,
+            2.5,
+            5.5,
+            3.5
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            5.5,
+            2.5,
+            6,
+            3.5
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            5,
+            2.5,
+            5.5,
+            3.5
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            5,
+            1,
+            5.5,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            5.5,
+            2.5,
+            6,
+            3
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_4_0",
+      "from": [
+        7,
+        2,
+        6
+      ],
+      "to": [
+        9,
+        4,
+        7
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          2,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            3,
+            3,
+            4
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            2,
+            2,
+            2.5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            2,
+            3,
+            3,
+            4
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            2.5,
+            0,
+            3,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            2,
+            1,
+            3,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            2,
+            3,
+            3,
+            3.5
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_4_1",
+      "from": [
+        7,
+        3,
+        5
+      ],
+      "to": [
+        9,
+        5,
+        6
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          2,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            1.5,
+            4,
+            2.5
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            3,
+            0,
+            3.5,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            3,
+            2,
+            4,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            3.5,
+            2,
+            4,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            3,
+            0,
+            4,
+            0.5
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            3,
+            1.5,
+            4,
+            2
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_4_2",
+      "from": [
+        7,
+        4,
+        4
+      ],
+      "to": [
+        9,
+        5,
+        5
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          2,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            0.5,
+            5,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            4,
+            0.5,
+            4.5,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            4,
+            0,
+            5,
+            0.5
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            4,
+            3,
+            4.5,
+            3.5
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            4,
+            0,
+            5,
+            0.5
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            4,
+            2.5,
+            5,
+            3
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_4_3",
+      "from": [
+        7.5,
+        2,
+        3
+      ],
+      "to": [
+        8.5,
+        4,
+        4
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          2,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            3,
+            5.5,
+            4
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            5.5,
+            0.5,
+            6,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            5,
+            2,
+            5.5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            5,
+            2,
+            5.5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            5,
+            1.5,
+            5.5,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            5,
+            3.5,
+            5.5,
+            4
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_5_0",
+      "from": [
+        9,
+        4,
+        7
+      ],
+      "to": [
+        10,
+        6,
+        9
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          8,
+          4,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2.5,
+            1,
+            3,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            2,
+            1,
+            3,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            2.5,
+            0.5,
+            3,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            2,
+            1.5,
+            3,
+            2.5
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            2.5,
+            1,
+            3,
+            2
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            2.5,
+            2,
+            3,
+            3
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_5_1",
+      "from": [
+        10,
+        5,
+        7
+      ],
+      "to": [
+        11,
+        7,
+        9
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          8,
+          4,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            1.5,
+            3.5,
+            2.5
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            3,
+            2.5,
+            4,
+            3.5
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            3.5,
+            0.5,
+            4,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            3,
+            0.5,
+            4,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            3,
+            0,
+            3.5,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            3,
+            2,
+            3.5,
+            3
+          ],
+          "texture": "#corn"
+        }
+      }
+    },
+    {
+      "name": "leaf_5_2",
+      "from": [
+        11,
+        6,
+        7.5
+      ],
+      "to": [
+        12,
+        8,
+        8.5
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          8,
+          4,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4.5,
+            0.5,
+            5,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "east": {
+          "uv": [
+            4,
+            2,
+            4.5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "south": {
+          "uv": [
+            4.5,
+            0,
+            5,
+            1
+          ],
+          "texture": "#corn"
+        },
+        "west": {
+          "uv": [
+            4.5,
+            0.5,
+            5,
+            1.5
+          ],
+          "texture": "#corn"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            2.5,
+            5,
+            3
+          ],
+          "texture": "#corn"
+        },
+        "down": {
+          "uv": [
+            4,
+            2.5,
+            4.5,
+            3
+          ],
+          "texture": "#corn"
+        }
+      }
+    }
+  ]
 }

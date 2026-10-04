@@ -68,6 +68,12 @@ public final class ClientPlatformImpl {
                                 ? be.color() : 0xE8E6DF);
                     }, b.get());
         }
+        // §boilies: whatever paints itself from its own data (a boilie's flavour, a bottle's liquid)
+        for (RegistrySupplier<Item> r : ModItems.ALL) {
+            if (r.get() instanceof com.riverfishing.item.Tinted t) {
+                net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register(t::tint, r.get());
+            }
+        }
     }
 
     public static void registerScreens() {

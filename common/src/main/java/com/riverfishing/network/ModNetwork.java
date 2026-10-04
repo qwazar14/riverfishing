@@ -103,6 +103,11 @@ public final class ModNetwork {
             LineSyncPacket p = LineSyncPacket.decode(buf);
             ctx.queue(p::handleClient);
         });
+        // §fight-moves: the fish lifted out, or gone
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, FishGonePacket.TYPE, (buf, ctx) -> {
+            FishGonePacket p = FishGonePacket.decode(buf);
+            ctx.queue(p::handleClient);
+        });
         // §shoal: the fish you can see in the water.
         // §order-panel: what the fisherman wants today, for the counter the player just opened.
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, OrderPacket.TYPE, (buf, ctx) -> {

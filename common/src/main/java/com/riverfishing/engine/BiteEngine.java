@@ -44,7 +44,7 @@ public final class BiteEngine {
     public static double baitScore(FishProfile p, BiteContext c) {
         double best = 0.0;
         for (String bait : c.baits) {
-            best = Math.max(best, p.baitScore(bait));
+            best = Math.max(best, "boilie".equals(bait) ? boilieBaitScore(p, c) : p.baitScore(bait));
         }
         // §tying: a tied lure fishes as its template says for this fish's family.
         if (c.tied != null) {
@@ -57,6 +57,32 @@ public final class BiteEngine {
             else best = (best > 0 ? best : 1.0) * c.tied.affinity(p.diet, p.group);
         }
         return best;
+    }
+
+    /**
+     * §boilies: how much this species rates the boilie on the hook as a bait. Too big for its mouth, nothing;
+     * a small sweet one is what the roach and the bream strip off the hook — they take it like their dough.
+     */
+    private static double boilieBaitScore(FishProfile p, BiteContext c) {
+        com.riverfishing.fish.Boilie b = c.boilie;
+        if (b == null) return p.baitScore("boilie");
+        if (b.tooBigFor(p.weightMean)) return 0.0;
+        double own = p.baitScore("boilie");
+        if (own <= 0 && b.nuisanceBait()) {
+            own = 0.6 * Math.max(p.baitScore("dough"), Math.max(p.baitScore("bread"), p.baitScore("maggot")));
+        }
+        return own;
+    }
+
+    /** §boilies: the moment the boilie is judged in — season, hour, sky, glass, water, bottom, and who is eating. */
+    public static com.riverfishing.fish.Boilie.Scene boilieScene(FishProfile p, BiteContext c) {
+        double cover = c.lake != null && c.lakeZone >= 0 && c.lakeZone < c.lake.zones.size() ? c.lake.zones.get(c.lakeZone).cover : 0.3;
+        return new com.riverfishing.fish.Boilie.Scene(
+                c.season == null ? com.riverfishing.engine.Season.SUMMER : c.season, c.time, c.weather,
+                Math.abs(c.pressureTrend) > 3.0, c.clarity, c.bed, cover,
+                c.water == com.riverfishing.water.WaterType.RIVER || c.biomeRiver,
+                p == null || p.diet == null ? "" : p.diet, p == null || p.group == null ? "" : p.group,
+                p == null ? 1000 : p.weightMean);
     }
 
     /** Best-fitting hook among those loaded. Lure rigs carry no separate hook — the lure's treble counts. */
@@ -186,24 +212,27 @@ public final class BiteEngine {
         return Math.max(0.0, Math.min(1.0, typeMatch * diaGrad));
     }
 
-    private static double reelScore(FishProfile p, BiteContext c) {
-        if (c.reelSize == 0) {
-            return p.reelSize == 0 ? 1.0 : 0.25;
-        }
-        if (p.reelSize == 0) {
-            return 0.6;
-        }
-        return gradient(c.reelSize, p.reelSize, p.reelTolerance);
-    }
-
     // ---- Environmental suitability E (§1.2) ----
 
     public static double environmentScore(FishProfile p, BiteContext c) {
+        return environmentScore(p, c, true);
+    }
+
+    /**
+     * §alife: whether and how well this species LIVES here — every gate and the water, biome, community
+     * and bed factors, but not the season, the hour or the weather. Those decide how active the fish is,
+     * which the living water plays out itself; this decides who is in it at all.
+     */
+    public static double habitatScore(FishProfile p, BiteContext c) {
+        return environmentScore(p, c, false);
+    }
+
+    private static double environmentScore(FishProfile p, BiteContext c, boolean clock) {
         // §livebait-4: the mouth rule is not a habitat gate the stocking floor may lift — a stocked
         // species whose biggest specimen is under five times the bait still cannot take it. A 505 g
         // pollock took a 2.5 kg bait through this floor. First, before anything is scored.
         if (c.livebaitG > 0 && p.weightMax < c.livebaitG * PREY_RATIO) return 0.0;
-        double natural = naturalScore(p, c);
+        double natural = naturalScore(p, c, clock);
         double presence = c.stockedPresence != null ? c.stockedPresence.applyAsDouble(p.id) : 0.0;
         // §hybrid-rare: a hybrid is a fish of the breeding tank, not of the river — wild water holds it one
         // time in twenty-five; stocked and settled it fishes like anything else (the presence rule below)
@@ -218,11 +247,7 @@ public final class BiteEngine {
     /** §livebait-4: the taker is at least this many times the baitfish — the top of the 10–20 % prey band. */
     public static final double PREY_RATIO = 5.0;
 
-    private static double naturalScore(FishProfile p, BiteContext c) {
-        // §livebait-4 (1.0.0): a predator takes prey a tenth to a fifth of its own weight — a 12 kg pike
-        // does not look at a 1.5 kg bait, and a 10 kg bait is a bait for a 50 kg fish. A species whose
-        // biggest specimen is under five times the bait is not a taker at all (was three times).
-        if (c.livebaitG > 0 && p.weightMax < c.livebaitG * PREY_RATIO) return 0.0;
+    private static double naturalScore(FishProfile p, BiteContext c, boolean clock) {
         double fWater = p.waterFactor(c.water);
         if (fWater <= 0) return 0.0; // the fish does not live in this water body
 
@@ -262,9 +287,9 @@ public final class BiteEngine {
 
         // §deep-conditions: season, time and biome are amplified so the daily/yearly rhythm and the
         // regional identity of each fish are strongly felt (see the *_POW constants).
-        double fSeason = Math.pow(p.seasonFactor(c.season), SEASON_POW);
-        double fTime = Math.pow(p.timeFactor(c.time), TIME_POW);
-        double fWeather = p.weatherFactor(c.weather);
+        double fSeason = clock ? Math.pow(p.seasonFactor(c.season), SEASON_POW) : 1.0;
+        double fTime = clock ? Math.pow(p.timeFactor(c.time), TIME_POW) : 1.0;
+        double fWeather = clock ? p.weatherFactor(c.weather) : 1.0;
         double fDist = distanceFactor(p, c);
 
         // §bed-bite: the bottom under the cast, a nudge of 0.85..1.2 — see FishProfile.bedFactor.
@@ -304,7 +329,23 @@ public final class BiteEngine {
     public static double speciesWeight(FishProfile p, BiteContext c) {
         double e = environmentScore(p, c);
         if (e <= 0) return 0.0;
+        double t = tackleWeight(p, c);
+        if (t <= 0) return 0.0;
+        // §population: THIS species' local stock. Fishing out the bream slows only the bream — the rest
+        // of the water keeps biting, and the spot recovers over time (faster in spring, §spawn-recovery).
+        double pop = c.speciesFactor != null ? c.speciesFactor.applyAsDouble(p.id) : 1.0;
+        // §weather-pressure: a uniform feeding-activity multiplier — a falling glass feeds the whole
+        // water, a bluebird high slows it. Same for every species, so it scales the time-to-bite.
+        // §skills NATURALIST: a flat overall bite-chance bonus (you know where the fish are).
+        return p.base * e * feedBonus(c) * pop * c.pressureFactor * (1.0 + c.skillBiteBonus) * t;
+    }
 
+    /**
+     * §alife: what the rig is worth to this species — every part of the old weight that is about the bait,
+     * the hook, the line, the lure and the angler, and none of it about the water. The living water asks
+     * this of each fish near the bait; the old engine multiplies it by the water's own terms above.
+     */
+    public static double tackleWeight(FishProfile p, BiteContext c) {
         // Hard gates (realism): the wrong bait or a wrong-sized hook means the fish simply won't take.
         double sBait = baitScore(p, c);
         if (sBait <= 0.0) return 0.0;          // no bait the fish wants is on the rig (#7)
@@ -312,20 +353,16 @@ public final class BiteEngine {
         if (sHook < HOOK_GATE) return 0.0;     // hook too big for a small fish / too small for a big one (#6)
 
         double m = matchScore(p, c);
-        double g = feedBonus(c);
-        // §population: THIS species' local stock. Fishing out the bream slows only the bream — the rest
-        // of the water keeps biting, and the spot recovers over time (faster in spring, §spawn-recovery).
-        double pop = c.speciesFactor != null ? c.speciesFactor.applyAsDouble(p.id) : 1.0;
 
         // Bigger fish demand a near-perfect setup and approach slowly: W falls off as M^sizeExp,
         // so a heavy fish only takes when the whole kit is close to ideal, and then T is long.
         double meanKg = p.weightMean / 1000.0;
         double sizeExp = 1.0 + Math.min(3.0, meanKg / 2.0);
-        // §weather-pressure: a uniform feeding-activity multiplier — a falling glass feeds the whole
-        // water, a bluebird high slows it. Same for every species, so it scales the time-to-bite.
-        // §skills NATURALIST: a flat overall bite-chance bonus (you know where the fish are).
-        double w = p.base * Math.pow(Math.max(0.0, m), sizeExp) * e * g * pop * c.pressureFactor
-                * (1.0 + c.skillBiteBonus);
+        double w = Math.pow(Math.max(0.0, m), sizeExp);
+        // §boilies: the right boilie for the day, the water and the fish — when the boilie IS what it takes
+        if (c.boilie != null && c.baits.contains("boilie") && boilieBaitScore(p, c) >= sBait - 1e-9) {
+            w *= c.boilie.factor(boilieScene(p, c));
+        }
 
         // §bait-first (0.5.1): the bait is THE selector — bite speed scales directly with how much
         // this species rates what's on the hook. The right bait singles a species out of the swim;
@@ -414,6 +451,7 @@ public final class BiteEngine {
     }
 
     public static Outcome evaluate(Collection<FishProfile> profiles, BiteContext c, RandomSource random) {
+        if (c.lake != null) return evaluateAlife(profiles, c, random);
         Map<ResourceLocation, Double> weights = new LinkedHashMap<>();
         double total = 0.0;
         for (FishProfile p : profiles) {
@@ -424,7 +462,7 @@ public final class BiteEngine {
             }
         }
         if (total <= 1e-6) {
-            return new Outcome(weights, 0.0, -1L);
+            return new Outcome(weights, 0.0, -1L, null);
         }
         double t = T_MIN_TICKS / effectiveWeight(total);
         double u = random.nextDouble();
@@ -432,7 +470,57 @@ public final class BiteEngine {
         // §honest-tail (0.5.0): no upper clamp any more — a barely-viable setup now really IS a long
         // wait (the caller warns the player) instead of silently gifting a fish every two minutes.
         ticks = Math.max(40L, ticks);
-        return new Outcome(weights, total, ticks);
+        return new Outcome(weights, total, ticks, null);
+    }
+
+    /**
+     * §alife: the bite from the living water. Every fish near the bait is asked how much it wants THIS rig
+     * ({@link #tackleWeight}, behind the habitat gates of the bait's own column — a fish does not take a
+     * bait lying in water it cannot be in); the lake answers with bites per game hour from the agents that
+     * are actually there, hungry and not wary. Summed per species it is the same Outcome as ever, scaled so
+     * that {@link #T_MIN_TICKS} / weight is the wait: one game hour is 1000 ticks.
+     */
+    /** §alife: what this cast's rig is worth to a species of the living water — behind the habitat gates of the bait's own column. */
+    public static java.util.function.ToDoubleFunction<com.riverfishing.alife.Species> alifeAppeal(BiteContext c) {
+        return sp -> {
+            FishProfile p = com.riverfishing.fish.FishProfileManager.get().byId(com.riverfishing.RiverFishing.id(sp.id()));
+            if (p == null || habitatScore(p, c) <= 0) return 0.0;
+            return tackleWeight(p, c) * (1.0 + c.skillBiteBonus);
+        };
+    }
+
+    /**
+     * §alife: this cast as the living water sees it. A lure worked back through the water on a spinning rod
+     * passes more fish than a bait lying still, so an active rod is asked of the fish up to ~20 blocks off.
+     */
+    public static com.riverfishing.alife.Lake.Offer alifeOffer(BiteContext c) {
+        boolean active = c.rod != null && c.rod.rodClass() == com.riverfishing.component.RodClass.ACTIVE;
+        java.util.List<String> keys = c.baits;
+        double reach = active ? 20.0 : 12.0;
+        if (c.boilie != null) {
+            // §boilies: its flavours are what a prebaited fish knows it by; a dip or a strong smell carries further
+            keys = new java.util.ArrayList<>(c.baits);
+            for (com.riverfishing.fish.Flavour f : c.boilie.flavours()) keys.add("flavour:" + f.id());
+            if (c.boilie.dip() != null) keys.add("flavour:" + c.boilie.dip().id());
+            reach += c.boilie.reachBonus(boilieScene(null, c));
+        }
+        return new com.riverfishing.alife.Lake.Offer(c.lakeZone, alifeAppeal(c), keys, 0.0, reach);
+    }
+
+    private static Outcome evaluateAlife(Collection<FishProfile> profiles, BiteContext c, RandomSource random) {
+        Map<String, FishProfile> byPath = new java.util.HashMap<>();
+        for (FishProfile p : profiles) byPath.put(p.id.getPath(), p);
+        com.riverfishing.alife.Lake.Interest in = c.lake.offer(alifeOffer(c), c.lakeNow);
+        Map<ResourceLocation, Double> weights = new LinkedHashMap<>();
+        for (int i = 0; i < in.agents().size(); i++) {
+            FishProfile p = byPath.get(in.agents().get(i).sp.id());
+            if (p != null) weights.merge(p.id, in.rates()[i] * T_MIN_TICKS / 1000.0, Double::sum);
+        }
+        double total = in.total() * T_MIN_TICKS / 1000.0;
+        if (total <= 1e-6) return new Outcome(weights, 0.0, -1L, in);
+        double t = T_MIN_TICKS / effectiveWeight(total);
+        long ticks = Math.max(40L, (long) (-t * Math.log(1.0 - random.nextDouble())));
+        return new Outcome(weights, total, ticks, in);
     }
 
     /** Result of an evaluation: per-species weights, total, and a sampled time-to-bite. */
@@ -441,11 +529,30 @@ public final class BiteEngine {
         public final double totalWeight;
         /** Ticks until the bite; -1 means nothing is biting here. */
         public final long ticksToBite;
+        /** §alife: who in the water is interested, so the landed fish comes out of the right shoal; null = old engine. */
+        public final com.riverfishing.alife.Lake.Interest interest;
 
-        Outcome(Map<ResourceLocation, Double> weights, double totalWeight, long ticksToBite) {
+        Outcome(Map<ResourceLocation, Double> weights, double totalWeight, long ticksToBite,
+                com.riverfishing.alife.Lake.Interest interest) {
             this.weights = weights;
             this.totalWeight = totalWeight;
             this.ticksToBite = ticksToBite;
+            this.interest = interest;
+        }
+
+        /** §alife: the agent of this species that bites, weighted by how keen each of them is; null = old engine. */
+        public com.riverfishing.alife.Lake.Agent pickAgent(ResourceLocation species, RandomSource random) {
+            if (interest == null) return null;
+            double sum = 0;
+            for (int i = 0; i < interest.agents().size(); i++) {
+                if (interest.agents().get(i).sp.id().equals(species.getPath())) sum += interest.rates()[i];
+            }
+            double roll = random.nextDouble() * sum;
+            for (int i = 0; i < interest.agents().size(); i++) {
+                if (!interest.agents().get(i).sp.id().equals(species.getPath())) continue;
+                if ((roll -= interest.rates()[i]) <= 0) return interest.agents().get(i);
+            }
+            return null;
         }
 
         public boolean willBite() {

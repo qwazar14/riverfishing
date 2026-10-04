@@ -1,0 +1,495 @@
+{
+  "credit": "River Fishing - snag driftwood, a variant of the snag pile; opens in Blockbench (3D/snags)",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "minecraft:block/stripped_birch_log",
+    "side": "minecraft:block/stripped_birch_log",
+    "end": "minecraft:block/stripped_birch_log_top"
+  },
+  "elements": [
+    {
+      "name": "stick_1",
+      "from": [
+        0,
+        0,
+        3
+      ],
+      "to": [
+        16,
+        2,
+        5
+      ],
+      "rotation": {
+        "angle": 22.5,
+        "axis": "y",
+        "origin": [
+          8,
+          1,
+          4
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "east": {
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ],
+          "texture": "#end"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "west": {
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ],
+          "texture": "#end"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        }
+      }
+    },
+    {
+      "name": "stick_2",
+      "from": [
+        2,
+        1,
+        9
+      ],
+      "to": [
+        15,
+        3,
+        11
+      ],
+      "rotation": {
+        "angle": -22.5,
+        "axis": "y",
+        "origin": [
+          8,
+          2,
+          10
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            13
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "east": {
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ],
+          "texture": "#end"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            13
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "west": {
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ],
+          "texture": "#end"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            13
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            13
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        }
+      }
+    },
+    {
+      "name": "stick_3",
+      "from": [
+        6,
+        0,
+        0
+      ],
+      "to": [
+        8,
+        2,
+        16
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          7,
+          1,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ],
+          "texture": "#end"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "south": {
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ],
+          "texture": "#end"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "texture": "#side"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "texture": "#side"
+        }
+      }
+    },
+    {
+      "name": "stick_4",
+      "from": [
+        3,
+        2,
+        6
+      ],
+      "to": [
+        14,
+        4,
+        8
+      ],
+      "rotation": {
+        "angle": 22.5,
+        "axis": "z",
+        "origin": [
+          8,
+          3,
+          7
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            11
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "east": {
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ],
+          "texture": "#end"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            11
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "west": {
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ],
+          "texture": "#end"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            11
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            11
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        }
+      }
+    },
+    {
+      "name": "stick_5",
+      "from": [
+        9,
+        0,
+        2
+      ],
+      "to": [
+        11,
+        6,
+        4
+      ],
+      "rotation": {
+        "angle": -22.5,
+        "axis": "x",
+        "origin": [
+          10,
+          0,
+          3
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            6
+          ],
+          "texture": "#side"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            6
+          ],
+          "texture": "#side"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2,
+            6
+          ],
+          "texture": "#side"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            6
+          ],
+          "texture": "#side"
+        },
+        "up": {
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ],
+          "texture": "#end"
+        },
+        "down": {
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ],
+          "texture": "#end"
+        }
+      }
+    },
+    {
+      "name": "stick_6",
+      "from": [
+        4,
+        0,
+        11
+      ],
+      "to": [
+        5.5,
+        1.5,
+        15
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          4.75,
+          0.75,
+          13
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7.25,
+            7.25,
+            8.75,
+            8.75
+          ],
+          "texture": "#end"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            4
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "south": {
+          "uv": [
+            7.25,
+            7.25,
+            8.75,
+            8.75
+          ],
+          "texture": "#end"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            4
+          ],
+          "rotation": 90,
+          "texture": "#side"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            4
+          ],
+          "texture": "#side"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            4
+          ],
+          "texture": "#side"
+        }
+      }
+    }
+  ]
+}

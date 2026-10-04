@@ -8,10 +8,9 @@ because a table has one row per species and the answer moves with the weight.
 Everything it prints is read from that species' profile and computed with the game's own formulas:
 the pull is `max(0.5, strength × (1 + fm) × 2)`, where `fm` is the weight itself up to 20 kg and
 `20 × (kg/20)^0.55` above it — a giant pulls hard, not proportionally hard. Line strain is
-`100 × d² × factor`, the livebait floor is six times the bait's weight and the lure floor eight, and
-only feed coarser than half fraction shifts the size roll. The two bait floors are printed raw: in
-the game neither can floor the roll above 60 % of the species' weight range, and the livebait one
-only applies to species that rate livebait at 0.5 or better.
+`100 × d² × factor`, the livebait floor is five times the bait's weight (a hard floor, 1.0.0) and the
+lure floor eight, and only feed coarser than half fraction shifts the size roll. The lure floor is
+printed raw: in the game it cannot floor the roll above 60 % of the species' weight range.
 
 > **This page is interactive on the published wiki.** On GitHub you are reading the markdown source,
 > where nothing can run — open the [published wiki](https://qwazar14.github.io/riverfishing/) for the

@@ -45,10 +45,15 @@ public final class HookedFishRenderer {
         float risePitch = 0f;
         if (rising) {
             float rt = state.riseStart < 0 ? 1f : Mth.clamp(((mc.level.getGameTime() - state.riseStart) + pt) / 8f, 0f, 1f)   /* §float-clock: the longs first */;
-            riseY = Mth.lerp(rt, -0.4f, -0.05f);
+            riseY = Mth.lerp(rt, -0.35f, 0f) - state.takeDepth();   // §fight-depth: up to the bait, wherever it hangs
             risePitch = -35f;
         }
 
+        // §fight-moves: a fish sulking on the bottom breathes a thread of bubbles up to the surface
+        if (state.move == com.riverfishing.fishing.FightMoves.SULK && mc.level.random.nextInt(3) == 0) {
+            mc.level.addParticle(ParticleTypes.BUBBLE, at.x + (mc.level.random.nextDouble() - 0.5) * 0.3, at.y + 0.2,
+                    at.z + (mc.level.random.nextDouble() - 0.5) * 0.3, 0, 0.12, 0);
+        }
         // the splash: once when the body leaves the water, once when it comes back
         double surfaceY = state.target.getY() + 0.95;
         boolean inAir = at.y > surfaceY + 0.15;
@@ -66,13 +71,14 @@ public final class HookedFishRenderer {
         // along the heading. The tail beat swings the whole body, the nose swings with it.
         float beat = Mth.sin(state.tail) * (state.running ? 7f : 4f);
         pose.mulPose(Axis.YP.rotationDegrees(180f - (float) Math.toDegrees(state.heading) + beat));
+        if (state.roll > 1f) pose.mulPose(Axis.XP.rotationDegrees(state.roll));   // §fight-moves: beaten, on its side
         if (com.riverfishing.fish.FishPose.isFlat(state.species)) {
             pose.mulPose(Axis.XP.rotationDegrees(com.riverfishing.fish.FishPose.lay()));
         }
         pose.mulPose(Axis.ZP.rotationDegrees((rising ? risePitch : state.pitch) + Mth.sin(time * 0.05f) * 2f));
         // the item's FIXED display turns the model 180° about Y; one more here puts the head back on −X
         pose.mulPose(Axis.YP.rotationDegrees(180f + Mth.sin(state.tail * 1.0f) * 6f));
-        FishItemRenderer.gridScale = Mth.clamp(state.lengthCm / 100f, 0.12f, 4.5f);   // true length, one block a metre
+        FishItemRenderer.gridScale = ShoalRenderer.itemSize(state.lengthCm);
         // §hooked-mouth: the extra Y turn above flipped local X, so the head now points +X here —
         // sliding the body +X hung the line off the TAIL. Half a body length back puts the mouth on it.
         pose.translate(FishItemRenderer.gridScale * -0.5, 0, 0);
@@ -94,18 +100,24 @@ public final class HookedFishRenderer {
     /** The item the fish is drawn as — rebuilt only when the species on the line changes. */
     private static ItemStack stackFor(ClientLineState.Line state) {
         if (state.stack != null && state.species.equals(state.stackSpecies)) return state.stack;
-        ResourceLocation id = RiverFishing.id(state.species);
+        ItemStack stack = stackOf(state.species, state.weightG, state.lengthCm);
+        if (stack == null) return null;
+        state.stack = stack;
+        state.stackSpecies = state.species;
+        return stack;
+    }
+
+    /** The item a fish of this species and size is drawn as, or null for a species with none. */
+    static ItemStack stackOf(String species, int weightG, int lengthCm) {
+        ResourceLocation id = RiverFishing.id(species);
         var item = ModItems.fishItem(id);
         if (item == null) return null;
         ItemStack stack = new ItemStack(item);
-        int w = state.weightG, l = state.lengthCm;
         StackNbt.mutate(stack, tag -> {
             tag.putString(FishItem.TAG_SPECIES, id.toString());
-            tag.putInt(FishItem.TAG_WEIGHT, w);
-            tag.putInt(FishItem.TAG_LENGTH, l);
+            tag.putInt(FishItem.TAG_WEIGHT, weightG);
+            tag.putInt(FishItem.TAG_LENGTH, lengthCm);
         });
-        state.stack = stack;
-        state.stackSpecies = state.species;
         return stack;
     }
 }

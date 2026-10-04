@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#riverfishing:has_cattails",
+  "features": "riverfishing:patch_cattail",
+  "step": "vegetal_decoration"
+}

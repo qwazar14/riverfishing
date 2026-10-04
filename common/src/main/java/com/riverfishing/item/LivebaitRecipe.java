@@ -19,8 +19,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
  * crafting grid becomes one live bait. Weight lives in the fish's NBT, so this is a custom recipe.
  */
 public class LivebaitRecipe extends CustomRecipe {
-    public static final int MAX_WEIGHT_G = 150;
-
     public LivebaitRecipe(ResourceLocation id, CraftingBookCategory category) {
         super(id, category);
     }

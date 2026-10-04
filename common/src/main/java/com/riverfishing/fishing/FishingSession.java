@@ -10,6 +10,8 @@ import net.minecraft.world.InteractionHand;
 /** One active line in the water for a player. Lives only on the server. */
 public class FishingSession {
     public final InteractionHand hand;
+    /** §session-dim: the dimension the line went into, set on the first tick. */
+    public net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dim;
     /** §trolling: mutable — a trolled lure TRAILS the boat (the target follows ~14 blocks astern). */
     public BlockPos target;
     /** §fly-take: a fly-rod session — the target follows the fly, no float timing, no words. */
@@ -45,7 +47,6 @@ public class FishingSession {
     public double biteSpeed;
 
     // ---- ACTIVE (spinning) retrieve state ----
-    public boolean retrieving;
     public int retrieveTicks;
     public int retrieveMax;
     /** §click-retrieve (0.5.1): game-time of the previous crank CLICK — the lure-game cadence clock. */
@@ -128,6 +129,15 @@ public class FishingSession {
 
     // ---- fight state ----
     public boolean fighting;
+    /** §rod-anim: the fight ended in a snapped line (the rig went with it). */
+    public boolean lineBroke;
+    /** §alife: the shoal or the one fish that bit, and its water — landed takes it out, a lost fish learns. */
+    public com.riverfishing.alife.Lake alifeLake;
+    public com.riverfishing.alife.Lake.Agent alifeAgent;
+    /** §alife-pond: the one remembered fish on the hook, when the water remembers its fish. */
+    public com.riverfishing.alife.Life.Head alifeHead;
+    /** §alife-pond: the picked fish's record, handed to pondFish once rollFish is done with the old roster. */
+    public net.minecraft.nbt.CompoundTag pondFishLive;
     public double tension;        // 0..1; over breakTension the line is in overstress (Â§tackle-stress)
     public double landProgress;   // 0..1; reaching 1 lands the fish
     public double breakTension;   // how much tension the tackle tolerates for THIS fish
@@ -208,6 +218,26 @@ public class FishingSession {
 
     // §big-game greyhounding (0.5.0): reeling inside this window throws the hook — give slack.
     public long jumpWindowEnd;
+
+    // §fight-moves (1.1.0): each pattern's signature move, and where the fish is — see FightMoves.
+    /** The fish's bearing off the cast line, radians around the angler; − = the angler's left. */
+    public double swing;
+    /** FightMoves.NONE… — the move under way. */
+    public byte move;
+    public long moveEnd;
+    /** What the move counts: the side pressure held, the crouched or lifted ticks, the ticks since a crank. */
+    public double moveScore;
+    public int moveStep;
+    public long moveNext;
+    /** §cover-check: what the steady fish ran for — "weeds", "reeds" or "snags" — and the item its bits fly as. */
+    public String coverKind = "weeds";
+    public net.minecraft.world.item.Item coverItem = net.minecraft.world.item.Items.SEAGRASS;
+    /** Signature moves this fight has had — two at most. */
+    public int moves;
+    /** Set by landFish, so endSession shows the fish lifted out rather than getting away. */
+    public boolean landed;
+    /** §bar-smooth: what the boss bar shows, easing toward the progress. */
+    public float barShown;
 
     // Pole pull-out QTE (Â§pull-qte): one timing after the strike; the heavier the fish, the narrower
     // the zone and the faster the sweep (reuses floatPeriod/floatZoneHalf for the marker).

@@ -137,8 +137,8 @@ public final class ModVillagers {
         sell(t, 1, "bloodworm", 1, 8, 1);
         sell(t, 1, "float", 1, 2, 2);
         sell(t, 1, "groundbait_powder", 1, 6, 2);
-        // §bait-crops: seeds for the plant baits — the "buy from traders" leg of the seed economy.
-        oneOf(t, 1, sellOf("corn_seeds", 1, 3, 1), sellOf("pea_seeds", 1, 3, 1), sellOf("barley_seeds", 1, 3, 1));
+        // §no-seeds: the plant baits themselves — the "buy from traders" leg of the crop economy (they are what is planted).
+        oneOf(t, 1, sellOf("corn", 1, 3, 1), sellOf("pea", 1, 3, 1), sellOf("pearl_barley", 1, 3, 1));
         sell(t, 1, "line_mono_014", 2, 1, 3);       // thin starter line
         sell(t, 1, "worm_farm", 4, 1, 4);           // §bait-farm: breed your own worms early
         // §vanilla-stock: every reeled rod recipe now wants string for the guide wraps (§tackle-craft),
@@ -173,12 +173,18 @@ public final class ModVillagers {
         // stall, plus the box. A kit that cost MORE than the parts is a kit nobody buys.
         oneOf(t, 3, sellStackOf(7, ModVillagers::floatKit, 10), sellStackOf(18, ModVillagers::pikeKit, 16));
         sellStack(t, 3, 16, ModVillagers::assembledSpinningRod, 14);
+        // §boilies: a bottle of one of the everyday flavours — the fruit, the fish and the spice
+        oneOf(t, 3, sellStackOf(2, () -> com.riverfishing.item.FlavourItem.make(com.riverfishing.fish.Flavour.STRAWBERRY), 5),
+                sellStackOf(2, () -> com.riverfishing.item.FlavourItem.make(com.riverfishing.fish.Flavour.FISH), 5),
+                sellStackOf(2, () -> com.riverfishing.item.FlavourItem.make(com.riverfishing.fish.Flavour.GARLIC), 5));
+        // §boilie-trades (1.1.0): the stall's own boilies, rolled per villager — one flavour, a plain form
+        t.get(3).add(randomBoilieOf(3, 8, 6, false));
 
         // Level 4 — Expert: serious predator/carp gear + winter tackle + a ready feeder setup.
         oneOf(t, 4, sellTackleOf(TackleForm.WOBBLER, 7, 1, 15), sellTackleOf(TackleForm.CRANKBAIT, 7, 1, 15),
                 sellTackleOf(TackleForm.POPPER, 6, 1, 14));
         sell(t, 4, "livebait", 2, 3, 8);
-        sell(t, 4, "boilie", 3, 8, 10);
+        t.get(4).add(randomBoilieOf(4, 8, 10, true));   // §boilie-trades: two flavours, a snowman, a dip…
         oneOf(t, 4, sellOf("reel_5000", 10, 1, 15), sellOf("reel_6000", 13, 1, 16));
         sell(t, 4, "line_fluoro_030", 6, 1, 12);
         sell(t, 4, "ice_auger", 9, 1, 14);           // §ice-fishing: drill your first hole
@@ -462,8 +468,14 @@ public final class ModVillagers {
         int rep = com.riverfishing.fishing.Contracts.rep(player);
         for (Object[] row : TRUSTED) {
             if (rep < (int) row[0]) continue;
-            VillagerTrades.ItemListing listing = sellOf((String) row[1], (int) row[2], 1, 20);
+            // §trust-xp: 2 villager xp, not 20 — the shelf is there from a novice stall on, and ten 6-emerald alarms
+            // took one from novice to half-way through expert (Besoulq, 26.3 beta); it is a favour, not a lesson
+            VillagerTrades.ItemListing listing = sellOf((String) row[1], (int) row[2], 1, 2);
             if (listing == null) continue;
+            net.minecraft.world.item.Item it = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(RiverFishing.id((String) row[1]));
+            // a shelf offer from before the fix sits on the counter with 20 xp — take it down, put the new one up
+            offers.removeIf(o -> o.getResult().getItem() == it && o.getXp() > 2
+                    && o.getBaseCostA().is(net.minecraft.world.item.Items.EMERALD) && o.getBaseCostA().getCount() == (int) row[2]);
             MerchantOffer offer = listing.getOffer(villager, villager.getRandom());
             if (offer != null && !duplicates(offers, offer)) offers.add(offer);
         }
@@ -512,7 +524,6 @@ public final class ModVillagers {
         // §i: a poacher's board is blank — the flag tells the client why, the empty list tells it what.
         boolean banned = com.riverfishing.fishing.Warden.banned(sp);
         t.putBoolean("banned", banned);
-        t.putInt("rep_grams", com.riverfishing.fishing.Warden.repGrams(player));   // §o: what the debt costs, in kilograms
         net.minecraft.nbt.ListTag posts = new net.minecraft.nbt.ListTag();
         net.minecraft.nbt.CompoundTag ledger = com.riverfishing.fishing.Contracts.ledger(sp, level);   // §board-taken
         for (net.minecraft.nbt.CompoundTag post : banned ? java.util.List.<net.minecraft.nbt.CompoundTag>of()   // §i
@@ -678,6 +689,41 @@ public final class ModVillagers {
         // §1.20.1: MerchantOffer costs are plain ItemStacks here — there is no ItemCost record yet.
         return (trader, random) -> new MerchantOffer(
                 new ItemStack(Items.EMERALD, emeraldCost), result.copy(), 12, xp, 0.05f);
+    }
+
+    /**
+     * §boilie-trades (1.1.0): a boilie the fisherman rolled himself, fixed for that villager once rolled — so
+     * every stall sells its own. Plain: one flavour; a bottom boilie, a wafter or a pop-up (pop-ups small).
+     * {@code rich}: a second flavour half the time, fish meal a third, a snowman among the forms, and a
+     * dip on a third of the rest.
+     */
+    private static VillagerTrades.ItemListing randomBoilieOf(int emeralds, int count, int xp, boolean rich) {
+        return (trader, random) -> {
+            com.riverfishing.fish.Flavour[] fl = com.riverfishing.fish.Flavour.values();
+            List<com.riverfishing.fish.Flavour> f = new ArrayList<>();
+            f.add(fl[random.nextInt(fl.length)]);
+            if (rich && random.nextBoolean()) {
+                com.riverfishing.fish.Flavour second = fl[random.nextInt(fl.length)];
+                if (second != f.get(0)) f.add(second);
+            }
+            com.riverfishing.fish.Boilie.Buoyancy[] forms = rich
+                    ? new com.riverfishing.fish.Boilie.Buoyancy[]{com.riverfishing.fish.Boilie.Buoyancy.SINKER,
+                    com.riverfishing.fish.Boilie.Buoyancy.WAFTER, com.riverfishing.fish.Boilie.Buoyancy.POPUP,
+                    com.riverfishing.fish.Boilie.Buoyancy.SNOWMAN}
+                    : new com.riverfishing.fish.Boilie.Buoyancy[]{com.riverfishing.fish.Boilie.Buoyancy.SINKER,
+                    com.riverfishing.fish.Boilie.Buoyancy.SINKER, com.riverfishing.fish.Boilie.Buoyancy.WAFTER,
+                    com.riverfishing.fish.Boilie.Buoyancy.POPUP};
+            com.riverfishing.fish.Boilie.Buoyancy form = forms[random.nextInt(forms.length)];
+            int[] sizes = com.riverfishing.fish.Boilie.SIZES;
+            int size = form == com.riverfishing.fish.Boilie.Buoyancy.POPUP ? sizes[random.nextInt(2)] : sizes[1 + random.nextInt(3)];
+            ItemStack out = new ItemStack(ModItems.BOILIE.get(), count);
+            com.riverfishing.item.BoilieItem.write(out, new com.riverfishing.fish.Boilie(f, form, size,
+                    rich && random.nextInt(3) == 0, null));
+            if (rich && form != com.riverfishing.fish.Boilie.Buoyancy.SNOWMAN && random.nextInt(3) == 0) {
+                com.riverfishing.item.BoilieItem.dip(out, fl[random.nextInt(fl.length)]);
+            }
+            return new MerchantOffer(new ItemStack(Items.EMERALD, emeralds), out, 12, xp, 0.05f);
+        };
     }
 
     /** Villager sells a LAZILY built NBT stack (assembled rig/rod, §assembled-trades). */

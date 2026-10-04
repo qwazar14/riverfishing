@@ -44,6 +44,20 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
     public final boolean shaking;
     public final float fatigue;
     public final boolean snagged;   // §line-snag: the string lies across a block
+    /** §fight-moves: the fish's bearing round the rod (radians, − = the angler's left) and the move under way. */
+    public final float swing;
+    public final byte move;
+    /**
+     * §fight-depth: how deep the bait hung when the fish took it and how deep the water is there (blocks below the
+     * surface), so the fish is drawn where it was hooked and fights near the bottom before it tires; 0 = unknown.
+     */
+    public float hookDepth, bottomDepth;
+
+    public LineSyncPacket depths(float hook, float bottom) {
+        this.hookDepth = hook;
+        this.bottomDepth = bottom;
+        return this;
+    }
 
     public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
                           byte floatKind) {
@@ -79,6 +93,17 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
                           boolean fighting, boolean running, byte course,
                           String species, int weightG, int lengthCm, boolean jumping, boolean shaking,
                           float fatigue, boolean snagged) {
+        this(playerId, active, target, progress, color, floatKind, biting, tension, rodLoad, fighting, running, course,
+                species, weightG, lengthCm, jumping, shaking, fatigue, snagged, 0f, (byte) 0);
+    }
+
+    public LineSyncPacket(int playerId, boolean active, BlockPos target, float progress, int color,
+                          byte floatKind, boolean biting, float tension, float rodLoad,
+                          boolean fighting, boolean running, byte course,
+                          String species, int weightG, int lengthCm, boolean jumping, boolean shaking,
+                          float fatigue, boolean snagged, float swing, byte move) {
+        this.swing = swing;
+        this.move = move;
         this.snagged = snagged;
         this.species = species == null ? "" : species;
         this.weightG = weightG;
@@ -126,6 +151,10 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
         buf.writeBoolean(shaking);
         buf.writeFloat(fatigue);
         buf.writeBoolean(snagged);
+        buf.writeFloat(swing);          // §fight-moves
+        buf.writeByte(move);
+        buf.writeFloat(hookDepth);      // §fight-depth
+        buf.writeFloat(bottomDepth);
     }
 
     public static LineSyncPacket decode(FriendlyByteBuf buf) {
@@ -133,7 +162,8 @@ public class LineSyncPacket implements ModNetwork.RfPacket {
                 buf.readFloat(), buf.readInt(), buf.readByte(), buf.readBoolean(), buf.readFloat(),
                 buf.readFloat(), buf.readBoolean(), buf.readBoolean(), buf.readByte(),
                 buf.readUtf(), buf.readVarInt(), buf.readVarInt(), buf.readBoolean(), buf.readBoolean(),
-                buf.readFloat(), buf.readBoolean());
+                buf.readFloat(), buf.readBoolean(), buf.readFloat(), buf.readByte())
+                .depths(buf.readFloat(), buf.readFloat());
     }
 
     public void handleClient() {

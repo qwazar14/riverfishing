@@ -90,6 +90,13 @@ public class RoeItem extends Item {
         CompoundTag t = StackNbt.get(stack);
         if (!t.contains(TAG_COUNT)) return;
         tooltip.add(Component.translatable(countKey, t.getInt(TAG_COUNT)).withStyle(ChatFormatting.GRAY));
+        lineage(stack, tooltip);
+    }
+
+    /** The brood's genome and pattern lines — shared by roe and by a stack of fry. */
+    static void lineage(ItemStack stack, List<Component> tooltip) {
+        CompoundTag t = StackNbt.get(stack);
+        if (!t.contains(TAG_GENOME)) return;
         tooltip.add(Component.translatable("tooltip.riverfishing.genome", t.getString(TAG_GENOME))
                 .withStyle(ChatFormatting.DARK_GRAY));
         // §pattern: the clutch's index and the family it will hatch into — what the line is FOR.

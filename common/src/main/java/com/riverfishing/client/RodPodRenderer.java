@@ -61,6 +61,18 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
         float rod3dY = bars ? 0.79f : 0.72f;
         float rod3dPitch = bars ? 5f : 25f;
         float rod3dZ = 1.0f;
+        float time = be.getLevel() != null ? be.getLevel().getGameTime() % 100000L + partialTick : partialTick;
+        long now = be.getLevel() != null ? be.getLevel().getGameTime() : 0L;
+        // §pod-slot: looking at the pod with an empty hand shows which rod a click takes — the very rule the
+        // server will apply (the client has the rods and their lines through the update tag)
+        int aim = -1;
+        var mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.player != null && mc.player.getMainHandItem().isEmpty() && be.getLevel() != null
+                && mc.hitResult instanceof net.minecraft.world.phys.BlockHitResult bh
+                && mc.hitResult.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK
+                && bh.getBlockPos().equals(be.getBlockPos())) {
+            aim = be.takeSlot(now, bh.getLocation());
+        }
 
         // 1) Rods lying ALONG the cast direction (§pod-visual): a sprite is turned edge-on to the
         // water so from the side you see a rod resting on the bar; a 3D blank replaces it whole.
@@ -69,6 +81,10 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
             ItemStack rod = rods.get(i);
             if (rod.isEmpty()) continue;
             float x = slotX(i, n);
+            int vis = be.lineVisualAt(i);
+            float[] mo = podMotion(vis, be.ticksToBite(i, now), time, i);
+            // §pod-anim: a running fish rattles the rod in its rests
+            float rattle = vis == 4 ? 0.006f * (float) Math.sin(time * 2.9f + i * 1.7f) : 0f;
             // ONE matrix serves both the drawn rod and the line anchor, so they can never disagree.
             // Order matters and bit us once: matrices apply right-to-left, so rotateY must sit LAST
             // in the chain (= applied to the model first, turning the blank onto +Z) and the pitch
@@ -77,12 +93,13 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
             // own length and the rod stayed flat while the hand-derived tip climbed the slope.
             // The 0.03125 translate compensates the blank axis sitting off-centre in model z.
             org.joml.Matrix4f rodM = new org.joml.Matrix4f()
-                    .translate(x - 0.03125f, rod3dY, rod3dZ)
+                    .translate(x - 0.03125f + rattle, rod3dY + Math.abs(rattle) + (i == aim ? 0.03f : 0f), rod3dZ)
                     .rotateX((float) Math.toRadians(-rod3dPitch))  // lift the tip by the saddle slope
                     .rotateY((float) Math.toRadians(90f));         // model -X (tip) -> +Z, guides down
             pose.pushPose();
             pose.mulPoseMatrix(rodM);
-            boolean drew3d = RodItemRenderer.drawPodBlank(rod, pose, buffers, light, overlay);
+            org.joml.Matrix4f track = new org.joml.Matrix4f(rodM);
+            boolean drew3d = RodItemRenderer.drawPodBlank(rod, pose, buffers, light, overlay, mo[0], track);
             pose.popPose();
             if (drew3d) {
                 // the line must leave the REAL tip of this rod: the same matrix that drew the blank
@@ -90,14 +107,14 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
                 Float tipX = rod.getItem() instanceof com.riverfishing.item.RodItem r
                         ? RodItemRenderer.blankTipX(r.rodType().jsonKey()) : null;
                 if (tipX != null) {
-                    org.joml.Vector3f tip = rodM.transformPosition(new org.joml.Vector3f(
+                    org.joml.Vector3f tip = track.transformPosition(new org.joml.Vector3f(   // §pod-anim: the BENT tip
                             tipX / 16f - 0.5f, 10.5f / 16f - 0.5f, 8.5f / 16f - 0.5f));
                     tips3d[i] = new float[]{tip.x, tip.y, tip.z};
                 }
                 continue;
             }
             pose.pushPose();
-            pose.translate(x, rodY, 0.45);
+            pose.translate(x, rodY + (i == aim ? 0.03f : 0f), 0.45);
             // FIXED context maps texture-right to local -X, so POSITIVE angles here point the
             // texture diagonal (handle -> tip) toward +Z, the cast direction.
             pose.mulPose(Axis.YP.rotationDegrees(90f));       // sprite plane runs along the cast axis (+Z)
@@ -117,11 +134,32 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
             var alarmItem = ModItems.alarmItem(alarm);
             if (alarmItem == null) continue;
             float x = slotX(i, n) + 0.09f;
+            int vis = be.lineVisualAt(i);
+            float[] mo = podMotion(vis, be.ticksToBite(i, now), time, i);
             pose.pushPose();
             pose.translate(x, alarmY, alarmZ);
-            pose.scale(0.4f, 0.4f, 0.4f);
+            int alarmLight = light;
+            float scale = 0.4f;
+            if (alarm == AlarmType.BELL) {
+                // §pod-anim: the bell swings from its clip: wildly on a run, steadily on a take, a
+                // shiver on a nibble or a gust
+                float amp = vis == 4 ? 30f : vis == 2 ? 22f : vis == 5 ? 12f : mo[1] * 20f;
+                if (amp > 0f) {
+                    pose.translate(0f, 0.12f, 0f);
+                    pose.mulPose(Axis.ZP.rotationDegrees(amp * (float) Math.sin(time * 1.25f + i)));
+                    pose.translate(0f, -0.12f, 0f);
+                }
+            } else if (vis == 2 || vis == 4 || vis == 5) {
+                // §pod-anim: the digital alarm lights up and pops on every beep (the server beeps every 8 ticks)
+                float ph = time % 8f;
+                if (ph < 3f) {
+                    alarmLight = 0xF000F0;
+                    scale *= 1f + 0.12f * (float) Math.sin(ph / 3f * Math.PI);
+                }
+            }
+            pose.scale(scale, scale, scale);
             itemRenderer.renderStatic(new ItemStack(alarmItem), ItemDisplayContext.FIXED,
-                    light, overlay, pose, buffers, be.getLevel(), 0);
+                    alarmLight, overlay, pose, buffers, be.getLevel(), 0);
             pose.popPose();
         }
 
@@ -131,9 +169,8 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
         // §live-buffer: asked for per rod below, never cached — see LineRenderer.render.
         Matrix4f m = pose.last().pose();
         Matrix3f nrm = pose.last().normal();
-        float time = be.getLevel() != null ? be.getLevel().getGameTime() % 100000L + partialTick : partialTick;
         for (int i = 0; i < n; i++) {
-            int state = be.lineStateAt(i);
+            int state = be.lineVisualAt(i);   // §pod-anim: 4 = a self-hooked run, 5 = a false alarm
             if (state == 0) continue;
             float x = slotX(i, n);
             // §line-strand: the water line IS the line threaded along the blank — one material, one
@@ -160,25 +197,67 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
                 float midZ = (tipZ + endZ) * 0.5f - 0.15f;
                 drawLine(lv, m, nrm, tipX, tipY, tipZ, x, midY, midZ, lr, lg, lb, la);
                 drawLine(lv, m, nrm, x, midY, midZ, x, endY, endZ - 0.35f, lr, lg, lb, la);
-            } else if (state == 2) {
-                // Bite: taut line yanked about at the water end.
-                float twY = (float) Math.sin(time * 1.4 + i) * 0.07f;
-                float twX = (float) Math.sin(time * 0.9 + i * 2) * 0.05f;
-                drawLine(lv, m, nrm, tipX, tipY, tipZ, x + twX, endY + twY, endZ, lr, lg, lb, la);
+            } else if (state == 2 || state == 4) {
+                // §pod-anim: a take PULLS the line in jerks, in time with the tip's nods; a run drags it
+                // hard out and swings it about
+                float pull = podMotion(state, -1, time, i)[1];
+                float swing = state == 4 ? (float) Math.sin(time * 0.21f + i) * 0.18f : (float) Math.sin(time * 0.9 + i * 2) * 0.03f;
+                drawLine(lv, m, nrm, tipX, tipY, tipZ, x + swing, endY - pull * 0.04f, endZ + pull * 0.4f, lr, lg, lb, la);
             } else {
-                // Waiting: dead straight from tip to water.
-                drawLine(lv, m, nrm, tipX, tipY, tipZ, x, endY, endZ, lr, lg, lb, la);
+                // Waiting: dead straight from tip to water, tugged by a nibble, shivering in a false alarm's gust
+                float[] mo = podMotion(state, be.ticksToBite(i, now), time, i);
+                float shiver = state == 5 ? (float) Math.sin(time * 2.3f + i) * 0.025f : 0f;
+                drawLine(lv, m, nrm, tipX, tipY, tipZ, x + shiver, endY, endZ + mo[1] * 0.15f, lr, lg, lb, la);
             }
         }
 
         pose.popPose();
     }
 
+    /**
+     * §pod-anim: how a podded rod moves this instant, {bend load 0..1, line pull 0..1}, from its visual state.
+     * Waiting on a tight line it keeps a slight bow, and in the last ten seconds before the take the fish
+     * nibbles: small taps, more often as the take nears. A take nods the tip in jerks that come harder; a
+     * self-hooked fish bends it over and keeps it throbbing; a false alarm only shivers it.
+     */
+    static float[] podMotion(int vis, long toBite, float t, int i) {
+        float load = 0f, pull = 0f;
+        switch (vis) {
+            case 1 -> {
+                load = 0.03f;
+                if (toBite > 0 && toBite < 200) {
+                    int bucket = (int) Math.floor(t / 5f);
+                    if (hash(bucket * 31 + i * 7) < 0.35f * (1f - toBite / 200f)) {
+                        float e = (float) Math.sin(Math.PI * (t / 5f - bucket));
+                        load += 0.12f * e;
+                        pull = 0.25f * e;
+                    }
+                }
+            }
+            case 2 -> {
+                float a = (float) Math.pow(Math.max(0.0, Math.sin(t * 0.55f + i)), 6);
+                float b = (float) Math.pow(Math.max(0.0, Math.sin(t * 1.9f + i * 2f)), 10);
+                pull = Math.min(1f, 0.8f * a + 0.4f * b);
+                load = 0.08f + 0.42f * a + 0.2f * b;
+            }
+            case 4 -> {
+                float surge = (float) Math.pow(Math.sin(t * 0.33f + i), 2);
+                load = 0.5f + 0.3f * surge + 0.05f * (float) Math.sin(t * 3.1f);
+                pull = 0.7f + 0.3f * surge;
+            }
+            case 5 -> load = 0.02f + 0.025f * (float) Math.abs(Math.sin(t * 2.3f));
+            default -> { }
+        }
+        return new float[]{load, pull};
+    }
+
+    private static float hash(int n) {
+        float x = (float) Math.sin(n * 12.9898f) * 43758.547f;
+        return x - (float) Math.floor(x);
+    }
+
     private static float slotX(int i, int n) {
-        float t = n <= 1 ? 0.5f : (float) i / (n - 1);
-        // the buzz-bar pod's saddles sit at x 4.475 / 8 / 11.525 in its model — 0.28..0.72 in blocks;
-        // the old 0.25..0.75 spread parked the outer rods half a unit outside their rests
-        return n >= 3 ? 0.2797f + t * 0.4406f : 0.25f + t * 0.5f;
+        return RodPodBlockEntity.slotX(i, n);   // §pod-slot: one table for the drawing and the click
     }
 
     private static void drawLine(VertexConsumer vc, Matrix4f m, Matrix3f nrm,

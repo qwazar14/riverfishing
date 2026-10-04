@@ -1,6 +1,10 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "riverfishing:item/boilie"
-  }
+    "layer0": "riverfishing:item/boilie_a",
+    "layer1": "riverfishing:item/boilie_b"
+  },
+  "overrides": [
+    { "predicate": { "riverfishing:dipped": 1 }, "model": "riverfishing:item/boilie_dipped" }
+  ]
 }

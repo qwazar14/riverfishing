@@ -65,8 +65,6 @@ public class KeepnetMenu extends AbstractContainerMenu {
         return invTop(t) + 3 * CELL + 4 + CELL + 7;
     }
 
-    public static final int INV_LEFT = 8;
-
     private final Player player;
     private final InteractionHand hand;
 

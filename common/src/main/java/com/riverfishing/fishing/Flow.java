@@ -71,7 +71,17 @@ public final class Flow {
             }
             float[] v = CACHE.get(pos.asLong());
             if (v == null) {
-                v = compute(biomes, biomes, pos);   // never the render region: it spans one chunk + 1 and the shape is read 24 blocks out
+                try {
+                    v = compute(biomes, biomes, pos);   // never the render region: it spans one chunk + 1 and the shape is read 24 blocks out
+                } catch (RuntimeException e) {
+                    // §flow-offthread: a render region means a chunk-meshing thread (Embeddium/Sodium, and vanilla's
+                    // own section compiler), and the shape is read off the client's LEVEL, which the main thread is
+                    // writing as chunks load. A read that lands mid-write throws — MissingPaletteEntryException, a
+                    // 1.20.1 + Embeddium game down after two hours by a river. That block is drawn still this once
+                    // and asked again at its next mesh. On the level's own thread it is a real bug: let it through.
+                    if (getter == biomes) throw e;
+                    return null;
+                }
                 CACHE.put(pos.asLong(), v);
             }
             return v;

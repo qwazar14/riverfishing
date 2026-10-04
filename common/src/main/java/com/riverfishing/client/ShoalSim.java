@@ -100,6 +100,29 @@ public final class ShoalSim {
          * block, and a loner a little jitter of its own.
          */
         public double yBias;
+        /** §fish-item: the stack the item renderer draws for this fish; built once, on first draw. */
+        public net.minecraft.world.item.ItemStack stack;
+        /** §shoal-live: this fish's place within its group — with the group, who it is between packets. */
+        public int ordinal;
+        /** §shoal-live: 0..1, how hard a nearby strike frightened this one, and where it came from. */
+        public float scare;
+        public double scareX, scareZ;
+        /** §shoal-live: seconds into a predator's dash at prey, or -1. */
+        public float dashT = -1f;
+        /** §shoal-live: the game second this fish next bubbles, rises or strikes. */
+        public double nextSign = -1;
+
+        /** Take over a fish that was swimming in another patch: it goes on from where it is. */
+        public void carry(Fish was) {
+            x = was.x; y = was.y; z = was.z;
+            heading = was.heading;
+            speed = was.speed;
+            tail = was.tail;
+            jumpT = was.jumpT;
+            pitch = was.pitch;
+            nextJump = was.nextJump;
+            nextSign = was.nextSign;
+        }
 
         Fish(ShoalPacket.Entry entry, double x, double y, double z, float heading, float phase) {
             this.entry = entry;
@@ -145,12 +168,15 @@ public final class ShoalSim {
             float a = (e.phase() / 64f) * Mth.TWO_PI + (i * 0.7f) + (n > 1 ? (k - (n - 1) / 2f) * 0.5f : 0f);
             double bias = n > 1 ? Mth.clamp((k - (n - 1) / 2.0) * 0.32, -0.75, 0.75)
                     : ((seed >> (i % 20)) & 15) / 15.0 * 0.5 - 0.25;
-            double y = Math.min(cy - 0.35 - e.depth() + bias, ceilingY(cy, e));   // §under-water
+            double y = roomy(level, c, Math.min(cy - 0.35 - e.depth() + bias, ceilingY(cy, e)), ceilingY(cy, e));   // §under-water §shoal-open
             double want = 0.9 + (e.lane() + 1) * 0.8 + (n > 1 ? (k % 3) * 0.3 : 0);
             double r = Math.min(want, ShoalBank.reach(level, c, y, a));
             out[i] = new Fish(e, cx + Math.cos(a) * r, y, cz + Math.sin(a) * r * 0.75,
                     a + Mth.HALF_PI, ((seed >> (i % 24)) & 63) / 63f * Mth.TWO_PI);
             out[i].yBias = bias;
+            int ord = 0;
+            for (int j = 0; j < i; j++) if (list.get(j).group() == e.group()) ord++;
+            out[i].ordinal = ord;
         }
         return out;
     }
@@ -192,17 +218,32 @@ public final class ShoalSim {
         if (fish.length == 0) return;
         BlockPos c = spot.centre();
         double cx = c.getX() + 0.5, cy = c.getY() + 1.0, cz = c.getZ() + 0.5;
-        double home = Mth.clamp(spot.spread() * 0.9, 1.1, 5.0);
+        double home = Mth.clamp(spot.spread() * 0.9, 1.1, 6.0);
         dt = Math.min(0.1, dt);   // a stutter must not teleport the shoal across the pond
 
         for (Fish f : fish) {
             float want = f.heading;
+            ShoalPacket.Entry en = f.entry;
+            // §fish-world: a patroller ranges wide, a lurker keeps to a small patch, a shoal on the angler's
+            // groundbait gathers over the spot itself
+            double homeHere = home * (en.is(ShoalPacket.Entry.CHASER) ? 1.6 : en.is(ShoalPacket.Entry.AMBUSH) ? 0.6 : 1.0);
+            boolean onBait = en.is(ShoalPacket.Entry.BAITED) && spot.hasBait();
+            if (onBait) homeHere = 1.4;
+
+            // where this fish's home is — the patch, or the bait spot — and everything below is measured from it
+            BlockPos hc = onBait ? BlockPos.containing(spot.baitX(), c.getY(), spot.baitZ()) : c;
+            double hcx = onBait ? spot.baitX() : cx, hcz = onBait ? spot.baitZ() : cz;
 
             // 1. The bank. How much room is left dead ahead, measured on the bearing it is swimming.
-            double reach = ShoalBank.reach(level, c, f.y, f.heading);
-            double dx = f.x - cx, dz = (f.z - cz) / 0.75;
+            double reach = ShoalBank.reach(level, hc, f.y, f.heading);
+            double dx = f.x - hcx, dz = (f.z - hcz) / 0.75;
             double out = Math.sqrt(dx * dx + dz * dz);
-            if (out > reach * 0.75) {
+            double hdx = dx, hdz = dz, hout = out;
+            // §shoal-live: a group that has moved zone is far from its new home — it swims there, purposefully
+            boolean travelling = out > homeHere + 3.0;
+            if (travelling) {
+                want = (float) Math.atan2(-dz * 0.75, -dx);
+            } else if (out > reach * 0.75) {
                 // Turn back toward open water, harder the closer the bank is. At the very edge this is
                 // a full reversal, which is what a fish in the shallows actually does.
                 float inward = (float) Math.atan2(-dz * 0.75, -dx);
@@ -222,7 +263,7 @@ public final class ShoalSim {
                 //
                 // Multiplied by dt it stays under the clamp, so the clamp stops deciding and the sines
                 // do: the heading drifts at wander × WANDER_TURN radians a second, framerate-free.
-                want = f.heading + wander * WANDER_TURN * (float) dt;
+                want = f.heading + wander * WANDER_TURN * (float) (en.is(ShoalPacket.Entry.AMBUSH) ? dt * 0.2 : dt);
 
                 // §shoal-school: a fish that moves in numbers keeps its numbers. Three rules, the
                 // classic three — line up with the neighbours, close toward their middle, and do
@@ -231,11 +272,12 @@ public final class ShoalSim {
                 if (f.entry.shoaling()) {
                     double sx = 0, sz = 0, hx = 0, hz = 0, ax = 0, az = 0;
                     int n = 0;
+                    double see = en.is(ShoalPacket.Entry.SCHOOL) ? SCHOOL_SEE * 1.4 : SCHOOL_SEE;
                     for (Fish o : fish) {
                         if (o == f || o.entry.lane() != f.entry.lane()) continue;
                         double ox = o.x - f.x, oz = o.z - f.z;
                         double d2 = ox * ox + oz * oz;
-                        if (d2 > SCHOOL_SEE * SCHOOL_SEE) continue;
+                        if (d2 > see * see) continue;
                         n++;
                         sx += ox; sz += oz;
                         hx += Math.cos(o.heading); hz += Math.sin(o.heading);
@@ -246,7 +288,7 @@ public final class ShoalSim {
                     if (n > 0) {
                         float align = (float) Math.atan2(hz, hx);
                         float cohere = (float) Math.atan2(sz / n, sx / n);
-                        want = Mth.rotLerp(0.35f, want, align);
+                        want = Mth.rotLerp(en.is(ShoalPacket.Entry.SCHOOL) ? 0.5f : 0.35f, want, align);
                         double far = Math.sqrt(sx * sx + sz * sz) / n;
                         if (far > 0.9) want = Mth.rotLerp((float) Math.min(0.5, (far - 0.9) * 0.4), want, cohere);
                         if (ax != 0 || az != 0) want = Mth.rotLerp(0.5f, want, (float) Math.atan2(az, ax));
@@ -265,9 +307,9 @@ public final class ShoalSim {
                         want = Mth.rotLerp(0.6f, want, (float) Math.atan2(bz, bx));
                     }
                 }
-                if (out > home) {
-                    float inward = (float) Math.atan2(-dz * 0.75, -dx);
-                    want = Mth.rotLerp((float) Mth.clamp((out - home) / 2.0, 0.0, 1.0), want, inward);
+                if (hout > homeHere) {
+                    float inward = (float) Math.atan2(-hdz * 0.75, -hdx);
+                    want = Mth.rotLerp((float) Mth.clamp((hout - homeHere) / 2.0, 0.0, 1.0), want, inward);
                 }
             }
 
@@ -281,6 +323,33 @@ public final class ShoalSim {
             // Done here, before anything can `continue` past it, so a jumping fish keeps beating too.
             f.tail = (f.tail + (TAIL_BASE + TAIL_SWING * f.kick) * 20f * (float) dt) % Mth.TWO_PI;
             double demand = f.cruise() * (BEAT_LOW + BEAT_SWING * f.kick);
+            if (travelling) demand *= 2.5;
+            // §fish-world: the pace of a life — a lurker hangs, a dweller creeps and stops, a school streams,
+            // a patroller cruises; resting fish barely move, spawners churn, feeders root about the spot
+            else if (f.dashT < 0f && f.scare <= 0.01f) {
+                if (en.is(ShoalPacket.Entry.AMBUSH)) demand *= 0.12;
+                else if (en.is(ShoalPacket.Entry.BOTTOM)) demand *= Mth.sin(time * 0.008f + f.phase * 3f) > 0.55f ? 0.08 : 0.55;
+                else if (en.is(ShoalPacket.Entry.SCHOOL)) demand *= 1.15;
+                else if (en.is(ShoalPacket.Entry.CHASER)) demand *= 1.25;
+                if (en.is(ShoalPacket.Entry.REST)) demand *= 0.35;
+                if (en.is(ShoalPacket.Entry.SPAWNING)) demand *= 1.3;
+                if (onBait && hout < homeHere) demand *= 0.4;
+            }
+            // nose down over the feed, rooting; level again once it has moved off
+            float wantPitch = onBait && hout < homeHere ? 28f : 0f;
+            if (f.jumpT < 0f) f.pitch += (wantPitch - f.pitch) * (float) Math.min(1.0, dt * 2.0);
+            // §shoal-live: the pike's rush, and the small fish scattering from it
+            if (f.dashT >= 0f) {
+                f.dashT += (float) dt;
+                demand *= 4.0;
+                if (f.dashT > 0.5f) f.dashT = -1f;
+            }
+            if (f.scare > 0.01f) {
+                want = Mth.rotLerp(f.scare, want, (float) Math.atan2(f.z - f.scareZ, f.x - f.scareX));
+                demand *= 1.0 + 2.0 * f.scare;
+                f.scare = Math.max(0f, f.scare - (float) dt * 1.2f);
+            }
+            if (flight < 0.1f) signs(level, fish, f, cy, eye, time);
             if (flight > 0.02f) {
                 // 2. Fright beats everything: away from the player, fast, and down.
                 float away = (float) Math.atan2(f.z - eye.z, f.x - eye.x);
@@ -334,7 +403,92 @@ public final class ShoalSim {
             // frightened one carries the whole band down with it instead of being pushed each tick.
             double restY = Math.min(cy - 0.35 - f.entry.depth() + f.yBias
                     + Mth.sin(time * 0.035f + f.phase) * 0.16, ceilingY(cy, f.entry)) - 1.1 * flight;
+            restY = roomy(level, c, restY, ceilingY(cy, f.entry));
             f.y += (restY - f.y) * Math.min(1.0, dt * 1.6);
+        }
+    }
+
+    /**
+     * §shoal-open: a fish whose layer is cramped (a pit, a crevice under a ledge) swims in the first layer
+     * above it with room to move, instead of turning inside a block. Never above its ceiling.
+     */
+    private static double roomy(Level level, BlockPos c, double y, double ceiling) {
+        for (double yy = y; yy <= ceiling; yy += 1.0) {
+            if (ShoalBank.room(level, c, yy) >= 1.5) return yy;
+        }
+        return Math.min(y, ceiling);
+    }
+
+    /** §fish-world: stirred-up bottom — a dull brown, big, drifting. */
+    private static final net.minecraft.core.particles.DustParticleOptions SILT =
+            new net.minecraft.core.particles.DustParticleOptions(new org.joml.Vector3f(0.38f, 0.31f, 0.2f), 1.8f);
+
+    /** §shoal-quiet: one splash sound in this long, over the whole water; the rest are seen, not heard. */
+    private static final double SOUND_GAP_S = 1.5, SOUND_RANGE = 24;
+    private static double lastSound = -1e9;
+
+    /** §shoal-live: signs are only made where someone could see them. */
+    private static final double SIGN_RANGE = 32.0;
+
+    /**
+     * §shoal-live: what the living water shows of what its fish are doing. A bottom feeder rooting for food
+     * sends up bubbles; a shoal feeding in the upper water at dawn and dusk dimples the surface; a hunting
+     * predator strikes — a burst of speed, a splash, and the small fish nearby scatter from it.
+     */
+    private static void signs(Level level, Fish[] fish, Fish f, double cy, Vec3 eye, float time) {
+        ShoalPacket.Entry e = f.entry;
+        boolean spawning = e.is(ShoalPacket.Entry.SPAWNING), baited = e.is(ShoalPacket.Entry.BAITED);
+        if (!e.feeding() && !e.rising() && !e.hunting() && !spawning && !baited) return;
+        double sec = time / 20.0;
+        if (f.nextSign < 0) { f.nextSign = sec + 1 + f.phase * 2; return; }
+        if (sec < f.nextSign) return;
+        if (eye.distanceToSqr(f.x, f.y, f.z) > SIGN_RANGE * SIGN_RANGE) { f.nextSign = sec + 3; return; }
+        if (spawning) {
+            // §fish-world: spawning fish thrash in the weed at the top of the water — backs out, water flying
+            for (int i = 0; i < 5; i++) {
+                level.addParticle(net.minecraft.core.particles.ParticleTypes.SPLASH,
+                        f.x + (Math.random() - 0.5) * 0.8, cy - 0.02, f.z + (Math.random() - 0.5) * 0.8, 0, 0.15, 0);
+            }
+            if (Math.random() < 0.25) splash(level, f.x, cy, f.z);
+            f.nextSign = sec + 3 + Math.random() * 6;
+        } else if (baited) {
+            // §fish-world: rooting in the groundbait — bubbles streaming up and a cloud of silt off the bottom
+            for (int i = 0; i < 4; i++) {
+                level.addParticle(net.minecraft.core.particles.ParticleTypes.BUBBLE,
+                        f.x + (Math.random() - 0.5) * 0.4, f.y, f.z + (Math.random() - 0.5) * 0.4, 0, 0.06, 0);
+            }
+            level.addParticle(net.minecraft.core.particles.ParticleTypes.BUBBLE_POP, f.x, cy - 0.1, f.z, 0, 0, 0);
+            for (int i = 0; i < 3; i++) {
+                level.addParticle(SILT, f.x + (Math.random() - 0.5) * 0.9, f.y - 0.3 + Math.random() * 0.4,
+                        f.z + (Math.random() - 0.5) * 0.9, 0, 0.01, 0);
+            }
+            f.nextSign = sec + 0.8 + Math.random() * 1.5;
+        } else if (e.feeding()) {
+            for (int i = 0; i < 3; i++) {
+                level.addParticle(net.minecraft.core.particles.ParticleTypes.BUBBLE,
+                        f.x + (Math.random() - 0.5) * 0.3, f.y + 0.1, f.z + (Math.random() - 0.5) * 0.3, 0, 0.05, 0);
+            }
+            level.addParticle(net.minecraft.core.particles.ParticleTypes.BUBBLE_POP, f.x, cy - 0.1, f.z, 0, 0, 0);
+            f.nextSign = sec + 2 + Math.random() * 3;
+        } else if (e.rising()) {
+            for (int i = 0; i < 8; i++) {
+                double a = i / 8.0 * Math.PI * 2;
+                level.addParticle(net.minecraft.core.particles.ParticleTypes.SPLASH,
+                        f.x + Math.cos(a) * 0.35, cy - 0.05, f.z + Math.sin(a) * 0.35, 0, 0.02, 0);
+            }
+            f.nextSign = sec + 6 + Math.random() * 8;
+        } else {
+            f.dashT = 0f;
+            splash(level, f.x, cy, f.z);
+            for (Fish o : fish) {
+                if (o == f || o.entry.predator()) continue;
+                double ox = o.x - f.x, oz = o.z - f.z;
+                if (ox * ox + oz * oz > 9.0) continue;
+                o.scare = 1f;
+                o.scareX = f.x;
+                o.scareZ = f.z;
+            }
+            f.nextSign = sec + 15 + Math.random() * 20;
         }
     }
 
@@ -344,8 +498,14 @@ public final class ShoalSim {
             level.addParticle(net.minecraft.core.particles.ParticleTypes.SPLASH,
                     x + (Math.random() - 0.5) * 0.6, y + 0.05, z + (Math.random() - 0.5) * 0.6, 0, 0.1, 0);
         }
+        // §shoal-quiet: a full water would be a drum roll — one sound at a time, near you, soft
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        double now = level.getGameTime() / 20.0;
+        if (mc.player == null || now - lastSound < SOUND_GAP_S
+                || mc.player.distanceToSqr(x, y, z) > SOUND_RANGE * SOUND_RANGE) return;
+        lastSound = now;
         level.playLocalSound(x, y, z, net.minecraft.sounds.SoundEvents.FISHING_BOBBER_SPLASH,
-                net.minecraft.sounds.SoundSource.NEUTRAL, 0.35f, 1.3f + (float) Math.random() * 0.3f, false);
+                net.minecraft.sounds.SoundSource.NEUTRAL, 0.2f, 1.3f + (float) Math.random() * 0.3f, false);
     }
 
     /** Turn {@code from} toward {@code to} by at most {@code max} radians, the short way round. */

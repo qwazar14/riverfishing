@@ -121,6 +121,28 @@ public final class RigData {
         return baits;
     }
 
+    /** §boilies: the boilie on the rig's hooks (its flavours, float, size, live dip), or null. */
+    public static com.riverfishing.fish.Boilie boilie(ItemStack rig) {
+        com.riverfishing.fish.Boilie[] found = { null };
+        forEachFilled(rig, (role, stack) -> {
+            if (found[0] == null && role == SlotRole.BAIT && stack.getItem() instanceof com.riverfishing.item.BoilieItem) {
+                found[0] = com.riverfishing.item.BoilieItem.read(stack);
+            }
+        });
+        return found[0];
+    }
+
+    /** §boilies: a cast washes a little of the dip off the boilies on the hooks. True if the rig changed. */
+    public static boolean useDip(ItemStack rig) {
+        NonNullList<ItemStack> contents = load(rig);
+        boolean changed = false;
+        for (ItemStack s : contents) {
+            if (s.getItem() instanceof com.riverfishing.item.BoilieItem) changed |= com.riverfishing.item.BoilieItem.useDip(s);
+        }
+        if (changed) save(rig, contents);
+        return changed;
+    }
+
     /** §lure-color: the dyed RGB of an artificial lure loaded in a lure/bait slot, or -1 if none/undyed. */
     /** §tying: the tied lure loaded on the rig, analysed, or null. */
     public static com.riverfishing.tackle.TiedDesign.Analysis tiedLure(ItemStack rig) {

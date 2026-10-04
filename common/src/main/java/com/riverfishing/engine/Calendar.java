@@ -33,7 +33,7 @@ public final class Calendar {
 
     /** §season-config: the season's length from the config — a third to a sub-season, four to the year. */
     public static void setSeasonDays(int days) {
-        SEASON_DAYS = Math.max(3, days);
+        SEASON_DAYS = Math.max(3, days / 3 * 3);   // three whole sub-seasons — 25 read a fourth and threw
         SUB_DAYS = Math.max(1, SEASON_DAYS / 3);
         YEAR_DAYS = SEASON_DAYS * 4;
     }

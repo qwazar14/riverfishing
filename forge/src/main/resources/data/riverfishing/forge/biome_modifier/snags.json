@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#riverfishing:has_snags",
+  "features": "riverfishing:snags",
+  "step": "vegetal_decoration"
+}

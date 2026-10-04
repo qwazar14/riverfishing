@@ -1,0 +1,88 @@
+{
+  "display": "Greenland shark",
+  "latin": "Somniosus microcephalus",
+  "group": "big_game",
+  "diet": "predator",
+  "spawn": {
+    "season": "summer",
+    "sub": "mid"
+  },
+  "water_bodies": {
+    "river": 0.0,
+    "lake": 0.0,
+    "pond": 0.0,
+    "swamp": 0.0,
+    "sea": 1.0,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 50000,
+    "max": 1000000,
+    "mean": 200000
+  },
+  "length_cm": {
+    "min": 250.0,
+    "max": 640.0
+  },
+  "fight": {
+    "strength": 1.0,
+    "stamina": 1.0,
+    "runs": 3,
+    "pattern": "steady",
+    "aggression": 0.3
+  },
+  "ideal": {
+    "line": {
+      "type": "braid",
+      "diameter_mm": 0.6,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.95,
+      "nutrition": 0.8
+    },
+    "bait": {
+      "fish_strip": 1.0,
+      "chicken_liver": 0.7,
+      "livebait": 0.6,
+      "octopus_jig": 0.5
+    },
+    "hook": {
+      "ideal": 1
+    },
+    "requires_leader": true
+  },
+  "season": {
+    "spring": 1.0,
+    "summer": 0.6,
+    "autumn": 1.2,
+    "winter": 1.4
+  },
+  "time": {
+    "dawn": 1.0,
+    "day": 0.8,
+    "dusk": 1.0,
+    "night": 1.2
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.0,
+    "thunder": 1.0
+  },
+  "depth_pref": "bottom",
+  "habitat": {
+    "depth_min": 14,
+    "width_min": 28
+  },
+  "provinces": [],
+  "biomes": {
+    "deep": 1.5,
+    "cold": 1.6,
+    "ocean_biome": 0.6
+  },
+  "biomes_require": [
+    "cold"
+  ],
+  "base": 0.05,
+  "min_angler_level": 41
+}

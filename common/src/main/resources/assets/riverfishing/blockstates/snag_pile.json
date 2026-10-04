@@ -1,5 +1,81 @@
 {
   "variants": {
-    "": { "model": "riverfishing:block/snag_pile" }
+    "": [
+      {
+        "model": "riverfishing:block/snag_pile"
+      },
+      {
+        "model": "riverfishing:block/snag_pile",
+        "y": 90
+      },
+      {
+        "model": "riverfishing:block/snag_pile",
+        "y": 180
+      },
+      {
+        "model": "riverfishing:block/snag_pile",
+        "y": 270
+      },
+      {
+        "model": "riverfishing:block/snag_log"
+      },
+      {
+        "model": "riverfishing:block/snag_log",
+        "y": 90
+      },
+      {
+        "model": "riverfishing:block/snag_log",
+        "y": 180
+      },
+      {
+        "model": "riverfishing:block/snag_log",
+        "y": 270
+      },
+      {
+        "model": "riverfishing:block/snag_root"
+      },
+      {
+        "model": "riverfishing:block/snag_root",
+        "y": 90
+      },
+      {
+        "model": "riverfishing:block/snag_root",
+        "y": 180
+      },
+      {
+        "model": "riverfishing:block/snag_root",
+        "y": 270
+      },
+      {
+        "model": "riverfishing:block/snag_fork"
+      },
+      {
+        "model": "riverfishing:block/snag_fork",
+        "y": 90
+      },
+      {
+        "model": "riverfishing:block/snag_fork",
+        "y": 180
+      },
+      {
+        "model": "riverfishing:block/snag_fork",
+        "y": 270
+      },
+      {
+        "model": "riverfishing:block/snag_driftwood"
+      },
+      {
+        "model": "riverfishing:block/snag_driftwood",
+        "y": 90
+      },
+      {
+        "model": "riverfishing:block/snag_driftwood",
+        "y": 180
+      },
+      {
+        "model": "riverfishing:block/snag_driftwood",
+        "y": 270
+      }
+    ]
   }
 }

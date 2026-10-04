@@ -91,6 +91,14 @@ public class MaggotFarmBlockEntity extends BlockEntity {
         }
     }
 
+    /** §farm-spill: the maggots pop out when the farm is broken — they used to go with the block. */
+    void spill() {
+        if (level == null || level.isClientSide() || maggots <= 0) return;
+        net.minecraft.world.level.block.Block.popResource(level, worldPosition,
+                new ItemStack(BuiltInRegistries.ITEM.get(com.riverfishing.RiverFishing.id("maggot")), maggots));
+        maggots = 0;
+    }
+
     void collect(Player player) {
         if (maggots <= 0) {
             player.displayClientMessage(Component.translatable("message.riverfishing.maggot_farm_empty")

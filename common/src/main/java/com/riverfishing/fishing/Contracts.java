@@ -22,7 +22,6 @@ import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -160,7 +159,7 @@ public final class Contracts {
         String water = best(p == null ? null : p.waterBodies, rng, 1.0);
         if (water != null && rng.nextDouble() < 0.55) { t.putString("Water", water); n++; }
         // ponytail: the rod class comes off the family — predators and salmonids are worked, the rest
-        // sit under a float or on the bottom. idealRods would name a rod, not a class.
+        // sit under a float or on the bottom. Profiles name no rod at all any more.
         if (rng.nextDouble() < 0.4) {
             String g = p == null ? "" : p.group;
             String rod = g.equals("predator") || g.equals("salmonid") ? "active"
@@ -314,8 +313,7 @@ public final class Contracts {
         }
         paper.shrink(1);
 
-        ItemStack pay = new ItemStack(Items.EMERALD, t.getInt("Em"));
-        if (!sp.getInventory().add(pay)) sp.drop(pay, false);
+        KeepnetSale.payEmeralds(sp, t.getInt("Em"));   // §payout-stacks
         JournalData.addXp(sp, t.getInt("Xp"));
         int before = rep(sp), after = before + t.getInt("Rep");
         PlayerData.root(sp).putInt(REP, after);
@@ -439,10 +437,5 @@ public final class Contracts {
             if (c <= n) { inv.setItem(i, ItemStack.EMPTY); n -= c; }
             else { com.riverfishing.item.FryItem.setCount(s, c - n); n = 0; }
         }
-    }
-
-    /** The lower-case name the terms use for a rod class. */
-    public static String rodKey(com.riverfishing.component.RodClass c) {
-        return c.name().toLowerCase(Locale.ROOT);
     }
 }

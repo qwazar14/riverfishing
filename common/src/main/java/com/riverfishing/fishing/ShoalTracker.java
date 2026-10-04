@@ -88,14 +88,18 @@ public final class ShoalTracker {
         // The in-game hour is the shoal's clock: it holds still while you fish, and has moved on when you
         // come back. floorDiv, not /, so it does not jitter around midnight of a negative game time.
         long hour = Math.floorDiv(now, 1000L);
-        List<ShoalPacket.Spot> spots = scan(level, sp, now, hour);
+        // §shoal-live: with the living water on, what you see is its fish — the same agents that bite
+        boolean living = com.riverfishing.config.RiverFishingConfig.alife();
+        List<ShoalPacket.Spot> spots = living ? scanLiving(level, sp, now) : scan(level, sp, now, hour);
 
         if (spots.isEmpty()) {
             if (LAST.remove(sp.getUUID()) != null) ModNetwork.toPlayer(sp, ShoalPacket.empty());
             return;
         }
-        StringBuilder sig = new StringBuilder(24).append(hour);
+        StringBuilder sig = new StringBuilder(24).append(living ? 0 : hour);
         for (ShoalPacket.Spot s : spots) {
+            if (living) for (ShoalPacket.Entry e : s.fish()) sig.append(',').append(e.group()).append(e.kind());
+            if (s.hasBait()) sig.append('b').append((int) s.baitX()).append((int) s.baitZ());
             // §shoal-spook: the spook bucket is part of the signature, or a shoal that has just been
             // frightened never gets told to the client — the composition has not changed, so nothing
             // would be sent, and the flight would never animate.
@@ -107,11 +111,6 @@ public final class ShoalTracker {
         if (key.equals(LAST.get(sp.getUUID()))) return;
         LAST.put(sp.getUUID(), key);
         ModNetwork.toPlayer(sp, new ShoalPacket(spots));
-    }
-
-    /** Forget a player's shoal so their next tick re-sends it. */
-    public static void forget(ServerPlayer sp) {
-        LAST.remove(sp.getUUID());
     }
 
     /**
@@ -174,6 +173,186 @@ public final class ShoalTracker {
             out.add(new ShoalPacket.Spot(surface, clarity(level, body, surface), spread, spookByte, fish));
         }
         return out;
+    }
+
+    // ---- §shoal-live: the living water's own fish ----
+
+    /** How far around the player the living water is shown, blocks. */
+    private static final int VIEW = 40;
+    /** Every fish on screen at once, across all shoals — the render cost is per fish. */
+    private static final int MAX_FISH_LIVE = 320;
+
+    private record ZoneView(com.riverfishing.alife.Lake lake, com.riverfishing.alife.Lake.Zone zone, int index, double dist) {}
+
+    /**
+     * Every zone of living water in view — the region lakes around the player and any pond — each drawn as
+     * one shoal at its deepest water, with a lane per group of fish in it. A pond shows its fish one by one
+     * (up to two dozen a group); a wild shoal shows about two per square root of its count, so a big shoal
+     * reads big; a batch of fry is a flicker of tiny fish. Nothing here is made up: move the agent and the
+     * fish swim to its new zone, catch one and it is gone from the water.
+     */
+    private static List<ShoalPacket.Spot> scanLiving(ServerLevel level, ServerPlayer sp, long now) {
+        int px = sp.getBlockX(), py = sp.getBlockY(), pz = sp.getBlockZ();
+        // §fish-world: the diver sees the water as it is — every fish of a shoal near him, clear water
+        boolean diving = sp.isEyeInFluid(net.minecraft.tags.FluidTags.WATER);
+        AlifeData data = AlifeData.get(level);
+        List<com.riverfishing.alife.Lake> ponds = new ArrayList<>();
+        for (PondData.Claim c : PondData.near(level, sp.blockPosition(), VIEW + 64)) {
+            com.riverfishing.alife.Lake l = data.pond(level, c);
+            if (l != null) ponds.add(l);
+        }
+        List<com.riverfishing.alife.Lake> lakes = new ArrayList<>(ponds);
+        java.util.Set<Long> regions = new java.util.HashSet<>();
+        for (int dx = -VIEW; dx <= VIEW; dx += VIEW) for (int dz = -VIEW; dz <= VIEW; dz += VIEW) {
+            BlockPos q = new BlockPos(px + dx, py, pz + dz);
+            if (regions.add(StockedData.region(q))) lakes.add(data.lakeAt(level, q));
+        }
+        List<ZoneView> zones = new ArrayList<>();
+        for (com.riverfishing.alife.Lake lake : lakes) {
+            boolean pond = ponds.contains(lake);
+            for (int i = 0; i < lake.zones.size(); i++) {
+                com.riverfishing.alife.Lake.Zone z = lake.zones.get(i);
+                if (z.ay == Integer.MIN_VALUE || Math.abs(z.ay - py) > Y_BAND) continue;
+                double d = Math.hypot(z.ax - px, z.az - pz);
+                if (d > VIEW) continue;
+                if (diving && Math.abs(z.ay - py) > Y_BAND + 16) continue;
+                // the wild zone over a claimed pond is the pond's to show
+                if (!pond && PondData.isClaimed(level, new BlockPos(z.ax, z.ay, z.az))) continue;
+                zones.add(new ZoneView(lake, z, i, d));
+            }
+        }
+        zones.sort(Comparator.comparingDouble(ZoneView::dist));
+        long tod = level.getDayTime() % 24000L;
+        boolean edge = tod < 2000L || (tod > 11500L && tod < 13500L);   // dawn and dusk: the rise
+        com.riverfishing.engine.TimeOfDay hourNow = com.riverfishing.engine.TimeOfDay.fromDayTime(level.getDayTime());
+        boolean heat = hourNow == com.riverfishing.engine.TimeOfDay.DAY && !level.isRaining()
+                && com.riverfishing.integration.SeasonProvider.getSeason(level) == com.riverfishing.engine.Season.SUMMER;
+        List<ShoalPacket.Spot> out = new ArrayList<>();
+        int budget = diving ? MAX_FISH_DIVING : MAX_FISH_LIVE;
+        for (ZoneView zv : zones) {
+            if (budget < 1) break;
+            java.util.function.Predicate<String> spawning = AlifeData.conditions(level,
+                    new BlockPos(zv.zone().ax, zv.zone().ay, zv.zone().az)).apply(zv.lake().hour).spawning();
+            double[] bait = zv.lake().baitSpot(zv.index());
+            List<ShoalPacket.Entry> fish = new ArrayList<>();
+            byte lane = 0;
+            for (com.riverfishing.alife.Lake.Agent a : zv.lake().agents) {
+                if (a.zone != zv.index() || !a.alive() || lane > 7) continue;
+                int before = fish.size();
+                Look look = new Look(edge, hourNow, heat, diving, spawning, bait != null);
+                live(zv.lake(), a, zv.zone(), lane, look, Math.min(budget - fish.size(), diving ? 40 : 24), fish);
+                if (fish.size() > before) lane++;
+            }
+            if (fish.isEmpty()) continue;
+            budget -= fish.size();
+            BlockPos at = new BlockPos(zv.zone().ax, zv.zone().ay, zv.zone().az);
+            double spook = SpookData.of(level).at(at, now);
+            byte spookByte = (byte) Mth.clamp((int) Math.round(spook / SPOOK_GONE * 100.0), 0, 100);
+            WaterBody body = WaterBodyCache.forLevel(level).get(level, at);
+            float clear = clarity(level, body, at);
+            if (diving) clear = Math.max(clear, 0.9f);
+            out.add(new ShoalPacket.Spot(at, clear, (byte) 6, spookByte, fish,
+                    bait != null, bait == null ? 0f : (float) bait[0], bait == null ? 0f : (float) bait[1]));
+        }
+        return out;
+    }
+
+    /** Every fish on screen at once when the player is under water — the abundance is the point. */
+    private static final int MAX_FISH_DIVING = 700;
+
+    /** What the moment looks like to the shoals: the hour, the heat, whether the viewer is diving, who spawns, the bait. */
+    private record Look(boolean edge, com.riverfishing.engine.TimeOfDay time, boolean heat, boolean diving,
+                        java.util.function.Predicate<String> spawning, boolean bait) {}
+
+    /** §fish-world: the lurkers — they hang still in cover and strike. */
+    private static final java.util.regex.Pattern AMBUSHERS = java.util.regex.Pattern.compile(
+            ".*(pike|pickerel|muskellunge|gar|snakehead|wels|barracuda|grouper).*");
+
+    /** One agent's fish, as entries of lane {@code lane}. */
+    private static void live(com.riverfishing.alife.Lake lake, com.riverfishing.alife.Lake.Agent a,
+                             com.riverfishing.alife.Lake.Zone zone, byte lane, Look look, int room,
+                             List<ShoalPacket.Entry> out) {
+        boolean edge = look.edge();
+        FishProfile p = FishProfileManager.get().byId(com.riverfishing.RiverFishing.id(a.sp.id()));
+        if (p == null || room <= 0) return;
+        int group = System.identityHashCode(a);
+        RandomSource rng = RandomSource.create(group * 0x9E3779B97F4A7C15L);
+        int n = look.diving()
+                ? (a.heads != null ? Math.min(a.heads.size(), 40)
+                   : a.fry ? Math.min(40, 5 + a.count / 3)
+                   : a.trophy ? 1 : (int) Math.min(a.count, Mth.clamp(Math.round(4.0 * Math.sqrt(a.count)), 1, 40)))
+                : (a.heads != null ? Math.min(a.heads.size(), 24)
+                   : a.fry ? Math.min(12, 3 + a.count / 8)
+                   : a.trophy ? 1 : (int) Mth.clamp(Math.round(2.2 * Math.sqrt(a.count)), 1, 16));
+        n = Math.min(n, room);
+        double mean = p.weightMeanSet ? p.weightMean : (p.weightMin + p.weightMax) / 2.0;
+        boolean shoaling = a.fry || (n > 1 && (mean < SHOAL_UNDER_G || a.heads == null));
+        boolean bottom = "bottom".equals(p.depthPref);
+        boolean feeding = lake.feeding(a);
+        int kind = ("predator".equals(p.group) || a.sp.predator() ? ShoalPacket.Entry.PREDATOR : 0)
+                | (JUMPERS.contains(p.id.getPath()) && !a.fry ? ShoalPacket.Entry.JUMPER : 0)
+                | (shoaling ? ShoalPacket.Entry.SHOALING : 0)
+                | (feeding && bottom ? ShoalPacket.Entry.FEEDING : 0)
+                | (feeding && !bottom && edge ? ShoalPacket.Entry.RISING : 0)
+                | (lake.hunting(a) ? ShoalPacket.Entry.HUNTING : 0)
+                | (a.fry ? ShoalPacket.Entry.FRY : 0);
+        // §fish-world: how this fish lives, and what it is doing right now
+        String path = p.id.getPath(), grp = p.group == null ? "" : p.group;
+        boolean predator = a.sp.predator() || "predator".equals(p.group);
+        boolean dweller = !a.fry && (com.riverfishing.fish.FishPose.isFlat(path) || "catfish".equals(grp)
+                || "sturgeon".equals(grp) || "ray".equals(grp) || (bottom && mean >= 800));
+        boolean ambush = !a.fry && predator && !dweller && AMBUSHERS.matcher(path).matches();
+        boolean rest = !a.fry && (p.timeFactor(look.time()) < 0.8 || a.hunger < 0.12);
+        boolean spawning = !a.fry && look.spawning().test(path) && com.riverfishing.alife.Lake.spawningGround(zone);
+        boolean baited = look.bait() && feeding;
+        kind |= (dweller ? ShoalPacket.Entry.BOTTOM : 0)
+                | (ambush ? ShoalPacket.Entry.AMBUSH : 0)
+                | (predator && !ambush && !dweller ? ShoalPacket.Entry.CHASER : 0)
+                | (shoaling && !predator && !dweller ? ShoalPacket.Entry.SCHOOL : 0)
+                | (rest && !spawning && !baited ? ShoalPacket.Entry.REST : 0)
+                | (spawning ? ShoalPacket.Entry.SPAWNING : 0)
+                | (baited ? ShoalPacket.Entry.BAITED : 0);
+        int waterDepth = Math.max(1, zone.adepth);
+        int baseDepth = a.fry ? Math.min(1, waterDepth - 1) : depthFor(p, waterDepth, rng);
+        // the day shows in the depth: spawners up in the weed, feeders and dwellers and the resting on the
+        // bottom, the open-water fish deeper in the heat of noon and higher in the night
+        if (spawning) baseDepth = Math.min(1, waterDepth - 1);
+        else if (dweller || baited || rest) baseDepth = Math.max(0, waterDepth - 1);
+        else if (look.heat()) baseDepth = Math.min(waterDepth - 1, baseDepth + 1);
+        else if (look.time() == com.riverfishing.engine.TimeOfDay.NIGHT) baseDepth = Math.max(0, baseDepth - 1);
+        int basePhase = rng.nextInt(64);
+        boolean koi = com.riverfishing.fish.Genome.isKoiId(p.id.getPath());
+        for (int k = 0; k < n; k++) {
+            int grams, pattern = 0;
+            String variety = "";
+            boolean trophy = a.trophy;
+            if (a.heads != null) {
+                com.riverfishing.alife.Life.Head h = a.heads.get(k);
+                grams = (int) Math.round(h.weightG);
+                net.minecraft.nbt.CompoundTag card = PondLife.record(h).getCompound("Card");
+                variety = card.getString("Variety");
+                pattern = com.riverfishing.fish.CatchCard.pattern(card);
+                trophy = h.trophy;
+            } else if (a.fry) {
+                grams = (int) Math.max(1, Math.round(a.weightG));
+            } else {
+                grams = (int) Mth.clamp(a.weightG * (0.7 + rng.nextDouble() * 0.6), p.weightMin, p.weightMax);
+            }
+            if (koi && variety.isEmpty()) variety = "koi_" + com.riverfishing.fish.Genome.wildKoi(rng.nextDouble());
+            int lengthCm = a.fry ? 2 : lengthOf(p, grams);
+            int ph = shoaling ? (basePhase + rng.nextInt(9) - 4 + 64) % 64 : basePhase;
+            int dd = Mth.clamp(baseDepth + (shoaling ? rng.nextInt(3) - 1 : 0), 0, Math.max(0, waterDepth - 1));
+            byte age = (byte) Math.round(com.riverfishing.fish.FishMorph.ageFraction(p, grams) * 100);
+            out.add(new ShoalPacket.Entry(p.id, grams, Math.max(1, lengthCm), age, (byte) dd, lane, (byte) ph,
+                    kind | (trophy ? ShoalPacket.Entry.TROPHY : 0), group, variety, pattern));
+        }
+    }
+
+    /** Length from weight, the cube-root law anchored to the species range. */
+    private static int lengthOf(FishProfile p, int grams) {
+        double lo = Math.cbrt(Math.max(1.0, p.weightMin)), hi = Math.cbrt(Math.max(p.weightMin + 1, p.weightMax));
+        double frac = Mth.clamp((Math.cbrt(Math.max(1.0, grams)) - lo) / Math.max(1e-6, hi - lo), 0.0, 1.2);
+        return (int) Math.round(p.lengthMin + frac * (p.lengthMax - p.lengthMin));
     }
 
     /**

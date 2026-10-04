@@ -69,9 +69,37 @@ public final class ShoalState {
         // Anything the server no longer mentions is leaving — and only that.
         for (Live live : LIVE.values()) live.leaving = true;
 
+        // §shoal-live: every fish already swimming, by WHO it is — its group and its place in it — across
+        // every patch. A group that moved to the next zone is the same fish: they keep their positions and
+        // swim over to their new home instead of vanishing here and appearing there.
+        Map<Long, ShoalSim.Fish> byWho = new java.util.HashMap<>();
+        for (Live live : LIVE.values()) {
+            for (ShoalSim.Fish f : live.fish) if (f.entry.group() != 0) byWho.putIfAbsent(who(f), f);
+        }
+        java.util.Set<ShoalSim.Fish> adopted = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+
         for (ShoalPacket.Spot s : p.spots()) {
             long key = s.centre().asLong();
             Live live = LIVE.get(key);
+            boolean living = !s.fish().isEmpty() && s.fish().get(0).group() != 0;
+            if (living) {
+                ShoalSim.Fish[] fresh = ShoalSim.populate(level, s);
+                for (ShoalSim.Fish now : fresh) {
+                    ShoalSim.Fish was = byWho.remove(who(now));
+                    if (was == null) continue;
+                    now.carry(was);
+                    adopted.add(was);
+                }
+                if (live == null) {
+                    live = new Live(s, fresh);
+                    LIVE.put(key, live);
+                } else {
+                    live.fish = fresh;
+                    live.spot = s;
+                    live.leaving = false;
+                }
+                continue;
+            }
             if (live == null) {
                 LIVE.put(key, new Live(s, ShoalSim.populate(level, s)));
             } else {
@@ -84,7 +112,18 @@ public final class ShoalState {
                 live.leaving = false;
             }
         }
+        // a leaving patch lets go of the fish another patch took over — they are swimming there now
+        if (!adopted.isEmpty()) {
+            for (Live live : LIVE.values()) {
+                if (!live.leaving) continue;
+                live.fish = java.util.Arrays.stream(live.fish).filter(f -> !adopted.contains(f)).toArray(ShoalSim.Fish[]::new);
+            }
+        }
         snapshot = List.copyOf(new ArrayList<>(LIVE.values()));
+    }
+
+    private static long who(ShoalSim.Fish f) {
+        return ((long) f.entry.group() << 16) ^ f.ordinal;
     }
 
     /**

@@ -98,6 +98,16 @@ public final class RodDebugCommand {
                                             say(c, "§brope segments: " + FlyLineClient.SEGMENTS);
                                             return 1;
                                         }))))
+                // §rod-anim: the rod acting in your hands — status, switch, and the pitch sign should a frame disagree.
+                .then(ClientCommandRegistrationEvent.literal("anim")
+                        .executes(c -> { say(c, RodAnim.describe()); return 1; })
+                        .then(ClientCommandRegistrationEvent.literal("on").executes(c -> { RodAnim.ENABLED = true; say(c, "§aanim ON"); return 1; }))
+                        .then(ClientCommandRegistrationEvent.literal("off").executes(c -> { RodAnim.ENABLED = false; say(c, "§canim OFF"); return 1; }))
+                        .then(ClientCommandRegistrationEvent.literal("flip").executes(c -> {
+                            RodAnim.POSE_SIGN = -RodAnim.POSE_SIGN;
+                            say(c, "§aanim pitch sign " + (RodAnim.POSE_SIGN > 0 ? "+" : "-"));
+                            return 1;
+                        })))
                 .then(ClientCommandRegistrationEvent.literal("phys")
                         .executes(c -> { say(c, RodPhysics.describe()); return 1; })
                         .then(ClientCommandRegistrationEvent.literal("on").executes(c -> {

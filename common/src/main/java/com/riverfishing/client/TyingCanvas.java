@@ -22,9 +22,9 @@ import java.util.function.Predicate;
  * reads it with. The bench's own store (the nine wells under the canvas) and your inventory pay
  * together; hover Tie for the bill.
  *
- * <p>Layout, top to bottom, left column then right: canvas 30..110, stencils 114..124, two readout
- * lines 128..146 | threads 30..102, materials 104..122, two rows of buttons 124..148. Nothing reaches
- * the wells row at 149 — that row is the hook picker and the store.
+ * <p>Layout, top to bottom, left column then right: canvas 26..122, stencils 124..134, the name line
+ * 136..145 | threads 30..102, materials 104..122, two rows of buttons 124..148. Nothing reaches
+ * the wells row at 149 — that row is the hook picker and the store; the size reads under it at 169.
  */
 public final class TyingCanvas {
     // §tie-32: 32 cells of 3 px — 96 px, which is what fits between the tabs and the wells row
@@ -83,10 +83,10 @@ public final class TyingCanvas {
                 && TieLurePacket.count(menu, TieLurePacket.HOOK) >= nuggetsNeeded(TiedDesign.cost(design));
     }
 
-    /** A click on the page. Returns true when it was ours. {@code button}: 0 paint, 1 erase. */
+    /** A click on the page. Returns true when it was ours. {@code button}: left paints, right erases. */
     public boolean click(int left, int top, double mx, double my, int button, Runnable tie) {
         int c = cellAt(left, top, mx, my);
-        if (c >= 0) { painting = button == 1 ? 1 : 0; design[c] = (byte) (painting == 1 ? 0 : brush); return true; }
+        if (c >= 0) { painting = button == com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT ? 1 : 0; design[c] = (byte) (painting == 1 ? 0 : brush); return true; }
         int p = paletteAt(left, top, mx, my);
         if (p > 0) { brush = p; return true; }
         int s = stencilAt(left, top, mx, my);
@@ -127,6 +127,7 @@ public final class TyingCanvas {
     public void draw(GuiGraphics g, Font font, int left, int top, int mouseX, int mouseY, TackleStationMenu menu) {
         int cx = left + CANVAS_X, cy = top + CANVAS_Y;
         // the board and the hook in the vise — the hook is not yours to paint, it is what you tie on
+        g.fill(cx - 3, cy - 3, cx + SIDE + 3, cy + SIDE + 3, 0xFFB08A48);   // §bench-look: a brass-edged board
         g.fill(cx - 2, cy - 2, cx + SIDE + 2, cy + SIDE + 2, 0xFF1C1814);
         g.fill(cx, cy, cx + SIDE, cy + SIDE, 0xFF2E3A46);
         boolean[][] ghost = stencil >= 0 ? STENCILS[stencil].mask() : null;
@@ -147,7 +148,7 @@ public final class TyingCanvas {
         // the stencils, each an 8×8 thumbnail of its 16×16 mask
         for (int i = 0; i < STENCILS.length; i++) {
             int x0 = cx + i * PAT_W, y0 = top + PAT_Y;
-            g.fill(x0, y0, x0 + PAT_W - 1, y0 + PAT_W - 1, stencil == i ? 0xFFC8A050 : 0xFF2a241c);
+            g.fill(x0, y0, x0 + PAT_W - 1, y0 + PAT_W - 1, stencil == i ? 0xFFC8A050 : 0xFF2E1F14);
             boolean[][] m = STENCILS[i].mask();
             int st = TiedDesign.SIZE / 8;   // an 8×8 thumbnail whatever the canvas
             for (int y = 0; y < TiedDesign.SIZE; y += st)
@@ -164,8 +165,10 @@ public final class TyingCanvas {
         // stamp / clear — mirror / tie
         String[] labels = {I18n("gui.riverfishing.tie_stamp"), I18n("gui.riverfishing.tie_clear"), I18n("gui.riverfishing.tie_mirror"), I18n("gui.riverfishing.tie")};
         boolean[] on = {stencil >= 0, true, true, canTie(menu)};
-        for (int i = 0; i < 4; i++) {
-            button(g, font, left + PAL_X + (i % 2) * (BTN_W + BTN_GAP), top + BTN_Y + (i / 2) * (BTN_H + 2), BTN_W, BTN_H, labels[i], on[i]);
+        for (int i = 0; i < 4; i++) {   // §bench-look: the bench's own keys; Tie goes brass when it can tie
+            int bx = left + PAL_X + (i % 2) * (BTN_W + BTN_GAP), by = top + BTN_Y + (i / 2) * (BTN_H + 2);
+            TackleStationScreen.benchButton(g, font, bx, by, BTN_W, BTN_H, labels[i], i == 3 && on[i], on[i],
+                    mouseX >= bx && mouseX < bx + BTN_W && mouseY >= by && mouseY < by + BTN_H);
         }
         // the readout: what it reads as, then how big it is
         TiedDesign.Analysis a = TiedDesign.analyse(design);
@@ -174,11 +177,15 @@ public final class TyingCanvas {
         String size = Component.translatable("tooltip.riverfishing.tied_size", a.sizeMm(),
                 String.format(java.util.Locale.ROOT, "%.1f", a.weightG())).getString();
         g.drawString(font, what, cx, top + READ_Y, 0xFFE8DCC0, false);
-        g.drawString(font, size, cx + SIDE - font.width(size), top + READ_Y, 0xFF9a8d78, false);   // one line: the wells sit right under
+        // §tie-readout-fit: the size rides beside the hook number under the wells — on the readout line it ran
+        // into the name ("Муравей 100%" + "15 мм, 0.9 г" is wider than the canvas at every GUI scale)
+        g.drawString(font, size, left + 75, top + 169, 0xFFC8B89A, false);
     }
 
     private static void paletteCell(GuiGraphics g, int x0, int y0, int px, int[] cost, TackleStationMenu menu) {
-        g.fill(x0, y0, x0 + PAL_CELL - 1, y0 + PAL_CELL - 1, 0xFF2a241c);
+        g.fill(x0, y0, x0 + PAL_CELL - 1, y0 + PAL_CELL - 1, 0xFF2E1F14);   // §bench-look: a pocket in the wood
+        g.fill(x0 + 1, y0 + PAL_CELL - 2, x0 + PAL_CELL - 1, y0 + PAL_CELL - 1, 0xFF6E5034);
+        g.fill(x0 + PAL_CELL - 2, y0 + 1, x0 + PAL_CELL - 1, y0 + PAL_CELL - 1, 0xFF6E5034);
         g.fill(x0 + 3, y0 + 3, x0 + PAL_CELL - 4, y0 + PAL_CELL - 4, 0xFF000000 | TiedDesign.rgb(px));
         if (px == TiedDesign.EYE) g.fill(x0 + 7, y0 + 7, x0 + 11, y0 + 11, 0xFFFFFFFF);
         if (px == TiedDesign.HACKLE) for (int k = 0; k < 4; k++) g.fill(x0 + 4 + k * 3, y0 + 4, x0 + 5 + k * 3, y0 + 14, 0xFF3B2A18);
@@ -227,12 +234,6 @@ public final class TyingCanvas {
         else { int k = 0; while (k < MATERIALS.length && MATERIALS[k] != brush) k++; x0 = left + PAL_X + k * PAL_CELL; y0 = top + MAT_Y; }
         g.fill(x0, y0, x0 + PAL_CELL - 1, y0 + 1, 0xFFF0C040); g.fill(x0, y0 + PAL_CELL - 2, x0 + PAL_CELL - 1, y0 + PAL_CELL - 1, 0xFFF0C040);
         g.fill(x0, y0, x0 + 1, y0 + PAL_CELL - 1, 0xFFF0C040); g.fill(x0 + PAL_CELL - 2, y0, x0 + PAL_CELL - 1, y0 + PAL_CELL - 1, 0xFFF0C040);
-    }
-
-    private static void button(GuiGraphics g, Font font, int x, int y, int w, int h, String label, boolean on) {
-        g.fill(x, y, x + w, y + h, on ? 0xFF6e5a3a : 0xFF2a241c);
-        g.fill(x + 1, y + 1, x + w - 1, y + h - 1, on ? 0xFF8a7248 : 0xFF3a3227);
-        g.drawString(font, label, x + (w - font.width(label)) / 2, y + (h - 8) / 2 + 1, on ? 0xFFFFE6B0 : 0xFF6E5A3C, false);
     }
 
     private static String I18n(String key) { return Component.translatable(key).getString(); }

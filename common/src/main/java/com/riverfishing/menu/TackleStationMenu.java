@@ -55,6 +55,8 @@ public class TackleStationMenu extends AbstractContainerMenu {
     private final Player player;
     private final BlockPos pos;
     private final SimpleContainer materials;
+    /** §station-listener: kept, so a closed menu takes itself off the bench's container again. */
+    private final net.minecraft.world.ContainerListener onMaterials = c -> updateResult();
     private final SimpleContainer result = new SimpleContainer(1);
     private final DataSlot formIndex = DataSlot.standalone();
     private final DataSlot weightIndex = DataSlot.standalone();
@@ -83,7 +85,7 @@ public class TackleStationMenu extends AbstractContainerMenu {
             inv.player.getInventory().placeItemBackInInventory(materials.removeItemNoUpdate(C_HOOK));
             materials.setChanged();
         }
-        materials.addListener(c -> updateResult());
+        materials.addListener(onMaterials);
 
         // Positions unchanged: x=38 is where the hook slot was, and the hook PICKER now sits there — the
         // material row keeps its shape and the hook stays where players already look for it.
@@ -270,6 +272,7 @@ public class TackleStationMenu extends AbstractContainerMenu {
         if (index == SLOT_RESULT) {
             if (!moveItemStackTo(stack, INV_START, slots.size(), true)) return ItemStack.EMPTY;
             slot.onTake(p, stack);
+            return before;   // §station-shift: onTake already set the next result — clearing it blanked the preview
         } else if (index < INV_START) {
             if (!moveItemStackTo(stack, INV_START, slots.size(), false)) return ItemStack.EMPTY;
         } else {
@@ -293,6 +296,15 @@ public class TackleStationMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player p) {
-        return p.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0;
+        // §station-gone: a broken bench's menu stayed open on its orphaned container, and what went in was lost
+        return p.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0
+                && (p.level().isClientSide() || p.level().getBlockEntity(pos)
+                        instanceof com.riverfishing.block.TackleStationBlockEntity be && be.items() == materials);
+    }
+
+    @Override
+    public void removed(Player p) {
+        super.removed(p);
+        materials.removeListener(onMaterials);   // §station-listener: every open used to stay on the bench for good
     }
 }

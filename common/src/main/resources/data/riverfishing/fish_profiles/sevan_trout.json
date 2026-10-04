@@ -1,0 +1,90 @@
+{
+  "display": "Sevan trout",
+  "latin": "Salmo ischchan",
+  "group": "salmonid",
+  "diet": "predator",
+  "spawn": {
+    "season": "autumn",
+    "sub": "mid"
+  },
+  "water_bodies": {
+    "river": 0.9,
+    "lake": 1.4,
+    "pond": 0.1,
+    "swamp": 0.0,
+    "sea": 0.0,
+    "puddle": 0.0
+  },
+  "weight_g": {
+    "min": 400,
+    "max": 15000,
+    "mean": 1500
+  },
+  "length_cm": {
+    "min": 25.0,
+    "max": 90.0
+  },
+  "fight": {
+    "strength": 0.75,
+    "stamina": 0.8,
+    "runs": 3,
+    "pattern": "aggressive",
+    "aggression": 0.85
+  },
+  "ideal": {
+    "line": {
+      "type": "fluoro",
+      "diameter_mm": 0.2,
+      "tolerance_mm": 0.06
+    },
+    "groundbait": {
+      "fraction": 0.57,
+      "nutrition": 0.7
+    },
+    "bait": {
+      "worm": 0.6,
+      "castmaster": 1.0,
+      "spinner": 0.95,
+      "wobbler": 0.9,
+      "crankbait": 0.85,
+      "silicone": 0.7
+    },
+    "hook": {
+      "ideal": 8
+    },
+    "requires_leader": false
+  },
+  "season": {
+    "spring": 1.2,
+    "summer": 0.8,
+    "autumn": 1.1,
+    "winter": 0.6
+  },
+  "time": {
+    "dawn": 1.4,
+    "day": 1.0,
+    "dusk": 1.1,
+    "night": 0.2
+  },
+  "weather": {
+    "clear": 1.0,
+    "rain": 1.1,
+    "thunder": 0.9
+  },
+  "depth_pref": "mid",
+  "habitat": {
+    "depth_min": 3,
+    "depth_max": 12,
+    "width_min": 10
+  },
+  "provinces": [
+    "palearctic"
+  ],
+  "biomes": {
+    "mountain": 1.5,
+    "cold": 1.1,
+    "temperate": 0.8
+  },
+  "base": 0.3,
+  "min_angler_level": 22
+}
