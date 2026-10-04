@@ -156,6 +156,17 @@ public final class OrderState {
     }
 
     /**
+     * §order-board-stack: the first free y under the merchant window. On a small screen the sign hangs BELOW the
+     * window, and the contract board used to drop to the same y and cover it — "I don't have the order of the
+     * day" (26.3 beta). The board stacks under the sign instead.
+     */
+    public static int belowY() {
+        int[] b = bounds();
+        int under = (Minecraft.getInstance().getWindow().getGuiScaledHeight() - MERCHANT_H) / 2 + MERCHANT_H + 3;
+        return species != null && b[1] >= under ? b[1] + H + 3 : under;
+    }
+
+    /**
      * A click on the sign selects the trade it advertises — the same thing clicking its row in the list
      * would do, because it IS that row. Without this the sign shows a trade you cannot take, which is
      * worse than not showing it.

@@ -468,8 +468,14 @@ public final class ModVillagers {
         int rep = com.riverfishing.fishing.Contracts.rep(player);
         for (Object[] row : TRUSTED) {
             if (rep < (int) row[0]) continue;
-            VillagerTrades.ItemListing listing = sellOf((String) row[1], (int) row[2], 1, 20);
+            // §trust-xp: 2 villager xp, not 20 — the shelf is there from a novice stall on, and ten 6-emerald alarms
+            // took one from novice to half-way through expert (Besoulq, 26.3 beta); it is a favour, not a lesson
+            VillagerTrades.ItemListing listing = sellOf((String) row[1], (int) row[2], 1, 2);
             if (listing == null) continue;
+            net.minecraft.world.item.Item it = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(RiverFishing.id((String) row[1]));
+            // a shelf offer from before the fix sits on the counter with 20 xp — take it down, put the new one up
+            offers.removeIf(o -> o.getResult().getItem() == it && o.getXp() > 2
+                    && o.getBaseCostA().is(net.minecraft.world.item.Items.EMERALD) && o.getBaseCostA().getCount() == (int) row[2]);
             MerchantOffer offer = listing.getOffer(villager, villager.getRandom());
             if (offer != null && !duplicates(offers, offer)) offers.add(offer);
         }

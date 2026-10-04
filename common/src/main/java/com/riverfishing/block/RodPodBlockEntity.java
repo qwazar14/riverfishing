@@ -165,16 +165,58 @@ public class RodPodBlockEntity extends BlockEntity {
         return !line.active || line.bitten ? -1 : line.biteAtTick - now;
     }
 
+    /**
+     * §pod-slot: where slot {@code i} of {@code n} sits along the pod's bar, 0..1 in the pod's own frame — the
+     * renderer lays the rods there, and a click is matched against it.
+     */
+    public static float slotX(int i, int n) {
+        float t = n <= 1 ? 0.5f : (float) i / (n - 1);
+        // the buzz-bar pod's saddles sit at x 4.475 / 8 / 11.525 in its model — 0.28..0.72 in blocks;
+        // the old 0.25..0.75 spread parked the outer rods half a unit outside their rests
+        return n >= 3 ? 0.2797f + t * 0.4406f : 0.25f + t * 0.5f;
+    }
+
+    /**
+     * §pod-slot: where along the bar a point of the block lies, in the pod's frame — the renderer turns the pod by
+     * -FACING.toYRot() about the block's centre, so this turns the point back by the same angle.
+     */
+    private double barX(net.minecraft.world.phys.Vec3 at) {
+        net.minecraft.core.Direction f = getBlockState().hasProperty(RodPodBlock.FACING)
+                ? getBlockState().getValue(RodPodBlock.FACING) : net.minecraft.core.Direction.NORTH;
+        double th = Math.toRadians(f.toYRot());
+        double hx = at.x - worldPosition.getX() - 0.5, hz = at.z - worldPosition.getZ() - 0.5;
+        return 0.5 + hx * Math.cos(th) + hz * Math.sin(th);
+    }
+
+    /** §pod-slot: of the slots {@code ok} accepts, the one nearest where the click landed; the lowest without a point. */
+    private int nearest(@Nullable net.minecraft.world.phys.Vec3 at, java.util.function.IntPredicate ok) {
+        double x = at == null ? -1.0 : barX(at);
+        int best = -1;
+        double bestD = Double.MAX_VALUE;
+        for (int i = 0; i < slotCount; i++) {
+            if (!ok.test(i)) continue;
+            double d = at == null ? i : Math.abs(slotX(i, slotCount) - x);
+            if (d < bestD) { bestD = d; best = i; }
+        }
+        return best;
+    }
+
     public InteractionResult onUse(Player player, InteractionHand hand) {
+        return onUse(player, hand, null);
+    }
+
+    /** {@code at}: where the click hit the pod — the rod nearest it is the one taken, the empty rest nearest it the one filled. */
+    public InteractionResult onUse(Player player, InteractionHand hand, @Nullable net.minecraft.world.phys.Vec3 at) {
         if (!(player instanceof ServerPlayer sp)) return InteractionResult.CONSUME;
         ServerLevel level = sp.serverLevel();
         long now = level.getGameTime();
         ItemStack held = sp.getItemInHand(hand);
 
         if (held.getItem() instanceof AlarmItem alarmItem) {
-            // Alarms mount on the pod itself (rod optional): occupied slots first, then any free one.
-            int slot = firstOccupiedWithoutAlarm();
-            if (slot < 0) slot = firstSlotWithoutAlarm();
+            // Alarms mount on the pod itself (rod optional): a rod without one first, then any free rest —
+            // §pod-slot: the nearest to where you clicked, so you choose which rod gets it
+            int slot = nearest(at, i -> !rods.get(i).isEmpty() && alarmAt(i) == AlarmType.NONE);
+            if (slot < 0) slot = nearest(at, i -> alarmAt(i) == AlarmType.NONE);
             if (slot < 0) {
                 actionbar(sp, "message.riverfishing.alarm_needs_rod", ChatFormatting.YELLOW);
                 return InteractionResult.CONSUME;
@@ -191,7 +233,7 @@ public class RodPodBlockEntity extends BlockEntity {
                 actionbar(sp, "message.riverfishing.pod_wrong_rod", ChatFormatting.YELLOW);
                 return InteractionResult.CONSUME;
             }
-            int slot = firstEmpty();
+            int slot = nearest(at, i -> rods.get(i).isEmpty());   // §pod-slot: the empty rest you clicked by
             if (slot < 0) {
                 actionbar(sp, "message.riverfishing.pod_full", ChatFormatting.YELLOW);
                 return InteractionResult.CONSUME;
@@ -211,7 +253,7 @@ public class RodPodBlockEntity extends BlockEntity {
         }
 
         if (held.isEmpty()) {
-            int slot = undockSlot(now);
+            int slot = takeSlot(now, at);
             if (slot < 0) return InteractionResult.PASS;
             ItemStack rod = rods.get(slot);
             PodLine line = lines[slot];
@@ -235,51 +277,32 @@ public class RodPodBlockEntity extends BlockEntity {
         return InteractionResult.PASS;
     }
 
-    private int firstEmpty() {
-        for (int i = 0; i < rods.size(); i++) {
-            if (rods.get(i).isEmpty()) return i;
-        }
-        return -1;
-    }
-
-    private int firstOccupiedWithoutAlarm() {
-        for (int i = 0; i < rods.size(); i++) {
-            if (!rods.get(i).isEmpty() && alarmAt(i) == AlarmType.NONE) return i;
-        }
-        return -1;
-    }
-
-    private int firstSlotWithoutAlarm() {
-        for (int i = 0; i < rods.size(); i++) {
-            if (alarmAt(i) == AlarmType.NONE) return i;
-        }
-        return -1;
-    }
 
     /** Alarm mounted on a slot, for the renderer (synced via the update tag). */
     public AlarmType alarmTypeAt(int slot) {
         return slot >= 0 && slot < alarms.length ? alarmAt(slot) : AlarmType.NONE;
     }
 
-    /** Prefer a biting rod (so grabbing reacts to the alarm); otherwise the first occupied slot. */
-    private int undockSlot(long now) {
-        int firstOccupied = -1;
-        for (int i = 0; i < rods.size(); i++) {
-            if (rods.get(i).isEmpty()) continue;
-            if (firstOccupied < 0) firstOccupied = i;
-            PodLine line = lines[i];
-            // §pod-phantom: !phantom. The preference for a bitten rod was here from the start, but it
-            // did not tell a fish from a FALSE ALARM — so an alarm that had just cried wolf on rod one
-            // outranked the fish actually hanging on rod three, and the pod handed you the wrong rod.
-            // Reported as "it gives me an empty one", which is exactly what a phantom line is.
-            //
-            // A phantom slot can still come back as firstOccupied below. That is right: when it is the
-            // only rod on the pod there is nothing better to hand over.
-            if (line != null && line.bitten && line.active && !line.phantom && now <= line.windowEnd) {
-                return i;
-            }
-        }
-        return firstOccupied;
+    /**
+     * The rod an empty hand takes: a rod with a fish on it first (so grabbing reacts to the alarm, and the nearest
+     * of them if two are taking), otherwise §pod-slot the rod you clicked by — it used to be the first rod on the
+     * pod whatever you aimed at. Public because the renderer lifts this very rod as you look at the pod.
+     */
+    public int takeSlot(long now, @Nullable net.minecraft.world.phys.Vec3 at) {
+        int biting = nearest(at, i -> !rods.get(i).isEmpty() && realBite(i, now));
+        return biting >= 0 ? biting : nearest(at, i -> !rods.get(i).isEmpty());
+    }
+
+    private boolean realBite(int i, long now) {
+        PodLine line = lines[i];
+        // §pod-phantom: !phantom. The preference for a bitten rod was here from the start, but it
+        // did not tell a fish from a FALSE ALARM — so an alarm that had just cried wolf on rod one
+        // outranked the fish actually hanging on rod three, and the pod handed you the wrong rod.
+        // Reported as "it gives me an empty one", which is exactly what a phantom line is.
+        //
+        // A phantom slot can still be taken as the nearest rod. That is right: when it is the only rod
+        // on the pod there is nothing better to hand over.
+        return line != null && line.bitten && line.active && !line.phantom && now <= line.windowEnd;
     }
 
     private void giveRodToMainHand(ServerPlayer sp, ItemStack rod) {

@@ -314,11 +314,18 @@ public class AquariumRenderer implements BlockEntityRenderer<AquariumBlockEntity
         int water = be.getWater();
         if (water <= 0) return;
         int c = waterColor(water);
+        // §aqua-night: the beam shader is unlit — it glows, which is what a beacon wants and a tank does not: at night
+        // the box shone like a block of ice and tinted the sky behind it (26.3 beta). The light is put into the colour.
+        // ponytail: max(block, sky − darkening) on vanilla's l/(4−3l) curve — a stand-in for the lightmap (no gamma,
+        // no night vision); a lit translucent type that writes no depth would make it exact.
+        int skyDarken = be.getLevel() == null ? 0 : be.getLevel().getSkyDarken();
+        float l = Math.max((light >> 4) & 0xF, Math.max(0, ((light >> 20) & 0xF) - skyDarken)) / 15f;
+        float shade = 0.15f + 0.85f * l / (4f - 3f * l);
         pose.pushPose();
         pose.translate(tankX, 0, tankZ);
         pose.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
-        waterBox(pose.last().pose(), buffers.getBuffer(WATER_LAYER),
-                (c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF, (c >>> 24) & 0xFF, light, overlay);
+        waterBox(pose.last().pose(), buffers.getBuffer(WATER_LAYER), Math.round(((c >> 16) & 0xFF) * shade),
+                Math.round(((c >> 8) & 0xFF) * shade), Math.round((c & 0xFF) * shade), (c >>> 24) & 0xFF, light, overlay);
         pose.popPose();
     }
 

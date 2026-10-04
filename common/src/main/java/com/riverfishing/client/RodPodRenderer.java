@@ -47,6 +47,16 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
         pose.translate(-0.5, 0.0, -0.5);
         float time = be.getLevel() != null ? be.getLevel().getGameTime() % 100000L + partialTick : partialTick;
         long now = be.getLevel() != null ? be.getLevel().getGameTime() : 0L;
+        // §pod-slot: looking at the pod with an empty hand shows which rod a click takes — the very rule the
+        // server will apply (the client has the rods and their lines through the update tag)
+        int aim = -1;
+        var mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.player != null && mc.player.getMainHandItem().isEmpty() && be.getLevel() != null
+                && mc.hitResult instanceof net.minecraft.world.phys.BlockHitResult bh
+                && mc.hitResult.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK
+                && bh.getBlockPos().equals(be.getBlockPos())) {
+            aim = be.takeSlot(now, bh.getLocation());
+        }
 
         // §pod-visual per tier, measured off the block models rather than eyeballed:
         //  - tier 1 (rod_pod_y): a forked branch, crotch at y 9.92u — one rod cradled at 25°.
@@ -84,7 +94,7 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
             // own length and the rod stayed flat while the hand-derived tip climbed the slope.
             // The 0.03125 translate compensates the blank axis sitting off-centre in model z.
             org.joml.Matrix4f rodM = new org.joml.Matrix4f()
-                    .translate(x - 0.03125f + rattle, rod3dY + Math.abs(rattle), rod3dZ)
+                    .translate(x - 0.03125f + rattle, rod3dY + Math.abs(rattle) + (i == aim ? 0.03f : 0f), rod3dZ)
                     .rotateX((float) Math.toRadians(-rod3dPitch))  // lift the tip by the saddle slope
                     .rotateY((float) Math.toRadians(90f));         // model -X (tip) -> +Z, guides down
             pose.pushPose();
@@ -105,7 +115,7 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
                 continue;
             }
             pose.pushPose();
-            pose.translate(x, rodY, 0.45);
+            pose.translate(x, rodY + (i == aim ? 0.03f : 0f), 0.45);
             // FIXED context maps texture-right to local -X, so POSITIVE angles here point the
             // texture diagonal (handle -> tip) toward +Z, the cast direction.
             pose.mulPose(Axis.YP.rotationDegrees(90f));       // sprite plane runs along the cast axis (+Z)
@@ -248,10 +258,7 @@ public class RodPodRenderer implements BlockEntityRenderer<RodPodBlockEntity> {
     }
 
     private static float slotX(int i, int n) {
-        float t = n <= 1 ? 0.5f : (float) i / (n - 1);
-        // the buzz-bar pod's saddles sit at x 4.475 / 8 / 11.525 in its model — 0.28..0.72 in blocks;
-        // the old 0.25..0.75 spread parked the outer rods half a unit outside their rests
-        return n >= 3 ? 0.2797f + t * 0.4406f : 0.25f + t * 0.5f;
+        return RodPodBlockEntity.slotX(i, n);   // §pod-slot: one table for the drawing and the click
     }
 
     private static void drawLine(VertexConsumer vc, Matrix4f m, Matrix3f nrm,

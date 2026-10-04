@@ -111,6 +111,7 @@ public final class CatchCard {
         CompoundTag c = new CompoundTag();
         c.putString("Angler", sp.getGameProfile().getName());
         c.putLong("Day", level.getServer().overworld().getDayTime() / 24000L);
+        c.putLong("CaughtAt", java.time.Instant.now().getEpochSecond());   // §catch-time: unix seconds, for tournaments
         c.putString("Date", java.time.LocalDate.now().toString());
         c.putString("Rod", s.rodClass.name().toLowerCase(java.util.Locale.ROOT));
         c.putString("RodItem", rod.getItem() instanceof com.riverfishing.item.RodItem
@@ -158,6 +159,7 @@ public final class CatchCard {
         CompoundTag c = new CompoundTag();
         c.putString("Angler", sp.getGameProfile().getName());
         c.putLong("Day", level.getServer().overworld().getDayTime() / 24000L);
+        c.putLong("CaughtAt", java.time.Instant.now().getEpochSecond());   // §catch-time: unix seconds, for tournaments
         c.putString("Date", java.time.LocalDate.now().toString());
         c.putString("Rod", "net");
         c.putString("RodItem", "");
@@ -197,6 +199,7 @@ public final class CatchCard {
         CompoundTag c = new CompoundTag();
         c.putString("Angler", sp.getGameProfile().getName());
         c.putLong("Day", level.getServer().overworld().getDayTime() / 24000L);
+        c.putLong("CaughtAt", java.time.Instant.now().getEpochSecond());   // §catch-time: unix seconds, for tournaments
         c.putString("Date", java.time.LocalDate.now().toString());
         c.putString("Rod", "debug");
         c.putString("RodItem", "");
@@ -207,7 +210,7 @@ public final class CatchCard {
         c.putString("Province", com.riverfishing.water.Provinces.at(level.getSeed(), pos.getX(), pos.getZ()));
         c.putString("Time", com.riverfishing.engine.TimeOfDay.fromDayTime(level.getDayTime()).jsonKey());
         c.putString("Season", com.riverfishing.engine.Calendar.season(level).jsonKey());
-        c.putString("Weather", "clear");
+        c.putString("Weather", level.isThundering() ? "thunder" : level.isRaining() ? "rain" : "clear");
         c.putString("Bed", "");
         c.putString("Spot", "");
         c.putBoolean("Ice", false);

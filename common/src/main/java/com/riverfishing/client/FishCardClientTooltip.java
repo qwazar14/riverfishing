@@ -158,7 +158,12 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
             where.append(Component.translatable("water.riverfishing." + c.getString("Water")).getString());
         }
         if (where.length() > 0) lines.add(new Object[]{new ItemStack(Items.MAP), Component.literal(where.toString()), CREAM});
-        lines.add(new Object[]{new ItemStack(Items.FEATHER), Component.literal(c.getString("Angler") + " · " + c.getString("Date")
+        // §catch-time: the minute it came out, in the reader's own clock; cards from before 1.1.0 have the date only
+        long caughtAt = c.getLong("CaughtAt");
+        String when = caughtAt > 0 ? java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(
+                java.time.LocalDateTime.ofInstant(java.time.Instant.ofEpochSecond(caughtAt), java.time.ZoneId.systemDefault()))
+                : c.getString("Date");
+        lines.add(new Object[]{new ItemStack(Items.FEATHER), Component.literal(c.getString("Angler") + " · " + when
                 + " · " + key("day", c.getLong("Day")).getString()), CREAM});
         // §nature: the counter buys PRIME fish only — said in emeralds, and not at all for the rest
         if (FishItem.isPrime(fish) && c.getInt("Value") > 0) {
@@ -302,13 +307,13 @@ public final class FishCardClientTooltip implements ClientTooltipComponent {
         FRAME = 0;
         if (paper) drawPaper(font, x, y, w, g);
         else drawFish(font, x, y, w, g);
-        // the stamps last, tilted, over the top right — as if the angler's book had been stamped
+        // the stamps last, over the top right — as if the angler's book had been stamped. §stamp-straight: level, on
+        // whole pixels: a tilt resampled the pixel font and the letters ran into each other (Besoulq, 26.3 beta)
         for (int i = 0; i < stamps.size(); i++) {
             Component word = (Component) stamps.get(i)[0];
             int ink = (int) stamps.get(i)[1], sw = font.width(word) + 10;
             g.pose().pushPose();
-            g.pose().translate(x + w - sw / 2f - 2, y + 6 + i * 15, 400);
-            g.pose().mulPose(Axis.ZP.rotationDegrees(i % 2 == 0 ? -7f : 5f));
+            g.pose().translate(x + w - sw / 2 - 2, y + 6 + i * 15, 400);
             box(g, -sw / 2, -6, sw / 2, 7, ink);
             box(g, -sw / 2 + 2, -4, sw / 2 - 2, 5, (ink & 0x00FFFFFF) | 0x99000000);
             g.drawString(font, word, -sw / 2 + 5, -3, ink, false);

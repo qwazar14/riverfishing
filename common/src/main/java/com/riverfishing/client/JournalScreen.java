@@ -2059,6 +2059,13 @@ public class JournalScreen extends Screen {
         g.fill(bx - 2, by - 2, bx + bw + 2, by + bh + 2, GuiStyle.TITLE_BAR);
         g.fill(bx - 1, by - 1, bx + bw + 1, by + bh + 1, 0xFF2B2016);
         ResourceLocation tex = RiverFishing.id("textures/gui/journal/fish/" + sp + ".png");
+        // §halloween-art: in Halloween week (24 Oct – 1 Nov, the player's own calendar) a species with a spooky
+        // picture of its own shows that one instead — the goblin shark has one
+        java.time.LocalDate today = java.time.LocalDate.now();
+        if ((today.getMonthValue() == 10 && today.getDayOfMonth() >= 24) || (today.getMonthValue() == 11 && today.getDayOfMonth() == 1)) {
+            ResourceLocation spooky = RiverFishing.id("textures/gui/journal/fish_halloween/" + sp + ".png");
+            if (Minecraft.getInstance().getResourceManager().getResource(spooky).isPresent()) tex = spooky;
+        }
         if (Minecraft.getInstance().getResourceManager().getResource(tex).isPresent()) {
             g.blit(tex, bx, by, bw, bh, 0f, 0f, 16, 16, 16, 16);
         } else {

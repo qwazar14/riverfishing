@@ -74,6 +74,13 @@ public final class ClientLineState {
          * that point — so a run that takes line carries it OUT, and a side run swings it round.
          */
         public float swing, swingShown;
+        /**
+         * §rod-follows-fish: how fast the DRAWN fish crosses the angler's view, blocks/s, + = to the right, eased. The
+         * rod leans and bends off this, not off the run's course byte: the course arrives the instant the server
+         * starts a run, the fish swings round at a fish's pace, and the rod went over before the fish had moved
+         * (Besoulq, 26.3 beta).
+         */
+        public float sideSpeed;
         public byte move;
         public net.minecraft.world.phys.Vec3 pivot;
         /** Where the body was drawn last — the lift-out and the getaway start from here. */
@@ -111,11 +118,13 @@ public final class ClientLineState {
                 runFor = 0f;
                 jumpT = -1f;
                 swingShown = swing;
+                sideSpeed = 0f;
                 prevAt = null;
                 return;
             }
             fx = fz = 0.0;   // §fight-moves: the bearing carries it now, not an offset off the line's end
             // the server moves the bearing at a fish's pace every tick and says so every fifth: follow it smoothly
+            float swingWas = swingShown;
             swingShown = Mth.lerp(Math.min(1f, dt * 5f), swingShown, swing);
             boolean charging = move == com.riverfishing.fishing.FightMoves.CHARGE || move == com.riverfishing.fishing.FightMoves.CHARGE_SLACK;
             // beaten: on its side and towed in — and it stays so through a twitch of the line (the server's short
@@ -163,6 +172,8 @@ public final class ClientLineState {
             net.minecraft.world.phys.Vec3 at = com.riverfishing.fishing.FightMoves.swung(pivot, base, swingShown);
             double vx = prevAt == null ? 0 : at.x - prevAt.x, vz = prevAt == null ? 0 : at.z - prevAt.z;
             prevAt = at;
+            double r = Math.hypot(at.x - pivot.x, at.z - pivot.z);
+            sideSpeed = Mth.lerp(Math.min(1f, dt * 8f), sideSpeed, (float) ((swingShown - swingWas) * r / Math.max(dt, 1e-3f)));
             float want = charging || beaten ? (float) Math.atan2(pivot.z - at.z, pivot.x - at.x)
                     : (vx * vx + vz * vz) > 1e-6 ? (float) Math.atan2(vz, vx)
                     : (float) Math.atan2(at.z - pivot.z, at.x - pivot.x);
@@ -190,6 +201,11 @@ public final class ClientLineState {
         /** §line-calm: the kink as DRAWN — chases the clipped point instead of jumping to it. */
         public net.minecraft.world.phys.Vec3 kinkShown;
 
+        /** §rod-follows-fish: -1..1, the course byte's sign (+1 = the fish going LEFT), full at 1.5 blocks/s across. */
+        public float sideLean() {
+            return Mth.clamp(-sideSpeed / 1.5f, -1f, 1f);
+        }
+
         /** Where the body is this frame, given the line's water end. */
         public net.minecraft.world.phys.Vec3 fishAt(net.minecraft.world.phys.Vec3 end) {
             net.minecraft.world.phys.Vec3 at = pivot == null || !fighting ? end
@@ -211,7 +227,8 @@ public final class ClientLineState {
             // run reads as the rod being pulled over rather than as the item teleporting.
             // The sign is what the bar says, not the opposite of it: a fish going LEFT drags the tip
             // LEFT. The first build had these the wrong way round and the two cues contradicted.
-            float ty = course == 1 ? 1f : course == 2 ? -1f : 0f;
+            // §rod-follows-fish: with a fish drawn on the line the lean is how fast it is really going sideways
+            float ty = fighting && !species.isEmpty() ? sideLean() : course == 1 ? 1f : course == 2 ? -1f : 0f;
             float tp = course == 3 ? 1f : course == 4 ? -1f : 0f;
             float k = Math.min(1f, frameSeconds * 5f);
             leanYaw = Mth.lerp(k, leanYaw, ty * RodHandTransform.COURSE_YAW);

@@ -835,7 +835,9 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         if (mc.player == null) return 0f;
         ClientLineState.Line own = ClientLineState.lines().get(mc.player.getId());
         if (own == null) return 0f;
-        var d = net.minecraft.world.phys.Vec3.atCenterOf(own.target).subtract(mc.player.position());
+        // §rod-follows-fish: at the fish where it is DRAWN — swung round the rod, not the line's end before the swing
+        boolean drawn = own.fighting && !own.species.isEmpty() && own.lastFishAt != null;
+        var d = (drawn ? own.lastFishAt : net.minecraft.world.phys.Vec3.atCenterOf(own.target)).subtract(mc.player.position());
         float yawTo = (float) Math.toDegrees(net.minecraft.util.Mth.atan2(-d.x, d.z));
         float off = net.minecraft.util.Mth.degreesDifference(mc.player.getYRot(), yawTo);
         // saturates by 45° off-view: countering a run (fish left, camera swung right) should put the
@@ -843,7 +845,7 @@ public final class RodItemRenderer extends BlockEntityWithoutLevelRenderer {
         float lat = net.minecraft.util.Mth.clamp(off / 45f, -1f, 1f);
         if (own.fighting) {
             // fish running LEFT drags the tip further left — same sign language the lean spoke
-            lat += own.course == 1 ? -0.5f : own.course == 2 ? 0.5f : 0f;
+            lat -= 0.5f * (drawn ? own.sideLean() : own.course == 1 ? 1f : own.course == 2 ? -1f : 0f);
         }
         return net.minecraft.util.Mth.clamp(lat, -1f, 1f);
     }

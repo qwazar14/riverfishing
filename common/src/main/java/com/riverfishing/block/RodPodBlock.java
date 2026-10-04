@@ -119,7 +119,7 @@ public class RodPodBlock extends BaseEntityBlock {
             return net.minecraft.world.ItemInteractionResult.SUCCESS;
         }
         if (level.getBlockEntity(pos) instanceof RodPodBlockEntity be) {
-            InteractionResult r = be.onUse(player, hand);
+            InteractionResult r = be.onUse(player, hand, hit.getLocation());   // §pod-slot: the rod you aimed at
             if (r == InteractionResult.PASS) return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
             if (r == InteractionResult.FAIL) return net.minecraft.world.ItemInteractionResult.FAIL;
             return net.minecraft.world.ItemInteractionResult.SUCCESS;

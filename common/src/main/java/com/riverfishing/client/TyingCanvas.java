@@ -22,9 +22,9 @@ import java.util.function.Predicate;
  * reads it with. The bench's own store (the nine wells under the canvas) and your inventory pay
  * together; hover Tie for the bill.
  *
- * <p>Layout, top to bottom, left column then right: canvas 30..110, stencils 114..124, two readout
- * lines 128..146 | threads 30..102, materials 104..122, two rows of buttons 124..148. Nothing reaches
- * the wells row at 149 — that row is the hook picker and the store.
+ * <p>Layout, top to bottom, left column then right: canvas 26..122, stencils 124..134, the name line
+ * 136..145 | threads 30..102, materials 104..122, two rows of buttons 124..148. Nothing reaches
+ * the wells row at 149 — that row is the hook picker and the store; the size reads under it at 169.
  */
 public final class TyingCanvas {
     // §tie-32: 32 cells of 3 px — 96 px, which is what fits between the tabs and the wells row
@@ -177,7 +177,9 @@ public final class TyingCanvas {
         String size = Component.translatable("tooltip.riverfishing.tied_size", a.sizeMm(),
                 String.format(java.util.Locale.ROOT, "%.1f", a.weightG())).getString();
         g.drawString(font, what, cx, top + READ_Y, 0xFFE8DCC0, false);
-        g.drawString(font, size, cx + SIDE - font.width(size), top + READ_Y, 0xFFC8B89A, false);   // one line: the wells sit right under
+        // §tie-readout-fit: the size rides beside the hook number under the wells — on the readout line it ran
+        // into the name ("Муравей 100%" + "15 мм, 0.9 г" is wider than the canvas at every GUI scale)
+        g.drawString(font, size, left + 75, top + 169, 0xFFC8B89A, false);
     }
 
     private static void paletteCell(GuiGraphics g, int x0, int y0, int px, int[] cost, TackleStationMenu menu) {

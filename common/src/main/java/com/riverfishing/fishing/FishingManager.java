@@ -3654,13 +3654,9 @@ public final class FishingManager {
         // a pond's average put most rolls a little under it, and every one of those came out at exactly
         // five times the bait — the same weight, fish after fish (Discord: K1rhgoff). A roll that lands
         // under the floor is rolled again ABOVE it, on the species' own curve.
-        boolean lifted = false;
         if (livebaitWeightG > 0 && !session.foulHooked) {
             double floorW = Math.min(livebaitWeightG * BiteEngine.PREY_RATIO, p.weightMax);
-            if (weight < floorW) {
-                weight = floorW + (p.weightMax - floorW) * Math.pow(random.nextDouble(), Math.max(1.0, k));
-                lifted = true;
-            }
+            if (weight < floorW) weight = floorW + (p.weightMax - floorW) * Math.pow(random.nextDouble(), Math.max(1.0, k));
         }
         session.weightG = (int) Math.round(weight);
 
@@ -3671,8 +3667,10 @@ public final class FishingManager {
         // sells itself as a simulator the word has to mean what an angler means by it: this specimen is
         // in the top of its species' size range. Every floor above (livebait, lure mass, luck) can push a
         // fish into that band, which is exactly how those things work in the water.
-        session.trophy = biased >= RiverFishingConfig.trophyFraction();
-        if (lifted) session.trophy = weight >= FishItem.trophyThresholdG(p.weightMin, p.weightMax);   // §livebait-spread: the roll it was read off is gone
+        // §trophy-weight: read off the WEIGHT that comes out, never the roll — the size genes (×0.9) and the pond
+        // average move the fish after the roll, and a 13.43 kg carp came out a trophy under a card that said
+        // "trophy from 13.60 kg" (Besoulq, 26.3 beta). The card's bar and the badge now say the same thing.
+        session.trophy = session.weightG >= FishItem.trophyThresholdG(p.weightMin, p.weightMax);
 
         // Length from weight by the real allometric law L ∝ W^(1/3) — a fish's mass grows with its volume
         // (~length³), so length tracks the CUBE ROOT of weight, anchored to the species' own length range.

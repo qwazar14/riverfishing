@@ -39,6 +39,8 @@ public class FinderScreen extends Screen {
     private static final int VIEW_X = 10, VIEW_Y = 30, VIEW_W = 236, VIEW_H = 150;
     private static final int LIST_X = 254, LIST_W = 176;
     private static final int ROW = 13;
+    /** §finder-strip: the status strip at the foot of the section — the bed's legend and "+N more". */
+    private static final int LEGEND_H = 12;
 
     /**
      * §fish-icons: drawn at 24 px, and at most ten of them. The textures are 256 px; at 16 px a
@@ -229,7 +231,9 @@ public class FinderScreen extends Screen {
     }
 
     private int yForDepth(double metres) {
-        return VIEW_Y + top + (int) Math.round(metres / depthScale() * (VIEW_H - 18)) + 8;
+        // §finder-strip: the deepest metre sits LEGEND_H above the face's foot — the strip under it is the bed's
+        // legend, where "Bed: silt, sand" used to print over the deepest depth label and over the sand itself
+        return VIEW_Y + top + (int) Math.round(metres / depthScale() * (VIEW_H - 18 - LEGEND_H)) + 8;
     }
 
     /** Where metre {@code i} of the profile sits on the face. The ruler takes the first 22 px. */
@@ -313,13 +317,13 @@ public class FinderScreen extends Screen {
                                 t.getInt("dmin"), t.getInt("dmax")).getVisualOrderText());
             }
         }
+        // What the bed is made of, read off the profile — the legend a real sounder prints, on its own dark strip
+        g.fill(x0 + 1, y0 + VIEW_H - LEGEND_H, x0 + VIEW_W - 1, y0 + VIEW_H - 1, 0xE0081A1E);
+        g.drawString(this.font, bedLegend(pd, pb), x0 + 4, y0 + VIEW_H - 10, 0xCC40E0B0, false);
         if (here.size() > shown) {
             Component more = Component.translatable("finder.riverfishing.more_fish", here.size() - shown);
-            g.drawString(this.font, more, x0 + VIEW_W - this.font.width(more) - 6, y0 + VIEW_H - 11, 0x9940E0B0, false);
+            g.drawString(this.font, more, x0 + VIEW_W - this.font.width(more) - 6, y0 + VIEW_H - 10, 0xCC40E0B0, false);
         }
-
-        // What the bed is made of, read off the profile — the legend a real sounder prints.
-        g.drawString(this.font, bedLegend(pd, pb), x0 + 4, y0 + VIEW_H - 11, 0x9940E0B0, false);
     }
 
     /**
@@ -751,8 +755,9 @@ public class FinderScreen extends Screen {
         return out;
     }
 
+    /** §finder-strip: one row short of the face, so "…and N more below" prints inside it and not over the frame. */
     private int visibleRows() {
-        return (VIEW_H) / ROW;
+        return (VIEW_H - ROW) / ROW;
     }
 
     private void renderList(GuiGraphics g, int mouseX, int mouseY) {
@@ -784,7 +789,7 @@ public class FinderScreen extends Screen {
         }
         if (rows.size() > scroll + vis) {
             g.drawString(this.font, Component.translatable("finder.riverfishing.more", rows.size() - scroll - vis),
-                    x, top + VIEW_Y + VIEW_H - 2, INK_GHOST, false);
+                    x, top + VIEW_Y + vis * ROW, INK_GHOST, false);
         }
     }
 
