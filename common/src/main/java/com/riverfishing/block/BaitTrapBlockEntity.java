@@ -163,7 +163,9 @@ public class BaitTrapBlockEntity extends BlockEntity {
                     .withStyle(ChatFormatting.GRAY), true);
             return ItemStack.EMPTY;
         }
-        return com.riverfishing.item.FryItem.of(com.riverfishing.RiverFishing.id(species), stocked.genome(region, species), n);
+        ItemStack fry = com.riverfishing.item.FryItem.of(com.riverfishing.RiverFishing.id(species), stocked.genome(region, species), n);
+        com.riverfishing.item.RoeItem.setPattern(fry, stocked.pattern(region, species));   // §pattern-line
+        return fry;
     }
 
     /**
