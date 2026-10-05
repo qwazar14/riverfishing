@@ -192,7 +192,9 @@ public final class PondLife {
         best.count -= n;
         if (best.count <= 0) lake.agents.remove(best);
         lake.touch();
-        return com.riverfishing.item.FryItem.of(com.riverfishing.RiverFishing.id(best.sp.id()), genes(best.mother), n);
+        ItemStack fry = com.riverfishing.item.FryItem.of(com.riverfishing.RiverFishing.id(best.sp.id()), genes(best.mother), n);
+        com.riverfishing.item.RoeItem.setPattern(fry, com.riverfishing.fish.CatchCard.pattern(record(best.mother).getCompoundOrEmpty("Card")));   // §pattern-line
+        return fry;
     }
 
     public static boolean holds(Lake lake, String species) {

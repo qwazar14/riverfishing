@@ -116,7 +116,17 @@ public final class Life {
 
         /** A fry of these parents grown into a head — or null if the egg never developed (a lethal genotype). */
         default Head hatch(Species sp, Head mother, Head father, long uid, double hour, Random r) {
-            return new Head(uid, r.nextInt(2), FRY_G, hour);
+            Head h = new Head(uid, r.nextInt(2), FRY_G, hour);
+            // §pattern-line: a wild water hatches no card, but the released line's pattern index still rides
+            // down to its young — otherwise they were landed at the region's one averaged index
+            if (mother != null && mother.tag instanceof net.minecraft.nbt.CompoundTag rec
+                    && rec.getCompoundOrEmpty("Card").contains("Pattern")) {
+                net.minecraft.nbt.CompoundTag card = new net.minecraft.nbt.CompoundTag(), mine = new net.minecraft.nbt.CompoundTag();
+                card.put("Pattern", rec.getCompoundOrEmpty("Card").get("Pattern").copy());
+                mine.put("Card", card);
+                h.tag = mine;
+            }
+            return h;
         }
 
         /** Can this species spawn without a male of its own kind (gynogenesis)? */
