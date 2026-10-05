@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * <ul>
  *   <li><b>Glut</b> — every prime fish LANDED on the server saturates that species' market a little
- *       (+0.08, capped at 1.0); a glutted species pays down to ×0.5. It recovers ~15%/day — overfish
+ *       (+0.03, capped at 1.0); a glutted species pays down to ×0.75. It recovers ~50%/day — overfish
  *       the bream and the bream money dries up, spreading anglers across species (the economy-level
  *       twin of the per-chunk depletion).</li>
  *   <li><b>Order of the day</b> — one species per Minecraft day (deterministic rotation, same for the
@@ -23,9 +23,11 @@ import java.util.Map;
  */
 public final class MarketData extends SavedData {
     private static final String NAME = "riverfishing_market";
-    private static final double GLUT_PER_CATCH = 0.08;
-    private static final double DAILY_RECOVERY = 0.85; // glut multiplier per day passed
+    private static final double GLUT_PER_CATCH = 0.03;
+    private static final double DAILY_RECOVERY = 0.5; // glut multiplier per day passed
     public static final double ORDER_MULT = 2.5;
+    // §market-casual: single player — a full glut costs at most a quarter, and half of it is gone by morning.
+    private static final double GLUT_MAX_CUT = 0.25;
 
 
     private final Map<String, Double> glut = new HashMap<>();
@@ -72,7 +74,7 @@ public final class MarketData extends SavedData {
         // the glut, so a farm of that one species sold without end at the full order price.
         double mult = species.equals(orderOfTheDay(level)) ? ORDER_MULT : 1.0;
         double g = glut.getOrDefault(species, 0.0);
-        return Math.max(1, (int) Math.round(base * mult * (1.0 - 0.5 * g)));
+        return Math.max(1, (int) Math.round(base * mult * (1.0 - GLUT_MAX_CUT * g)));
     }
 
     private void decay() {
